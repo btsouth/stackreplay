@@ -41,6 +41,15 @@ const ReplayTimeline = dynamic(() => import("./replay-timeline"), {
 
 type Phase = "idle" | "loading" | "replaying" | "done";
 
+/**
+ * Engine warnings are written for a CLI result surface and may name rule
+ * enums verbatim ("a latch_until_reset rule"); this UI humanizes them exactly
+ * like the constraint detail rows do.
+ */
+function humanizeWarningMessage(message: string): string {
+  return message.replaceAll("_", " ");
+}
+
 interface ReplayOutcome {
   result: ExecutionReplayResultV1;
   timeline: TimelinePoint[];
@@ -758,7 +767,7 @@ function ReplayResult({
                 <ul className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
                   {result.warnings.map((warning) => (
                     <li key={warning.code}>
-                      {warning.message}
+                      {humanizeWarningMessage(warning.message)}
                       {warning.eventCount !== undefined
                         ? ` (${formatCount(warning.eventCount)} events)`
                         : ""}

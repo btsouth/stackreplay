@@ -34,8 +34,12 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   await expect(constraints).toContainText("EXCEEDED");
   await expect(constraints).toContainText("attempted");
   // Enum values are humanized for display: no raw underscores leak through.
+  // This covers constraint detail rows AND the result warnings (the
+  // LATCH_TRIGGERED warning text also embeds the enum).
   await expect(constraints).toContainText("latch until reset");
   await expect(constraints).not.toContainText("until_reset");
+  await expect(page.getByTestId("replay-warnings")).toContainText("latch until reset rule");
+  await expect(page.getByTestId("replay-warnings")).not.toContainText("until_reset");
 
   const violations = page.getByTestId("violations");
   await expect(violations).toBeVisible();
