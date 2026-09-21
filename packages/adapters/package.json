@@ -18,10 +18,22 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo"
+    "test": "pnpm build && vitest run",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@stackreplay/catalog": "workspace:*",
+    "@stackreplay/schema": "workspace:*",
+    "zod": "^4.4.7"
   },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
-    "typescript": "^7.0.2"
+    "@types/node": "^24.13.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  },
+  "engines": {
+    "node": "^24.0.0"
   }
 }

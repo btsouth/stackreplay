@@ -250,6 +250,50 @@ Clarifications of the existing accounting contract:
   when capacity changes. Capacity properties must state the pool, unit and
   window assumptions they actually prove.
 
+## 22. Adapter accounting must be evidence-backed, or unknown
+
+An adapter may emit an explicit zero for a canonical token category only when the source's own
+accounting model has no such separate category, and that fact is established from one of: upstream
+source code, upstream documentation, or an arithmetic invariant in the data itself. Anything else
+stays unknown. Evidence is recorded per adapter in `docs/ADAPTERS.md`, and every relationship is
+re-checked defensively per record: when the stated invariant fails, the affected categories degrade
+to unknown with a warning instead of publishing an impossible accounting. Rationale: this is the
+difference between "the source does not report reasoning" (unknown) and "the source has no separate
+reasoning category" (a known absence), and only the second may be reported as zero.
+
+## 23. Harness attribution is a mapping, never a re-ingestion
+
+A harness that orchestrates other agents (T3 Code today, others later) contributes attribution and
+provider-history roots, not usage events of its own. Provider sessions it orchestrated are
+attributed to the harness with `attribution: "exact"` while the underlying provider session remains
+the single source of usage. This is what keeps "T3 ran this" from becoming "T3 ran this and Claude
+Code ran this". Harness-managed history roots that duplicate a provider's default root are not
+scanned twice.
+
+## 24. Session identity is adapter-independent, event identity is adapter-scoped
+
+`nativeSessionHash` is derived from the session id alone, so two sources observing the same session
+(for example a native Claude Code scan and a ccusage import of that session) can be recognised as
+the same work and deduplicated. `nativeEventHash` stays scoped to the adapter, so distinct sources
+keep distinct event identities. Overlap resolution keeps the higher-precision source (a native
+per-call scan outranks an aggregate import) and reports every dropped aggregate.
+
+## 25. Aggregated sources emit one event per aggregate
+
+When a source only exposes aggregates (Hermes records per session and model, ccusage rows are
+daily or session level), StackReplay emits exactly one canonical event per aggregate and carries the
+aggregate's window explicitly. It never fabricates a sequence of per-call events to make request
+counts look exact. Request counts from such sources are approximate, and both the adapter and the CLI
+say so.
+
+## 26. Third-party imports are opt-in and never complete themselves
+
+A third-party export (ccusage JSON) is read only when the user points at it explicitly, and it is
+never auto-detected as a source of truth for the machine. Where an import cannot establish a
+relationship the canonical model needs, the unknown is preserved rather than filled in: imported
+rows keep reasoning unknown, so their token totals are reported as unknown. Importing alongside a
+native scan is allowed and deduplicated, with the overlap reported.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

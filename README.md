@@ -68,8 +68,8 @@ Privacy is a design constraint here, not footer copy. The intended architecture:
   machine.
 
 Current reality: this repository contains the versioned schemas, the synthetic catalog, the
-deterministic replay engine, the design system, the application shell and the CLI scaffold. The
-statements above are architecture intentions;
+deterministic replay engine, the design system, the application shell, the local adapters and the
+working CLI. The statements above are architecture intentions;
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) tracks exactly what exists today.
 
 ## Project status
@@ -80,13 +80,40 @@ statements above are architecture intentions;
   replay engine, golden fixtures, property tests, 100,000-event benchmark) was independently
   re-audited and **accepted after corrections**. All seven original blockers are resolved.
   The 100,000-event performance target remains borderline on this machine; see the complete
-  benchmark samples and limitations in the implementation status. M2 has not started.
-- No adapters, scanning, import or replay of real usage exist yet; those arrive with the CLI and
-  adapter milestones. Nothing has been pushed anywhere: there is no remote.
+  benchmark samples and limitations in the implementation status.
+- Milestone 2 (local adapters for Command Code, OpenCode, Codex, Claude Code, Hermes, T3 Code
+  attribution and ccusage import, plus the working CLI: `detect`, `scan`, `export`, `replay`,
+  `plans`, `doctor`) is implemented, offline and read-only. The repository is public and hosted CI
+  is green.
+- The bundled catalog is still synthetic demo data, so replaying a real local workload reports its
+  models as unmapped rather than pretending to know their pricing. Real catalog data, the browser
+  experience, accounts and cloud sync arrive in later milestones.
 
 `docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
 and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and
-architecture decisions.
+architecture decisions, and [docs/ADAPTERS.md](docs/ADAPTERS.md) documents every source adapter,
+its accounting evidence and its limitations.
+
+## Using the CLI
+
+The CLI reads the agent histories already on your machine. It never uploads anything and never
+modifies a source file.
+
+```sh
+pnpm --filter @stackreplay/cli build
+
+node apps/cli/dist/bin.js detect                       # what exists locally
+node apps/cli/dist/bin.js scan                         # what the workload looks like
+node apps/cli/dist/bin.js export --out usage.json      # sanitized, versioned export
+node apps/cli/dist/bin.js replay example-cloud-starter --input usage.json --as-of 2026-09-15
+node apps/cli/dist/bin.js plans                        # bundled catalog
+node apps/cli/dist/bin.js doctor                       # diagnose a missing source
+```
+
+Every command supports `--json` for machine-readable output. `scan` and `export` accept
+`--since` / `--until` / `--source`, and `export` accepts `--input <ccusage.json>` to include an
+existing ccusage export. See [docs/ADAPTERS.md](docs/ADAPTERS.md) for what each source reports and
+what stays unknown.
 
 ## Local development
 
@@ -110,12 +137,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and expectations.
 ```
 apps/
   web/            Next.js application (shell today; replay and public surfaces later)
-  cli/            stackreplay CLI (scaffold today; scan/export/replay in later milestones)
+  cli/            stackreplay CLI: detect, scan, export, replay, plans, doctor
 packages/
   replay-engine/  Deterministic replay simulation
   catalog/        Plans, providers, models, pricing, plan versions
   schema/         Versioned shared schemas and types
-  adapters/       Local source adapters
+  adapters/       Local source adapters and the collection pipeline
   db/             Server-side persistence (later milestone)
   ui/             Design system and product components
   config/         Shared TypeScript configuration

@@ -22,6 +22,19 @@ importers:
         version: 7.0.2
 
   apps/cli:
+    dependencies:
+      '@stackreplay/adapters':
+        specifier: workspace:*
+        version: link:../../packages/adapters
+      '@stackreplay/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
+      '@stackreplay/replay-engine':
+        specifier: workspace:*
+        version: link:../../packages/replay-engine
+      '@stackreplay/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
     devDependencies:
       '@stackreplay/config':
         specifier: workspace:*
@@ -92,13 +105,32 @@ importers:
         version: 7.0.2
 
   packages/adapters:
+    dependencies:
+      '@stackreplay/catalog':
+        specifier: workspace:*
+        version: link:../catalog
+      '@stackreplay/schema':
+        specifier: workspace:*
+        version: link:../schema
+      zod:
+        specifier: ^4.4.7
+        version: 4.6.5
     devDependencies:
       '@stackreplay/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: ^24.13.6
+        version: 24.13.6
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      vite:
+        specifier: ^8.3.0
+        version: 8.3.0(@types/node@24.13.6)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@types/node@24.13.6)(jsdom@30.1.0)(vite@8.3.0(@types/node@24.13.6)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/catalog:
     dependencies:

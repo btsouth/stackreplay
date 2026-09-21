@@ -2,13 +2,21 @@
 
 ## Current milestone
 
-**Milestone 1 — independently re-audited and ACCEPTED after corrections.**
+**Milestone 2 — local adapters and the CLI, implemented and validated locally.**
 
-The initial M1 audit returned NOT READY. Remediation commit b83a5e5 improved the
-semantics substantially, but fresh adversarial tests still exposed ten failures.
-The re-audit corrected these before acceptance. Subscription replay is trustworthy
-within decisions 13-21 and the explicitly supported synthetic rule model.
-M2 has not started. No remote was created and nothing was pushed.
+Milestone 1 remains independently re-audited and ACCEPTED after corrections
+(commit b83a5e5 and the re-audit corrections that followed). Subscription replay
+is trustworthy within decisions 13-21 and the explicitly supported synthetic
+rule model.
+
+Milestone 2 adds the read-only local collection path and the working CLI:
+seven adapters (Command Code, OpenCode, Codex, Claude Code, Hermes, T3 Code
+attribution and ccusage import), the detect/collect/attribute/deduplicate
+pipeline, the versioned sanitized export, and `detect`, `scan`, `export`,
+`replay`, `plans` and `doctor`. The repository is public
+(https://github.com/btsouth/stackreplay) and hosted CI is green. The bundled
+catalog is still synthetic, so real local workloads replay with their models
+reported as unmapped rather than priced.
 
 ## Original blocker verification
 
@@ -54,8 +62,23 @@ M2 has not started. No remote was created and nothing was pushed.
   admission, explicit exceed behavior, promotions, coverage, confidence,
   violations, economics and reproducibility metadata.
 - API, local and hybrid remain reference shells and fail explicitly with
-  TARGET_NOT_IMPLEMENTED. No adapters, provider parsers or later product logic.
-- Web and CLI remain M0 foundations. No real-usage import or browser replay UI.
+  TARGET_NOT_IMPLEMENTED. No provider API replay or local-model logic.
+- Web remains an M0 foundation. No real-usage import or browser replay UI yet.
+- M2 adapters: read-only, offline parsers for Command Code JSONL, OpenCode
+  SQLite, Codex rollouts, Claude Code JSONL, Hermes `state.db` aggregates, T3
+  Code attribution plus harness-managed roots, and opt-in ccusage JSON import.
+  Every accounting relationship is evidence-backed (upstream source, upstream
+  documentation or a data invariant) and re-checked per record, degrading to
+  unknown instead of publishing an impossible accounting.
+- M2 pipeline: platform path resolution for Linux/macOS/Windows, bounded scans,
+  salted project/session/event hashing, harness attribution without
+  re-ingestion, deterministic deduplication (exact duplicates and cross-source
+  overlaps), stable ordering, and a validated `StackReplayExportV1` with its
+  redaction report.
+- M2 CLI: `detect`, `scan`, `export`, `replay` (with `--as-of` and `--compare`),
+  `plans` and `doctor`, all with `--json`, `NO_COLOR` support, documented exit
+  codes and no network access. Local salt is created on first scan with
+  owner-only permissions.
 
 ## Validation
 
@@ -82,6 +105,33 @@ suites. The earlier documentation's 20 golden / 6 property count was inaccurate
 (the remediation actually had 25 / 8). Golden expectations were independently
 checked for rejection, latching, overage, overlap, unknowns and snapshot rules.
 Only version metadata changed in the stored golden snapshot during this audit.
+
+## Milestone 2 validation
+
+Node 24.19.0 (pinned) and pnpm 10.18.1 on Linux. Every M2 check runs offline.
+
+| Gate | Result |
+| --- | --- |
+| pnpm check | PASS: 163 files, no errors (2 informational) |
+| pnpm check:contrast | PASS |
+| pnpm typecheck | PASS: 13 tasks |
+| pnpm test | PASS: 325 tests — schema 31, catalog 27, engine 140, adapters 90, CLI 23, UI 14 |
+| pnpm build | PASS: 10 tasks |
+| Adapter tests | 90 tests in 11 files: per-adapter extraction, accounting declarations, unknown-versus-zero, malformed and partial records, windowing, idempotency, cross-source dedup, harness attribution, Linux/macOS/Windows paths, and a source scan proving no adapter imports an HTTP client |
+| CLI tests | 23 tests: help/version/usage errors, detect/scan/export/replay/plans/doctor, JSON stability, windowing, color suppression, and built-binary equivalence with the in-process CLI |
+| Real-machine read-only smoke | `detect` found all 6 local sources; `scan` read 51,736 events in 15.7 s; `export` wrote 55.1 MB at mode 600; `replay` of that export completed in 1.2 s |
+| Export privacy check | PASS: zero occurrences of any home path, project directory name or session file name in a 55 MB export of real local data |
+| Packed install | PASS: schema, catalog, engine, adapters and CLI packed and installed outside the workspace; detect, export and replay run from the installed tarballs with a fresh salt (mode 600) and byte-identical events across runs |
+
+Honest limits of this milestone:
+
+- The bundled catalog is synthetic, so a real local workload replays with its models reported as
+  unmapped (`unresolved`) and coverage reported as unknown. That is the catalog's state, not a
+  replay failure: no pricing is invented for models the catalog does not know.
+- Request counts from aggregate-only sources (Hermes session/model rows) are approximate by
+  construction, and the adapter says so with a warning.
+- ccusage imports keep reasoning unknown, so their token totals are unknown. This is deliberate
+  (decision 26) rather than a missing feature.
 
 ## Benchmark evidence
 

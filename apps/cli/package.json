@@ -18,6 +18,12 @@
     "test": "pnpm build && vitest run",
     "clean": "rm -rf dist .turbo coverage"
   },
+  "dependencies": {
+    "@stackreplay/adapters": "workspace:*",
+    "@stackreplay/catalog": "workspace:*",
+    "@stackreplay/replay-engine": "workspace:*",
+    "@stackreplay/schema": "workspace:*"
+  },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
     "@types/node": "^24.13.6",
