@@ -113,3 +113,27 @@ describe("command-code adapter", () => {
     });
   });
 });
+
+describe("command-code adapter: schema validity when cache fields are absent", () => {
+  it("emits a schema-valid event when a record reports no cache categories", async () => {
+    const { usageEventV1Schema } = await import("@stackreplay/schema");
+    const trimmed = COMMAND_CODE_SESSION.split("\n")
+      .map((line) => {
+        if (!line.includes('"usage"')) return line;
+        const record = JSON.parse(line) as { usage: Record<string, unknown> };
+        delete record.usage.cacheReadTokens;
+        delete record.usage.cacheWriteTokens;
+        return JSON.stringify(record);
+      })
+      .join("\n");
+    const result = await collectFrom(trimmed);
+    expect(result.events.length).toBeGreaterThan(0);
+    for (const event of result.events) {
+      const parsed = usageEventV1Schema.safeParse(event);
+      expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    }
+    expect(result.events[0]?.usage.cacheReadTokens).toBeUndefined();
+    expect(result.events[0]?.usage.accounting?.cacheReadIncludedInInput).toBeUndefined();
+    expect(result.events[0]?.usage.inputTokens).toBe(4000);
+  });
+});

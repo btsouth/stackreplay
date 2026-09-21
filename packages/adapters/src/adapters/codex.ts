@@ -171,11 +171,15 @@ export function createCodexAdapter(): LocalSourceAdapter {
             const cacheWriteTokens = readCount(lastUsage, "cache_write_input_tokens");
             const reasoningTokens = readCount(lastUsage, "reasoning_output_tokens");
 
+            // Declarations are attached only to categories the record actually
+            // reports: an included quantity must be reported (decision 22), so
+            // a record that omits a field keeps that category unknown instead
+            // of carrying a declaration the schema rejects.
             const usage: TextUsageV1 = {
               accounting: {
-                cacheReadIncludedInInput: true,
-                cacheWriteIncludedInInput: true,
-                reasoningIncludedInOutput: true,
+                ...(cacheReadTokens !== undefined ? { cacheReadIncludedInInput: true } : {}),
+                ...(cacheWriteTokens !== undefined ? { cacheWriteIncludedInInput: true } : {}),
+                ...(reasoningTokens !== undefined ? { reasoningIncludedInOutput: true } : {}),
               },
             };
             if (inputTokens !== undefined) usage.inputTokens = inputTokens;
@@ -188,12 +192,18 @@ export function createCodexAdapter(): LocalSourceAdapter {
               if (cacheReadTokens !== undefined) usage.cacheReadTokens = cacheReadTokens;
               if (cacheWriteTokens !== undefined) usage.cacheWriteTokens = cacheWriteTokens;
             } else {
-              usage.accounting = {
-                reasoningIncludedInOutput: true,
-                ...(inputTokens !== undefined && cacheReadTokens === undefined
-                  ? { cacheReadIncludedInInput: true }
-                  : {}),
-              };
+              // The cache categories degrade to unknown, so the declarations
+              // that described them degrade with them: a declaration for an
+              // absent category is an impossible accounting (decision 22) and
+              // the canonical schema rejects it.
+              const {
+                cacheReadIncludedInInput: _read,
+                cacheWriteIncludedInInput: _write,
+                ...rest
+              } = usage.accounting ?? {};
+              void _read;
+              void _write;
+              usage.accounting = rest;
               warnings.add(
                 "ACCOUNTING_UNESTABLISHED",
                 "cache categories exceed inputTokens in this record; cache reported as unknown",

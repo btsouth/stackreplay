@@ -102,3 +102,32 @@ describe("codex adapter", () => {
     });
   });
 });
+
+describe("codex adapter: schema validity when fields are absent", () => {
+  it("emits a schema-valid event when the record omits reasoning and cache fields", async () => {
+    const { usageEventV1Schema } = await import("@stackreplay/schema");
+    const trimmed = CODEX_ROLLOUT.split("\n")
+      .map((line) => {
+        if (!line.includes("last_token_usage")) return line;
+        const record = JSON.parse(line) as {
+          payload: { info: { last_token_usage: Record<string, unknown> } };
+        };
+        const usage = record.payload.info.last_token_usage;
+        delete usage.reasoning_output_tokens;
+        delete usage.cache_write_input_tokens;
+        return JSON.stringify(record);
+      })
+      .join("\n");
+    const result = await collectFrom(trimmed);
+    expect(result.events).toHaveLength(2);
+    for (const event of result.events) {
+      const parsed = usageEventV1Schema.safeParse(event);
+      expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    }
+    const first = result.events[0]?.usage;
+    expect(first?.reasoningTokens).toBeUndefined();
+    expect(first?.accounting?.reasoningIncludedInOutput).toBeUndefined();
+    expect(first?.cacheReadTokens).toBe(1500);
+    expect(first?.accounting?.cacheReadIncludedInInput).toBe(true);
+  });
+});

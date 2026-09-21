@@ -106,3 +106,29 @@ describe("hermes adapter", () => {
     });
   });
 });
+
+describe("hermes adapter: schema validity when the reasoning column is null", () => {
+  it("emits a schema-valid event when reasoning is not recorded", async () => {
+    const { usageEventV1Schema } = await import("@stackreplay/schema");
+    const statements = HERMES_FIXTURE_SQL.map((statement) =>
+      statement.replace(", 300, 0.75,", ", null, 0.75,"),
+    );
+    const result = await withTempDir(async (directory) => {
+      await createSqliteFixture(`${directory}/.hermes/state.db`, statements);
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collect(env, {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.hermes`],
+      });
+    });
+    expect(result.events.length).toBeGreaterThan(0);
+    for (const event of result.events) {
+      const parsed = usageEventV1Schema.safeParse(event);
+      expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    }
+    expect(result.events[0]?.usage.reasoningTokens).toBeUndefined();
+    expect(result.events[0]?.usage.accounting?.reasoningIncludedInOutput).toBeUndefined();
+  });
+});

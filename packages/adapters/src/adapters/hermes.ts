@@ -191,27 +191,30 @@ export function createHermesAdapter(): LocalSourceAdapter {
             stats.recordsUnsupported += 1;
             continue;
           }
+          // Cache is established as additional from the data invariant; the
+          // reasoning declaration is attached only when the record actually
+          // reports reasoning (an included quantity must be reported,
+          // decision 22), so a row without the reasoning column keeps that
+          // category unknown instead of carrying an impossible declaration.
+          const reasoningEstablished =
+            reasoningTokens === undefined ||
+            (outputTokens !== undefined && reasoningTokens <= outputTokens);
           const usage: TextUsageV1 = {
             accounting: {
               cacheReadIncludedInInput: false,
               cacheWriteIncludedInInput: false,
-              reasoningIncludedInOutput: true,
+              ...(reasoningEstablished && reasoningTokens !== undefined
+                ? { reasoningIncludedInOutput: true }
+                : {}),
             },
           };
           if (inputTokens !== undefined) usage.inputTokens = inputTokens;
           if (outputTokens !== undefined) usage.outputTokens = outputTokens;
           if (cacheReadTokens !== undefined) usage.cacheReadTokens = cacheReadTokens;
           if (cacheWriteTokens !== undefined) usage.cacheWriteTokens = cacheWriteTokens;
-          const reasoningEstablished =
-            reasoningTokens === undefined ||
-            (outputTokens !== undefined && reasoningTokens <= outputTokens);
           if (reasoningEstablished) {
             if (reasoningTokens !== undefined) usage.reasoningTokens = reasoningTokens;
           } else {
-            usage.accounting = {
-              cacheReadIncludedInInput: false,
-              cacheWriteIncludedInInput: false,
-            };
             warnings.add(
               "ACCOUNTING_UNESTABLISHED",
               "reasoning tokens exceed output tokens in this record; reasoning reported as unknown",

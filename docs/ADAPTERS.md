@@ -24,6 +24,13 @@ Two rules follow from Milestone 1 and are binding on every adapter:
    adapter below, and the local data is checked defensively: if the stated relationship does not
    hold for a record, the affected categories are dropped to unknown and a warning is emitted.
 
+A third rule follows from those two and is enforced by the canonical schema: **a declaration is
+attached only to a category the record actually reports.** `true` means "already included in the
+base quantity", which cannot be stated for a quantity that is absent, and a category that degrades
+to unknown must take its declaration with it. An adapter that hard-codes declarations for a record
+shape it has not checked produces events the schema rejects, so the export fails instead of
+publishing an impossible accounting.
+
 ## Sources
 
 | Adapter id | Kind | Default location (Linux) |

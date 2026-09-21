@@ -64,30 +64,26 @@ function commandCodeUsage(usage: Record<string, unknown>): {
   const result: TextUsageV1 = {
     reasoningTokens: 0,
     accounting: {
-      cacheReadIncludedInInput: true,
-      cacheWriteIncludedInInput: true,
       reasoningIncludedInOutput: false,
     },
   };
-  if (inputTokens !== undefined) result.inputTokens = inputTokens;
-  if (outputTokens !== undefined) result.outputTokens = outputTokens;
   const cacheTotal = (cacheReadTokens ?? 0) + (cacheWriteTokens ?? 0);
   const cacheEstablished = inputTokens !== undefined ? cacheTotal <= inputTokens : cacheTotal === 0;
-  if (cacheEstablished) {
-    if (cacheReadTokens !== undefined) result.cacheReadTokens = cacheReadTokens;
-    if (cacheWriteTokens !== undefined) result.cacheWriteTokens = cacheWriteTokens;
-  } else {
-    // The subset relationship does not hold for this record: report the cache
-    // categories as unknown rather than publishing an impossible accounting.
-    const {
-      cacheReadIncludedInInput: _read,
-      cacheWriteIncludedInInput: _write,
-      ...rest
-    } = result.accounting ?? {};
-    void _read;
-    void _write;
-    result.accounting = rest;
+  // A declaration is attached only to a category the record actually reports:
+  // `true` means "already included in input", which is impossible to state for
+  // an absent quantity (decision 22), and the canonical schema rejects it.
+  // When the subset relationship does not hold, the cache categories are
+  // reported as unknown rather than publishing an impossible accounting.
+  if (cacheEstablished && cacheReadTokens !== undefined) {
+    result.accounting = { ...result.accounting, cacheReadIncludedInInput: true };
+    result.cacheReadTokens = cacheReadTokens;
   }
+  if (cacheEstablished && cacheWriteTokens !== undefined) {
+    result.accounting = { ...result.accounting, cacheWriteIncludedInInput: true };
+    result.cacheWriteTokens = cacheWriteTokens;
+  }
+  if (inputTokens !== undefined) result.inputTokens = inputTokens;
+  if (outputTokens !== undefined) result.outputTokens = outputTokens;
   return { usage: result, cacheEstablished };
 }
 
