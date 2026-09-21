@@ -545,8 +545,8 @@ function ReplayResult({
                     <div className="min-w-0">
                       <p className="text-sm">{constraint.label}</p>
                       <p className="text-xs text-muted-foreground">
-                        {constraint.kind.replace("_", " ")} · {constraint.window.description} ·{" "}
-                        {constraint.exceed.replace("_", " ")}
+                        {constraint.kind.replaceAll("_", " ")} · {constraint.window.description} ·{" "}
+                        {constraint.exceed.replaceAll("_", " ")}
                       </p>
                     </div>
                     <ConstraintStatus

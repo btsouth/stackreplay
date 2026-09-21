@@ -33,6 +33,9 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   const constraints = page.getByTestId("constraints");
   await expect(constraints).toContainText("EXCEEDED");
   await expect(constraints).toContainText("attempted");
+  // Enum values are humanized for display: no raw underscores leak through.
+  await expect(constraints).toContainText("latch until reset");
+  await expect(constraints).not.toContainText("until_reset");
 
   const violations = page.getByTestId("violations");
   await expect(violations).toBeVisible();

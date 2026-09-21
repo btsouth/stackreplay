@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { importDemo, runReplay } from "./helpers";
 
 /**
@@ -16,6 +16,17 @@ const outputDir = process.env.STACKREPLAY_SCREENSHOT_DIR ?? join("test-results",
 async function shoot(page: Page, name: string) {
   await mkdir(outputDir, { recursive: true });
   await page.screenshot({ path: join(outputDir, `${name}.png`), fullPage: true });
+}
+
+/**
+ * The result chart loads after the result itself (the charting code is a
+ * dynamic import). A screenshot taken on result visibility alone captures an
+ * empty chart box, so replay shots wait for the rendered chart first.
+ */
+async function awaitChart(page: Page) {
+  await expect(page.getByTestId("timeline-chart").locator("svg")).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 test.describe("M3 screenshots", () => {
@@ -39,6 +50,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "moderate");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
+    await awaitChart(page);
     await shoot(page, "replay-desktop-dark");
   });
 
@@ -48,6 +60,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "moderate");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
+    await awaitChart(page);
     await shoot(page, "replay-desktop-light");
   });
 
@@ -57,6 +70,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "moderate");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
+    await awaitChart(page);
     await shoot(page, "replay-mobile-dark");
   });
 
@@ -66,6 +80,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "moderate");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
+    await awaitChart(page);
     await shoot(page, "replay-mobile-light");
   });
 
@@ -75,6 +90,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "heavy");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
+    await awaitChart(page);
     await shoot(page, "replay-exceeded-desktop-dark");
   });
 
@@ -84,6 +100,7 @@ test.describe("M3 screenshots", () => {
     await importDemo(page, "multistack");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-starter");
+    await awaitChart(page);
     await shoot(page, "replay-unknown-desktop-dark");
   });
 });
