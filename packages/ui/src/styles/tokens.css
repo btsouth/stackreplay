@@ -1,0 +1,74 @@
+/*
+ * StackReplay semantic design tokens (spec points 33-36).
+ *
+ * These are the only place raw color values are defined. Everything else in
+ * the product consumes the semantic names. OKLCH, dark is the primary
+ * presentation, light is first-class.
+ *
+ * Contrast of the pairs that carry text is verified by
+ * tooling/scripts/check-contrast.mjs (`pnpm check:contrast`).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces: neutral, low-contrast separation. */
+  --background: oklch(0.985 0.002 264);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.003 264);
+  --border: oklch(0.9 0.004 264);
+  --border-strong: oklch(0.8 0.006 264);
+  --control-border: oklch(0.55 0.006 264);
+
+  /* Text */
+  --foreground: oklch(0.22 0.012 264);
+  --muted-foreground: oklch(0.47 0.012 258);
+
+  /* Accent: interaction only, never decoration. */
+  --accent: oklch(0.5 0.16 258);
+  --accent-solid: oklch(0.5 0.16 258);
+  --accent-solid-hover: oklch(0.45 0.16 258);
+  --accent-foreground: oklch(0.99 0.002 258);
+
+  /* Semantic outcomes */
+  --positive: oklch(0.5 0.12 158);
+  --warning: oklch(0.52 0.11 75);
+  --negative: oklch(0.51 0.18 28);
+  --negative-solid: oklch(0.51 0.18 28);
+  --negative-solid-hover: oklch(0.46 0.18 28);
+  --negative-foreground: oklch(0.99 0.002 258);
+
+  --ring: oklch(0.5 0.16 258);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Surfaces: near-black charcoal with subtly elevated graphite. */
+  --background: oklch(0.16 0.006 264);
+  --surface: oklch(0.2 0.006 264);
+  --surface-2: oklch(0.24 0.007 264);
+  --border: oklch(0.29 0.008 264);
+  --border-strong: oklch(0.38 0.01 264);
+  --control-border: oklch(0.55 0.01 264);
+
+  /* Text: warm/neutral off-white, cool gray muted. */
+  --foreground: oklch(0.95 0.008 92);
+  --muted-foreground: oklch(0.72 0.012 258);
+
+  /* Accent: crisp signal blue. */
+  --accent: oklch(0.76 0.13 252);
+  --accent-solid: oklch(0.72 0.13 252);
+  --accent-solid-hover: oklch(0.78 0.13 252);
+  --accent-foreground: oklch(0.17 0.012 264);
+
+  /* Semantic outcomes */
+  --positive: oklch(0.8 0.12 158);
+  --warning: oklch(0.83 0.12 85);
+  --negative: oklch(0.74 0.14 28);
+  --negative-solid: oklch(0.56 0.18 28);
+  --negative-solid-hover: oklch(0.51 0.18 28);
+  --negative-foreground: oklch(0.99 0.002 258);
+
+  --ring: oklch(0.76 0.13 252);
+}

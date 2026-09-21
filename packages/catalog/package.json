@@ -1,0 +1,26 @@
+{
+  "name": "@stackreplay/catalog",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Plans, providers, models, pricing, compatibility and plan versions.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "devDependencies": {
+    "@stackreplay/config": "workspace:*",
+    "typescript": "^7.0.2"
+  }
+}

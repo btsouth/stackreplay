@@ -1,0 +1,6 @@
+# StackReplay toolchain pin.
+# Spec point 5: Node.js 24 LTS, pnpm, TypeScript strict, Turborepo.
+# The machine global is Node 26 (Current), so this project pins 24 LTS here.
+[tools]
+node = "24.19.0"
+pnpm = "10.18.1"

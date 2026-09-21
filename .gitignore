@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Turborepo
+.turbo/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local specification documents (authoritative for development, kept out of the repository)
+/Initial plan.docx
+/adendum stackreply.docx
+
+# Editors / OS
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

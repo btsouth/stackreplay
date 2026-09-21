@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@stackreplay/ui/styles/tokens.css";
+@import "@stackreplay/ui/styles/theme.css";
+
+/* Class-based dark mode: the theme script and toggle set .dark on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* The design system lives in @stackreplay/ui and ships TypeScript source. */
+@source "../../../packages/ui/src";
