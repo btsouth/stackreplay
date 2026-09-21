@@ -27,6 +27,10 @@ blob-report/
 /Initial plan.docx
 /adendum stackreply.docx
 
+# Local working documents and images (kept out of the repository)
+/docs/*.docx
+/docs/Images/
+
 # Editors / OS
 .DS_Store
 *.log
@@ -37,6 +41,3 @@ blob-report/
 # Local usage exports (never commit personal workload data)
 *.stackreplay.json
 stackreplay-export-*.json
-
-# Local working images (not approved publication content)
-docs/Images/
