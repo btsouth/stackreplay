@@ -5,6 +5,8 @@ Status: authoritative. Part of the project source of truth, alongside the two sp
 - `Initial plan.docx` (StackReplay Product, Architecture, Design and Implementation Specification, points 1-112)
 - `adendum stackreply.docx` (StackReplay Addendum A, API, Local AI, Hybrid Execution, and Shareable Economics, points 113-179)
 
+Both specification documents are local working documents and are intentionally not tracked in this repository.
+
 Recorded 2026-09-21 from the clarification exchange that resolved ambiguities found between the two documents. These decisions govern implementation and must survive context and session resets. Change them only through an explicit new decision recorded here. Where Addendum A broadens an original abstraction, the broader abstraction applies without removing the original subscription-focused behavior.
 
 ## 1. Generalized ExecutionReplayResult from the beginning
@@ -75,6 +77,32 @@ M8A Hybrid Replay
 - Treat the completion of M4A as the target for the first major public StackReplay launch, although build-in-public posts may happen sooner.
 - Milestone contents and acceptance criteria remain as specified in original points 98-106 and Addendum A points 168-170; this ordering is authoritative.
 
+## 9. Long-term AI workload scope: modalities and workload categories
+
+Recorded 2026-09-21. StackReplay's initial launch vertical remains AI coding: coding agents, coding subscriptions and LLM/API workloads. Milestones 1 through 4 stay focused on that launch wedge. The long-term product domain is broader than coding, and the canonical long-term concept is:
+
+> Replay your real AI workload against other ways of running it.
+
+Future workload categories may include: coding and agent workloads; general LLM/chat/research workloads; API/application workloads; image generation; video generation; audio/speech workloads; multimodal workloads; local AI.
+
+Consequences for the domain model (extensibility only, not behavior):
+
+- Milestone 1 must NOT permanently define "AI workload" as LLM token counts only.
+- For the current coding/LLM implementation, token usage remains strongly typed and first-class, including where available: input tokens, output tokens, cache reads, cache writes, reasoning tokens.
+- Do NOT weaken the usage schema into an opaque generic key/value metric bag. `Record<string, number>` and similar shapes are not the extensibility mechanism.
+- Design `UsageEvent` and `Workload` so future modality-specific, strongly typed usage structures can be added without redefining their fundamental identity or semantics.
+- Preserve the distinction between technical modality (text/LLM, image, video, audio, multimodal) and workload/use-case category (coding, agent, chat, research, API application, image generation, video generation, speech, other). Do not assume these concepts are identical.
+- Do NOT implement image, video, audio or general-consumer AI behavior during current milestones. This is an extensibility decision only; the launch remains coding-focused. The broader long-term promise is "Your workload. Any stack. Replay the difference."
+
+## 10. Public repository strategy and license intent
+
+Recorded 2026-09-21. StackReplay is intended to be developed publicly. This monorepo is prepared for public release immediately after Milestone 1 receives an independent audit. The reasons include transparency around the privacy claims, developer trust, GitHub discovery, community catalog corrections, community adapter contributions, build-in-public distribution, and GitHub stars/watchers as an acquisition channel.
+
+- The repository license is intended to be **AGPL-3.0-or-later**, unless a concrete license incompatibility is discovered during the license audit. Do not silently substitute a different license; if an actual incompatibility exists, document it and stop before writing the license rather than guessing.
+- The public repository may include: CLI, schemas, catalog, adapters, Replay engine, browser-local product, marketing/public web surfaces, design system, and documentation.
+- The repository must NEVER contain: API keys, production credentials, database connection strings, Stripe secrets, provider credentials, personal StackReplay exports, raw user telemetry, private benchmark datasets derived from users, employer/client information, or production operational secrets. Synthetic deterministic fixtures are allowed.
+- This decision does NOT yet determine whether Milestone 5+ hosted/cloud-only implementation remains in the public monorepo. Before Milestone 5, make an explicit architecture/business decision about whether cloud-only infrastructure remains public or is separated into a private hosted-service implementation. Do not architect or implement that split now.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.
@@ -90,3 +118,4 @@ Explicitly deferred. Do not implement, guess, or resolve these before their mile
 
 1. M4A: the fallback pricing method when a source exposes no detailed token categories. Addendum A point 120 requires confidence degradation and a stated assumption; the method itself is undecided.
 2. M2: where the published catalog artifact is hosted and fetched from. Original point 20 defines manifest, checksum, cache and bundled-snapshot behavior; the hosting location is undecided.
+3. Before M5: whether Milestone 5+ hosted/cloud-only implementation remains in the public monorepo or is separated into a private hosted-service implementation (decision 10).
