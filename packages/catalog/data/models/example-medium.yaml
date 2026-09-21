@@ -1,0 +1,12 @@
+id: example-medium
+role: model
+name: Example Medium
+providerIds:
+  - example-cloud
+  - example-open
+sources:
+  - url: https://example.invalid/models/example-medium
+    title: Example Medium model card (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

@@ -3,10 +3,7 @@
  *
  * Pure deterministic replay simulation. This is the heart of StackReplay.
  *
- * Milestone 0: scaffolding only. No simulation logic lives here yet.
- *
- * Constraints that hold from Milestone 1 onward (spec point 4 and
- * docs/ARCHITECTURE_DECISIONS.md):
+ * Guarantees (spec point 4, docs/ARCHITECTURE_DECISIONS.md):
  * - No dependency on Next.js, React, PostgreSQL, Vercel, Stripe,
  *   authentication, browser APIs or filesystem APIs.
  * - Given the same usage events, execution target, catalog version and
@@ -16,7 +13,11 @@
  * - Money is computed with decimal-safe arithmetic and serialized as decimal
  *   strings; never JavaScript floating point.
  *
- * Milestone 1 adds the replay function over the generalized
- * ExecutionReplayResult, with subscription execution working end to end.
+ * Milestone 1 implements subscription targets end to end over the generalized
+ * ExecutionReplayResult. API, local and hybrid targets are schema-only.
  */
-export {};
+export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
+export { ReplayEngineError } from "./errors.js";
+export { Decimal, parseAmount, toUnitString } from "./money.js";
+export { instantToIso, parseInstant, Temporal } from "./time.js";
+export { ENGINE_VERSION } from "./version.js";

@@ -103,6 +103,26 @@ Recorded 2026-09-21. StackReplay is intended to be developed publicly. This mono
 - The repository must NEVER contain: API keys, production credentials, database connection strings, Stripe secrets, provider credentials, personal StackReplay exports, raw user telemetry, private benchmark datasets derived from users, employer/client information, or production operational secrets. Synthetic deterministic fixtures are allowed.
 - This decision does NOT yet determine whether Milestone 5+ hosted/cloud-only implementation remains in the public monorepo. Before Milestone 5, make an explicit architecture/business decision about whether cloud-only infrastructure remains public or is separated into a private hosted-service implementation. Do not architect or implement that split now.
 
+## 11. Internal time representation: epoch milliseconds, Temporal for calendar semantics
+
+Recorded 2026-09-21 during Milestone 1. The engine keeps its controlled Temporal module (spec point 24) but does not use polyfilled `Temporal.Instant` objects in the per-event hot path.
+
+- Parsing, sorting, comparing and slicing rolling windows use **epoch milliseconds**, which is exact for every timestamp the schema accepts. An ISO-8601 UTC duration of days/hours/minutes/seconds converts to exact milliseconds, so rolling windows need no calendar arithmetic.
+- The Temporal polyfill is used only where calendar semantics genuinely require it: resolving calendar bucket boundaries in an IANA timezone (including DST), and the exported time helpers.
+- Calendar buckets are resolved once per distinct UTC date and verified against the instant before reuse, so timezone-aware bucketing stays correct while costing a few dozen conversions instead of one per event.
+- `epochMsFromIso` rejects timestamps that are not real calendar instants (for example `2026-02-30`) instead of letting `Date.parse` roll them over.
+- Rationale: measured on a 100,000 event replay, polyfilled instant comparisons in the sort alone cost 3.1 seconds of a 4.8 second run. The representation change brought the same replay under one second. Any future consumer (Web Worker, CLI, server) inherits this.
+
+## 12. Engine input contract: validate, never repair
+
+Recorded 2026-09-21 during Milestone 1.
+
+- `replay()` validates the catalog, the execution target and every usage event before simulating. It never repairs, drops or guesses invalid input.
+- Failures are typed: `ReplayEngineError` carries a stable code from `STACKREPLAY_ERROR_CODES` (`CATALOG_INVALID`, `IMPORT_SCHEMA_INVALID`, `PLAN_VERSION_NOT_FOUND`, `TARGET_NOT_IMPLEMENTED`), a safe user-facing message, and internal diagnostics that are not shown to users.
+- Duplicate event ids are rejected: imports are idempotent, so a duplicate id in one replay is a data error, not something to silently deduplicate.
+- The engine reads no files, environment variables or network. The catalog arrives as a loaded object; the Node-only loader lives behind the separate `@stackreplay/catalog/load` entry point, so the same engine package runs in the browser unchanged.
+- Schema homes fixed in M1, resolving the clarifying reading below: `violations` and `unsupportedModels` are top-level arrays on the generalized `ExecutionReplayResultV1`, and per-constraint status lives on `constraints`.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

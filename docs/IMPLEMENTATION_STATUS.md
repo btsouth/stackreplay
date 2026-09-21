@@ -1,143 +1,91 @@
 # StackReplay Implementation Status
 
-**Current milestone: Milestone 0 — Foundation (locally verified after independent audit; hosted CI pending).**
-Milestone 1 has not been started.
+## Current milestone
 
-Recorded 2026-09-21. Toolchain: Node.js 24.19.0 (pinned in `.mise.toml`), pnpm 10.18.1,
-TypeScript 7.0.2, Turborepo 2.11.2, Next.js 16.3.5, React 19.3.0, Tailwind CSS 4.3.3,
-Biome 2.5.14, Vitest 5.0.1, Playwright 1.63.0.
+**Milestone 1 — Schema + Catalog + Replay Engine: complete.**
 
-## Completed requirements (spec point 98)
+Milestone 0 (foundation) is complete and was independently audited. Milestone 2 has not been started.
 
-| Requirement | Status | Notes |
+## What Milestone 1 delivers
+
+The canonical flow from the specification is now real end to end for subscription targets:
+
+```
+usage events (JSON)  →  replay engine  →  ExecutionReplayResultV1
+```
+
+### `@stackreplay/schema` — versioned schemas
+
+- `UsageEventV1`: the canonical normalized event. `modality` is a discriminated union that currently has one member (`text`); future image, video, audio and multimodal variants extend the union without redefining the event's identity. Technical modality and workload/use-case category are separate fields. Token usage is strongly typed (`inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`, `reasoningTokens`), every category optional so missing data stays visible. Plan/billing attribution is deliberately absent (decision 5).
+- `ExecutionTargetV1`: discriminated union of `subscription`, `api`, `local`, `hybrid` (decision 1, decision 7).
+- `ExecutionReplayResultV1`: one generalized result with `target`, `workload`, `feasibility`, separate `coverage` dimensions, `constraints`, `violations`, `unsupportedModels`, optional `economics`, `assumptions`, `confidence`, `warnings`, `versions`, and subscription detail nested beneath it. No generic `savings` field (decision 4). Coverage is never blended (decision 3).
+- `StackReplayExportV1`, redaction report, money/scalar shapes, and `STACKREPLAY_ERROR_CODES`.
+
+### `@stackreplay/catalog` — plans as versioned product data
+
+- Schemas for providers, models, plans, plan versions, limits (rolling and calendar windows), model rules (pricing reference, multiplier, exclusion), promotions, and pricing (per 1M tokens).
+- Role-specific canonical IDs (`provider` | `model` | `plan` | `pricing`), so one brand can hold several role-specific identities (decision 6).
+- Provenance on every claim: source URLs with checked dates, `lastVerifiedAt`, and a verification status (`verified` | `estimated` | `measured` | `unknown`).
+- A pure semantic validator: duplicate ids, effective-date ordering and overlap, reference integrity, integer/decimal unit checks, window validity including IANA timezones, multiplier bounds.
+- A Node-only loader (`@stackreplay/catalog/load`) that reads YAML, validates, builds the loaded catalog and derives a content-addressed `catalogVersion` from canonical JSON.
+- Synthetic data only: fictional providers (`example-cloud`, `example-open`), models, pricing and plans, with `example.invalid` sources. No real provider facts, prices or limits are invented anywhere in this repository.
+
+### `@stackreplay/replay-engine` — deterministic subscription replay
+
+- `replay({ events, target, catalog })` returns a complete `ExecutionReplayResultV1`.
+- Model compatibility: canonical-id resolution, name mapping, plan rule lookup, excluded models, and unsupported/unresolved models reported explicitly.
+- Constraints: credit pools (money at model list rates), token limits, request limits; rolling windows anchored at first use; calendar windows in the window's IANA timezone; per-model constraints; hard stop, soft and overage enforcement; deterministic violations with window bounds, required vs available units and affected event counts.
+- Model-specific rules and promotions (date-ranged, optionally model-scoped multipliers).
+- Economics: target cost and an explicit `costBasis`, no savings semantics.
+- Confidence as the worst of its factors, each factor carrying a human-readable description.
+- Assumptions are stated, not implicit (no proration, independent constraint evaluation, calendar months as UTC months, token limits summing all categories, half-open window boundaries, reasoning priced as output when no reasoning rate exists).
+- Money is decimal-string in and out; arithmetic goes through decimal.js configured in one module. Token counts stay exact integers.
+- Typed failures instead of repair (decision 12).
+
+## Validation
+
+Run on this machine (Node 24.19.0, pnpm 10.18.1):
+
+| Gate | Command | Result |
 | --- | --- | --- |
-| Turborepo | done | `turbo.json` with build/dev/typecheck/test/test:e2e/clean tasks |
-| pnpm workspace | done | `pnpm-workspace.yaml`, `packageManager` pinned to pnpm 10.18.1 |
-| Next.js web | done | `apps/web`, App Router, RSC-first, `/api/v1` reserved for later milestones |
-| CLI package | done | `apps/cli` with a `stackreplay` bin; `--help` and `--version` only |
-| Shared TypeScript config | done | `packages/config` (base/react/node), strict + noUncheckedIndexedAccess + exactOptionalPropertyTypes |
-| Biome | done | format, lint, import ordering; Tailwind v4 directives enabled |
-| Vitest | done | unit tests in `packages/ui` and `apps/cli` |
-| Playwright | done | `apps/web/e2e` smoke + axe accessibility, desktop and mobile projects |
-| Tailwind | done | Tailwind v4 via `@tailwindcss/postcss`; design tokens bridged with `@theme inline` |
-| shadcn/Base UI | done | shadcn-style primitives layer (cva + cn); Base UI Dialog powers the mobile drawer |
-| StackReplay tokens | done | OKLCH semantic tokens in `packages/ui/src/styles/tokens.css`, contrast-verified |
-| dark/light theme | done | class-based, system-preference default, persisted, no first-paint flash |
-| demo fixtures | done | `packages/test-fixtures` (heavy / moderate / multistack), no real user data |
-| CI | done | `.github/workflows/ci.yml`: check, contrast, typecheck, tests, build, E2E smoke |
-| Button, Input, Badge, Card, Metric, ConfidenceBadge, ConstraintStatus, ApplicationShell | done | in `packages/ui`, exercised on the internal `/design` surface |
+| Format, lint, import order | `pnpm check` | clean (116 files) |
+| Design token contrast | `pnpm check:contrast` | all pairs pass WCAG AA |
+| Typecheck | `pnpm typecheck` | 11 packages, no errors |
+| Unit, golden and property tests | `pnpm test` | 90 tests pass (schema 8, catalog 15, replay-engine 45, ui 14, cli 8) |
+| Build | `pnpm build` | 7 tasks succeed |
+| End-to-end smoke (M0 regression) | `pnpm --filter @stackreplay/web test:e2e` | 29 passed, 5 skipped |
+| 100,000 event benchmark | `pnpm --filter @stackreplay/replay-engine bench` | see below |
 
-### Acceptance criteria (spec point 98)
+Test composition in `@stackreplay/replay-engine`: unit tests for input handling, determinism, ordering invariance and result shape; 13 golden fixtures (rolling 5-hour window, rolling weekly window, calendar month, model promotion, model exclusion, hard credit cap, overage plan, mixed models, timezone reset, DST boundary, unsupported model, missing token counts, cache pricing); property tests with fast-check (increasing capacity cannot reduce coverage, adding unsupported workload cannot increase model coverage, identical inputs give identical results, event order does not change the result, zero-event workloads produce no violations); time tests covering calendar buckets, week start, DST day lengths and timestamp parsing.
 
-| Criterion | Verdict | Evidence |
-| --- | --- | --- |
-| Clean clone installs with one command | pass | `node_modules` removed, `pnpm install --frozen-lockfile` restores the workspace |
-| `pnpm dev` works | pass | Next dev server used for all E2E and screenshot verification |
-| `pnpm test` works | pass | 22 tests across 6 files, including the built CLI process |
-| Dark and light themes work | pass | theme E2E tests, screenshots in both themes, verified contrast pairs |
-| Responsive shell exists | pass | desktop sidebar + mobile drawer (Base UI Dialog), E2E in both viewports |
-| CI green | partial | clean-workspace checks and CI-mode E2E pass locally; no hosted Actions run exists |
-| No product logic yet | pass | scaffold packages are comment-only modules; CLI is help/version only; web pages are placeholders |
+## Benchmark: 100,000 usage events
 
-## Tests executed and results
+`pnpm --filter @stackreplay/replay-engine bench` replays a deterministic 100,000 event, 30-day, three-model workload against two synthetic plans and reports measured wall-clock time (median of 5 runs):
 
-Independent audit on 2026-09-21 read both full specifications and the actual source files.
-No commits were made; the repository still has an unborn `main` branch and no remote.
+| Target | Median | Throughput | Constraints |
+| --- | --- | --- | --- |
+| `example-cloud-starter@2026-09-15` (two rolling credit pools) | 744.7 ms | ~134,000 events/second | 5h pool pass, 7d pool exceeded |
+| `example-cloud-pro@2026-08-01` (monthly token limit, rolling 5h request limit, per-model credit pool, promotion) | 886.4 ms | ~113,000 events/second | all three exceeded |
 
-- `pnpm check` and `pnpm lint` — 84 files, passing.
-- `pnpm check:contrast` — 22 token pairs per theme (44 total), passing. Includes input boundaries,
-  focus rings and surface-2 text in addition to the original text pairs. Tinted badges are also
-  exercised by browser axe scans; this script alone is not a complete accessibility audit.
-- `pnpm typecheck` — 9/9 tasks passing.
-- `pnpm test` — 6 files, 22 tests passing (UI 14, CLI 8). CLI tests include built entry-point
-  output, exit codes, package-version consistency and rejected trailing arguments.
-- `pnpm build` — 7/7 tasks passing; all nine application routes plus `/_not-found` prerendered.
-- `pnpm test:e2e` — 29 passed, 5 skipped solely for inapplicable desktop/mobile cases.
-  Local and CI runs both use the production server. Local retries are disabled. Tests cover both
-  themes on `/app` and `/design`, all six placeholder routes, skip-link activation, persistence,
-  unavailable/invalid storage, drawer focus trapping/return/dismissal, resizing to desktop,
-  landscape scrolling, 320px overflow, 44px touch controls, input labels/errors and reduced motion.
-  Axe scans assert zero violations, including both themes with the mobile drawer open.
-- Clean installation — copied source to an isolated temporary workspace without node_modules,
-  dist, .next, .turbo or TypeScript caches; `pnpm install --frozen-lockfile` passed. Typecheck,
-  tests, build and CI-mode E2E also passed there without services or secrets.
-- CLI packaging — packed the clean build, inspected the archive (no emitted test files), and ran
-  help/version from the extracted package without node_modules.
-- `pnpm dev` — Next dev server and six TypeScript watchers started successfully on Node 24.19.0.
-- `pnpm audit --json` — no reported advisories. This is the registry audit result, not a guarantee
-  that dependencies contain no vulnerabilities.
-- Visual review — captured all seven shell/design routes in desktop/mobile and dark/light, and
-  both drawer themes. Inspected `/app`, `/design` and representative placeholders after fixes.
-  The result is a restrained, coherent foundation, not yet a distinctive launch-quality product.
-  Screenshots were kept outside the repository; no committed visual-regression baselines exist.
+Both are inside the specification's performance target of replaying 100,000 events in under one second on a modern desktop, and the engine remains pure and Web Worker suitable.
 
-## Independent audit fixes
+The first implementation of this benchmark measured 5.3 s and 10.9 s. Profiling showed polyfilled Temporal instants dominating the per-event path (3.1 s in the sort alone). Moving the hot path to epoch milliseconds while keeping Temporal for calendar semantics (decision 11) produced the numbers above; the golden fixtures and property tests were unchanged by that refactor, which is the evidence that behaviour did not move.
 
-- Increased coarse-pointer Button/Input targets to 44px, with 16px touch input text; mobile
-  drawer controls and the brand link have appropriate target sizes.
-- Added a dedicated contrast-safe input border token and full-strength keyboard focus rings,
-  preserving subtle decorative borders elsewhere.
-- Made the drawer scroll in short viewports and close when the desktop sidebar appears.
-- Corrected theme bootstrap fallback when storage is blocked or contains an invalid preference.
-  Theme and drawer triggers remain disabled until their handlers are ready, removing the need
-  for tests to inspect React's private fiber properties.
-- Replaced invented prices attached to real subscription names with explicitly fictional plans;
-  corrected the heavy preset's multi-stack label. Display fixtures remain separate from domain schemas.
-- Named the design example's coverage dimension explicitly and supplied the missing icon-button icon.
-- Rejected unexpected CLI trailing arguments, declared the CLI's Node 24 baseline and excluded
-  unit-test source from production output.
-- Strengthened the disabled-button interaction test, CLI process tests and browser tests. The
-  focus-trap test waits for the primitive's asynchronous focus transfer instead of sampling its
-  temporary focus guard. No domain functionality was added.
+## Known issues and limitations
 
-## Known issues
+- Token limits count all recorded token categories summed (recorded as an assumption on every affected result).
+- Calendar month windows are UTC calendar months; billing anchors are not part of the data model yet.
+- `overage` enforcement is reported as `UNKNOWN` with a warning rather than guessed. Overage pricing is not modelled.
+- Usage coverage is token-weighted across all token categories; it is a separate dimension from request coverage and is never blended with it.
+- Catalog versioning is content-hash based at load time. A published artifact with manifest and checksum is Milestone 2 work and the hosting question stays deferred.
+- The engine validates its input on every call. A validated-import fast path can be added when import sizes make it worthwhile; at 100,000 events validation is under 100 ms.
+- The web app still renders M0 placeholder surfaces. No replay UI exists yet (that is Milestone 3/4 work).
 
-- GitHub Actions has not run yet: the repository has no remote and no commits (commits are gated
-  on explicit approval). The workflow is validated by running its commands locally.
-- E2E covers Chromium desktop and emulated Android mobile. Real iOS/Safari, Firefox and manual
-  screen-reader testing have not been performed; axe and keyboard checks do not establish full WCAG conformance.
-- `@base-ui-components/react` remains at `1.0.0-rc.0`, isolated to the mobile drawer. Stable
-  releases exist under the renamed `@base-ui/react` package, per the
-  [official v1.0 release notes](https://base-ui.com/react/overview/releases/v1-0-0).
-  Keyboard, dismissal, navigation and axe checks passed; no concrete dependency defect was found
-  that justifies changing it during this audit. Reassess before expanding its role.
-- `/design` is an internal verification surface. Its production fate (keep internal or remove)
-  belongs to Milestone 4.
-- `/` redirects to `/app`; the marketing home page arrives with Milestone 4. `/app/*` routes are
-  placeholders (heading + description) until their milestones.
-- No favicon or app icons yet; brand assets are a Milestone 4 concern.
-- Next.js 16 writes `apps/web/AGENTS.md` (and a `CLAUDE.md` reference) on `next dev`; kept in the
-  tree per Next's own guidance that committing it keeps the working tree clean.
-- The two deferred questions in `docs/ARCHITECTURE_DECISIONS.md` (M4A fallback pricing, M2
-  catalog artifact hosting) remain untouched by design.
+## Deviations from the specification
 
-## Intentional deviations and interpretations
-
-1. **Node 24 pinned via `.mise.toml`.** The machine default is Node 26 (Current); spec point 5
-   requires Node 24 LTS. The pin applies inside the repository only.
-2. **"shadcn/Base UI" implemented as a primitives layer, not generated stock components.**
-   `packages/ui` provides cva + cn composition following the shadcn pattern, styled with
-   StackReplay tokens (spec point 32: never ship raw stock shadcn styling). Base UI supplies the
-   one headless primitive M0 needs (Dialog for the mobile drawer).
-3. **"Rhea-style density" interpreted per the May 2026 shadcn Rhea release:** compact controls
-   (28/32/36px heights), tighter spacing, denser surfaces, mapped onto the spec's radius scale
-   (6/8/10/12/14px, spec point 36).
-4. **Package consumption split.** `ui` and `test-fixtures` ship TypeScript source (consumed by
-   Next via `transpilePackages`); `schema`, `catalog`, `adapters`, `replay-engine` and `db` emit
-   `dist` builds so the Node CLI and tests can consume them in Milestone 1+.
-5. **The application shell lives in `packages/ui`** and uses `next/link`, with `next` as an
-   optional peer dependency. Spec point 7 places higher-order product components in `packages/ui`
-   and the only consumer is the Next application.
-6. **Committed contrast checker.** `tooling/scripts/check-contrast.mjs` (zero dependencies) reads
-   `tokens.css`, computes WCAG ratios for the pairs that carry text, and runs in CI. This makes the
-   accessibility requirement (spec point 40) verifiable rather than asserted.
-7. **`devIndicators: false`** hides the normal development indicator. It does not guarantee that
-   Next error/issue overlays are suppressed; final visual review used the production server.
+- None. API, Local and Hybrid targets exist as type and reference shells and raise `TARGET_NOT_IMPLEMENTED` when replayed, exactly as decision 7 requires.
+- The two explicitly deferred questions remain open and untouched: M4A fallback pricing when detailed token categories are unavailable, and M2 catalog artifact hosting.
 
 ## Next milestone
 
-**Milestone 1 — Schema + Catalog + Replay Engine.** Not started. It adds `UsageEventV1`,
-`StackReplayExportV1`, the generalized `ExecutionReplayResultV1` with the `ExecutionTarget`
-discriminated union, catalog schemas with a validator and loader, and the deterministic replay
-engine with rolling/calendar window handling, golden fixtures, property tests, and the 100k-event
-benchmark.
+**Milestone 2 — CLI + first adapters** (`detect`, `scan`, `export`, `replay`, `doctor`), which is not started. The M1 result is intended for independent audit first.

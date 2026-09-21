@@ -1,0 +1,11 @@
+id: example-large
+role: model
+name: Example Large
+providerIds:
+  - example-cloud
+sources:
+  - url: https://example.invalid/models/example-large
+    title: Example Large model card (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

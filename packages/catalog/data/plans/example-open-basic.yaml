@@ -1,0 +1,33 @@
+id: example-open-basic
+role: plan
+name: Example Open Basic
+providerId: example-open
+versions:
+  - effectiveFrom: 2026-08-01
+    price:
+      currency: USD
+      amount: "10.00"
+      interval: month
+    billingMechanics: Request windows only; the large model is not available on this plan.
+    limits:
+      - id: rolling-5h-requests
+        label: 5-hour request window
+        type: request_limit
+        amount: "300"
+        window:
+          type: rolling
+          duration: PT5H
+          anchor: first_use
+    modelRules:
+      - model: example-small
+        pricingRef: example-small-pricing
+      - model: example-medium
+        pricingRef: example-medium-pricing
+      - model: example-large
+        excluded: true
+    sources:
+      - url: https://example.invalid/plans/example-open-basic
+        title: Example Open Basic plan page (synthetic demo data)
+        checkedAt: 2026-08-01
+    lastVerifiedAt: 2026-08-01
+    verificationStatus: estimated

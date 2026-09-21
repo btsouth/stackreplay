@@ -1,0 +1,74 @@
+id: example-cloud-starter
+role: plan
+name: Example Cloud Starter
+providerId: example-cloud
+versions:
+  - effectiveFrom: 2026-08-01
+    effectiveTo: 2026-09-14
+    price:
+      currency: USD
+      amount: "20.00"
+      interval: month
+    billingMechanics: Credit pool consumed at model list rates; unused credits do not roll over.
+    limits:
+      - id: rolling-5h-credits
+        label: 5-hour credit pool
+        type: credit_pool
+        amount: "20.00"
+        window:
+          type: rolling
+          duration: PT5H
+          anchor: first_use
+      - id: rolling-7d-credits
+        label: Weekly credit pool
+        type: credit_pool
+        amount: "75.00"
+        window:
+          type: rolling
+          duration: P7D
+          anchor: first_use
+    modelRules:
+      - model: example-small
+        pricingRef: example-small-pricing
+      - model: example-medium
+        pricingRef: example-medium-pricing
+    sources:
+      - url: https://example.invalid/plans/example-cloud-starter
+        title: Example Cloud Starter plan page (synthetic demo data)
+        checkedAt: 2026-08-01
+    lastVerifiedAt: 2026-08-01
+    verificationStatus: estimated
+  - effectiveFrom: 2026-09-15
+    price:
+      currency: USD
+      amount: "20.00"
+      interval: month
+    billingMechanics: Credit pool consumed at model list rates; unused credits do not roll over.
+    limits:
+      - id: rolling-5h-credits
+        label: 5-hour credit pool
+        type: credit_pool
+        amount: "25.00"
+        window:
+          type: rolling
+          duration: PT5H
+          anchor: first_use
+      - id: rolling-7d-credits
+        label: Weekly credit pool
+        type: credit_pool
+        amount: "75.00"
+        window:
+          type: rolling
+          duration: P7D
+          anchor: first_use
+    modelRules:
+      - model: example-small
+        pricingRef: example-small-pricing
+      - model: example-medium
+        pricingRef: example-medium-pricing
+    sources:
+      - url: https://example.invalid/plans/example-cloud-starter
+        title: Example Cloud Starter plan page (synthetic demo data)
+        checkedAt: 2026-09-15
+    lastVerifiedAt: 2026-09-15
+    verificationStatus: estimated

@@ -1,0 +1,17 @@
+id: example-small-pricing
+role: pricing
+modelId: example-small
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "0.10"
+  output: "0.40"
+  cacheRead: "0.01"
+  cacheWrite: "0.12"
+effectiveFrom: 2026-01-01
+sources:
+  - url: https://example.invalid/pricing/example-small
+    title: Example Small pricing (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

@@ -1,18 +1,101 @@
-/**
- * @stackreplay/schema
- *
- * Versioned StackReplay schemas and shared TypeScript types.
- *
- * Milestone 0: scaffolding only. No product logic lives here yet.
- *
- * Milestone 1 adds, per the specification and docs/ARCHITECTURE_DECISIONS.md:
- * - UsageEventV1 and StackReplayExportV1
- * - ExecutionReplayResultV1: the generalized replay result with the
- *   ExecutionTarget discriminated union (subscription | api | local | hybrid),
- *   target-specific detail nested beneath it
- * - catalog schemas: provider, model, plan, pricing
- *
- * Nothing in this package may depend on React, the web application, or Node.js
- * runtime APIs; the schemas must run in the CLI, the browser and tests alike.
- */
-export {};
+export { STACKREPLAY_ERROR_CODES, type StackReplayErrorCode } from "./error-codes.js";
+export {
+  type ApiModelMappingV1,
+  type ApiTargetV1,
+  apiModelMappingV1Schema,
+  apiTargetV1Schema,
+  type ExecutionTargetV1,
+  executionTargetV1Schema,
+  type HybridRouteV1,
+  type HybridTargetV1,
+  hybridRouteV1Schema,
+  hybridTargetV1Schema,
+  isSubscriptionTargetV1,
+  type LocalTargetV1,
+  localTargetV1Schema,
+  type SubscriptionTargetV1,
+  subscriptionTargetV1Schema,
+} from "./execution-target.js";
+export {
+  type DetectedSourceV1,
+  detectedSourceV1Schema,
+  type RedactionReportV1,
+  redactionReportV1Schema,
+  type StackReplayExportV1,
+  stackReplayExportV1Schema,
+} from "./export.js";
+export { type MoneyV1, moneyV1Schema } from "./money.js";
+export {
+  type ConstraintEnforcementV1,
+  type ConstraintKindV1,
+  type ConstraintResultV1,
+  type ConstraintStatusV1,
+  type ConstraintUnitV1,
+  type CoverageDimensionsV1,
+  type CoverageDimensionV1,
+  constraintEnforcementV1Schema,
+  constraintKindV1Schema,
+  constraintResultV1Schema,
+  constraintStatusV1Schema,
+  constraintUnitV1Schema,
+  coverageDimensionsV1Schema,
+  coverageDimensionV1Schema,
+  type EconomicsV1,
+  type ExecutionReplayResultV1,
+  economicsV1Schema,
+  executionReplayResultV1Schema,
+  type FeasibilityV1,
+  feasibilityV1Schema,
+  type ReplayAssumptionV1,
+  type ReplayConfidenceV1,
+  type ReplayVersionsV1,
+  type ReplayViolationV1,
+  type ReplayWarningV1,
+  replayAssumptionV1Schema,
+  replayConfidenceV1Schema,
+  replayVersionsV1Schema,
+  replayViolationV1Schema,
+  replayWarningV1Schema,
+  type SubscriptionReplayDetailV1,
+  subscriptionReplayDetailV1Schema,
+  type UnsupportedModelV1,
+  unsupportedModelV1Schema,
+  type WorkloadSummaryV1,
+  workloadSummaryV1Schema,
+} from "./replay-result.js";
+export {
+  currencyV1Schema,
+  DECIMAL_AMOUNT_PATTERN,
+  decimalAmountV1Schema,
+  ISO_DATE_PATTERN,
+  ISO_UTC_TIMESTAMP_PATTERN,
+  isoDateV1Schema,
+  isoUtcTimestampV1Schema,
+  multiplierV1Schema,
+  POSITIVE_DECIMAL_PATTERN,
+  type VerificationStatusV1,
+  verificationStatusV1Schema,
+} from "./scalars.js";
+export {
+  type AttributionV1,
+  attributionV1Schema,
+  type EntityRefV1,
+  type EventConfidenceV1,
+  entityRefV1Schema,
+  eventConfidenceV1Schema,
+  type ModalityV1,
+  type ModelRefV1,
+  modalityV1Schema,
+  modelRefV1Schema,
+  type SourceRefV1,
+  sourceRefV1Schema,
+  type TextUsageEventV1,
+  type TextUsageV1,
+  textUsageEventV1Schema,
+  textUsageV1Schema,
+  type UsageEventV1,
+  type UsageV1,
+  usageEventV1Schema,
+  type WorkloadCategoryV1,
+  workloadCategoryV1Schema,
+} from "./usage-event.js";

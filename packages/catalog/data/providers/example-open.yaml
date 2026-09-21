@@ -1,0 +1,9 @@
+id: example-open
+role: provider
+name: Example Open
+sources:
+  - url: https://example.invalid/docs/example-open
+    title: Example Open documentation (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

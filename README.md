@@ -8,9 +8,10 @@ StackReplay is an early-stage, local-first tool for a question that static plan 
 answer: **would another AI coding subscription actually handle the way I work?**
 
 > **Status: pre-release.** This project is under active development. Nothing here is a shipped
-> product yet: there is no scanning, no importing and no replaying of real usage. Exactly what
-> exists, what is verified and what comes next is tracked in
-> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+> product yet: there is no scanning, no importing and no replaying of real usage. The versioned
+> schemas, the synthetic catalog and the deterministic replay engine are implemented, tested and
+> benchmarked; everything around them is not. Exactly what exists, what is verified and what comes
+> next is tracked in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
 
@@ -64,17 +65,20 @@ Privacy is a design constraint here, not footer copy. The intended architecture:
 - **Project identity is hashed** with a locally generated salt before anything could leave a
   machine.
 
-Current reality: this repository contains the design system, application shell and CLI scaffold.
-The statements above are architecture intentions;
+Current reality: this repository contains the versioned schemas, the synthetic catalog, the
+deterministic replay engine, the design system, the application shell and the CLI scaffold. The
+statements above are architecture intentions;
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) tracks exactly what exists today.
 
 ## Project status
 
 - Milestone 0 (foundation: monorepo, design system, application shell, CLI scaffold, CI, tests) is
   complete and was independently audited.
-- Milestone 1 adds the versioned schemas, the catalog and the deterministic replay engine.
+- Milestone 1 (versioned schemas, catalog with validator and loader, deterministic subscription
+  replay engine, golden fixtures, property tests, 100,000-event benchmark) is implemented and
+  awaiting its independent audit.
 - No adapters, scanning, import or replay of real usage exist yet; those arrive with the CLI and
-  adapter milestones.
+  adapter milestones. Nothing has been pushed anywhere: there is no remote.
 
 `docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
 and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and

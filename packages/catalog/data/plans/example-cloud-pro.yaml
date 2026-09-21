@@ -1,0 +1,60 @@
+id: example-cloud-pro
+role: plan
+name: Example Cloud Pro
+providerId: example-cloud
+versions:
+  - effectiveFrom: 2026-08-01
+    price:
+      currency: USD
+      amount: "50.00"
+      interval: month
+    billingMechanics: Token allowance per calendar month; request windows throttle burst usage.
+    limits:
+      - id: monthly-tokens
+        label: Monthly token allowance
+        type: token_limit
+        amount: "200000000"
+        window:
+          type: calendar
+          unit: month
+          timezone: UTC
+      - id: rolling-5h-requests
+        label: 5-hour request window
+        type: request_limit
+        amount: "600"
+        window:
+          type: rolling
+          duration: PT5H
+          anchor: first_use
+      - id: large-model-credits
+        label: Large model credit pool
+        type: credit_pool
+        amount: "100.00"
+        models:
+          - example-large
+        window:
+          type: calendar
+          unit: month
+          timezone: UTC
+    modelRules:
+      - model: example-small
+        pricingRef: example-small-pricing
+      - model: example-medium
+        pricingRef: example-medium-pricing
+      - model: example-large
+        pricingRef: example-large-pricing
+        multiplier: "0.5"
+    promotions:
+      - id: medium-launch-promo
+        label: Medium model launch promotion
+        models:
+          - example-medium
+        multiplier: "0.5"
+        effectiveFrom: 2026-09-01
+        effectiveTo: 2026-09-30
+    sources:
+      - url: https://example.invalid/plans/example-cloud-pro
+        title: Example Cloud Pro plan page (synthetic demo data)
+        checkedAt: 2026-08-01
+    lastVerifiedAt: 2026-08-01
+    verificationStatus: estimated

@@ -38,4 +38,7 @@ Prepared for the transition from private development to a public repository. Sta
 ## Notes
 
 - The repository must not be published until the Milestone 1 audit passes.
+- Milestone 1 validation was run locally on 2026-09-21 (format, lint, contrast, typecheck, 90 tests,
+  build, end-to-end smoke, 100,000-event benchmark). Results are recorded in
+  `docs/IMPLEMENTATION_STATUS.md`. Local validation is not a substitute for the audit.
 - This checklist is updated as items complete; it is not a substitute for the audit.

@@ -1,0 +1,11 @@
+id: example-small
+role: model
+name: Example Small
+providerIds:
+  - example-cloud
+sources:
+  - url: https://example.invalid/models/example-small
+    title: Example Small model card (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

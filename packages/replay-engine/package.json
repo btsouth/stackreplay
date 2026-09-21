@@ -18,10 +18,22 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo"
+    "test": "vitest run",
+    "bench": "pnpm build && node bench/replay-100k.mjs",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
+    "@stackreplay/catalog": "workspace:*",
+    "@stackreplay/schema": "workspace:*",
+    "decimal.js": "^10.6.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
-    "typescript": "^7.0.2"
+    "fast-check": "^4.10.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   }
 }

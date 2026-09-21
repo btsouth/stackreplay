@@ -1,0 +1,121 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden fixture: mixed models > converts each model with its own pricing and passes the result schema 1`] = `
+{
+  "assumptions": [
+    {
+      "description": "The target cost is the plan's fixed price; no proration is applied for replay windows shorter than a billing period.",
+      "id": "NO_PRORATION",
+    },
+    {
+      "description": "Window boundaries are half-open: [start, end).",
+      "id": "WINDOW_BOUNDARIES",
+    },
+  ],
+  "confidence": {
+    "factors": [
+      {
+        "description": "Token history is exact for every event.",
+        "id": "source_data",
+        "level": "high",
+      },
+      {
+        "description": "Every event model resolved exactly against the catalog.",
+        "id": "model_mapping",
+        "level": "high",
+      },
+      {
+        "description": "Plan rules are marked "estimated" in the catalog.",
+        "id": "plan_rules",
+        "level": "medium",
+      },
+      {
+        "description": "Pricing entries used by this replay, by their catalog verification status.",
+        "id": "pricing_rules",
+        "level": "medium",
+      },
+    ],
+    "level": "medium",
+  },
+  "constraints": [
+    {
+      "consumedUnits": "4",
+      "enforcement": "hard_stop",
+      "id": "credits",
+      "kind": "credit_pool",
+      "label": "credits",
+      "limitUnits": "50",
+      "status": "pass",
+      "unit": "currency",
+      "violationCount": 0,
+      "window": {
+        "description": "rolling window of PT5H anchored at first use",
+        "kind": "rolling",
+      },
+    },
+  ],
+  "coverage": {
+    "models": {
+      "covered": 2,
+      "percent": 100,
+      "total": 2,
+    },
+    "requests": {
+      "covered": 3,
+      "percent": 100,
+      "total": 3,
+    },
+    "usage": {
+      "covered": 2500000,
+      "percent": 100,
+      "total": 2500000,
+    },
+  },
+  "economics": {
+    "costBasis": "fixed_plan_price",
+    "targetCost": {
+      "amount": "20.00",
+      "currency": "USD",
+    },
+  },
+  "feasibility": {
+    "coveragePercent": 100,
+    "status": "full",
+  },
+  "subscription": {
+    "interval": "month",
+    "name": "Fixture Plan",
+    "planId": "fixture-plan",
+    "planVersionId": "fixture-plan@2026-08-01",
+    "price": {
+      "amount": "20.00",
+      "currency": "USD",
+    },
+    "providerId": "fixture-provider",
+    "verificationStatus": "estimated",
+  },
+  "target": {
+    "planVersionId": "fixture-plan@2026-08-01",
+    "type": "subscription",
+  },
+  "unsupportedModels": [],
+  "version": 1,
+  "versions": {
+    "catalog": "fixture:golden-v1",
+    "engine": "0.0.0",
+    "planVersionId": "fixture-plan@2026-08-01",
+  },
+  "violations": [],
+  "warnings": [],
+  "workload": {
+    "eventCount": 3,
+    "from": "2026-09-01T00:00:00Z",
+    "modelCount": 2,
+    "to": "2026-09-01T02:00:00Z",
+    "tokenTotals": {
+      "inputTokens": 2000000,
+      "outputTokens": 500000,
+    },
+  },
+}
+`;

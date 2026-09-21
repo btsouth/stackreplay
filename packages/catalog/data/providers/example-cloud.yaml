@@ -1,0 +1,9 @@
+id: example-cloud
+role: provider
+name: Example Cloud
+sources:
+  - url: https://example.invalid/docs/example-cloud
+    title: Example Cloud documentation (synthetic demo data)
+    checkedAt: 2026-09-01
+lastVerifiedAt: 2026-09-01
+verificationStatus: estimated

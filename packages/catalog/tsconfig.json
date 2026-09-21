@@ -1,7 +1,4 @@
 {
   "extends": "@stackreplay/config/tsconfig.node.json",
-  "compilerOptions": {
-    "types": []
-  },
   "include": ["src"]
 }

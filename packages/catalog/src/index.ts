@@ -1,17 +1,47 @@
-/**
- * @stackreplay/catalog
- *
- * Plans, providers, models, pricing, compatibility and plan versions.
- *
- * Milestone 0: scaffolding only.
- *
- * The catalog is version-controlled product data, not a loose database table
- * (spec point 18): human-reviewed definitions under packages/catalog/data,
- * validated, built into a canonical artifact with a SHA-256 manifest, and
- * consumed identically by the CLI and the web application.
- *
- * Milestone 1 adds the schemas, the loader, the validator and plan versioning
- * (effectiveFrom / effectiveTo). API pricing (addendum A) and later local-model
- * and hardware datasets follow in their own milestones.
- */
-export {};
+export { canonicalize, stableStringify } from "./canonical.js";
+export {
+  type CatalogV1,
+  catalogV1Schema,
+  getPlanVersion,
+  getPricing,
+  type LoadedPlanVersionV1,
+  loadedPlanVersionV1Schema,
+  planVersionId,
+} from "./catalog.js";
+export {
+  type CalendarWindowV1,
+  type CatalogSourceV1,
+  calendarWindowV1Schema,
+  catalogIdV1Schema,
+  catalogSourceV1Schema,
+  ISO_DURATION_PATTERN,
+  type LimitWindowV1,
+  limitWindowV1Schema,
+  type ModelRuleV1,
+  type ModelV1,
+  modelRuleV1Schema,
+  modelV1Schema,
+  type PlanLimitV1,
+  type PlanPriceV1,
+  type PlanV1,
+  type PlanVersionEntryV1,
+  type PricingV1,
+  type PromotionV1,
+  type ProviderV1,
+  planLimitV1Schema,
+  planPriceV1Schema,
+  planV1Schema,
+  planVersionEntryV1Schema,
+  pricingV1Schema,
+  promotionV1Schema,
+  providerV1Schema,
+  type RollingWindowV1,
+  rollingWindowV1Schema,
+} from "./schema.js";
+export {
+  type CatalogValidationIssue,
+  type CatalogValidationSeverity,
+  type RawCatalogData,
+  type RawCatalogFile,
+  validateCatalogData,
+} from "./validate.js";
