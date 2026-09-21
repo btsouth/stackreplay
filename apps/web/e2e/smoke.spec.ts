@@ -9,7 +9,7 @@ test("shell renders the overview surface with quiet navigation", async ({ page }
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(6);
+    await expect(nav.getByRole("link")).toHaveCount(7);
     await expect(nav.getByRole("link", { name: "Overview" })).toHaveAttribute(
       "aria-current",
       "page",

@@ -15,6 +15,7 @@ export const appBrand = {
 
 export const appNavItems = [
   { label: "Overview", href: "/app" },
+  { label: "Import", href: "/app/import" },
   { label: "Replay", href: "/app/replay" },
   { label: "Stack", href: "/app/stack" },
   { label: "Plans", href: "/app/plans" },

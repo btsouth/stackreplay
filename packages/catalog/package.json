@@ -13,6 +13,10 @@
     "./load": {
       "types": "./dist/load.d.ts",
       "default": "./dist/load.js"
+    },
+    "./bundled": {
+      "types": "./dist/bundled.d.ts",
+      "default": "./dist/bundled.js"
     }
   },
   "files": [
@@ -20,7 +24,7 @@
     "data"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

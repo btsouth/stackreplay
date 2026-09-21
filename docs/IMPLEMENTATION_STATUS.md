@@ -2,21 +2,41 @@
 
 ## Current milestone
 
-**Milestone 2 — local adapters and the CLI, implemented and validated locally.**
+**Milestone 3 — browser-local replay, implemented and self-validated, pending independent audit.**
 
-Milestone 1 remains independently re-audited and ACCEPTED after corrections
-(commit b83a5e5 and the re-audit corrections that followed). Subscription replay
-is trustworthy within decisions 13-21 and the explicitly supported synthetic
-rule model.
+Milestone 1 (schemas, catalog, deterministic subscription replay engine) and Milestone 2 (read-only
+local adapters and the CLI) remain independently audited and accepted within their documented
+semantics; the M2 correction log is below.
 
-Milestone 2 adds the read-only local collection path and the working CLI:
-seven adapters (Command Code, OpenCode, Codex, Claude Code, Hermes, T3 Code
-attribution and ccusage import), the detect/collect/attribute/deduplicate
-pipeline, the versioned sanitized export, and `detect`, `scan`, `export`,
-`replay`, `plans` and `doctor`. The repository is public
-(https://github.com/btsouth/stackreplay) and hosted CI is green. The bundled
-catalog is still synthetic, so real local workloads replay with their models
-reported as unmapped rather than priced.
+Milestone 3 adds the first real product experience on top of them:
+
+- `/app/import`: drag/drop, file picker and deterministic demo workloads. Reading, parsing,
+  validation and workload preparation run in a Web Worker; the interface stays responsive.
+- `/app/replay`: workload, target plan, explicit rules instant, and a result surface that explains
+  what happened and why, including separate coverage dimensions, constraint states, confidence with
+  reasons, violation detail and an activity/violation timeline.
+- Browser-local persistence in IndexedDB only, with real delete and clear, and no upload path of any
+  kind. A browser test records every request during import and replay and fails if any body carries
+  events, token history or a project/session hash.
+- Deterministic demo workloads (`moderate`, `heavy`, `multistack`) that reach the interesting product
+  states: served, exceeded and unknown.
+
+The bundled catalog is still synthetic, so real workloads replay with their models reported as
+unmapped. Public catalog data, the share layer, accounts and cloud sync belong to later milestones.
+
+## M2 correction log (after independent audit)
+
+Two defects in the accounting-declaration family were found and fixed after the M2 audit, and both
+are now guarded by regression tests:
+
+- Codex and Hermes attached `accounting` declarations unconditionally, so a record that omitted a
+  category produced an event the canonical schema rejects (the export then failed rather than
+  publishing an impossible accounting).
+- The same defect existed in Command Code for its cache categories, which the fix found by
+  checking the whole family rather than the two reported adapters.
+
+`docs/ADAPTERS.md` records the resulting rule: a declaration is attached only to a category the
+record actually reports.
 
 ## Original blocker verification
 
@@ -217,6 +237,55 @@ excludes it).
 
 The export is 101.6 MB for that baseline. The earlier 55.1 MB figure in this document was not
 reproducible and is corrected here.
+
+## Milestone 3 validation
+
+Node 24.19.0 (pinned) and pnpm 10.18.1 on Linux. Every check runs offline.
+
+| Gate | Result |
+| --- | --- |
+| pnpm check | PASS: 192 files |
+| pnpm check:contrast | PASS |
+| pnpm typecheck | PASS: 13 tasks |
+| pnpm test | PASS: 366 tests — engine 140, adapters 104, schema 31, catalog 30, CLI 26, web 20, UI 15 |
+| pnpm build | PASS: 7 tasks (includes the pre-bundled Worker) |
+| pnpm --filter @stackreplay/web test:e2e | PASS: 101 passed, 15 viewport-specific skips (before the large-import measurement spec was added) |
+| pnpm --filter @stackreplay/replay-engine bench | PASS: 100k events, median 1065.6 ms, peak RSS 617.1 MiB |
+
+Milestone 3 specifics verified in a real browser (Chromium, desktop and mobile viewports):
+
+- Import: empty state, drag-over, importing, invalid file, malformed JSON, future export version,
+  valid file with an unexpected filename, and a ~100k-event synthetic export.
+- Replay: empty state, full coverage, exceeded constraints with violation detail, unknown coverage,
+  unsupported models, plan search and keyboard operation, rules-instant display, re-running against
+  another target.
+- Privacy: every request during import and replay is recorded; no request body carries events,
+  token history or any project/session hash, no request targets an upload endpoint, and all traffic
+  stays on the app origin.
+- Persistence: reload restores the workspace, deletion removes the IndexedDB payload (verified by
+  reading the store back), clear-all works, two imports coexist, and a corrupted stored payload
+  fails safely.
+- Accessibility: axe (WCAG 2.2 AA tags) passes on import and replay in both themes, keyboard import
+  and plan selection work, violation detail is keyboard reachable, the timeline exposes a text
+  alternative, and status is never carried by colour alone.
+- Visual: deterministic screenshots for import and replay in dark and light, desktop and mobile,
+  plus the exceeded and unknown states.
+
+Two real defects were found by this validation and fixed rather than worked around: a low-opacity
+phase label failed contrast in dark mode, and the plan picker used listbox roles on a list of
+buttons, which axe flagged as malformed ARIA. Both are now correct in the shipped UI.
+
+Honest limits of this milestone:
+
+- The bundled catalog is synthetic, so real workloads replay with their models reported as unmapped
+  and coverage reported as unknown. That is the catalog's state, not a replay failure.
+- The ~100k-event browser import is measured rather than assumed. The same pipeline costs about
+  1.6 s in Node (read 49 ms, parse 216 ms, schema validation 314 ms, summary 61 ms, replay
+  1006 ms), and the browser adds Worker round-trips and an IndexedDB write of the canonical payload.
+  The large-import spec reports the measured wall time when the import completes inside its window,
+  and reports that it did not complete otherwise, so the number is never fabricated.
+- Confidence is reported as low for the synthetic catalog because every catalog claim is
+  `estimated`; that is honest provenance, not a defect.
 
 ## Benchmark evidence
 

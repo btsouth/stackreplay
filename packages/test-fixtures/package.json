@@ -18,5 +18,8 @@
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@stackreplay/schema": "workspace:*"
   }
 }

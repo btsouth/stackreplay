@@ -81,6 +81,6 @@ export async function runPlans(context: CommandContext): Promise<number> {
     renderer.line();
   }
 
-  renderer.line("Replay one with: stackreplay replay <plan-id> --as-of " + rulesAsOf);
+  renderer.line(`Replay one with: stackreplay replay <plan-id> --as-of ${rulesAsOf}`);
   return EXIT_OK;
 }

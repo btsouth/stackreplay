@@ -15,6 +15,16 @@ export const detectedSourceV1Schema = z.strictObject({
   name: z.string().min(1),
   detected: z.boolean(),
   supported: z.boolean(),
+  /**
+   * What kind of source this is (decision 28). Optional so that every export
+   * written before this field existed stays valid and importable.
+   *
+   * - `usage`: emits canonical usage events, so it is a source of consumption.
+   * - `attribution`: orchestration/control surface; it contributes harness
+   *   attribution and never usage of its own.
+   * - `import`: a third-party export read on request.
+   */
+  role: z.enum(["usage", "attribution", "import"]).optional(),
   sessionCount: z.number().int().nonnegative().optional(),
   note: z.string().min(1).optional(),
 });

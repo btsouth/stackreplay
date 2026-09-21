@@ -19,14 +19,22 @@ describe("isNavItemActive", () => {
 });
 
 describe("appNavItems", () => {
-  it("covers the six shell surfaces from the specification", () => {
+  it("covers the shell surfaces from the specification plus the import entry point", () => {
+    // Import joins the six original surfaces in Milestone 3: the browser-local
+    // experience starts with importing a workload.
     expect(appNavItems.map((item) => item.label)).toEqual([
       "Overview",
+      "Import",
       "Replay",
       "Stack",
       "Plans",
       "History",
       "Settings",
     ]);
+  });
+
+  it("keeps import and replay as distinct destinations", () => {
+    expect(isNavItemActive("/app/import", "/app/import")).toBe(true);
+    expect(isNavItemActive("/app/replay", "/app/import")).toBe(false);
   });
 });

@@ -43,6 +43,10 @@ publishing an impossible accounting.
 | `t3-code` | attribution | `~/.t3/userdata` |
 | `ccusage` | import | explicit `--input <file>` only |
 
+Each detected source also carries a `role` in the export (`usage`, `attribution` or `import`,
+decision 28), so a consumer can tell a consumption source from a control surface without heuristics.
+T3 Code is `attribution`: it orchestrates other agents and never emits usage of its own.
+
 Windows roots use `%APPDATA%` / `%LOCALAPPDATA%` and the user profile directory; macOS roots use
 `~/Library/Application Support`. Path resolution is a pure function of the platform and environment,
 so all three layouts are covered by tests without a real machine.

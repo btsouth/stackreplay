@@ -96,6 +96,7 @@ function detectionToSource(
     name: adapter.name,
     detected: detection.detected,
     supported: detection.supported,
+    role: adapter.kind,
   };
   if (sessionCount > 0) source.sessionCount = sessionCount;
   if (detection.note !== undefined) source.note = detection.note;

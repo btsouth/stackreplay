@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   // Workspace packages ship TypeScript source; Next compiles them in place.
   transpilePackages: ["@stackreplay/ui", "@stackreplay/test-fixtures"],
+  // Recharts is a large charting dependency used only by the replay result
+  // surface; keep it out of the shared bundle graph where possible.
+  experimental: {
+    optimizePackageImports: ["recharts", "lucide-react"],
+  },
 };
 
 export default nextConfig;

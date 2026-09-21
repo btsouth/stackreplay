@@ -319,6 +319,64 @@ relationship the canonical model needs, the unknown is preserved rather than fil
 rows keep reasoning unknown, so their token totals are reported as unknown. Importing alongside a
 native scan is allowed and deduplicated, with the overlap reported.
 
+## 27. T3 Code is an orchestration control surface, never a usage source
+
+T3 Code must not be presented to users as an independent inference-usage source. In StackReplay it is
+a **control surface / orchestration client** that drives underlying coding agents and provider CLIs
+(Codex, Claude Code, OpenCode and other supported runtimes). Consequences, binding on data and UI:
+
+- T3 Code emits zero canonical usage events by design.
+- T3 attribution must never increase event counts or token totals; underlying usage records remain
+  the single source of consumption truth.
+- T3 metadata answers exactly one question: "was this underlying session orchestrated through T3
+  Code?".
+- The product UI must never show "T3 Code — 0 events" in a way that implies a failed integration.
+  Usage-producing sources and orchestration attribution are presented as separate concepts:
+  a usage-source list, and an orchestration line such as "34 sessions via T3 Code".
+- A session-attribution count is derived from structured metadata only (the harness reference on
+  canonical events). Human-readable `note` strings are never parsed to infer semantics. When
+  structured attribution is unavailable, the UI states that attribution is available without
+  inventing a number.
+
+The larger taxonomy (control surface, coding agent / agent runtime, inference provider, subscription
+plan, model) is deferred. Existing M1/M2 contracts stay valid, and this taxonomy is revisited
+deliberately before the M4/M4A public catalog and economic work rather than refactored now.
+
+## 28. Detected sources carry an optional role, and old exports stay valid
+
+Distinguishing a usage source from an attribution or import source is a data question, not a UI
+heuristic. `DetectedSourceV1` gained an optional `role` field (`usage` | `attribution` | `import`),
+populated by the collection pipeline from the adapter's own kind.
+
+Backward compatibility is explicit: the field is optional, every export written before it existed
+remains schema-valid and importable, and consumers fall back to a small known-adapter map (T3 Code is
+attribution, ccusage is an import) when the field is absent. Consumers must not parse `note` strings
+to recover semantics. `UsageEventV1` was not changed for this purpose, and no broader source
+taxonomy was introduced.
+
+## 29. Browser-local replay: Worker boundary, IndexedDB persistence, no upload path
+
+Milestone 3 runs the same deterministic engine in the browser under a strict boundary:
+
+- **Execution**: reading, parsing, validating, workload preparation and replay all happen in a
+  dedicated Web Worker. The main thread receives progress, an aggregate workload summary and the
+  replay result; it never receives a copy of the event array, and no main-thread operation touches
+  the whole workload. The engine package is imported unchanged (no DOM, no filesystem, no network).
+- **Protocol**: an internal, typed, versioned message protocol with explicit success and error
+  variants. Progress is a separate message class from terminal results. Every request carries a
+  monotonically increasing id and the client drops responses for superseded requests, so a slow
+  import can never overwrite a newer one.
+- **Persistence**: IndexedDB only, never localStorage, storing the canonical sanitized export plus
+  listing metadata. The original raw file is not kept as a second copy. Deletion and "clear local
+  data" remove records rather than hiding them, and an incompatible or corrupted stored payload
+  fails safely with a typed error.
+- **No upload path**: there is no import or event upload endpoint, and no dormant upload
+  infrastructure "for future use". A browser test records every request during import and replay and
+  fails if any request body carries events, token history or any project/session hash. The privacy
+  statement "Processed locally in your browser" is therefore a tested property, not copy.
+- **URLs**: navigation uses an opaque local import id only. Workload content, project hashes, session
+  hashes and file names never appear in a URL, and hashed identifiers are not shown to users.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

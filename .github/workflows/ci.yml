@@ -50,7 +50,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build web app
-        run: pnpm --filter @stackreplay/web build
+        # Build the workspace dependencies too: the web app and its Worker import
+        # the compiled schema, catalog and replay engine packages.
+        run: pnpm --filter "@stackreplay/web..." build
       - name: Install Playwright browsers
         run: pnpm --filter @stackreplay/web exec playwright install --with-deps chromium
       - name: Run Playwright smoke tests

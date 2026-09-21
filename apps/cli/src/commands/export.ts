@@ -97,7 +97,7 @@ export async function runExport(context: CommandContext): Promise<number> {
   renderer.field("  Repository names included", "no");
   renderer.line();
   renderer.line("The file contains token counts, model names, timestamps and salted hashes only.");
-  renderer.line("Replay it with: stackreplay replay <plan> --input " + target);
+  renderer.line(`Replay it with: stackreplay replay <plan> --input ${target}`);
   return EXIT_OK;
 }
 

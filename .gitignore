@@ -27,8 +27,7 @@ blob-report/
 /Initial plan.docx
 /adendum stackreply.docx
 
-# Local working documents and images (kept out of the repository)
-/docs/*.docx
+# Local working images (kept out of the repository)
 /docs/Images/
 
 # Editors / OS
@@ -37,6 +36,10 @@ blob-report/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Generated browser Worker bundle (built from apps/web/workers by Vite)
+/apps/web/public/stackreplay-worker.js
+/apps/web/public/stackreplay-worker.js.map
 
 # Local usage exports (never commit personal workload data)
 *.stackreplay.json
