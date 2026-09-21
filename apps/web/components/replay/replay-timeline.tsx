@@ -52,9 +52,11 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
 
   const summary = useMemo(() => {
     if (data.length === 0) return "No activity in this workload.";
+    const firstDay = data[0];
+    if (firstDay === undefined) return "No activity in this workload.";
     const busiest = data.reduce(
       (best, entry) => (entry.events > best.events ? entry : best),
-      data[0]!,
+      firstDay,
     );
     const windows = violations.length;
     return [
