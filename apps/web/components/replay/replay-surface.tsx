@@ -34,7 +34,7 @@ const ReplayTimeline = dynamic(() => import("./replay-timeline"), {
   ssr: false,
   loading: () => (
     <p className="text-xs text-muted-foreground" data-testid="timeline-loading">
-      Loading the timeline…
+      <div className="h-40 animate-pulse rounded-md border border-border bg-surface-2" />
     </p>
   ),
 });
@@ -65,6 +65,52 @@ function constraintStateOf(status: string): ConstraintState {
 
 function formatCount(value: number): string {
   return value.toLocaleString("en-US");
+}
+
+/**
+ * Display formatting for engine values. These functions never feed a value back
+ * into a calculation: the engine works in exact decimal strings and temporal
+ * units, and everything here is presentation only.
+ *
+ * Coverage percentages are shown to one decimal place, with a clean 100% at the
+ * top and 0% at the floor, because the raw engine value (67.9833%) is precision
+ * nobody reads. The exact value stays available in the title attribute.
+ */
+function formatPercent(value: number): string {
+  if (!Number.isFinite(value)) return "unknown";
+  const rounded = Math.round(value * 10) / 10;
+  if (rounded >= 100) return "100%";
+  if (rounded <= 0) return "0%";
+  return `${rounded.toFixed(1)}%`;
+}
+
+/**
+ * Plan and economic amounts are money and always render with cents, so $50 and
+ * $50.00 can never appear in the same column. Amounts are rounded for display
+ * only; the exported result keeps the exact decimal string.
+ */
+function formatMoney(amount: string): string {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return `$${amount}`;
+  const [whole = "0", cents = "00"] = value.toFixed(2).split(".");
+  return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/gu, ",")}.${cents}`;
+}
+
+/** Units come from the canonical schema; currency reads as USD, not usd. */
+function formatUnit(unit: string): string {
+  return unit.toLowerCase() === "usd" ? "USD" : unit;
+}
+
+/**
+ * A quantity in its own unit: money renders as money, and everything else keeps
+ * the canonical unit text next to a grouped number. Currency amounts never
+ * repeat a unit the currency symbol already carries, so no phrase reads
+ * "$2.11 USD".
+ */
+function quantityPhrase(value: string, unit: string): string {
+  return unit.toLowerCase() === "usd"
+    ? formatMoney(value)
+    : `${groupQuantity(value)} ${formatUnit(unit)}`;
 }
 
 /**
@@ -216,8 +262,8 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
             <div>
               <h2 className="text-sm font-medium">Target plan</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                The catalog is synthetic demo data in this milestone. Real plan data arrives with
-                the public catalog.
+                The catalog is synthetic demo data in this build. Real plan data arrives with the
+                public catalog.
               </p>
             </div>
             <div className="flex items-end gap-3">
@@ -243,7 +289,7 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
               <input
                 type="search"
                 value={query}
-                placeholder="Search plans, providers or ids"
+                placeholder="Search plans, providers, or IDs"
                 data-testid="plan-search"
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -274,8 +320,10 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
                       onClick={() => setPlanId(plan.id)}
                       onFocus={() => setActiveIndex(index)}
                       className={[
-                        "flex w-full items-baseline justify-between gap-4 px-3 py-2.5 text-left",
-                        plan.id === planId ? "bg-surface-2" : "bg-transparent",
+                        "flex w-full items-baseline justify-between gap-4 border-l-2 px-3 py-2.5 text-left",
+                        plan.id === planId
+                          ? "border-accent bg-surface-2"
+                          : "border-transparent bg-transparent",
                       ].join(" ")}
                     >
                       <span className="flex min-w-0 flex-col">
@@ -285,7 +333,7 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
                         </span>
                       </span>
                       <span className="shrink-0 font-mono text-sm tabular-nums">
-                        ${plan.price.amount}/{plan.price.interval}
+                        {formatMoney(plan.price.amount)}/{plan.price.interval}
                       </span>
                     </button>
                   </li>
@@ -297,8 +345,12 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
           {selectedPlan !== undefined ? (
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <Badge variant="outline">{selectedPlan.versionId}</Badge>
-              <span>{selectedPlan.limitCount} limit rule(s)</span>
-              <span>{selectedPlan.modelCount} model rule(s)</span>
+              <span>
+                {selectedPlan.limitCount} limit {selectedPlan.limitCount === 1 ? "rule" : "rules"}
+              </span>
+              <span>
+                {selectedPlan.modelCount} model {selectedPlan.modelCount === 1 ? "rule" : "rules"}
+              </span>
               <Badge
                 variant={selectedPlan.verificationStatus === "verified" ? "positive" : "warning"}
               >
@@ -499,13 +551,22 @@ function ReplayResult({
                     </div>
                     <ConstraintStatus
                       state={constraintStateOf(constraint.status)}
-                      detail={`${groupQuantity(constraint.consumedUnits)} / ${groupQuantity(constraint.limitUnits)} ${constraint.unit}`}
+                      detail={[
+                        `${quantityPhrase(constraint.consumedUnits, constraint.unit)} accepted`,
+                        constraint.window.kind === "rolling"
+                          ? `limit ${quantityPhrase(constraint.limitUnits, constraint.unit)} per window`
+                          : `limit ${quantityPhrase(constraint.limitUnits, constraint.unit)}`,
+                      ].join(" · ")}
                     />
                   </div>
                   <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs tabular-nums text-muted-foreground">
-                    <span>attempted {groupQuantity(constraint.attemptedUnits)}</span>
-                    <span>accepted {groupQuantity(constraint.consumedUnits)}</span>
-                    <span>capacity {groupQuantity(constraint.limitUnits)}</span>
+                    <span>
+                      attempted {quantityPhrase(constraint.attemptedUnits, constraint.unit)}
+                    </span>
+                    <span>
+                      accepted {quantityPhrase(constraint.consumedUnits, constraint.unit)}
+                    </span>
+                    <span>limit {quantityPhrase(constraint.limitUnits, constraint.unit)}</span>
                     {constraint.rejectedEvents > 0 ? (
                       <span>rejected events {formatCount(constraint.rejectedEvents)}</span>
                     ) : null}
@@ -531,20 +592,20 @@ function ReplayResult({
               {result.economics.basePlanCost !== undefined ? (
                 <Metric
                   label="Plan cost"
-                  value={`$${result.economics.basePlanCost.amount}`}
+                  value={formatMoney(result.economics.basePlanCost.amount)}
                   unit={`per ${plan?.price.interval ?? "month"}`}
                 />
               ) : null}
               {result.economics.overageCost !== undefined ? (
                 <Metric
                   label="Overage"
-                  value={`$${result.economics.overageCost.amount}`}
+                  value={formatMoney(result.economics.overageCost.amount)}
                   tone="warning"
                 />
               ) : null}
               <Metric
                 label="Target cost"
-                value={`$${result.economics.targetCost.amount}`}
+                value={formatMoney(result.economics.targetCost.amount)}
                 size="lg"
                 hint={result.economics.costBasis.replaceAll("_", " ")}
               />
@@ -580,10 +641,11 @@ function ReplayResult({
                         setFocusedViolation(open ? violation.startedAt : undefined);
                       }}
                     >
-                      <summary className="cursor-pointer text-sm">
+                      <summary className="flex min-h-11 cursor-pointer flex-wrap items-center gap-x-2 py-2 text-sm">
                         {violation.type.replaceAll("_", " ")} · {violation.startedAt.slice(0, 10)} ·{" "}
                         <span className="font-mono tabular-nums">
-                          {violation.requiredUnits} required, {violation.acceptedUnits} accepted
+                          {quantityPhrase(violation.requiredUnits, violation.unit)} required,{" "}
+                          {quantityPhrase(violation.acceptedUnits, violation.unit)} accepted
                         </span>
                       </summary>
                       <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
@@ -593,15 +655,15 @@ function ReplayResult({
                         />
                         <Detail
                           label="Attempted demand"
-                          value={`${violation.requiredUnits} ${violation.unit}`}
+                          value={quantityPhrase(violation.requiredUnits, violation.unit)}
                         />
                         <Detail
                           label="Available capacity"
-                          value={`${violation.availableUnits} ${violation.unit}`}
+                          value={quantityPhrase(violation.availableUnits, violation.unit)}
                         />
                         <Detail
                           label="Accepted"
-                          value={`${violation.acceptedUnits} ${violation.unit}`}
+                          value={quantityPhrase(violation.acceptedUnits, violation.unit)}
                         />
                         <Detail
                           label="Affected events"
@@ -610,7 +672,7 @@ function ReplayResult({
                         {violation.overageUnits !== undefined ? (
                           <Detail
                             label="Overage"
-                            value={`${violation.overageUnits} ${violation.unit}`}
+                            value={quantityPhrase(violation.overageUnits, violation.unit)}
                           />
                         ) : null}
                         {constraint !== undefined ? (
@@ -707,7 +769,8 @@ function ReplayResult({
             ) : null}
             {workload !== undefined ? (
               <p className="text-xs text-muted-foreground">
-                Workload stored locally as {workload.label}. Nothing left this browser.
+                Workload stored locally in this browser: {workload.label}. No workload data has left
+                this browser.
               </p>
             ) : null}
           </CardContent>
@@ -742,7 +805,12 @@ function CoverageDimension({
       <p className="text-xs tracking-wide text-muted-foreground uppercase">{title}</p>
       {dimension.status === "known" ? (
         <>
-          <p className="mt-2 font-mono text-2xl tabular-nums">{dimension.percent}%</p>
+          <p
+            className="mt-2 font-mono text-2xl tabular-nums"
+            title={dimension.percent === undefined ? undefined : `${dimension.percent}% exact`}
+          >
+            {formatPercent(dimension.percent ?? 0)}
+          </p>
           <p className="mt-1 font-mono text-xs tabular-nums text-muted-foreground">
             {formatCount(dimension.covered ?? 0)} of {formatCount(dimension.total ?? 0)}
           </p>

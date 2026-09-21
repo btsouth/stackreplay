@@ -112,6 +112,10 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   // be the newest request, never the stale one.
   const eventsText = await summary.textContent();
   expect(eventsText).not.toContain(events.toLocaleString("en-US"));
+  // A superseded import is cancelled on purpose: it must not report a failure
+  // and it must not leave the interface stuck in a working state.
+  await expect(page.getByTestId("import-error")).toHaveCount(0);
+  await expect(page.getByTestId("import-working")).toHaveCount(0);
 
   console.log(
     `[large-import] file ${sizeMb} MB, ${events.toLocaleString("en-US")} events, wall time ${elapsed} ms (superseded by a demo import mid-flight)`,

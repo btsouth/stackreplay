@@ -107,4 +107,24 @@ test.describe("replay surface accessibility", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("violations")).toContainText("Attempted demand");
   });
+
+  test("interactive rows are big enough to aim at", async ({ page }) => {
+    await importDemo(page, "heavy");
+    await page.goto("/app/replay");
+    await runReplay(page, "example-cloud-pro");
+    // 44px is the familiar minimum for a touch target, and a disclosure row that
+    // is any shorter is hard to hit with a thumb or a shaky pointer.
+    const heights = await page.evaluate(() => {
+      const round = (node: Element) => Math.round(node.getBoundingClientRect().height);
+      return {
+        planRows: [...document.querySelectorAll("[data-plan-option]")].map(round),
+        summaries: [...document.querySelectorAll("[data-testid='violations'] summary")].map(round),
+      };
+    });
+    expect(heights.planRows.length).toBeGreaterThan(0);
+    expect(heights.summaries.length).toBeGreaterThan(0);
+    for (const height of [...heights.planRows, ...heights.summaries]) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+  });
 });

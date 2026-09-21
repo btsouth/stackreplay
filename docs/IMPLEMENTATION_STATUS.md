@@ -41,6 +41,57 @@ are now guarded by regression tests:
 `docs/ADAPTERS.md` records the resulting rule: a declaration is attached only to a category the
 record actually reports.
 
+## M3 reconciliation (after the independent audit)
+
+The audit's five corrections were verified against the repository rather than accepted on report,
+and the interface was then reviewed as rendered pixels, which the audit could not do.
+
+What the reconciliation confirmed:
+
+- **Large import.** The audited test now follows the product's own path from the import summary to
+  `/app/replay` before reaching for replay controls. With that fix the flow completes in the
+  browser: 69.6 MB and 100,000 events imported in 1.36 s, replayed in 1.33 s, 46 ms interaction,
+  and the summary confirms all 100,000 events were replayed. The earlier note in this document that
+  described the completed-import path as PARTIAL was wrong: it measured a test that never left the
+  import page, not a slow browser.
+- **Worker failure.** A Worker that cannot start now fails every waiting request, is discarded, and
+  the next request starts a fresh one, bounded by a 15 s startup timeout. Reverting
+  `worker-client.ts` to the pre-audit revision fails two of the audit's unit tests
+  ("fails the request when the Worker cannot load, and fails the next one too", "fails the request
+  when the Worker never announces itself"), so the guard has power; the browser test proves it end
+  to end by serving a 404 for the Worker asset.
+- **Supersession.** A superseded replay and a superseded import both stay silent, and a superseded
+  import no longer clears the busy state that the newer request owns; the browser tests assert that
+  no error card appears and that the newest summary wins. Genuine Worker failures still surface,
+  which the Worker-failure test covers.
+- **Demo session identity.** Demo events now carry a stable per-session hash: `moderate` is 900
+  events in 36 sessions, `heavy` 6,000 in 100, `multistack` 2,000 in 81. Orchestration counts
+  sessions, not events (T3 Code: 6, 12 and 14 sessions). Real event identity is untouched.
+- **Privacy.** The browser tests now inspect request URLs, query strings, headers and bodies across
+  import and replay. Source inspection of the app found no `sendBeacon`, no WebSocket, no
+  `EventSource`, no analytics, no error-reporting payload, no server action, no form action and no
+  workload data in cookies or `localStorage` (only the theme preference is stored there).
+
+Two presentation defects were found and fixed during the reconciliation, both display-only:
+
+- The constraint row read as a fraction (`900 / 600 requests`) that looked like a contradiction
+  because a rolling limit applies per window while the accepted figure is the whole workload. It now
+  reads `900 requests accepted · limit 600 requests per window`, and calendar limits are labelled
+  without the per-window qualifier. Engine values are unchanged.
+- The earlier revision's claim that the renderer became too heavy after a large import came from the
+  same mis-navigated test as above and has been removed.
+
+### Display conventions (presentation only)
+
+- Coverage percentages: one decimal place, `100%` and `0%` at the bounds, exact value in the title
+  attribute. Engine math untouched.
+- Money: always two decimals with a currency symbol (`$50.00`, `$0.00`); a currency quantity never
+  repeats the unit, so nothing reads `$2.11 USD`.
+- Other quantities: thousands separators, never a bare seven-digit run.
+- Units: canonical unit text, with `usd` shown as the symbol rather than the word.
+- Interactive rows (plan rows, violation disclosure rows): at least 44 px tall, asserted in the
+  accessibility suite on both viewports.
+
 ## M3 correction log (after independent audit)
 
 The M3 audit rebuilt its own measurement harness instead of trusting the milestone's own specs, and
@@ -289,9 +340,9 @@ Node 24.19.0 (pinned) and pnpm 10.18.1 on Linux. Every check runs offline.
 | pnpm typecheck | PASS: 13 tasks |
 | pnpm test | PASS: 372 tests — engine 140, adapters 104, schema 31, catalog 30, CLI 26, web 26, UI 15 |
 | pnpm build | PASS: 7 tasks (includes the pre-bundled Worker) |
-| pnpm --filter @stackreplay/web test:e2e | PASS: 105 passed, 17 viewport-specific skips |
+| pnpm --filter @stackreplay/web test:e2e | PASS: 107 passed, 17 viewport-specific skips |
 | pnpm --filter @stackreplay/web test:e2e (large import, opt-in) | PASS: 69.6 MB / 100,000 events imported in 1.3 s and replayed in 1.3 s |
-| pnpm --filter @stackreplay/replay-engine bench | PASS: 100k events, median 923.2 ms, peak RSS 614.1 MiB |
+| pnpm --filter @stackreplay/replay-engine bench | PASS: 100k events, median 987.2 ms (786.4–1020.1 ms across samples), peak RSS 610.0 MiB |
 
 Milestone 3 specifics verified in a real browser (Chromium, desktop and mobile viewports):
 
