@@ -21,6 +21,8 @@ export {
   type ModelV1,
   modelRuleV1Schema,
   modelV1Schema,
+  type OverageRateV1,
+  overageRateV1Schema,
   type PlanLimitV1,
   type PlanPriceV1,
   type PlanV1,

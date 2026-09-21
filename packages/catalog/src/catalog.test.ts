@@ -68,6 +68,7 @@ function validPlan(overrides: Record<string, unknown> = {}) {
             label: "Credits",
             type: "credit_pool",
             amount: "20.00",
+            exceed: "reject_request",
             window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
           },
         ],
@@ -181,6 +182,7 @@ describe("validateCatalogData", () => {
       label: "Tokens",
       type: "token_limit",
       amount: "1.5",
+      exceed: "reject_request",
       window: { type: "calendar", unit: "month", timezone: "UTC" },
     };
     const issues = validateCatalogData(
@@ -204,6 +206,7 @@ describe("validateCatalogData", () => {
       label: "Tokens",
       type: "token_limit",
       amount: "100",
+      exceed: "reject_request",
       window: { type: "calendar", unit: "month", timezone: "Not/AZone" },
     };
     const badDuration = {
@@ -211,6 +214,7 @@ describe("validateCatalogData", () => {
       label: "Credits",
       type: "credit_pool",
       amount: "10.00",
+      exceed: "reject_request",
       window: { type: "rolling", duration: "P999999999999D", anchor: "first_use" },
     };
     const issues = validateCatalogData(
@@ -235,6 +239,7 @@ describe("validateCatalogData", () => {
       label: "Credits",
       type: "credit_pool",
       amount: "10.00",
+      exceed: "reject_request",
       window: { type: "rolling", duration: "PT5X", anchor: "first_use" },
     };
     const issues = validateCatalogData(
@@ -393,5 +398,108 @@ describe("independent audit: semantic validation and catalog identity", () => {
     expect(buildCatalog(data).catalogVersion).toBe(version);
     second.price = { ...second.price, amount: "21.00" };
     expect(buildCatalog(data).catalogVersion).not.toBe(version);
+  });
+
+  it("requires an explicit exceed behavior on every limit", () => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    const withoutExceed: Record<string, unknown> = {
+      id: "no-exceed",
+      label: "No exceed behavior",
+      type: "request_limit",
+      amount: "10",
+      window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
+    };
+    const issues = validateCatalogData(
+      raw({
+        plans: [
+          rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [withoutExceed] }] }),
+        ],
+      }),
+    );
+    expect(issues.some((issue) => issue.code === "SCHEMA_INVALID")).toBe(true);
+  });
+
+  it("requires an explicit overage rate for allow_overage token and request limits", () => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    const tokenLimit: Record<string, unknown> = {
+      id: "tokens",
+      label: "Tokens",
+      type: "token_limit",
+      amount: "1000",
+      exceed: "allow_overage",
+      window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
+    };
+    const issues = validateCatalogData(
+      raw({
+        plans: [rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [tokenLimit] }] })],
+      }),
+    );
+    expect(issues.some((issue) => issue.code === "LIMIT_OVERAGE_RATE_MISSING")).toBe(true);
+
+    const withRate = { ...tokenLimit, overageRate: { amount: "5.00", unit: "per_1m_tokens" } };
+    const okIssues = validateCatalogData(
+      raw({
+        plans: [rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [withRate] }] })],
+      }),
+    );
+    expect(okIssues).toEqual([]);
+  });
+
+  it("rejects overage rates that do not match the limit type or the exceed behavior", () => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    const mismatched: Record<string, unknown> = {
+      id: "requests",
+      label: "Requests",
+      type: "request_limit",
+      amount: "10",
+      exceed: "allow_overage",
+      overageRate: { amount: "0.50", unit: "per_1m_tokens" },
+      window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
+    };
+    const issues = validateCatalogData(
+      raw({
+        plans: [rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [mismatched] }] })],
+      }),
+    );
+    expect(issues.some((issue) => issue.code === "LIMIT_OVERAGE_RATE_INVALID")).toBe(true);
+
+    const creditWithRate: Record<string, unknown> = {
+      id: "credits",
+      label: "Credits",
+      type: "credit_pool",
+      amount: "20.00",
+      exceed: "allow_overage",
+      overageRate: { amount: "1.00", unit: "per_request" },
+      window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
+    };
+    const creditIssues = validateCatalogData(
+      raw({
+        plans: [
+          rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [creditWithRate] }] }),
+        ],
+      }),
+    );
+    expect(creditIssues.some((issue) => issue.code === "LIMIT_OVERAGE_RATE_INVALID")).toBe(true);
+
+    const rateWithoutOverage: Record<string, unknown> = {
+      id: "rejecting",
+      label: "Rejecting",
+      type: "token_limit",
+      amount: "1000",
+      exceed: "reject_request",
+      overageRate: { amount: "5.00", unit: "per_1m_tokens" },
+      window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
+    };
+    const rejectIssues = validateCatalogData(
+      raw({
+        plans: [
+          rawEntry("p", { ...plan, versions: [{ ...versions[0], limits: [rateWithoutOverage] }] }),
+        ],
+      }),
+    );
+    expect(rejectIssues.some((issue) => issue.code === "LIMIT_OVERAGE_RATE_INVALID")).toBe(true);
   });
 });

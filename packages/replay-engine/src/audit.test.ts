@@ -6,10 +6,11 @@ import { replay } from "./engine.js";
 import {
   calendarLimit,
   FIXTURE_PLAN_VERSION_ID,
+  fixtureContext,
   makeFixtureCatalog,
   rollingLimit,
 } from "./fixtures/catalog.js";
-import { makeEvent } from "./fixtures/events.js";
+import { completeUsage, makeEvent } from "./fixtures/events.js";
 import { calendarBucketEnd, calendarBucketStart, parseInstant } from "./time.js";
 
 function required<T>(value: T | undefined): T {
@@ -19,14 +20,14 @@ function required<T>(value: T | undefined): T {
 
 const target = { type: "subscription", planVersionId: FIXTURE_PLAN_VERSION_ID } as const;
 const event = (id: string, occurredAt: string, tokens = 1) =>
-  makeEvent({ id, occurredAt, usage: { inputTokens: tokens } });
+  makeEvent({ id, occurredAt, usage: completeUsage({ uncachedInputTokens: tokens }) });
 const requestCatalog = () =>
   makeFixtureCatalog({
     limits: [rollingLimit({ id: "requests", type: "request_limit", amount: "1" })],
   });
 
 function run(catalog: CatalogV1, events: ReturnType<typeof event>[]) {
-  return replay({ catalog, target, events });
+  return replay({ catalog, target, events, context: fixtureContext });
 }
 
 describe("independent audit: exact chronology", () => {
@@ -136,19 +137,30 @@ describe("independent audit: trust boundaries", () => {
     { type: "subscription", planVersionId: FIXTURE_PLAN_VERSION_ID, extra: true },
   ])("rejects malformed targets: %j", (target) => {
     expect(() =>
-      replay({ catalog: requestCatalog(), events: [], target: target as never }),
+      replay({
+        catalog: requestCatalog(),
+        events: [],
+        target: target as never,
+        context: fixtureContext,
+      }),
     ).toThrow(/IMPORT_SCHEMA_INVALID/);
   });
   it("rejects malformed event collections", () =>
-    expect(() => replay({ catalog: requestCatalog(), target, events: null as never })).toThrow(
-      /IMPORT_SCHEMA_INVALID/,
-    ));
+    expect(() =>
+      replay({
+        catalog: requestCatalog(),
+        target,
+        events: null as never,
+        context: fixtureContext,
+      }),
+    ).toThrow(/IMPORT_SCHEMA_INVALID/));
   it("rejects hybrid behavior explicitly", () =>
     expect(() =>
       replay({
         catalog: requestCatalog(),
         events: [],
         target: { type: "hybrid", routes: [{ priority: 0, target }] },
+        context: fixtureContext,
       }),
     ).toThrow(/TARGET_NOT_IMPLEMENTED/));
   it("validates loaded catalog indexes instead of accepting forged rules", () => {

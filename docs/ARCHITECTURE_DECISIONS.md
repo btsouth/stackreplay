@@ -123,6 +123,90 @@ Recorded 2026-09-21 during Milestone 1.
 - The engine reads no files, environment variables or network. The catalog arrives as a loaded object; the Node-only loader lives behind the separate `@stackreplay/catalog/load` entry point, so the same engine package runs in the browser unchanged.
 - Schema homes fixed in M1, resolving the clarifying reading below: `violations` and `unsupportedModels` are top-level arrays on the generalized `ExecutionReplayResultV1`, and per-constraint status lives on `constraints`.
 
+## 13. Admission: attempted demand versus accepted consumption
+
+Recorded 2026-09-21 from the independent M1 audit. These semantics are authoritative and supersede the earlier independent-per-constraint evaluation.
+
+- Replay distinguishes **attempted demand** (what the historical workload offered) from **accepted consumption** (what the simulated target actually served, and therefore what advances capacity pools).
+- Requests are evaluated in strict chronological order. For each event: resolve model compatibility, determine every applicable constraint, decide admission against accepted consumption accumulated so far, then either serve the event (all applicable pools advance) or reject it (no ordinary pool advances).
+- **Admission is atomic across applicable constraints.** An event rejected by one hard constraint consumes nothing from any other pool.
+- A rejection does not consume capacity, and a later request may still be admitted when it individually fits the remaining capacity (per-request rejection is the default). Rejections never latch unless the rule explicitly says so.
+- Attempted demand is preserved as diagnostics: every constraint reports attempted units, rejected event counts and indeterminate event counts separately from accepted consumption.
+- Windows follow the events a constraint applies to: a rejected event still
+  counts as attempted demand in its window, while only served events advance
+  accepted consumption. Rejections never latch unless the rule declares
+  `latch_until_reset`.
+- Model-unsupported events are not served and consume nothing.
+
+## 14. Exceed behavior is explicit per rule
+
+Recorded 2026-09-21. There is no hidden global assumption about what happens after capacity is exceeded. Every hard-limit rule declares its behavior explicitly; synthetic catalog data must state it (the schema has no default):
+
+- `reject_request`: the violating request is rejected; later requests may still be admitted if they individually fit remaining capacity.
+- `latch_until_reset`: once triggered, subsequent applicable requests stay blocked until that window resets.
+- `allow_overage`: requests stay served, included capacity is consumed first, and excess units are billed under an explicit overage rate.
+- `record_only`: requests stay served and the exceeded window is recorded as a violation without rejection or billing (the previous `soft` enforcement).
+
+Real provider behavior is never invented: which behavior a provider uses is a catalog claim with provenance and verification status, like every other rule.
+
+## 15. Canonical token accounting is non-overlapping
+
+Recorded 2026-09-21. Blindly summing token categories double counts subsets, so the canonical event declares the accounting relationship explicitly and replay derives disjoint buckets.
+
+- The canonical buckets are: uncached input, cache-read input, cache-write input, output, reasoning. Replay consumption, coverage and pricing use **disjoint** quantities only.
+- `TextUsageV1` carries the reported categories plus an explicit `accounting` declaration: whether cache-read tokens are already included in `inputTokens`, whether cache-write tokens are already included, and whether reasoning tokens are already included in `outputTokens`. The declaration is required whenever the corresponding category is present; an impossible declaration (included quantity larger than its base) is rejected.
+- Adapters normalize provider telemetry into these buckets and state the overlap; replay never guesses. Reasoning tokens are not assumed to be additive to output, and cache-read tokens are not assumed to be additive to input.
+- Explicit zero is known data; a missing category is unknown, not zero.
+- Pricing converts the disjoint buckets: uncached input at the input rate, cache reads at the cache rate, cache writes at the cache-write rate, output at the output rate, reasoning at the reasoning rate. Fallback rates remain explicit, warned and confidence-reducing.
+
+## 16. Unknown consumption, coverage and indeterminate results
+
+Recorded 2026-09-21. Unknown is preferable to false precision.
+
+- A constraint that requires a quantity the workload does not establish becomes `unknown`, with an explicit warning; it can never report `pass`. Events whose required consumption is unknown are **indeterminate**: they are not served and advance no pool.
+- Coverage dimensions carry an explicit status. A dimension is `unknown` when its denominator or numerator depends on unknown quantities; `percent` is then absent rather than guessed. A known dimension reports `percent`, `covered` and `total`.
+- Request coverage becomes unknown when any event's admission is indeterminate. Usage coverage becomes unknown when any event's token quantities are unknown. Model coverage becomes unknown when any event's model cannot be resolved.
+- A genuine empty workload (no events) keeps the documented 100 percent convention for a zero denominator. A workload with known zero consumption is a known zero denominator and is also 100 percent. An unknown denominator is never reported as 100 percent.
+- `feasibility.coveragePercent` is a named dimension (historical request coverage) and is absent when that dimension is unknown, with a stated reason.
+
+## 17. Current-rule snapshot replay: explicit rulesAsOf
+
+Recorded 2026-09-21, extending decision 2.
+
+- Every replay receives an explicit caller-supplied rules context (`rulesAsOf`). The engine never reads a clock: no `Date.now()`, no host time, no implicit "today".
+- Default replay applies the rule snapshot in effect at `rulesAsOf` to the historical workload: the plan version effective at that instant, its limits, its model rules, its pricing references and its promotions as of that instant.
+- Promotion and rule eligibility is resolved from the snapshot, **not** from each event's original calendar date. A promotion active at `rulesAsOf` applies to the whole replayed workload, including events whose timestamps predate it.
+- Historical event timestamps still drive workload chronology: window slicing, spacing and reset boundaries inside the simulation.
+- A subscription target may name an explicit plan version (pinned selection) or a plan id (selected deterministically as the version effective at `rulesAsOf`). Historical/as-of replay with historically varying rules remains a later explicit mode and is not implemented now.
+- Rule effective dates and workload event times are different concepts and are never conflated.
+
+## 18. Bounded decimal envelope
+
+Recorded 2026-09-21. Decimal-safe arithmetic requires bounded inputs, not just non-binary arithmetic.
+
+- Accepted monetary and rate values are decimal strings within a documented envelope: at most 28 significant digits and at most 18 fractional digits. Values outside the envelope are rejected by the schema rather than silently rounded.
+- Internal arithmetic uses a deliberately generous Decimal precision (100 significant digits, isolated from any other consumer of decimal.js). The envelope is chosen so that every supported operation (parse, divide by one million, multiply by token counts, multiply by multipliers, sum across the workload, compute overage) is exact within that precision.
+- Token and request counts remain safe integers; aggregates that would exceed the safe-integer range are rejected.
+- Every value accepted by the schema must be calculable without silent precision loss under supported M1 operations. Boundary and adversarial tests pin the envelope.
+
+## 19. Overage semantics and economics vocabulary
+
+Recorded 2026-09-21, extending decisions 4 and 14.
+
+- `allow_overage` is implemented in M1: requests stay served, included capacity is consumed first, excess units are computed deterministically per window, and overage cost uses an explicit decimal-safe rate (per 1M tokens or per request; for a credit pool the excess is already currency).
+- Economics expose the precise concepts: base plan cost, overage cost, total simulated target cost (`targetCost` = base + overage), and an explicit `costBasis`. There is still no generic `savings` field.
+- A cost difference is signed: `costDifference = targetCost - baselineCost`, where negative means the target costs less. Differences use a signed money shape; base costs never do.
+- A rule that cannot be represented faithfully is rejected rather than reported misleadingly.
+
+## 20. Result contract corrections
+
+Recorded 2026-09-21.
+
+- Measurement units are an enumerated type (`tokens`, `requests`, `usd`), not arbitrary strings, so incompatible units cannot be silently mixed.
+- Version metadata is generalized: engine version, result schema version, catalog version, target type, target reference, pricing references where applicable, the `rulesAsOf` instant and a replay methodology version. It does not require a subscription-specific id, so future API, local and hybrid targets fit the same shape. Subscription detail remains nested and optional.
+- `StackReplayExportV1` rejects invalid ranges (`from` after `to`); `from == to` is a valid empty range.
+- Constraint and violation results carry accepted consumption, attempted demand, overage units and rejection/indeterminate counts as separate fields.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

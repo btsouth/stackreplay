@@ -3,85 +3,187 @@ import { replay } from "./engine.js";
 import {
   calendarLimit,
   FIXTURE_PLAN_VERSION_ID,
+  fixtureContext,
   makeFixtureCatalog,
+  overageRate,
   rollingLimit,
 } from "./fixtures/catalog.js";
-import { makeEvent } from "./fixtures/events.js";
+import { completeUsage, makeEvent, overlappingUsage } from "./fixtures/events.js";
+
+/**
+ * Golden scenarios for subscription replay.
+ *
+ * Every expectation here was derived by hand from the documented semantics
+ * (docs/ARCHITECTURE_DECISIONS.md, decisions 13-20) and then checked against
+ * the engine. Fixture arithmetic uses round numbers on purpose: fixture-small
+ * costs $1.00 per 1M input tokens, $2.00 per 1M output tokens, $0.10 per 1M
+ * cache reads and $1.00 per 1M cache writes; fixture-medium costs $2.00 and
+ * $4.00 with no cache or reasoning rates.
+ *
+ * Semantics under test: chronological admission, atomic rejection, explicit
+ * exceed behavior, disjoint token accounting, unknown-versus-zero, rules
+ * snapshot resolution and per-window overage.
+ */
 
 const target = { type: "subscription", planVersionId: FIXTURE_PLAN_VERSION_ID } as const;
 
-/** Input tokens in millions: million(6) is 6,000,000 input tokens. */
-function million(tokens: number): { inputTokens: number } {
-  return { inputTokens: tokens * 1_000_000 };
+function run(
+  catalog: ReturnType<typeof makeFixtureCatalog>,
+  events: ReturnType<typeof makeEvent>[],
+) {
+  return replay({ events, target, catalog, context: fixtureContext });
 }
 
-describe("golden fixture: rolling 5-hour window", () => {
-  it("records one violation in the first window and none in the next", () => {
+describe("golden fixture: rolling 5-hour window (reject_request)", () => {
+  it("rejects only the request that does not fit and serves later ones", () => {
     const catalog = makeFixtureCatalog({
       limits: [rollingLimit({ id: "rolling-credits", type: "credit_pool", amount: "20.00" })],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(6) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-01T01:00:00Z", usage: million(8) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-01T02:00:00Z", usage: million(7) }),
-      makeEvent({ id: "e4", occurredAt: "2026-09-01T03:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e5", occurredAt: "2026-09-01T06:00:00Z", usage: million(2) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 6_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 8_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-01T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 7_000_000 }),
+      }),
+      makeEvent({
+        id: "e4",
+        occurredAt: "2026-09-01T03:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e5",
+        occurredAt: "2026-09-01T06:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
+    // Window 1: 6 + 8 = 14 accepted, the 7 does not fit and is rejected, the 1
+    // still fits because rejected requests consume nothing.
     expect(result.violations).toEqual([
       {
         type: "rolling_window_exceeded",
         constraintId: "rolling-credits",
-        unit: "currency",
+        unit: "usd",
         startedAt: "2026-09-01T00:00:00Z",
         endedAt: "2026-09-01T05:00:00Z",
-        affectedEvents: 2,
+        affectedEvents: 1,
         requiredUnits: "22",
         availableUnits: "20",
+        acceptedUnits: "15",
       },
     ]);
-    expect(result.constraints[0]?.status).toBe("exceeded");
-    expect(result.constraints[0]?.consumedUnits).toBe("24");
-    expect(result.coverage.requests).toEqual({ percent: 60, covered: 3, total: 5 });
-    expect(result.coverage.usage).toEqual({ percent: 66.6667, covered: 16000000, total: 24000000 });
-    expect(result.coverage.models).toEqual({ percent: 100, covered: 1, total: 1 });
-    expect(result.feasibility.status).toBe("partial");
+    expect(result.constraints[0]).toMatchObject({
+      status: "exceeded",
+      exceed: "reject_request",
+      consumedUnits: "17",
+      attemptedUnits: "24",
+      rejectedEvents: 1,
+      indeterminateEvents: 0,
+      eligibleEvents: 5,
+      violationCount: 1,
+    });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 80,
+      covered: 4,
+      total: 5,
+    });
+    expect(result.coverage.usage).toEqual({
+      status: "known",
+      percent: 70.8333,
+      covered: 17_000_000,
+      total: 24_000_000,
+    });
+    expect(result.feasibility).toEqual({
+      status: "partial",
+      coveragePercent: 80,
+      coverageDimension: "requests",
+    });
   });
 });
 
-describe("golden fixture: rolling weekly window", () => {
-  it("spans seven days from first use", () => {
+describe("golden fixture: rolling weekly window (latch_until_reset)", () => {
+  it("blocks later requests until the window resets", () => {
     const catalog = makeFixtureCatalog({
       limits: [
         rollingLimit({
           id: "weekly-credits",
           type: "credit_pool",
           amount: "10.00",
+          exceed: "latch_until_reset",
           window: { type: "rolling", duration: "P7D", anchor: "first_use" },
         }),
       ],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(3) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-02T00:00:00Z", usage: million(3) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-03T00:00:00Z", usage: million(5) }),
-      makeEvent({ id: "e4", occurredAt: "2026-09-03T01:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e5", occurredAt: "2026-09-08T00:00:00Z", usage: million(2) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 3_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-02T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 3_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-03T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 5_000_000 }),
+      }),
+      makeEvent({
+        id: "e4",
+        occurredAt: "2026-09-03T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e5",
+        occurredAt: "2026-09-08T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
-    expect(result.violations).toHaveLength(1);
-    expect(result.violations[0]).toMatchObject({
-      startedAt: "2026-09-01T00:00:00Z",
-      endedAt: "2026-09-08T00:00:00Z",
-      affectedEvents: 2,
-      requiredUnits: "12",
-      availableUnits: "10",
+    expect(result.violations).toEqual([
+      {
+        type: "rolling_window_exceeded",
+        constraintId: "weekly-credits",
+        unit: "usd",
+        startedAt: "2026-09-01T00:00:00Z",
+        endedAt: "2026-09-08T00:00:00Z",
+        affectedEvents: 2,
+        requiredUnits: "12",
+        availableUnits: "10",
+        acceptedUnits: "6",
+      },
+    ]);
+    expect(result.constraints[0]).toMatchObject({
+      status: "exceeded",
+      exceed: "latch_until_reset",
+      consumedUnits: "8",
+      attemptedUnits: "14",
+      rejectedEvents: 2,
     });
-    expect(result.coverage.requests).toEqual({ percent: 60, covered: 3, total: 5 });
+    expect(result.warnings.map((warning) => warning.code)).toContain("LATCH_TRIGGERED");
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 60,
+      covered: 3,
+      total: 5,
+    });
   });
 });
 
@@ -91,12 +193,24 @@ describe("golden fixture: calendar month", () => {
       limits: [calendarLimit({ id: "monthly-tokens", type: "token_limit", amount: "10000000" })],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-08-31T23:00:00Z", usage: million(6) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-01T00:00:00Z", usage: million(6) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-02T00:00:00Z", usage: million(6) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-08-31T23:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 6_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 6_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-02T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 6_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.violations).toEqual([
       {
@@ -108,51 +222,69 @@ describe("golden fixture: calendar month", () => {
         affectedEvents: 1,
         requiredUnits: "12000000",
         availableUnits: "10000000",
+        acceptedUnits: "6000000",
       },
     ]);
-    expect(result.constraints[0]?.consumedUnits).toBe("18000000");
-    expect(result.coverage.requests).toEqual({ percent: 66.6667, covered: 2, total: 3 });
+    expect(result.constraints[0]).toMatchObject({
+      consumedUnits: "12000000",
+      attemptedUnits: "18000000",
+      status: "exceeded",
+    });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 66.6667,
+      covered: 2,
+      total: 3,
+    });
     expect(result.assumptions.map((assumption) => assumption.id)).toContain(
       "MONTHLY_WINDOW_CALENDAR_MONTH",
     );
   });
 });
 
-describe("golden fixture: model promotion", () => {
-  it("halves consumption inside the promotion window only", () => {
-    const catalog = makeFixtureCatalog({
-      limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "50.00" })],
-      promotions: [
-        {
-          id: "medium-promo",
-          label: "Medium promotion",
-          models: ["fixture-medium"],
-          multiplier: "0.5",
-          effectiveFrom: "2026-09-01",
-          effectiveTo: "2026-09-30",
-        },
-      ],
-    });
-    const events = [
-      makeEvent({
-        id: "e1",
-        occurredAt: "2026-09-10T00:00:00Z",
-        usage: million(2),
-        model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
-      }),
-      makeEvent({
-        id: "e2",
-        occurredAt: "2026-10-05T00:00:00Z",
-        usage: million(2),
-        model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
-      }),
-    ];
+describe("golden fixture: promotions resolve from the rules snapshot", () => {
+  const catalog = makeFixtureCatalog({
+    limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "50.00" })],
+    promotions: [
+      {
+        id: "medium-promo",
+        label: "Medium promotion",
+        models: ["fixture-medium"],
+        multiplier: "0.5",
+        effectiveFrom: "2026-09-01",
+        effectiveTo: "2026-09-30",
+      },
+    ],
+  });
+  const events = [
+    makeEvent({
+      id: "e1",
+      occurredAt: "2026-09-10T00:00:00Z",
+      usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
+    }),
+    makeEvent({
+      id: "e2",
+      occurredAt: "2026-10-05T00:00:00Z",
+      usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
+    }),
+  ];
 
-    const result = replay({ events, target, catalog });
-
-    // $4.00 halved inside the promotion plus $4.00 at full price.
-    expect(result.constraints[0]?.consumedUnits).toBe("6");
+  it("applies a promotion active at rulesAsOf to the whole historical workload", () => {
+    const result = replay({ events, target, catalog, context: { rulesAsOf: "2026-09-15" } });
+    // $4.00 halved twice: the promotion belongs to the current rule snapshot,
+    // including for the event whose own timestamp is outside the promotion.
+    expect(result.constraints[0]?.consumedUnits).toBe("4");
     expect(result.violations).toHaveLength(0);
+    expect(result.assumptions.map((assumption) => assumption.id)).toContain(
+      "CURRENT_RULE_SNAPSHOT",
+    );
+  });
+
+  it("does not apply a promotion that is inactive at rulesAsOf", () => {
+    const result = replay({ events, target, catalog, context: { rulesAsOf: "2026-10-15" } });
+    expect(result.constraints[0]?.consumedUnits).toBe("8");
   });
 });
 
@@ -166,24 +298,36 @@ describe("golden fixture: model exclusion", () => {
       ],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-01T01:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-01T02:00:00Z", usage: million(1) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-01T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
       makeEvent({
         id: "e4",
         occurredAt: "2026-09-01T03:00:00Z",
-        usage: million(1),
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
       makeEvent({
         id: "e5",
         occurredAt: "2026-09-01T04:00:00Z",
-        usage: million(1),
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.unsupportedModels).toEqual([
       {
@@ -193,92 +337,199 @@ describe("golden fixture: model exclusion", () => {
         reason: "excluded",
       },
     ]);
-    expect(result.coverage.models).toEqual({ percent: 50, covered: 1, total: 2 });
-    expect(result.coverage.requests).toEqual({ percent: 60, covered: 3, total: 5 });
-    expect(result.constraints[0]?.consumedUnits).toBe("3");
+    expect(result.coverage.models).toEqual({ status: "known", percent: 50, covered: 1, total: 2 });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 60,
+      covered: 3,
+      total: 5,
+    });
+    // Unsupported events are never offered to the pool.
+    expect(result.constraints[0]).toMatchObject({
+      consumedUnits: "3",
+      attemptedUnits: "3",
+      eligibleEvents: 3,
+    });
   });
 });
 
-describe("golden fixture: hard credit cap", () => {
-  it("blocks the crossing event and everything after it", () => {
+describe("golden fixture: hard credit cap (reject_request)", () => {
+  it("rejects every request that individually does not fit", () => {
     const catalog = makeFixtureCatalog({
       limits: [rollingLimit({ id: "cap", type: "credit_pool", amount: "5.00" })],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(4) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-01T01:00:00Z", usage: million(4) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-01T02:00:00Z", usage: million(4) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 4_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 4_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-01T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 4_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.violations[0]).toMatchObject({
       affectedEvents: 2,
       requiredUnits: "12",
       availableUnits: "5",
+      acceptedUnits: "4",
     });
-    expect(result.coverage.requests).toEqual({ percent: 33.3333, covered: 1, total: 3 });
-    expect(result.feasibility).toEqual({ status: "partial", coveragePercent: 33.3333 });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 33.3333,
+      covered: 1,
+      total: 3,
+    });
+    expect(result.feasibility).toEqual({
+      status: "partial",
+      coveragePercent: 33.3333,
+      coverageDimension: "requests",
+    });
   });
 });
 
-describe("golden fixture: overage plan", () => {
-  it("reports the constraint as UNKNOWN instead of guessing overage costs", () => {
+describe("golden fixture: overage plan (allow_overage)", () => {
+  it("serves everything and bills the excess above included capacity", () => {
     const catalog = makeFixtureCatalog({
       limits: [
         rollingLimit({
           id: "overage-credits",
           type: "credit_pool",
           amount: "1.00",
-          enforcement: "overage",
+          exceed: "allow_overage",
         }),
       ],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-01T01:00:00Z", usage: million(1) }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-01T02:00:00Z", usage: million(1) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-01T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
-    expect(result.violations).toHaveLength(0);
-    expect(result.constraints[0]?.status).toBe("unknown");
-    expect(result.constraints[0]?.consumedUnits).toBe("3");
-    expect(result.warnings.map((warning) => warning.code)).toContain("CONSTRAINT_TYPE_UNSUPPORTED");
-    expect(result.coverage.requests).toEqual({ percent: 100, covered: 3, total: 3 });
-    expect(result.feasibility.status).toBe("unknown");
-    expect(result.confidence.factors.map((factor) => factor.id)).toContain("constraint_modeling");
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 100,
+      covered: 3,
+      total: 3,
+    });
+    expect(result.constraints[0]).toMatchObject({
+      status: "exceeded",
+      exceed: "allow_overage",
+      consumedUnits: "3",
+      attemptedUnits: "3",
+      rejectedEvents: 0,
+      overageUnits: "2",
+      overageCost: { amount: "2", currency: "USD" },
+    });
+    expect(result.violations[0]).toMatchObject({
+      requiredUnits: "3",
+      availableUnits: "1",
+      acceptedUnits: "3",
+      overageUnits: "2",
+      affectedEvents: 0,
+    });
+    expect(result.economics).toEqual({
+      basePlanCost: { amount: "20.00", currency: "USD" },
+      overageCost: { amount: "2", currency: "USD" },
+      targetCost: { amount: "22", currency: "USD" },
+      costBasis: "fixed_plan_price_plus_overage",
+    });
+    expect(result.assumptions.map((assumption) => assumption.id)).toContain("OVERAGE_PER_WINDOW");
+  });
+
+  it("bills token overage at the declared per-million rate", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [
+        calendarLimit({
+          id: "monthly-tokens",
+          type: "token_limit",
+          amount: "1000000",
+          exceed: "allow_overage",
+          overageRate: overageRate("3.00", "per_1m_tokens"),
+        }),
+      ],
+    });
+    const events = [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 2_500_000 }),
+      }),
+    ];
+
+    const result = run(catalog, events);
+
+    // 1,500,000 tokens above capacity at $3.00 per 1M tokens.
+    expect(result.constraints[0]?.overageUnits).toBe("1500000");
+    expect(result.constraints[0]?.overageCost).toEqual({ amount: "4.5", currency: "USD" });
+    expect(result.economics).toMatchObject({
+      overageCost: { amount: "4.5", currency: "USD" },
+      targetCost: { amount: "24.5", currency: "USD" },
+    });
   });
 });
 
 describe("golden fixture: mixed models", () => {
-  it("converts each model with its own pricing and passes the result schema", () => {
+  it("converts each model with its own pricing", () => {
     const catalog = makeFixtureCatalog({
       limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "50.00" })],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(1) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
       makeEvent({
         id: "e2",
         occurredAt: "2026-09-01T01:00:00Z",
-        usage: million(1),
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
       makeEvent({
         id: "e3",
         occurredAt: "2026-09-01T02:00:00Z",
-        usage: { outputTokens: 500_000 },
+        usage: completeUsage({ outputTokens: 500_000 }),
         model: { rawName: "Fixture Small", canonicalId: "fixture-small" },
       }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     // $1.00 + $2.00 + $1.00 (500k output at $2/1M).
     expect(result.constraints[0]?.consumedUnits).toBe("4");
-    expect(result.coverage.models).toEqual({ percent: 100, covered: 2, total: 2 });
-    expect(result.workload.tokenTotals).toEqual({ inputTokens: 2000000, outputTokens: 500000 });
+    expect(result.coverage.models).toEqual({ status: "known", percent: 100, covered: 2, total: 2 });
+    expect(result.workload.tokenTotals).toEqual({
+      inputTokens: 2_000_000,
+      outputTokens: 500_000,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      reasoningTokens: 0,
+    });
     expect(result).toMatchSnapshot();
   });
 });
@@ -296,14 +547,34 @@ describe("golden fixture: timezone reset", () => {
       ],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-02T02:00:00Z" }),
-      makeEvent({ id: "e2", occurredAt: "2026-09-02T03:00:00Z" }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-02T04:00:00Z" }),
-      makeEvent({ id: "e4", occurredAt: "2026-09-02T05:00:00Z" }),
-      makeEvent({ id: "e5", occurredAt: "2026-09-02T06:00:00Z" }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-02T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-02T03:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-02T04:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e4",
+        occurredAt: "2026-09-02T05:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e5",
+        occurredAt: "2026-09-02T06:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.violations).toEqual([
       {
@@ -315,9 +586,11 @@ describe("golden fixture: timezone reset", () => {
         affectedEvents: 1,
         requiredUnits: "3",
         availableUnits: "2",
+        acceptedUnits: "2",
       },
     ]);
-    expect(result.constraints[0]?.consumedUnits).toBe("5");
+    expect(result.constraints[0]?.consumedUnits).toBe("4");
+    expect(result.constraints[0]?.attemptedUnits).toBe("5");
   });
 });
 
@@ -334,13 +607,29 @@ describe("golden fixture: DST boundary", () => {
       ],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2027-03-14T06:00:00Z" }),
-      makeEvent({ id: "e2", occurredAt: "2027-03-14T08:00:00Z" }),
-      makeEvent({ id: "e3", occurredAt: "2027-03-14T12:00:00Z" }),
-      makeEvent({ id: "e4", occurredAt: "2027-03-15T04:00:00Z" }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2027-03-14T06:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2027-03-14T08:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2027-03-14T12:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e4",
+        occurredAt: "2027-03-15T04:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.violations).toEqual([
       {
@@ -352,8 +641,15 @@ describe("golden fixture: DST boundary", () => {
         affectedEvents: 1,
         requiredUnits: "3",
         availableUnits: "2",
+        acceptedUnits: "2",
       },
     ]);
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 75,
+      covered: 3,
+      total: 4,
+    });
   });
 });
 
@@ -364,22 +660,26 @@ describe("golden fixture: unsupported model", () => {
       modelRules: [{ model: "fixture-small", pricingRef: "fixture-small-pricing" }],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(1) }),
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
       makeEvent({
         id: "e2",
         occurredAt: "2026-09-01T01:00:00Z",
-        usage: million(1),
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
       makeEvent({
         id: "e3",
         occurredAt: "2026-09-01T02:00:00Z",
-        usage: million(1),
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
         model: { rawName: "mystery-model" },
       }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     expect(result.unsupportedModels).toEqual([
       {
@@ -391,37 +691,75 @@ describe("golden fixture: unsupported model", () => {
       { rawName: "mystery-model", eventCount: 1, reason: "unresolved" },
     ]);
     expect(result.warnings.map((warning) => warning.code)).toContain("MODEL_UNRESOLVED");
-    expect(result.coverage.models).toEqual({ percent: 33.3333, covered: 1, total: 3 });
-    expect(result.coverage.requests).toEqual({ percent: 33.3333, covered: 1, total: 3 });
+    // An unresolved model makes the model dimension indeterminate rather than
+    // counting it as definitively unsupported.
+    expect(result.coverage.models).toMatchObject({
+      status: "unknown",
+      covered: 1,
+      total: 3,
+      unknownCount: 1,
+    });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 33.3333,
+      covered: 1,
+      total: 3,
+    });
   });
 });
 
-describe("golden fixture: missing token counts", () => {
-  it("keeps missing data visible instead of inventing tokens", () => {
+describe("golden fixture: unknown consumption", () => {
+  it("reports UNKNOWN instead of a false pass when token data is missing", () => {
     const catalog = makeFixtureCatalog({
       limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
     });
     const events = [
-      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: million(1) }),
       makeEvent({
-        id: "e2",
-        occurredAt: "2026-09-01T01:00:00Z",
-        usage: {},
-        confidence: { usage: "estimated", model: "exact" },
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
       }),
-      makeEvent({ id: "e3", occurredAt: "2026-09-01T02:00:00Z", usage: million(1) }),
+      makeEvent({ id: "e2", occurredAt: "2026-09-01T01:00:00Z", usage: {} }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-09-01T02:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
-    const missing = result.warnings.find((warning) => warning.code === "EVENT_MISSING_TOKEN_DATA");
-    expect(missing?.eventCount).toBe(1);
-    expect(result.constraints[0]?.consumedUnits).toBe("2");
+    expect(result.constraints[0]).toMatchObject({
+      status: "unknown",
+      consumedUnits: "2",
+      attemptedUnits: "2",
+      indeterminateEvents: 1,
+      rejectedEvents: 0,
+      violationCount: 0,
+    });
+    expect(result.coverage.requests).toMatchObject({
+      status: "unknown",
+      covered: 2,
+      total: 3,
+      unknownCount: 1,
+    });
+    expect(result.coverage.requests.percent).toBeUndefined();
+    expect(result.coverage.usage.status).toBe("unknown");
+    expect(result.feasibility.status).toBe("unknown");
+    expect(result.feasibility.coveragePercent).toBeUndefined();
     expect(result.confidence.level).toBe("low");
-    expect(result.confidence.factors.find((factor) => factor.id === "source_data")?.level).toBe(
-      "low",
-    );
-    expect(result.coverage.requests).toEqual({ percent: 100, covered: 3, total: 3 });
+    expect(result.warnings.map((warning) => warning.code)).toContain("EVENT_NO_TOKEN_DATA");
+  });
+
+  it("treats a token limit over unknown usage as unknown rather than passed", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "tokens", type: "token_limit", amount: "1000000" })],
+    });
+    const result = run(catalog, [
+      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: {} }),
+    ]);
+    expect(result.constraints[0]?.status).toBe("unknown");
+    expect(result.feasibility.status).toBe("unknown");
   });
 });
 
@@ -434,33 +772,267 @@ describe("golden fixture: cache pricing", () => {
       makeEvent({
         id: "e1",
         occurredAt: "2026-09-01T00:00:00Z",
-        usage: { cacheReadTokens: 1_000_000 },
+        usage: completeUsage({ cacheReadTokens: 1_000_000 }),
       }),
       makeEvent({
         id: "e2",
         occurredAt: "2026-09-01T01:00:00Z",
-        usage: { cacheReadTokens: 1_000_000 },
+        usage: completeUsage({ cacheReadTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
       makeEvent({
         id: "e3",
         occurredAt: "2026-09-01T02:00:00Z",
-        usage: { reasoningTokens: 1_000_000 },
+        usage: completeUsage({ reasoningTokens: 1_000_000 }),
         model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
       }),
     ];
 
-    const result = replay({ events, target, catalog });
+    const result = run(catalog, events);
 
     // $0.10 (cache rate) + $2.00 (cache at input rate, no cache rate) + $4.00 (reasoning at output rate).
     expect(result.constraints[0]?.consumedUnits).toBe("6.1");
-    expect(result.confidence.level).toBe("low");
-    expect(
-      result.confidence.factors.find((factor) => factor.id === "pricing_fallback")?.level,
-    ).toBe("low");
     expect(result.warnings.map((warning) => warning.code)).toContain("PRICING_RATE_FALLBACK");
     expect(result.assumptions.map((assumption) => assumption.id)).toContain(
       "REASONING_PRICED_AS_OUTPUT",
     );
+  });
+});
+
+describe("golden fixture: disjoint token accounting", () => {
+  it("never double counts cache tokens that the source includes in input", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
+    });
+
+    const overlapping = run(catalog, [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: overlappingUsage({ inputTokens: 1_000_000, cacheReadTokens: 1_000_000 }),
+      }),
+    ]);
+    // 1M input of which 1M were cache reads: only the cache rate applies.
+    expect(overlapping.constraints[0]?.consumedUnits).toBe("0.1");
+
+    const disjoint = run(catalog, [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000, cacheReadTokens: 1_000_000 }),
+      }),
+    ]);
+    expect(disjoint.constraints[0]?.consumedUnits).toBe("1.1");
+  });
+
+  it("never double counts reasoning tokens that are a subset of output", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
+    });
+    const result = run(catalog, [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: overlappingUsage({
+          inputTokens: 0,
+          outputTokens: 1_000_000,
+          reasoningTokens: 400_000,
+        }),
+      }),
+    ]);
+    // 600k output at $2/1M plus 400k reasoning at the output fallback rate.
+    expect(result.constraints[0]?.consumedUnits).toBe("2");
+  });
+});
+
+describe("golden fixture: per-request rejection versus latching", () => {
+  it("serves a later request that fits when the rule only rejects the request", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "tokens", type: "token_limit", amount: "10" })],
+    });
+    const events = [
+      makeEvent({
+        id: "a",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 11 }),
+      }),
+      makeEvent({
+        id: "b",
+        occurredAt: "2026-09-01T00:01:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1 }),
+      }),
+    ];
+
+    const result = run(catalog, events);
+
+    expect(result.constraints[0]).toMatchObject({
+      status: "exceeded",
+      consumedUnits: "1",
+      attemptedUnits: "12",
+      rejectedEvents: 1,
+    });
+    expect(result.violations[0]).toMatchObject({
+      requiredUnits: "12",
+      availableUnits: "10",
+      acceptedUnits: "1",
+      affectedEvents: 1,
+    });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 50,
+      covered: 1,
+      total: 2,
+    });
+  });
+
+  it("blocks the rest of the window when the rule latches", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [
+        rollingLimit({
+          id: "tokens",
+          type: "token_limit",
+          amount: "10",
+          exceed: "latch_until_reset",
+        }),
+      ],
+    });
+    const events = [
+      makeEvent({
+        id: "a",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 11 }),
+      }),
+      makeEvent({
+        id: "b",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1 }),
+      }),
+      makeEvent({
+        id: "c",
+        occurredAt: "2026-09-01T06:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1 }),
+      }),
+    ];
+
+    const result = run(catalog, events);
+
+    expect(result.constraints[0]).toMatchObject({
+      consumedUnits: "1",
+      attemptedUnits: "13",
+      rejectedEvents: 2,
+    });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 33.3333,
+      covered: 1,
+      total: 3,
+    });
+  });
+});
+
+describe("golden fixture: atomic admission across constraints", () => {
+  it("does not consume a shared pool for an event another rule rejects", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [
+        rollingLimit({
+          id: "small-model-tokens",
+          type: "token_limit",
+          amount: "0",
+          models: ["fixture-small"],
+        }),
+        rollingLimit({ id: "requests", type: "request_limit", amount: "1" }),
+      ],
+    });
+    const events = [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T00:01:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000 }),
+        model: { rawName: "fixture-medium", canonicalId: "fixture-medium" },
+      }),
+    ];
+
+    const result = run(catalog, events);
+
+    const [tokens, requests] = result.constraints;
+    // The small-model rule rejects the first event, which therefore consumes
+    // nothing from the global request pool, so the medium event is served.
+    expect(tokens).toMatchObject({
+      id: "small-model-tokens",
+      rejectedEvents: 1,
+      consumedUnits: "0",
+    });
+    expect(requests).toMatchObject({ id: "requests", rejectedEvents: 0, consumedUnits: "1" });
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 50,
+      covered: 1,
+      total: 2,
+    });
+  });
+});
+
+describe("golden fixture: explicit zero versus missing data", () => {
+  const catalog = makeFixtureCatalog({
+    limits: [rollingLimit({ id: "tokens", type: "token_limit", amount: "10" })],
+  });
+
+  it("treats a complete report of zero tokens as known zero", () => {
+    const result = run(catalog, [
+      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: completeUsage() }),
+    ]);
+    expect(result.constraints[0]?.status).toBe("pass");
+    expect(result.coverage.usage).toEqual({ status: "known", percent: 100, covered: 0, total: 0 });
+    expect(result.warnings.map((warning) => warning.code)).not.toContain("EVENT_NO_TOKEN_DATA");
+  });
+
+  it("treats an incomplete report as unknown rather than zero", () => {
+    const result = run(catalog, [
+      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: { inputTokens: 0 } }),
+    ]);
+    expect(result.constraints[0]?.status).toBe("unknown");
+    expect(result.coverage.usage.status).toBe("unknown");
+    expect(result.warnings.map((warning) => warning.code)).toContain(
+      "EVENT_TOKEN_ACCOUNTING_UNKNOWN",
+    );
+  });
+});
+
+describe("golden fixture: empty workload versus unknown denominator", () => {
+  const catalog = makeFixtureCatalog({
+    limits: [rollingLimit({ id: "tokens", type: "token_limit", amount: "10" })],
+  });
+
+  it("keeps the documented 100 percent convention for a genuinely empty workload", () => {
+    const result = run(catalog, []);
+    expect(result.violations).toEqual([]);
+    expect(result.coverage.requests).toEqual({
+      status: "known",
+      percent: 100,
+      covered: 0,
+      total: 0,
+    });
+    expect(result.coverage.usage).toEqual({ status: "known", percent: 100, covered: 0, total: 0 });
+    expect(result.constraints[0]?.status).toBe("not_applicable");
+    expect(result.feasibility).toEqual({
+      status: "full",
+      coveragePercent: 100,
+      coverageDimension: "requests",
+    });
+    expect(result.workload).toEqual({ eventCount: 0, modelCount: 0, tokenTotals: {} });
+  });
+
+  it("never reports 100 percent for an unknown denominator", () => {
+    const result = run(catalog, [
+      makeEvent({ id: "e1", occurredAt: "2026-09-01T00:00:00Z", usage: {} }),
+    ]);
+    expect(result.coverage.usage.percent).toBeUndefined();
+    expect(result.coverage.usage.status).toBe("unknown");
+    expect(result.feasibility.coveragePercent).toBeUndefined();
   });
 });

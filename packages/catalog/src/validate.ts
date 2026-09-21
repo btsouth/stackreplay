@@ -288,6 +288,44 @@ function checkLimit(
       file,
     });
   }
+
+  // Explicit exceed behavior and overage pricing (decisions 14, 19).
+  if (limit.exceed === "allow_overage") {
+    if (limit.type === "credit_pool") {
+      if (limit.overageRate !== undefined) {
+        issues.push({
+          severity: "error",
+          code: "LIMIT_OVERAGE_RATE_INVALID",
+          message: `${prefix}: a credit pool's excess is already currency and must not declare an overage rate`,
+          file,
+        });
+      }
+    } else if (limit.overageRate === undefined) {
+      issues.push({
+        severity: "error",
+        code: "LIMIT_OVERAGE_RATE_MISSING",
+        message: `${prefix}: allow_overage requires an explicit overage rate`,
+        file,
+      });
+    } else {
+      const expected = limit.type === "token_limit" ? "per_1m_tokens" : "per_request";
+      if (limit.overageRate.unit !== expected) {
+        issues.push({
+          severity: "error",
+          code: "LIMIT_OVERAGE_RATE_INVALID",
+          message: `${prefix}: overage rate unit must be ${expected} for a ${limit.type}`,
+          file,
+        });
+      }
+    }
+  } else if (limit.overageRate !== undefined) {
+    issues.push({
+      severity: "error",
+      code: "LIMIT_OVERAGE_RATE_INVALID",
+      message: `${prefix}: overageRate is only valid with allow_overage`,
+      file,
+    });
+  }
 }
 
 export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue[] {

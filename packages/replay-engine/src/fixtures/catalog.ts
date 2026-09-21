@@ -3,12 +3,17 @@ import type {
   LoadedPlanVersionV1,
   ModelRuleV1,
   ModelV1,
+  OverageRateV1,
   PlanLimitV1,
   PricingV1,
   PromotionV1,
   ProviderV1,
 } from "@stackreplay/catalog";
-import type { VerificationStatusV1 } from "@stackreplay/schema";
+import type {
+  ReplayContextV1,
+  SubscriptionTargetV1,
+  VerificationStatusV1,
+} from "@stackreplay/schema";
 
 /**
  * Fixture catalog builder for engine tests. All values are synthetic and the
@@ -18,6 +23,8 @@ import type { VerificationStatusV1 } from "@stackreplay/schema";
 
 export const FIXTURE_CATALOG_VERSION = "fixture:golden-v1";
 export const FIXTURE_PLAN_VERSION_ID = "fixture-plan@2026-08-01";
+/** Default rules instant for fixture replays (decision 17). */
+export const FIXTURE_RULES_AS_OF = "2026-09-15";
 
 export const fixtureProvider: ProviderV1 = {
   id: "fixture-provider",
@@ -153,13 +160,24 @@ export function makeFixtureCatalog(options: FixtureCatalogOptions): CatalogV1 {
   };
 }
 
+export const fixtureTarget: SubscriptionTargetV1 = {
+  type: "subscription",
+  planVersionId: FIXTURE_PLAN_VERSION_ID,
+};
+
+export const fixtureContext: ReplayContextV1 = { rulesAsOf: FIXTURE_RULES_AS_OF };
+
+export function overageRate(amount: string, unit: OverageRateV1["unit"]): OverageRateV1 {
+  return { amount, unit };
+}
+
 export function rollingLimit(
   overrides: Partial<PlanLimitV1> & Pick<PlanLimitV1, "id" | "type" | "amount">,
 ): PlanLimitV1 {
   return {
     label: overrides.label ?? overrides.id,
     window: { type: "rolling", duration: "PT5H", anchor: "first_use" },
-    enforcement: "hard_stop",
+    exceed: "reject_request",
     ...overrides,
   };
 }
@@ -170,7 +188,7 @@ export function calendarLimit(
   return {
     label: overrides.label ?? overrides.id,
     window: { type: "calendar", unit: "month", timezone: "UTC" },
-    enforcement: "hard_stop",
+    exceed: "reject_request",
     ...overrides,
   };
 }

@@ -53,6 +53,18 @@ export const limitWindowV1Schema = z.discriminatedUnion("type", [
 ]);
 export type LimitWindowV1 = z.infer<typeof limitWindowV1Schema>;
 
+/**
+ * Explicit overage pricing for allow_overage rules (decisions 14, 19).
+ * A credit pool's excess is already currency, so credit pools do not declare a
+ * rate; token and request limits must state one.
+ */
+export const overageRateV1Schema = z.strictObject({
+  /** Currency charged per overage unit. */
+  amount: decimalAmountV1Schema,
+  unit: z.enum(["per_1m_tokens", "per_request"]),
+});
+export type OverageRateV1 = z.infer<typeof overageRateV1Schema>;
+
 export const planLimitV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   label: z.string().min(1),
@@ -62,7 +74,14 @@ export const planLimitV1Schema = z.strictObject({
   /** Present when the pool applies to specific models only. */
   models: z.array(catalogIdV1Schema).optional(),
   window: limitWindowV1Schema,
-  enforcement: z.enum(["hard_stop", "soft", "overage"]).default("hard_stop"),
+  /**
+   * What happens once capacity is exceeded (decision 14). There is no default:
+   * every rule states its behavior explicitly rather than inheriting a hidden
+   * global assumption.
+   */
+  exceed: z.enum(["reject_request", "latch_until_reset", "allow_overage", "record_only"]),
+  /** Required for allow_overage on token and request limits. */
+  overageRate: overageRateV1Schema.optional(),
 });
 export type PlanLimitV1 = z.infer<typeof planLimitV1Schema>;
 

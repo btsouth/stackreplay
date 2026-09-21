@@ -11,19 +11,25 @@ import {
 import {
   type ConstraintResultV1,
   type ConstraintStatusV1,
-  type ConstraintUnitV1,
   type CoverageDimensionsV1,
   type CoverageDimensionV1,
+  type EconomicsV1,
   type ExecutionReplayResultV1,
   type ExecutionTargetV1,
   executionTargetV1Schema,
+  type FeasibilityV1,
   isSubscriptionTargetV1,
+  type MeasurementUnitV1,
   type ReplayAssumptionV1,
   type ReplayConfidenceV1,
+  type ReplayContextV1,
   type ReplayViolationV1,
   type ReplayWarningV1,
+  replayContextV1Schema,
+  type SubscriptionTargetV1,
   type TextUsageEventV1,
   type TextUsageV1,
+  type TokenTotalsV1,
   type UnsupportedModelV1,
   usageEventV1Schema,
   type WorkloadSummaryV1,
@@ -32,17 +38,41 @@ import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./conf
 import { ReplayEngineError } from "./errors.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 import { dateRangeContains, epochMsFromIso, isoFromEpochMs } from "./time.js";
-import { hasAnyTokenData, moneyUnitsForUsage, tokenCountOf } from "./units.js";
-import { ENGINE_VERSION } from "./version.js";
-import { sliceWindows, sortTimedEvents, type TimedEvent, toTimedEvents } from "./windows.js";
+import {
+  hasAnyReportedTokens,
+  moneyUnitsForUsage,
+  reportedTokenCount,
+  type TokenAccounting,
+  tokenAccountingOf,
+} from "./units.js";
+import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
+import {
+  sliceWindows,
+  sortTimedEvents,
+  type TimedEvent,
+  toTimedEvents,
+  type WindowSlice,
+} from "./windows.js";
 
 /**
- * The replay engine (spec point 22, decisions 1-5). Pure and deterministic:
- * same events + same target + same catalog always produce the same result.
+ * The replay engine (spec point 22, decisions 1-5, 13-20).
+ *
+ * Pure and deterministic: the same events, target, catalog and explicit rules
+ * context always produce the same result, and the engine never reads a clock.
  *
  * Milestone 1 implements subscription targets end to end. The api, local and
  * hybrid target types exist in the schema but raise TARGET_NOT_IMPLEMENTED
  * here; their behavior belongs to later milestones.
+ *
+ * Semantics that matter for correctness:
+ * - Admission is chronological and atomic across applicable constraints: an
+ *   event rejected by one constraint consumes nothing from any other pool.
+ * - Attempted demand and accepted consumption are separate: violations report
+ *   both, and only accepted consumption advances capacity.
+ * - Each rule declares its own exceed behavior; nothing latches or bills by
+ *   default.
+ * - Unknown consumption produces indeterminate events and unknown constraints,
+ *   never a silent pass.
  */
 
 /**
@@ -55,49 +85,50 @@ export interface ReplayInput {
   events: readonly TextUsageEventV1[];
   target: ExecutionTargetV1;
   catalog: CatalogV1;
+  /** Explicit rules context (decision 17): the engine never reads a clock. */
+  context: ReplayContextV1;
   options?: ReplayOptions;
 }
 
 export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
-  const parsedTarget = executionTargetV1Schema.safeParse(input.target);
-  if (!parsedTarget.success)
-    throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Invalid execution target.");
-  const target = parsedTarget.data;
-  const planVersion = resolveTargetPlan(target, catalog);
+  const context = parseContext(input.context);
+  const target = parseTarget(input.target);
+  const planVersion = resolveTargetPlan(target, catalog, context.rulesAsOf);
   const events = validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
 
   const tracker = new Tracker();
-  const resolution = resolveModels(timed, planVersion, catalog, tracker);
+  const resolution = resolveModels(timed, planVersion, catalog, context.rulesAsOf, tracker);
   const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker);
   const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
-  const coverage = computeCoverage(timed, resolution, evaluation.blockedEventIds);
-  const confidence = computeConfidence(timed, resolution, planVersion, catalog, tracker);
+  const coverage = computeCoverage(timed, prepared);
+  const confidence = computeConfidence(timed, prepared, planVersion, catalog, evaluation, tracker);
+
+  const pricingReferences = collectPricingReferences(planVersion);
 
   return {
     version: 1,
-    workload: summarizeWorkload(timed, resolution),
+    workload: summarizeWorkload(timed, prepared),
     target,
-    feasibility: {
-      status: feasibilityStatus(coverage, evaluation.constraints),
-      coveragePercent: coverage.requests.percent,
-    },
+    feasibility: feasibilityOf(coverage, evaluation.constraints),
     coverage,
     constraints: evaluation.constraints,
     violations: evaluation.violations,
     unsupportedModels: collectUnsupportedModels(timed, resolution),
-    economics: {
-      targetCost: { amount: planVersion.price.amount, currency: planVersion.price.currency },
-      costBasis: "fixed_plan_price",
-    },
+    economics: computeEconomics(planVersion, evaluation),
     assumptions: buildAssumptions(planVersion, tracker, evaluation.constraints),
     confidence,
     warnings: buildWarnings(tracker),
     versions: {
       engine: ENGINE_VERSION,
+      schema: 1,
       catalog: catalog.catalogVersion,
-      planVersionId: planVersion.versionId,
+      methodology: REPLAY_METHODOLOGY_VERSION,
+      rulesAsOf: context.rulesAsOf,
+      targetType: target.type,
+      targetReference: planVersion.versionId,
+      ...(pricingReferences.length > 0 ? { pricingReferences } : {}),
     },
     subscription: {
       planId: planVersion.planId,
@@ -150,7 +181,37 @@ function parseCatalog(catalog: CatalogV1): CatalogV1 {
   return parsed.data;
 }
 
-function resolveTargetPlan(target: ExecutionTargetV1, catalog: CatalogV1): LoadedPlanVersionV1 {
+function parseContext(context: ReplayContextV1): ReplayContextV1 {
+  const parsed = replayContextV1Schema.safeParse(context);
+  if (!parsed.success) {
+    throw new ReplayEngineError(
+      "IMPORT_SCHEMA_INVALID",
+      "A replay rules context with an explicit rulesAsOf date is required.",
+      parsed.error.issues
+        .slice(0, 5)
+        .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`),
+    );
+  }
+  return parsed.data;
+}
+
+function parseTarget(target: ExecutionTargetV1): ExecutionTargetV1 {
+  const parsed = executionTargetV1Schema.safeParse(target);
+  if (!parsed.success)
+    throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Invalid execution target.");
+  return parsed.data;
+}
+
+/**
+ * Resolves the plan version to replay against (decision 17): either the pinned
+ * version, or the version effective at rulesAsOf, selected deterministically
+ * without consulting any clock.
+ */
+function resolveTargetPlan(
+  target: ExecutionTargetV1,
+  catalog: CatalogV1,
+  rulesAsOf: string,
+): LoadedPlanVersionV1 {
   if (!isSubscriptionTargetV1(target)) {
     throw new ReplayEngineError(
       "TARGET_NOT_IMPLEMENTED",
@@ -158,15 +219,50 @@ function resolveTargetPlan(target: ExecutionTargetV1, catalog: CatalogV1): Loade
       [`target.type=${target.type}`],
     );
   }
-  const planVersion = getPlanVersion(catalog, target.planVersionId);
-  if (planVersion === undefined) {
+
+  const subscriptionTarget: SubscriptionTargetV1 = target;
+  const hasVersion = subscriptionTarget.planVersionId !== undefined;
+  const hasPlan = subscriptionTarget.planId !== undefined;
+  if (hasVersion === hasPlan) {
     throw new ReplayEngineError(
-      "PLAN_VERSION_NOT_FOUND",
-      "The requested plan version is not present in this catalog.",
-      [`planVersionId=${target.planVersionId}`],
+      "IMPORT_SCHEMA_INVALID",
+      "A subscription target requires exactly one of planVersionId or planId.",
     );
   }
-  return planVersion;
+
+  if (hasVersion) {
+    const planVersion = getPlanVersion(catalog, subscriptionTarget.planVersionId as string);
+    if (planVersion === undefined) {
+      throw new ReplayEngineError(
+        "PLAN_VERSION_NOT_FOUND",
+        "The requested plan version is not present in this catalog.",
+        [`planVersionId=${subscriptionTarget.planVersionId}`],
+      );
+    }
+    return planVersion;
+  }
+
+  const planId = subscriptionTarget.planId as string;
+  const candidates = Object.values(catalog.planVersions)
+    .filter(
+      (version) =>
+        version.planId === planId &&
+        version.effectiveFrom <= rulesAsOf &&
+        (version.effectiveTo === undefined || version.effectiveTo >= rulesAsOf),
+    )
+    .sort((a, b) =>
+      a.effectiveFrom < b.effectiveFrom ? -1 : a.effectiveFrom > b.effectiveFrom ? 1 : 0,
+    );
+
+  const selected = candidates[candidates.length - 1];
+  if (selected === undefined) {
+    throw new ReplayEngineError(
+      "PLAN_VERSION_NOT_FOUND",
+      "No plan version for this plan is in effect on the supplied rulesAsOf date.",
+      [`planId=${planId}`, `rulesAsOf=${rulesAsOf}`],
+    );
+  }
+  return selected;
 }
 
 function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
@@ -206,7 +302,7 @@ function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[]
         [`index=${index}`, `id=${event.id}`],
       );
     }
-    aggregateTokens += tokenCountOf(event.usage);
+    aggregateTokens += reportedTokenCount(event.usage);
     if (!Number.isSafeInteger(aggregateTokens))
       throw new ReplayEngineError(
         "IMPORT_SCHEMA_INVALID",
@@ -224,12 +320,15 @@ interface ModelResolution {
   supported: boolean;
   unsupportedReason?: "not_supported" | "excluded" | "unresolved";
   rule?: ModelRuleV1;
+  /** Rule multiplier times promotions active in the rules snapshot (decision 17). */
+  multiplier: Decimal;
 }
 
 function resolveModels(
   timed: readonly TimedEvent[],
   planVersion: LoadedPlanVersionV1,
   catalog: CatalogV1,
+  rulesAsOf: string,
   tracker: Tracker,
 ): Map<string, ModelResolution> {
   const ruleByModel = new Map<string, ModelRuleV1>();
@@ -242,6 +341,27 @@ function resolveModels(
       byName.set(name, previous === undefined || previous === model.id ? model.id : null);
     }
   }
+
+  /**
+   * Promotions are resolved once per model from the rules snapshot: a promotion
+   * active at rulesAsOf applies to the whole replayed workload, regardless of
+   * when individual events happened (decisions 17 and 18 of the audit
+   * remediation).
+   */
+  const multiplierByModel = new Map<string, Decimal>();
+  const multiplierFor = (modelId: string, rule: ModelRuleV1): Decimal => {
+    const cached = multiplierByModel.get(modelId);
+    if (cached !== undefined) return cached;
+    let multiplier = ONE;
+    if (rule.multiplier !== undefined) multiplier = multiplier.times(parseAmount(rule.multiplier));
+    for (const promotion of planVersion.promotions ?? []) {
+      if (!dateRangeContains(rulesAsOf, promotion.effectiveFrom, promotion.effectiveTo)) continue;
+      if (promotion.models !== undefined && !promotion.models.includes(modelId)) continue;
+      multiplier = multiplier.times(parseAmount(promotion.multiplier));
+    }
+    multiplierByModel.set(modelId, multiplier);
+    return multiplier;
+  };
 
   const resolution = new Map<string, ModelResolution>();
   for (const { event } of timed) {
@@ -267,7 +387,12 @@ function resolveModels(
         "MODEL_UNRESOLVED",
         "One or more events use models that could not be mapped to the catalog.",
       );
-      resolution.set(event.id, { quality, supported: false, unsupportedReason: "unresolved" });
+      resolution.set(event.id, {
+        quality,
+        supported: false,
+        unsupportedReason: "unresolved",
+        multiplier: ONE,
+      });
       continue;
     }
 
@@ -278,6 +403,7 @@ function resolveModels(
         modelId,
         supported: false,
         unsupportedReason: "not_supported",
+        multiplier: ONE,
       });
       continue;
     }
@@ -288,19 +414,32 @@ function resolveModels(
         supported: false,
         unsupportedReason: "excluded",
         rule,
+        multiplier: ONE,
       });
       continue;
     }
-    resolution.set(event.id, { quality, modelId, supported: true, rule });
+    resolution.set(event.id, {
+      quality,
+      modelId,
+      supported: true,
+      rule,
+      multiplier: multiplierFor(modelId, rule),
+    });
   }
   return resolution;
 }
 
 interface PreparedEvent {
-  moneyUnits: Decimal;
-  /** Exact integer token count; converted to Decimal only when a multiplier applies. */
-  tokenUnits: number;
+  resolution: ModelResolution;
+  /** Disjoint canonical token accounting for this event. */
+  tokens: TokenAccounting;
+  /** Money units, present only when accounting and pricing are both known. */
+  moneyUnits: Decimal | undefined;
+  /** Exact integer token total, present only when accounting is complete. */
+  tokenCount: number | undefined;
   multiplier: Decimal;
+  /** Filled in during the admission pass. */
+  outcome: EventOutcome | undefined;
 }
 
 function prepareEvents(
@@ -311,24 +450,30 @@ function prepareEvents(
   tracker: Tracker,
 ): Map<string, PreparedEvent> {
   const needsMoney = planVersion.limits.some((limit) => limit.type === "credit_pool");
-  const needsMultipliedUnits = planVersion.limits.some((limit) => limit.type !== "request_limit");
-
   const prepared = new Map<string, PreparedEvent>();
+
   for (const { event } of timed) {
     const res = resolution.get(event.id);
     if (res === undefined) continue;
+    const tokens = tokenAccountingOf(event.usage);
 
-    if (!hasAnyTokenData(event.usage)) {
+    if (res.supported && !tokens.known) {
       tracker.warn(
-        "EVENT_MISSING_TOKEN_DATA",
-        "One or more events carry no token data; their consumption could not be measured.",
+        "EVENT_TOKEN_ACCOUNTING_UNKNOWN",
+        "One or more events do not report every canonical token category, so their consumption cannot be established.",
+      );
+    }
+    if (!hasAnyReportedTokens(event.usage)) {
+      tracker.warn(
+        "EVENT_NO_TOKEN_DATA",
+        "One or more events report no token data at all; their consumption is unknown rather than zero.",
       );
     }
 
-    let moneyUnits = ZERO;
-    if (needsMoney && res.supported && res.rule !== undefined) {
+    let moneyUnits: Decimal | undefined;
+    if (needsMoney && res.supported) {
       const pricing =
-        res.rule.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
+        res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
       const outcome = moneyUnitsForUsage(event.usage, pricing);
       if (outcome.missingPricing) {
         tracker.warn(
@@ -348,63 +493,170 @@ function prepareEvents(
           "Reasoning tokens are priced at the output rate when a pricing entry has no dedicated reasoning rate.",
         );
       }
-      moneyUnits = outcome.units;
+      moneyUnits = outcome.known ? outcome.units : undefined;
     }
 
     prepared.set(event.id, {
+      resolution: res,
+      tokens,
       moneyUnits,
-      tokenUnits: tokenCountOf(event.usage),
-      multiplier: needsMultipliedUnits
-        ? consumptionMultiplier(event.occurredAt, res, planVersion)
-        : ONE,
+      tokenCount: tokens.known ? tokens.total : undefined,
+      multiplier: res.multiplier,
+      outcome: undefined,
     });
   }
   return prepared;
 }
 
-/**
- * Consumption multiplier for an event: the model rule's multiplier times any
- * active promotion. The common case (no multiplier, no promotions) returns the
- * shared ONE instance, which callers compare by identity to skip a Decimal
- * multiplication for every event.
- */
-function consumptionMultiplier(
-  occurredAt: string,
-  res: ModelResolution,
-  planVersion: LoadedPlanVersionV1,
-): Decimal {
-  const ruleMultiplier = res.rule?.multiplier;
-  const promotions = planVersion.promotions;
-  if (ruleMultiplier === undefined && (promotions === undefined || promotions.length === 0)) {
-    return ONE;
-  }
-
-  let multiplier = ONE;
-  if (ruleMultiplier !== undefined) multiplier = multiplier.times(parseAmount(ruleMultiplier));
-
-  // `occurredAt` is validated as an ISO-8601 UTC timestamp, so its first ten
-  // characters are its UTC date. No Temporal conversion is needed here.
-  const date = occurredAt.slice(0, 10);
-  for (const promotion of promotions ?? []) {
-    if (!dateRangeContains(date, promotion.effectiveFrom, promotion.effectiveTo)) continue;
-    const applies =
-      promotion.models === undefined ||
-      (res.modelId !== undefined && promotion.models.includes(res.modelId));
-    if (applies) multiplier = multiplier.times(parseAmount(promotion.multiplier));
-  }
-  return multiplier;
-}
-
-const UNIT_BY_LIMIT_KIND: Record<PlanLimitV1["type"], ConstraintUnitV1> = {
-  credit_pool: "currency",
+const UNIT_BY_LIMIT_KIND: Record<PlanLimitV1["type"], MeasurementUnitV1> = {
+  credit_pool: "usd",
   token_limit: "tokens",
   request_limit: "requests",
 };
 
+type EventOutcome = "served" | "rejected" | "indeterminate" | "model_unsupported";
+
+type Units = Decimal | number;
+
+const asDecimal = (value: Units): Decimal =>
+  typeof value === "number" ? new Decimal(value) : value;
+
+function addUnits(total: Units, value: Units): Units {
+  if (typeof total === "number" && typeof value === "number") return total + value;
+  return asDecimal(total).plus(value);
+}
+
+interface SliceRun {
+  slice: WindowSlice;
+  /** Attempted demand offered inside this window. */
+  attempted: Units;
+  /** Accepted consumption served inside this window. */
+  accepted: Units;
+  /** Events this constraint itself did not serve inside this window. */
+  affectedEvents: number;
+}
+
+interface ConstraintRuntime {
+  limit: PlanLimitV1;
+  unit: MeasurementUnitV1;
+  limitAmount: Decimal;
+  /** Integer fast path for token and request limits. */
+  limitNumber: number | undefined;
+  slices: SliceRun[];
+  /** Monotonic cursor over `slices`; events arrive in chronological order. */
+  cursor: number;
+  latchedSliceIndex: number | null;
+  acceptedTotal: Units;
+  attemptedTotal: Units;
+  rejectedEvents: number;
+  indeterminateEvents: number;
+  eligibleEvents: number;
+  overageUnits: Decimal;
+  overageCost: Decimal;
+  unknownConsumption: boolean;
+}
+
 interface ConstraintEvaluation {
   constraints: ConstraintResultV1[];
   violations: ReplayViolationV1[];
-  blockedEventIds: Set<string>;
+  /** Total billed overage across all constraints. */
+  overageCost: Decimal;
+  hasOverageRule: boolean;
+  unknownConstraints: number;
+}
+
+function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): ConstraintRuntime {
+  const sliced = sliceWindows(eligible, limit.window);
+  const slices: SliceRun[] = sliced.slices.map((slice) => ({
+    slice,
+    attempted: 0,
+    accepted: 0,
+    affectedEvents: 0,
+  }));
+
+  const amount = parseAmount(limit.amount);
+  const asNumber = Number(limit.amount);
+  return {
+    limit,
+    unit: UNIT_BY_LIMIT_KIND[limit.type],
+    limitAmount: amount,
+    limitNumber:
+      limit.type !== "credit_pool" && Number.isSafeInteger(asNumber) ? asNumber : undefined,
+    slices,
+    cursor: 0,
+    latchedSliceIndex: null,
+    acceptedTotal: limit.type === "credit_pool" ? ZERO : 0,
+    attemptedTotal: limit.type === "credit_pool" ? ZERO : 0,
+    rejectedEvents: 0,
+    indeterminateEvents: 0,
+    eligibleEvents: 0,
+    overageUnits: ZERO,
+    overageCost: ZERO,
+    unknownConsumption: false,
+  };
+}
+
+/** Whether a constraint applies to an event's model at all. */
+function appliesTo(rt: ConstraintRuntime, res: ModelResolution): boolean {
+  if (!res.supported) return false;
+  if (rt.limit.models === undefined) return true;
+  return res.modelId !== undefined && rt.limit.models.includes(res.modelId);
+}
+
+/**
+ * Index of the window slice an event falls into, advancing the constraint's
+ * cursor. Returns undefined when the event lies beyond the last slice (which
+ * cannot happen for an eligible event, because the slices are built from the
+ * eligible events themselves).
+ */
+function sliceIndexFor(rt: ConstraintRuntime, timed: TimedEvent): number | undefined {
+  while (rt.cursor < rt.slices.length) {
+    const slice = rt.slices[rt.cursor]?.slice;
+    if (slice === undefined) break;
+    const beforeEnd =
+      timed.atMs < slice.endMs || (timed.atMs === slice.endMs && timed.subMs < slice.subMs);
+    if (beforeEnd) return rt.cursor;
+    rt.cursor += 1;
+  }
+  return undefined;
+}
+
+function quantityOf(rt: ConstraintRuntime, preparedEvent: PreparedEvent): Units | undefined {
+  if (rt.limit.type === "request_limit") return 1;
+  if (rt.limit.type === "credit_pool") {
+    const base = preparedEvent.moneyUnits;
+    if (base === undefined) return undefined;
+    return preparedEvent.multiplier === ONE ? base : base.times(preparedEvent.multiplier);
+  }
+  const count = preparedEvent.tokenCount;
+  if (count === undefined) return undefined;
+  if (count === 0) return 0;
+  return preparedEvent.multiplier === ONE
+    ? count
+    : new Decimal(count).times(preparedEvent.multiplier);
+}
+
+function exceedsCapacity(
+  accepted: Units,
+  quantity: Units,
+  limitAmount: Decimal,
+  limitNumber: number | undefined,
+): boolean {
+  if (typeof accepted === "number" && typeof quantity === "number" && limitNumber !== undefined) {
+    return accepted + quantity > limitNumber;
+  }
+  return asDecimal(accepted).plus(asDecimal(quantity)).gt(limitAmount);
+}
+
+function overageCostOf(rt: ConstraintRuntime, overage: Decimal): Decimal {
+  // A credit pool's excess is already currency.
+  if (rt.limit.type === "credit_pool") return overage;
+  const rate = rt.limit.overageRate;
+  if (rate === undefined) return ZERO;
+  const amount = parseAmount(rate.amount);
+  return rate.unit === "per_1m_tokens"
+    ? overage.times(amount).div(1_000_000)
+    : overage.times(amount);
 }
 
 function evaluateConstraints(
@@ -414,12 +666,7 @@ function evaluateConstraints(
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
 ): ConstraintEvaluation {
-  const constraints: ConstraintResultV1[] = [];
-  const violations: ReplayViolationV1[] = [];
-  const blockedEventIds = new Set<string>();
-
-  for (const limit of planVersion.limits) {
-    const unit = UNIT_BY_LIMIT_KIND[limit.type];
+  const runtimes: ConstraintRuntime[] = planVersion.limits.map((limit) => {
     const eligible = timed.filter(({ event }) => {
       const res = resolution.get(event.id);
       if (res === undefined || !res.supported) return false;
@@ -428,176 +675,296 @@ function evaluateConstraints(
       }
       return true;
     });
+    return buildRuntime(limit, eligible);
+  });
 
-    const limitAmount = parseAmount(limit.amount);
-    const sliced = sliceWindows(eligible, limit.window);
+  for (const timedEvent of timed) {
+    const { event } = timedEvent;
+    const preparedEvent = prepared.get(event.id);
+    if (preparedEvent === undefined) continue;
+
+    if (!preparedEvent.resolution.supported) {
+      preparedEvent.outcome = "model_unsupported";
+      continue;
+    }
+
+    const applicable = runtimes.filter((rt) => appliesTo(rt, preparedEvent.resolution));
+
+    // Attempted demand is recorded for every applicable constraint, whatever
+    // the eventual outcome, so diagnostics stay complete.
+    let unknown = false;
+    for (const rt of applicable) {
+      rt.eligibleEvents += 1;
+      const quantity = quantityOf(rt, preparedEvent);
+      if (quantity === undefined) {
+        rt.indeterminateEvents += 1;
+        rt.unknownConsumption = true;
+        unknown = true;
+        continue;
+      }
+      const index = sliceIndexFor(rt, timedEvent);
+      if (index === undefined) continue;
+      const run = rt.slices[index] as SliceRun;
+      run.attempted = addUnits(run.attempted, quantity);
+      rt.attemptedTotal = addUnits(rt.attemptedTotal, quantity);
+    }
+
+    if (unknown) {
+      preparedEvent.outcome = "indeterminate";
+      continue;
+    }
+
+    // Admission is atomic: the first constraint that rejects decides, and
+    // nothing consumes.
+    let rejecting: { rt: ConstraintRuntime; index: number } | undefined;
+    for (const rt of applicable) {
+      const index = sliceIndexFor(rt, timedEvent);
+      if (index === undefined) continue;
+      if (rt.latchedSliceIndex !== null && rt.latchedSliceIndex === index) {
+        rejecting = { rt, index };
+        break;
+      }
+      const exceed = rt.limit.exceed;
+      if (exceed !== "reject_request" && exceed !== "latch_until_reset") continue;
+      const quantity = quantityOf(rt, preparedEvent) as Units;
+      const run = rt.slices[index] as SliceRun;
+      if (exceedsCapacity(run.accepted, quantity, rt.limitAmount, rt.limitNumber)) {
+        rejecting = { rt, index };
+        break;
+      }
+    }
+
+    if (rejecting !== undefined) {
+      preparedEvent.outcome = "rejected";
+      const run = rejecting.rt.slices[rejecting.index] as SliceRun;
+      run.affectedEvents += 1;
+      rejecting.rt.rejectedEvents += 1;
+      if (rejecting.rt.limit.exceed === "latch_until_reset") {
+        rejecting.rt.latchedSliceIndex = rejecting.index;
+        tracker.warn(
+          "LATCH_TRIGGERED",
+          "One or more events were blocked by a latch_until_reset rule until its window resets.",
+        );
+      }
+      continue;
+    }
+
+    // Served: every applicable pool advances by its own quantity.
+    preparedEvent.outcome = "served";
+    for (const rt of applicable) {
+      const index = sliceIndexFor(rt, timedEvent);
+      if (index === undefined) continue;
+      const quantity = quantityOf(rt, preparedEvent) as Units;
+      const run = rt.slices[index] as SliceRun;
+      run.accepted = addUnits(run.accepted, quantity);
+      rt.acceptedTotal = addUnits(rt.acceptedTotal, quantity);
+    }
+  }
+
+  const constraints: ConstraintResultV1[] = [];
+  const violations: ReplayViolationV1[] = [];
+  let overageCost = ZERO;
+  let hasOverageRule = false;
+  let unknownConstraints = 0;
+
+  for (const rt of runtimes) {
     const windowViolations: ReplayViolationV1[] = [];
-    let totalDemand = ZERO;
 
-    const isRequestLimit = limit.type === "request_limit";
-    const isCreditPool = limit.type === "credit_pool";
+    for (const run of rt.slices) {
+      const accepted = asDecimal(run.accepted);
+      const attempted = asDecimal(run.attempted);
+      const overage = accepted.gt(rt.limitAmount) ? accepted.minus(rt.limitAmount) : ZERO;
 
-    /**
-     * Units one event consumes against this limit. Request counts and token
-     * counts stay plain integers while no multiplier applies, so the common
-     * case never allocates a Decimal per event.
-     */
-    const unitsOf = (event: TextUsageEventV1): Decimal | number => {
-      if (isRequestLimit) return 1;
-      const preparedEvent = prepared.get(event.id);
-      if (preparedEvent === undefined) return 0;
-      if (isCreditPool) {
-        const base = preparedEvent.moneyUnits;
-        if (base.isZero()) return ZERO;
-        return preparedEvent.multiplier === ONE ? base : base.times(preparedEvent.multiplier);
-      }
-      const tokens = preparedEvent.tokenUnits;
-      if (tokens === 0) return 0;
-      return preparedEvent.multiplier === ONE
-        ? tokens
-        : new Decimal(tokens).times(preparedEvent.multiplier);
-    };
-
-    /** Exact sum of the units consumed by a set of events. */
-    const sumOf = (events: readonly TimedEvent[]): Decimal => {
-      let numberTotal = 0;
-      let decimalTotal: Decimal | null = null;
-      for (const { event } of events) {
-        const value = unitsOf(event);
-        if (typeof value === "number") {
-          numberTotal += value;
-        } else if (!value.isZero()) {
-          decimalTotal = decimalTotal === null ? value : decimalTotal.plus(value);
-        }
-      }
-      if (decimalTotal === null) return new Decimal(numberTotal);
-      return numberTotal === 0 ? decimalTotal : decimalTotal.plus(numberTotal);
-    };
-
-    for (const slice of sliced.slices) {
-      const windowTotal = sumOf(slice.events);
-      totalDemand = totalDemand.plus(windowTotal);
-      if (!windowTotal.gt(limitAmount)) continue;
-      if (limit.enforcement === "overage") continue;
-
-      let running = ZERO;
-      let affected = 0;
-      let crossed = false;
-      for (const { event } of slice.events) {
-        if (crossed) {
-          affected += 1;
-          if (limit.enforcement === "hard_stop") blockedEventIds.add(event.id);
-          continue;
-        }
-        const raw = unitsOf(event);
-        const value = typeof raw === "number" ? new Decimal(raw) : raw;
-        if (!value.isZero() && running.plus(value).gt(limitAmount)) {
-          crossed = true;
-          affected += 1;
-          if (limit.enforcement === "hard_stop") blockedEventIds.add(event.id);
-        } else if (!value.isZero()) {
-          running = running.plus(value);
+      if (rt.limit.exceed === "allow_overage" || rt.limit.exceed === "record_only") {
+        rt.overageUnits = rt.overageUnits.plus(overage);
+        if (rt.limit.exceed === "allow_overage" && overage.gt(0)) {
+          rt.overageCost = rt.overageCost.plus(overageCostOf(rt, overage));
         }
       }
 
+      if (!attempted.gt(rt.limitAmount)) continue;
       windowViolations.push({
-        type: sliced.kind === "rolling" ? "rolling_window_exceeded" : "calendar_window_exceeded",
-        constraintId: limit.id,
-        unit,
-        startedAt: isoFromEpochMs(slice.startMs, slice.subMs),
-        endedAt: isoFromEpochMs(slice.endMs, slice.subMs),
-        affectedEvents: affected,
-        requiredUnits: toUnitString(windowTotal),
-        availableUnits: toUnitString(limitAmount),
-        ...(limit.models !== undefined ? { modelIds: [...limit.models] } : {}),
+        type:
+          rt.limit.window.type === "rolling"
+            ? "rolling_window_exceeded"
+            : "calendar_window_exceeded",
+        constraintId: rt.limit.id,
+        unit: rt.unit,
+        startedAt: isoFromEpochMs(run.slice.startMs, run.slice.subMs),
+        endedAt: isoFromEpochMs(run.slice.endMs, run.slice.subMs),
+        affectedEvents: run.affectedEvents,
+        requiredUnits: toUnitString(attempted),
+        availableUnits: toUnitString(rt.limitAmount),
+        acceptedUnits: toUnitString(accepted),
+        ...(rt.limit.exceed !== "reject_request" && overage.gt(0)
+          ? { overageUnits: toUnitString(overage) }
+          : {}),
+        ...(rt.limit.models !== undefined ? { modelIds: [...rt.limit.models] } : {}),
       });
     }
 
-    if (limit.enforcement === "overage") {
-      tracker.warn(
-        "CONSTRAINT_TYPE_UNSUPPORTED",
-        "One or more constraints use overage enforcement, which is not modeled in this milestone; they are reported as UNKNOWN.",
-      );
-    }
+    if (rt.limit.exceed === "allow_overage") hasOverageRule = true;
+    if (rt.unknownConsumption) unknownConstraints += 1;
+    overageCost = overageCost.plus(rt.overageCost);
 
     const status: ConstraintStatusV1 =
-      limit.enforcement === "overage"
-        ? "unknown"
-        : windowViolations.length > 0
-          ? "exceeded"
-          : "pass";
+      rt.eligibleEvents === 0
+        ? "not_applicable"
+        : rt.unknownConsumption
+          ? "unknown"
+          : windowViolations.length > 0
+            ? "exceeded"
+            : "pass";
 
     constraints.push({
-      id: limit.id,
-      label: limit.label,
-      kind: limit.type,
-      unit,
-      window: { kind: sliced.kind, description: sliced.description },
-      enforcement: limit.enforcement,
+      id: rt.limit.id,
+      label: rt.limit.label,
+      kind: rt.limit.type,
+      unit: rt.unit,
+      window: {
+        kind: rt.limit.window.type,
+        description:
+          rt.limit.window.type === "rolling"
+            ? `rolling window of ${rt.limit.window.duration} anchored at first use`
+            : `calendar ${rt.limit.window.unit} (${rt.limit.window.timezone})`,
+      },
+      exceed: rt.limit.exceed,
       status,
-      limitUnits: toUnitString(limitAmount),
-      consumedUnits: toUnitString(totalDemand),
+      limitUnits: toUnitString(rt.limitAmount),
+      consumedUnits: toUnitString(asDecimal(rt.acceptedTotal)),
+      attemptedUnits: toUnitString(asDecimal(rt.attemptedTotal)),
       violationCount: windowViolations.length,
-      ...(limit.models !== undefined ? { modelIds: [...limit.models] } : {}),
+      rejectedEvents: rt.rejectedEvents,
+      indeterminateEvents: rt.indeterminateEvents,
+      eligibleEvents: rt.eligibleEvents,
+      ...(rt.limit.exceed !== "reject_request" && rt.overageUnits.gt(0)
+        ? { overageUnits: toUnitString(rt.overageUnits) }
+        : {}),
+      ...(rt.limit.exceed === "allow_overage" && rt.overageCost.gt(0)
+        ? { overageCost: money(rt.overageCost, planVersion.price.currency) }
+        : {}),
+      ...(rt.limit.models !== undefined ? { modelIds: [...rt.limit.models] } : {}),
     });
     violations.push(...windowViolations);
   }
 
-  return { constraints, violations, blockedEventIds };
+  return { constraints, violations, overageCost, hasOverageRule, unknownConstraints };
+}
+
+function money(amount: Decimal, currency: "USD"): { amount: string; currency: "USD" } {
+  return { amount: toUnitString(amount), currency };
 }
 
 function roundPercent(value: number): number {
   return Math.round(value * 10000) / 10000;
 }
 
-function coverageDimension(covered: number, total: number): CoverageDimensionV1 {
+function knownDimension(covered: number, total: number): CoverageDimensionV1 {
   return {
+    status: "known",
     percent: roundPercent(total === 0 ? 100 : (covered / total) * 100),
     covered,
     total,
   };
 }
 
-function computeCoverage(
-  timed: readonly TimedEvent[],
-  resolution: ReadonlyMap<string, ModelResolution>,
-  blockedEventIds: ReadonlySet<string>,
-): CoverageDimensionsV1 {
-  let coveredEvents = 0;
-  let totalTokens = 0;
-  let coveredTokens = 0;
-  const usedModels = new Map<string, boolean>();
-
-  for (const { event } of timed) {
-    const res = resolution.get(event.id);
-    const tokens = tokenCountOf(event.usage);
-    totalTokens += tokens;
-    const supported = res?.supported === true;
-    const covered = supported && !blockedEventIds.has(event.id);
-    if (covered) {
-      coveredEvents += 1;
-      coveredTokens += tokens;
-    }
-    const key = res?.modelId ?? `raw:${event.model.rawName}`;
-    usedModels.set(key, supported);
-  }
-
-  const coveredModels = [...usedModels.values()].filter(Boolean).length;
+function unknownDimension(
+  reason: string,
+  counts: { covered?: number; total?: number; unknownCount?: number },
+): CoverageDimensionV1 {
   return {
-    requests: coverageDimension(coveredEvents, timed.length),
-    usage: coverageDimension(coveredTokens, totalTokens),
-    models: coverageDimension(coveredModels, usedModels.size),
+    status: "unknown",
+    reason,
+    ...(counts.covered !== undefined ? { covered: counts.covered } : {}),
+    ...(counts.total !== undefined ? { total: counts.total } : {}),
+    ...(counts.unknownCount !== undefined ? { unknownCount: counts.unknownCount } : {}),
   };
 }
 
-function feasibilityStatus(
+function computeCoverage(
+  timed: readonly TimedEvent[],
+  prepared: ReadonlyMap<string, PreparedEvent>,
+): CoverageDimensionsV1 {
+  let served = 0;
+  let indeterminate = 0;
+  let knownTokens = 0;
+  let servedKnownTokens = 0;
+  let unknownTokenEvents = 0;
+  const usedModels = new Map<string, boolean>();
+  let unresolvedModels = 0;
+
+  for (const { event } of timed) {
+    const preparedEvent = prepared.get(event.id);
+    if (preparedEvent === undefined) continue;
+    const outcome = preparedEvent.outcome;
+    if (outcome === "served") served += 1;
+    else if (outcome === "indeterminate") indeterminate += 1;
+
+    if (preparedEvent.tokenCount !== undefined) {
+      knownTokens += preparedEvent.tokenCount;
+      if (outcome === "served") servedKnownTokens += preparedEvent.tokenCount;
+    } else {
+      unknownTokenEvents += 1;
+    }
+
+    const key = preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`;
+    usedModels.set(key, preparedEvent.resolution.supported);
+    if (preparedEvent.resolution.quality === "unknown") unresolvedModels += 1;
+  }
+
+  const requests =
+    indeterminate > 0
+      ? unknownDimension(
+          `${indeterminate} event(s) could not be evaluated because their consumption is unknown`,
+          { covered: served, total: timed.length, unknownCount: indeterminate },
+        )
+      : knownDimension(served, timed.length);
+
+  const usage =
+    unknownTokenEvents > 0
+      ? unknownDimension(
+          `${unknownTokenEvents} event(s) do not report every canonical token category, so no non-overlapping token denominator exists`,
+          { covered: servedKnownTokens, total: knownTokens, unknownCount: unknownTokenEvents },
+        )
+      : knownDimension(servedKnownTokens, knownTokens);
+
+  const coveredModels = [...usedModels.values()].filter(Boolean).length;
+  const models =
+    unresolvedModels > 0
+      ? unknownDimension(
+          `${unresolvedModels} event(s) use models that could not be resolved against the catalog`,
+          { covered: coveredModels, total: usedModels.size, unknownCount: unresolvedModels },
+        )
+      : knownDimension(coveredModels, usedModels.size);
+
+  return { requests, usage, models };
+}
+
+function feasibilityOf(
   coverage: CoverageDimensionsV1,
   constraints: readonly ConstraintResultV1[],
-): ExecutionReplayResultV1["feasibility"]["status"] {
-  if (constraints.some((constraint) => constraint.status === "unknown")) return "unknown";
-  if (coverage.requests.total === 0 || coverage.requests.percent >= 100) return "full";
-  if (coverage.requests.percent === 0) return "none";
-  return "partial";
+): FeasibilityV1 {
+  const unknownConstraint = constraints.some((constraint) => constraint.status === "unknown");
+  const requestUnknown = coverage.requests.status === "unknown";
+  if (unknownConstraint || requestUnknown) {
+    const reason =
+      requestUnknown && coverage.requests.reason !== undefined
+        ? coverage.requests.reason
+        : "One or more constraints could not be evaluated from the workload data.";
+    return {
+      status: "unknown",
+      coverageDimension: "requests",
+      ...(coverage.requests.percent !== undefined
+        ? { coveragePercent: coverage.requests.percent }
+        : {}),
+      reason,
+    };
+  }
+
+  const percent = coverage.requests.percent as number;
+  const status: FeasibilityV1["status"] =
+    percent >= 100 ? "full" : percent === 0 ? "none" : "partial";
+  return { status, coveragePercent: percent, coverageDimension: "requests" };
 }
 
 function collectUnsupportedModels(
@@ -636,36 +1003,73 @@ function collectUnsupportedModels(
     }));
 }
 
+function computeEconomics(
+  planVersion: LoadedPlanVersionV1,
+  evaluation: ConstraintEvaluation,
+): EconomicsV1 {
+  const currency = planVersion.price.currency;
+  const base = parseAmount(planVersion.price.amount);
+  const overage = evaluation.overageCost;
+  const total = base.plus(overage);
+
+  return {
+    // The base cost is the catalog's declared price, reported verbatim.
+    basePlanCost: { amount: planVersion.price.amount, currency },
+    ...(evaluation.hasOverageRule ? { overageCost: money(overage, currency) } : {}),
+    // Without billed overage the total is the declared price, verbatim.
+    targetCost: evaluation.hasOverageRule
+      ? money(total, currency)
+      : { amount: planVersion.price.amount, currency },
+    costBasis: evaluation.hasOverageRule ? "fixed_plan_price_plus_overage" : "fixed_plan_price",
+  };
+}
+
 function computeConfidence(
   timed: readonly TimedEvent[],
-  resolution: ReadonlyMap<string, ModelResolution>,
+  prepared: ReadonlyMap<string, PreparedEvent>,
   planVersion: LoadedPlanVersionV1,
   catalog: CatalogV1,
+  evaluation: ConstraintEvaluation,
   tracker: Tracker,
 ): ReplayConfidenceV1 {
   const factors: ConfidenceFactor[] = [];
 
-  const missingTokenData = timed.filter(({ event }) => !hasAnyTokenData(event.usage)).length;
   const estimatedUsage = timed.filter(({ event }) => event.confidence.usage === "estimated").length;
-  const sourceLevel = missingTokenData > 0 ? "low" : estimatedUsage > 0 ? "medium" : "high";
+  const noTokenData = timed.filter(({ event }) => !hasAnyReportedTokens(event.usage)).length;
+  const sourceLevel = noTokenData > 0 ? "low" : estimatedUsage > 0 ? "medium" : "high";
   factors.push({
     id: "source_data",
     level: sourceLevel,
     description:
-      missingTokenData > 0
-        ? `${missingTokenData} event(s) carry no token data.`
+      noTokenData > 0
+        ? `${noTokenData} event(s) report no token data at all.`
         : estimatedUsage > 0
           ? `${estimatedUsage} event(s) report estimated usage rather than exact counters.`
           : "Token history is exact for every event.",
   });
 
+  const unknownAccounting = timed.filter(
+    ({ event }) => prepared.get(event.id)?.tokens.known === false,
+  ).length;
+  const accountingLevel = unknownAccounting > 0 ? "low" : "high";
+  factors.push({
+    id: "token_accounting",
+    level: accountingLevel,
+    description:
+      unknownAccounting > 0
+        ? `${unknownAccounting} event(s) do not report every canonical token category, so their consumption cannot be established.`
+        : "Every event reports all canonical token categories, so disjoint consumption is known.",
+  });
+
   const unresolved = timed.filter(
     ({ event }) =>
-      resolution.get(event.id)?.quality === "unknown" || event.confidence.model === "unknown",
+      prepared.get(event.id)?.resolution.quality === "unknown" ||
+      event.confidence.model === "unknown",
   ).length;
   const mapped = timed.filter(
     ({ event }) =>
-      resolution.get(event.id)?.quality === "mapped" || event.confidence.model === "mapped",
+      prepared.get(event.id)?.resolution.quality === "mapped" ||
+      event.confidence.model === "mapped",
   ).length;
   const modelLevel = unresolved > 0 ? "low" : mapped > 0 ? "medium" : "high";
   factors.push({
@@ -686,9 +1090,9 @@ function computeConfidence(
   });
 
   const usedPricingIds = new Set<string>();
-  for (const res of resolution.values()) {
-    if (res.supported && res.rule?.pricingRef !== undefined)
-      usedPricingIds.add(res.rule.pricingRef);
+  for (const res of prepared.values()) {
+    if (res.resolution.supported && res.resolution.rule?.pricingRef !== undefined)
+      usedPricingIds.add(res.resolution.rule.pricingRef);
   }
   if (usedPricingIds.size > 0) {
     const levels = [...usedPricingIds].sort().map((pricingId) => {
@@ -699,17 +1103,6 @@ function computeConfidence(
       id: "pricing_rules",
       level: worstLevel(levels),
       description: "Pricing entries used by this replay, by their catalog verification status.",
-    });
-  }
-
-  const unsupportedConstraints = planVersion.limits.filter(
-    (limit) => limit.enforcement === "overage",
-  ).length;
-  if (unsupportedConstraints > 0) {
-    factors.push({
-      id: "constraint_modeling",
-      level: "medium",
-      description: `${unsupportedConstraints} constraint(s) cannot be fully modeled yet.`,
     });
   }
 
@@ -724,18 +1117,37 @@ function computeConfidence(
         "Some token categories use fallback rates rather than verified category-specific pricing.",
     });
   }
+
+  const hasPostCapRules = planVersion.limits.some(
+    (limit) => limit.exceed === "allow_overage" || limit.exceed === "latch_until_reset",
+  );
+  if (evaluation.unknownConstraints > 0) {
+    factors.push({
+      id: "constraint_modeling",
+      level: "low",
+      description: `${evaluation.unknownConstraints} constraint(s) could not be evaluated from the workload data and are reported as unknown.`,
+    });
+  } else if (hasPostCapRules) {
+    factors.push({
+      id: "constraint_modeling",
+      level: "medium",
+      description:
+        "Some constraints model post-capacity behavior (latching or billed overage) that the catalog declares rather than verifies.",
+    });
+  }
+
   return { level: worstLevel(factors.map((factor) => factor.level)), factors };
 }
 
 function summarizeWorkload(
   timed: readonly TimedEvent[],
-  resolution: ReadonlyMap<string, ModelResolution>,
+  prepared: ReadonlyMap<string, PreparedEvent>,
 ): WorkloadSummaryV1 {
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let cacheReadTokens = 0;
-  let cacheWriteTokens = 0;
-  let reasoningTokens = 0;
+  let uncachedInput = 0;
+  let cacheRead = 0;
+  let cacheWrite = 0;
+  let output = 0;
+  let reasoning = 0;
   let hasInput = false;
   let hasOutput = false;
   let hasCacheRead = false;
@@ -745,39 +1157,42 @@ function summarizeWorkload(
   const models = new Set<string>();
 
   for (const { event } of timed) {
-    const usage = event.usage;
+    const preparedEvent = prepared.get(event.id);
+    if (preparedEvent === undefined) continue;
+    const usage: TextUsageV1 = event.usage;
+    // Aggregate the reported categories (a workload view), not the disjoint
+    // consumption view, which needs complete accounting per event.
     if (usage.inputTokens !== undefined) {
-      inputTokens += usage.inputTokens;
+      uncachedInput += usage.inputTokens;
       hasInput = true;
     }
     if (usage.outputTokens !== undefined) {
-      outputTokens += usage.outputTokens;
+      output += usage.outputTokens;
       hasOutput = true;
     }
     if (usage.cacheReadTokens !== undefined) {
-      cacheReadTokens += usage.cacheReadTokens;
+      cacheRead += usage.cacheReadTokens;
       hasCacheRead = true;
     }
     if (usage.cacheWriteTokens !== undefined) {
-      cacheWriteTokens += usage.cacheWriteTokens;
+      cacheWrite += usage.cacheWriteTokens;
       hasCacheWrite = true;
     }
     if (usage.reasoningTokens !== undefined) {
-      reasoningTokens += usage.reasoningTokens;
+      reasoning += usage.reasoningTokens;
       hasReasoning = true;
     }
     const session = event.source.nativeSessionHash;
     if (session !== undefined) sessions.add(session);
-    const res = resolution.get(event.id);
-    models.add(res?.modelId ?? `raw:${event.model.rawName}`);
+    models.add(preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`);
   }
 
-  const tokenTotals: TextUsageV1 = {};
-  if (hasCacheRead) tokenTotals.cacheReadTokens = cacheReadTokens;
-  if (hasCacheWrite) tokenTotals.cacheWriteTokens = cacheWriteTokens;
-  if (hasInput) tokenTotals.inputTokens = inputTokens;
-  if (hasOutput) tokenTotals.outputTokens = outputTokens;
-  if (hasReasoning) tokenTotals.reasoningTokens = reasoningTokens;
+  const tokenTotals: TokenTotalsV1 = {};
+  if (hasCacheRead) tokenTotals.cacheReadTokens = cacheRead;
+  if (hasCacheWrite) tokenTotals.cacheWriteTokens = cacheWrite;
+  if (hasInput) tokenTotals.inputTokens = uncachedInput;
+  if (hasOutput) tokenTotals.outputTokens = output;
+  if (hasReasoning) tokenTotals.reasoningTokens = reasoning;
 
   const first = timed[0];
   const last = timed[timed.length - 1];
@@ -791,6 +1206,14 @@ function summarizeWorkload(
   };
 }
 
+function collectPricingReferences(planVersion: LoadedPlanVersionV1): string[] {
+  const references = new Set<string>();
+  for (const rule of planVersion.modelRules) {
+    if (rule.pricingRef !== undefined) references.add(rule.pricingRef);
+  }
+  return [...references].sort();
+}
+
 function buildAssumptions(
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
@@ -799,12 +1222,29 @@ function buildAssumptions(
   const assumptions = new Map(tracker.assumptions);
   assumptions.set(
     "NO_PRORATION",
-    "The target cost is the plan's fixed price; no proration is applied for replay windows shorter than a billing period.",
+    "The base plan cost is the plan's fixed price; no proration is applied for replay windows shorter than a billing period.",
+  );
+  assumptions.set(
+    "CURRENT_RULE_SNAPSHOT",
+    "Plan rules, pricing references and promotions are the snapshot in effect at rulesAsOf; workload chronology inside the simulation uses the historical event timestamps.",
   );
   if (constraints.length > 1) {
     assumptions.set(
-      "CONSTRAINTS_EVALUATED_INDEPENDENTLY",
-      "Constraints are evaluated independently: an event blocked by one hard limit still counts toward other limits' demand.",
+      "ATOMIC_ADMISSION",
+      "Admission is atomic across constraints: an event rejected by one rule consumes nothing from any other pool, while attempted demand is still reported per constraint.",
+    );
+  }
+  if (planVersion.limits.some((limit) => limit.type !== "request_limit")) {
+    assumptions.set(
+      "DISJOINT_TOKEN_ACCOUNTING",
+      "Consumption uses disjoint canonical token buckets derived from each event's accounting declaration, so overlapping categories are never double counted.",
+    );
+  }
+  if (planVersion.limits.length > 0) {
+    assumptions.set("WINDOW_BOUNDARIES", "Window boundaries are half-open: [start, end).");
+    assumptions.set(
+      "WINDOW_CHRONOLOGY",
+      "Each constraint's windows follow the events it applies to; only served events advance accepted consumption, while rejected events still count as attempted demand.",
     );
   }
   if (
@@ -817,14 +1257,17 @@ function buildAssumptions(
       "Calendar month windows use each constraint's declared timezone; billing anchors are not supported.",
     );
   }
-  if (planVersion.limits.some((limit) => limit.type === "token_limit")) {
+  if (planVersion.limits.some((limit) => limit.exceed === "allow_overage")) {
     assumptions.set(
-      "TOKEN_LIMIT_ALL_CATEGORIES",
-      "Token limits count all recorded token categories summed.",
+      "OVERAGE_PER_WINDOW",
+      "Overage is computed per window: units above included capacity in each window are billed at that rule's declared rate.",
     );
   }
-  if (planVersion.limits.length > 0) {
-    assumptions.set("WINDOW_BOUNDARIES", "Window boundaries are half-open: [start, end).");
+  if (planVersion.limits.some((limit) => limit.exceed === "latch_until_reset")) {
+    assumptions.set(
+      "LATCH_BLOCKS_UNTIL_RESET",
+      "A latch_until_reset rule blocks every applicable request until the window that triggered the latch resets.",
+    );
   }
 
   return [...assumptions.entries()]

@@ -6,11 +6,21 @@ import { z } from "zod";
  * Timestamps are always ISO-8601 UTC strings (spec point 9: timestamps are
  * stored internally in UTC). Money and multipliers are decimal strings; no
  * monetary value is ever a JavaScript number (spec point 9).
+ *
+ * Bounded decimal envelope (decision 18): at most 28 significant digits and at
+ * most 18 fractional digits. The engine computes with 100 significant digits,
+ * which is exact for every supported operation over values inside this
+ * envelope, so an accepted value is never silently rounded. Values outside the
+ * envelope are rejected instead.
  */
+
+export const MAX_SIGNIFICANT_DIGITS = 28;
+export const MAX_FRACTIONAL_DIGITS = 18;
 
 export const ISO_UTC_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/;
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const DECIMAL_AMOUNT_PATTERN = /^(0|[1-9]\d*)(\.\d+)?$/;
+export const SIGNED_DECIMAL_AMOUNT_PATTERN = /^-?(0|[1-9]\d*)(\.\d+)?$/;
 export const POSITIVE_DECIMAL_PATTERN = /^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$/;
 
 export const isoUtcTimestampV1Schema = z
@@ -38,17 +48,42 @@ export function isValidUtcTimestamp(value: string): boolean {
   );
 }
 
+/**
+ * Whether a decimal string is inside the supported arithmetic envelope.
+ * Leading zeros are not significant; a value may be signed.
+ */
+export function isWithinDecimalEnvelope(value: string): boolean {
+  const digits = value.startsWith("-") ? value.slice(1) : value;
+  const dot = digits.indexOf(".");
+  const integerPart = dot === -1 ? digits : digits.slice(0, dot);
+  const fractionalPart = dot === -1 ? "" : digits.slice(dot + 1);
+  if (fractionalPart.length > MAX_FRACTIONAL_DIGITS) return false;
+  const significantInteger = integerPart.replace(/^0+/, "");
+  const significantFraction = fractionalPart.replace(/^0+/, "");
+  return significantInteger.length + significantFraction.length <= MAX_SIGNIFICANT_DIGITS;
+}
+
+export const DECIMAL_ENVELOPE_MESSAGE = `must be a decimal within the supported envelope (at most ${MAX_SIGNIFICANT_DIGITS} significant digits and ${MAX_FRACTIONAL_DIGITS} fractional digits)`;
+
 export const isoDateV1Schema = z.string().refine(isValidDate, "must be a real ISO-8601 date");
 
 /** Non-negative decimal amount (money, token counts, request counts). */
 export const decimalAmountV1Schema = z
   .string()
-  .regex(DECIMAL_AMOUNT_PATTERN, "must be a non-negative decimal string");
+  .regex(DECIMAL_AMOUNT_PATTERN, "must be a non-negative decimal string")
+  .refine(isWithinDecimalEnvelope, DECIMAL_ENVELOPE_MESSAGE);
+
+/** Signed decimal amount, used where a negative value is meaningful. */
+export const signedDecimalAmountV1Schema = z
+  .string()
+  .regex(SIGNED_DECIMAL_AMOUNT_PATTERN, "must be a signed decimal string")
+  .refine(isWithinDecimalEnvelope, DECIMAL_ENVELOPE_MESSAGE);
 
 /** Strictly positive decimal, used for multipliers and similar factors. */
 export const multiplierV1Schema = z
   .string()
-  .regex(POSITIVE_DECIMAL_PATTERN, "must be a positive decimal string");
+  .regex(POSITIVE_DECIMAL_PATTERN, "must be a positive decimal string")
+  .refine(isWithinDecimalEnvelope, DECIMAL_ENVELOPE_MESSAGE);
 
 /** Currency is USD-only in the v1 schemas (spec point 9). */
 export const currencyV1Schema = z.literal("USD");

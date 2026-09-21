@@ -1,15 +1,27 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`golden fixture: mixed models > converts each model with its own pricing and passes the result schema 1`] = `
+exports[`golden fixture: mixed models > converts each model with its own pricing 1`] = `
 {
   "assumptions": [
     {
-      "description": "The target cost is the plan's fixed price; no proration is applied for replay windows shorter than a billing period.",
+      "description": "Plan rules, pricing references and promotions are the snapshot in effect at rulesAsOf; workload chronology inside the simulation uses the historical event timestamps.",
+      "id": "CURRENT_RULE_SNAPSHOT",
+    },
+    {
+      "description": "Consumption uses disjoint canonical token buckets derived from each event's accounting declaration, so overlapping categories are never double counted.",
+      "id": "DISJOINT_TOKEN_ACCOUNTING",
+    },
+    {
+      "description": "The base plan cost is the plan's fixed price; no proration is applied for replay windows shorter than a billing period.",
       "id": "NO_PRORATION",
     },
     {
       "description": "Window boundaries are half-open: [start, end).",
       "id": "WINDOW_BOUNDARIES",
+    },
+    {
+      "description": "Each constraint's windows follow the events it applies to; only served events advance accepted consumption, while rejected events still count as attempted demand.",
+      "id": "WINDOW_CHRONOLOGY",
     },
   ],
   "confidence": {
@@ -17,6 +29,11 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
       {
         "description": "Token history is exact for every event.",
         "id": "source_data",
+        "level": "high",
+      },
+      {
+        "description": "Every event reports all canonical token categories, so disjoint consumption is known.",
+        "id": "token_accounting",
         "level": "high",
       },
       {
@@ -39,14 +56,18 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
   },
   "constraints": [
     {
+      "attemptedUnits": "4",
       "consumedUnits": "4",
-      "enforcement": "hard_stop",
+      "eligibleEvents": 3,
+      "exceed": "reject_request",
       "id": "credits",
+      "indeterminateEvents": 0,
       "kind": "credit_pool",
       "label": "credits",
       "limitUnits": "50",
+      "rejectedEvents": 0,
       "status": "pass",
-      "unit": "currency",
+      "unit": "usd",
       "violationCount": 0,
       "window": {
         "description": "rolling window of PT5H anchored at first use",
@@ -58,20 +79,27 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
     "models": {
       "covered": 2,
       "percent": 100,
+      "status": "known",
       "total": 2,
     },
     "requests": {
       "covered": 3,
       "percent": 100,
+      "status": "known",
       "total": 3,
     },
     "usage": {
       "covered": 2500000,
       "percent": 100,
+      "status": "known",
       "total": 2500000,
     },
   },
   "economics": {
+    "basePlanCost": {
+      "amount": "20.00",
+      "currency": "USD",
+    },
     "costBasis": "fixed_plan_price",
     "targetCost": {
       "amount": "20.00",
@@ -79,6 +107,7 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
     },
   },
   "feasibility": {
+    "coverageDimension": "requests",
     "coveragePercent": 100,
     "status": "full",
   },
@@ -102,8 +131,16 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
   "version": 1,
   "versions": {
     "catalog": "fixture:golden-v1",
-    "engine": "0.0.1",
-    "planVersionId": "fixture-plan@2026-08-01",
+    "engine": "0.0.2",
+    "methodology": "1.1.0",
+    "pricingReferences": [
+      "fixture-medium-pricing",
+      "fixture-small-pricing",
+    ],
+    "rulesAsOf": "2026-09-15",
+    "schema": 1,
+    "targetReference": "fixture-plan@2026-08-01",
+    "targetType": "subscription",
   },
   "violations": [],
   "warnings": [],
@@ -113,8 +150,11 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
     "modelCount": 2,
     "to": "2026-09-01T02:00:00Z",
     "tokenTotals": {
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
       "inputTokens": 2000000,
       "outputTokens": 500000,
+      "reasoningTokens": 0,
     },
   },
 }

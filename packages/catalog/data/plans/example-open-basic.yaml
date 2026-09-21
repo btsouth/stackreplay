@@ -14,6 +14,7 @@ versions:
         label: 5-hour request window
         type: request_limit
         amount: "300"
+        exceed: record_only
         window:
           type: rolling
           duration: PT5H

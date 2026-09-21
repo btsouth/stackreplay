@@ -6,8 +6,9 @@
  * Guarantees (spec point 4, docs/ARCHITECTURE_DECISIONS.md):
  * - No dependency on Next.js, React, PostgreSQL, Vercel, Stripe,
  *   authentication, browser APIs or filesystem APIs.
- * - Given the same usage events, execution target, catalog version and
- *   simulation options, replay always returns the same result.
+ * - Given the same usage events, execution target, catalog version, explicit
+ *   rules context and simulation options, replay always returns the same
+ *   result. The engine never reads a clock.
  * - The same package runs in the Node CLI, the browser Web Worker, the server
  *   and tests.
  * - Money is computed with decimal-safe arithmetic and serialized as decimal
@@ -18,6 +19,13 @@
  */
 export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
-export { parseAmount, toUnitString } from "./money.js";
+export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export { instantToIso, parseInstant, Temporal } from "./time.js";
-export { ENGINE_VERSION } from "./version.js";
+export {
+  type DisjointBuckets,
+  hasAnyReportedTokens,
+  reportedTokenCount,
+  type TokenAccounting,
+  tokenAccountingOf,
+} from "./units.js";
+export { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";

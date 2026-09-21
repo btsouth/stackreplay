@@ -7,7 +7,62 @@ import type {
   WorkloadCategoryV1,
 } from "@stackreplay/schema";
 
-/** Synthetic event builder for engine tests. */
+/** Synthetic event builders for engine tests. */
+
+export interface DisjointUsageInput {
+  /** Input tokens that were not served from cache. */
+  uncachedInputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+}
+
+/**
+ * Complete canonical usage: every bucket is reported explicitly and declared
+ * disjoint, so replay can establish consumption without guessing (decision 15).
+ */
+export function completeUsage(input: DisjointUsageInput = {}): TextUsageV1 {
+  return {
+    inputTokens: input.uncachedInputTokens ?? 0,
+    outputTokens: input.outputTokens ?? 0,
+    cacheReadTokens: input.cacheReadTokens ?? 0,
+    cacheWriteTokens: input.cacheWriteTokens ?? 0,
+    reasoningTokens: input.reasoningTokens ?? 0,
+    accounting: {
+      cacheReadIncludedInInput: false,
+      cacheWriteIncludedInInput: false,
+      reasoningIncludedInOutput: false,
+    },
+  };
+}
+
+/**
+ * Usage where cache and reasoning are subsets of their base categories, as some
+ * sources report them: input 1,000,000 with 1,000,000 cache reads means the
+ * input was entirely cache reads.
+ */
+export function overlappingUsage(input: {
+  inputTokens: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+}): TextUsageV1 {
+  return {
+    inputTokens: input.inputTokens,
+    outputTokens: input.outputTokens ?? 0,
+    cacheReadTokens: input.cacheReadTokens ?? 0,
+    cacheWriteTokens: input.cacheWriteTokens ?? 0,
+    reasoningTokens: input.reasoningTokens ?? 0,
+    accounting: {
+      cacheReadIncludedInInput: input.cacheReadTokens !== undefined,
+      cacheWriteIncludedInInput: input.cacheWriteTokens !== undefined,
+      reasoningIncludedInOutput: input.reasoningTokens !== undefined,
+    },
+  };
+}
+
 export function makeEvent(input: {
   id: string;
   occurredAt: string;
@@ -24,7 +79,7 @@ export function makeEvent(input: {
     source: input.source ?? { adapterId: "fixture-adapter" },
     model: input.model ?? { rawName: "fixture-small", canonicalId: "fixture-small" },
     modality: "text",
-    usage: input.usage ?? {},
+    usage: input.usage ?? completeUsage(),
     confidence: input.confidence ?? { usage: "exact", model: "exact" },
     ...(input.workloadCategory !== undefined ? { workloadCategory: input.workloadCategory } : {}),
   };

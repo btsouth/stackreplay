@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { isoDateV1Schema } from "./scalars.js";
 
 /**
- * Execution targets (Addendum A point 115, decision 1). The union is capable
- * of representing subscription, api, local and hybrid targets from the start.
+ * Execution targets (Addendum A point 115, decision 1) and the explicit replay
+ * rules context (decision 17). The union is capable of representing
+ * subscription, api, local and hybrid targets from the start.
  *
  * Milestone 1 implements replay behavior for subscription targets only. The
  * api, local and hybrid variants are reference-only shells: they exist so the
@@ -10,11 +12,32 @@ import { z } from "zod";
  * Their behavior, catalogs and UI arrive in later milestones.
  */
 
+/**
+ * Subscription target. Exactly one selection is supplied:
+ *
+ * - `planVersionId`: a pinned plan version (explicit historical selection).
+ * - `planId`: the plan whose version is effective at the replay context's
+ *   `rulesAsOf` is selected deterministically by the engine.
+ *
+ * The engine validates the exactly-one rule and raises IMPORT_SCHEMA_INVALID.
+ */
 export const subscriptionTargetV1Schema = z.strictObject({
   type: z.literal("subscription"),
-  planVersionId: z.string().min(1),
+  planVersionId: z.string().min(1).optional(),
+  planId: z.string().min(1).optional(),
 });
 export type SubscriptionTargetV1 = z.infer<typeof subscriptionTargetV1Schema>;
+
+/**
+ * Explicit replay rules context (decision 17). The engine never reads a clock,
+ * so the caller must state which rule instant applies. Rule effective dates and
+ * workload event times are different concepts: `rulesAsOf` selects the rule
+ * snapshot, event timestamps drive workload chronology.
+ */
+export const replayContextV1Schema = z.strictObject({
+  rulesAsOf: isoDateV1Schema,
+});
+export type ReplayContextV1 = z.infer<typeof replayContextV1Schema>;
 
 export const apiModelMappingV1Schema = z.strictObject({
   fromModelId: z.string().min(1),

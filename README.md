@@ -9,10 +9,11 @@ answer: **would another AI coding subscription actually handle the way I work?**
 
 > **Status: pre-release.** This project is under active development. Nothing here is a shipped
 > product yet: there is no scanning, no importing and no replaying of real usage. The versioned
-> schemas, synthetic catalog and experimental replay engine have tests and benchmarks. The
-> independent M1 audit found unresolved simulation correctness issues; results are not yet
-> trustworthy for subscription decisions. Exactly what exists, what is verified and what comes
-> next is tracked in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+> schemas, synthetic catalog and replay engine have tests and benchmarks, and the independent M1
+> audit's correctness findings have been addressed, but the corrected engine has **not** been
+> re-audited: its results are not yet trustworthy for subscription decisions. Exactly what exists,
+> what is verified and what comes next is tracked in
+> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
 
@@ -76,9 +77,10 @@ statements above are architecture intentions;
 - Milestone 0 (foundation: monorepo, design system, application shell, CLI scaffold, CI, tests) is
   complete and was independently audited.
 - Milestone 1 (versioned schemas, catalog with validator and loader, deterministic subscription
-  replay engine, golden fixtures, property tests, 100,000-event benchmark) has been independently
-  audited. Corrections are applied, but M1 is **not accepted**; remaining correctness blockers
-  are recorded in the implementation status. M2 and public release remain gated.
+  replay engine, golden fixtures, property tests, 100,000-event benchmark) was independently
+  audited. The audit returned not-ready and recorded seven correctness blockers; the remediation
+  addresses all seven and M1 is **awaiting re-audit**, not accepted. M2 and public release remain
+  gated on that re-audit.
 - No adapters, scanning, import or replay of real usage exist yet; those arrive with the CLI and
   adapter milestones. Nothing has been pushed anywhere: there is no remote.
 

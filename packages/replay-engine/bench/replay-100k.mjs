@@ -55,7 +55,20 @@ function buildEvents() {
       model: { rawName: model, canonicalId: model },
       modality: "text",
       workloadCategory: "coding",
-      usage: { inputTokens, outputTokens, cacheReadTokens, reasoningTokens },
+      // Every canonical bucket is reported and declared disjoint, so the
+      // benchmark measures the full simulation rather than unknown handling.
+      usage: {
+        inputTokens,
+        outputTokens,
+        cacheReadTokens,
+        cacheWriteTokens: 0,
+        reasoningTokens,
+        accounting: {
+          cacheReadIncludedInInput: false,
+          cacheWriteIncludedInInput: false,
+          reasoningIncludedInOutput: false,
+        },
+      },
       confidence: { usage: "exact", model: "exact" },
     });
   }
@@ -64,6 +77,8 @@ function buildEvents() {
 
 const events = buildEvents();
 const catalog = loadDefaultCatalog();
+/** Explicit rules instant (decision 17): inside the synthetic promotion window. */
+const context = { rulesAsOf: "2026-09-20" };
 
 const cases = [
   {
@@ -93,12 +108,12 @@ lines.push("");
 
 for (const benchmarkCase of cases) {
   // Warm each target with the same small workload; setup is outside timing.
-  replay({ events: events.slice(0, 2_000), target: benchmarkCase.target, catalog });
+  replay({ events: events.slice(0, 2_000), target: benchmarkCase.target, catalog, context });
   const samples = [];
   let result;
   for (let run = 0; run < RUNS; run += 1) {
     const startedAt = performance.now();
-    result = replay({ events, target: benchmarkCase.target, catalog });
+    result = replay({ events, target: benchmarkCase.target, catalog, context });
     samples.push(performance.now() - startedAt);
   }
 
@@ -109,6 +124,8 @@ for (const benchmarkCase of cases) {
     sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
   const max = sorted[sorted.length - 1];
   const throughput = Math.round((EVENT_COUNT / median) * 1000);
+  const coverage = (dimension) =>
+    dimension.status === "known" ? `${dimension.percent}%` : "unknown";
 
   lines.push(`target: ${benchmarkCase.label}`);
   lines.push(
@@ -120,10 +137,13 @@ for (const benchmarkCase of cases) {
     `  constraints: ${result.constraints.map((constraint) => `${constraint.id}=${constraint.status}`).join(", ")}`,
   );
   lines.push(
-    `  coverage: requests ${result.coverage.requests.percent}% | usage ${result.coverage.usage.percent}% | models ${result.coverage.models.percent}%`,
+    `  coverage: requests ${coverage(result.coverage.requests)} | usage ${coverage(result.coverage.usage)} | models ${coverage(result.coverage.models)}`,
   );
   lines.push(
     `  violations: ${result.violations.length} | unsupported models: ${result.unsupportedModels.length} | warnings: ${result.warnings.length} | confidence: ${result.confidence.level}`,
+  );
+  lines.push(
+    `  peak RSS after this target: ${(process.resourceUsage().maxRSS / 1024).toFixed(1)} MiB`,
   );
   lines.push("");
 }

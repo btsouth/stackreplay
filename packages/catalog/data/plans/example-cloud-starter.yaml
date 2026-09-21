@@ -15,6 +15,7 @@ versions:
         label: 5-hour credit pool
         type: credit_pool
         amount: "20.00"
+        exceed: reject_request
         window:
           type: rolling
           duration: PT5H
@@ -23,6 +24,7 @@ versions:
         label: Weekly credit pool
         type: credit_pool
         amount: "75.00"
+        exceed: latch_until_reset
         window:
           type: rolling
           duration: P7D
@@ -49,6 +51,7 @@ versions:
         label: 5-hour credit pool
         type: credit_pool
         amount: "25.00"
+        exceed: reject_request
         window:
           type: rolling
           duration: PT5H
@@ -57,6 +60,7 @@ versions:
         label: Weekly credit pool
         type: credit_pool
         amount: "75.00"
+        exceed: latch_until_reset
         window:
           type: rolling
           duration: P7D
