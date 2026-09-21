@@ -2,6 +2,7 @@
   "name": "@stackreplay/catalog",
   "version": "0.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "Plans, providers, models, pricing, compatibility and plan versions.",
   "type": "module",
   "exports": {

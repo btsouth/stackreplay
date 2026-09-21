@@ -2,6 +2,7 @@
   "name": "stackreplay",
   "version": "0.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "Replay your real AI coding workload against other execution targets.",
   "packageManager": "pnpm@10.18.1",
   "engines": {

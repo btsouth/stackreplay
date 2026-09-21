@@ -2,6 +2,7 @@
   "name": "@stackreplay/db",
   "version": "0.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "Server-side persistence: Drizzle schemas, migrations and repositories.",
   "type": "module",
   "exports": {

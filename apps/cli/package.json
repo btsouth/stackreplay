@@ -2,6 +2,7 @@
   "name": "@stackreplay/cli",
   "version": "0.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "The stackreplay CLI: local detection, scanning, export and local replay.",
   "type": "module",
   "bin": {

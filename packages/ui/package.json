@@ -2,6 +2,7 @@
   "name": "@stackreplay/ui",
   "version": "0.0.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "StackReplay design system: semantic tokens, primitives and product components.",
   "type": "module",
   "exports": {

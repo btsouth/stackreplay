@@ -1,68 +1,131 @@
 # StackReplay
 
-Replay your real AI coding workload against other execution targets before you switch.
+**Replay your real AI coding workload against other subscriptions before you switch.**
 
-StackReplay reads sanitized usage metadata from the coding agents you already run, normalizes it
-into a canonical event stream, and replays that actual historical workload against a target's real
-mechanics: rolling windows, weekly caps, model rules, pricing and promotions. No prompts, no source
-code, no conversations.
+*Your workload. Any stack. Replay the difference.*
 
-Status: Milestone 0 (foundation). No product logic is implemented yet. See
-`docs/IMPLEMENTATION_STATUS.md` for the current state and `docs/ARCHITECTURE_DECISIONS.md` for the
-authoritative architectural decisions that sit beside the two specification documents.
+StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
+answer: **would another AI coding subscription actually handle the way I work?**
 
-## Requirements
+> **Status: pre-release.** This project is under active development. Nothing here is a shipped
+> product yet: there is no scanning, no importing and no replaying of real usage. Exactly what
+> exists, what is verified and what comes next is tracked in
+> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
-- Node.js 24 LTS (pinned in `.mise.toml`, `engines` in `package.json`)
-- pnpm 10 (`packageManager` in `package.json`)
+## Why plan comparisons are not enough
 
-## Quickstart
+Every "which AI coding plan is right for you?" page compares hypothetical usage. Real usage is not
+hypothetical. Two developers paying for the same plan get different outcomes because their burst
+patterns, model choices, cache behavior and rolling windows differ. A plan that fits one developer
+perfectly can throttle another in the first week, and a plan that looks expensive can be the cheap
+one at high volume.
+
+## What StackReplay does
+
+StackReplay is designed to read sanitized usage metadata from the coding agents you already run,
+normalize it into one versioned event stream, and **replay your actual historical workload against
+the real mechanics of a target plan**: rolling windows, weekly caps, model rules, pricing and
+promotions. The result is a deterministic report of what would have happened, including:
+
+- historical coverage as separate dimensions (requests, usage, models), never one blended score
+- constraint results and the exact windows that would have been exceeded, with affected events
+- the models a plan would not have supported
+- a confidence level with its reasons, and the catalog versions used
+
+It is not a token dashboard, an observability platform or a coding agent. It is a deterministic
+replay engine with a product around it.
+
+## Plan Replay first, then more execution targets
+
+The launch experience, **Plan Replay**, answers "what if I switched to this subscription?" The
+architecture is deliberately broader than subscriptions:
+
+- **Plan Replay** (subscription targets): the first replay experience.
+- **Direct API Replay** (next): what the same workload would have cost through the provider's API,
+  with cache-aware token pricing. The data model reserves space for versioned API pricing; the
+  behavior is not implemented yet.
+- **Local and hybrid replay** (later): feasibility and economics for running workloads locally, and
+  hybrid routes such as subscription-first with API overflow. Not implemented.
+
+The items after the first are described because the schema, catalog and engine are being built to
+support them from the start, not because they work today.
+
+## Privacy architecture
+
+Privacy is a design constraint here, not footer copy. The intended architecture:
+
+- **Prompts, responses, source code and repository contents are never needed.** The data model is
+  built around execution facts: timestamps, models, token categories and costs. It has no field
+  for conversation content, and adapters are designed to be read-only.
+- **Local by default.** The planned browser experience parses imported data in the browser and runs
+  replay in a Web Worker; the raw import file never leaves the browser.
+- **Cloud sync will be explicit opt-in** (a later milestone) and will store sanitized normalized
+  events only, never raw imports.
+- **Project identity is hashed** with a locally generated salt before anything could leave a
+  machine.
+
+Current reality: this repository contains the design system, application shell and CLI scaffold.
+The statements above are architecture intentions;
+[docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) tracks exactly what exists today.
+
+## Project status
+
+- Milestone 0 (foundation: monorepo, design system, application shell, CLI scaffold, CI, tests) is
+  complete and was independently audited.
+- Milestone 1 adds the versioned schemas, the catalog and the deterministic replay engine.
+- No adapters, scanning, import or replay of real usage exist yet; those arrive with the CLI and
+  adapter milestones.
+
+`docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
+and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and
+architecture decisions.
+
+## Local development
+
+Requirements: Node.js 24 LTS and pnpm 10. The repository pins the toolchain in `.mise.toml`; any
+Node 24 installation works.
 
 ```sh
 pnpm install
-pnpm dev
+pnpm dev             # web application on http://localhost:3000
+pnpm test            # unit tests (Vitest)
+pnpm build           # all packages and apps
+pnpm check           # format, lint and import order (Biome)
+pnpm check:contrast  # design-token WCAG contrast verification
+pnpm test:e2e        # browser tests (Playwright; builds the web app first)
 ```
 
-The web application starts on http://localhost:3000. `pnpm dev` runs the Next.js dev server and
-package watchers through Turborepo.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and expectations.
 
-## Scripts
-
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Run every workspace `dev` task (web + package watchers) |
-| `pnpm build` | Build every workspace package and app |
-| `pnpm typecheck` | Type-check every workspace |
-| `pnpm test` | Run unit tests (Vitest) |
-| `pnpm test:e2e` | Run the browser smoke tests (Playwright) |
-| `pnpm lint` | Lint with Biome |
-| `pnpm format` | Format with Biome |
-| `pnpm check` | Biome format + lint + import ordering, in check mode |
-| `pnpm check:contrast` | Verify WCAG contrast of the design tokens |
-| `pnpm clean` | Remove build output caches |
-
-## Repository layout
+## Repository structure
 
 ```
 apps/
-  web/        Next.js application (shell, replay UI, public surfaces)
-  cli/        stackreplay CLI (scan, export, local replay; M2+)
+  web/            Next.js application (shell today; replay and public surfaces later)
+  cli/            stackreplay CLI (scaffold today; scan/export/replay in later milestones)
 packages/
-  replay-engine/   Deterministic replay simulation (M1+)
-  catalog/         Plans, providers, models, pricing, versions (M1+)
-  schema/          Versioned shared schemas and types (M1+)
-  adapters/        Local source adapters (M2+)
-  db/              Server-side persistence (M5+)
-  ui/              StackReplay design system and product components
-  config/          Shared TypeScript configuration
-  test-fixtures/   Deterministic demo data (no real user data)
-tooling/
-  scripts/         Repository scripts (token contrast check, later: catalog validator)
-docs/              Specification, decisions, implementation status
+  replay-engine/  Deterministic replay simulation
+  catalog/        Plans, providers, models, pricing, plan versions
+  schema/         Versioned shared schemas and types
+  adapters/       Local source adapters
+  db/             Server-side persistence (later milestone)
+  ui/             Design system and product components
+  config/         Shared TypeScript configuration
+  test-fixtures/  Deterministic synthetic demo data (no real user data)
+tooling/          Repository scripts (catalog validation, token contrast)
+docs/             Decisions, status and the public release checklist
 ```
 
-## Docs
+## Contributing
 
-- `docs/ARCHITECTURE_DECISIONS.md` — authoritative architectural decisions
-- `docs/IMPLEMENTATION_STATUS.md` — milestone progress and verification results
-- `Initial plan.docx`, `adendum stackreply.docx` — the product and engineering specifications
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. The project is spec-driven:
+tests come before behavior, fixtures must be synthetic, and catalog data requires sources.
+
+## Security
+
+See [SECURITY.md](SECURITY.md). Never include credentials, personal telemetry or exploitable detail
+in public issues.
+
+## License
+
+AGPL-3.0-or-later. See [LICENSE](LICENSE).
