@@ -15,7 +15,18 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "measured once, on desktop");
-  test.setTimeout(300_000);
+  // Opt-in: a completed 100k-event import is minutes of work on a busy machine
+  // and starves Playwright's other workers, so it is not in the default suite.
+  // Run it deliberately:
+  //   STACKREPLAY_LARGE_IMPORT=1 pnpm --filter @stackreplay/web exec playwright test \
+  //     e2e/large-import.spec.ts --workers=1 --project=desktop
+  // The default suite still exercises the same 100k file for responsiveness in
+  // import.spec.ts, where a demo import supersedes it mid-flight.
+  test.skip(
+    process.env.STACKREPLAY_LARGE_IMPORT !== "1",
+    "opt-in measurement: set STACKREPLAY_LARGE_IMPORT=1",
+  );
+  test.setTimeout(600_000);
 
   const { path, events, bytes } = await ensureLargeExport();
   const sizeMb = Number((bytes / (1024 * 1024)).toFixed(1));
