@@ -2,7 +2,10 @@
 
 ## Current milestone
 
-**Milestone 3 — browser-local replay, implemented and self-validated, pending independent audit.**
+**Milestone 3 — browser-local replay, implemented, self-validated and independently audited.**
+Accepted after corrections: the audit log below records what was verified, what it found and what
+changed. The measurement reported in an earlier revision (a completed ~100k-event import whose
+follow-up replay never finished) was wrong, and the import path it described as PARTIAL passes.
 
 Milestone 1 (schemas, catalog, deterministic subscription replay engine) and Milestone 2 (read-only
 local adapters and the CLI) remain independently audited and accepted within their documented
@@ -37,6 +40,43 @@ are now guarded by regression tests:
 
 `docs/ADAPTERS.md` records the resulting rule: a declaration is attached only to a category the
 record actually reports.
+
+## M3 correction log (after independent audit)
+
+The M3 audit rebuilt its own measurement harness instead of trusting the milestone's own specs, and
+found five things worth fixing. They are listed with the guard that now holds each one.
+
+- The large-import measurement spec never exercised the replay it was supposed to measure. It looked for
+  the plan controls on `/app/import`, where they do not exist, so the click waited out a 600 s
+  locator timeout against an idle renderer. The reported "ten-minute window" was that timeout, not
+  work: the same path completes in about 1.4 s. The spec now follows the product's own link into
+  `/app/replay` and asserts that the replayed workload held every imported event.
+- A Worker that could not start left the interface waiting forever. A missing or blocked
+  `stackreplay-worker.js` produced one error event, which was consumed by whichever request was
+  pending at that moment; every later request posted into a dead Worker and never settled, leaving
+  the import surface on "Reading…" with no error and no hint. The client now fails every request
+  waiting on a Worker that cannot be used, drops it, and reports a safe error; a Worker that never
+  announces itself at all is bounded by a start timeout instead of waiting indefinitely. Guarded by
+  `apps/web/lib/worker-client.test.ts` and `apps/web/e2e/worker-failure.spec.ts`.
+- A superseded replay was reported as a failure. The import surface ignored a superseded
+  response, but the replay surface turned it into an error card and reset its phase while the newer
+  replay was still running; the import surface also released its busy state while a newer import
+  owned the interface. Both surfaces now treat a superseded response as what it is. The client's
+  supersession semantics are pinned by `worker-client.test.ts`; the two surfaces' handling of it is
+  not covered by a test yet.
+- Session identity in the demo workloads was per event, not per session. Every demo event
+  carried a freshly random `nativeSessionHash`, so "Sessions" equaled "Events" (6,000 of 6,000) and
+  the orchestration line counted attributed events as sessions, disagreeing with the per-source
+  session counts the same fixture declared. Session hashes are now derived from the session id, so
+  the heavy preset reports 100 sessions across 6,000 events and 12 orchestrated sessions, matching
+  the declared counts. Event data, token values and replay results are unchanged.
+- The privacy browser test only inspected request bodies. A leak could equally ride in a URL, a
+  query string or a request header. The test now checks all three and additionally asserts that
+  import and replay send no request body at all.
+
+`apps/web/package.json` also rebuilds the Worker artifact before the browser suite runs
+(`test:e2e`), so end-to-end results can no longer come from a stale Worker bundle, and
+`captureRequests` records headers so the privacy assertions can see them.
 
 ## Original blocker verification
 
@@ -244,13 +284,14 @@ Node 24.19.0 (pinned) and pnpm 10.18.1 on Linux. Every check runs offline.
 
 | Gate | Result |
 | --- | --- |
-| pnpm check | PASS: 192 files |
-| pnpm check:contrast | PASS |
+| pnpm check | PASS: 195 files |
+| pnpm check:contrast | PASS: 10 token pairs |
 | pnpm typecheck | PASS: 13 tasks |
-| pnpm test | PASS: 366 tests — engine 140, adapters 104, schema 31, catalog 30, CLI 26, web 20, UI 15 |
+| pnpm test | PASS: 372 tests — engine 140, adapters 104, schema 31, catalog 30, CLI 26, web 26, UI 15 |
 | pnpm build | PASS: 7 tasks (includes the pre-bundled Worker) |
-| pnpm --filter @stackreplay/web test:e2e | PASS: 101 passed, 15 viewport-specific skips (before the large-import measurement spec was added) |
-| pnpm --filter @stackreplay/replay-engine bench | PASS: 100k events, median 1065.6 ms, peak RSS 617.1 MiB |
+| pnpm --filter @stackreplay/web test:e2e | PASS: 105 passed, 17 viewport-specific skips |
+| pnpm --filter @stackreplay/web test:e2e (large import, opt-in) | PASS: 69.6 MB / 100,000 events imported in 1.3 s and replayed in 1.3 s |
+| pnpm --filter @stackreplay/replay-engine bench | PASS: 100k events, median 923.2 ms, peak RSS 614.1 MiB |
 
 Milestone 3 specifics verified in a real browser (Chromium, desktop and mobile viewports):
 
@@ -260,7 +301,8 @@ Milestone 3 specifics verified in a real browser (Chromium, desktop and mobile v
   unsupported models, plan search and keyboard operation, rules-instant display, re-running against
   another target.
 - Privacy: every request during import and replay is recorded; no request body carries events,
-  token history or any project/session hash, no request targets an upload endpoint, and all traffic
+  token history or any project/session hash, no request body is sent at all, no request URL, query
+  string or header carries workload content, no request targets an upload endpoint, and all traffic
   stays on the app origin.
 - Persistence: reload restores the workspace, deletion removes the IndexedDB payload (verified by
   reading the store back), clear-all works, two imports coexist, and a corrupted stored payload
@@ -279,19 +321,80 @@ Honest limits of this milestone:
 
 - The bundled catalog is synthetic, so real workloads replay with their models reported as unmapped
   and coverage reported as unknown. That is the catalog's state, not a replay failure.
-- The ~100k-event browser import is measured rather than assumed, and the measurement found a real
-  limit. The same pipeline costs about 1.6 s in Node (read 49 ms, parse 216 ms, schema validation
-  314 ms, summary 61 ms, replay 1006 ms). In Chromium on this machine the import **does complete**
-  for a 69.6 MB / 100k-event file, and the interface stays interactive while the Worker reads,
-  parses and validates (a click and a second, superseding import both complete in ~3.8 s during that
-  phase). After the import finishes, however, the renderer is heavy enough that the follow-up replay
-  interaction did not complete inside a ten-minute window, so the completed-import path is reported
-  as PARTIAL rather than passed. Follow-up work: persist the canonical payload in chunks instead of
-  one structured-clone write, and release the Worker's parse intermediates once the summary is
-  computed. The measurement spec is opt-in (`STACKREPLAY_LARGE_IMPORT=1`) because it starves
-  Playwright's other workers, and it reports what it measured either way.
+- The ~100k-event browser import is measured rather than assumed, in both directions. A
+  deterministic 69.6 MB / 100,000-event synthetic export completes the whole import (reading,
+  parsing, schema validation, summary, IndexedDB write) in about 1.3 s in Chromium on this machine,
+  and a replay of that stored workload completes in about 1.4 s. The page heap stays around 10 MB,
+  and the main thread keeps answering (median interaction latency ~1 ms; worst observed ~200 ms,
+  once, while the import was being persisted). The real 101.6 MB export measured in M2 (96,819
+  events) imports in 1.3 s and replays in 0.9 s with no request leaving the browser. Peak RSS across
+  the headless Chromium processes is roughly 0.9-1.3 GB, so memory, not time, is the practical
+  ceiling, and larger real workloads are the thing to measure next. The measurement spec is opt-in
+  (`STACKREPLAY_LARGE_IMPORT=1`) because it starves Playwright's other workers, and it reports what
+  it measured either way. An earlier revision of this document reported this path as PARTIAL because
+  the follow-up replay "did not complete inside a ten-minute window": that window was the spec's own
+  locator timeout, the renderer was idle, and the completed-import path passes.
 - Confidence is reported as low for the synthetic catalog because every catalog claim is
   `estimated`; that is honest provenance, not a defect.
+
+### Independent audit, 2026-09-21
+
+The audit rebuilt its own harness in a scratch directory instead of re-running the milestone's own
+specs, drove the production build (`next start`, the artifact `pnpm build` produces), and started
+from the opposite assumption: that the milestone's own measurement was wrong somewhere. What it
+verified, and the measurement behind each claim:
+
+- Worker boundary: after a 100,000-event import the page's own heap was ~10 MB, and a stream of
+  main-thread probes kept answering (median ~1 ms; worst 183 ms, once, while the import was being
+  persisted). Reading the payload back out of IndexedDB returned all 100,000 events with every demo
+  source and the orchestrated-session attribution intact, so the event array really was handled in
+  the Worker while the interface stayed responsive.
+- Large workload, both directions: a deterministic 69.6 MB / 100,000-event export imported in
+  1.3 s and replayed in 1.4 s. The real 101.6 MB export measured in M2 (96,819 events) imported in
+  1.3 s and replayed in 0.9 s, reporting "Not served" with unknown coverage, which is what a
+  synthetic catalog should say about real models.
+- Privacy, adversarially: markers were planted in imported event ids, session and event hashes,
+  project hash, model names and collector fields. Across import, replay, navigation and reload the
+  browser made 87 requests; none carried a marker in its body, URL, query string or headers, and no
+  request had a body at all. `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` and `EventSource`
+  were instrumented inside the page: the only calls observed were same-origin Next.js navigation
+  fetches. No cookies appeared, the only storage keys were the theme key (written by the theme
+  toggle, not by import), and the planted workload was found in IndexedDB, which is the point: it is
+  processed locally instead of disappearing behind an opaque path.
+- Persistence and deletion: a reload restored the workload summary in ~0.2 s. Deleting the
+  import removed the record and the payload (the payload store went from one entry to zero) and
+  clear-all emptied both stores.
+- Import attacks: empty file, binary content, malformed JSON, a future export version, a wrong
+  `format`, JSON that is not an object, deeply nested JSON, a truncated large file, a valid export
+  under a `.txt` name, and the same file imported twice: each one ends in a designed error that
+  names no internals, none hangs, and the valid-but-oddly-named file imports normally.
+- Failure paths: a Worker whose storage is unavailable reports a storage error in ~0.3 s. A
+  Worker that cannot start reported nothing at all until this audit fixed it.
+- Accessibility and layout: the suite's axe runs (WCAG 2.2 AA tags) pass on both surfaces, in
+  both themes and in the exceeded and unknown states. Measuring the rendered DOM at 1280x720 and
+  390x844 found no horizontal overflow, nothing crossing the viewport edge, and no interactive
+  target under 24 px except the 20 px-tall full-width violation `<summary>` rows. Axe's WCAG 2.2
+  target-size rule does not flag them, but they are the one control below the 24 px guidance.
+- Gates: `pnpm check`, `pnpm check:contrast` (10 token pairs), `pnpm typecheck`, `pnpm test`,
+  `pnpm build`, the full browser suite and the engine benchmark were all re-run forced rather than
+  from turbo's cache.
+
+What this audit could not judge: the rendered pixels. It had no vision path in that session, so its
+visual conclusions come from measured geometry, the typography scale, rendered strings and the
+contrast tokens rather than from looking at screenshots. A human pass is still worth doing; the
+shots are reproducible with the visual spec (`pnpm --filter @stackreplay/web test:e2e -- visual`,
+which writes `import-desktop-dark.png`, `replay-desktop-dark.png`, `replay-mobile-dark.png` and the
+other states to `apps/web/test-results/screenshots`).
+
+Non-blocking observations the author may want to decide on:
+
+- Coverage percentages and credit amounts are rendered at full engine precision (`67.9833%`,
+  `12.799959 / 100 usd`). Exactness is the point of the product, but four decimals in a headline
+  metric and six in a credit row read as unfinished next to `100%` and `3 of 3`.
+- The same card formats money two ways: `$50.00` for the plan price and `$50` for the target cost.
+- The replay result is the one surface that had ungrouped quantities (`44205864 / 200000000 tokens`)
+  next to grouped ones (`97,935,040`); that is fixed, and the remaining question is how much display
+  precision each dimension should show.
 
 ## Benchmark evidence
 

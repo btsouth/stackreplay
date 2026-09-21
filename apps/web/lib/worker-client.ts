@@ -63,6 +63,55 @@ export class ReplayWorkerClient {
   /** Request id of the newest import: older import responses are stale. */
   private latestImportRequest = 0;
   private latestReplayRequest = 0;
+  /** True once the Worker has announced itself; false while it is starting. */
+  private workerReady = false;
+  private readyTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /**
+   * A Worker that never starts (the asset is blocked, missing or fails to parse)
+   * fires an error event, and a Worker that hangs while starting fires nothing at
+   * all. Both must end in a visible error rather than an interface that waits
+   * forever, so a worker that has not announced itself inside this window is
+   * treated as failed.
+   */
+  private static readonly WORKER_START_TIMEOUT_MS = 15_000;
+
+  private static workerFailure(): SafeError {
+    return {
+      code: "INTERNAL",
+      title: "The replay Worker could not be started.",
+      message: "This browser did not load the local replay Worker.",
+      hint: "Reload the page. If it keeps happening, an extension, policy or proxy may be blocking same-origin Workers.",
+    };
+  }
+
+  private clearReadyTimer(): void {
+    if (this.readyTimer !== undefined) {
+      clearTimeout(this.readyTimer);
+      this.readyTimer = undefined;
+    }
+  }
+
+  /** Environment announcements (READY/PONG) also prove the Worker is alive. */
+  private markReady(): void {
+    this.workerReady = true;
+    this.clearReadyTimer();
+  }
+
+  /**
+   * Drops a Worker that cannot be used and fails every request waiting on it, so
+   * the next request starts a fresh Worker instead of queueing behind a dead one.
+   */
+  private failWorker(error: SafeError): void {
+    this.clearReadyTimer();
+    const worker = this.worker;
+    this.worker = undefined;
+    this.workerReady = false;
+    worker?.terminate();
+    const waiting = [...this.pending.values()];
+    this.pending.clear();
+    for (const entry of waiting) entry.reject(new WorkerFailure(error));
+  }
 
   private ensureWorker(): Worker {
     if (this.worker !== undefined) return this.worker;
@@ -74,26 +123,23 @@ export class ReplayWorkerClient {
       name: "stackreplay-replay",
     });
     worker.onmessage = (event: MessageEvent<unknown>) => this.receive(event.data);
-    worker.onerror = () => {
-      for (const [, entry] of this.pending) {
-        entry.reject(
-          new WorkerFailure({
-            code: "INTERNAL",
-            title: "The replay Worker stopped unexpectedly.",
-            message: "Reload the page to continue.",
-          }),
-        );
-      }
-      this.pending.clear();
-    };
+    worker.onerror = () => this.failWorker(ReplayWorkerClient.workerFailure());
     this.worker = worker;
+    this.workerReady = false;
+    this.clearReadyTimer();
+    this.readyTimer = setTimeout(() => {
+      if (!this.workerReady) this.failWorker(ReplayWorkerClient.workerFailure());
+    }, ReplayWorkerClient.WORKER_START_TIMEOUT_MS);
     return worker;
   }
 
   private receive(data: unknown): void {
     if (!isWorkerResponse(data)) return;
     const response = data;
-    if (response.type === "READY" || response.type === "PONG") return;
+    if (response.type === "READY" || response.type === "PONG") {
+      this.markReady();
+      return;
+    }
     const entry = this.pending.get(response.requestId);
     if (entry === undefined) return;
 
@@ -131,7 +177,12 @@ export class ReplayWorkerClient {
     const request = build(requestId);
     return new Promise<WorkerResponse>((resolve, reject) => {
       this.pending.set(requestId, { resolve, reject, ...(onProgress ? { onProgress } : {}) });
-      worker.postMessage(request);
+      try {
+        worker.postMessage(request);
+      } catch {
+        // A worker that died between requests would otherwise swallow the request.
+        this.failWorker(ReplayWorkerClient.workerFailure());
+      }
     });
   }
 
@@ -250,8 +301,8 @@ export function describeWorkerFailure(error: unknown): SafeError {
   if (error instanceof SupersededError) {
     return {
       code: "INTERNAL",
-      title: "A newer import replaced this one.",
-      message: "The previous import was cancelled.",
+      title: "A newer request replaced this one.",
+      message: "The earlier operation was cancelled.",
     };
   }
   return {

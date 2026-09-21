@@ -218,6 +218,29 @@ function unknownUsage(random: () => number): TextUsageV1 {
   };
 }
 
+/**
+ * Stable 24-hex session hash for a session id.
+ *
+ * A session hash has to be the same for every event of one session: it is the
+ * only way a consumer can group events into sessions, and every surface that
+ * counts sessions (the workload summary, orchestration attribution) depends on
+ * it. Deriving it from the session id also keeps the fixture deterministic
+ * without borrowing from the seeded random stream, so event data is unchanged
+ * from the revision that hashed per event.
+ */
+function sessionHash(sessionId: string): string {
+  let hash = 0x811c9dc5;
+  let output = "";
+  for (let round = 0; round < 3; round += 1) {
+    for (let index = 0; index < sessionId.length; index += 1) {
+      hash ^= sessionId.charCodeAt(index) + round * 31;
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    output += hash.toString(16).padStart(8, "0");
+  }
+  return `ns_demo_${output}`;
+}
+
 /** Builds a deterministic demo export for a preset. */
 export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExportV1 {
   const config = demoWorkloadPresets[preset];
@@ -268,7 +291,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
         source: {
           adapterId: source.adapterId,
           nativeEventHash: `ne_demo_${hex(random, 24)}`,
-          nativeSessionHash: `ns_demo_${hex(random, 24)}`,
+          nativeSessionHash: sessionHash(sessionId),
         },
         harness: { id: orchestrated ? "t3-code" : source.adapterId, attribution: "exact" },
         model: {

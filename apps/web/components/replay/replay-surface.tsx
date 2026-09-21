@@ -16,7 +16,7 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
+import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError, TimelinePoint } from "@/lib/worker-protocol";
 
 /**
@@ -65,6 +65,18 @@ function constraintStateOf(status: string): ConstraintState {
 
 function formatCount(value: number): string {
   return value.toLocaleString("en-US");
+}
+
+/**
+ * Groups the digits of an exact decimal string (thousands separators) without
+ * changing a single digit. Constraint quantities arrive from the engine as
+ * decimal strings, and they sit next to metrics that already use separators;
+ * ungrouped seven-digit numbers in the same card read as a different product.
+ */
+function groupQuantity(value: string): string {
+  const [whole = "", fraction] = value.split(".");
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/gu, ",");
+  return fraction === undefined ? grouped : `${grouped}.${fraction}`;
 }
 
 export function ReplaySurface({ initialImportId }: { initialImportId?: string | undefined }) {
@@ -139,6 +151,8 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
       setOutcome(response);
       setPhase("done");
     } catch (failure) {
+      // A superseded request is not a failure: a newer replay owns this surface.
+      if (failure instanceof SupersededError) return;
       setError(describeWorkerFailure(failure));
       setPhase("idle");
     }
@@ -485,13 +499,13 @@ function ReplayResult({
                     </div>
                     <ConstraintStatus
                       state={constraintStateOf(constraint.status)}
-                      detail={`${constraint.consumedUnits} / ${constraint.limitUnits} ${constraint.unit}`}
+                      detail={`${groupQuantity(constraint.consumedUnits)} / ${groupQuantity(constraint.limitUnits)} ${constraint.unit}`}
                     />
                   </div>
                   <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs tabular-nums text-muted-foreground">
-                    <span>attempted {constraint.attemptedUnits}</span>
-                    <span>accepted {constraint.consumedUnits}</span>
-                    <span>capacity {constraint.limitUnits}</span>
+                    <span>attempted {groupQuantity(constraint.attemptedUnits)}</span>
+                    <span>accepted {groupQuantity(constraint.consumedUnits)}</span>
+                    <span>capacity {groupQuantity(constraint.limitUnits)}</span>
                     {constraint.rejectedEvents > 0 ? (
                       <span>rejected events {formatCount(constraint.rejectedEvents)}</span>
                     ) : null}
@@ -499,7 +513,7 @@ function ReplayResult({
                       <span>indeterminate {formatCount(constraint.indeterminateEvents)}</span>
                     ) : null}
                     {constraint.overageUnits !== undefined ? (
-                      <span>overage {constraint.overageUnits}</span>
+                      <span>overage {groupQuantity(constraint.overageUnits)}</span>
                     ) : null}
                   </div>
                 </li>

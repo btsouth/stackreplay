@@ -68,6 +68,9 @@ export function ImportSurface({ initialImports }: { initialImports: ImportRecord
       setRecord(undefined);
       setPhase("reading");
       setDetail(undefined);
+      // A superseded request must not clear the interface state a newer request
+      // owns, so the busy flag is only released by the request that still owns it.
+      let superseded = false;
       try {
         const imported = await run((next, nextDetail) => {
           setPhase(next);
@@ -77,11 +80,14 @@ export function ImportSurface({ initialImports }: { initialImports: ImportRecord
         setPhase("ready");
         await refreshImports();
       } catch (failure) {
-        if (failure instanceof SupersededError) return;
+        if (failure instanceof SupersededError) {
+          superseded = true;
+          return;
+        }
         setError(describeWorkerFailure(failure));
         setPhase("idle");
       } finally {
-        setBusy(false);
+        if (!superseded) setBusy(false);
       }
     },
     [refreshImports],

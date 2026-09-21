@@ -364,8 +364,13 @@ Milestone 3 runs the same deterministic engine in the browser under a strict bou
   the whole workload. The engine package is imported unchanged (no DOM, no filesystem, no network).
 - **Protocol**: an internal, typed, versioned message protocol with explicit success and error
   variants. Progress is a separate message class from terminal results. Every request carries a
-  monotonically increasing id and the client drops responses for superseded requests, so a slow
-  import can never overwrite a newer one.
+  monotonically increasing id; the client drops responses for superseded requests, so a slow import
+  can never overwrite a newer one, and a dropped response is never surfaced to the user as a
+  failure. A superseded request must not clear state the newer request owns.
+- **Worker failure**: a Worker that cannot be used (its asset failed to load, was blocked, or it
+  never announced itself) is dropped, and every request waiting on it fails with a safe error
+  instead of waiting forever behind a progress line. The next request starts a fresh Worker, so a
+  transient Worker failure is recoverable without a page reload.
 - **Persistence**: IndexedDB only, never localStorage, storing the canonical sanitized export plus
   listing metadata. The original raw file is not kept as a second copy. Deletion and "clear local
   data" remove records rather than hiding them, and an incompatible or corrupted stored payload

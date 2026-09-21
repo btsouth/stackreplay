@@ -33,9 +33,10 @@ export interface CapturedRequest {
   method: string;
   url: string;
   body: string | null;
+  headers: Record<string, string>;
 }
 
-/** Records every request with its body, so a privacy test can inspect them. */
+/** Records every request with its body and headers, so a privacy test can inspect them. */
 export function captureRequests(page: Page): CapturedRequest[] {
   const captured: CapturedRequest[] = [];
   page.on("request", (request) => {
@@ -45,7 +46,12 @@ export function captureRequests(page: Page): CapturedRequest[] {
     } catch {
       body = null;
     }
-    captured.push({ method: request.method(), url: request.url(), body });
+    captured.push({
+      method: request.method(),
+      url: request.url(),
+      body,
+      headers: request.headers(),
+    });
   });
   return captured;
 }
@@ -58,6 +64,13 @@ export const PRIVATE_MARKERS = [
   "ph_demo_",
   "stackreplay-worker",
 ];
+
+/**
+ * The subset that identifies workload content rather than the app's own
+ * assets. Only these can be looked for in URLs and headers: the app's asset
+ * path legitimately contains "stackreplay-worker".
+ */
+export const WORKLOAD_MARKERS = ["ev_demo_", "ne_demo_", "ns_demo_", "ph_demo_"];
 
 export async function expectNoConsoleErrors(page: Page, run: () => Promise<void>): Promise<void> {
   const errors: string[] = [];

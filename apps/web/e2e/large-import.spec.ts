@@ -112,6 +112,11 @@ test("imports and replays a ~100k-event export with measured phases", async ({
     expect(interactionMs).toBeLessThan(5_000);
     return;
   }
+  // Replay the same large workload. The replay controls live on /app/replay, so
+  // the run is reached through the product's own link from the import summary:
+  // looking for the plan list on the import page would wait forever.
+  await page.getByTestId("continue-to-replay").click();
+  await expect(page.getByTestId("workload-strip")).toBeVisible({ timeout: 60_000 });
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("rules-as-of").fill("2026-09-15");
   const replayStart = Date.now();
@@ -123,6 +128,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
     const memory = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory;
     return memory === undefined ? undefined : Math.round(memory.usedJSHeapSize / (1024 * 1024));
   });
+  const workloadStrip = (await page.getByTestId("workload-strip").textContent()) ?? "";
 
   const report = {
     fileMb: sizeMb,
@@ -133,6 +139,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
     interactionMs,
     phases,
     usedHeapMbApprox: heap,
+    replayedEveryEvent: workloadStrip.includes("100,000"),
   };
   console.log(`[large-import-complete] ${JSON.stringify(report)}`);
   testInfo.attach("large-import-complete.json", {
@@ -142,6 +149,8 @@ test("imports and replays a ~100k-event export with measured phases", async ({
 
   expect(importMs).toBeLessThan(240_000);
   expect(replayMs).toBeLessThan(240_000);
+  // The replay really ran against every imported event, not a fragment.
+  expect(report.replayedEveryEvent).toBe(true);
   // Responsiveness is the hard requirement, not raw speed.
   expect(interactionMs).toBeLessThan(5_000);
 });

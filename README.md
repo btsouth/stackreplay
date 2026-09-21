@@ -9,12 +9,12 @@ answer: **would another AI coding subscription actually handle the way I work?**
 
 > **Status: pre-release.** This project is under active development. Nothing here is a shipped
 > product yet: there are no accounts and no cloud sync; the browser import and replay experience
-> exists but has not yet passed an independent audit. The versioned schemas,
-> synthetic catalog and subscription replay engine passed an independent M1 re-audit after
-> additional corrections; the read-only adapters and CLI passed an independent M2 audit after the
-> corrections recorded in the implementation status. The engine is accepted within its documented
-> semantics; the bundled catalog is synthetic and cannot substantiate real-provider comparisons.
-> Exactly what exists, what is verified and what comes next is tracked in
+> passed an independent M3 audit after the corrections recorded in the implementation status. The
+> versioned schemas, synthetic catalog and subscription replay engine passed an independent M1
+> re-audit after additional corrections; the read-only adapters and CLI passed an independent M2
+> audit after the corrections recorded in the implementation status. The engine is accepted within
+> its documented semantics; the bundled catalog is synthetic and cannot substantiate real-provider
+> comparisons. Exactly what exists, what is verified and what comes next is tracked in
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
@@ -90,7 +90,9 @@ working CLI. The statements above are architecture intentions;
   repository is public and hosted CI is green.
 - Milestone 3 (browser-local replay: `/app/import` and `/app/replay`, Web Worker execution,
   IndexedDB persistence, deterministic demo workloads, and the replay result surface with its
-  timeline) is **implemented, pending independent audit**. Imported data never leaves the browser.
+  timeline) is **implemented, and passed an independent M3 audit after the corrections recorded in
+  the implementation status**. Imported data never leaves the browser: a browser test records every
+  request during import and replay and fails if any body, URL or header carries workload content.
 - The bundled catalog is still synthetic demo data, so replaying a real local workload reports its
   models as unmapped rather than pretending to know their pricing. Real catalog data, the public
   share layer, accounts and cloud sync arrive in later milestones.

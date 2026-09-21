@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { captureRequests, importDemo, PRIVATE_MARKERS, runReplay } from "./helpers";
+import {
+  captureRequests,
+  importDemo,
+  PRIVATE_MARKERS,
+  runReplay,
+  WORKLOAD_MARKERS,
+} from "./helpers";
 
 /**
  * Network privacy (M3 brief).
@@ -23,6 +29,26 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
     return PRIVATE_MARKERS.some((marker) => request.body?.includes(marker));
   });
   expect(offenders.map((request) => `${request.method} ${request.url}`)).toEqual([]);
+
+  // A bodyless review is not enough: a leak could ride in the URL, its query
+  // string or a request header instead of a body.
+  const markerInUrl = requests.filter((request) =>
+    WORKLOAD_MARKERS.some((marker) => request.url.includes(marker)),
+  );
+  expect(markerInUrl.map((request) => request.url)).toEqual([]);
+
+  const markerInHeaders = requests.filter((request) =>
+    WORKLOAD_MARKERS.some((marker) =>
+      Object.entries(request.headers).some(
+        ([key, value]) => key.includes(marker) || value.includes(marker),
+      ),
+    ),
+  );
+  expect(markerInHeaders.map((request) => request.url)).toEqual([]);
+
+  // Nothing is posted anywhere: import and replay send no request bodies at all.
+  const withBody = requests.filter((request) => (request.body ?? "").length > 0);
+  expect(withBody.map((request) => `${request.method} ${request.url}`)).toEqual([]);
 
   // No request may target an import/upload endpoint at all.
   const uploadLike = requests.filter((request) =>
