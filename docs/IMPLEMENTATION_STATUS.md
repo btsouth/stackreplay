@@ -279,11 +279,17 @@ Honest limits of this milestone:
 
 - The bundled catalog is synthetic, so real workloads replay with their models reported as unmapped
   and coverage reported as unknown. That is the catalog's state, not a replay failure.
-- The ~100k-event browser import is measured rather than assumed. The same pipeline costs about
-  1.6 s in Node (read 49 ms, parse 216 ms, schema validation 314 ms, summary 61 ms, replay
-  1006 ms), and the browser adds Worker round-trips and an IndexedDB write of the canonical payload.
-  The large-import spec reports the measured wall time when the import completes inside its window,
-  and reports that it did not complete otherwise, so the number is never fabricated.
+- The ~100k-event browser import is measured rather than assumed, and the measurement found a real
+  limit. The same pipeline costs about 1.6 s in Node (read 49 ms, parse 216 ms, schema validation
+  314 ms, summary 61 ms, replay 1006 ms). In Chromium on this machine the import **does complete**
+  for a 69.6 MB / 100k-event file, and the interface stays interactive while the Worker reads,
+  parses and validates (a click and a second, superseding import both complete in ~3.8 s during that
+  phase). After the import finishes, however, the renderer is heavy enough that the follow-up replay
+  interaction did not complete inside a ten-minute window, so the completed-import path is reported
+  as PARTIAL rather than passed. Follow-up work: persist the canonical payload in chunks instead of
+  one structured-clone write, and release the Worker's parse intermediates once the summary is
+  computed. The measurement spec is opt-in (`STACKREPLAY_LARGE_IMPORT=1`) because it starves
+  Playwright's other workers, and it reports what it measured either way.
 - Confidence is reported as low for the synthetic catalog because every catalog claim is
   `estimated`; that is honest provenance, not a defect.
 
