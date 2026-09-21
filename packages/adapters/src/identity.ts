@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { isRealCalendarDate } from "./parse.js";
 import { joinPath, stackReplayStateDir } from "./platform.js";
 import type { AdapterId, SourceEnvironment } from "./types.js";
 
@@ -99,8 +100,16 @@ export function isoUtcFromMs(ms: number): string {
   return date.toISOString();
 }
 
-/** Parses an ISO timestamp to epoch milliseconds; undefined when unusable. */
+/**
+ * Parses an ISO timestamp to epoch milliseconds; undefined when unusable.
+ *
+ * A timestamp whose calendar date does not exist (`2026-02-30`) is rejected
+ * rather than rolled forward by `Date.parse`, so a damaged record is reported
+ * as invalid instead of being admitted as a different, plausible instant
+ * (decision 11).
+ */
 export function epochMsFromIso(value: string): number | undefined {
+  if (!isRealCalendarDate(value)) return undefined;
   const ms = Date.parse(value);
   return Number.isNaN(ms) ? undefined : ms;
 }

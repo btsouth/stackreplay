@@ -4,7 +4,7 @@ import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { type CommandContext, EXIT_FAILED, EXIT_OK, usageError } from "../command.js";
 import { flagValue, flagValues } from "../options.js";
 import { formatCount } from "../output.js";
-import { parseDateBound, utcDate } from "../runtime.js";
+import { checkRangeOrder, parseDateBound, utcDate } from "../runtime.js";
 
 /**
  * `stackreplay export`
@@ -25,6 +25,8 @@ export async function runExport(context: CommandContext): Promise<number> {
   if (!sinceBound.ok) return usageError(context, sinceBound.error);
   const untilBound = until === undefined ? { ok: true as const } : parseDateBound(until, "until");
   if (!untilBound.ok) return usageError(context, untilBound.error);
+  const rangeProblem = checkRangeOrder(sinceBound.value, untilBound.value);
+  if (rangeProblem !== undefined) return usageError(context, rangeProblem);
 
   const result = await runtime.collect({
     ...(sinceBound.value !== undefined ? { since: sinceBound.value } : {}),
@@ -52,7 +54,7 @@ export async function runExport(context: CommandContext): Promise<number> {
     );
   }
 
-  const target = out ?? `./stackreplay-export-${utcDate(runtime.now).replace(/-/gu, "")}.json`;
+  const target = out ?? `./stackreplay-${utcDate(runtime.now)}.stackreplay.json`;
   const serialized = `${JSON.stringify(exported, null, 2)}\n`;
   if (target === "-") {
     renderer.jsonOutput(exported);

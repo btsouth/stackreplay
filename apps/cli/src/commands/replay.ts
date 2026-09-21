@@ -9,7 +9,7 @@ import { type CommandContext, EXIT_FAILED, EXIT_OK, usageError } from "../comman
 import { flagValue, flagValues } from "../options.js";
 import { formatCount } from "../output.js";
 import { resolveTarget, runReplay } from "../replay-target.js";
-import { parseDateBound, utcDate } from "../runtime.js";
+import { checkRangeOrder, parseDateBound, utcDate } from "../runtime.js";
 
 /**
  * `stackreplay replay <plan>`
@@ -69,6 +69,8 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     if (!sinceBound.ok) return usageError(context, sinceBound.error);
     const untilBound = until === undefined ? { ok: true as const } : parseDateBound(until, "until");
     if (!untilBound.ok) return usageError(context, untilBound.error);
+    const rangeProblem = checkRangeOrder(sinceBound.value, untilBound.value);
+    if (rangeProblem !== undefined) return usageError(context, rangeProblem);
     const collected = await runtime.collect({
       ...(sinceBound.value !== undefined ? { since: sinceBound.value } : {}),
       ...(untilBound.value !== undefined ? { until: untilBound.value } : {}),

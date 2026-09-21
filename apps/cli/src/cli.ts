@@ -35,7 +35,7 @@ Commands
 Options
   --json            Machine-readable output on stdout
   --since <date>    Inclusive lower bound (YYYY-MM-DD or ISO timestamp)
-  --until <date>    Inclusive upper bound (YYYY-MM-DD or ISO timestamp)
+  --until <date>    Upper bound (times are exclusive; a bare date includes that day)
   --source <id>     Restrict to one source (repeatable)
   --input <file>    Replay or import a file (export JSON, or ccusage JSON)
   --as-of <date>    Rules instant for replay (default: today)

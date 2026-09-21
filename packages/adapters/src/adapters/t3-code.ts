@@ -1,5 +1,5 @@
 import { joinPath } from "../platform.js";
-import { openReadOnly, type SqliteRow, toText } from "../sqlite.js";
+import { openReadOnly, type SqliteRow, toSafeCount, toText } from "../sqlite.js";
 import {
   type AdapterId,
   type AttributionAdapter,
@@ -24,13 +24,20 @@ import { openCodeRoots } from "./opencode.js";
  * Re-ingesting provider usage from T3 would double count, so this adapter
  * emits no usage at all. It produces two things instead:
  *
- * 1. An attribution index mapping provider sessions to T3 threads, read from
- *    `projection_thread_sessions` (`provider_name`, `provider_session_id`).
+ * 1. An attribution index mapping provider sessions to T3 threads. T3 records
+ *    that mapping in two places, and both are read, because installed versions
+ *    only populate one of them: `projection_thread_sessions`
+ *    (`provider_name`, `provider_session_id`), and the runtime bookkeeping in
+ *    `provider_session_runtime` (`resume_cursor_json.sessionId`), which is
+ *    where the provider session id lives when the projection column is empty.
  *    Canonical events from the provider adapters are then attributed to T3 as
  *    the harness, and the underlying provider session is not counted twice.
  * 2. Additional provider-history roots that T3 itself manages, discovered from
  *    its usage scan cache (`~/.t3/commandcode/claude/projects` and similar), so
  *    provider histories that only exist inside T3 are still scanned once.
+ *
+ * A thread whose provider session id T3 has not recorded stays unattributed:
+ * the adapter never guesses, and it reports how many threads it could not map.
  */
 
 const ADAPTER_ID = "t3-code" as const;
@@ -63,6 +70,24 @@ interface UsageScanCache {
   sources?: unknown;
 }
 
+/**
+ * Provider session id from T3's resume cursor.
+ *
+ * The cursor is T3's own record of the provider session its thread is driving;
+ * an unreadable or empty cursor yields nothing, because guessing a session id
+ * would attach the wrong harness to real usage.
+ */
+export function sessionIdFromCursor(cursor: string | undefined): string | undefined {
+  if (cursor === undefined) return undefined;
+  try {
+    const parsed = JSON.parse(cursor);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return undefined;
+    return toText((parsed as Record<string, unknown>).sessionId);
+  } catch {
+    return undefined;
+  }
+}
+
 export function createT3CodeAdapter(): AttributionAdapter {
   return {
     id: ADAPTER_ID,
@@ -74,6 +99,8 @@ export function createT3CodeAdapter(): AttributionAdapter {
     async detect(env: SourceEnvironment) {
       const probes: PathProbe[] = [];
       let threadSessions = 0;
+      let projectionMappings = 0;
+      let runtimeRecords = 0;
       let scannedSessions: number | undefined;
       for (const root of t3CodeRoots(env)) {
         const info = await env.fs.stat(root);
@@ -86,10 +113,21 @@ export function createT3CodeAdapter(): AttributionAdapter {
             const db = await openReadOnly(databasePath);
             if (db !== undefined) {
               try {
-                const rows = db.all("select count(*) as n from projection_thread_sessions");
+                const rows = db.all(
+                  `select count(*) as n,
+                          sum(case when provider_session_id is not null then 1 else 0 end) as mapped
+                   from projection_thread_sessions`,
+                );
                 threadSessions = Number(rows[0]?.n ?? 0);
+                projectionMappings = Number(rows[0]?.mapped ?? 0);
               } catch {
                 threadSessions = 0;
+              }
+              try {
+                const rows = db.all("select count(*) as n from provider_session_runtime");
+                runtimeRecords = Number(rows[0]?.n ?? 0);
+              } catch {
+                runtimeRecords = 0;
               }
               db.close();
             }
@@ -116,6 +154,17 @@ export function createT3CodeAdapter(): AttributionAdapter {
       }
       const detected = probes.some((probe) => probe.exists);
       const supported = threadSessions > 0 || scannedSessions !== undefined;
+      const note = ((): string => {
+        if (!detected) return "no T3 Code data found";
+        if (!supported) return "T3 data found but no thread/session mappings are recorded yet";
+        const mapping =
+          projectionMappings > 0
+            ? `${projectionMappings} of ${threadSessions} thread row(s) carry a provider session id`
+            : runtimeRecords > 0
+              ? `${threadSessions} thread row(s); T3 has recorded no provider session id in the projection, so ${runtimeRecords} runtime record(s) are read for the mapping`
+              : `${threadSessions} thread row(s); T3 has recorded no provider session id yet, so no session can be attributed`;
+        return `${mapping}; ${scannedSessions ?? 0} provider session(s) in the scan cache`;
+      })();
       return {
         adapterId: ADAPTER_ID,
         name: "T3 Code",
@@ -123,13 +172,7 @@ export function createT3CodeAdapter(): AttributionAdapter {
         detected,
         supported,
         probes,
-        ...(detected
-          ? supported
-            ? {
-                note: `${threadSessions} thread/session mapping(s); ${scannedSessions ?? 0} provider session(s) in the scan cache`,
-              }
-            : { note: "T3 data found but no thread/session mappings are recorded yet" }
-          : { note: "no T3 Code data found" }),
+        note,
       };
     },
 
@@ -166,6 +209,32 @@ export function createT3CodeAdapter(): AttributionAdapter {
             } catch {
               warnings.add("SOURCE_UNREADABLE", "state.sqlite query failed", databasePath);
             }
+            // Total thread rows, including the ones T3 has not mapped yet: the
+            // difference is what "no session could be attributed" means.
+            let threadRowCount = rows.length;
+            try {
+              const counted = db.all("select count(*) as n from projection_thread_sessions");
+              threadRowCount = toSafeCount(counted[0]?.n) ?? rows.length;
+            } catch {
+              threadRowCount = rows.length;
+            }
+            // Second mapping source: T3's own runtime bookkeeping. Installed
+            // versions leave `projection_thread_sessions.provider_session_id`
+            // empty and record the provider session id in the resume cursor
+            // instead, so reading only the projection would silently attribute
+            // nothing at all.
+            let runtimeRows: SqliteRow[] = [];
+            try {
+              runtimeRows = db.all(
+                `select thread_id, provider_name, resume_cursor_json
+                 from provider_session_runtime
+                 order by thread_id asc`,
+              );
+            } catch {
+              // Older T3 versions have no runtime table: the projection is then
+              // the only mapping source that exists.
+              runtimeRows = [];
+            }
             db.close();
             for (const row of rows) {
               const providerName = toText(row.provider_name);
@@ -195,6 +264,48 @@ export function createT3CodeAdapter(): AttributionAdapter {
               });
               stats.recordsRead += 1;
               stats.sessionsScanned += 1;
+            }
+
+            // Second mapping source: T3's own runtime bookkeeping, already read
+            // above: the resume cursor carries the provider session id when the
+            // projection column is empty. A thread whose id T3 has not recorded
+            // stays unattributed rather than being guessed at.
+            let unmappedThreads = 0;
+            for (const row of runtimeRows) {
+              const providerName = toText(row.provider_name);
+              const threadId = toText(row.thread_id);
+              const cursor = toText(row.resume_cursor_json);
+              if (providerName === undefined || threadId === undefined) continue;
+              const providerAdapter = PROVIDER_TO_ADAPTER[providerName.toLowerCase()];
+              if (providerAdapter === undefined) continue;
+              const providerSessionId = sessionIdFromCursor(cursor);
+              if (providerSessionId === undefined) {
+                unmappedThreads += 1;
+                continue;
+              }
+              const key = attributionKey(providerAdapter, providerSessionId);
+              if (byProviderSession.has(key)) continue;
+              byProviderSession.set(key, {
+                harnessId: "t3-code",
+                harnessSessionId: threadId,
+                attribution: "exact",
+              });
+              stats.recordsRead += 1;
+              stats.sessionsScanned += 1;
+            }
+            if (byProviderSession.size === 0 && (threadRowCount > 0 || runtimeRows.length > 0)) {
+              warnings.add(
+                "RECORD_INCOMPLETE",
+                `${threadRowCount + runtimeRows.length} T3 thread record(s) carry no provider session id, so no session could be attributed to T3`,
+                databasePath,
+              );
+            }
+            if (byProviderSession.size > 0 && unmappedThreads > 0) {
+              warnings.add(
+                "RECORD_INCOMPLETE",
+                `${unmappedThreads} T3 runtime record(s) hold no provider session id; those threads stay unattributed`,
+                databasePath,
+              );
             }
           }
         }

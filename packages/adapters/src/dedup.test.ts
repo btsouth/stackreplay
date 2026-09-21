@@ -69,6 +69,7 @@ describe("deduplication", () => {
     const otherTokens = buildEvent(
       draft({
         adapterId: "ccusage",
+        sessionId: "session-three",
         identity: "record-3",
         usage: {
           inputTokens: 999,
@@ -81,6 +82,84 @@ describe("deduplication", () => {
     );
     const result = dedupeEvents([first, otherSession, otherTokens]);
     expect(result.events).toHaveLength(3);
+    expect(result.overlaps).toBe(0);
+  });
+
+  it("keeps two distinct records from one native adapter even when they share an instant", () => {
+    // Same adapter, same session, same instant and same token counts: this is
+    // the collision an observable-field fingerprint cannot resolve, so the
+    // native record identity decides it.
+    const first = buildEvent(draft({ adapterId: "codex", identity: "turn-1" }), context);
+    const second = buildEvent(draft({ adapterId: "codex", identity: "turn-2" }), context);
+    const result = dedupeEvents([first, second]);
+    expect(result.events).toHaveLength(2);
+    expect(result.overlaps).toBe(0);
+    expect(result.exactDuplicates).toBe(0);
+  });
+
+  it("drops an aggregate import that covers a session a native scan already read", () => {
+    // A real ccusage session row aggregates many calls, so its instant and
+    // token signature cannot match any single native call. Session identity is
+    // what decides the overlap.
+    const nativeOne = buildEvent(
+      draft({ adapterId: "claude-code", identity: "record-1", sessionId: "shared-session" }),
+      context,
+    );
+    const nativeTwo = buildEvent(
+      draft({
+        adapterId: "claude-code",
+        identity: "record-2",
+        sessionId: "shared-session",
+        occurredAtMs: Date.parse("2026-09-19T11:30:00.000Z"),
+        usage: {
+          inputTokens: 55,
+          outputTokens: 7,
+          reasoningTokens: 0,
+          accounting: { reasoningIncludedInOutput: false },
+        },
+      }),
+      context,
+    );
+    const aggregate = buildEvent(
+      draft({
+        adapterId: "ccusage",
+        identity: "session-row",
+        sessionId: "shared-session",
+        occurredAtMs: Date.parse("2026-09-19T23:59:00.000Z"),
+        usage: {
+          inputTokens: 90_000,
+          outputTokens: 12_000,
+          reasoningTokens: 0,
+          accounting: { reasoningIncludedInOutput: false },
+        },
+      }),
+      context,
+    );
+    const result = dedupeEvents([nativeOne, nativeTwo, aggregate]);
+    expect(result.events).toHaveLength(2);
+    expect(result.events.every((event) => event.source.adapterId === "claude-code")).toBe(true);
+    expect(result.overlaps).toBe(1);
+  });
+
+  it("keeps two native scans of the same session: equal precision is not an overlap", () => {
+    const one = buildEvent(draft({ adapterId: "claude-code" }), context);
+    const two = buildEvent(
+      draft({ adapterId: "codex", identity: "record-2", sessionId: "session-one" }),
+      context,
+    );
+    const result = dedupeEvents([one, two]);
+    expect(result.events).toHaveLength(2);
+    expect(result.overlaps).toBe(0);
+  });
+
+  it("keeps an import row whose session no native scan describes", () => {
+    const native = buildEvent(draft({ adapterId: "claude-code" }), context);
+    const aggregate = buildEvent(
+      draft({ adapterId: "ccusage", identity: "session-row", sessionId: "other-session" }),
+      context,
+    );
+    const result = dedupeEvents([native, aggregate]);
+    expect(result.events).toHaveLength(2);
     expect(result.overlaps).toBe(0);
   });
 

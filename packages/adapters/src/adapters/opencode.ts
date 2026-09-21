@@ -25,7 +25,10 @@ import { WarningCollector } from "../warnings.js";
  * Accounting (docs/ADAPTERS.md; verified arithmetically across 10,000+ local
  * assistant records): `tokens.total` equals the sum of input, output,
  * reasoning, cache read and cache write, so every category is additional and
- * none may be added twice. OpenCode's own totals are reproduced exactly.
+ * none may be added twice. Every record is re-checked against its own
+ * `tokens.total`; a record whose reported categories exceed that total has its
+ * cache and reasoning categories reported as unknown with a warning, because
+ * the overlapping categories cannot all be additional.
  *
  * Older OpenCode versions stored a JSON tree under `storage/`. That layout is
  * detected but reported as unsupported rather than guessed at.
@@ -42,7 +45,7 @@ export function openCodeRoots(env: SourceEnvironment): string[] {
   return [...new Set(candidates)];
 }
 
-function openCodeUsage(row: SqliteRow): TextUsageV1 | undefined {
+function openCodeUsage(row: SqliteRow): { usage: TextUsageV1 | undefined; reconciled: boolean } {
   const inputTokens = toSafeCount(row.tokens_input);
   const outputTokens = toSafeCount(row.tokens_output);
   const reasoningTokens = toSafeCount(row.tokens_reasoning);
@@ -55,7 +58,7 @@ function openCodeUsage(row: SqliteRow): TextUsageV1 | undefined {
     cacheReadTokens === undefined &&
     cacheWriteTokens === undefined
   ) {
-    return undefined;
+    return { usage: undefined, reconciled: true };
   }
   const usage: TextUsageV1 = {
     accounting: {
@@ -69,7 +72,27 @@ function openCodeUsage(row: SqliteRow): TextUsageV1 | undefined {
   if (cacheReadTokens !== undefined) usage.cacheReadTokens = cacheReadTokens;
   if (cacheWriteTokens !== undefined) usage.cacheWriteTokens = cacheWriteTokens;
   if (reasoningTokens !== undefined) usage.reasoningTokens = reasoningTokens;
-  return usage;
+
+  // OpenCode publishes its own total for every message, so each record can be
+  // checked against the invariant that established the declaration. When the
+  // reported categories add up to more than the record's own total they cannot
+  // all be additional, and no inclusion arrangement reproduces the total
+  // either: the overlapping categories are reported as unknown instead of
+  // publishing an accounting the source itself contradicts (decision 22).
+  const totalTokens = toSafeCount(row.tokens_total);
+  const reportedSum =
+    (inputTokens ?? 0) +
+    (outputTokens ?? 0) +
+    (reasoningTokens ?? 0) +
+    (cacheReadTokens ?? 0) +
+    (cacheWriteTokens ?? 0);
+  if (totalTokens !== undefined && reportedSum > totalTokens) {
+    delete usage.cacheReadTokens;
+    delete usage.cacheWriteTokens;
+    delete usage.reasoningTokens;
+    return { usage, reconciled: false };
+  }
+  return { usage, reconciled: true };
 }
 
 export function createOpenCodeAdapter(): LocalSourceAdapter {
@@ -164,6 +187,7 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
                     json_extract(m.data, '$.providerID') as provider_id,
                     json_extract(m.data, '$.cost') as cost,
                     json_extract(m.data, '$.time.created') as time_created_data,
+                    json_extract(m.data, '$.tokens.total') as tokens_total,
                     json_extract(m.data, '$.tokens.input') as tokens_input,
                     json_extract(m.data, '$.tokens.output') as tokens_output,
                     json_extract(m.data, '$.tokens.reasoning') as tokens_reasoning,
@@ -198,11 +222,18 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
             stats.recordsUnsupported += 1;
             continue;
           }
-          const usage = openCodeUsage(row);
+          const { usage, reconciled } = openCodeUsage(row);
           if (usage === undefined) {
             warnings.add("USAGE_MISSING", "assistant message reports no token usage", databasePath);
             stats.recordsUnsupported += 1;
             continue;
+          }
+          if (!reconciled) {
+            warnings.add(
+              "ACCOUNTING_UNESTABLISHED",
+              "reported categories exceed the message's own token total; cache and reasoning reported as unknown",
+              databasePath,
+            );
           }
           const occurredAtMs =
             toFiniteNumber(row.time_created_data) ?? toFiniteNumber(row.time_created);

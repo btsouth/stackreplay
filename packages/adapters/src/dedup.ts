@@ -13,7 +13,11 @@ import type { AdapterId, AdapterWarning } from "./types.js";
  * 2. Two different sources describe the same underlying provider work, for
  *    example a native Claude Code scan and a ccusage import covering the same
  *    session. These are overlaps. The higher-precision source wins, and the
- *    dropped aggregate is reported rather than silently double counted.
+ *    dropped aggregate is reported rather than silently double counted. An
+ *    aggregate row is recognised by the session it names, not only by an
+ *    identical instant and token signature: an aggregate covering many calls
+ *    can never match a single call's fingerprint, so session identity is what
+ *    decides that case.
  */
 
 /** Lower rank wins. Native per-call scans outrank aggregate imports. */
@@ -26,6 +30,15 @@ const PRECISION_RANK: Record<AdapterId, number> = {
   ccusage: 50,
   "t3-code": 90,
 };
+
+/**
+ * Rank at which a source stops being a per-call record of the work it names.
+ * A source at or above this rank describes aggregates, so it yields to any
+ * native scan of the same session even when the per-event fields do not line
+ * up (an aggregate covering many calls cannot match any single call's instant
+ * and token signature).
+ */
+const AGGREGATE_RANK = 50;
 
 export interface DedupResult {
   events: UsageEventV1[];
@@ -104,10 +117,38 @@ export function dedupeEvents(events: readonly UsageEventV1[]): DedupResult {
     }
     const existingRank = precisionRank(existing.source.adapterId);
     const candidateRank = precisionRank(event.source.adapterId);
+    if (candidateRank === existingRank) {
+      // Equal precision: two independent records of the same work cannot be
+      // told apart from two distinct calls that happen to share every
+      // observable field, so both native identities are kept.
+      byOverlap.set(`${event.source.adapterId}\u0000${event.id}`, event);
+      continue;
+    }
     if (candidateRank < existingRank) {
       byOverlap.set(key, event);
     }
     overlaps += 1;
+  }
+
+  // Session-level overlap. An aggregate import describes a whole session
+  // (or a whole day), so its instant and token signature cannot match any
+  // single native call even though both describe the same work. Once a native
+  // per-call scan of a session is present, that session's aggregate rows yield
+  // to it and are reported as dropped instead of being added on top.
+  const nativeSessions = new Set<string>();
+  for (const event of byOverlap.values()) {
+    const session = event.source.nativeSessionHash;
+    if (session === undefined) continue;
+    if (precisionRank(event.source.adapterId) < AGGREGATE_RANK) nativeSessions.add(session);
+  }
+  if (nativeSessions.size > 0) {
+    for (const [key, event] of [...byOverlap.entries()]) {
+      const session = event.source.nativeSessionHash;
+      if (session === undefined || !nativeSessions.has(session)) continue;
+      if (precisionRank(event.source.adapterId) < AGGREGATE_RANK) continue;
+      byOverlap.delete(key);
+      overlaps += 1;
+    }
   }
 
   if (overlaps > 0) {

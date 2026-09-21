@@ -60,6 +60,48 @@ describe("opencode adapter", () => {
     expect(result.events[1]?.usage.cacheReadTokens).toBe(0);
   });
 
+  it("reports a record whose categories exceed its own total as unestablished", async () => {
+    // OpenRouter's GLM reports cache reads that are already inside input, so the
+    // categories cannot all be additional and no inclusion arrangement
+    // reproduces the message's own total. The overlapping categories are
+    // reported as unknown rather than published.
+    const result = await collectFrom([
+      ...OPENCODE_FIXTURE_SQL,
+      `insert into message (id, session_id, time_created, time_updated, data) values
+         ('msg_alpha_3', 'ses_alpha', 1789601800000, 1789601800000, '${JSON.stringify({
+           role: "assistant",
+           cost: 0.01,
+           tokens: { total: 500, input: 100, output: 400, cache: { read: 300, write: 0 } },
+           modelID: "example-medium",
+           providerID: "example-provider",
+           time: { created: 1789601800000 },
+         })}')`,
+    ]);
+    const event = result.events.find(
+      (candidate) => candidate.occurredAt === new Date(1789601800000).toISOString(),
+    );
+    expect(event?.usage).toEqual({
+      inputTokens: 100,
+      outputTokens: 400,
+      accounting: {
+        cacheReadIncludedInInput: false,
+        cacheWriteIncludedInInput: false,
+        reasoningIncludedInOutput: false,
+      },
+    });
+    expect(result.warnings.map((warning) => warning.code)).toContain("ACCOUNTING_UNESTABLISHED");
+  });
+
+  it("keeps a record whose categories match its own total fully established", async () => {
+    // The fixture rows satisfy `tokens.total = input + output + reasoning +
+    // cache.read + cache.write`, which is what the declaration rests on.
+    const result = await collectFrom();
+    expect(result.events.map((event) => event.usage.cacheReadTokens)).toEqual([9000, 0]);
+    expect(result.warnings.map((warning) => warning.code)).not.toContain(
+      "ACCOUNTING_UNESTABLISHED",
+    );
+  });
+
   it("carries cost and the session directory as a project hash", async () => {
     const result = await collectFrom();
     expect(result.events[0]?.nativeCost).toEqual({ amount: "0.42", currency: "USD" });

@@ -2,7 +2,7 @@ import type { AdapterId } from "@stackreplay/adapters";
 import { type CommandContext, EXIT_OK, usageError } from "../command.js";
 import { flagValue, flagValues } from "../options.js";
 import { formatCount } from "../output.js";
-import { parseDateBound } from "../runtime.js";
+import { checkRangeOrder, parseDateBound } from "../runtime.js";
 import { summarizeEvents } from "../summary.js";
 
 /**
@@ -22,6 +22,8 @@ export async function runScan(context: CommandContext): Promise<number> {
   if (!sinceBound.ok) return usageError(context, sinceBound.error);
   const untilBound = until === undefined ? { ok: true as const } : parseDateBound(until, "until");
   if (!untilBound.ok) return usageError(context, untilBound.error);
+  const rangeProblem = checkRangeOrder(sinceBound.value, untilBound.value);
+  if (rangeProblem !== undefined) return usageError(context, rangeProblem);
 
   const result = await runtime.collect({
     ...(sinceBound.value !== undefined ? { since: sinceBound.value } : {}),

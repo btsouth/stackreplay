@@ -4,6 +4,7 @@ import {
   collectUsage,
   createNodeFileSystem,
   defaultAdapters,
+  isRealCalendarDate,
   readSalt,
   type SourceEnvironment,
   toPlatformId,
@@ -105,18 +106,44 @@ export function utcDate(instant: Date): string {
 export type DateBoundResult = { ok: true; value?: string } | { ok: false; error: string };
 
 /**
+ * Whether a resolved window is ordered. `from == to` is a valid empty range;
+ * `from` after `to` is a user error, not an internal failure (decision 20).
+ */
+export function checkRangeOrder(
+  from: string | undefined,
+  to: string | undefined,
+): string | undefined {
+  if (from === undefined || to === undefined) return undefined;
+  if (Date.parse(from) <= Date.parse(to)) return undefined;
+  return `the window is empty: --since ${from} is after --until ${to}`;
+}
+
+/**
  * Converts a user-supplied date bound into an ISO instant.
  *
  * A bare date is expanded: `--since 2026-09-01` starts at that day's midnight
  * UTC, and `--until 2026-09-30` ends at the following midnight so the named
  * day is included. A full ISO timestamp is used exactly as given.
+ *
+ * An impossible calendar date is rejected: `Date.parse` would roll it over
+ * (`2026-02-30` becomes 2 March), which would silently filter on a different
+ * day than the user asked for.
  */
 export function parseDateBound(value: string, kind: "since" | "until"): DateBoundResult {
   if (/^\d{4}-\d{2}-\d{2}$/u.test(value)) {
+    if (!isRealCalendarDate(value)) {
+      return { ok: false, error: `invalid date: ${value} is not a real calendar date` };
+    }
     const start = Date.parse(`${value}T00:00:00.000Z`);
     if (Number.isNaN(start)) return { ok: false, error: `invalid date: ${value}` };
     if (kind === "since") return { ok: true, value: new Date(start).toISOString() };
     return { ok: true, value: new Date(start + 86_400_000).toISOString() };
+  }
+  if (!isRealCalendarDate(value)) {
+    return {
+      ok: false,
+      error: `invalid timestamp: ${value} contains a date that does not exist`,
+    };
   }
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) {

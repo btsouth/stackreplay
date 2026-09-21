@@ -14,6 +14,7 @@ import {
   readSalt,
   saltFilePath,
 } from "./identity.js";
+import { isRealCalendarDate } from "./parse.js";
 
 describe("identity and hashing", () => {
   it("creates a local salt once and reuses it", async () => {
@@ -66,6 +67,20 @@ describe("identity and hashing", () => {
     expect(epochMsFromIso("2026-09-16T23:31:56.670Z")).toBe(1789601516670);
     expect(epochMsFromIso("not a timestamp")).toBeUndefined();
     expect(() => isoUtcFromMs(Number.NaN)).toThrow(RangeError);
+  });
+
+  it("rejects a timestamp whose calendar date does not exist", () => {
+    // Date.parse would roll 2026-02-30 over to 2 March, silently moving a
+    // record instead of reporting it as damaged.
+    expect(epochMsFromIso("2026-02-30T10:00:00.000Z")).toBeUndefined();
+    expect(epochMsFromIso("2026-04-31T00:00:00.000Z")).toBeUndefined();
+    expect(epochMsFromIso("2026-13-01T00:00:00.000Z")).toBeUndefined();
+    expect(isRealCalendarDate("2026-02-30")).toBe(false);
+    expect(isRealCalendarDate("2026-12-31")).toBe(true);
+    expect(isRealCalendarDate("2024-02-29")).toBe(true);
+    expect(isRealCalendarDate("2026-02-29")).toBe(false);
+    // A record whose timestamp is valid is still admitted.
+    expect(epochMsFromIso("2026-02-28T10:00:00.000Z")).toBe(Date.parse("2026-02-28T10:00:00.000Z"));
   });
 
   it("formats source costs as plain decimal strings", () => {

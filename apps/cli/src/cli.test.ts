@@ -187,6 +187,30 @@ describe("stackreplay help and version", () => {
     expect((await capture(["scan", "--source", "nope"])).stderr).toContain("unknown source");
     expect((await capture(["scan", "--since", "yesterday"])).code).toBe(1);
   });
+
+  it("rejects an impossible calendar date instead of rolling it over", async () => {
+    // Without the guard, 2026-02-30 would silently filter from 2 March.
+    const bound = await capture(["scan", "--json", "--since", "2026-02-30"]);
+    expect(bound.code).toBe(1);
+    expect(bound.stderr).toContain("not a real calendar date");
+    const stamp = await capture(["scan", "--json", "--since", "2026-02-30T00:00:00.000Z"]);
+    expect(stamp.code).toBe(1);
+    expect(stamp.stderr).toContain("does not exist");
+    expect((await capture(["scan", "--json", "--until", "2026-04-31"])).code).toBe(1);
+  });
+
+  it("rejects a reversed window as a usage error, not an internal failure", async () => {
+    for (const command of ["scan", "export", "replay"]) {
+      const argv =
+        command === "replay"
+          ? ["replay", "example-cloud-starter", "--since", "2026-09-20", "--until", "2026-09-10"]
+          : [command, "--since", "2026-09-20", "--until", "2026-09-10"];
+      const result = await capture(argv);
+      expect(result.code).toBe(1);
+      expect(result.stderr).toContain("--since");
+      expect(result.stderr).not.toContain("internal error");
+    }
+  });
 });
 
 describe("stackreplay detect and scan", () => {
@@ -267,6 +291,28 @@ describe("stackreplay export and replay", () => {
       const serialized = JSON.stringify(written);
       expect(serialized).not.toContain("/home/example");
       expect(serialized).not.toContain("demo-app");
+    });
+  });
+
+  it("names the default export after the day and the documented extension", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const cwd = process.cwd();
+      // The default target is relative to the working directory: run it inside
+      // the fixture home so nothing lands in the repository.
+      process.chdir(homeDir);
+      try {
+        const { code, stdout } = await capture(["export", "--json"], { homeDir, env: {} });
+        expect(code).toBe(0);
+        const summary = JSON.parse(stdout) as { output: string };
+        expect(summary.output).toMatch(/^\.\/stackreplay-\d{4}-\d{2}-\d{2}\.stackreplay\.json$/u);
+        const written = JSON.parse(
+          await readFile(join(homeDir, summary.output.replace("./", "")), "utf8"),
+        ) as { format: string; version: number };
+        expect(written.format).toBe("stackreplay");
+        expect(written.version).toBe(1);
+      } finally {
+        process.chdir(cwd);
+      }
     });
   });
 

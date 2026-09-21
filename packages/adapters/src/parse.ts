@@ -71,6 +71,26 @@ export function parseJsonLine(line: string): { ok: true; value: unknown } | { ok
   }
 }
 
+/**
+ * Whether a `YYYY-MM-DD` prefix is a real calendar date.
+ *
+ * `Date.parse` rolls impossible dates over instead of rejecting them
+ * (`2026-02-30` becomes 2 March), which would silently move a record or a
+ * filter boundary. Sources and user-supplied bounds are checked with this
+ * first, so an impossible date is treated as malformed rather than admitted as
+ * a plausible-looking instant (decision 11).
+ */
+export function isRealCalendarDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/u.exec(value);
+  if (match === null) return true;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1) return false;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return day <= daysInMonth;
+}
+
 /** Deterministic ordering for strings, used to keep output stable. */
 export function compareStrings(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;

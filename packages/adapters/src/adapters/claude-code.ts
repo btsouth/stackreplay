@@ -29,14 +29,18 @@ import { WarningCollector } from "../warnings.js";
  * line; assistant lines carry `message.usage` for a single API response.
  *
  * Accounting (docs/ADAPTERS.md; verified against Anthropic's documented usage
- * semantics and against 900+ local assistant records):
+ * semantics, against the local format and against 48,000+ local assistant records):
  * - `input_tokens` is the uncached input, so `cache_read_input_tokens` and
  *   `cache_creation_input_tokens` are additional to it (locally, cache reads
  *   exceed `input_tokens` in the overwhelming majority of records, which is
  *   only possible if they are not a subset).
- * - Extended thinking tokens are billed as output tokens and are not reported
- *   as a separate category, so the canonical reasoning bucket is an explicit
- *   zero: a known absence of a separate category, not an invented value.
+ * - `output_tokens_details.thinking_tokens` is a breakdown of `output_tokens`
+ *   (locally it never exceeds it), and Anthropic bills thinking as output, so
+ *   the canonical reasoning bucket is declared included in output and carries
+ *   the reported thinking quantity. A record that reports no thinking
+ *   breakdown reports reasoning as zero: the source has no separately billed
+ *   reasoning category. A record whose thinking quantity exceeds its output is
+ *   reported as unknown with a warning instead of being published.
  */
 
 const ADAPTER_ID = "claude-code" as const;
@@ -45,32 +49,46 @@ export function claudeCodeRoots(env: SourceEnvironment): string[] {
   return [joinPath(env.platform, env.homeDir, ".claude", "projects")];
 }
 
-export function claudeUsage(usage: Record<string, unknown>): TextUsageV1 | undefined {
+export function claudeUsage(usage: Record<string, unknown>): {
+  usage: TextUsageV1 | undefined;
+  reasoningUnestablished: boolean;
+} {
   const inputTokens = readCount(usage, "input_tokens");
   const outputTokens = readCount(usage, "output_tokens");
   const cacheReadTokens = readCount(usage, "cache_read_input_tokens");
   const cacheWriteTokens = readCount(usage, "cache_creation_input_tokens");
+  const thinkingTokens = readCount(asRecord(usage.output_tokens_details) ?? {}, "thinking_tokens");
   if (
     inputTokens === undefined &&
     outputTokens === undefined &&
     cacheReadTokens === undefined &&
     cacheWriteTokens === undefined
   ) {
-    return undefined;
+    return { usage: undefined, reasoningUnestablished: false };
   }
   const result: TextUsageV1 = {
-    reasoningTokens: 0,
     accounting: {
       cacheReadIncludedInInput: false,
       cacheWriteIncludedInInput: false,
-      reasoningIncludedInOutput: false,
     },
   };
   if (inputTokens !== undefined) result.inputTokens = inputTokens;
   if (outputTokens !== undefined) result.outputTokens = outputTokens;
   if (cacheReadTokens !== undefined) result.cacheReadTokens = cacheReadTokens;
   if (cacheWriteTokens !== undefined) result.cacheWriteTokens = cacheWriteTokens;
-  return result;
+
+  // Reasoning is included in output (never a separate billed category), and the
+  // quantity is reported whenever the client reports a thinking breakdown.
+  let reasoningUnestablished = false;
+  if (outputTokens !== undefined) {
+    if (thinkingTokens !== undefined && thinkingTokens > outputTokens) {
+      reasoningUnestablished = true;
+    } else {
+      result.reasoningTokens = thinkingTokens ?? 0;
+      result.accounting = { ...result.accounting, reasoningIncludedInOutput: true };
+    }
+  }
+  return { usage: result, reasoningUnestablished };
 }
 
 export function createClaudeCodeAdapter(): LocalSourceAdapter {
@@ -170,11 +188,18 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               stats.recordsUnsupported += 1;
               continue;
             }
-            const usage = claudeUsage(usageRecord);
+            const { usage, reasoningUnestablished } = claudeUsage(usageRecord);
             if (usage === undefined) {
               warnings.add("USAGE_MISSING", "assistant record reports no token usage", file);
               stats.recordsUnsupported += 1;
               continue;
+            }
+            if (reasoningUnestablished) {
+              warnings.add(
+                "ACCOUNTING_UNESTABLISHED",
+                "thinking tokens exceed outputTokens in this record; reasoning reported as unknown",
+                file,
+              );
             }
             const timestamp = readString(record, "timestamp");
             const occurredAtMs = timestamp === undefined ? undefined : epochMsFromIso(timestamp);

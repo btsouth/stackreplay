@@ -50,7 +50,7 @@ describe("claude-code adapter", () => {
     expect(result.events[1]?.occurredAt).toBe("2026-09-19T10:01:00.000Z");
   });
 
-  it("reports cache categories as additional and reasoning as a known absence", async () => {
+  it("reports cache categories as additional and reasoning as included in output", async () => {
     const result = await collectFrom("$DIR/.claude/projects");
     const [first] = result.events;
     expect(first?.usage).toEqual({
@@ -62,9 +62,79 @@ describe("claude-code adapter", () => {
       accounting: {
         cacheReadIncludedInInput: false,
         cacheWriteIncludedInInput: false,
-        reasoningIncludedInOutput: false,
+        reasoningIncludedInOutput: true,
       },
     });
+  });
+
+  it("preserves the reported thinking quantity as reasoning inside output", async () => {
+    const result = await withTempDir(async (directory) => {
+      await writeFixture(
+        `${directory}/.claude/projects/demo/${CLAUDE_CODE_FILE}`,
+        JSON.stringify({
+          type: "assistant",
+          uuid: "a-thinking",
+          sessionId: "11111111-1111-4111-8111-111111111111",
+          timestamp: "2026-09-19T10:05:00.000Z",
+          cwd: "/home/example/projects/demo-app",
+          message: {
+            id: "msg_thinking",
+            role: "assistant",
+            model: "example-medium",
+            usage: {
+              input_tokens: 700,
+              output_tokens: 900,
+              cache_read_input_tokens: 4200,
+              output_tokens_details: { thinking_tokens: 640 },
+            },
+          },
+        }),
+      );
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collect(env, { ...options(), roots: [`${directory}/.claude/projects`] });
+    });
+    expect(result.events[0]?.usage).toEqual({
+      inputTokens: 700,
+      outputTokens: 900,
+      cacheReadTokens: 4200,
+      reasoningTokens: 640,
+      accounting: {
+        cacheReadIncludedInInput: false,
+        cacheWriteIncludedInInput: false,
+        reasoningIncludedInOutput: true,
+      },
+    });
+  });
+
+  it("reports reasoning as unknown when thinking exceeds output", async () => {
+    const result = await withTempDir(async (directory) => {
+      await writeFixture(
+        `${directory}/.claude/projects/demo/${CLAUDE_CODE_FILE}`,
+        JSON.stringify({
+          type: "assistant",
+          uuid: "a-impossible",
+          sessionId: "11111111-1111-4111-8111-111111111111",
+          timestamp: "2026-09-19T10:06:00.000Z",
+          cwd: "/home/example/projects/demo-app",
+          message: {
+            id: "msg_impossible",
+            role: "assistant",
+            model: "example-medium",
+            usage: {
+              input_tokens: 700,
+              output_tokens: 100,
+              output_tokens_details: { thinking_tokens: 900 },
+            },
+          },
+        }),
+      );
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collect(env, { ...options(), roots: [`${directory}/.claude/projects`] });
+    });
+    const [event] = result.events;
+    expect(event?.usage.reasoningTokens).toBeUndefined();
+    expect(event?.usage.accounting?.reasoningIncludedInOutput).toBeUndefined();
+    expect(result.warnings.map((warning) => warning.code)).toContain("ACCOUNTING_UNESTABLISHED");
   });
 
   it("keeps a missing cache category unknown rather than zero", async () => {

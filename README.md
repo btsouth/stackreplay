@@ -8,11 +8,12 @@ StackReplay is an early-stage, local-first tool for a question that static plan 
 answer: **would another AI coding subscription actually handle the way I work?**
 
 > **Status: pre-release.** This project is under active development. Nothing here is a shipped
-> product yet: there is no scanning, no importing and no replaying of real usage. The versioned
-> schemas, synthetic catalog and subscription replay engine passed independent M1 re-audit
-> after additional corrections. The engine is accepted within its documented semantics; the
-> bundled catalog is synthetic and cannot substantiate real-provider comparisons. Exactly what
-> exists, what is verified and what comes next is tracked in
+> product yet: there is no browser import, no accounts and no cloud sync. The versioned schemas,
+> synthetic catalog and subscription replay engine passed an independent M1 re-audit after
+> additional corrections; the read-only adapters and CLI passed an independent M2 audit after the
+> corrections recorded in the implementation status. The engine is accepted within its documented
+> semantics; the bundled catalog is synthetic and cannot substantiate real-provider comparisons.
+> Exactly what exists, what is verified and what comes next is tracked in
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
@@ -83,8 +84,9 @@ working CLI. The statements above are architecture intentions;
   benchmark samples and limitations in the implementation status.
 - Milestone 2 (local adapters for Command Code, OpenCode, Codex, Claude Code, Hermes, T3 Code
   attribution and ccusage import, plus the working CLI: `detect`, `scan`, `export`, `replay`,
-  `plans`, `doctor`) is implemented, offline and read-only. The repository is public and hosted CI
-  is green.
+  `plans`, `doctor`) is implemented, offline and read-only, and passed an independent M2 audit;
+  the correction log and the re-derived real-machine baseline are in the implementation status. The
+  repository is public and hosted CI is green.
 - The bundled catalog is still synthetic demo data, so replaying a real local workload reports its
   models as unmapped rather than pretending to know their pricing. Real catalog data, the browser
   experience, accounts and cloud sync arrive in later milestones.

@@ -123,15 +123,100 @@ Node 24.19.0 (pinned) and pnpm 10.18.1 on Linux. Every M2 check runs offline.
 | Export privacy check | PASS: zero occurrences of any home path, project directory name or session file name in a 55 MB export of real local data |
 | Packed install | PASS: schema, catalog, engine, adapters and CLI packed and installed outside the workspace; detect, export and replay run from the installed tarballs with a fresh salt (mode 600) and byte-identical events across runs |
 
+After the independent audit (re-run on the corrected code, all gates forced rather than cached):
+
+| Gate | Result |
+| --- | --- |
+| pnpm install --frozen-lockfile | PASS |
+| pnpm check | PASS: 163 files, no errors (2 informational) |
+| pnpm check:contrast | PASS |
+| pnpm typecheck | PASS: 13 tasks |
+| pnpm test | PASS: 339 tests — schema 31, catalog 27, engine 140, adapters 101, CLI 26, UI 14 |
+| pnpm build | PASS: 10 tasks |
+| Web Playwright E2E | PASS: 29 passed, 5 viewport-specific skips |
+| Replay-engine benchmark | PASS (runs): Starter median 917.7 ms, Pro median 1095.5 ms at 100k events; the sub-second target is still borderline and is not enforced by the bench script, which prints evidence and exits 0 |
+| Real-machine read-only smoke | `detect` found all 6 local sources; `scan` read 96,819 events; `export` wrote 101.6 MB at mode 600; `replay` of that export completed offline |
+| Export privacy check | PASS: 0 of 119 raw project paths, 0 of 10,419 raw session ids and 0 of 413 session file names appear in the 101.6 MB export; no home prefix, username, key pattern or email appears |
+| Offline run | PASS: a full scan inside a network-less namespace (`unshare -rn`) reads and normalizes 1,655 events, and no source file imports an HTTP, DNS or socket module or calls `fetch` |
+| Determinism | PASS: two scans produce identical summaries, two exports produce byte-identical event arrays and identical byte counts |
+| Packed install | PASS: five tarballs installed in an isolated project; the installed CLI sees only the synthetic fixture home, creates the salt at mode 600, and produces byte-identical exports across runs; the bundled catalog loads and a replay runs from the tarballs |
+
 Honest limits of this milestone:
 
 - The bundled catalog is synthetic, so a real local workload replays with its models reported as
   unmapped (`unresolved`) and coverage reported as unknown. That is the catalog's state, not a
   replay failure: no pricing is invented for models the catalog does not know.
 - Request counts from aggregate-only sources (Hermes session/model rows) are approximate by
-  construction, and the adapter says so with a warning.
+  construction, and the adapter says so with a warning. The canonical event has no request-count
+  field, so the row's own call count does not travel in the export: a request-coverage figure built
+  from those events understates real calls (23,937 calls behind 198 events on the audited machine).
+  Carrying the count, or marking the event as an aggregate, needs a schema revision.
+- Reasoning that a source reports as included in output (Claude Code thinking tokens, Hermes
+  reasoning) is priced at the model rule's reasoning rate, falling back to the output rate with an
+  explicit warning and a confidence reduction. The synthetic catalog prices no reasoning rate, so
+  every real workload takes that fallback today; the total and the cost are unaffected.
+- An aggregate import can only be deduplicated against a native scan when it names a session
+  (`ccusage session` rows). Daily, block, monthly and project-grouped imports carry no session
+  identity, so importing them alongside a native scan of the same period would double count, which
+  is why the import is opt-in and never auto-detected.
+- Warnings carry the source path they came from and are printed by `scan --json`; they are not part
+  of the export. Treat that output as machine-readable local detail rather than something to paste
+  into a public issue.
+- Restricting `--source` to a provider without also selecting `t3-code` leaves those sessions
+  unattributed, because harness attribution is collected only when its adapter is selected.
 - ccusage imports keep reasoning unknown, so their token totals are unknown. This is deliberate
   (decision 26) rather than a missing feature.
+
+## Independent M2 audit (2026-09-21)
+
+Milestone 2 was independently re-audited against the two specification documents, the recorded
+decisions and real local histories. The audit re-derived every adapter's accounting evidence from the
+sources themselves, re-ran the full validation set, and verified the export's privacy claims by
+searching the generated artifact for the real project paths, session ids and session file names it
+was built from (0 of 119 paths, 0 of 10,419 session ids, 0 of 413 file names appear; no home prefix,
+username, credential pattern or email appears).
+
+Corrections made in this audit (all with regression tests):
+
+- **Claude Code reasoning.** The adapter claimed a known absence of a separate reasoning category,
+  but the source reports `output_tokens_details.thinking_tokens` in 99.9% of assistant records
+  (non-zero in 79%). The reported quantity is now carried as reasoning declared included in output,
+  so the reasoning dimension is visible and the workload total and cost are unchanged. Records whose
+  thinking exceeds their output report reasoning as unknown with a warning.
+- **OpenCode per-record total.** The adapter never read the source's own `tokens.total`. 16 of
+  10,587 local assistant records report categories that add up to more than that total, and no
+  inclusion arrangement reproduces it, so those records now report cache and reasoning as unknown
+  with `ACCOUNTING_UNESTABLISHED` instead of publishing an accounting the source contradicts.
+- **Aggregate overlap deduplication.** Cross-source overlap was only recognised when an import row
+  matched a native event's instant and full token signature, which an aggregate row can never do, so
+  a ccusage import alongside a native scan double counted. An aggregate row whose session a native
+  per-call scan already read is now dropped and reported. Equal-precision sources never collapse:
+  an identical fingerprint cannot distinguish two distinct calls that look alike.
+- **T3 attribution was inert on real data.** `projection_thread_sessions.provider_session_id` is
+  empty in the installed harness; the mapping lives in
+  `provider_session_runtime.resume_cursor_json.sessionId`, which is now read as a second source.
+  The real scan maps 34 sessions (all the OpenCode ones T3 holds) where it previously mapped none,
+  and `detect` now separates thread rows from rows that actually carry a session id.
+- **Impossible calendar dates.** `Date.parse` rolls `2026-02-30` over to 2 March; source timestamps
+  and `--since`/`--until` bounds with a day that does not exist are now rejected instead of silently
+  filtering or admitting a different instant.
+- **Export file naming.** The default export name was `stackreplay-export-<date>.json`, which is
+  neither the documented `.stackreplay.json` extension nor covered by `.gitignore`, so a personal
+  export could be committed by accident. It is now `stackreplay-<date>.stackreplay.json`, with the
+  old pattern also ignored.
+- **Reversed windows** are a usage error (`--since` after `--until`) rather than an "internal error:
+  the export did not validate" from the schema layer.
+
+Real-machine baseline re-derived by this audit (full scan, no window): 96,819 events, 676 sessions,
+121 projects, 28.76B known tokens across the disjoint buckets, 1,267 exact duplicates removed, 0
+overlaps, 23,937 Hermes API calls represented by 198 Hermes events, 34 T3-attributed sessions. The
+windowed smoke tests reproduce as well: `--since 2026-09-15` gives 21,475 events and `--since
+2026-09-21` gives 1,655, with the inclusive/exclusive boundary behaviour asserted at the instant
+level (`--since <t>` includes the event at `t`, `--since <t>+1ms` excludes exactly it, `--until <t>`
+excludes it).
+
+The export is 101.6 MB for that baseline. The earlier 55.1 MB figure in this document was not
+reproducible and is corrected here.
 
 ## Benchmark evidence
 

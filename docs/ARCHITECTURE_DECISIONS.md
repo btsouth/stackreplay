@@ -261,6 +261,16 @@ to unknown with a warning instead of publishing an impossible accounting. Ration
 difference between "the source does not report reasoning" (unknown) and "the source has no separate
 reasoning category" (a known absence), and only the second may be reported as zero.
 
+Audit correction, 2026-09-21 (M2): a source that publishes its own total for a record gets one
+further check, because that total is the source's own statement about its categories. If the reported
+categories add up to **more** than the record's own total, they cannot all be additional; if no
+inclusion arrangement reproduces the total either, the overlapping categories (cache read, cache
+write, reasoning) are reported as unknown with a warning, while input and output are kept. OpenCode
+publishes such a total (`tokens.total`) and 16 of 10,587 local assistant records fail that check, so
+this is a live case rather than a theoretical one. Related: a category the source reports as a
+breakdown of another quantity must be declared included in it rather than published as a zero, which
+is how Claude Code's `output_tokens_details.thinking_tokens` is now carried.
+
 ## 23. Harness attribution is a mapping, never a re-ingestion
 
 A harness that orchestrates other agents (T3 Code today, others later) contributes attribution and
@@ -270,6 +280,14 @@ the single source of usage. This is what keeps "T3 ran this" from becoming "T3 r
 Code ran this". Harness-managed history roots that duplicate a provider's default root are not
 scanned twice.
 
+Audit correction, 2026-09-21 (M2): the mapping is read from wherever the installed harness records
+it, and reported honestly when it is absent. An installed T3 leaves
+`projection_thread_sessions.provider_session_id` empty and records the provider session id in
+`provider_session_runtime.resume_cursor_json.sessionId`, so both sources are read (the projection
+first). Reading only one of them silently attributed nothing on the machine this was verified on
+while `detect` still reported a healthy source, which is the failure mode this correction removes:
+a harness that records no session id reports that, and never guesses a mapping.
+
 ## 24. Session identity is adapter-independent, event identity is adapter-scoped
 
 `nativeSessionHash` is derived from the session id alone, so two sources observing the same session
@@ -277,6 +295,13 @@ scanned twice.
 the same work and deduplicated. `nativeEventHash` stays scoped to the adapter, so distinct sources
 keep distinct event identities. Overlap resolution keeps the higher-precision source (a native
 per-call scan outranks an aggregate import) and reports every dropped aggregate.
+
+Audit correction, 2026-09-21 (M2): recognition cannot depend only on an identical instant and token
+signature, because an aggregate row covering many calls can never match a single call's
+fingerprint. An aggregate row whose session a native per-call scan already read is therefore
+resolved by session identity alone and dropped, with the drop reported. Two sources of **equal**
+precision never collapse: an identical fingerprint cannot distinguish two independent records of
+the same work from two distinct calls that look alike, so each native identity is kept.
 
 ## 25. Aggregated sources emit one event per aggregate
 

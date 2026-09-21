@@ -36,6 +36,7 @@ blob-report/
 
 # Local usage exports (never commit personal workload data)
 *.stackreplay.json
+stackreplay-export-*.json
 
 # Local working images (not approved publication content)
 docs/Images/

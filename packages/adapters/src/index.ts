@@ -64,7 +64,15 @@ export {
   saltFilePath,
 } from "./identity.js";
 export { createModelMapper, type ModelMapper } from "./models.js";
-export { asArray, asRecord, parseJsonLine, readCount, readNumber, readString } from "./parse.js";
+export {
+  asArray,
+  asRecord,
+  isRealCalendarDate,
+  parseJsonLine,
+  readCount,
+  readNumber,
+  readString,
+} from "./parse.js";
 export {
   configHome,
   createNodeFileSystem,

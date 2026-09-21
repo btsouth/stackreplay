@@ -96,8 +96,74 @@ describe("t3-code attribution adapter", () => {
       const detection = await adapter.detect(env);
       expect(detection.detected).toBe(true);
       expect(detection.supported).toBe(true);
-      expect(detection.note).toContain("3 thread/session mapping(s)");
+      expect(detection.note).toContain("3 of 3 thread row(s) carry a provider session id");
     });
+  });
+
+  it("maps sessions from the runtime bookkeeping when the projection has no session id", async () => {
+    // Installed T3 versions leave projection_thread_sessions.provider_session_id
+    // empty and record the provider session id in the resume cursor of
+    // provider_session_runtime instead, so the projection alone maps nothing.
+    const index = await withTempDir(async (directory) => {
+      await createSqliteFixture(`${directory}/.t3/userdata/state.sqlite`, [
+        `create table projection_thread_sessions (
+           thread_id text, status text, provider_name text, provider_session_id text,
+           provider_thread_id text, active_turn_id text, last_error text, updated_at text,
+           runtime_mode text, provider_instance_id text)`,
+        `insert into projection_thread_sessions values
+           ('thread_one', 'idle', 'codex', null, null, null, null, '2026-09-19T10:00:00.000Z', 'local', null)`,
+        `insert into projection_thread_sessions values
+           ('thread_two', 'idle', 'opencode', null, null, null, null, '2026-09-19T10:05:00.000Z', 'local', null)`,
+        `create table provider_session_runtime (
+           thread_id text, provider_name text, adapter_key text, runtime_mode text, status text,
+           last_seen_at text, resume_cursor_json text, runtime_payload_json text,
+           provider_instance_id text)`,
+        `insert into provider_session_runtime values
+           ('thread_one', 'codex', 'codex', 'full-access', 'idle', '2026-09-19T10:00:00.000Z',
+            '{"schemaVersion":1,"sessionId":"22222222-2222-4222-8222-222222222222"}', '{}', 'inst_1')`,
+        `insert into provider_session_runtime values
+           ('thread_two', 'opencode', 'opencode', 'full-access', 'idle', '2026-09-19T10:05:00.000Z',
+            '{"schemaVersion":1,"threadId":"ses_alpha"}', '{}', 'inst_1')`,
+      ]);
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collectAttribution(env, {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.t3/userdata`],
+      });
+    });
+    expect(index.byProviderSession.get("codex\u000022222222-2222-4222-8222-222222222222")).toEqual({
+      harnessId: "t3-code",
+      harnessSessionId: "thread_one",
+      attribution: "exact",
+    });
+    // A thread whose cursor holds no session id stays unattributed, and says so.
+    expect(index.byProviderSession.get("opencode\u0000ses_alpha")).toBeUndefined();
+    expect(index.warnings.map((warning) => warning.code)).toContain("RECORD_INCOMPLETE");
+  });
+
+  it("reports a harness whose mapping is missing instead of attributing nothing silently", async () => {
+    const index = await withTempDir(async (directory) => {
+      await createSqliteFixture(`${directory}/.t3/userdata/state.sqlite`, [
+        `create table projection_thread_sessions (
+           thread_id text, status text, provider_name text, provider_session_id text,
+           provider_thread_id text, active_turn_id text, last_error text, updated_at text,
+           runtime_mode text, provider_instance_id text)`,
+        `insert into projection_thread_sessions values
+           ('thread_one', 'idle', 'codex', null, null, null, null, '2026-09-19T10:00:00.000Z', 'local', null)`,
+      ]);
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collectAttribution(env, {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.t3/userdata`],
+      });
+    });
+    expect(index.byProviderSession.size).toBe(0);
+    const incomplete = index.warnings.find((warning) => warning.code === "RECORD_INCOMPLETE");
+    expect(incomplete?.message).toContain("no session could be attributed");
   });
 
   it("reports an absent harness without inventing one", async () => {

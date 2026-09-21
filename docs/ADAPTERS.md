@@ -48,11 +48,12 @@ sibling `.meta.json` and a `.checkpoints.jsonl` (ignored). Records are `session`
 `usage: { inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, costUsd }` and sometimes
 `cacheWriteTokens1h`.
 
-**Fields used.** `session.id`, `session.cwd`, `message.role`, `message.model`, `message.usage.*`,
-`message.id`, `message.timestamp`.
+**Fields used.** `session.id`, `session.cwd`, `message.role`, and on each message record its `id`,
+`model`, `usage.*` and `timestamp`. The token counts live on the record itself (`usage.*`), not
+inside `message`; `message` carries the role.
 
 **Fields ignored.** Message content and metadata (never read), `parentId`, `traceIds`, the
-checkpoint file, and `cacheWriteTokens1h` (see below).
+checkpoint file, `effort`, and `cacheWriteTokens1h` (see below).
 
 **Accounting.** Established from the installed client's own cost routine
 (`command-code@1.58.0`, `dist/cli.mjs`): it computes the uncached input as
@@ -80,12 +81,18 @@ total, cache: { read, write } } }`. Sessions carry the working directory in `ses
 `session.directory`.
 
 **Fields ignored.** Message parts and text, titles, todos, shares, and the account/credential
-tables.
+tables. The database holds several content-bearing tables (`part`, `session_message`, `event`) and
+none of them is queried: the adapter reads only `message` and `session`.
 
-**Accounting.** Established by arithmetic invariant over the local database: `tokens.total` equals
-`input + output + reasoning + cache.read + cache.write` in more than 10,000 assistant records, so
-every category is **additional** and none may be added twice (all three declarations `false`). A
-missing `reasoning` stays unknown; a reported zero stays a known zero.
+**Accounting.** Established by arithmetic invariant: `tokens.total` equals
+`input + output + reasoning + cache.read + cache.write` in 10,571 of the 10,587 local assistant
+records that publish a total, so every category is **additional** and none may be added twice
+(all three declarations `false`). A missing `reasoning` category stays unknown; a reported zero
+stays a known zero. Every record is re-checked against its own `tokens.total`: when the reported
+categories add up to more than the record's own total (16 local records, all OpenRouter GLM),
+they cannot all be additional and no inclusion arrangement reproduces that total, so the cache
+and reasoning categories are reported as unknown with a warning instead of publishing an
+accounting the source itself contradicts.
 
 **Limitations.** Reads are bounded to 200,000 assistant messages per scan and ordered
 deterministically. Older OpenCode versions stored a JSON tree under `storage/`; that layout is
@@ -128,9 +135,20 @@ has no model and is skipped and reported.
 
 **Accounting.** `input_tokens` is the uncached input, so `cache_read_input_tokens` and
 `cache_creation_input_tokens` are **additional** (both declarations `false`). Locally, cache reads
-exceed `input_tokens` in the large majority of records, which is only possible if they are not a
-subset. Extended thinking tokens are billed as output tokens and are not reported as a separate
-category, so reasoning is a **known absence of a separate category** (`reasoningTokens: 0`).
+exceed `input_tokens` in 28,204 of 28,375 assistant records (99.4%), which is only possible if they
+are not a subset. The client reports thinking tokens as `output_tokens_details.thinking_tokens`
+(present in 99.9% of assistant records as sampled, non-zero in 79% of them), which is a breakdown of
+`output_tokens` and never exceeds it in any local record: Anthropic bills thinking as output, so the
+canonical reasoning bucket is declared **included in output** and carries the reported thinking
+quantity. Where the client reports no thinking breakdown, reasoning is reported as zero: this source
+has no separately billed reasoning category, and the relationship still holds. A record whose
+thinking quantity exceeds its output has its reasoning category reported as unknown with a warning.
+
+The reporting consequence is worth stating: because thinking is an included quantity, the disjoint
+`outputTokens` bucket on such an event is `output_tokens - thinking_tokens`, and the reasoning bucket
+is priced at the model rule's reasoning rate, falling back to the output rate (explicit, warned,
+confidence-reducing, exactly as Hermes reasoning already does). The workload total and the total cost
+are unchanged by reporting the quantity instead of zero.
 
 **Limitations.** Records with no timestamp or with the `<synthetic>` model (locally generated error
 messages) are skipped and reported. Project attribution uses `cwd`, falling back to the encoded
@@ -148,22 +166,28 @@ with `sessions` for `cwd`/`git_repo_root`. One row per session and model.
 **Fields ignored.** Message bodies, tool payloads, titles, prompts and everything in the message
 tables.
 
-**Accounting.** Established arithmetically: `cache_read_tokens` exceeds `input_tokens` in most local
-rows, so cache is **additional** (both cache declarations `false`); `reasoning_tokens` never exceeds
-`output_tokens`, so reasoning is a **subset of output** (`reasoningIncludedInOutput: true`, with the
-quantity reported).
+**Accounting.** Established arithmetically: `cache_read_tokens` exceeds `input_tokens` in 257 of the
+353 local rows, so cache is **additional** (both cache declarations `false`); `reasoning_tokens` never
+exceeds `output_tokens` in any local row and Hermes itself normalizes usage with reasoning inside
+`output_tokens` (`agent/usage_pricing.py`), so reasoning is a **subset of output**
+(`reasoningIncludedInOutput: true`, with the quantity reported).
 
 **Granularity and limitations.** Hermes records session-and-model aggregates, not per-call records.
 StackReplay emits exactly **one canonical event per row**, timestamped at the end of the row's
 activity window, with the window carried as `requestStartedAt` / `requestEndedAt` / `durationMs`.
-Request counts are therefore approximate for this source, and the adapter says so with a warning.
-Timestamps are epoch seconds (milliseconds are accepted if a future schema changes); an activity
-window is placed in a scan window by its end instant.
+Request counts are therefore approximate for this source, and the adapter says so with a warning:
+on the machine this was verified on, 264 of 353 rows aggregate more than one call and the rows cover
+23,937 API calls between them, so a request-coverage figure built from these events understates the
+real call count. The canonical event has no request-count field (decision 5 keeps plan and billing
+context off the event), so the row's own count is not carried into the export; the warning and this
+note are the honest statement of the gap, and a per-event aggregate marker belongs to a later schema
+revision. Timestamps are epoch seconds (milliseconds are accepted if a future schema changes); an
+activity window is placed in a scan window by its end instant.
 
 ## T3 Code (attribution only)
 
-**Source.** `~/.t3/userdata/state.sqlite` (`projection_thread_sessions`) and
-`~/.t3/userdata/usage-scan-cache.json`.
+**Source.** `~/.t3/userdata/state.sqlite` (`projection_thread_sessions` and
+`provider_session_runtime`) and `~/.t3/userdata/usage-scan-cache.json`.
 
 **What it produces.** No usage events. T3 is a harness: re-ingesting provider usage from it would
 double count. Instead it produces:
@@ -175,9 +199,21 @@ double count. Instead it produces:
    `~/.t3/commandcode/claude/projects`), discovered from its usage scan cache and excluded when they
    are already a provider adapter's default root, so a harness-managed copy is never scanned twice.
 
+**Where the mapping lives.** An installed T3 records the mapping in two places, and both are read,
+because the projection column is empty in installed builds: `projection_thread_sessions`
+(`provider_session_id`), and `provider_session_runtime.resume_cursor_json.sessionId`, which carries
+the provider session id the thread is driving. On the machine this was verified on, the projection
+holds 83 thread rows with **no** session id and the runtime bookkeeping supplies 34 session ids (all
+of the OpenCode ones it holds, none of the Codex ones), so reading only the projection would
+attribute nothing at all while still reporting a healthy source. The projection wins when both carry
+an id; a thread whose id T3 has not recorded stays unattributed, and the adapter says so with a
+warning rather than guessing.
+
 **Limitations.** Provider names StackReplay does not read (for example `grok`) are reported as
-unsupported rather than guessed at. Thread/session mappings are read from the harness's own
-bookkeeping; if that table is empty, the adapter reports that instead of inferring.
+unsupported rather than guessed at. `detect` distinguishes thread rows from rows that actually carry
+a provider session id, so "detected, supported" no longer implies that any session can be attributed.
+Attribution is part of the collection run: restricting `--source` to a provider without also
+selecting `t3-code` leaves those sessions unattributed.
 
 ## ccusage import
 
@@ -210,10 +246,19 @@ have their project name hashed with the local salt, never exported.
 ## Cross-cutting behaviour
 
 **Deduplication.** Exact duplicates (same adapter, same native event identity) collapse to one event.
-Two different sources describing the same underlying work are an *overlap*: the higher-precision
-source wins (a native per-call scan outranks an aggregate import) and the drop is reported. Session
-hashes are scoped to the session id, so two sources observing the same session dedupe correctly,
-while event identity stays scoped to the adapter.
+Two different sources describing the same underlying work are an *overlap*, and there are two ways an
+overlap is recognised:
+
+- per event: the same session, the same instant and the same token signature describe the same call,
+  and the higher-precision source wins;
+- per session: an aggregate source (an import, for example a ccusage session row) that names a session
+  a native per-call scan already read is the same work. Its instant and token signature can never
+  match a single call, so session identity decides it: the aggregate row is dropped and the drop is
+  reported. Two sources of equal precision never collapse: equal observations cannot be distinguished
+  from two distinct calls that happen to look alike, so each keeps its own identity.
+
+Session hashes are scoped to the session id, so two sources observing the same session dedupe
+correctly, while event identity stays scoped to the adapter.
 
 **Project identity.** Project paths are never exported. Each event carries
 `projectHash = HMAC-SHA256(localSalt, normalizedPath)` with a salt generated on first scan and stored
@@ -226,6 +271,12 @@ are windowed by the event's own timestamp (the aggregate's end instant).
 
 **Bounds.** Scans are bounded (20,000 files per file-based adapter, 256 MiB per file, 200,000 rows
 per database adapter). A bound that is reached is reported as `SOURCE_TRUNCATED`, never silently.
+
+**Warnings.** Warnings are aggregated per code with an exact count and one sample, and they carry the
+source path they came from, which is useful when diagnosing a damaged history. Warnings are local
+output: they are not part of the export (`StackReplayExportV1` has no warnings field), so a warning's
+path never leaves the machine inside an exported artifact. `scan --json` does print them, so treat
+that output as machine-readable local detail rather than something to paste into a public issue.
 
 ## Adding an adapter
 
