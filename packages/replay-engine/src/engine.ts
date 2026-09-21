@@ -6,6 +6,7 @@ import {
   type LoadedPlanVersionV1,
   type ModelRuleV1,
   type PlanLimitV1,
+  validateLoadedCatalog,
 } from "@stackreplay/catalog";
 import {
   type ConstraintResultV1,
@@ -15,6 +16,7 @@ import {
   type CoverageDimensionV1,
   type ExecutionReplayResultV1,
   type ExecutionTargetV1,
+  executionTargetV1Schema,
   isSubscriptionTargetV1,
   type ReplayAssumptionV1,
   type ReplayConfidenceV1,
@@ -58,7 +60,11 @@ export interface ReplayInput {
 
 export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
-  const planVersion = resolveTargetPlan(input.target, catalog);
+  const parsedTarget = executionTargetV1Schema.safeParse(input.target);
+  if (!parsedTarget.success)
+    throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Invalid execution target.");
+  const target = parsedTarget.data;
+  const planVersion = resolveTargetPlan(target, catalog);
   const events = validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
 
@@ -67,12 +73,12 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker);
   const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
   const coverage = computeCoverage(timed, resolution, evaluation.blockedEventIds);
-  const confidence = computeConfidence(timed, resolution, planVersion, catalog);
+  const confidence = computeConfidence(timed, resolution, planVersion, catalog, tracker);
 
   return {
     version: 1,
     workload: summarizeWorkload(timed, resolution),
-    target: input.target,
+    target,
     feasibility: {
       status: feasibilityStatus(coverage, evaluation.constraints),
       coveragePercent: coverage.requests.percent,
@@ -134,6 +140,13 @@ function parseCatalog(catalog: CatalogV1): CatalogV1 {
         .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`),
     );
   }
+  const issues = validateLoadedCatalog(parsed.data);
+  if (issues.length > 0)
+    throw new ReplayEngineError(
+      "CATALOG_INVALID",
+      "The catalog did not pass semantic validation.",
+      issues.map((issue) => issue.message),
+    );
   return parsed.data;
 }
 
@@ -157,8 +170,11 @@ function resolveTargetPlan(target: ExecutionTargetV1, catalog: CatalogV1): Loade
 }
 
 function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
+  if (!Array.isArray(events))
+    throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Events must be an array.");
   const validated: TextUsageEventV1[] = [];
   const seenIds = new Set<string>();
+  let aggregateTokens = 0;
   for (let index = 0; index < events.length; index += 1) {
     const result = usageEventV1Schema.safeParse(events[index]);
     if (!result.success) {
@@ -190,6 +206,12 @@ function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[]
         [`index=${index}`, `id=${event.id}`],
       );
     }
+    aggregateTokens += tokenCountOf(event.usage);
+    if (!Number.isSafeInteger(aggregateTokens))
+      throw new ReplayEngineError(
+        "IMPORT_SCHEMA_INVALID",
+        "Aggregate token counts exceed the supported safe-integer range.",
+      );
     seenIds.add(event.id);
     validated.push(event);
   }
@@ -213,10 +235,12 @@ function resolveModels(
   const ruleByModel = new Map<string, ModelRuleV1>();
   for (const rule of planVersion.modelRules) ruleByModel.set(rule.model, rule);
 
-  const byName = new Map<string, string>();
+  const byName = new Map<string, string | null>();
   for (const model of Object.values(catalog.models)) {
-    byName.set(model.id.toLowerCase(), model.id);
-    byName.set(model.name.toLowerCase(), model.id);
+    for (const name of [model.id.toLowerCase(), model.name.toLowerCase()]) {
+      const previous = byName.get(name);
+      byName.set(name, previous === undefined || previous === model.id ? model.id : null);
+    }
   }
 
   const resolution = new Map<string, ModelResolution>();
@@ -230,7 +254,7 @@ function resolveModels(
       quality = "exact";
     } else {
       const mapped = byName.get(event.model.rawName.toLowerCase());
-      if (mapped !== undefined) {
+      if (mapped !== undefined && mapped !== null) {
         modelId = mapped;
         quality = "mapped";
       } else {
@@ -480,8 +504,8 @@ function evaluateConstraints(
         type: sliced.kind === "rolling" ? "rolling_window_exceeded" : "calendar_window_exceeded",
         constraintId: limit.id,
         unit,
-        startedAt: isoFromEpochMs(slice.startMs),
-        endedAt: isoFromEpochMs(slice.endMs),
+        startedAt: isoFromEpochMs(slice.startMs, slice.subMs),
+        endedAt: isoFromEpochMs(slice.endMs, slice.subMs),
         affectedEvents: affected,
         requiredUnits: toUnitString(windowTotal),
         availableUnits: toUnitString(limitAmount),
@@ -617,6 +641,7 @@ function computeConfidence(
   resolution: ReadonlyMap<string, ModelResolution>,
   planVersion: LoadedPlanVersionV1,
   catalog: CatalogV1,
+  tracker: Tracker,
 ): ReplayConfidenceV1 {
   const factors: ConfidenceFactor[] = [];
 
@@ -635,18 +660,22 @@ function computeConfidence(
   });
 
   const unresolved = timed.filter(
-    ({ event }) => resolution.get(event.id)?.quality === "unknown",
+    ({ event }) =>
+      resolution.get(event.id)?.quality === "unknown" || event.confidence.model === "unknown",
   ).length;
-  const mapped = timed.filter(({ event }) => resolution.get(event.id)?.quality === "mapped").length;
+  const mapped = timed.filter(
+    ({ event }) =>
+      resolution.get(event.id)?.quality === "mapped" || event.confidence.model === "mapped",
+  ).length;
   const modelLevel = unresolved > 0 ? "low" : mapped > 0 ? "medium" : "high";
   factors.push({
     id: "model_mapping",
     level: modelLevel,
     description:
       unresolved > 0
-        ? `${unresolved} event(s) use models that are not in the catalog.`
+        ? `${unresolved} event(s) have unresolved models or declare unknown model attribution.`
         : mapped > 0
-          ? `${mapped} event(s) were mapped to catalog models by name rather than by canonical id.`
+          ? `${mapped} event(s) use name mapping or declare mapped model attribution.`
           : "Every event model resolved exactly against the catalog.",
   });
 
@@ -684,6 +713,17 @@ function computeConfidence(
     });
   }
 
+  if (
+    tracker.warnings.has("PRICING_RATE_FALLBACK") ||
+    tracker.assumptions.has("REASONING_PRICED_AS_OUTPUT")
+  ) {
+    factors.push({
+      id: "pricing_fallback",
+      level: "low",
+      description:
+        "Some token categories use fallback rates rather than verified category-specific pricing.",
+    });
+  }
   return { level: worstLevel(factors.map((factor) => factor.level)), factors };
 }
 
@@ -743,8 +783,8 @@ function summarizeWorkload(
   const last = timed[timed.length - 1];
   return {
     eventCount: timed.length,
-    ...(first !== undefined ? { from: isoFromEpochMs(first.atMs) } : {}),
-    ...(last !== undefined ? { to: isoFromEpochMs(last.atMs) } : {}),
+    ...(first !== undefined ? { from: isoFromEpochMs(first.atMs, first.subMs) } : {}),
+    ...(last !== undefined ? { to: isoFromEpochMs(last.atMs, last.subMs) } : {}),
     modelCount: models.size,
     ...(sessions.size > 0 ? { sessionCount: sessions.size } : {}),
     tokenTotals,
@@ -774,7 +814,7 @@ function buildAssumptions(
   ) {
     assumptions.set(
       "MONTHLY_WINDOW_CALENDAR_MONTH",
-      "Calendar month windows are modeled as UTC calendar months; billing anchors are not part of the data model yet.",
+      "Calendar month windows use each constraint's declared timezone; billing anchors are not supported.",
     );
   }
   if (planVersion.limits.some((limit) => limit.type === "token_limit")) {

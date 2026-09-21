@@ -1,44 +1,38 @@
 # Public Release Checklist
 
-Prepared for the transition from private development to a public repository. Status as of
-2026-09-21. Items that cannot yet be completed are marked pending rather than assumed to pass.
+Status as of 2026-09-21. Public release is **BLOCKED by M1 audit findings**.
 
 ## Gates
 
-- [x] Milestone 0 independent audit complete (fixes applied, validation rerun)
-- [ ] Milestone 1 independent audit complete (required before publication)
+- [x] Milestone 0 independent audit complete
+- [x] Milestone 1 independent audit performed; corrections and findings recorded
+- [ ] Milestone 1 accepted — BLOCKED; see [implementation status](IMPLEMENTATION_STATUS.md)
 
 ## Content safety
 
-- [x] No secrets in the working tree (pattern scan of source, config and docs)
-- [x] No secrets in repository history (scanned at this revision; history is two commits)
-- [x] Synthetic fixtures only: no real prompts, usernames, repositories, keys or personal exports
-- [x] Local specification documents excluded from the repository (`.gitignore`)
-- [x] No production credentials, database connection strings or provider credentials anywhere
-- [x] No generated build artifacts, caches, screenshots or test output tracked
+- [x] Working-tree source/config/docs inspected; no credentials or personal exports found
+- [x] Pre-audit reachable history scanned: four main commits plus two local checkpoint commits,
+      181 distinct blobs / 145 paths; no sensitive content matches
+- [x] Synthetic fixtures with example.invalid provenance; no invented real-provider facts
+- [x] Local specifications excluded; no build artifacts, screenshots or test output tracked
+- [x] Existing Git author identity reviewed (name/email remain part of public commit metadata)
 
 ## Repository content
 
-- [x] License present (AGPL-3.0-or-later; dependency license audit recorded in
-      `docs/IMPLEMENTATION_STATUS.md`)
-- [x] README accurate: pre-release status stated; no unimplemented feature is claimed
-- [x] CONTRIBUTING.md present
-- [x] SECURITY.md present
-- [x] CI configuration present (`.github/workflows/ci.yml`)
-- [x] `git status` clean
-- [x] Repository history reviewed (subject-only commits; no credentials)
+- [x] Complete AGPL license and consistent workspace license metadata
+- [x] Dependency/license audit and distribution obligations recorded in THIRD_PARTY_NOTICES.md
+- [x] README states experimental status and unresolved M1 correctness findings
+- [x] CONTRIBUTING and SECURITY present; no invented security contact address
+- [x] CI configuration present; local regression results in IMPLEMENTATION_STATUS.md
+- [x] Audit corrections recorded in one commit; final working tree verified clean
 
 ## Pending external steps
 
-- [ ] Hosted CI executed (pending first push; the same commands pass locally)
-- [ ] GitHub private vulnerability reporting enabled (pending repository creation)
-- [ ] Repository description and topics configured (pending repository creation)
-- [ ] First public tag or release (optional; not required for publication)
+- [ ] Hosted GitHub Actions — PENDING first push; local success cannot satisfy this item
+- [ ] GitHub private vulnerability reporting — PENDING repository creation
+- [ ] Repository description/topics — PENDING repository creation
+- [ ] First public tag/release — optional, PENDING
 
-## Notes
-
-- The repository must not be published until the Milestone 1 audit passes.
-- Milestone 1 validation was run locally on 2026-09-21 (format, lint, contrast, typecheck, 90 tests,
-  build, end-to-end smoke, 100,000-event benchmark). Results are recorded in
-  `docs/IMPLEMENTATION_STATUS.md`. Local validation is not a substitute for the audit.
-- This checklist is updated as items complete; it is not a substitute for the audit.
+No remote was created and nothing was pushed during this audit. Content/license checks did not
+identify a separate publication blocker, but policy requires M1 acceptance before publication.
+Private workspace package tarballs were smoke-tested, not prepared for public npm distribution.

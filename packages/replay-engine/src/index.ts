@@ -18,6 +18,6 @@
  */
 export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
-export { Decimal, parseAmount, toUnitString } from "./money.js";
+export { parseAmount, toUnitString } from "./money.js";
 export { instantToIso, parseInstant, Temporal } from "./time.js";
 export { ENGINE_VERSION } from "./version.js";

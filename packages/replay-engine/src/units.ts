@@ -48,7 +48,7 @@ export function tokenCountOf(usage: TextUsageV1): number {
 }
 
 export function hasAnyTokenData(usage: TextUsageV1): boolean {
-  return tokenCountOf(usage) > 0;
+  return Object.values(usage).some((value) => value !== undefined);
 }
 
 export function moneyUnitsForUsage(

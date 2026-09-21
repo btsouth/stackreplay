@@ -128,3 +128,72 @@ describe("property: determinism", () => {
     );
   });
 });
+
+describe("independent audit properties", () => {
+  it("arbitrary permutations preserve nanosecond chronology and mixed-category results", () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            nanos: fc.integer({ min: 0, max: 9 }),
+            input: fc.integer({ min: 0, max: 50 }),
+            output: fc.integer({ min: 0, max: 50 }),
+            cache: fc.integer({ min: 0, max: 50 }),
+            order: fc.integer(),
+          }),
+          { minLength: 2, maxLength: 30 },
+        ),
+        (specs) => {
+          const events = specs.map((spec, index) =>
+            makeEvent({
+              id: `e${index}`,
+              occurredAt: `2026-09-01T00:00:00.00000000${spec.nanos}Z`,
+              usage: {
+                inputTokens: spec.input,
+                outputTokens: spec.output,
+                cacheReadTokens: spec.cache,
+              },
+            }),
+          );
+          const permuted = specs
+            .map((spec, index) => ({ order: spec.order, event: events[index] }))
+            .sort((a, b) => a.order - b.order)
+            .map(({ event }) => {
+              if (event === undefined) throw new Error("Missing generated event");
+              return event;
+            });
+          const catalog = makeFixtureCatalog({
+            limits: [
+              rollingLimit({ id: "requests", type: "request_limit", amount: "3" }),
+              rollingLimit({ id: "tokens", type: "token_limit", amount: "100" }),
+            ],
+          });
+          expect(replay({ events: permuted, target, catalog })).toEqual(
+            replay({ events, target, catalog }),
+          );
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
+  it("degrading declared model quality cannot improve confidence", () => {
+    fc.assert(
+      fc.property(fc.array(eventSpec, { minLength: 1, maxLength: 30 }), (specs) => {
+        const events = buildEvents(specs);
+        const degraded = events.map((event) => ({
+          ...event,
+          confidence: { ...event.confidence, model: "unknown" as const },
+        }));
+        const catalog = catalogWithCap(50);
+        const rank = { low: 0, medium: 1, high: 2 };
+        const before = replay({ events, target, catalog });
+        const after = replay({ events: degraded, target, catalog });
+        expect(rank[after.confidence.level]).toBeLessThanOrEqual(rank[before.confidence.level]);
+        expect(after.confidence.level).toBe("low");
+        expect(after.coverage).toEqual(before.coverage);
+      }),
+      { numRuns: 60 },
+    );
+  });
+});

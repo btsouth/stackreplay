@@ -33,3 +33,6 @@ blob-report/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local usage exports (never commit personal workload data)
+*.stackreplay.json

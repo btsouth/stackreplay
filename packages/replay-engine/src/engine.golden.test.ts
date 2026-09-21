@@ -454,6 +454,10 @@ describe("golden fixture: cache pricing", () => {
 
     // $0.10 (cache rate) + $2.00 (cache at input rate, no cache rate) + $4.00 (reasoning at output rate).
     expect(result.constraints[0]?.consumedUnits).toBe("6.1");
+    expect(result.confidence.level).toBe("low");
+    expect(
+      result.confidence.factors.find((factor) => factor.id === "pricing_fallback")?.level,
+    ).toBe("low");
     expect(result.warnings.map((warning) => warning.code)).toContain("PRICING_RATE_FALLBACK");
     expect(result.assumptions.map((assumption) => assumption.id)).toContain(
       "REASONING_PRICED_AS_OUTPUT",

@@ -44,4 +44,5 @@ export {
   type RawCatalogData,
   type RawCatalogFile,
   validateCatalogData,
+  validateLoadedCatalog,
 } from "./validate.js";

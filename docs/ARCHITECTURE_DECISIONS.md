@@ -103,15 +103,15 @@ Recorded 2026-09-21. StackReplay is intended to be developed publicly. This mono
 - The repository must NEVER contain: API keys, production credentials, database connection strings, Stripe secrets, provider credentials, personal StackReplay exports, raw user telemetry, private benchmark datasets derived from users, employer/client information, or production operational secrets. Synthetic deterministic fixtures are allowed.
 - This decision does NOT yet determine whether Milestone 5+ hosted/cloud-only implementation remains in the public monorepo. Before Milestone 5, make an explicit architecture/business decision about whether cloud-only infrastructure remains public or is separated into a private hosted-service implementation. Do not architect or implement that split now.
 
-## 11. Internal time representation: epoch milliseconds, Temporal for calendar semantics
+## 11. Internal time representation: millisecond component plus nanosecond remainder
 
 Recorded 2026-09-21 during Milestone 1. The engine keeps its controlled Temporal module (spec point 24) but does not use polyfilled `Temporal.Instant` objects in the per-event hot path.
 
-- Parsing, sorting, comparing and slicing rolling windows use **epoch milliseconds**, which is exact for every timestamp the schema accepts. An ISO-8601 UTC duration of days/hours/minutes/seconds converts to exact milliseconds, so rolling windows need no calendar arithmetic.
+- Audit correction, 2026-09-21: the original claim that epoch milliseconds preserve every schema timestamp was false. The schema accepts up to nine fractional digits. Parsing, sorting, comparing and slicing rolling windows now retain **epoch milliseconds plus a separate sub-millisecond nanosecond remainder**. Sort by the full instant, then event id for equal instants; input order is never the tie breaker. Whole-second rolling durations preserve the remainder at both half-open boundaries.
 - The Temporal polyfill is used only where calendar semantics genuinely require it: resolving calendar bucket boundaries in an IANA timezone (including DST), and the exported time helpers.
-- Calendar buckets are resolved once per distinct UTC date and verified against the instant before reuse, so timezone-aware bucketing stays correct while costing a few dozen conversions instead of one per event.
+- Calendar buckets are cached by UTC date and recomputed whenever the cached interval does not contain the event, so timezone-aware bucketing stays correct while costing a few dozen conversions instead of one per event.
 - `epochMsFromIso` rejects timestamps that are not real calendar instants (for example `2026-02-30`) instead of letting `Date.parse` roll them over.
-- Rationale: measured on a 100,000 event replay, polyfilled instant comparisons in the sort alone cost 3.1 seconds of a 4.8 second run. The representation change brought the same replay under one second. Any future consumer (Web Worker, CLI, server) inherits this.
+- Rationale: measured on a 100,000 event replay, polyfilled instant comparisons in the sort alone cost 3.1 seconds of a 4.8 second run. The original representation change brought the same replay under one second, but existing fixtures did not prove precision preservation. Audit regressions now cover sub-millisecond chronology and boundaries. Any future consumer (Web Worker, CLI, server) inherits this.
 
 ## 12. Engine input contract: validate, never repair
 

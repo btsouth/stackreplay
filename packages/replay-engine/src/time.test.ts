@@ -84,7 +84,10 @@ describe("durations and dates", () => {
   it("parses UTC timestamps to epoch milliseconds", () => {
     expect(epochMsFromIso("2026-09-01T00:00:00Z")).toBe(Date.UTC(2026, 8, 1));
     expect(epochMsFromIso("2026-09-01T00:00:00.500Z")).toBe(Date.UTC(2026, 8, 1) + 500);
-    expect(epochMsFromIso("2026-09-01T00:00:00.123456789Z")).toBe(Date.UTC(2026, 8, 1) + 123);
+    // The hot-path millisecond component is paired with the remainder in windows.ts.
+    expect(isoFromEpochMs(Date.UTC(2026, 8, 1) + 123, 456789)).toBe(
+      "2026-09-01T00:00:00.123456789Z",
+    );
   });
 
   it("rejects timestamps that are not real calendar instants", () => {

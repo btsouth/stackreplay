@@ -68,3 +68,24 @@ describe("executionReplayResultV1Schema", () => {
     expect("economics" in shape).toBe(true);
   });
 });
+
+describe("independent audit: timestamps", () => {
+  it.each([
+    "2026-02-30T00:00:00Z",
+    "2026-01-01T24:00:00Z",
+    "2026-01-01T00:60:00Z",
+    "2026-01-01T00:00:60Z",
+  ])("rejects impossible instant %s", (occurredAt) => {
+    expect(usageEventV1Schema.safeParse({ ...validEvent, occurredAt }).success).toBe(false);
+  });
+  it("validates optional request timestamps too", () => {
+    expect(
+      usageEventV1Schema.safeParse({ ...validEvent, requestStartedAt: "2026-02-30T00:00:00Z" })
+        .success,
+    ).toBe(false);
+  });
+  it("retains nine-digit fractional precision", () => {
+    const at = "2026-09-01T00:00:00.123456789Z";
+    expect(usageEventV1Schema.parse({ ...validEvent, occurredAt: at }).occurredAt).toBe(at);
+  });
+});

@@ -130,7 +130,7 @@ describe("result shape and determinism", () => {
   it("records the versions used for reproducibility", () => {
     const result = replay({ events, target, catalog });
     expect(result.versions).toEqual({
-      engine: "0.0.0",
+      engine: "0.0.1",
       catalog: "fixture:golden-v1",
       planVersionId: FIXTURE_PLAN_VERSION_ID,
     });

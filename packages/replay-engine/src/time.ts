@@ -6,8 +6,8 @@ import { Temporal } from "@js-temporal/polyfill";
  * be replaced when the runtime ships Temporal natively.
  *
  * Internal timestamps are UTC. Parsing, sorting, comparing and slicing rolling
- * windows use epoch milliseconds, which is exact for every timestamp the
- * schema accepts and orders of magnitude cheaper than polyfilled instants in a
+ * windows use epoch milliseconds plus a sub-millisecond remainder, preserving
+ * every timestamp the schema accepts at lower cost than polyfilled instants in a
  * hundred-thousand-event hot path. The polyfill is used only where calendar
  * semantics (IANA timezones, DST, calendar buckets) genuinely require it.
  */
@@ -36,7 +36,8 @@ const MS_PER_MINUTE = 60_000;
 const MS_PER_SECOND = 1000;
 
 /**
- * Epoch milliseconds of an ISO-8601 UTC timestamp. Throws RangeError when the
+ * Millisecond component of a schema-validated UTC timestamp. Sub-millisecond
+ * precision is retained separately by toTimedEvents. Throws RangeError when the
  * timestamp is not a real calendar instant (for example 2026-02-30) so callers
  * can raise a typed error instead of silently rolling the date over.
  */
@@ -55,8 +56,10 @@ export function epochMsFromIso(isoUtcTimestamp: string): number {
 }
 
 /** ISO-8601 UTC timestamp for epoch milliseconds, in the same style as Temporal. */
-export function isoFromEpochMs(epochMs: number): string {
-  return new Date(epochMs).toISOString().replace(/\.000Z$/, "Z");
+export function isoFromEpochMs(epochMs: number, subMs = 0): string {
+  const iso = new Date(epochMs).toISOString();
+  if (subMs === 0) return iso.replace(/\.000Z$/, "Z");
+  return `${iso.slice(0, -1)}${String(subMs).padStart(6, "0").replace(/0+$/, "")}Z`;
 }
 
 /**
@@ -84,19 +87,14 @@ export function calendarBucketStart(
   unit: CalendarUnit,
   timeZone: string,
 ): Temporal.Instant {
-  const zoned = instant.toZonedDateTimeISO(timeZone);
-  switch (unit) {
-    case "day":
-      return zoned.startOfDay().toInstant();
-    case "week":
-      // Weeks start on Monday (spec point 24 example: calendar week Monday UTC).
-      return zoned
-        .startOfDay()
-        .subtract({ days: zoned.dayOfWeek - 1 })
-        .toInstant();
-    case "month":
-      return zoned.with({ day: 1 }).startOfDay().toInstant();
-  }
+  const date = instant.toZonedDateTimeISO(timeZone).toPlainDate();
+  const start =
+    unit === "day"
+      ? date
+      : unit === "week"
+        ? date.subtract({ days: date.dayOfWeek - 1 })
+        : date.with({ day: 1 });
+  return start.toZonedDateTime(timeZone).toInstant();
 }
 
 /** End of the calendar bucket (start of the next one), exclusive. */
@@ -105,14 +103,16 @@ export function calendarBucketEnd(
   unit: CalendarUnit,
   timeZone: string,
 ): Temporal.Instant {
-  const start = calendarBucketStart(instant, unit, timeZone).toZonedDateTimeISO(timeZone);
+  const start = calendarBucketStart(instant, unit, timeZone)
+    .toZonedDateTimeISO(timeZone)
+    .toPlainDate();
   const next =
     unit === "day"
       ? start.add({ days: 1 })
       : unit === "week"
         ? start.add({ days: 7 })
         : start.add({ months: 1 });
-  return next.toInstant();
+  return next.toZonedDateTime(timeZone).toInstant();
 }
 
 /** Calendar bucket boundaries, as epoch milliseconds, for the containing instant. */

@@ -1,5 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { z } from "zod";
+import { stableStringify } from "./canonical.js";
+import type { CatalogV1 } from "./catalog.js";
 import {
   modelRuleV1Schema,
   modelV1Schema,
@@ -45,7 +47,16 @@ export interface RawCatalogData {
 const INTEGER_AMOUNT_PATTERN = /^\d+$/;
 const MAX_MULTIPLIER = 10;
 
+function exceedsMaxMultiplier(value: string): boolean {
+  const [whole = "", fraction = ""] = value.split(".");
+  return (
+    whole.length > 2 ||
+    (whole.length === 2 && (whole > "10" || (whole === "10" && /[1-9]/.test(fraction))))
+  );
+}
+
 function isValidTimeZone(timeZone: string): boolean {
+  if (/^[+-]/.test(timeZone)) return false;
   try {
     Temporal.Instant.from("2026-01-01T00:00:00Z").toZonedDateTimeISO(timeZone);
     return true;
@@ -56,8 +67,8 @@ function isValidTimeZone(timeZone: string): boolean {
 
 function isValidDuration(duration: string): boolean {
   try {
-    Temporal.Duration.from(duration);
-    return true;
+    const value = Temporal.Duration.from(duration).total({ unit: "milliseconds" });
+    return Number.isSafeInteger(value) && value > 0 && value <= 8_640_000_000_000_000;
   } catch {
     return false;
   }
@@ -160,6 +171,19 @@ function checkLimits(
 ): void {
   for (const version of plan.versions) {
     const where = `${plan.id}@${version.effectiveFrom}`;
+    for (const [kind, ids] of [
+      ["limit", version.limits.map((limit) => limit.id)],
+      ["model rule", version.modelRules.map((rule) => rule.model)],
+      ["promotion", (version.promotions ?? []).map((promotion) => promotion.id)],
+    ] as const) {
+      if (new Set(ids).size !== ids.length)
+        issues.push({
+          severity: "error",
+          code: "DUPLICATE_ID",
+          message: `${where}: duplicate ${kind}`,
+          file,
+        });
+    }
     for (const limit of version.limits) {
       checkLimit(limit, where, file, knownModelIds, issues);
     }
@@ -174,6 +198,13 @@ function checkLimits(
           file,
         });
       }
+      if (rule.multiplier !== undefined && exceedsMaxMultiplier(rule.multiplier))
+        issues.push({
+          severity: "error",
+          code: "MULTIPLIER_OUT_OF_RANGE",
+          message: `${where}: model multiplier exceeds ${MAX_MULTIPLIER}`,
+          file,
+        });
       const excluded = rule.excluded === true;
       if (!excluded && rule.pricingRef === undefined) {
         issues.push({
@@ -193,7 +224,7 @@ function checkLimits(
           file,
         });
       }
-      if (Number(promotion.multiplier) > MAX_MULTIPLIER) {
+      if (exceedsMaxMultiplier(promotion.multiplier)) {
         issues.push({
           severity: "error",
           code: "MULTIPLIER_OUT_OF_RANGE",
@@ -312,6 +343,14 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
         },
       });
       for (const rule of version.modelRules) {
+        const price = pricing.find((entry) => entry.value.id === rule.pricingRef)?.value;
+        if (price !== undefined && price.modelId !== rule.model)
+          issues.push({
+            severity: "error",
+            code: "PRICING_MODEL_MISMATCH",
+            message: `${plan.id}: pricing does not belong to model ${rule.model}`,
+            file: entry.file,
+          });
         if (rule.pricingRef !== undefined && !pricingIds.has(rule.pricingRef)) {
           issues.push({
             severity: "error",
@@ -347,5 +386,43 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
   checkVersionRanges(planVersionRanges, issues);
   checkVersionRanges(pricingRanges, issues);
 
+  return issues;
+}
+
+/** Validate the serialized boundary too, including redundant indexes. */
+export function validateLoadedCatalog(catalog: CatalogV1): CatalogValidationIssue[] {
+  const raw: RawCatalogData = { providers: [], models: [], plans: [], pricing: [] };
+  const issues: CatalogValidationIssue[] = [];
+  for (const role of ["providers", "models", "plans", "pricing"] as const) {
+    for (const [key, value] of Object.entries(catalog[role])) {
+      raw[role].push({ file: `${role}/${key}`, data: value });
+      if (key !== value.id)
+        issues.push({
+          severity: "error",
+          code: "INDEX_MISMATCH",
+          message: `${role}: key differs from id`,
+        });
+    }
+  }
+  issues.push(...validateCatalogData(raw));
+  const expected: CatalogV1["planVersions"] = {};
+  for (const plan of Object.values(catalog.plans)) {
+    for (const version of plan.versions) {
+      const versionId = `${plan.id}@${version.effectiveFrom}`;
+      expected[versionId] = {
+        ...version,
+        versionId,
+        planId: plan.id,
+        planName: plan.name,
+        providerId: plan.providerId,
+      };
+    }
+  }
+  if (stableStringify(expected) !== stableStringify(catalog.planVersions))
+    issues.push({
+      severity: "error",
+      code: "INDEX_MISMATCH",
+      message: "planVersions does not match plans",
+    });
   return issues;
 }

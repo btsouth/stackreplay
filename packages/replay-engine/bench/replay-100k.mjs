@@ -14,6 +14,14 @@ import { replay } from "@stackreplay/replay-engine";
 
 const EVENT_COUNT = Number(process.env.BENCH_EVENTS ?? 100_000);
 const RUNS = Number(process.env.BENCH_RUNS ?? 5);
+if (
+  !Number.isSafeInteger(EVENT_COUNT) ||
+  EVENT_COUNT < 1 ||
+  !Number.isSafeInteger(RUNS) ||
+  RUNS < 1
+) {
+  throw new Error("BENCH_EVENTS and BENCH_RUNS must be positive safe integers");
+}
 const WINDOW_DAYS = 30;
 const MODELS = ["example-small", "example-medium", "example-large"];
 
@@ -74,9 +82,6 @@ for (const benchmarkCase of cases) {
   }
 }
 
-// Warm-up: JIT, module init and the Temporal polyfill's first calls.
-replay({ events: events.slice(0, 2_000), target: cases[0].target, catalog });
-
 const lines = [];
 lines.push(`catalog version: ${catalog.catalogVersion}`);
 lines.push(`node: ${process.version}`);
@@ -87,6 +92,8 @@ lines.push(`runs per target: ${RUNS}`);
 lines.push("");
 
 for (const benchmarkCase of cases) {
+  // Warm each target with the same small workload; setup is outside timing.
+  replay({ events: events.slice(0, 2_000), target: benchmarkCase.target, catalog });
   const samples = [];
   let result;
   for (let run = 0; run < RUNS; run += 1) {
@@ -97,7 +104,9 @@ for (const benchmarkCase of cases) {
 
   const sorted = [...samples].sort((a, b) => a - b);
   const min = sorted[0];
-  const median = sorted[Math.floor(sorted.length / 2)];
+  const middle = Math.floor(sorted.length / 2);
+  const median =
+    sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
   const max = sorted[sorted.length - 1];
   const throughput = Math.round((EVENT_COUNT / median) * 1000);
 
@@ -105,6 +114,7 @@ for (const benchmarkCase of cases) {
   lines.push(
     `  min ${min.toFixed(1)} ms | median ${median.toFixed(1)} ms | max ${max.toFixed(1)} ms`,
   );
+  lines.push(`  samples (ms): ${samples.map((sample) => sample.toFixed(1)).join(", ")}`);
   lines.push(`  throughput at median: ${throughput} events/second`);
   lines.push(
     `  constraints: ${result.constraints.map((constraint) => `${constraint.id}=${constraint.status}`).join(", ")}`,
@@ -118,4 +128,5 @@ for (const benchmarkCase of cases) {
   lines.push("");
 }
 
+lines.push(`process peak RSS: ${(process.resourceUsage().maxRSS / 1024).toFixed(1)} MiB`);
 console.log(lines.join("\n"));

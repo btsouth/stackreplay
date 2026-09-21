@@ -12,15 +12,17 @@ import { type CalendarUnit, calendarBucketBoundsMs, durationToMs, epochMsFromIso
  * Calendar windows are computed in the window's IANA timezone, so DST
  * transitions move the boundary the way a provider's local reset would.
  *
- * Instants are epoch milliseconds internally: exact for every timestamp the
- * schema accepts, and far cheaper than polyfilled Temporal instants in the
- * per-event hot path. Temporal is used only to resolve calendar buckets, once
- * per distinct UTC date rather than once per event.
+ * Instants use epoch milliseconds plus a sub-millisecond nanosecond remainder,
+ * preserving every timestamp the schema accepts without polyfilled Temporal
+ * instants in the per-event hot path. Calendar buckets are cached by UTC date
+ * and recomputed when the cached interval no longer contains the event.
  */
 
 export interface TimedEvent {
   /** Epoch milliseconds. */
   atMs: number;
+  /** Nanoseconds after the millisecond component, in [0, 999999]. */
+  subMs: number;
   event: TextUsageEventV1;
 }
 
@@ -29,17 +31,24 @@ export interface WindowSlice {
   startMs: number;
   /** Epoch milliseconds, exclusive. */
   endMs: number;
+  /** Shared fractional remainder of the two whole-duration boundaries. */
+  subMs: number;
   events: TimedEvent[];
 }
 
 export function toTimedEvents(events: readonly TextUsageEventV1[]): TimedEvent[] {
-  return events.map((event) => ({ atMs: epochMsFromIso(event.occurredAt), event }));
+  return events.map((event) => ({
+    atMs: epochMsFromIso(event.occurredAt),
+    subMs: Number((event.occurredAt.split(".")[1]?.slice(0, -1) ?? "").padEnd(9, "0").slice(3)),
+    event,
+  }));
 }
 
 /** Canonical chronological order: by instant, then by event id. */
 export function sortTimedEvents(timed: readonly TimedEvent[]): TimedEvent[] {
   return [...timed].sort((a, b) => {
     if (a.atMs !== b.atMs) return a.atMs - b.atMs;
+    if (a.subMs !== b.subMs) return a.subMs - b.subMs;
     if (a.event.id < b.event.id) return -1;
     if (a.event.id > b.event.id) return 1;
     return 0;
@@ -53,9 +62,18 @@ export function sliceRollingWindows(
   const slices: WindowSlice[] = [];
   let current: WindowSlice | null = null;
   for (const timed of events) {
-    if (current === null || timed.atMs >= current.endMs) {
+    if (
+      current === null ||
+      timed.atMs > current.endMs ||
+      (timed.atMs === current.endMs && timed.subMs >= current.subMs)
+    ) {
       if (current !== null) slices.push(current);
-      current = { startMs: timed.atMs, endMs: timed.atMs + durationMs, events: [] };
+      current = {
+        startMs: timed.atMs,
+        endMs: timed.atMs + durationMs,
+        subMs: timed.subMs,
+        events: [],
+      };
     }
     current.events.push(timed);
   }
@@ -90,7 +108,7 @@ export function sliceCalendarWindows(
 
     let slice = byStart.get(bucket.startMs);
     if (slice === undefined) {
-      slice = { startMs: bucket.startMs, endMs: bucket.endMs, events: [] };
+      slice = { startMs: bucket.startMs, endMs: bucket.endMs, subMs: 0, events: [] };
       byStart.set(bucket.startMs, slice);
       slices.push(slice);
     }

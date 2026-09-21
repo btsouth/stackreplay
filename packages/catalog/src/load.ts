@@ -54,6 +54,8 @@ export function readRawCatalog(dataDir: string): RawCatalogData {
 }
 
 export function buildCatalog(raw: RawCatalogData): CatalogV1 {
+  const errors = validateCatalogData(raw).filter((issue) => issue.severity === "error");
+  if (errors.length > 0) throw new CatalogValidationError(errors);
   const providers: CatalogV1["providers"] = {};
   for (const entry of raw.providers) {
     const provider = providerV1Schema.parse(entry.data);
@@ -70,11 +72,11 @@ export function buildCatalog(raw: RawCatalogData): CatalogV1 {
   const planVersions: CatalogV1["planVersions"] = {};
   for (const entry of raw.plans) {
     const plan = planV1Schema.parse(entry.data);
-    plans[plan.id] = plan;
-    const versions = [...plan.versions].sort((a, b) =>
+    plan.versions.sort((a, b) =>
       a.effectiveFrom < b.effectiveFrom ? -1 : a.effectiveFrom > b.effectiveFrom ? 1 : 0,
     );
-    for (const version of versions) {
+    plans[plan.id] = plan;
+    for (const version of plan.versions) {
       const versionId = planVersionId(plan.id, version.effectiveFrom);
       const loaded: LoadedPlanVersionV1 = {
         ...version,

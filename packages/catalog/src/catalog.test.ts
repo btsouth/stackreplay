@@ -4,8 +4,18 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canonicalize } from "./canonical.js";
 import { getPlanVersion } from "./catalog.js";
-import { CatalogValidationError, loadCatalogFromDirectory, loadDefaultCatalog } from "./load.js";
+import {
+  buildCatalog,
+  CatalogValidationError,
+  loadCatalogFromDirectory,
+  loadDefaultCatalog,
+} from "./load.js";
 import { type RawCatalogData, validateCatalogData } from "./validate.js";
+
+function required<T>(value: T | undefined): T {
+  if (value === undefined) throw new Error("Missing test fixture entry");
+  return value;
+}
 
 function rawEntry(file: string, data: unknown) {
   return { file, data };
@@ -307,5 +317,81 @@ describe("canonicalize", () => {
     const a = { b: 1, a: { d: 2, c: [3, 4] } };
     const b = { a: { c: [3, 4], d: 2 }, b: 1 };
     expect(canonicalize(a)).toEqual(canonicalize(b));
+  });
+});
+
+describe("independent audit: semantic validation and catalog identity", () => {
+  it.each(["effectiveFrom", "lastVerifiedAt"])("rejects impossible %s dates", (field) => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    required(versions[0])[field] = "2026-02-30";
+    expect(
+      validateCatalogData(raw({ plans: [rawEntry("p.yaml", plan)] })).some(
+        (issue) => issue.code === "SCHEMA_INVALID",
+      ),
+    ).toBe(true);
+  });
+  it.each(["PT0S", "P0D"])("rejects zero duration %s", (duration) => {
+    const plan = validPlan();
+    const version = required(plan.versions[0]);
+    required(version.limits[0]).window.duration = duration;
+    expect(() => buildCatalog(raw({ plans: [rawEntry("p.yaml", plan)] }))).toThrow(
+      CatalogValidationError,
+    );
+  });
+  it("does not silently overwrite duplicate entries in buildCatalog", () => {
+    expect(() =>
+      buildCatalog(
+        raw({ providers: [rawEntry("a", validProvider), rawEntry("b", validProvider)] }),
+      ),
+    ).toThrow(CatalogValidationError);
+  });
+  it("rejects duplicate limit ids and model rules", () => {
+    const plan = validPlan();
+    const version = required(plan.versions[0]);
+    version.limits.push(required(version.limits[0]));
+    version.modelRules.push(required(version.modelRules[0]));
+    const issues = validateCatalogData(raw({ plans: [rawEntry("p", plan)] }));
+    expect(issues.filter((issue) => issue.code === "DUPLICATE_ID")).toHaveLength(2);
+  });
+  it("rejects a price belonging to a different model", () => {
+    const data = raw({
+      models: [rawEntry("a", validModel), rawEntry("b", { ...validModel, id: "other" })],
+      pricing: [rawEntry("p", { ...validPricing, modelId: "other" })],
+    });
+    expect(validateCatalogData(data).some((issue) => issue.code === "PRICING_MODEL_MISMATCH")).toBe(
+      true,
+    );
+  });
+  it("rejects out-of-range model multipliers without floating-point rounding", () => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    required(versions[0]).modelRules = [
+      {
+        model: "example-model",
+        pricingRef: "example-model-pricing",
+        multiplier: "10.000000000000000001",
+      },
+    ];
+    expect(
+      validateCatalogData(raw({ plans: [rawEntry("p", plan)] })).some(
+        (issue) => issue.code === "MULTIPLIER_OUT_OF_RANGE",
+      ),
+    ).toBe(true);
+  });
+  it("version array order and file order do not affect the content hash", () => {
+    const plan = validPlan();
+    const first = { ...required(plan.versions[0]), effectiveTo: "2026-08-31" };
+    const second = { ...required(plan.versions[0]), effectiveFrom: "2026-09-01" };
+    const data = raw({
+      plans: [rawEntry("p", { ...plan, versions: [first, second] })],
+      models: [rawEntry("a", validModel), rawEntry("b", { ...validModel, id: "other" })],
+    });
+    const version = buildCatalog(data).catalogVersion;
+    data.models.reverse();
+    data.plans = [rawEntry("renamed.yaml", { ...plan, versions: [second, first] })];
+    expect(buildCatalog(data).catalogVersion).toBe(version);
+    second.price = { ...second.price, amount: "21.00" };
+    expect(buildCatalog(data).catalogVersion).not.toBe(version);
   });
 });
