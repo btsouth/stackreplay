@@ -2,10 +2,23 @@
 
 ## Current milestone
 
-**Milestone 3 — browser-local replay, implemented, self-validated and independently audited.**
-Accepted after corrections: the audit log below records what was verified, what it found and what
-changed. The measurement reported in an earlier revision (a completed ~100k-event import whose
-follow-up replay never finished) was wrong, and the import path it described as PARTIAL passes.
+**Milestone 3 — browser-local replay, implemented, independently audited and accepted.**
+Accepted after corrections and two independent reviews: the audit log below records what was
+verified, what it found and what changed. The measurement reported in an earlier revision (a
+completed ~100k-event import whose follow-up replay never finished) was wrong, and the import path
+it described as PARTIAL passes.
+
+The GLM-5.3 Flash review and its follow-up spot-check raised four presentation-only findings, all
+fixed and guarded by regression assertions, and concluded the milestone safe to build on:
+
+- Enum values are humanized everywhere they reach the interface, including the engine warning text
+  (`latch until reset`, never `latch_until_reset`); `replace` was only substituting the first
+  underscore.
+- Constraint detail rows humanize the same enums.
+- The screenshot harness waits for the dynamically imported timeline chart before capturing, so the
+  audit screenshots show a rendered chart rather than an empty box.
+
+None of these touched the engine, the schemas, the catalog or the accounting rules.
 
 Milestone 1 (schemas, catalog, deterministic subscription replay engine) and Milestone 2 (read-only
 local adapters and the CLI) remain independently audited and accepted within their documented
