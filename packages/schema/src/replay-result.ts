@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { executionTargetV1Schema } from "./execution-target.js";
-import { moneyV1Schema, signedMoneyV1Schema } from "./money.js";
-import { isoDateV1Schema, isoUtcTimestampV1Schema, verificationStatusV1Schema } from "./scalars.js";
+import { computedMoneyV1Schema, computedSignedMoneyV1Schema, moneyV1Schema } from "./money.js";
+import {
+  computedDecimalV1Schema,
+  decimalSumEquals,
+  isoDateV1Schema,
+  isoUtcTimestampV1Schema,
+  verificationStatusV1Schema,
+} from "./scalars.js";
 
 /**
  * Generalized replay result (Addendum A point 116, decisions 1-4, 13-20).
@@ -46,6 +52,26 @@ export const coverageDimensionV1Schema = z
           code: "custom",
           message: "a known coverage dimension requires percent, covered and total",
         });
+      }
+      if (
+        dimension.covered !== undefined &&
+        dimension.total !== undefined &&
+        dimension.percent !== undefined
+      ) {
+        const expected =
+          dimension.total === 0
+            ? 100
+            : Math.round((dimension.covered / dimension.total) * 100 * 10000) / 10000;
+        if (
+          dimension.covered > dimension.total ||
+          dimension.percent !== expected ||
+          (dimension.unknownCount ?? 0) !== 0
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: "known coverage must match its complete numerator and denominator",
+          });
+        }
       }
       return;
     }
@@ -117,12 +143,12 @@ export const constraintResultV1Schema = z
     }),
     exceed: constraintExceedV1Schema,
     status: constraintStatusV1Schema,
-    /** Decimal strings: money for credit pools, integer strings for counts. */
-    limitUnits: z.string().min(1),
+    /** Decimal strings in the declared unit; token consumption can be multiplier-adjusted. */
+    limitUnits: computedDecimalV1Schema,
     /** Accepted consumption: units the simulated target actually served. */
-    consumedUnits: z.string().min(1),
+    consumedUnits: computedDecimalV1Schema,
     /** Attempted demand: units the workload offered, rejected events included. */
-    attemptedUnits: z.string().min(1),
+    attemptedUnits: computedDecimalV1Schema,
     violationCount: z.number().int().nonnegative(),
     /** Events this constraint rejected (not served). */
     rejectedEvents: z.number().int().nonnegative(),
@@ -131,13 +157,20 @@ export const constraintResultV1Schema = z
     /** Events the constraint applies to at all. */
     eligibleEvents: z.number().int().nonnegative(),
     /** Units above included capacity, for allow_overage and record_only rules. */
-    overageUnits: z.string().min(1).optional(),
+    overageUnits: computedDecimalV1Schema.optional(),
     /** Billed overage for allow_overage rules. */
-    overageCost: moneyV1Schema.optional(),
+    overageCost: computedMoneyV1Schema.optional(),
     /** Present when the constraint applies to specific models only. */
     modelIds: z.array(z.string().min(1)).optional(),
   })
   .superRefine((constraint, ctx) => {
+    const expectedUnit = { credit_pool: "usd", token_limit: "tokens", request_limit: "requests" }[
+      constraint.kind
+    ];
+    if (constraint.unit !== expectedUnit)
+      ctx.addIssue({ code: "custom", path: ["unit"], message: "unit must match constraint kind" });
+    if (constraint.overageCost !== undefined && constraint.exceed !== "allow_overage")
+      ctx.addIssue({ code: "custom", message: "only allow_overage rules bill overage" });
     if (constraint.overageCost !== undefined && constraint.overageUnits === undefined) {
       ctx.addIssue({
         code: "custom",
@@ -164,12 +197,12 @@ export const replayViolationV1Schema = z.strictObject({
   /** Events in this window the constraint did not serve. */
   affectedEvents: z.number().int().nonnegative(),
   /** Attempted demand in the window. */
-  requiredUnits: z.string().min(1),
-  availableUnits: z.string().min(1),
+  requiredUnits: computedDecimalV1Schema,
+  availableUnits: computedDecimalV1Schema,
   /** Accepted consumption actually served inside the window. */
-  acceptedUnits: z.string().min(1),
+  acceptedUnits: computedDecimalV1Schema,
   /** Units above included capacity, when the rule allows them. */
-  overageUnits: z.string().min(1).optional(),
+  overageUnits: computedDecimalV1Schema.optional(),
   modelIds: z.array(z.string().min(1)).optional(),
 });
 export type ReplayViolationV1 = z.infer<typeof replayViolationV1Schema>;
@@ -191,21 +224,53 @@ export type UnsupportedModelV1 = z.infer<typeof unsupportedModelV1Schema>;
 export const economicsV1Schema = z
   .strictObject({
     /** Fixed subscription price for the plan version, when the target is a subscription. */
-    basePlanCost: moneyV1Schema.optional(),
+    basePlanCost: computedMoneyV1Schema.optional(),
     /** Billed consumption above included capacity. */
-    overageCost: moneyV1Schema.optional(),
+    overageCost: computedMoneyV1Schema.optional(),
     /** Total simulated target cost: base plus overage where applicable. */
-    targetCost: moneyV1Schema,
+    targetCost: computedMoneyV1Schema,
     costBasis: z.enum(["fixed_plan_price", "fixed_plan_price_plus_overage", "api_list_price"]),
-    baselineCost: moneyV1Schema.optional(),
+    baselineCost: computedMoneyV1Schema.optional(),
     /** targetCost - baselineCost; negative means the target costs less. */
-    costDifference: signedMoneyV1Schema.optional(),
-    apiListPriceEquivalent: moneyV1Schema.optional(),
+    costDifference: computedSignedMoneyV1Schema.optional(),
+    apiListPriceEquivalent: computedMoneyV1Schema.optional(),
     ratios: z
       .array(z.strictObject({ name: z.string().min(1), value: z.string().min(1) }))
       .optional(),
   })
   .superRefine((economics, ctx) => {
+    if (
+      economics.costBasis !== "api_list_price" &&
+      (economics.basePlanCost === undefined ||
+        !decimalSumEquals(
+          economics.basePlanCost.amount,
+          economics.overageCost?.amount ?? "0",
+          economics.targetCost.amount,
+        ))
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "targetCost must equal basePlanCost plus overageCost",
+      });
+    if (
+      economics.costBasis === "fixed_plan_price_plus_overage" &&
+      economics.overageCost === undefined
+    )
+      ctx.addIssue({ code: "custom", message: "overage basis requires overageCost" });
+    if (
+      economics.costDifference !== undefined &&
+      economics.baselineCost !== undefined &&
+      !decimalSumEquals(
+        economics.baselineCost.amount,
+        economics.costDifference.amount,
+        economics.targetCost.amount,
+      )
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "costDifference must equal targetCost minus baselineCost",
+      });
+
     if (economics.costDifference !== undefined && economics.baselineCost === undefined) {
       ctx.addIssue({
         code: "custom",
@@ -273,7 +338,7 @@ export const replayVersionsV1Schema = z.strictObject({
 });
 export type ReplayVersionsV1 = z.infer<typeof replayVersionsV1Schema>;
 
-/** Aggregate token totals over the workload, as the categories were reported. */
+/** Disjoint normalized token totals; omitted when workload consumption is incomplete. */
 export const tokenTotalsV1Schema = z.strictObject({
   inputTokens: z.number().int().nonnegative().optional(),
   cacheReadTokens: z.number().int().nonnegative().optional(),
@@ -290,7 +355,7 @@ export const workloadSummaryV1Schema = z.strictObject({
   to: isoUtcTimestampV1Schema.optional(),
   modelCount: z.number().int().nonnegative(),
   sessionCount: z.number().int().nonnegative().optional(),
-  /** Disjoint bucket totals; a bucket is absent when no event reported it. */
+  /** Disjoint bucket totals; empty when any event has incomplete consumption. */
   tokenTotals: tokenTotalsV1Schema,
 });
 export type WorkloadSummaryV1 = z.infer<typeof workloadSummaryV1Schema>;
@@ -307,20 +372,50 @@ export const subscriptionReplayDetailV1Schema = z.strictObject({
 });
 export type SubscriptionReplayDetailV1 = z.infer<typeof subscriptionReplayDetailV1Schema>;
 
-export const executionReplayResultV1Schema = z.strictObject({
-  version: z.literal(1),
-  workload: workloadSummaryV1Schema,
-  target: executionTargetV1Schema,
-  feasibility: feasibilityV1Schema,
-  coverage: coverageDimensionsV1Schema,
-  constraints: z.array(constraintResultV1Schema),
-  violations: z.array(replayViolationV1Schema),
-  unsupportedModels: z.array(unsupportedModelV1Schema),
-  economics: economicsV1Schema.optional(),
-  assumptions: z.array(replayAssumptionV1Schema),
-  confidence: replayConfidenceV1Schema,
-  warnings: z.array(replayWarningV1Schema),
-  versions: replayVersionsV1Schema,
-  subscription: subscriptionReplayDetailV1Schema.optional(),
-});
+export const executionReplayResultV1Schema = z
+  .strictObject({
+    version: z.literal(1),
+    workload: workloadSummaryV1Schema,
+    target: executionTargetV1Schema,
+    feasibility: feasibilityV1Schema,
+    coverage: coverageDimensionsV1Schema,
+    constraints: z.array(constraintResultV1Schema),
+    violations: z.array(replayViolationV1Schema),
+    unsupportedModels: z.array(unsupportedModelV1Schema),
+    economics: economicsV1Schema.optional(),
+    assumptions: z.array(replayAssumptionV1Schema),
+    confidence: replayConfidenceV1Schema,
+    warnings: z.array(replayWarningV1Schema),
+    versions: replayVersionsV1Schema,
+    subscription: subscriptionReplayDetailV1Schema.optional(),
+  })
+  .superRefine((result, ctx) => {
+    if (result.target.type !== result.versions.targetType)
+      ctx.addIssue({ code: "custom", message: "version target type must match target" });
+    const requests = result.coverage.requests;
+    const expectedStatus =
+      requests.status === "unknown"
+        ? "unknown"
+        : requests.percent === 100
+          ? "full"
+          : requests.percent === 0
+            ? "none"
+            : "partial";
+    if (
+      result.feasibility.status !== expectedStatus ||
+      result.feasibility.coveragePercent !== requests.percent
+    )
+      ctx.addIssue({ code: "custom", message: "feasibility must match request coverage" });
+    const constraints = new Map(result.constraints.map((c) => [c.id, c]));
+    if (constraints.size !== result.constraints.length)
+      ctx.addIssue({ code: "custom", message: "constraint ids must be unique" });
+    for (const violation of result.violations) {
+      const constraint = constraints.get(violation.constraintId);
+      if (constraint === undefined || constraint.unit !== violation.unit)
+        ctx.addIssue({
+          code: "custom",
+          message: "violation must reference a constraint with the same unit",
+        });
+    }
+  });
 export type ExecutionReplayResultV1 = z.infer<typeof executionReplayResultV1Schema>;

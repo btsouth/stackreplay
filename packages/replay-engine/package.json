@@ -1,6 +1,6 @@
 {
   "name": "@stackreplay/replay-engine",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "description": "Pure deterministic replay simulation.",

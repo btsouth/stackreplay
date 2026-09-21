@@ -9,9 +9,9 @@ import { z } from "zod";
  *
  * Bounded decimal envelope (decision 18): at most 28 significant digits and at
  * most 18 fractional digits. The engine computes with 100 significant digits,
- * which is exact for every supported operation over values inside this
- * envelope, so an accepted value is never silently rounded. Values outside the
- * envelope are rejected instead.
+ * combined with the catalog composition budget in decision 21. Together these
+ * bounds make supported computations exact; individual bounded factors alone
+ * cannot guarantee an exact unbounded product.
  */
 
 export const MAX_SIGNIFICANT_DIGITS = 28;
@@ -59,7 +59,8 @@ export function isWithinDecimalEnvelope(value: string): boolean {
   const fractionalPart = dot === -1 ? "" : digits.slice(dot + 1);
   if (fractionalPart.length > MAX_FRACTIONAL_DIGITS) return false;
   const significantInteger = integerPart.replace(/^0+/, "");
-  const significantFraction = fractionalPart.replace(/^0+/, "");
+  const significantFraction =
+    significantInteger.length > 0 ? fractionalPart : fractionalPart.replace(/^0+/, "");
   return significantInteger.length + significantFraction.length <= MAX_SIGNIFICANT_DIGITS;
 }
 
@@ -91,3 +92,31 @@ export const currencyV1Schema = z.literal("USD");
 /** Catalog trust states (spec point 21). */
 export const verificationStatusV1Schema = z.enum(["verified", "estimated", "measured", "unknown"]);
 export type VerificationStatusV1 = z.infer<typeof verificationStatusV1Schema>;
+
+/** Computed values may exceed the external 28/18 input envelope (decision 21). */
+export const computedDecimalV1Schema = z
+  .string()
+  .regex(DECIMAL_AMOUNT_PATTERN)
+  .refine((value) => {
+    const [whole = "", fraction = ""] = value.split(".");
+    return fraction.length <= 100 && (whole + fraction).replace(/^0+/, "").length <= 100;
+  }, "computed decimal exceeds the 100-digit arithmetic envelope");
+export const computedSignedDecimalV1Schema = z
+  .string()
+  .regex(SIGNED_DECIMAL_AMOUNT_PATTERN)
+  .refine((value) => computedDecimalV1Schema.safeParse(value.replace(/^-/, "")).success);
+
+/** Exact serialized arithmetic validation, without Number conversion or rounding. */
+export function decimalSumEquals(a: string, b: string, total: string): boolean {
+  if (![a, b, total].every((value) => computedSignedDecimalV1Schema.safeParse(value).success))
+    return false;
+  const parts = [a, b, total].map((value) => {
+    const [whole = "0", fraction = ""] = value.split(".");
+    return { coefficient: BigInt(whole + fraction), scale: fraction.length };
+  });
+  const scale = Math.max(...parts.map((part) => part.scale));
+  const [left = 0n, right = 0n, expected = 0n] = parts.map(
+    (part) => part.coefficient * 10n ** BigInt(scale - part.scale),
+  );
+  return left + right === expected;
+}

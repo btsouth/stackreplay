@@ -207,6 +207,49 @@ Recorded 2026-09-21.
 - `StackReplayExportV1` rejects invalid ranges (`from` after `to`); `from == to` is a valid empty range.
 - Constraint and violation results carry accepted consumption, attempted demand, overage units and rejection/indeterminate counts as separate fields.
 
+## 21. Exact arithmetic composition and derived result values
+
+Recorded 2026-09-21 during independent M1 re-audit, tightening decisions 18-20.
+
+The external 28-significant / 18-fractional digit envelope alone cannot bound an
+unlimited product of promotions. Catalog validation also bounds each plan's
+simultaneously active multiplier composition. Let G be the maximum integer-digit
+growth (one per factor greater than one, factors already capped at 10), S the
+maximum sum of fractional scales after removing trailing zeros, and D the
+decimal digit count of the number of constraints. Require **68 + G + S + D <=
+100**. Maxima are conservative across all model rules and promotion snapshots,
+including explicitly pinned versions.
+
+The proof uses the validated aggregate-count bound (<10^16), rates (<10^28),
+and per-million conversion (at most 24 fractional places before multipliers).
+A request-overage amount has fewer than 44 integer digits; token/credit
+amounts have fewer than 38+G. Using the conservative bound 44+G integer and
+24+S fractional places, then reserving D digits for summing constraint costs,
+fits every intermediate product, sum, subtraction and final cost within the
+isolated 100-digit Decimal precision. No monetary rounding is introduced.
+
+Computed result values therefore have a separate envelope: non-negative
+decimal strings with at most 100 significant and 100 fractional digits; signed
+differences use the signed equivalent. External rates and costs retain the
+smaller input envelope. Serialized economic identities are checked exactly,
+including target = base + overage and difference = target - baseline.
+
+Clarifications of the existing accounting contract:
+
+- All applicable hard rules are evaluated before rejection, so every exceeded
+  latch triggers regardless of catalog rule order.
+- Included cache-read and cache-write are disjoint subsets of input; their
+  **combined** count cannot exceed input. Workload summary totals use normalized
+  disjoint buckets, and are omitted when the workload is incomplete.
+- If indeterminate admission prevents an exact overage total, the optional
+  economics object is omitted with an explicit warning. Constraint diagnostics
+  still describe known attempted and accepted quantities, not a complete bill.
+- M1's rulesAsOf is an explicit UTC calendar **date**, matching catalog date
+  granularity; intraday rule changes are not represented.
+- Greedy token/credit admission does not promise monotone served-request counts
+  when capacity changes. Capacity properties must state the pool, unit and
+  window assumptions they actually prove.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

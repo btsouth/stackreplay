@@ -9,10 +9,10 @@ answer: **would another AI coding subscription actually handle the way I work?**
 
 > **Status: pre-release.** This project is under active development. Nothing here is a shipped
 > product yet: there is no scanning, no importing and no replaying of real usage. The versioned
-> schemas, synthetic catalog and replay engine have tests and benchmarks, and the independent M1
-> audit's correctness findings have been addressed, but the corrected engine has **not** been
-> re-audited: its results are not yet trustworthy for subscription decisions. Exactly what exists,
-> what is verified and what comes next is tracked in
+> schemas, synthetic catalog and subscription replay engine passed independent M1 re-audit
+> after additional corrections. The engine is accepted within its documented semantics; the
+> bundled catalog is synthetic and cannot substantiate real-provider comparisons. Exactly what
+> exists, what is verified and what comes next is tracked in
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
@@ -78,9 +78,9 @@ statements above are architecture intentions;
   complete and was independently audited.
 - Milestone 1 (versioned schemas, catalog with validator and loader, deterministic subscription
   replay engine, golden fixtures, property tests, 100,000-event benchmark) was independently
-  audited. The audit returned not-ready and recorded seven correctness blockers; the remediation
-  addresses all seven and M1 is **awaiting re-audit**, not accepted. M2 and public release remain
-  gated on that re-audit.
+  re-audited and **accepted after corrections**. All seven original blockers are resolved.
+  The 100,000-event performance target remains borderline on this machine; see the complete
+  benchmark samples and limitations in the implementation status. M2 has not started.
 - No adapters, scanning, import or replay of real usage exist yet; those arrive with the CLI and
   adapter milestones. Nothing has been pushed anywhere: there is no remote.
 

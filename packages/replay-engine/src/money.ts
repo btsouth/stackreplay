@@ -7,11 +7,12 @@ import { Decimal as DecimalJs } from "decimal.js";
  * exact for every operation supported over the schema's bounded envelope
  * (at most 28 significant digits, at most 18 fractional digits per value).
  *
- * Envelope arithmetic: a per-million rate divided by one million, multiplied by
- * a safe-integer token count (16 digits) and by a multiplier (28 digits), then
- * summed across a large workload stays well inside 100 significant digits, so
- * accepted values are never silently rounded. The configuration is cloned so
- * another consumer of decimal.js cannot change it.
+ * Catalog validation also bounds simultaneous multiplier compositions and the
+ * number of constraint costs summed (decision 21). The 28/18 input envelope
+ * alone is not sufficient for an unbounded product of promotions. That
+ * compositional budget proves all supported intermediate and final values fit
+ * within 100 digits. The configuration is cloned so another Decimal consumer
+ * cannot change it.
  */
 const Decimal = DecimalJs.clone({ precision: 100, rounding: DecimalJs.ROUND_HALF_UP });
 

@@ -184,6 +184,45 @@ function checkLimits(
           file,
         });
     }
+    // Bound the widest possible monetary sum, including all simultaneously active
+    // model/promotion factors. See decision 21 for the 100-digit proof.
+    let maxIntegerGrowth = 0;
+    let maxScale = 0;
+    for (const rule of version.modelRules) {
+      const promotions = (version.promotions ?? []).filter(
+        (p) => p.models === undefined || p.models.includes(rule.model),
+      );
+      const dates = [version.effectiveFrom, ...promotions.map((p) => p.effectiveFrom)];
+      for (const date of dates) {
+        const factors = [
+          rule.multiplier ?? "1",
+          ...promotions
+            .filter(
+              (p) =>
+                p.effectiveFrom <= date && (p.effectiveTo === undefined || p.effectiveTo >= date),
+            )
+            .map((p) => p.multiplier),
+        ];
+        let integerGrowth = 0;
+        let scale = 0;
+        for (const factor of factors) {
+          const [whole = "0", fractional = ""] = factor.split(".");
+          const fraction = fractional.replace(/0+$/, "");
+          scale += fraction.length;
+          if (whole !== "0" && (whole !== "1" || fraction.length > 0)) integerGrowth += 1;
+        }
+        maxIntegerGrowth = Math.max(maxIntegerGrowth, integerGrowth);
+        maxScale = Math.max(maxScale, scale);
+      }
+    }
+    if (68 + maxIntegerGrowth + maxScale + String(version.limits.length).length > 100) {
+      issues.push({
+        severity: "error",
+        code: "ARITHMETIC_ENVELOPE_EXCEEDED",
+        file,
+        message: `${where}: composed multipliers and constraint count exceed the supported exact-arithmetic budget`,
+      });
+    }
     for (const limit of version.limits) {
       checkLimit(limit, where, file, knownModelIds, issues);
     }

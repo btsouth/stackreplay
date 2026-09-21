@@ -739,7 +739,7 @@ describe("remediation: result contract", () => {
     expect(moneyV1Schema.safeParse({ amount: "-1.50", currency: "USD" }).success).toBe(false);
     expect(
       economicsV1Schema.safeParse({
-        basePlanCost: { amount: "20.00", currency: "USD" },
+        basePlanCost: { amount: "18.50", currency: "USD" },
         targetCost: { amount: "18.50", currency: "USD" },
         costBasis: "fixed_plan_price",
         baselineCost: { amount: "20.00", currency: "USD" },

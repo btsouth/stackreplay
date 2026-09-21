@@ -117,6 +117,13 @@ for (const benchmarkCase of cases) {
     samples.push(performance.now() - startedAt);
   }
 
+  if (
+    result.workload.eventCount !== EVENT_COUNT ||
+    result.coverage.requests.status !== "known" ||
+    result.coverage.usage.status !== "known"
+  ) {
+    throw new Error("benchmark did not evaluate the full known workload");
+  }
   const sorted = [...samples].sort((a, b) => a - b);
   const min = sorted[0];
   const middle = Math.floor(sorted.length / 2);
@@ -141,6 +148,12 @@ for (const benchmarkCase of cases) {
   );
   lines.push(
     `  violations: ${result.violations.length} | unsupported models: ${result.unsupportedModels.length} | warnings: ${result.warnings.length} | confidence: ${result.confidence.level}`,
+  );
+  lines.push(
+    `  accepted / attempted: ${result.constraints.map((c) => `${c.id} ${c.consumedUnits}/${c.attemptedUnits} ${c.unit}`).join(", ")}`,
+  );
+  lines.push(
+    `  overage cost: ${result.economics?.overageCost?.amount ?? "not applicable"} USD; rulesAsOf: ${result.versions.rulesAsOf}`,
   );
   lines.push(
     `  peak RSS after this target: ${(process.resourceUsage().maxRSS / 1024).toFixed(1)} MiB`,

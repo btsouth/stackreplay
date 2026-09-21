@@ -28,7 +28,6 @@ import {
   replayContextV1Schema,
   type SubscriptionTargetV1,
   type TextUsageEventV1,
-  type TextUsageV1,
   type TokenTotalsV1,
   type UnsupportedModelV1,
   usageEventV1Schema,
@@ -106,6 +105,15 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const confidence = computeConfidence(timed, prepared, planVersion, catalog, evaluation, tracker);
 
   const pricingReferences = collectPricingReferences(planVersion);
+  const economics =
+    evaluation.hasOverageRule && evaluation.unknownConstraints > 0
+      ? undefined
+      : computeEconomics(planVersion, evaluation);
+  if (economics === undefined)
+    tracker.warn(
+      "ECONOMICS_UNKNOWN",
+      "Indeterminate admission prevents an exact overage total; economics are omitted.",
+    );
 
   return {
     version: 1,
@@ -116,7 +124,7 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     constraints: evaluation.constraints,
     violations: evaluation.violations,
     unsupportedModels: collectUnsupportedModels(timed, resolution),
-    economics: computeEconomics(planVersion, evaluation),
+    ...(economics !== undefined ? { economics } : {}),
     assumptions: buildAssumptions(planVersion, tracker, evaluation.constraints),
     confidence,
     warnings: buildWarnings(tracker),
@@ -567,6 +575,16 @@ interface ConstraintEvaluation {
 
 function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): ConstraintRuntime {
   const sliced = sliceWindows(eligible, limit.window);
+  // The wire timestamp contract uses four-digit years. Never emit a result
+  // outside that contract when a window extends beyond the event date range.
+  if (
+    sliced.slices.some((slice) => slice.startMs < -62167219200000 || slice.endMs >= 253402300800000)
+  ) {
+    throw new ReplayEngineError(
+      "IMPORT_SCHEMA_INVALID",
+      "A replay window extends outside the supported years 0000-9999.",
+    );
+  }
   const slices: SliceRun[] = sliced.slices.map((slice) => ({
     slice,
     attempted: 0,
@@ -575,13 +593,12 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
   }));
 
   const amount = parseAmount(limit.amount);
-  const asNumber = Number(limit.amount);
+  const asNumber = limit.type === "credit_pool" ? undefined : Number(limit.amount);
   return {
     limit,
     unit: UNIT_BY_LIMIT_KIND[limit.type],
     limitAmount: amount,
-    limitNumber:
-      limit.type !== "credit_pool" && Number.isSafeInteger(asNumber) ? asNumber : undefined,
+    limitNumber: asNumber !== undefined && Number.isSafeInteger(asNumber) ? asNumber : undefined,
     slices,
     cursor: 0,
     latchedSliceIndex: null,
@@ -714,37 +731,37 @@ function evaluateConstraints(
       continue;
     }
 
-    // Admission is atomic: the first constraint that rejects decides, and
-    // nothing consumes.
-    let rejecting: { rt: ConstraintRuntime; index: number } | undefined;
+    // Evaluate all hard rules before atomic admission, including every latch.
+    const rejecting: { rt: ConstraintRuntime; index: number }[] = [];
     for (const rt of applicable) {
       const index = sliceIndexFor(rt, timedEvent);
       if (index === undefined) continue;
       if (rt.latchedSliceIndex !== null && rt.latchedSliceIndex === index) {
-        rejecting = { rt, index };
-        break;
+        rejecting.push({ rt, index });
+        continue;
       }
       const exceed = rt.limit.exceed;
       if (exceed !== "reject_request" && exceed !== "latch_until_reset") continue;
       const quantity = quantityOf(rt, preparedEvent) as Units;
       const run = rt.slices[index] as SliceRun;
       if (exceedsCapacity(run.accepted, quantity, rt.limitAmount, rt.limitNumber)) {
-        rejecting = { rt, index };
-        break;
+        rejecting.push({ rt, index });
       }
     }
 
-    if (rejecting !== undefined) {
+    if (rejecting.length > 0) {
       preparedEvent.outcome = "rejected";
-      const run = rejecting.rt.slices[rejecting.index] as SliceRun;
-      run.affectedEvents += 1;
-      rejecting.rt.rejectedEvents += 1;
-      if (rejecting.rt.limit.exceed === "latch_until_reset") {
-        rejecting.rt.latchedSliceIndex = rejecting.index;
-        tracker.warn(
-          "LATCH_TRIGGERED",
-          "One or more events were blocked by a latch_until_reset rule until its window resets.",
-        );
+      for (const rejection of rejecting) {
+        const run = rejection.rt.slices[rejection.index] as SliceRun;
+        run.affectedEvents += 1;
+        rejection.rt.rejectedEvents += 1;
+        if (rejection.rt.limit.exceed === "latch_until_reset") {
+          rejection.rt.latchedSliceIndex = rejection.index;
+          tracker.warn(
+            "LATCH_TRIGGERED",
+            "One or more events were blocked by a latch_until_reset rule until its window resets.",
+          );
+        }
       }
       continue;
     }
@@ -1159,34 +1176,24 @@ function summarizeWorkload(
   for (const { event } of timed) {
     const preparedEvent = prepared.get(event.id);
     if (preparedEvent === undefined) continue;
-    const usage: TextUsageV1 = event.usage;
-    // Aggregate the reported categories (a workload view), not the disjoint
-    // consumption view, which needs complete accounting per event.
-    if (usage.inputTokens !== undefined) {
-      uncachedInput += usage.inputTokens;
-      hasInput = true;
-    }
-    if (usage.outputTokens !== undefined) {
-      output += usage.outputTokens;
-      hasOutput = true;
-    }
-    if (usage.cacheReadTokens !== undefined) {
-      cacheRead += usage.cacheReadTokens;
-      hasCacheRead = true;
-    }
-    if (usage.cacheWriteTokens !== undefined) {
-      cacheWrite += usage.cacheWriteTokens;
-      hasCacheWrite = true;
-    }
-    if (usage.reasoningTokens !== undefined) {
-      reasoning += usage.reasoningTokens;
-      hasReasoning = true;
+    const tokens = preparedEvent.tokens;
+    if (tokens.known) {
+      uncachedInput += tokens.buckets.uncachedInputTokens;
+      output += tokens.buckets.outputTokens;
+      cacheRead += tokens.buckets.cacheReadTokens;
+      cacheWrite += tokens.buckets.cacheWriteTokens;
+      reasoning += tokens.buckets.reasoningTokens;
+      hasInput = hasOutput = hasCacheRead = hasCacheWrite = hasReasoning = true;
     }
     const session = event.source.nativeSessionHash;
     if (session !== undefined) sessions.add(session);
     models.add(preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`);
   }
 
+  // Totals are complete disjoint totals, never an unlabeled known subtotal.
+  if ([...prepared.values()].some((entry) => !entry.tokens.known)) {
+    hasInput = hasOutput = hasCacheRead = hasCacheWrite = hasReasoning = false;
+  }
   const tokenTotals: TokenTotalsV1 = {};
   if (hasCacheRead) tokenTotals.cacheReadTokens = cacheRead;
   if (hasCacheWrite) tokenTotals.cacheWriteTokens = cacheWrite;

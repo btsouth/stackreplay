@@ -120,6 +120,18 @@ export const textUsageV1Schema = z
       }
     };
 
+    const includedRead =
+      accounting?.cacheReadIncludedInInput === true ? (usage.cacheReadTokens ?? 0) : 0;
+    const includedWrite =
+      accounting?.cacheWriteIncludedInInput === true ? (usage.cacheWriteTokens ?? 0) : 0;
+    if (usage.inputTokens !== undefined && includedRead > usage.inputTokens - includedWrite) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["accounting"],
+        message: "included cache read and write quantities together must not exceed inputTokens",
+      });
+    }
+
     checkInclusion(
       "cacheReadIncludedInInput",
       "cacheReadTokens",

@@ -131,8 +131,8 @@ exports[`golden fixture: mixed models > converts each model with its own pricing
   "version": 1,
   "versions": {
     "catalog": "fixture:golden-v1",
-    "engine": "0.0.2",
-    "methodology": "1.1.0",
+    "engine": "0.0.3",
+    "methodology": "1.2.0",
     "pricingReferences": [
       "fixture-medium-pricing",
       "fixture-small-pricing",

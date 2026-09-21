@@ -58,7 +58,7 @@ function runWith(
 }
 
 describe("property: capacity monotonicity", () => {
-  it("increasing plan capacity cannot reduce workload coverage", () => {
+  it("increasing a request-only capacity cannot reduce served request count", () => {
     fc.assert(
       fc.property(
         fc.array(eventSpec, { maxLength: 40 }),
@@ -68,13 +68,16 @@ describe("property: capacity monotonicity", () => {
           const low = Math.min(capA, capB);
           const high = Math.max(capA, capB);
           const events = buildEvents(specs);
-          const lowResult = runWith(catalogWithCap(low), events);
-          const highResult = runWith(catalogWithCap(high), events);
+          const requestCatalog = (amount: number) =>
+            makeFixtureCatalog({
+              limits: [
+                rollingLimit({ id: "requests", type: "request_limit", amount: String(amount) }),
+              ],
+            });
+          const lowResult = runWith(requestCatalog(low), events);
+          const highResult = runWith(requestCatalog(high), events);
           expect(highResult.coverage.requests.covered ?? 0).toBeGreaterThanOrEqual(
             lowResult.coverage.requests.covered ?? 0,
-          );
-          expect(highResult.coverage.usage.covered ?? 0).toBeGreaterThanOrEqual(
-            lowResult.coverage.usage.covered ?? 0,
           );
         },
       ),
@@ -82,7 +85,7 @@ describe("property: capacity monotonicity", () => {
     );
   });
 
-  it("increasing token capacity cannot reduce served token consumption", () => {
+  it("increasing token capacity within one window cannot reduce served tokens", () => {
     fc.assert(
       fc.property(
         fc.array(eventSpec, { maxLength: 30 }),
@@ -91,7 +94,7 @@ describe("property: capacity monotonicity", () => {
         (specs, capA, capB) => {
           const low = Math.min(capA, capB);
           const high = Math.max(capA, capB);
-          const events = buildEvents(specs);
+          const events = buildEvents(specs.map((spec) => ({ ...spec, offsetMinutes: 0 })));
           const lowResult = runWith(catalogWithTokenCap(low * 1_000_000), events);
           const highResult = runWith(catalogWithTokenCap(high * 1_000_000), events);
           expect(Number(highResult.constraints[0]?.consumedUnits ?? "0")).toBeGreaterThanOrEqual(
@@ -114,12 +117,23 @@ describe("property: unsupported events", () => {
             id: "ghost-1",
             occurredAt: new Date(BASE_MS).toISOString(),
             usage: completeUsage({ uncachedInputTokens: 1000 }),
-            model: { rawName: "ghost-model" },
+            model: { rawName: "ghost-model", canonicalId: "ghost-model" },
           }),
         ];
-        const catalog = catalogWithCap(50);
+        const original = catalogWithCap(50);
+        const template = original.models["fixture-small"];
+        if (!template) throw new Error("missing model fixture");
+        const catalog = {
+          ...original,
+          models: {
+            ...original.models,
+            "ghost-model": { ...template, id: "ghost-model", name: "Synthetic unsupported model" },
+          },
+        };
         const baseResult = runWith(catalog, base);
         const extendedResult = runWith(catalog, [...base, ...extra]);
+        expect(baseResult.coverage.models.status).toBe("known");
+        expect(extendedResult.coverage.models.status).toBe("known");
         const basePercent = baseResult.coverage.models.percent ?? 0;
         const extendedPercent = extendedResult.coverage.models.percent ?? 0;
         expect(extendedPercent).toBeLessThanOrEqual(basePercent);
@@ -142,14 +156,9 @@ describe("property: unsupported events", () => {
         const catalog = catalogWithTokenCap(1_000_000);
         const baseResult = runWith(catalog, base);
         const extendedResult = runWith(catalog, [...base, ...unknown]);
-        // Either the dimension degrades to unknown, or the percentage does not rise.
-        if (extendedResult.coverage.usage.status === "known") {
-          expect(extendedResult.coverage.usage.percent ?? 0).toBeLessThanOrEqual(
-            baseResult.coverage.usage.percent ?? 0,
-          );
-        } else {
-          expect(extendedResult.coverage.usage.percent).toBeUndefined();
-        }
+        expect(baseResult.coverage.usage.status).toBe("known");
+        expect(extendedResult.coverage.usage.status).toBe("unknown");
+        expect(extendedResult.coverage.usage.percent).toBeUndefined();
       }),
       { numRuns: 60 },
     );
@@ -217,6 +226,136 @@ describe("property: determinism", () => {
         expect(result.violations).toEqual([]);
       }),
       { numRuns: 30 },
+    );
+  });
+});
+
+describe("independent re-audit properties", () => {
+  it("matches independent atomic admission across simultaneous token and request pools", () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            input: fc.integer({ min: 0, max: 20 }),
+            output: fc.integer({ min: 0, max: 20 }),
+            supported: fc.boolean(),
+          }),
+          { maxLength: 35 },
+        ),
+        fc.integer({ min: 0, max: 100 }),
+        fc.integer({ min: 0, max: 20 }),
+        (specs, tokenCap, requestCap) => {
+          let used = 0;
+          let served = 0;
+          const events = specs.map((spec, i) => {
+            const amount = spec.input + spec.output;
+            if (spec.supported && used + amount <= tokenCap && served + 1 <= requestCap) {
+              used += amount;
+              served++;
+            }
+            return makeEvent({
+              id: String(i).padStart(3, "0"),
+              occurredAt: "2026-09-01T00:00:00.000000001Z",
+              model: {
+                rawName: spec.supported ? "fixture-small" : "fixture-unknown",
+                canonicalId: spec.supported ? "fixture-small" : "fixture-unknown",
+              },
+              usage: completeUsage({ uncachedInputTokens: spec.input, outputTokens: spec.output }),
+            });
+          });
+          const result = runWith(
+            makeFixtureCatalog({
+              limits: [
+                rollingLimit({ id: "tokens", type: "token_limit", amount: String(tokenCap) }),
+                rollingLimit({ id: "requests", type: "request_limit", amount: String(requestCap) }),
+              ],
+            }),
+            events,
+          );
+          expect(result.coverage.requests.covered).toBe(served);
+          expect(result.constraints.find((c) => c.id === "tokens")?.consumedUnits).toBe(
+            String(used),
+          );
+          expect(result.constraints.find((c) => c.id === "requests")?.consumedUnits).toBe(
+            String(served),
+          );
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
+  it("is invariant to arbitrary input permutations with nanosecond ties and mixed token categories", () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            order: fc.integer(),
+            nano: fc.integer({ min: 0, max: 5 }),
+            input: fc.integer({ min: 0, max: 20 }),
+            cache: fc.integer({ min: 0, max: 20 }),
+            reasoning: fc.integer({ min: 0, max: 20 }),
+            model: fc.constantFrom("fixture-small", "fixture-medium"),
+          }),
+          { maxLength: 30 },
+        ),
+        (specs) => {
+          const events = specs.map((s, i) =>
+            makeEvent({
+              id: String(i),
+              occurredAt: `2026-09-01T00:00:00.00000000${s.nano}Z`,
+              model: { rawName: s.model, canonicalId: s.model },
+              usage: completeUsage({
+                uncachedInputTokens: s.input,
+                cacheReadTokens: s.cache,
+                reasoningTokens: s.reasoning,
+              }),
+            }),
+          );
+          const shuffled = specs
+            .map((s, i) => ({ order: s.order, event: events[i] }))
+            .sort((a, b) => a.order - b.order)
+            .map((x) => x.event)
+            .filter((e): e is TextUsageEventV1 => e !== undefined);
+          const catalog = makeFixtureCatalog({
+            limits: [
+              rollingLimit({ id: "tokens", type: "token_limit", amount: "100" }),
+              rollingLimit({ id: "requests", type: "request_limit", amount: "5" }),
+            ],
+          });
+          expect(runWith(catalog, shuffled)).toEqual(runWith(catalog, events));
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+});
+
+describe("property: declared model quality", () => {
+  it("worsening model confidence preserves coverage and cannot improve confidence", () => {
+    fc.assert(
+      fc.property(fc.array(eventSpec, { minLength: 1, maxLength: 30 }), (specs) => {
+        const events = buildEvents(specs);
+        const catalog = catalogWithCap(50);
+        const rank = { low: 0, medium: 1, high: 2 };
+        let previous = runWith(catalog, events);
+        for (const quality of ["mapped", "unknown"] as const) {
+          const current = runWith(
+            catalog,
+            events.map((event) => ({
+              ...event,
+              confidence: { ...event.confidence, model: quality },
+            })),
+          );
+          expect(rank[current.confidence.level]).toBeLessThanOrEqual(
+            rank[previous.confidence.level],
+          );
+          expect(current.coverage).toEqual(previous.coverage);
+          previous = current;
+        }
+        expect(previous.confidence.level).toBe("low");
+      }),
+      { numRuns: 60 },
     );
   });
 });

@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { currencyV1Schema, decimalAmountV1Schema, signedDecimalAmountV1Schema } from "./scalars.js";
+import {
+  computedDecimalV1Schema,
+  computedSignedDecimalV1Schema,
+  currencyV1Schema,
+  decimalAmountV1Schema,
+  signedDecimalAmountV1Schema,
+} from "./scalars.js";
 
 /**
  * Money (spec point 9): serialized as a decimal string, never a JavaScript
@@ -24,3 +30,13 @@ export const signedMoneyV1Schema = z.strictObject({
 });
 
 export type SignedMoneyV1 = z.infer<typeof signedMoneyV1Schema>;
+
+/** Derived exact values have a larger envelope than external rates. */
+export const computedMoneyV1Schema = z.strictObject({
+  amount: computedDecimalV1Schema,
+  currency: currencyV1Schema,
+});
+export const computedSignedMoneyV1Schema = z.strictObject({
+  amount: computedSignedDecimalV1Schema,
+  currency: currencyV1Schema,
+});

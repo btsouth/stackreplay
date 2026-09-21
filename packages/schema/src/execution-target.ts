@@ -21,11 +21,15 @@ import { isoDateV1Schema } from "./scalars.js";
  *
  * The engine validates the exactly-one rule and raises IMPORT_SCHEMA_INVALID.
  */
-export const subscriptionTargetV1Schema = z.strictObject({
-  type: z.literal("subscription"),
-  planVersionId: z.string().min(1).optional(),
-  planId: z.string().min(1).optional(),
-});
+export const subscriptionTargetV1Schema = z
+  .strictObject({
+    type: z.literal("subscription"),
+    planVersionId: z.string().min(1).optional(),
+    planId: z.string().min(1).optional(),
+  })
+  .refine((target) => (target.planId === undefined) !== (target.planVersionId === undefined), {
+    message: "supply exactly one of planId and planVersionId",
+  });
 export type SubscriptionTargetV1 = z.infer<typeof subscriptionTargetV1Schema>;
 
 /**

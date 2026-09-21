@@ -214,6 +214,7 @@ describe("remediation: money shapes", () => {
 
   it("requires a baseline for a cost difference and a matching basis for overage", () => {
     const base = {
+      basePlanCost: { amount: "20.00", currency: "USD" },
       targetCost: { amount: "20.00", currency: "USD" },
       costBasis: "fixed_plan_price" as const,
     };
@@ -236,6 +237,7 @@ describe("remediation: money shapes", () => {
       economicsV1Schema.safeParse({
         ...base,
         costBasis: "fixed_plan_price_plus_overage",
+        targetCost: { amount: "21.00", currency: "USD" },
         overageCost: { amount: "1.00", currency: "USD" },
       }).success,
     ).toBe(true);
