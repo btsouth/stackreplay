@@ -123,6 +123,50 @@ describe("share tokens", () => {
     if (!result.ok) expect(result.code).toBe("SHARE_TOKEN_TOO_LARGE");
   });
 
+  /**
+   * Regression (benchmark F003): a share token is decoded from a URL anyone can
+   * hand a visitor, and its source links reach an `href`. The boundary accepts an
+   * absolute http(s) URL and nothing else, so a hostile scheme never depends on
+   * the renderer to neutralise it.
+   */
+  it("refuses a source link that is not an absolute http(s) URL", async () => {
+    const snapshot = sampleSnapshot() as unknown as Record<string, unknown> & {
+      target: { sources: { url: string; title: string }[] };
+    };
+    for (const url of ["javascript:alert(1)", "data:text/html,<script>", "blob:https://x/y"]) {
+      const hostile = {
+        ...snapshot,
+        target: { ...snapshot.target, sources: [{ url, title: "Click" }] },
+      };
+      const token = await encodeShareTokenFromCanonical(JSON.stringify(hostile));
+      const result = await decodeShareToken(token);
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe("SHARE_TOKEN_INVALID_SNAPSHOT");
+    }
+    // Encoding a snapshot of the same shape is refused too, so the app cannot
+    // mint a link it would then fail to read.
+    const hostile = {
+      ...snapshot,
+      target: { ...snapshot.target, sources: [{ url: "javascript:alert(1)", title: "Click" }] },
+    };
+    await expect(encodeShareToken(hostile as never)).rejects.toThrow();
+  });
+
+  it("accepts an https source link", async () => {
+    const snapshot = sampleSnapshot();
+    const httpOk = {
+      ...snapshot,
+      target: {
+        ...snapshot.target,
+        sources: [
+          { url: "https://www.anthropic.com/pricing", title: "Pricing" },
+          { url: "http://legacy.example.com/docs", title: "Docs" },
+        ],
+      },
+    };
+    expect((await decodeShareToken(await encodeShareToken(httpOk))).ok).toBe(true);
+  });
+
   it("refuses a token whose payload carries a forbidden field", async () => {
     const snapshot = sampleSnapshot() as unknown as Record<string, unknown>;
     const token = await encodeShareTokenFromCanonical(

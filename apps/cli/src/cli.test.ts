@@ -294,6 +294,84 @@ describe("stackreplay export and replay", () => {
     });
   });
 
+  /**
+   * Regression (benchmark F020): a history that was truncated or only partly
+   * decoded exported with no signal at all — the warnings lived on the terminal
+   * that wrote the file and nowhere else.
+   *
+   * A ccusage daily row names no session, so this import produces exactly the
+   * kind of warning that must survive into the artifact: the row is an aggregate
+   * that can never be matched against a native scan (F012/F013), and it reports
+   * no reasoning category (F037).
+   */
+  it("carries collection warnings into the export instead of dropping them", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const importPath = join(homeDir, "ccusage-daily.json");
+      await writeFile(
+        importPath,
+        JSON.stringify({
+          type: "daily",
+          data: [
+            {
+              date: "2026-09-16",
+              month: "2026-09",
+              models: ["example-medium"],
+              inputTokens: 1000,
+              outputTokens: 200,
+              cacheCreationTokens: 0,
+              cacheReadTokens: 0,
+              totalTokens: 1200,
+              costUSD: 0.5,
+            },
+          ],
+        }),
+        "utf8",
+      );
+      const out = join(homeDir, "export.json");
+
+      const json = await capture(["export", "--input", importPath, "--out", out, "--json"], {
+        homeDir,
+        env: {},
+      });
+      expect(json.code).toBe(0);
+      const summary = JSON.parse(json.stdout) as {
+        collectionWarnings: { code: string; message: string }[];
+      };
+      const codes = summary.collectionWarnings.map((warning) => warning.code);
+      expect(codes).toContain("AGGREGATE_NO_SESSION");
+      expect(codes).toContain("ACCOUNTING_UNESTABLISHED");
+
+      // The artifact itself carries them, so a reader who never saw the terminal
+      // still knows the history was aggregated.
+      const written = JSON.parse(await readFile(out, "utf8")) as {
+        collectionWarnings?: { code: string; message: string }[];
+      };
+      expect(written.collectionWarnings?.map((warning) => warning.code)).toEqual(codes);
+
+      // A warning is display text: where the file sits on this machine is not
+      // part of it, and neither is anything else that names the machine.
+      const serialized = JSON.stringify(written);
+      expect(serialized).not.toContain(importPath);
+      expect(serialized).not.toContain(homeDir);
+      for (const warning of written.collectionWarnings ?? []) {
+        expect(warning.message).not.toContain(homeDir);
+      }
+
+      // The terminal path is the one a person reads, and it says the same thing.
+      const text = await capture(["export", "--input", importPath, "--out", out], {
+        homeDir,
+        env: {},
+      });
+      expect(text.code).toBe(0);
+      expect(text.stdout).toContain("Collection warnings");
+      expect(text.stdout).toContain("AGGREGATE_NO_SESSION");
+      expect(text.stdout).toContain("collectionWarnings");
+      // The input file's location is not printed either (the --out path is, since
+      // that is the file the user asked for).
+      expect(text.stdout).not.toContain(importPath);
+    });
+  });
+
   it("names the default export after the day and the documented extension", async () => {
     await withFixtureHome(async (homeDir) => {
       const cwd = process.cwd();
@@ -378,6 +456,109 @@ describe("stackreplay export and replay", () => {
     });
   });
 
+  /**
+   * Regression (benchmark F021): `export --input <missing>` used to succeed with
+   * an empty export, which is the one answer a caller cannot act on. A named input
+   * that cannot be read is a failure here for the same reason it is one in replay.
+   */
+  it("fails when a named input cannot be read instead of exporting nothing", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const missing = join(homeDir, "nope.json");
+      const { code, stderr } = await capture(["export", "--input", missing], { homeDir, env: {} });
+      expect(code).not.toBe(0);
+      expect(stderr).toContain("does not exist");
+      const empty = join(homeDir, "empty.json");
+      await writeFile(empty, JSON.stringify({ not: "an export" }), "utf8");
+      const unreadable = await capture(
+        ["export", "--input", empty, "--out", join(homeDir, "out.json")],
+        {
+          homeDir,
+          env: {},
+        },
+      );
+      expect(unreadable.code).not.toBe(0);
+    });
+  });
+
+  /**
+   * Regression (benchmark F022): `replay --input` accepted `--since`, `--until` and
+   * `--source` and ignored every one of them, so a filtered invocation replayed the
+   * whole file while appearing to filter it.
+   *
+   * The fixture home holds exactly three usage events — two Claude Code assistant
+   * records (10:00:05 and 10:01:00) and one Codex token_count (11:00:10) — so the
+   * counts below are exact, and a filter that stopped working would return the
+   * whole workload instead of a subset.
+   */
+  it("applies the advertised window and source filters to an imported workload", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const out = join(homeDir, "export.json");
+      await capture(["export", "--out", out], { homeDir, env: {} });
+
+      const everything = await capture(
+        ["replay", "example-cloud-starter", "--input", out, "--as-of", "2026-09-15", "--json"],
+        {
+          homeDir,
+          env: {},
+        },
+      );
+      expect(everything.code).toBe(0);
+      const full = JSON.parse(everything.stdout) as {
+        filteredOut?: number;
+        result: { workload: { eventCount: number } };
+      };
+      expect(full.result.workload.eventCount).toBe(3);
+      // No filter was asked for, so nothing is reported as excluded.
+      expect(full.filteredOut).toBeUndefined();
+
+      const windowed = await capture(
+        [
+          "replay",
+          "example-cloud-starter",
+          "--input",
+          out,
+          "--as-of",
+          "2026-09-15",
+          "--since",
+          "2026-09-19T10:00:30.000Z",
+          "--json",
+        ],
+        { homeDir, env: {} },
+      );
+      expect(windowed.code).toBe(0);
+      const filtered = JSON.parse(windowed.stdout) as {
+        filteredOut?: number;
+        result: { workload: { eventCount: number } };
+      };
+      // 10:00:05 falls before the window; the other two events are kept.
+      expect(filtered.result.workload.eventCount).toBe(2);
+      expect(filtered.filteredOut).toBe(1);
+
+      const otherSource = await capture(
+        [
+          "replay",
+          "example-cloud-starter",
+          "--input",
+          out,
+          "--as-of",
+          "2026-09-15",
+          "--source",
+          "codex",
+          "--json",
+        ],
+        { homeDir, env: {} },
+      );
+      expect(otherSource.code).toBe(0);
+      const narrowed = JSON.parse(otherSource.stdout) as {
+        filteredOut?: number;
+        result: { workload: { eventCount: number } };
+      };
+      // Exactly the one Codex event: not the whole workload, and not nothing.
+      expect(narrowed.result.workload.eventCount).toBe(1);
+      expect(narrowed.filteredOut).toBe(2);
+    });
+  });
+
   it("fails when the workload is empty", async () => {
     const homeDir = await mkdtemp(join(tmpdir(), "stackreplay-empty-"));
     try {
@@ -400,6 +581,24 @@ describe("stackreplay plans and doctor", () => {
     const parsed = JSON.parse(stdout) as { plans: { id: string }[] };
     expect(parsed.plans.length).toBeGreaterThan(0);
     expect(parsed.plans.some((plan) => plan.id === "example-cloud-starter")).toBe(true);
+  });
+
+  /**
+   * Regression (benchmark F023): the header printed the wall-clock date even when
+   * `--as-of` named another instant, so the list was labelled with a date the rules
+   * were not selected for.
+   */
+  it("labels the listing with the rules instant it resolved", async () => {
+    const pinned = await capture([
+      "plans",
+      "--plan",
+      "example-cloud-starter",
+      "--as-of",
+      "2026-09-15",
+    ]);
+    expect(pinned.code).toBe(0);
+    expect(pinned.stdout).toContain("2026-09-15");
+    expect(pinned.stdout).not.toContain(new Date().toISOString().slice(0, 10));
   });
 
   it("reports a missing plan id as a usage error", async () => {

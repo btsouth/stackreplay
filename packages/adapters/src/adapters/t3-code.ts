@@ -14,6 +14,8 @@ import {
 import { WarningCollector } from "../warnings.js";
 import { claudeCodeRoots } from "./claude-code.js";
 import { codexRoots } from "./codex.js";
+import { commandCodeRoots } from "./command-code.js";
+import { hermesRoots } from "./hermes.js";
 import { openCodeRoots } from "./opencode.js";
 
 /**
@@ -56,11 +58,19 @@ export function t3CodeRoots(env: SourceEnvironment): string[] {
   return [joinPath(env.platform, env.homeDir, ".t3", "userdata")];
 }
 
-/** Default history roots of a provider adapter, used to avoid scanning twice. */
+/**
+ * Default history roots of a provider adapter, used to avoid scanning twice.
+ *
+ * Every provider this adapter can attribute must be listed: a provider missing
+ * from this map has its default root added as an "extra" root, and the same
+ * directory is then scanned twice.
+ */
 function defaultRootsFor(adapterId: AdapterId, env: SourceEnvironment): string[] {
   if (adapterId === "claude-code") return claudeCodeRoots(env);
   if (adapterId === "codex") return codexRoots(env);
   if (adapterId === "opencode") return openCodeRoots(env);
+  if (adapterId === "command-code") return commandCodeRoots(env);
+  if (adapterId === "hermes") return hermesRoots(env);
   return [];
 }
 

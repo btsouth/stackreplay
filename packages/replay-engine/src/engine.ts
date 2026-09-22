@@ -7,6 +7,7 @@ import {
   type LoadedPlanVersionV1,
   type ModelRuleV1,
   type PlanLimitV1,
+  selectLoadedPlanVersionAt,
   validateLoadedCatalog,
 } from "@stackreplay/catalog";
 import {
@@ -255,18 +256,11 @@ function resolveTargetPlan(
   }
 
   const planId = subscriptionTarget.planId as string;
-  const candidates = Object.values(catalog.planVersions)
-    .filter(
-      (version) =>
-        version.planId === planId &&
-        version.effectiveFrom <= rulesAsOf &&
-        (version.effectiveTo === undefined || version.effectiveTo >= rulesAsOf),
-    )
-    .sort((a, b) =>
-      a.effectiveFrom < b.effectiveFrom ? -1 : a.effectiveFrom > b.effectiveFrom ? 1 : 0,
-    );
-
-  const selected = candidates[candidates.length - 1];
+  const selected = selectLoadedPlanVersionAt(
+    Object.values(catalog.planVersions),
+    planId,
+    rulesAsOf,
+  );
   if (selected === undefined) {
     throw new ReplayEngineError(
       "PLAN_VERSION_NOT_FOUND",
@@ -908,7 +902,9 @@ function computeCoverage(
   let servedKnownTokens = 0;
   let unknownTokenEvents = 0;
   const usedModels = new Map<string, boolean>();
-  let unresolvedModels = 0;
+  /** Models with at least one event whose resolution quality is unknown. */
+  const unresolvedModelKeys = new Set<string>();
+  let unresolvedModelEvents = 0;
 
   for (const { event } of timed) {
     const preparedEvent = prepared.get(event.id);
@@ -926,7 +922,10 @@ function computeCoverage(
 
     const key = preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`;
     usedModels.set(key, preparedEvent.resolution.supported);
-    if (preparedEvent.resolution.quality === "unknown") unresolvedModels += 1;
+    if (preparedEvent.resolution.quality === "unknown") {
+      unresolvedModelKeys.add(key);
+      unresolvedModelEvents += 1;
+    }
   }
 
   const requests =
@@ -937,20 +936,33 @@ function computeCoverage(
         )
       : knownDimension(served, timed.length);
 
+  /**
+   * Every count inside a dimension is in that dimension's own unit (benchmark
+   * finding F033). For usage that unit is tokens, and the tokens of an event that
+   * reports no total cannot be counted at all, so this dimension states the
+   * event-level detail in its reason and emits no count in the wrong unit.
+   */
   const usage =
     unknownTokenEvents > 0
       ? unknownDimension(
           `${unknownTokenEvents} event(s) do not report every canonical token category, so no non-overlapping token denominator exists`,
-          { covered: servedKnownTokens, total: knownTokens, unknownCount: unknownTokenEvents },
+          { covered: servedKnownTokens, total: knownTokens },
         )
       : knownDimension(servedKnownTokens, knownTokens);
 
   const coveredModels = [...usedModels.values()].filter(Boolean).length;
+  // `covered`/`total` are models here, so the unknown count is models too; the
+  // event-level detail belongs in the reason, not in a field that reads as a model
+  // count (benchmark finding F033).
   const models =
-    unresolvedModels > 0
+    unresolvedModelEvents > 0
       ? unknownDimension(
-          `${unresolvedModels} event(s) use models that could not be resolved against the catalog`,
-          { covered: coveredModels, total: usedModels.size, unknownCount: unresolvedModels },
+          `${unresolvedModelEvents} event(s) use ${unresolvedModelKeys.size} model(s) that could not be resolved against the catalog`,
+          {
+            covered: coveredModels,
+            total: usedModels.size,
+            unknownCount: unresolvedModelKeys.size,
+          },
         )
       : knownDimension(coveredModels, usedModels.size);
 

@@ -8,7 +8,9 @@ import {
   syntheticCatalog,
   withTempDir,
 } from "../fixtures/helpers.js";
+import { isoUtcFromMs } from "../identity.js";
 import { createModelMapper } from "../models.js";
+import { MAX_EPOCH_MS, toEpochMs } from "../sqlite.js";
 import { createOpenCodeAdapter } from "./opencode.js";
 
 const adapter = createOpenCodeAdapter();
@@ -188,5 +190,72 @@ describe("opencode adapter", () => {
     });
     expect(result.events).toHaveLength(0);
     expect(result.warnings.map((warning) => warning.code)).toContain("SOURCE_UNREADABLE");
+  });
+});
+
+/**
+ * Regression (benchmark F036): a SQLite timestamp outside the range a JS `Date`
+ * can represent reached the event builder, where `toISOString()` threw a
+ * `RangeError` that ended the whole collection — one corrupt row cost every
+ * readable source in the run.
+ */
+describe("opencode adapter: timestamps outside the representable range", () => {
+  const OUT_OF_RANGE_ROW = `insert into message (id, session_id, time_created, time_updated, data) values
+     ('msg_alpha_3', 'ses_alpha', 9000000000000000, 9000000000000000, '${JSON.stringify({
+       parentID: "msg_alpha_2",
+       role: "assistant",
+       cost: 0.01,
+       tokens: { total: 200, input: 100, output: 100, cache: { read: 0, write: 0 } },
+       modelID: "example-medium",
+       providerID: "example-provider",
+     })}')`;
+
+  it("reports the row and keeps collecting instead of throwing", async () => {
+    const result = await withTempDir(async (directory) => {
+      const databasePath = `${directory}/.local/share/opencode/opencode.db`;
+      await createSqliteFixture(databasePath, [...OPENCODE_FIXTURE_SQL, OUT_OF_RANGE_ROW]);
+      const env = createFixtureEnvironment({
+        homeDir: directory,
+        env: { XDG_DATA_HOME: `${directory}/.local/share` },
+      });
+      return adapter.collect(env, {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.local/share/opencode`],
+      });
+    });
+    // Both in-range rows are still collected: the damaged row is reported, not
+    // fatal to the collection.
+    expect(result.events).toHaveLength(2);
+    expect(result.stats.recordsUnsupported).toBe(1);
+    expect(result.warnings.map((warning) => warning.code)).toContain("TIMESTAMP_INVALID");
+    expect(
+      result.warnings.find((warning) => warning.code === "TIMESTAMP_INVALID")?.message,
+    ).toContain("no usable timestamp");
+    // The damaged row never became an event: no event carries an instant the
+    // canonical timestamp cannot represent.
+    for (const event of result.events) {
+      expect(toEpochMs(Date.parse(event.occurredAt))).toBe(Date.parse(event.occurredAt));
+    }
+  });
+
+  it("accepts only the epoch range the canonical timestamp can represent", () => {
+    expect(toEpochMs(0)).toBe(0);
+    expect(toEpochMs(1789601516670.4)).toBe(1789601516670);
+    expect(toEpochMs(MAX_EPOCH_MS)).toBe(MAX_EPOCH_MS);
+    expect(toEpochMs(-MAX_EPOCH_MS)).toBe(-MAX_EPOCH_MS);
+    // One millisecond past the range, an integer no longer safe, a non-numeric
+    // column, and the non-finite values a damaged store can hold.
+    expect(toEpochMs(MAX_EPOCH_MS + 1)).toBeUndefined();
+    expect(toEpochMs(-MAX_EPOCH_MS - 1)).toBeUndefined();
+    expect(toEpochMs(Number.MAX_SAFE_INTEGER)).toBeUndefined();
+    expect(toEpochMs("1789601516670")).toBeUndefined();
+    expect(toEpochMs(null)).toBeUndefined();
+    expect(toEpochMs(Number.NaN)).toBeUndefined();
+    expect(toEpochMs(Number.POSITIVE_INFINITY)).toBeUndefined();
+    // Why the guard exists: this is what the event builder does with a value the
+    // guard refuses.
+    expect(() => isoUtcFromMs(Number.MAX_SAFE_INTEGER)).toThrow(RangeError);
   });
 });

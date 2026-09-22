@@ -37,7 +37,12 @@ export const coverageDimensionV1Schema = z
     percent: z.number().min(0).max(100).optional(),
     covered: z.number().int().nonnegative().optional(),
     total: z.number().int().nonnegative().optional(),
-    /** Quantities excluded because their status could not be determined. */
+    /**
+     * Quantities excluded because their status could not be determined, in the
+     * same unit as `covered`/`total` (models for the model dimension, events for
+     * requests). A quantity that cannot be expressed in that unit is described in
+     * `reason` instead, never counted in a different one (benchmark finding F033).
+     */
     unknownCount: z.number().int().nonnegative().optional(),
     reason: z.string().min(1).optional(),
   })

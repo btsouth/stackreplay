@@ -66,6 +66,22 @@ export function toFiniteNumber(value: unknown): number | undefined {
   return undefined;
 }
 
+/**
+ * Largest epoch millisecond a JS `Date` can represent (year 275760). A source
+ * value outside this range would throw a `RangeError` out of the event builder
+ * and end the whole collection on one corrupt row, so it is refused here and
+ * reported as an invalid timestamp instead.
+ */
+export const MAX_EPOCH_MS = 8.64e15;
+
+/** Coerces a SQLite numeric value to an epoch millisecond inside the Date range. */
+export function toEpochMs(value: unknown): number | undefined {
+  const numeric = toFiniteNumber(value);
+  if (numeric === undefined) return undefined;
+  const ms = Math.round(numeric);
+  return Math.abs(ms) <= MAX_EPOCH_MS ? ms : undefined;
+}
+
 export function toText(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }

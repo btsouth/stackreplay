@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  type BundledPlanSummary,
-  bundledPlanFacts,
-  bundledPlansAt,
-} from "@stackreplay/catalog/bundled";
+import { bundledPlanFacts, bundledPlansAt } from "@stackreplay/catalog/bundled";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
+import { isSyntheticCatalogId } from "@stackreplay/share";
 import {
   Badge,
   Button,
@@ -156,6 +153,14 @@ export function ReplaySurface({
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [outcome, setOutcome] = useState<ReplayOutcome | undefined>(undefined);
+  /**
+   * What the displayed result was computed from. The panel reads its labels from
+   * the result itself, and this record lets it say which workload produced it
+   * (benchmark finding F026).
+   */
+  const [outcomeSelection, setOutcomeSelection] = useState<
+    { workloadLabel: string; workloadId: string; planId: string; rulesAsOf: string } | undefined
+  >(undefined);
   const [error, setError] = useState<SafeError | undefined>(undefined);
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
@@ -177,10 +182,19 @@ export function ReplaySurface({
       filteredPlans.find((plan) => plan.id === planId) ?? plans.find((plan) => plan.id === planId),
     [filteredPlans, planId, plans],
   );
+  /**
+   * The workload the surface is working on, and only that one.
+   *
+   * A stale `?import=` used to be answered with `imports[0]`, so a link naming a
+   * workload that is no longer stored silently replayed a different one
+   * (benchmark finding F027). The surface now says the named workload is gone and
+   * waits to be told which one to use.
+   */
   const workload = useMemo(
-    () => imports.find((entry) => entry.id === selectedId) ?? imports[0],
+    () => imports.find((entry) => entry.id === selectedId),
     [imports, selectedId],
   );
+  const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
 
   /**
    * The bundled demo workloads are synthetic and use the `example-` model
@@ -215,6 +229,7 @@ export function ReplaySurface({
     setPhase("loading");
     setError(undefined);
     setOutcome(undefined);
+    setOutcomeSelection(undefined);
     const target: ExecutionTargetV1 = { type: "subscription", planId: selectedPlan.id };
     try {
       const response = await client.runReplay(
@@ -227,6 +242,12 @@ export function ReplaySurface({
         },
       );
       setOutcome(response);
+      setOutcomeSelection({
+        workloadLabel: workload.label,
+        workloadId: workload.id,
+        planId: selectedPlan.id,
+        rulesAsOf,
+      });
       setPhase("done");
     } catch (failure) {
       // A superseded request is not a failure: a newer replay owns this surface.
@@ -235,6 +256,18 @@ export function ReplaySurface({
       setPhase("idle");
     }
   }, [client, rulesAsOf, selectedPlan, workload]);
+
+  /**
+   * Choosing a different target or rules date drops the displayed result: it was
+   * computed for the previous selection, and leaving it on screen under the new
+   * labels described a replay that never ran (benchmark finding F026).
+   */
+  const selectPlan = useCallback((id: string) => {
+    setPlanId(id);
+    setOutcome(undefined);
+    setOutcomeSelection(undefined);
+    setPhase("idle");
+  }, []);
 
   const onPlanKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLUListElement>) => {
@@ -245,7 +278,7 @@ export function ReplaySurface({
         const next = Math.min(Math.max(activeIndex + delta, 0), filteredPlans.length - 1);
         setActiveIndex(next);
         const option = filteredPlans[next];
-        if (option !== undefined) setPlanId(option.id);
+        if (option !== undefined) selectPlan(option.id);
         const node = listRef.current?.querySelectorAll<HTMLElement>("[data-plan-option]")[next];
         node?.focus();
       }
@@ -254,7 +287,7 @@ export function ReplaySurface({
         void runReplay();
       }
     },
-    [activeIndex, filteredPlans, runReplay],
+    [activeIndex, filteredPlans, runReplay, selectPlan],
   );
 
   if (imports.length === 0) {
@@ -278,12 +311,27 @@ export function ReplaySurface({
 
   return (
     <div className="flex flex-col gap-8">
+      {requestedWorkloadMissing ? (
+        <Card role="alert" className="border-warning/40" data-testid="workload-missing">
+          <CardContent className="flex flex-col gap-2 p-5">
+            <h2 className="text-sm font-medium text-warning">
+              That workload is no longer stored in this browser
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              It was deleted or cleared, so this page will not substitute a different one. Choose a
+              stored workload below, or import the file again.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <WorkloadStrip
         workload={workload}
         imports={imports}
         onSelect={(id) => {
           setSelectedId(id);
           setOutcome(undefined);
+          setOutcomeSelection(undefined);
           setPhase("idle");
         }}
       />
@@ -294,8 +342,10 @@ export function ReplaySurface({
             <div>
               <h2 className="text-sm font-medium">Target plan</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                The catalog is synthetic demo data in this build. Real plan data arrives with the
-                public catalog.
+                Catalogued plans are the real, sourced entries the public pages describe. The
+                synthetic <span className="font-mono text-xs">example-</span> plans are demos kept
+                for trying the replay mechanics; each one is labelled and none of them is a
+                real-world claim.
               </p>
             </div>
             <div className="flex items-end gap-3">
@@ -308,6 +358,7 @@ export function ReplaySurface({
                   onChange={(event) => {
                     setRulesAsOf(event.target.value);
                     setOutcome(undefined);
+                    setOutcomeSelection(undefined);
                   }}
                   className="rounded-md border border-control-border bg-surface px-2 py-1.5 font-mono text-sm tabular-nums"
                 />
@@ -359,7 +410,7 @@ export function ReplaySurface({
                       aria-pressed={plan.id === planId}
                       data-plan-option={plan.id}
                       data-testid={`plan-${plan.id}`}
-                      onClick={() => setPlanId(plan.id)}
+                      onClick={() => selectPlan(plan.id)}
                       onFocus={() => setActiveIndex(index)}
                       className={[
                         "flex w-full items-baseline justify-between gap-4 border-l-2 px-3 py-2.5 text-left",
@@ -369,7 +420,14 @@ export function ReplaySurface({
                       ].join(" ")}
                     >
                       <span className="flex min-w-0 flex-col">
-                        <span className="truncate text-sm">{plan.name}</span>
+                        <span className="truncate text-sm">
+                          {plan.name}
+                          {isSyntheticCatalogId(plan.id) ? (
+                            <span className="ml-2 rounded border border-warning/50 px-1 text-[10px] text-warning">
+                              demo
+                            </span>
+                          ) : null}
+                        </span>
                         <span className="truncate text-xs text-muted-foreground">
                           {plan.providerId} · rules from {plan.effectiveFrom}
                         </span>
@@ -405,7 +463,12 @@ export function ReplaySurface({
             <Button
               type="button"
               data-testid="run-replay"
-              disabled={selectedPlan === undefined || phase === "loading" || phase === "replaying"}
+              disabled={
+                selectedPlan === undefined ||
+                workload === undefined ||
+                phase === "loading" ||
+                phase === "replaying"
+              }
               onClick={() => void runReplay()}
             >
               {phase === "loading" || phase === "replaying" ? "Replaying…" : "Replay this workload"}
@@ -434,9 +497,8 @@ export function ReplaySurface({
       {outcome !== undefined ? (
         <ReplayResult
           outcome={outcome}
-          plan={selectedPlan}
-          rulesAsOf={rulesAsOf}
-          workload={workload}
+          computedFor={outcomeSelection}
+          workload={imports.find((entry) => entry.id === outcomeSelection?.workloadId)}
         />
       ) : null}
     </div>
@@ -568,17 +630,19 @@ function ModelIdentityList({ models }: { models: ModelSummary[] }) {
 
 function ReplayResult({
   outcome,
-  plan,
-  rulesAsOf,
+  computedFor,
   workload,
 }: {
   outcome: ReplayOutcome;
-  plan: BundledPlanSummary | undefined;
-  rulesAsOf: string;
+  /** What this result was computed from; may be absent for older callers. */
+  computedFor: { workloadLabel: string; planId: string; rulesAsOf: string } | undefined;
   workload: ImportRecord | undefined;
 }) {
   const { result, timeline } = outcome;
   const shareTarget = bundledPlanFacts(result.versions.targetReference);
+  // Every label comes from the result, never from the surface's current
+  // selection: the panel describes the replay that ran (benchmark finding F026).
+  const planLabel = shareTarget?.planName ?? result.versions.targetReference;
   const attribution = workload?.summary.usageSources
     .filter((source) => source.role === "usage" && source.events > 0)
     .map((source) => ({ name: source.name, eventCount: source.events }));
@@ -603,9 +667,17 @@ function ReplayResult({
                 {headline}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {plan?.name ?? result.versions.targetReference} · rules as of{" "}
-                <span className="font-mono tabular-nums">{rulesAsOf}</span>
+                {planLabel} · rules as of{" "}
+                <span className="font-mono tabular-nums">{result.versions.rulesAsOf}</span>
               </p>
+              {computedFor === undefined ? null : (
+                <p className="mt-1 text-xs text-muted-foreground" data-testid="result-computed-for">
+                  Computed from &ldquo;{computedFor.workloadLabel}&rdquo; ·{" "}
+                  {formatCount(result.workload.eventCount)} events · target{" "}
+                  <span className="font-mono">{computedFor.planId}</span> · rules as of{" "}
+                  <span className="font-mono">{computedFor.rulesAsOf}</span>
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <ConfidenceBadge level={result.confidence.level} />
@@ -695,7 +767,7 @@ function ReplayResult({
                 <Metric
                   label="Plan cost"
                   value={formatMoney(result.economics.basePlanCost.amount)}
-                  unit={`per ${plan?.price.interval ?? "month"}`}
+                  unit={`per ${shareTarget?.price.interval ?? "month"}`}
                 />
               ) : null}
               {result.economics.overageCost !== undefined ? (

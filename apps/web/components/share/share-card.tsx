@@ -1,6 +1,7 @@
 import type { ShareReplaySnapshotV1 } from "@stackreplay/share";
 import { cn } from "@stackreplay/ui";
 import { shortCatalogVersion } from "@/lib/public-catalog";
+import { describeShareTruncation } from "@/lib/share-truncation";
 
 /**
  * Share card (M4).
@@ -54,7 +55,11 @@ export function ShareCard({
 }: ShareCardProps) {
   const exceeded = snapshot.constraints.filter((constraint) => constraint.status === "exceeded");
   const unknown = snapshot.constraints.filter((constraint) => constraint.status === "unknown");
-  const violations = snapshot.violations.length;
+  /**
+   * Bounded lists that had to be cut (benchmark finding F009): the card says so
+   * rather than letting a partial view read as the whole result.
+   */
+  const truncationNotes = describeShareTruncation(snapshot.truncation);
   const range =
     snapshot.workload.rangeIncluded &&
     snapshot.workload.from !== undefined &&
@@ -83,6 +88,17 @@ export function ShareCard({
           Replay result
         </span>
       </header>
+
+      {/*
+        Benchmark finding F011: a share link carries its target inside the token,
+        so a demo plan reaches a public page through the one path that does not
+        read the public catalog. It is labelled rather than hidden.
+      */}
+      {snapshot.synthetic === true ? (
+        <p className="text-xs font-medium text-warning" data-testid="share-card-synthetic">
+          Demo data: this replay used the synthetic example- catalog, not a real plan.
+        </p>
+      ) : null}
 
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold text-foreground" data-testid="share-card-plan">
@@ -142,7 +158,9 @@ export function ShareCard({
                   {constraint.window.description}
                   {constraint.status === "exceeded" ? (
                     <span className="ml-2 font-medium text-negative">
-                      {violations > 0 ? `${violations} window(s) exceeded` : "exceeded"}
+                      {constraint.violationCount > 0
+                        ? `${count(constraint.violationCount)} window(s) exceeded`
+                        : "exceeded"}
                     </span>
                   ) : constraint.status === "unknown" ? (
                     <span className="ml-2 font-medium text-warning">not determinable</span>
@@ -184,6 +202,11 @@ export function ShareCard({
           {range} · {exceeded.length} of {snapshot.constraints.length} limits exceeded
           {unknown.length > 0 ? ` · ${unknown.length} not determinable` : ""}
         </p>
+        {truncationNotes.length > 0 ? (
+          <p className="text-warning" data-testid="share-card-truncation">
+            Truncated to fit a share link: {truncationNotes.join(" · ")}.
+          </p>
+        ) : null}
         <p>
           Aggregate data only. Replayed locally with engine {snapshot.versions.engine}, methodology{" "}
           {snapshot.versions.methodology}, catalog {shortCatalogVersion(snapshot.versions.catalog)}.

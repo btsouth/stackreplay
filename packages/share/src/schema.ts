@@ -1,4 +1,5 @@
 import {
+  computedDecimalV1Schema,
   computedMoneyV1Schema,
   constraintExceedV1Schema,
   constraintKindV1Schema,
@@ -8,11 +9,42 @@ import {
   decimalAmountV1Schema,
   isoDateV1Schema,
   isoUtcTimestampV1Schema,
+  isSyntheticCatalogId,
   measurementUnitV1Schema,
   multiplierV1Schema,
+  SYNTHETIC_CATALOG_PREFIX,
   verificationStatusV1Schema,
 } from "@stackreplay/schema";
 import { z } from "zod";
+
+export { isSyntheticCatalogId, SYNTHETIC_CATALOG_PREFIX };
+
+/**
+ * A source link inside a share snapshot.
+ *
+ * Share tokens are decoded from a URL a visitor may have been handed by anyone,
+ * so a link that reaches an `href` is untrusted input: it must be an absolute
+ * http(s) URL, and nothing else. `javascript:`, `data:` and `blob:` URLs are
+ * rejected at the boundary rather than relying on the renderer to neutralise
+ * them (benchmark finding F003).
+ */
+export const shareSourceUrlV1Schema = z
+  .string()
+  .min(1)
+  .refine((value) => {
+    let parsed: URL;
+    try {
+      parsed = new URL(value);
+    } catch {
+      return false;
+    }
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  }, "must be an absolute http(s) URL");
+
+export const shareSourceV1Schema = z.strictObject({
+  url: shareSourceUrlV1Schema,
+  title: z.string().min(1),
+});
 
 /**
  * ShareReplaySnapshotV1 (M4, decision 32).
@@ -87,6 +119,22 @@ export const FORBIDDEN_SHARE_KEYS = [
 ] as const;
 
 export type ForbiddenShareKey = (typeof FORBIDDEN_SHARE_KEYS)[number];
+
+/**
+ * What the snapshot says about its own target (benchmark finding F011).
+ *
+ * The public catalog read model filters the synthetic `example-` development
+ * namespace out of every public surface, but a share link does not read the
+ * catalog: it carries its target inside the token. Sharing a replay of a demo
+ * plan stays possible (a visitor may well have replayed their real workload
+ * against a demo plan to watch the mechanics), but the snapshot must not let
+ * synthetic entries pass as real-world claims. A snapshot whose target is in the
+ * synthetic namespace says so, and the public page labels the whole result as
+ * demo data.
+ */
+export function snapshotIsSynthetic(target: { planId: string; providerId: string }): boolean {
+  return isSyntheticCatalogId(target.planId) || isSyntheticCatalogId(target.providerId);
+}
 
 export class ShareSnapshotViolationError extends Error {
   readonly paths: string[];
@@ -165,7 +213,7 @@ const shareTargetV1Schema = z.strictObject({
   }),
   verificationStatus: verificationStatusV1Schema,
   lastVerifiedAt: isoDateV1Schema,
-  sources: z.array(z.strictObject({ url: z.string().min(1), title: z.string().min(1) })).max(8),
+  sources: z.array(shareSourceV1Schema).max(8),
 });
 
 const shareConstraintV1Schema = z.strictObject({
@@ -179,12 +227,19 @@ const shareConstraintV1Schema = z.strictObject({
   }),
   exceed: constraintExceedV1Schema,
   status: constraintStatusV1Schema,
+  /** Stated by the catalog, so it is inside the input decimal envelope. */
   limitUnits: decimalAmountV1Schema,
-  consumedUnits: decimalAmountV1Schema,
-  attemptedUnits: decimalAmountV1Schema,
+  /**
+   * Engine-computed quantities. They carry the *computed* decimal envelope (100
+   * digits), not the input one: a consumed or attempted total is arithmetic over
+   * events, and validating it against a bound it was never computed under made a
+   * correct replay unshareable (benchmark finding F010).
+   */
+  consumedUnits: computedDecimalV1Schema,
+  attemptedUnits: computedDecimalV1Schema,
   violationCount: z.number().int().nonnegative(),
   rejectedEvents: z.number().int().nonnegative(),
-  overageUnits: decimalAmountV1Schema.optional(),
+  overageUnits: computedDecimalV1Schema.optional(),
 });
 
 /**
@@ -197,11 +252,12 @@ const shareViolationV1Schema = z.strictObject({
   startedOn: isoDateV1Schema,
   endedOn: isoDateV1Schema,
   unit: measurementUnitV1Schema,
-  requiredUnits: decimalAmountV1Schema,
-  availableUnits: decimalAmountV1Schema,
-  acceptedUnits: decimalAmountV1Schema,
+  /** Engine-computed quantities: the computed envelope, as above. */
+  requiredUnits: computedDecimalV1Schema,
+  availableUnits: computedDecimalV1Schema,
+  acceptedUnits: computedDecimalV1Schema,
   affectedEvents: z.number().int().nonnegative(),
-  overageUnits: decimalAmountV1Schema.optional(),
+  overageUnits: computedDecimalV1Schema.optional(),
 });
 
 const shareEconomicsV1Schema = z.strictObject({
@@ -214,6 +270,28 @@ const shareEconomicsV1Schema = z.strictObject({
     .array(z.strictObject({ name: z.string().min(1), value: z.string().min(1) }))
     .max(8)
     .optional(),
+});
+
+/**
+ * What the snapshot had to leave out (benchmark finding F009).
+ *
+ * The public unit is bounded: at most 8 target sources, 24 constraints, 64
+ * violations, 12 confidence factors and 24 attribution sources. Slicing to those
+ * bounds silently turned a partial artifact into one that read as complete, so a
+ * snapshot that cut a list now says which list it was.
+ *
+ * Each value is the number of entries the sharer's own result held for that
+ * list, never the number that was left out: a reader can see that a page shows
+ * the first N of M, while the artifact itself carries only the entries it kept.
+ * Absent means the list was complete.
+ */
+const shareTruncationV1Schema = z.strictObject({
+  sources: z.number().int().positive().optional(),
+  constraints: z.number().int().positive().optional(),
+  violations: z.number().int().positive().optional(),
+  confidenceFactors: z.number().int().positive().optional(),
+  attributionSources: z.number().int().positive().optional(),
+  ratios: z.number().int().positive().optional(),
 });
 
 const shareConfidenceV1Schema = z.strictObject({
@@ -244,6 +322,12 @@ const shareAttributionV1Schema = z.strictObject({
 
 export const shareReplaySnapshotV1Schema = z.strictObject({
   version: z.literal(SHARE_SNAPSHOT_VERSION),
+  /**
+   * Present (as `true`) only when the target is a synthetic `example-` entry:
+   * absent means a real catalogued plan. Public surfaces label a snapshot that
+   * carries it, so a demo plan is never read as a real-world claim.
+   */
+  synthetic: z.literal(true).optional(),
   workload: shareWorkloadV1Schema,
   target: shareTargetV1Schema,
   feasibility: z.strictObject({
@@ -262,6 +346,8 @@ export const shareReplaySnapshotV1Schema = z.strictObject({
   economics: shareEconomicsV1Schema.optional(),
   confidence: shareConfidenceV1Schema,
   attribution: shareAttributionV1Schema.optional(),
+  /** Present only when a bounded list had to be cut; absent means complete. */
+  truncation: shareTruncationV1Schema.optional(),
   versions: z.strictObject({
     engine: z.string().min(1),
     schema: z.literal(1),

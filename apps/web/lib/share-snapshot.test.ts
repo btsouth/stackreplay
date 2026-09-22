@@ -10,12 +10,25 @@ import { type ShareTargetFacts, toShareSnapshot } from "./share-snapshot";
  */
 
 const target: ShareTargetFacts = {
+  planId: "claude-max-20x",
+  planVersionId: "claude-max-20x@2026-04-01",
+  planName: "Claude Max 20x",
+  providerId: "anthropic",
+  providerName: "Anthropic",
+  price: { currency: "USD", amount: "200.00", interval: "month" },
+  verificationStatus: "verified",
+  lastVerifiedAt: "2026-04-01",
+  sources: [{ url: "https://www.anthropic.com/pricing", title: "Anthropic pricing" }],
+};
+
+/** The same facts for a synthetic demo plan, used to assert the demo marker. */
+const syntheticTarget: ShareTargetFacts = {
+  ...target,
   planId: "example-medium-plan",
   planVersionId: "example-medium-plan@2026-09-01",
   planName: "Example Medium",
   providerId: "example-cloud",
   providerName: "Example Cloud",
-  price: { currency: "USD", amount: "20.00", interval: "month" },
   verificationStatus: "estimated",
   lastVerifiedAt: "2026-09-01",
   sources: [{ url: "https://example.invalid/pricing", title: "Example pricing" }],
@@ -36,7 +49,7 @@ function sampleResult(): ExecutionReplayResultV1 {
         outputTokens: 50_000,
       },
     },
-    target: { type: "subscription", planVersionId: "example-medium-plan@2026-09-01" },
+    target: { type: "subscription", planVersionId: "claude-max-20x@2026-04-01" },
     feasibility: { status: "partial", coveragePercent: 90, coverageDimension: "requests" },
     coverage: {
       requests: { status: "known", percent: 90, covered: 900, total: 1_000, unknownCount: 0 },
@@ -45,7 +58,7 @@ function sampleResult(): ExecutionReplayResultV1 {
     },
     constraints: [
       {
-        id: "example-medium-plan@2026-09-01:request_limit",
+        id: "claude-max-20x@2026-04-01:request_limit",
         label: "Requests",
         kind: "request_limit",
         unit: "requests",
@@ -64,7 +77,7 @@ function sampleResult(): ExecutionReplayResultV1 {
     violations: [
       {
         type: "rolling_window_exceeded",
-        constraintId: "example-medium-plan@2026-09-01:request_limit",
+        constraintId: "claude-max-20x@2026-04-01:request_limit",
         unit: "requests",
         startedAt: "2026-08-12T09:15:00.000Z",
         endedAt: "2026-08-12T14:15:00.000Z",
@@ -95,16 +108,16 @@ function sampleResult(): ExecutionReplayResultV1 {
       methodology: "1.1.0",
       rulesAsOf: "2026-09-21",
       targetType: "subscription",
-      targetReference: "example-medium-plan@2026-09-01",
+      targetReference: "claude-max-20x@2026-04-01",
     },
     subscription: {
-      planId: "example-medium-plan",
-      planVersionId: "example-medium-plan@2026-09-01",
-      name: "Example Medium",
-      providerId: "example-cloud",
-      price: { amount: "20.00", currency: "USD" },
+      planId: "claude-max-20x",
+      planVersionId: "claude-max-20x@2026-04-01",
+      name: "Claude Max 20x",
+      providerId: "anthropic",
+      price: { amount: "200.00", currency: "USD" },
       interval: "month",
-      verificationStatus: "estimated",
+      verificationStatus: "verified",
     },
   };
 }
@@ -209,10 +222,98 @@ describe("toShareSnapshot", () => {
 
   it("keeps the target facts the public page needs", () => {
     const snapshot = toShareSnapshot(sampleResult(), BASE_OPTIONS);
-    expect(snapshot.target.planName).toBe("Example Medium");
-    expect(snapshot.target.providerName).toBe("Example Cloud");
+    expect(snapshot.target.planName).toBe("Claude Max 20x");
+    expect(snapshot.target.providerName).toBe("Anthropic");
     expect(snapshot.target.sources).toHaveLength(1);
-    expect(snapshot.target.lastVerifiedAt).toBe("2026-09-01");
-    expect(snapshot.versions.targetReference).toBe("example-medium-plan@2026-09-01");
+    expect(snapshot.target.lastVerifiedAt).toBe("2026-04-01");
+    expect(snapshot.versions.targetReference).toBe("claude-max-20x@2026-04-01");
+  });
+
+  /**
+   * Regression (benchmark F011): a share link carries its target inside the
+   * token, so a demo plan reaches a public page without ever being filtered by
+   * the public catalog read model. The snapshot now says so, and the public page
+   * labels the whole result as demo data.
+   */
+  it("marks a synthetic demo target and leaves a real target unmarked", () => {
+    const real = toShareSnapshot(sampleResult(), BASE_OPTIONS);
+    expect(real.synthetic).toBeUndefined();
+
+    const demo = toShareSnapshot(sampleResult(), { ...BASE_OPTIONS, target: syntheticTarget });
+    expect(demo.synthetic).toBe(true);
+  });
+
+  /**
+   * Regression (benchmark F009): the bounded lists used to be sliced with no
+   * marker, so a truncated artifact read as a complete one.
+   */
+  it("records which bounded list had to be cut, and stays silent when none was", () => {
+    const complete = toShareSnapshot(sampleResult(), BASE_OPTIONS);
+    expect(complete.truncation).toBeUndefined();
+
+    const result = sampleResult();
+    const [firstConstraint] = result.constraints;
+    const [firstViolation] = result.violations;
+    if (firstConstraint === undefined || firstViolation === undefined) {
+      throw new Error("fixture must carry at least one constraint and violation");
+    }
+    const many = {
+      ...result,
+      constraints: Array.from({ length: 30 }, (_, index) => ({
+        ...firstConstraint,
+        id: `constraint-${index}`,
+      })),
+      violations: Array.from({ length: 70 }, (_, index) => ({
+        ...firstViolation,
+        constraintId: `constraint-${index}`,
+      })),
+      confidence: {
+        level: result.confidence.level,
+        factors: Array.from({ length: 20 }, (_, index) => ({
+          id: `factor-${index}`,
+          level: "high" as const,
+          description: `Factor ${index}.`,
+        })),
+      },
+    } satisfies ExecutionReplayResultV1;
+    const snapshot = toShareSnapshot(many, {
+      ...BASE_OPTIONS,
+      attribution: Array.from({ length: 30 }, (_, index) => ({
+        name: `Source ${index}`,
+        eventCount: index,
+      })),
+    });
+    expect(snapshot.truncation).toEqual({
+      constraints: 30,
+      violations: 70,
+      confidenceFactors: 20,
+      attributionSources: 30,
+    });
+    // The snapshot is still bounded: the marker describes what was left out.
+    expect(snapshot.constraints).toHaveLength(24);
+    expect(snapshot.violations).toHaveLength(64);
+  });
+
+  /**
+   * Regression (benchmark F010): constraint and violation quantities are computed
+   * by the engine and carry the computed envelope (up to 100 digits), not the
+   * input envelope the share schema used to demand.
+   */
+  it("shares a result whose computed quantities exceed the input decimal envelope", () => {
+    const result = sampleResult();
+    const wide = "9".repeat(30);
+    const [firstConstraint] = result.constraints;
+    const [firstViolation] = result.violations;
+    if (firstConstraint === undefined || firstViolation === undefined) {
+      throw new Error("fixture must carry at least one constraint and violation");
+    }
+    const computed = {
+      ...result,
+      constraints: [{ ...firstConstraint, consumedUnits: wide, attemptedUnits: wide }],
+      violations: [{ ...firstViolation, requiredUnits: wide, acceptedUnits: wide }],
+    } satisfies ExecutionReplayResultV1;
+    const snapshot = toShareSnapshot(computed, BASE_OPTIONS);
+    expect(snapshot.constraints[0]?.consumedUnits).toBe(wide);
+    expect(snapshot.violations[0]?.requiredUnits).toBe(wide);
   });
 });

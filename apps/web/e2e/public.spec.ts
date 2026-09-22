@@ -296,5 +296,17 @@ test.describe("share links", () => {
     await expect(page.getByTestId("share-card")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("events replayed");
     await expect(page.getByTestId("share-card-plan")).toBeVisible();
+
+    // Regression (benchmark F011): the public read model filters the synthetic
+    // `example-` namespace, but a share link carries its target inside the token.
+    // A demo target must therefore reach the page as labelled demo data, never as
+    // a real-world claim.
+    await expect(page.getByTestId("share-synthetic")).toBeVisible();
+    // Regression (benchmark F004): the plan terms in a link are the sharer's
+    // claim, so the page says so instead of borrowing the catalog's "verified"
+    // badge language.
+    await expect(page.getByTestId("share-target-claim")).toContainText(
+      /not checked them against its own catalog/u,
+    );
   });
 });

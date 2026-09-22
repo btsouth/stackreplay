@@ -1,7 +1,7 @@
 import { type CommandContext, EXIT_OK, usageError } from "../command.js";
 import { flagValue } from "../options.js";
 import { formatCount } from "../output.js";
-import { parseDateBound, utcDate } from "../runtime.js";
+import { parseDateBound } from "../runtime.js";
 
 /**
  * `stackreplay plans`
@@ -46,7 +46,7 @@ export async function runPlans(context: CommandContext): Promise<number> {
   }
 
   renderer.heading("StackReplay plans");
-  renderer.line(`  Catalog ${runtime.catalog.catalogVersion}, rules as of ${utcDate(runtime.now)}`);
+  renderer.line(`  Catalog ${runtime.catalog.catalogVersion}, rules as of ${rulesAsOf}`);
   renderer.line();
 
   for (const plan of plans) {

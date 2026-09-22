@@ -39,8 +39,23 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
   let workloadSource: string;
   let range = { from: "1970-01-01T00:00:00.000Z", to: "9999-12-31T23:59:59.999Z" };
   let dedup = { exactDuplicates: 0, overlaps: 0 };
+  let filteredOut = 0;
+  let filtersApplied = false;
 
   if (input !== undefined) {
+    // The advertised window and source filters apply to an imported workload
+    // exactly as they do to a fresh scan; they used to be ignored silently
+    // (benchmark finding F022).
+    const since = flagValue(args, "since");
+    const until = flagValue(args, "until");
+    const sourceFilters = flagValues(args, "source") as AdapterId[];
+    const sinceBound = since === undefined ? { ok: true as const } : parseDateBound(since, "since");
+    if (!sinceBound.ok) return usageError(context, sinceBound.error);
+    const untilBound = until === undefined ? { ok: true as const } : parseDateBound(until, "until");
+    if (!untilBound.ok) return usageError(context, untilBound.error);
+    const rangeProblem = checkRangeOrder(sinceBound.value, untilBound.value);
+    if (rangeProblem !== undefined) return usageError(context, rangeProblem);
+
     let parsed: unknown;
     try {
       parsed = JSON.parse(await readFile(input, "utf8"));
@@ -59,9 +74,24 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
         validated.error.issues[0]?.message,
       );
     }
-    events = validated.data.events;
+    const loaded = validated.data.events;
+    const sinceMs = sinceBound.value === undefined ? undefined : Date.parse(sinceBound.value);
+    const untilMs = untilBound.value === undefined ? undefined : Date.parse(untilBound.value);
+    const selected = loaded.filter((event) => {
+      const at = Date.parse(event.occurredAt);
+      if (sinceMs !== undefined && at < sinceMs) return false;
+      if (untilMs !== undefined && at >= untilMs) return false;
+      if (sourceFilters.length > 0 && !sourceFilters.includes(event.source.adapterId as AdapterId))
+        return false;
+      return true;
+    });
+    filteredOut = loaded.length - selected.length;
+    filtersApplied = sinceMs !== undefined || untilMs !== undefined || sourceFilters.length > 0;
+    events = selected;
     workloadSource = input;
     range = validated.data.range;
+    if (sinceBound.value !== undefined) range.from = sinceBound.value;
+    if (untilBound.value !== undefined) range.to = untilBound.value;
   } else {
     const since = flagValue(args, "since");
     const until = flagValue(args, "until");
@@ -126,6 +156,7 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
       range,
       dedup,
       rulesAsOf,
+      ...(filtersApplied ? { filteredOut } : {}),
       result,
       ...(comparison !== undefined ? { comparison } : {}),
     });
@@ -139,6 +170,12 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     "  Workload",
     `${formatCount(result.workload.eventCount)} event(s) from ${workloadSource}`,
   );
+  if (filtersApplied) {
+    renderer.field(
+      "  Filters",
+      `${formatCount(filteredOut)} event(s) excluded by the selected window or sources`,
+    );
+  }
   renderer.field("  Rules as of", rulesAsOf);
   renderer.field("  Plan version", result.versions.targetReference);
   if (result.workload.from !== undefined && result.workload.to !== undefined) {

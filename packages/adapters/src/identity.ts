@@ -38,6 +38,11 @@ export async function readSalt(env: SourceEnvironment): Promise<string | undefin
 /**
  * Reads the local salt, creating it on first use. The file is written with
  * owner-only permissions; it is local state and is never part of an export.
+ *
+ * Creation is exclusive: two first runs racing each other cannot each install a
+ * different salt, because the loser re-reads the winner's file instead of
+ * overwriting it. Two salts in play would mean hashes written by one process
+ * never match a later scan, which silently breaks dedup and project identity.
  */
 export async function ensureSalt(env: SourceEnvironment): Promise<string> {
   const existing = await readSalt(env);
@@ -46,7 +51,15 @@ export async function ensureSalt(env: SourceEnvironment): Promise<string> {
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const salt = generateSalt();
   const path = saltFilePath(env);
-  await writeFile(path, `${salt}\n`, { mode: 0o600 });
+  try {
+    await writeFile(path, `${salt}\n`, { mode: 0o600, flag: "wx" });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+      const winner = await readSalt(env);
+      if (winner !== undefined) return winner;
+    }
+    throw error;
+  }
   await chmod(path, 0o600).catch(() => undefined);
   return salt;
 }

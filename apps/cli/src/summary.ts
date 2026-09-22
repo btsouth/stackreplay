@@ -1,5 +1,5 @@
 import { Decimal, type DisjointBuckets, tokenAccountingOf } from "@stackreplay/replay-engine";
-import type { UsageEventV1 } from "@stackreplay/schema";
+import { compareUtcTimestamps, type UsageEventV1 } from "@stackreplay/schema";
 
 /**
  * Workload summary for `scan`.
@@ -98,8 +98,14 @@ export function summarizeEvents(events: readonly UsageEventV1[]): WorkloadSummar
       costEvents += 1;
     }
 
-    if (first === undefined || event.occurredAt < first) first = event.occurredAt;
-    if (last === undefined || event.occurredAt > last) last = event.occurredAt;
+    // Timestamps are compared as instants, not as strings: two ISO-8601 UTC
+    // timestamps can differ in fractional precision (`…:00Z` against
+    // `…:00.500Z`), and a raw string comparison orders them wrongly
+    // (benchmark finding F034).
+    if (first === undefined || compareUtcTimestamps(event.occurredAt, first) < 0)
+      first = event.occurredAt;
+    if (last === undefined || compareUtcTimestamps(event.occurredAt, last) > 0)
+      last = event.occurredAt;
   }
 
   const summary: WorkloadSummary = {

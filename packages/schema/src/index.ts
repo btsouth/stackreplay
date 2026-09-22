@@ -1,3 +1,7 @@
+export {
+  isSyntheticCatalogId,
+  SYNTHETIC_CATALOG_PREFIX,
+} from "./catalog-namespace.js";
 export { STACKREPLAY_ERROR_CODES, type StackReplayErrorCode } from "./error-codes.js";
 export {
   type ApiModelMappingV1,
@@ -78,10 +82,13 @@ export {
   workloadSummaryV1Schema,
 } from "./replay-result.js";
 export {
+  computedDecimalV1Schema,
+  computedSignedDecimalV1Schema,
   currencyV1Schema,
   DECIMAL_AMOUNT_PATTERN,
   DECIMAL_ENVELOPE_MESSAGE,
   decimalAmountV1Schema,
+  decimalSumEquals,
   ISO_DATE_PATTERN,
   ISO_UTC_TIMESTAMP_PATTERN,
   isoDateV1Schema,

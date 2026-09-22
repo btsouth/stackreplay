@@ -3,7 +3,11 @@ import type {
   MeasurementUnitV1,
   VerificationStatusV1,
 } from "@stackreplay/schema";
-import { assertNoForbiddenFields, type ShareReplaySnapshotV1 } from "@stackreplay/share";
+import {
+  assertNoForbiddenFields,
+  type ShareReplaySnapshotV1,
+  snapshotIsSynthetic,
+} from "@stackreplay/share";
 
 /**
  * Replay result -> share snapshot projection (M4, decision 32).
@@ -51,6 +55,40 @@ export interface ShareSnapshotOptions {
 
 const dateOnly = (timestamp: string): string => timestamp.slice(0, 10);
 
+/**
+ * Bounds the public snapshot carries, and the export-truncation marker.
+ *
+ * These are the schema's maxima. When the sharer's own result is larger, the
+ * snapshot keeps the first N entries and records how many existed, so a reader
+ * can tell a complete artifact from a truncated one (benchmark finding F009).
+ */
+const SHARE_BOUNDS = {
+  sources: 8,
+  constraints: 24,
+  violations: 64,
+  confidenceFactors: 12,
+  attributionSources: 24,
+  ratios: 8,
+} as const;
+
+type ShareBoundKey = keyof typeof SHARE_BOUNDS;
+
+/**
+ * The entries a snapshot records for each list that had to be cut.
+ *
+ * Every value is the size the sharer's own result had for that list — never the
+ * number of entries left out — and a list that fits is absent entirely.
+ */
+function truncationOf(
+  resultSizes: Partial<Record<ShareBoundKey, number>>,
+): ShareReplaySnapshotV1["truncation"] {
+  const cut: Partial<Record<ShareBoundKey, number>> = {};
+  for (const [key, size] of Object.entries(resultSizes) as [ShareBoundKey, number | undefined][]) {
+    if (size !== undefined && size > SHARE_BOUNDS[key]) cut[key] = size;
+  }
+  return Object.keys(cut).length === 0 ? undefined : cut;
+}
+
 function unitOf(kind: string, unit: MeasurementUnitV1): MeasurementUnitV1 {
   if (kind === "credit_pool") return "usd";
   return unit;
@@ -62,6 +100,18 @@ export function toShareSnapshot(
 ): ShareReplaySnapshotV1 {
   const { target } = options;
   const subscription = result.subscription;
+
+  // The synthetic `example-` namespace is filtered out of the public catalog read
+  // model, but a share link carries its target inside the token, so the snapshot
+  // must mark a synthetic target itself (benchmark finding F011). The public page
+  // labels the whole result as demo data when the marker is present. Every id the
+  // snapshot can carry is checked, not just the one it ends up preferring: a
+  // synthetic fact must not slip in through the field the other one would have won.
+  const resolvedPlanId = subscription?.planId ?? target.planId;
+  const resolvedProviderId = subscription?.providerId ?? target.providerId;
+  const synthetic =
+    snapshotIsSynthetic({ planId: resolvedPlanId, providerId: resolvedProviderId }) ||
+    snapshotIsSynthetic({ planId: target.planId, providerId: target.providerId });
 
   const tokenTotals = {
     ...(result.workload.tokenTotals.inputTokens === undefined
@@ -83,6 +133,7 @@ export function toShareSnapshot(
 
   const snapshot: ShareReplaySnapshotV1 = {
     version: 1,
+    ...(synthetic ? { synthetic: true as const } : {}),
     workload: {
       eventCount: result.workload.eventCount,
       ...(options.includeSessions && result.workload.sessionCount !== undefined
@@ -183,6 +234,22 @@ export function toShareSnapshot(
         description: factor.description,
       })),
     },
+    // A bounded list that had to be cut says so, instead of reading as complete.
+    ...(() => {
+      const truncation = truncationOf({
+        sources: target.sources.length,
+        constraints: result.constraints.length,
+        violations: result.violations.length,
+        confidenceFactors: result.confidence.factors.length,
+        ...(options.attribution === undefined
+          ? {}
+          : { attributionSources: options.attribution.length }),
+        ...(result.economics?.ratios === undefined
+          ? {}
+          : { ratios: result.economics.ratios.length }),
+      });
+      return truncation === undefined ? {} : { truncation };
+    })(),
     ...(options.attribution === undefined || options.attribution.length === 0
       ? {}
       : {

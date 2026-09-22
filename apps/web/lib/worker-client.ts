@@ -5,7 +5,9 @@ import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import {
   type ImportPhase,
   type ImportRecord,
+  isSafeError,
   isWorkerResponse,
+  protocolMismatch,
   type ReplayPhase,
   type SafeError,
   type TimelinePoint,
@@ -50,19 +52,46 @@ export class WorkerFailure extends Error {
 
 type ProgressHandler = (phase: ImportPhase | ReplayPhase, detail?: string) => void;
 
+/**
+ * A request's channel. Supersession is decided per channel: a newer import must
+ * not cancel a listing, and a listing must not be cancelled by anything
+ * (benchmark finding F006). The predicate used to be "does the response type
+ * start with IMPORT", which is true of the list response `IMPORTS` as well, so a
+ * perfectly valid listing was dropped whenever an import was running.
+ */
+type Channel = "import" | "replay" | "list" | "mutation";
+
 interface Pending {
   resolve: (response: WorkerResponse) => void;
   reject: (error: unknown) => void;
+  channel: Channel;
   onProgress?: ProgressHandler;
+  /** Cleared when the request settles; re-armed while progress keeps arriving. */
+  idleTimer?: ReturnType<typeof setTimeout>;
 }
+
+/**
+ * How long a request may go without a word before it is treated as hung.
+ *
+ * Imports and replays report progress as they work, so silence means something is
+ * wrong; the budget is wide because a large file really can take minutes between
+ * phases. A listing answers immediately once it is reached. A deletion or clear is
+ * *queued behind* earlier storage work by design, so its budget has to cover the
+ * work in front of it: the chain is bounded because that work is itself bounded.
+ */
+const IDLE_TIMEOUT_MS: Record<Channel, number> = {
+  import: 300_000,
+  replay: 300_000,
+  list: 60_000,
+  mutation: 900_000,
+};
 
 export class ReplayWorkerClient {
   private worker: Worker | undefined;
   private nextRequestId = 1;
   private readonly pending = new Map<number, Pending>();
-  /** Request id of the newest import: older import responses are stale. */
-  private latestImportRequest = 0;
-  private latestReplayRequest = 0;
+  /** Newest request id per channel: an older request on that channel is stale. */
+  private readonly latestByChannel: Partial<Record<Channel, number>> = {};
   /** True once the Worker has announced itself; false while it is starting. */
   private workerReady = false;
   private readyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -110,7 +139,29 @@ export class ReplayWorkerClient {
     worker?.terminate();
     const waiting = [...this.pending.values()];
     this.pending.clear();
-    for (const entry of waiting) entry.reject(new WorkerFailure(error));
+    for (const entry of waiting) {
+      if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+      entry.reject(new WorkerFailure(error));
+    }
+  }
+
+  /**
+   * A request that stops making progress is failed rather than awaited forever:
+   * without this, a hung Worker left the interface waiting with no way out
+   * (benchmark finding F028). The timer re-arms on every progress message, so a
+   * long import that is still working never times out.
+   */
+  private armIdleTimer(requestId: number, entry: Pending): void {
+    if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+    entry.idleTimer = setTimeout(() => {
+      if (!this.pending.has(requestId)) return;
+      this.failWorker({
+        code: "INTERNAL",
+        title: "The replay Worker stopped responding.",
+        message: "The operation was still running but stopped reporting progress.",
+        hint: "Reload the page and try again. A very large workload may need a narrower export.",
+      });
+    }, IDLE_TIMEOUT_MS[entry.channel]);
   }
 
   private ensureWorker(): Worker {
@@ -134,49 +185,104 @@ export class ReplayWorkerClient {
   }
 
   private receive(data: unknown): void {
+    // A Worker built by a different version announces a protocol this page does
+    // not speak. That check used to be unreachable: the response guard dropped
+    // the announcement first, so a version mismatch looked like a Worker that
+    // never started (benchmark finding F028).
+    if (this.announcementMismatch(data)) {
+      this.failWorker({
+        code: "INTERNAL",
+        title: "The replay Worker is a different version than this page.",
+        message: "The Worker asset does not speak this page's protocol.",
+        hint: "Hard-reload the page (Shift+Reload) so both come from the same build.",
+      });
+      return;
+    }
     if (!isWorkerResponse(data)) return;
     const response = data;
     if (response.type === "READY" || response.type === "PONG") {
       this.markReady();
+      // PONG answers a PING: settle that request instead of swallowing it, which
+      // left ping() pending forever (benchmark finding F028).
+      if (response.type === "PONG") this.settle(response.requestId, response);
       return;
     }
     const entry = this.pending.get(response.requestId);
     if (entry === undefined) return;
 
+    // Staleness is decided from the request's own channel, before any response
+    // shape is dispatched: a superseded request may not move the interface, not
+    // even by reporting progress.
+    const stale = response.requestId < (this.latestByChannel[entry.channel] ?? 0);
+
     if (response.type === "PROGRESS") {
+      if (stale) return;
+      this.armIdleTimer(response.requestId, entry);
       entry.onProgress?.(response.phase, response.detail);
       return;
     }
 
-    // Stale protection: a terminal response for a superseded request is dropped.
-    const superseded =
-      (response.type.startsWith("IMPORT") && response.requestId < this.latestImportRequest) ||
-      (response.type.startsWith("REPLAY") && response.requestId < this.latestReplayRequest);
     this.pending.delete(response.requestId);
-    if (superseded) {
+    if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+    if (stale) {
       entry.reject(new SupersededError());
       return;
     }
     if (response.type === "ERROR") {
-      entry.reject(new WorkerFailure(response.error));
+      // The Worker is the other side of a boundary, not a trusted caller: an
+      // error payload that is not a display-safe error is replaced rather than
+      // forwarded (benchmark finding F029).
+      entry.reject(
+        new WorkerFailure(
+          isSafeError(response.error)
+            ? response.error
+            : {
+                code: "INTERNAL",
+                title: "Something went wrong.",
+                message: "The replay Worker reported a failure it could not describe.",
+                hint: "Try again; if it repeats, reload the page.",
+              },
+        ),
+      );
       return;
     }
     entry.resolve(response);
   }
 
+  /** Resolves a pending request from an announcement that answers it (PONG). */
+  private settle(requestId: number, response: WorkerResponse): void {
+    const entry = this.pending.get(requestId);
+    if (entry === undefined) return;
+    this.pending.delete(requestId);
+    if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+    entry.resolve(response);
+  }
+
+  /** True when a READY/PONG announcement declares a different protocol version. */
+  private announcementMismatch(data: unknown): boolean {
+    if (typeof data !== "object" || data === null) return false;
+    const record = data as { type?: unknown; protocol?: unknown };
+    if (record.type !== "READY" && record.type !== "PONG") return false;
+    if (typeof record.protocol !== "number") return false;
+    return protocolMismatch(record as WorkerResponse);
+  }
+
   private send(
     build: (requestId: number) => WorkerRequest,
     onProgress?: ProgressHandler,
-    channel: "import" | "replay" | "other" = "other",
+    channel: Channel = "mutation",
   ): Promise<WorkerResponse> {
     const worker = this.ensureWorker();
     const requestId = this.nextRequestId;
     this.nextRequestId += 1;
-    if (channel === "import") this.latestImportRequest = requestId;
-    if (channel === "replay") this.latestReplayRequest = requestId;
+    if (channel === "import" || channel === "replay" || channel === "list") {
+      this.latestByChannel[channel] = requestId;
+    }
     const request = build(requestId);
     return new Promise<WorkerResponse>((resolve, reject) => {
-      this.pending.set(requestId, { resolve, reject, ...(onProgress ? { onProgress } : {}) });
+      const entry: Pending = { resolve, reject, channel, ...(onProgress ? { onProgress } : {}) };
+      this.pending.set(requestId, entry);
+      this.armIdleTimer(requestId, entry);
       try {
         worker.postMessage(request);
       } catch {
@@ -259,11 +365,15 @@ export class ReplayWorkerClient {
   }
 
   async listImports(): Promise<ImportRecord[]> {
-    const response = await this.send((requestId) => ({
-      protocol: WORKER_PROTOCOL_VERSION,
-      type: "LIST_LOCAL_IMPORTS",
-      requestId,
-    }));
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "LIST_LOCAL_IMPORTS",
+        requestId,
+      }),
+      undefined,
+      "list",
+    );
     if (response.type !== "IMPORTS") throw new Error("unexpected worker response");
     return response.imports;
   }

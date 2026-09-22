@@ -541,6 +541,56 @@ equivalent and price credit-pool consumption for models a plan serves.
   for sources with no detailed token categories, and missing pricing remains a
   warning rather than an error (decisions 15, 16 and 33 apply unchanged).
 
+## 36. One rule per boundary, stated where it is enforced (benchmark audit)
+
+A multi-model audit of the repository produced a finding matrix, and the findings
+that survived checking against `origin/main` were fixed with regression tests.
+The fixes are not new product behaviour: they make the existing rules hold at the
+places where two surfaces have to agree.
+
+- **Plan-version selection lives in one function.** `selectPlanVersionAt` in
+  `@stackreplay/catalog` is the rule: `effectiveFrom <= at`, `effectiveTo` absent
+  or `>= at`, latest `effectiveFrom` wins. The engine, the public read model and
+  the picker all call it. The public read model no longer falls back to the newest
+  version when none is in force: a version that starts later is not the version in
+  force today, and the page says nothing rather than something false.
+- **Warnings travel with the artifact.** An export carries the collection
+  warnings, path fields dropped and path-like text redacted, because the artifact
+  is what a user hands over and it must say what was uncertain about itself.
+- **A share link states its own limits.** `ShareReplaySnapshotV1` marks a
+  synthetic `example-` target (`synthetic: true`) and any bounded list it had to
+  cut (`truncation`); the public page labels both. Plan terms inside a link are
+  the sharer's claim, presented as such, never under the catalog's verification
+  language. Source links must be absolute http(s) URLs, validated at the boundary
+  rather than trusted at the render.
+- **Computed quantities are not input-bounded.** Values the engine computes carry
+  the computed decimal envelope; only values that come from the catalog carry the
+  input envelope.
+- **One unit per count.** A coverage dimension's `unknownCount` is in that
+  dimension's unit. A quantity that cannot be expressed in it (the tokens of an
+  event that reports no total) is stated in `reason` instead of counted in the
+  wrong unit.
+- **A ceiling is not a memory promise.** The import ceiling is a refusal point;
+  above the comfort threshold the interface says a browser needs several times the
+  file size to hold it, and an import that exhausts memory reports memory rather
+  than a generic failure.
+- **Behavioural claims get a runtime control.** Public pages are served under a
+  content security policy whose `connect-src 'self'` is the runtime half of
+  "nothing leaves the browser".
+- **Aggregates are not exact.** A source row that aggregates many calls reports
+  `estimated` usage confidence, so a request-count replay cannot treat it as a
+  count of requests. A row that reports no call count at all is an aggregate
+  too: it may stand for any number of calls, so it is `estimated` as well, and
+  saying so is not optional — an exact request count is a claim only a record
+  that stands for one call can make.
+- **Identity is a tagged, unambiguous tuple.** A source record's native identity
+  is a length-prefixed encoding of a tagged tuple: `(session, record identity)`
+  for a record that names a session, `(no-session, record identity)` for one that
+  does not. Concatenating an empty session field instead made every session-less
+  row of one adapter hash identically, so deduplication dropped all but the first
+  of them as exact duplicates and the rest disappeared from the accounting with
+  no warning.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

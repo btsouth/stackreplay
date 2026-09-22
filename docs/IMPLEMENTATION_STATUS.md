@@ -17,9 +17,10 @@ model can now declare `aliases`, each with its own kind, optional harness scope,
 verification state, and one shared resolver (`createModelIdentityIndex`) is used by the adapters and
 the replay engine alike. Resolution is exact id, then canonical name, then a declared alias, then
 unresolved with a reason. There is no fuzzy matching, no prefix or substring matching and no provider
-inference. The catalog carries 35 aliases: 33 verified (the provider's own documented id, or a slug
-OpenRouter publishes in its models API) and 2 estimated (a router slug with the author prefix dropped,
-which the router does not itself publish as an identifier; scoped to the harnesses that emit them).
+inference. The catalog carries 39 aliases: 33 verified (the provider's own documented id, or a slug
+OpenRouter publishes in its models API) and 6 estimated (a router slug with the author prefix dropped,
+which the router does not itself publish as an identifier; the estimated aliases are scoped to the
+harnesses that emit them, so two slugs observed by three harnesses are six aliases).
 
 **Sourced API list pricing.** 24 models carry sourced pricing records, each recording
 only the categories the provider documents: input and output always, cache reads and cache writes
@@ -134,6 +135,68 @@ the same ten spellings. The credit-pool constraint reports 0 indeterminate event
 model the Copilot plans serve: 11,292 events consume reasoning on DeepSeek/Z.ai models where no
 billing relationship is documented, those stay unknown and outside the served set, and 16 events
 reporting no complete token accounting keep usage coverage unknown.
+
+### Benchmark-audit remediation (2026-09-22)
+
+A six-model benchmark produced a finding matrix (38 findings, one of them verified as a false
+positive) against a frozen revision two commits behind `origin/main`. Each finding was re-checked
+against the current tree, and the 37 that were still present were fixed in severity order, starting
+with the identity collision that discarded most Hermes tokens (critical), the ccusage aggregate
+double-count (high) and the export that dropped every collection warning (high). Decision 36 records
+the rules these fixes establish.
+
+- **Hermes adapter identity.** The adapter keyed events on `(session, model)` while the source table
+  is keyed on `(session, model, billing provider, billing base url, billing mode, task)`, so rows that
+  collided were dropped as duplicates: roughly 85 percent of Hermes tokens. Identity now covers the
+  whole key, and rows that aggregate several calls report estimated usage confidence rather than an
+  exact request count.
+- **Aggregate imports.** A date-scoped ccusage row is a bucket of work and names no session, so it can
+  never be matched against a native scan. Such rows no longer claim a session identity, the pipeline
+  reports the double count it cannot resolve instead of hiding it, and each row's own categories are
+  checked against the total it publishes (`ACCOUNTING_UNRECONCILED` when they disagree).
+- **A session-less row still has an identity of its own.** Dropping the fabricated session left every
+  bucket row of one adapter hashing an empty session identity, so all of them shared one native event
+  hash and one canonical id and `dedupeEvents` discarded all but the first as exact duplicates:
+  distinct rows, silently lost accounting. Native identity is now an unambiguous encoding of a tagged
+  tuple, `(session, record identity)` or `(no-session, record identity)`, so distinct bucket rows stay
+  distinct and none of them claims a session it does not have.
+- **The export says what it is.** Collection warnings now travel in the export with path fields
+  dropped and path-like text redacted, so a file handed to someone else states what was uncertain
+  about it.
+- **One rule per shared boundary.** Plan-version selection lives in `selectPlanVersionAt`
+  (`packages/catalog/src/versions.ts`): the engine, the public read model and the picker all call it,
+  and a version that starts later is never presented as the version in force.
+- **The share boundary.** Source links must be absolute `http(s)` URLs; computed quantities use the
+  computed decimal envelope; a cut list carries a `truncation` marker; a synthetic `example-` target is
+  marked and labelled as demo data; plan terms in a link are presented as the sharer's claim (decision
+  32 extended by decision 36).
+- **Browser storage.** Import/delete/clear write both stores in one transaction, mutation requests are
+  serialized in the Worker, and the intent to delete or clear is registered before the queue so an
+  import that is already running cannot write after it. Delete and clear failures are reported instead
+  of swallowed.
+- **The Worker client.** Freshness is decided per request channel and before any response shape is
+  dispatched, a protocol mismatch names itself instead of looking like a Worker that never started,
+  and a request that stops reporting progress fails rather than hanging.
+- **Coverage, timeline and copy.** A coverage dimension's `unknownCount` is in that dimension's unit,
+  the timeline separates exact token totals from lower bounds and names what each shaded band did to
+  the workload, the result panel describes the replay it shows, and the surfaces no longer call the
+  catalogue synthetic (decision 36).
+- **Runtime control for the privacy claim.** Public pages are served under a content security policy
+  (`connect-src 'self'`, `worker-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`) plus
+  nosniff, referrer, permissions and cross-origin headers (`apps/web/next.config.ts`).
+
+Every fix carries a regression test: catalog version selection, adapter identity and fixtures, ccusage
+accounting, the collection pipeline, the export contract and its collection warnings, the share schema
+and projection, browser storage (Playwright), the Worker client and its protocol guards, coverage
+units, timeline buckets and the CLI filters.
+
+| Gate | Result |
+| --- | --- |
+| pnpm check | PASS for every tracked file; the untracked `brand/` mock-up HTML is flagged as before this pass (CI never sees it) |
+| pnpm typecheck | PASS: 15 tasks |
+| pnpm test | PASS: 532 tests — engine 158, adapters 144, catalog 61, share 37, schema 31, web 56, CLI 30, UI 15 |
+| pnpm build | PASS: 8 tasks |
+| pnpm --filter @stackreplay/web test:e2e | PASS: 174 passed, 32 skipped, desktop and mobile projects |
 
 ### Known limitations at M4
 

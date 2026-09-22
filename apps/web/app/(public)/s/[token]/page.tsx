@@ -2,8 +2,9 @@ import { decodeShareToken } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { VerificationBadge } from "@/components/public/provenance";
 import { ShareCard } from "@/components/share/share-card";
+import { loadPublicCatalog } from "@/lib/public-catalog";
+import { describeShareTruncation } from "@/lib/share-truncation";
 import { brandAssets, siteName } from "@/lib/site";
 
 /**
@@ -87,6 +88,10 @@ export default async function SharePage({ params }: SharePageProps) {
   const snapshot = decoded.snapshot;
   const exceeded = snapshot.constraints.filter((constraint) => constraint.status === "exceeded");
   const unknown = snapshot.constraints.filter((constraint) => constraint.status === "unknown");
+  // A link may name a plan this catalog does not carry: the reader gets the
+  // catalogued entry when there is one, and no dead link when there is not.
+  const catalogued = loadPublicCatalog().planById(snapshot.target.planId);
+  const truncationNotes = describeShareTruncation(snapshot.truncation);
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -103,12 +108,30 @@ export default async function SharePage({ params }: SharePageProps) {
         </p>
       </header>
 
+      {snapshot.synthetic === true ? (
+        <p
+          className="max-w-3xl rounded-lg border border-warning/40 bg-surface p-4 text-sm text-warning"
+          data-testid="share-synthetic"
+        >
+          Demo data. This result was replayed against a synthetic <code>example-</code> catalog
+          entry rather than a real plan, so the plan name, price and limits below are illustrative
+          and must not be read as a real-world claim about any provider.
+        </p>
+      ) : null}
+
       <ShareCard
         snapshot={snapshot}
         logoSrc={brandAssets.navbar.dark}
         logoWidth={brandAssets.navbar.width}
         logoHeight={brandAssets.navbar.height}
       />
+
+      {truncationNotes.length === 0 ? null : (
+        <p className="max-w-3xl text-sm text-warning" data-testid="share-truncation">
+          This link carries a bounded subset of the result: {truncationNotes.join(" · ")}. The
+          public unit is capped so a link stays a URL; nothing here was summarised or rounded.
+        </p>
+      )}
 
       <section className="flex flex-col gap-3" data-testid="share-constraints">
         <h2 className="text-lg font-medium text-foreground">Documented limits checked</h2>
@@ -163,29 +186,56 @@ export default async function SharePage({ params }: SharePageProps) {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-foreground">Plan provenance</h2>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-foreground">
-              {snapshot.target.planName} · {snapshot.target.providerName} · $
-              {snapshot.target.price.amount} per {snapshot.target.price.interval}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Rule version {snapshot.target.planVersionId} · rules as of{" "}
-              {snapshot.versions.rulesAsOf}
-            </span>
-          </div>
-          <VerificationBadge
-            status={snapshot.target.verificationStatus}
-            lastVerifiedAt={snapshot.target.lastVerifiedAt}
-          />
+        {/*
+          Benchmark finding F004: these plan terms arrive inside a link anyone can
+          craft, and rendering them with the catalog's own verification badge made
+          the sharer's claim read as a fact this site had checked. The section now
+          says who is claiming what, and links to the catalog entry so a reader can
+          compare the two.
+        */}
+        <div
+          className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4"
+          data-testid="share-target-claim"
+        >
+          <span className="text-xs uppercase tracking-widest text-muted-foreground">
+            Carried by this link
+          </span>
+          <span className="text-sm text-foreground">
+            {snapshot.target.planName} · {snapshot.target.providerName} · $
+            {snapshot.target.price.amount} per {snapshot.target.price.interval}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Rule version {snapshot.target.planVersionId} · rules as of {snapshot.versions.rulesAsOf}{" "}
+            · the link states this plan data as {snapshot.target.verificationStatus}, checked{" "}
+            {snapshot.target.lastVerifiedAt}
+          </span>
+          <p className="max-w-3xl text-xs text-muted-foreground">
+            These terms were recorded by whoever made the link, not by this site. StackReplay has
+            not checked them against its own catalog.
+            {catalogued === undefined ? null : (
+              <>
+                {" "}
+                <Link
+                  className="text-accent underline underline-offset-2"
+                  href={`/plans/${snapshot.target.planId}`}
+                >
+                  Compare with the catalogued entry
+                </Link>
+                , which states ${catalogued.price.amount} per {catalogued.price.interval}.
+              </>
+            )}
+          </p>
         </div>
         <ul className="flex flex-col gap-1 text-sm">
+          <li className="text-xs uppercase tracking-widest text-muted-foreground">
+            Sources the link cites
+          </li>
           {snapshot.target.sources.map((source) => (
             <li key={`${source.url}-${source.title}`}>
               <a
                 className="text-accent underline underline-offset-2"
                 href={source.url}
-                rel="noreferrer noopener"
+                rel="noreferrer noopener nofollow"
                 target="_blank"
               >
                 {source.title}

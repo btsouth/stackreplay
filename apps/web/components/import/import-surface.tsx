@@ -9,6 +9,7 @@ import { Button, buttonVariants, Card, CardContent, Metric } from "@stackreplay/
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createLocalImportId } from "@/lib/idb";
+import { importSizeAdvice } from "@/lib/import-validation";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
 
@@ -56,6 +57,8 @@ export function ImportSurface({
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<SafeError | undefined>(undefined);
+  /** A large-but-allowed file: said out loud before the work starts. */
+  const [notice, setNotice] = useState<string | undefined>(undefined);
   const [record, setRecord] = useState<ImportRecord | undefined>(undefined);
   const [imports, setImports] = useState<ImportRecord[]>(initialImports);
   const [busy, setBusy] = useState(false);
@@ -107,16 +110,37 @@ export function ImportSurface({
     [refreshImports],
   );
 
+  /**
+   * A file larger than the browser can realistically parse is refused here with a
+   * real explanation, and one that is merely large warns before the work starts:
+   * the size guard alone could only fire after the read had already been attempted
+   * (benchmark finding F008). The Worker applies the same rule, so this is advice
+   * rather than the boundary.
+   */
   const importFile = useCallback(
-    (file: File) =>
-      runImport((onProgress) =>
+    (file: File) => {
+      const advice = importSizeAdvice(file.size);
+      if (advice.level === "refused") {
+        setRecord(undefined);
+        setPhase("idle");
+        setError({
+          code: "FILE_TOO_LARGE",
+          title: "This file is larger than StackReplay imports in the browser.",
+          message: `The file is ${advice.readableSize}; the browser limit is ${advice.readableLimit}.`,
+          hint: "Export a narrower date range with `stackreplay export --since <date>`.",
+        });
+        return;
+      }
+      setNotice(advice.level === "large" ? advice.message : undefined);
+      return runImport((onProgress) =>
         client.importFile(file, {
           importId: createLocalImportId(),
           label: file.name.replace(/\.json$/u, ""),
           now: new Date().toISOString(),
           onProgress: (next, nextDetail) => onProgress(next as Phase, nextDetail),
         }),
-      ),
+      );
+    },
     [client, runImport],
   );
 
@@ -132,9 +156,19 @@ export function ImportSurface({
     [client, runImport],
   );
 
+  /**
+   * Deleting and clearing report their failures. Both used to swallow every
+   * error, so a deletion that did not happen looked exactly like one that did
+   * (benchmark finding F007).
+   */
   const removeImport = useCallback(
     async (importId: string) => {
-      await client.deleteImport(importId).catch(() => undefined);
+      try {
+        await client.deleteImport(importId);
+      } catch (failure) {
+        setError(describeWorkerFailure(failure));
+        return;
+      }
       if (record?.id === importId) setRecord(undefined);
       await refreshImports();
     },
@@ -142,7 +176,12 @@ export function ImportSurface({
   );
 
   const clearAll = useCallback(async () => {
-    await client.clearLocalData().catch(() => undefined);
+    try {
+      await client.clearLocalData();
+    } catch (failure) {
+      setError(describeWorkerFailure(failure));
+      return;
+    }
     setRecord(undefined);
     setPhase("idle");
     await refreshImports();
@@ -290,6 +329,15 @@ export function ImportSurface({
             ) : null}
           </CardContent>
         </Card>
+
+        {notice === undefined ? null : (
+          <Card data-testid="import-size-notice" className="border-warning/40">
+            <CardContent className="flex flex-col gap-1 pt-6">
+              <h2 className="text-sm font-medium text-warning">Large import</h2>
+              <p className="text-sm text-muted-foreground">{notice}</p>
+            </CardContent>
+          </Card>
+        )}
 
         {error !== undefined ? (
           <Card role="alert" data-testid="import-error" className="border-negative/40">

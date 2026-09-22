@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { createFixtureEnvironment, FIXTURE_SALT, withTempDir } from "./fixtures/helpers.js";
 import {
@@ -26,6 +26,8 @@ describe("identity and hashing", () => {
       expect(await readSalt(env)).toBe(created);
       expect(await ensureSalt(env)).toBe(created);
       expect(saltFilePath(env)).toBe(`${directory}/.config/stackreplay/salt`);
+      // The salt is the only thing linking two runs' hashes: it stays owner-only.
+      expect((await stat(saltFilePath(env))).mode & 0o777).toBe(0o600);
     });
   });
 

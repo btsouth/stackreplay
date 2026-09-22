@@ -4,18 +4,19 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { replay, tokenAccountingOf } from "@stackreplay/replay-engine";
+import { replay } from "@stackreplay/replay-engine";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
 import {
-  MAX_IMPORT_BYTES,
+  importSizeAdvice,
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import { buildTimeline } from "../lib/timeline";
 import {
   type ImportRecord,
+  isSafeErrorCode,
   type SafeError,
-  type TimelinePoint,
   WORKER_PROTOCOL_VERSION,
   type WorkerRequest,
   type WorkerResponse,
@@ -56,15 +57,68 @@ function progress(
   });
 }
 
+/**
+ * Turns anything thrown into a display-safe error.
+ *
+ * A thrown object used to be forwarded across the boundary as soon as it had a
+ * `code` property, which is not a type: the engine's own errors carry internal
+ * codes and identifiers, and an arbitrary thrown value could carry anything at
+ * all into the interface. A value is now rebuilt field by field, only for a code
+ * this boundary declares, with every string bounded and sanitized (benchmark
+ * finding F029).
+ */
 function toSafeError(error: unknown): SafeError {
-  if (typeof error === "object" && error !== null && "code" in error) {
-    return error as SafeError;
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as Partial<SafeError>;
+    if (isSafeErrorCode(candidate.code) && typeof candidate.message === "string") {
+      return {
+        code: candidate.code,
+        title:
+          typeof candidate.title === "string"
+            ? sanitizeMessage(candidate.title)
+            : "Something went wrong while processing the file.",
+        message: sanitizeMessage(candidate.message),
+        ...(typeof candidate.hint === "string" ? { hint: sanitizeMessage(candidate.hint) } : {}),
+        ...(Array.isArray(candidate.details)
+          ? {
+              details: candidate.details
+                .filter((detail): detail is string => typeof detail === "string")
+                .slice(0, 8)
+                .map(sanitizeMessage),
+            }
+          : {}),
+      };
+    }
   }
+  // A browser that runs out of memory while holding a large workload throws a
+  // RangeError, which used to surface as a generic failure (benchmark finding F008).
+  if (isMemoryExhaustion(error)) return memoryExhaustedError();
   return {
     code: "INTERNAL",
     title: "Something went wrong while processing the file.",
     message: error instanceof Error ? sanitizeMessage(error.message) : "Unknown error.",
     hint: "Try again, or import a freshly exported file.",
+  };
+}
+
+function isMemoryExhaustion(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  if (error instanceof RangeError) return true;
+  return /out of memory|array buffer allocation|invalid string length/iu.test(error.message);
+}
+
+/**
+ * Reported when the browser cannot hold the workload in memory. Distinct from
+ * "too large" on purpose: the file passed the size guard, and the honest advice
+ * is a narrower export, not a different file.
+ */
+function memoryExhaustedError(): SafeError {
+  return {
+    code: "MEMORY_EXHAUSTED",
+    title: "This browser ran out of memory reading the workload.",
+    message:
+      "The file is within the import limit, but holding it plus its parsed events exceeded what this browser could allocate.",
+    hint: "Export a narrower date range with `stackreplay export --since <date>`, or use a browser with more available memory.",
   };
 }
 
@@ -78,14 +132,18 @@ async function handleImportFile(
   request: Extract<WorkerRequest, { type: "IMPORT_FILE" }>,
 ): Promise<void> {
   const { requestId, file, importId, label, now } = request;
-  if (file.size > MAX_IMPORT_BYTES) {
+  // One rule, shared with the interface: the refusal point and the wording come
+  // from `importSizeAdvice` so the two surfaces cannot describe the same file
+  // differently (benchmark finding F008).
+  const advice = importSizeAdvice(file.size);
+  if (advice.level === "refused") {
     post({
       type: "ERROR",
       requestId,
       error: {
         code: "FILE_TOO_LARGE",
         title: "This file is larger than StackReplay imports in the browser.",
-        message: `The file is ${formatBytes(file.size)}; the browser limit is ${formatBytes(MAX_IMPORT_BYTES)}.`,
+        message: advice.message,
         hint: "Export a narrower date range with `stackreplay export --since <date>`.",
       },
     });
@@ -93,36 +151,51 @@ async function handleImportFile(
   }
 
   progress(requestId, "import", "reading", "Reading the file in this browser");
+  // The generation of the local store when this import began: a delete or clear
+  // that lands while this import is running invalidates it, instead of letting the
+  // import finish and resurrect what the user removed (benchmark finding F007).
+  const storeWhenStarted = storage.localStoreGeneration();
   let text: string;
   try {
     text = await file.text();
-  } catch {
+  } catch (error) {
     post({
       type: "ERROR",
       requestId,
-      error: {
-        code: "FILE_UNREADABLE",
-        title: "This file could not be read.",
-        message: "The browser could not open the selected file.",
-        hint: "Check that the file still exists and try again.",
-      },
+      error: isMemoryExhaustion(error)
+        ? memoryExhaustedError()
+        : {
+            code: "FILE_UNREADABLE",
+            title: "This file could not be read.",
+            message: "The browser could not open the selected file.",
+            hint: "Check that the file still exists and try again.",
+          },
     });
     return;
   }
 
   progress(requestId, "import", "validating", "Checking the export structure");
-  const validated = validateExportText(text);
+  let validated: ReturnType<typeof validateExportText>;
+  try {
+    validated = validateExportText(text);
+  } catch (error) {
+    // Parsing a large document is where the browser usually runs out of memory.
+    post({ type: "ERROR", requestId, error: toSafeError(error) });
+    return;
+  }
   if (!validated.ok) {
     post({ type: "ERROR", requestId, error: validated.error });
     return;
   }
 
   progress(requestId, "import", "preparing", "Preparing the workload");
-  const summary = summarizeExport(
-    validated.exported,
-    BUNDLED_CATALOG_VERSION,
-    bundledModelIdentity(),
-  );
+  let summary: ReturnType<typeof summarizeExport>;
+  try {
+    summary = summarizeExport(validated.exported, BUNDLED_CATALOG_VERSION, bundledModelIdentity());
+  } catch (error) {
+    post({ type: "ERROR", requestId, error: toSafeError(error) });
+    return;
+  }
   const record: ImportRecord = {
     id: importId,
     label,
@@ -131,8 +204,24 @@ async function handleImportFile(
     summary,
   };
   const existing = await storage.listImports();
-  const saved = await storage.saveImport(record, validated.exported);
+  const saved = await storage.saveImport(record, validated.exported, {
+    observed: storeWhenStarted,
+  });
   if (!saved.ok) {
+    if (saved.code === "IMPORT_CANCELLED") {
+      post({
+        type: "ERROR",
+        requestId,
+        error: {
+          code: "IMPORT_CANCELLED",
+          title: "This import was cancelled.",
+          message:
+            "Local data was deleted or cleared while this file was being imported, so nothing was stored.",
+          hint: "Import the file again if you still want it.",
+        },
+      });
+      return;
+    }
     post({
       type: "ERROR",
       requestId,
@@ -159,6 +248,7 @@ async function handleImportDemo(
 ): Promise<void> {
   const { requestId, preset, importId, now } = request;
   progress(requestId, "import", "preparing", "Building the demo workload");
+  const storeWhenStarted = storage.localStoreGeneration();
   const exported = buildDemoExport(preset);
   const validated = validateExportValue(exported);
   if (!validated.ok) {
@@ -177,16 +267,28 @@ async function handleImportDemo(
     eventCount: summary.eventCount,
     summary,
   };
-  const saved = await storage.saveImport(record, validated.exported);
+  const saved = await storage.saveImport(record, validated.exported, {
+    observed: storeWhenStarted,
+  });
   if (!saved.ok) {
     post({
       type: "ERROR",
       requestId,
-      error: {
-        code: "STORAGE_UNAVAILABLE",
-        title: "The demo workload could not be stored in this browser.",
-        message: "Browser storage is unavailable, so the demo cannot be kept between page loads.",
-      },
+      error:
+        saved.code === "IMPORT_CANCELLED"
+          ? {
+              code: "IMPORT_CANCELLED",
+              title: "This import was cancelled.",
+              message:
+                "Local data was deleted or cleared while the demo was being prepared, so nothing was stored.",
+              hint: "Load the demo again if you still want it.",
+            }
+          : {
+              code: "STORAGE_UNAVAILABLE",
+              title: "The demo workload could not be stored in this browser.",
+              message:
+                "Browser storage is unavailable, so the demo cannot be kept between page loads.",
+            },
     });
     return;
   }
@@ -250,30 +352,26 @@ async function handleRunReplay(
   }
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-}
-
 /**
- * Daily activity buckets for the timeline. Aggregate counts only: no session,
- * event or project identity leaves the Worker, so the chart cannot leak private
- * project information.
+ * Storage writes run one at a time.
+ *
+ * The message handler is async, so without a queue two requests can interleave:
+ * an import that had already read the stored listing could write its record after
+ * a delete or a clear had removed everything, which is how a cleared browser ends
+ * up holding a workload again (benchmark finding F007). Reads are not queued: the
+ * client supersedes them, and an old listing that answers late is dropped there.
+ *
+ * The *intent* to delete or clear is registered before the queue (see the delete
+ * and clear cases): a deletion must stop an import that is already running
+ * immediately, and cannot wait behind it, or it would be waiting for the very
+ * write it is meant to prevent.
  */
-function buildTimeline(events: readonly { occurredAt: string; usage: unknown }[]): TimelinePoint[] {
-  const buckets = new Map<string, { events: number; tokens: number }>();
-  for (const event of events) {
-    const day = `${event.occurredAt.slice(0, 10)}T00:00:00.000Z`;
-    const bucket = buckets.get(day) ?? { events: 0, tokens: 0 };
-    bucket.events += 1;
-    const accounting = tokenAccountingOf(event.usage as never);
-    bucket.tokens += accounting.known ? accounting.total : accounting.knownSubtotal;
-    buckets.set(day, bucket);
-  }
-  return [...buckets.entries()]
-    .map(([at, bucket]) => ({ at, ...bucket }))
-    .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+let mutationChain: Promise<unknown> = Promise.resolve();
+
+function queueMutation<T>(run: () => Promise<T>): Promise<T> {
+  const next = mutationChain.then(run, run);
+  mutationChain = next.catch(() => undefined);
+  return next;
 }
 
 scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
@@ -298,10 +396,10 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         post({ type: "PONG", requestId: request.requestId, protocol: WORKER_PROTOCOL_VERSION });
         return;
       case "IMPORT_FILE":
-        await handleImportFile(request);
+        await queueMutation(() => handleImportFile(request));
         return;
       case "IMPORT_DEMO":
-        await handleImportDemo(request);
+        await queueMutation(() => handleImportDemo(request));
         return;
       case "RUN_REPLAY":
         await handleRunReplay(request);
@@ -314,7 +412,10 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         });
         return;
       case "DELETE_LOCAL_IMPORT": {
-        const deleted = await storage.deleteImport(request.importId);
+        // Registered first: an import running right now must not be able to write
+        // this record back after the queue reaches the deletion.
+        storage.invalidateInFlightWrites(request.importId);
+        const deleted = await queueMutation(() => storage.deleteImport(request.importId));
         if (!deleted.ok) {
           post({
             type: "ERROR",
@@ -331,7 +432,10 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       }
       case "CLEAR_LOCAL_DATA": {
-        const cleared = await storage.clearLocalData();
+        // Same rule as a delete: clearing invalidates imports that are running now,
+        // so nothing lands after the clear.
+        storage.invalidateInFlightWrites();
+        const cleared = await queueMutation(() => storage.clearLocalData());
         if (!cleared.ok) {
           post({
             type: "ERROR",

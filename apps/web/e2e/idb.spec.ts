@@ -1,5 +1,34 @@
+import { rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { gotoImport, importDemo } from "./helpers";
+
+/** How many records and payloads the browser's own database holds. */
+async function readStoreCounts(page: import("@playwright/test").Page): Promise<{
+  imports: number;
+  payloads: number;
+}> {
+  return await page.evaluate(async () => {
+    const databases = await indexedDB.databases();
+    if (!databases.some((entry) => entry.name === "stackreplay"))
+      return { imports: 0, payloads: 0 };
+    return await new Promise<{ imports: number; payloads: number }>((resolve) => {
+      const request = indexedDB.open("stackreplay");
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction(["imports", "payloads"], "readonly");
+        const imports = transaction.objectStore("imports").count();
+        const payloads = transaction.objectStore("payloads").count();
+        transaction.oncomplete = () =>
+          resolve({ imports: imports.result, payloads: payloads.result });
+        transaction.onerror = () => resolve({ imports: -1, payloads: -1 });
+      };
+      request.onerror = () => resolve({ imports: -1, payloads: -1 });
+    });
+  });
+}
 
 /**
  * Browser-local persistence (M3 brief).
@@ -107,4 +136,66 @@ test("a corrupted stored workload fails safely", async ({ page }) => {
   const error = page.getByTestId("replay-error");
   await expect(error).toBeVisible({ timeout: 30_000 });
   await expect(error).toContainText(/cannot be read|no longer stored/i);
+});
+
+/**
+ * Regression (benchmark F007): clearing while an import is running must not leave
+ * a workload behind.
+ *
+ * The import is deliberately slow (a generated export the browser has to read,
+ * parse and validate), so the clear provably lands while the import is still
+ * running: an import that read the store before the clear must not write its
+ * record afterwards, or a cleared browser silently grows a workload again.
+ */
+test("clearing local data during an import leaves nothing stored", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "one slow run is enough");
+  test.setTimeout(180_000);
+
+  await importDemo(page, "moderate");
+  await gotoImport(page);
+
+  // A browser-sized export, written to a path of this process's own so a parallel
+  // spec cannot be regenerating the same file underneath it.
+  const source = buildDemoExport("heavy");
+  const bundled = {
+    ...source,
+    events: Array.from({ length: 12 }, (_, copy) =>
+      source.events.map((event, index) => ({
+        ...event,
+        id: `${event.id}-c${copy}-${index}`,
+        occurredAt: new Date(Date.parse(event.occurredAt) + copy * 86_400_000).toISOString(),
+      })),
+    ).flat(),
+  };
+  const path = join(tmpdir(), `stackreplay-idb-race-${process.pid}.json`);
+  await writeFile(path, JSON.stringify(bundled));
+  try {
+    // The size is the point: the import has to still be running when the clear
+    // lands, or the test would only prove that a finished import gets cleared.
+    expect((await stat(path)).size).toBeGreaterThan(10 * 1024 * 1024);
+
+    await page.getByTestId("import-file-input").setInputFiles(path);
+    await page.getByTestId("clear-local-data").click();
+
+    // The clear takes effect, and the import that was running when the user asked
+    // for the store to be cleared is cancelled rather than allowed to write after it.
+    const failure = page.getByTestId("import-error");
+    await expect(failure).toBeVisible({ timeout: 60_000 });
+    await expect(failure).toContainText(/cancelled/i);
+    await expect(page.getByTestId("no-stored-imports")).toBeVisible();
+
+    const counts = await readStoreCounts(page);
+    expect(counts.imports).toBe(0);
+    expect(counts.payloads).toBe(0);
+
+    await page.reload();
+    await expect(page.getByTestId("no-stored-imports")).toBeVisible();
+    await expect(page.getByTestId("stored-imports")).toHaveCount(0);
+  } finally {
+    // A multi-megabyte file must not outlive the run that wrote it, on the
+    // passing path or the failing one. The cleanup error is not swallowed into
+    // the test result: `rm` on a file this test just wrote does not fail, and
+    // `force` covers the case where the write itself never landed.
+    await rm(path, { force: true });
+  }
 });

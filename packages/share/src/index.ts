@@ -4,10 +4,14 @@ export {
   FORBIDDEN_SHARE_KEYS,
   type ForbiddenShareKey,
   findForbiddenFields,
+  isSyntheticCatalogId,
   SHARE_SNAPSHOT_VERSION,
   type ShareReplaySnapshotV1,
   ShareSnapshotViolationError,
+  SYNTHETIC_CATALOG_PREFIX,
   shareReplaySnapshotV1Schema,
+  shareSourceUrlV1Schema,
+  snapshotIsSynthetic,
 } from "./schema.js";
 export {
   base64UrlDecode,

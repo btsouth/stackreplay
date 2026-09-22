@@ -88,3 +88,28 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
   });
   expect(offenders.map((request) => `${request.method} ${request.url}`)).toEqual([]);
 });
+
+/**
+ * Regression (benchmark F032): "your workload never leaves the browser" was a
+ * behavioural property with no runtime control behind it. The policy is what
+ * stops a future change, an injected script or a dependency from opening a
+ * connection, so it is asserted here as a page property.
+ */
+test("every page is served under a policy that blocks outbound connections", async ({
+  request,
+}) => {
+  for (const path of ["/", "/app", "/app/replay", "/s/not-a-token"]) {
+    const response = await request.get(path);
+    const headers = response.headers();
+    const policy = headers["content-security-policy"] ?? "";
+    expect(policy, `no policy on ${path}`).toContain("default-src 'self'");
+    // connect-src 'self' is the control that keeps imported data in the browser:
+    // no fetch, XHR, WebSocket or beacon may target another origin.
+    expect(policy, `connect-src on ${path}`).toContain("connect-src 'self'");
+    expect(policy, `worker-src on ${path}`).toContain("worker-src 'self'");
+    expect(policy, `object-src on ${path}`).toContain("object-src 'none'");
+    expect(policy, `frame-ancestors on ${path}`).toContain("frame-ancestors 'none'");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["referrer-policy"]).toBeDefined();
+  }
+});

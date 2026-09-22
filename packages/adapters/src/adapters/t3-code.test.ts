@@ -10,6 +10,11 @@ import {
   writeFixture,
 } from "../fixtures/helpers.js";
 import { createModelMapper } from "../models.js";
+import { claudeCodeRoots } from "./claude-code.js";
+import { codexRoots } from "./codex.js";
+import { commandCodeRoots } from "./command-code.js";
+import { hermesRoots } from "./hermes.js";
+import { openCodeRoots } from "./opencode.js";
 import { createT3CodeAdapter } from "./t3-code.js";
 
 const adapter = createT3CodeAdapter();
@@ -60,6 +65,71 @@ describe("t3-code attribution adapter", () => {
     expect(paths.some((path) => path.endsWith("/.t3/commandcode/claude/projects"))).toBe(true);
     expect(paths).toHaveLength(1);
     expect(index.additionalRoots.every((root) => root.adapterId === "claude-code")).toBe(true);
+  });
+
+  /**
+   * Regression (benchmark F017): `defaultRootsFor` listed only three of the five
+   * providers this adapter can attribute, so a scan-cache entry naming the
+   * default directory of command-code or hermes was added as an "extra" root and
+   * the same history was scanned twice in one run.
+   *
+   * T3's usage scan cache is a list of the provider directories T3 has scanned.
+   * A directory that is already that provider adapter's own default root must
+   * never be added again; a directory only T3 manages must be.
+   */
+  it("resolves every attributable provider's own root as a default root", async () => {
+    const outcome = await withTempDir(async (directory) => {
+      const env = createFixtureEnvironment({ homeDir: directory });
+      const providers = [
+        { provider: "claude", adapterId: "claude-code", roots: claudeCodeRoots(env) },
+        { provider: "codex", adapterId: "codex", roots: codexRoots(env) },
+        { provider: "opencode", adapterId: "opencode", roots: openCodeRoots(env) },
+        { provider: "commandcode", adapterId: "command-code", roots: commandCodeRoots(env) },
+        { provider: "hermes", adapterId: "hermes", roots: hermesRoots(env) },
+      ];
+      const sources: Record<string, { dir: string; volumeId: string }> = {};
+      let volume = 0;
+      for (const entry of providers) {
+        for (const root of entry.roots) {
+          volume += 1;
+          sources[`${entry.provider}\u0000${root}`] = { dir: root, volumeId: `1:${volume}` };
+        }
+      }
+      // A provider history that exists only inside T3: this is the one that has
+      // to survive as an extra root.
+      const t3Managed = `${directory}/.t3/commandcode/claude/projects`;
+      sources[`claude\u0000${t3Managed}`] = { dir: t3Managed, volumeId: "2:1" };
+
+      await createSqliteFixture(`${directory}/.t3/userdata/state.sqlite`, T3_FIXTURE_SQL);
+      await writeFixture(
+        `${directory}/.t3/userdata/usage-scan-cache.json`,
+        JSON.stringify({
+          version: 3,
+          models: ["example-medium"],
+          sessions: ["22222222-2222-4222-8222-222222222222"],
+          files: {},
+          sources,
+        }),
+      );
+      const index = await adapter.collectAttribution(env, {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.t3/userdata`],
+      });
+      return {
+        additionalRoots: index.additionalRoots,
+        providerRoots: providers.flatMap((entry) => entry.roots),
+        t3Managed,
+      };
+    });
+
+    for (const root of outcome.providerRoots) {
+      expect(outcome.additionalRoots.map((entry) => entry.path)).not.toContain(root);
+    }
+    expect(outcome.additionalRoots).toEqual([
+      { adapterId: "claude-code", path: outcome.t3Managed },
+    ]);
   });
 
   it("is deterministic across runs", async () => {

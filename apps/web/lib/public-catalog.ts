@@ -9,6 +9,7 @@ import {
   type PromotionV1,
   planVersionId,
   type QualitativeLimitV1,
+  selectPlanVersionAt,
 } from "@stackreplay/catalog";
 import { BUNDLED_CATALOG_VERSION, loadBundledCatalog } from "@stackreplay/catalog/bundled";
 
@@ -26,12 +27,17 @@ import { BUNDLED_CATALOG_VERSION, loadBundledCatalog } from "@stackreplay/catalo
  * a verification state and the date the claim was last checked.
  */
 
-export const SYNTHETIC_CATALOG_PREFIX = "example-";
+/**
+ * True for the synthetic development namespace (`example-*`).
+ *
+ * Defined once in `@stackreplay/schema` and re-exported here: the public read
+ * model and the share boundary must apply the same rule. The import is separate
+ * from the re-export because a re-export does not create a local binding, and
+ * this module also calls the predicate.
+ */
+import { isSyntheticCatalogId } from "@stackreplay/schema";
 
-/** True for the synthetic development namespace (`example-*`). */
-export function isSyntheticCatalogId(id: string): boolean {
-  return id.startsWith(SYNTHETIC_CATALOG_PREFIX);
-}
+export { isSyntheticCatalogId, SYNTHETIC_CATALOG_PREFIX } from "@stackreplay/schema";
 
 let cachedCatalog: CatalogV1 | undefined;
 
@@ -100,7 +106,18 @@ export interface PublicProviderSummary {
   sources: readonly CatalogSourceV1[];
 }
 
-/** The version of a plan that applies at `asOf`, falling back to the newest known. */
+/**
+ * The version of a plan that is in force at `asOf`, by the catalog's own version
+ * rule (decision: `effectiveTo` is inclusive, the latest `effectiveFrom` wins).
+ *
+ * This used to treat `effectiveTo` as exclusive and then fall back to the newest
+ * known version when nothing applied, so a public page could describe a price or
+ * a limit set from a version that was not in effect on the date it printed, and
+ * could disagree with the engine on the date a version changed (benchmark finding
+ * F001). The rule now lives in one place, shared with the engine, and a plan with
+ * no version in force at `asOf` has no current version at all rather than a
+ * borrowed future one.
+ */
 export function currentVersionOf(
   catalog: CatalogV1,
   planId: string,
@@ -108,22 +125,10 @@ export function currentVersionOf(
 ): LoadedPlanVersionV1 | undefined {
   const plan = catalog.plans[planId];
   if (plan === undefined) return undefined;
-  const applicable = plan.versions
-    .filter(
-      (version) =>
-        version.effectiveFrom <= asOf &&
-        (version.effectiveTo === undefined || version.effectiveTo > asOf),
-    )
-    .sort((left, right) => right.effectiveFrom.localeCompare(left.effectiveFrom));
-  const chosen = applicable[0];
-  if (chosen !== undefined)
-    return catalog.planVersions[planVersionId(planId, chosen.effectiveFrom)];
-  const newest = [...plan.versions].sort((left, right) =>
-    right.effectiveFrom.localeCompare(left.effectiveFrom),
-  )[0];
-  return newest === undefined
+  const selected = selectPlanVersionAt(plan.versions, asOf);
+  return selected === undefined
     ? undefined
-    : catalog.planVersions[planVersionId(planId, newest.effectiveFrom)];
+    : catalog.planVersions[planVersionId(planId, selected.effectiveFrom)];
 }
 
 function toPlanSummary(

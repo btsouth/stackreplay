@@ -288,6 +288,80 @@ describe("golden fixture: promotions resolve from the rules snapshot", () => {
   });
 });
 
+describe("golden fixture: coverage dimensions keep one unit each", () => {
+  /**
+   * Regression (benchmark F033): a coverage dimension reports its counts in its
+   * own unit. The model dimension used to report `covered`/`total` in models while
+   * `unknownCount` counted *events*, so one number read as a model count and meant
+   * something else.
+   */
+  it("counts unresolved models in models and describes events in the reason", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
+    });
+    const unmapped = (id: string, hour: number, rawName: string) =>
+      makeEvent({
+        id,
+        occurredAt: `2026-09-01T0${hour}:00:00Z`,
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+        model: { rawName },
+      });
+    const events = [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      unmapped("e2", 1, "ghost-a"),
+      unmapped("e3", 2, "ghost-a"),
+      unmapped("e4", 3, "ghost-b"),
+    ];
+
+    const { models } = run(catalog, events).coverage;
+
+    expect(models.status).toBe("unknown");
+    // Two distinct models, three events: the count is models.
+    expect(models.unknownCount).toBe(2);
+    expect(models.covered).toBe(1);
+    expect(models.total).toBe(3);
+    expect(models.reason).toContain("3 event(s)");
+    expect(models.reason).toContain("2 model(s)");
+  });
+
+  /**
+   * Regression (benchmark F033): the token-weighted dimension cannot express its
+   * unknown part in the dimension's unit, so it must not publish an event count in
+   * a field that reads as a token count.
+   */
+  it("omits a count in the wrong unit for the token-weighted dimension", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
+    });
+    const events = [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-09-01T00:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+      // No output category reported: the event's token total is unknown.
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-09-01T01:00:00Z",
+        usage: {
+          inputTokens: 500_000,
+          accounting: { cacheReadIncludedInInput: false, cacheWriteIncludedInInput: false },
+        },
+      }),
+    ];
+
+    const { usage } = run(catalog, events).coverage;
+
+    expect(usage.status).toBe("unknown");
+    expect(usage.unknownCount).toBeUndefined();
+    expect(usage.reason).toContain("1 event(s)");
+  });
+});
+
 describe("golden fixture: model exclusion", () => {
   it("reports excluded models and reduces model coverage", () => {
     const catalog = makeFixtureCatalog({

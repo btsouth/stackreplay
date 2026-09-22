@@ -2,6 +2,7 @@ import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
 import { type CatalogV1, catalogV1Schema } from "./catalog.js";
 import { createModelIdentityIndex, type ModelIdentityIndex } from "./resolve.js";
+import { selectPlanVersionAt } from "./versions.js";
 
 /**
  * Browser-safe catalog access.
@@ -58,18 +59,18 @@ export interface BundledPlanSummary {
   verificationStatus: string;
 }
 
-/** Plans with the version effective at a rules instant, for pickers. */
+/**
+ * Plans with the version effective at a rules instant, for pickers.
+ *
+ * Selection goes through the shared rule rather than `array.at(-1)`: relying on
+ * the order versions happen to sit in meant a picker could offer a different
+ * version than the engine would replay against (benchmark finding F002).
+ */
 export function bundledPlansAt(rulesAsOf: string): BundledPlanSummary[] {
   const catalog = loadBundledCatalog();
   const summaries: BundledPlanSummary[] = [];
   for (const plan of Object.values(catalog.plans)) {
-    const version = plan.versions
-      .filter(
-        (entry) =>
-          entry.effectiveFrom <= rulesAsOf &&
-          (entry.effectiveTo === undefined || entry.effectiveTo >= rulesAsOf),
-      )
-      .at(-1);
+    const version = selectPlanVersionAt(plan.versions, rulesAsOf);
     if (version === undefined) continue;
     summaries.push({
       id: plan.id,

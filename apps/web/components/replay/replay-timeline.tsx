@@ -18,9 +18,17 @@ import type { TimelinePoint } from "@/lib/worker-protocol";
  * Replay timeline (M3 brief).
  *
  * Answers "when would this plan have failed?". It shows historical activity as
- * aggregate daily buckets and marks the windows the target did not serve. The
- * data is aggregate only: no event, session or project identity reaches the
- * chart, so it cannot leak private project information.
+ * aggregate daily buckets and marks the windows that were exceeded. The data is
+ * aggregate only: no event, session or project identity reaches the chart, so it
+ * cannot leak private project information.
+ *
+ * Two things are kept honest here (benchmark findings F030 and F031):
+ *
+ * - not every exceeded window was refused. A rule that bills overage served the
+ *   work and charged for it, so the bands are labelled and coloured by outcome
+ *   instead of all being described as work the target did not serve;
+ * - tokens from events whose total is unknown are a lower bound and are plotted
+ *   as their own band, never added into the exact series.
  *
  * Loaded dynamically by the replay surface, because charting code is heavy and
  * the result must render fast without it.
@@ -50,6 +58,16 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
     [points],
   );
 
+  const refused = useMemo(
+    () => violations.filter((violation) => violation.overageUnits === undefined),
+    [violations],
+  );
+  const billed = useMemo(
+    () => violations.filter((violation) => violation.overageUnits !== undefined),
+    [violations],
+  );
+  const partialDays = useMemo(() => data.filter((entry) => entry.partialEvents > 0).length, [data]);
+
   const summary = useMemo(() => {
     if (data.length === 0) return "No activity in this workload.";
     const firstDay = data[0];
@@ -58,17 +76,27 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
       (best, entry) => (entry.events > best.events ? entry : best),
       firstDay,
     );
-    const windows = violations.length;
     return [
       `${data.length} day(s) of activity.`,
       `Busiest day ${busiest.label} with ${busiest.events.toLocaleString("en-US")} events.`,
-      windows === 0
-        ? "No window exceeded."
-        : `${windows} window(s) exceeded: ${violations
+      refused.length === 0
+        ? ""
+        : `${refused.length} window(s) exceeded and not served: ${refused
             .map((violation) => violation.startedAt.slice(0, 10))
             .join(", ")}.`,
-    ].join(" ");
-  }, [data, violations]);
+      billed.length === 0
+        ? ""
+        : `${billed.length} window(s) exceeded and billed as overage: ${billed
+            .map((violation) => violation.startedAt.slice(0, 10))
+            .join(", ")}.`,
+      refused.length === 0 && billed.length === 0 ? "No window exceeded." : "",
+      partialDays === 0
+        ? ""
+        : `Token totals are a lower bound on ${partialDays} day(s): some events report no total.`,
+    ]
+      .filter((part) => part.length > 0)
+      .join(" ");
+  }, [billed, data, partialDays, refused]);
 
   if (data.length === 0) {
     return (
@@ -80,8 +108,20 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
 
   return (
     <figure className="flex flex-col gap-3" data-testid="replay-timeline">
-      <figcaption className="text-xs text-muted-foreground">
-        Historical activity per day. Shaded bands mark windows the target did not serve.
+      <figcaption className="text-xs text-muted-foreground" data-testid="timeline-caption">
+        Historical activity per day.{" "}
+        {refused.length === 0
+          ? null
+          : `${refused.length} shaded band(s) mark windows the target did not serve. `}
+        {billed.length === 0
+          ? null
+          : `${billed.length} band(s) mark windows that exceeded the included allowance and were served and billed as overage. `}
+        {refused.length === 0 && billed.length === 0
+          ? "No window exceeded, so no band is shaded. "
+          : null}
+        {partialDays === 0
+          ? null
+          : `Token totals are a lower bound on ${partialDays} day(s): events that report no total are plotted separately.`}
       </figcaption>
       <div
         role="img"
@@ -124,6 +164,32 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
               strokeWidth={1.5}
               isAnimationActive={false}
             />
+            {/*
+              Exact and lower-bound tokens are separate series on purpose: one line
+              that added them together presented a lower bound as an exact total
+              (benchmark finding F031).
+            */}
+            <Area
+              type="monotone"
+              name="tokens (known total)"
+              dataKey="tokens"
+              stroke="var(--positive)"
+              fill="var(--positive)"
+              fillOpacity={0.12}
+              strokeWidth={1.5}
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              name="tokens (lower bound)"
+              dataKey="partialTokens"
+              stroke="var(--warning)"
+              fill="var(--warning)"
+              fillOpacity={0.1}
+              strokeDasharray="3 3"
+              strokeWidth={1.25}
+              isAnimationActive={false}
+            />
             {violations.map((violation) => {
               const start = violation.startedAt.slice(0, 10);
               const end = violation.endedAt.slice(0, 10);
@@ -131,15 +197,20 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
               const to =
                 [...data].reverse().find((entry) => entry.day <= end)?.label ?? data.at(-1)?.label;
               if (from === undefined || to === undefined) return null;
+              // A window billed as overage was served and charged; one without
+              // overage is work the target refused. Same band, different meaning.
+              const billedWindow = violation.overageUnits !== undefined;
+              const colour = billedWindow ? "var(--warning)" : "var(--negative)";
               return (
                 <ReferenceArea
                   key={`${violation.constraintId}-${violation.startedAt}`}
                   x1={from}
                   x2={to}
-                  fill="var(--negative)"
+                  fill={colour}
                   fillOpacity={0.12}
-                  stroke="var(--negative)"
+                  stroke={colour}
                   strokeOpacity={0.35}
+                  strokeDasharray={billedWindow ? "4 2" : undefined}
                 />
               );
             })}

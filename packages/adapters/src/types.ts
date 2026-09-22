@@ -70,7 +70,24 @@ export type WarningCode =
   | "ACCOUNTING_UNESTABLISHED"
   | "SCHEMA_VERSION_UNKNOWN"
   | "PROJECT_UNKNOWN"
-  | "SOURCE_TRUNCATED";
+  | "SOURCE_TRUNCATED"
+  /**
+   * A record's reported categories contradict the record's own published total,
+   * so its accounting could not be reconciled (its cache categories are then
+   * reported as unknown rather than published).
+   */
+  | "ACCOUNTING_UNRECONCILED"
+  /**
+   * A record aggregates a whole day, month or block and names no session, so it
+   * cannot be matched against a native scan of the same work (decision 24: only
+   * session identity can recognise that overlap).
+   */
+  | "AGGREGATE_NO_SESSION"
+  /**
+   * An aggregate import was kept alongside native scans of the same provider:
+   * the import's rows cannot be deduplicated, so they are counted in addition.
+   */
+  | "DOUBLE_COUNT_RISK";
 
 export interface AdapterWarning {
   code: WarningCode;

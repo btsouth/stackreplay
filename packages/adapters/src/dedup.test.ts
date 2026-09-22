@@ -187,6 +187,35 @@ describe("deduplication", () => {
     ]);
   });
 
+  /**
+   * Regression (benchmark F034): the export ordered events by comparing
+   * `occurredAt` as raw strings, which misorders two ISO-8601 timestamps that
+   * differ in fractional precision: `...:00Z` sorts *after* `...:00.500Z` as a
+   * string ('Z' > '.'), although the instant it names is earlier. The schema
+   * admits both spellings, so an imported export can carry either.
+   */
+  it("orders mixed-precision timestamps by instant, not as text", () => {
+    const at = (identity: string, occurredAt: string) => ({
+      ...buildEvent(draft({ adapterId: "codex", identity }), context),
+      occurredAt,
+    });
+    const wholeSecond = at("record-whole", "2026-09-19T09:00:00Z");
+    const halfSecond = at("record-half", "2026-09-19T09:00:00.500Z");
+    const microsecond = at("record-micro", "2026-09-19T09:00:00.500001Z");
+    const later = at("record-later", "2026-09-19T09:00:01Z");
+
+    const result = dedupeEvents([later, microsecond, halfSecond, wholeSecond]);
+    expect(result.events.map((event) => event.occurredAt)).toEqual([
+      "2026-09-19T09:00:00Z",
+      "2026-09-19T09:00:00.500Z",
+      "2026-09-19T09:00:00.500001Z",
+      "2026-09-19T09:00:01Z",
+    ]);
+    // The exact equality above is the whole assertion: a text comparison would
+    // have put the whole-second instant after both fractional ones.
+    expect(result.exactDuplicates).toBe(0);
+  });
+
   it("is idempotent", () => {
     const events = [
       buildEvent(draft({ adapterId: "codex" }), context),

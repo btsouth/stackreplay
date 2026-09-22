@@ -2,7 +2,14 @@ import type { TextUsageV1 } from "@stackreplay/schema";
 import { buildEvent, eventContext, HARNESS_IDS, providerIdForModel } from "../event-builder.js";
 import { decimalStringFromNumber } from "../identity.js";
 import { dataHome, joinPath } from "../platform.js";
-import { openReadOnly, type SqliteRow, toFiniteNumber, toSafeCount, toText } from "../sqlite.js";
+import {
+  openReadOnly,
+  type SqliteRow,
+  toEpochMs,
+  toFiniteNumber,
+  toSafeCount,
+  toText,
+} from "../sqlite.js";
 import {
   type CollectOptions,
   type CollectResult,
@@ -235,8 +242,10 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
               databasePath,
             );
           }
-          const occurredAtMs =
-            toFiniteNumber(row.time_created_data) ?? toFiniteNumber(row.time_created);
+          // A record whose timestamp is missing or outside the representable
+          // date range is reported below, never passed to the event builder,
+          // where it would throw a RangeError and end the collection.
+          const occurredAtMs = toEpochMs(row.time_created_data) ?? toEpochMs(row.time_created);
           if (occurredAtMs === undefined) {
             warnings.add(
               "TIMESTAMP_INVALID",

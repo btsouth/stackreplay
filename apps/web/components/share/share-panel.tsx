@@ -1,7 +1,7 @@
 "use client";
 
 import type { ExecutionReplayResultV1 } from "@stackreplay/schema";
-import { encodeShareToken } from "@stackreplay/share";
+import { encodeShareToken, isSyntheticCatalogId } from "@stackreplay/share";
 import { Badge, Button, buttonVariants } from "@stackreplay/ui";
 import { useState } from "react";
 import {
@@ -94,6 +94,14 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
           Anyone with this link can read the aggregate numbers it contains. The link is not
           encrypted.
         </p>
+        {/* A share link carries its target in the token, so a demo plan reaches the
+            public page; the link says so, and the sharer should know it will. */}
+        {isSyntheticCatalogId(target.planId) ? (
+          <p className="text-xs text-warning" data-testid="share-synthetic-notice">
+            This target is a synthetic <code>example-</code> demo plan. The link still works, and
+            the public page labels the result as demo data rather than a real-world claim.
+          </p>
+        ) : null}
       </div>
 
       <fieldset className="flex flex-col gap-2">

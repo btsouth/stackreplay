@@ -40,6 +40,24 @@ export const redactionReportV1Schema = z.strictObject({
 export type RedactionReportV1 = z.infer<typeof redactionReportV1Schema>;
 
 /**
+ * A collection warning, carried inside the export (benchmark finding F020).
+ *
+ * A truncated history, a partially decoded record or an aggregate that cannot be
+ * deduplicated used to leave no trace in the artifact: the file was written, the
+ * counts looked plausible, and the damage was invisible. Every warning the
+ * collector raised now travels with the export.
+ *
+ * The local `path` a warning was raised for is deliberately NOT included: an
+ * export never carries a raw file path, and `message` is redacted the same way
+ * the redaction report claims.
+ */
+export const collectionWarningV1Schema = z.strictObject({
+  code: z.string().min(1),
+  message: z.string().min(1),
+});
+export type CollectionWarningV1 = z.infer<typeof collectionWarningV1Schema>;
+
+/**
  * Orders two ISO-8601 UTC timestamps exactly, including sub-millisecond
  * precision: whole seconds are compared first, then the padded fraction.
  */
@@ -66,6 +84,13 @@ export const stackReplayExportV1Schema = z
     detectedSources: z.array(detectedSourceV1Schema),
     events: z.array(usageEventV1Schema),
     redactionReport: redactionReportV1Schema,
+    /**
+     * Warnings raised while collecting, so a damaged or truncated history is
+     * visible in the artifact instead of only on the terminal that wrote it.
+     * Optional so that every export written before this field existed stays
+     * valid and importable.
+     */
+    collectionWarnings: z.array(collectionWarningV1Schema).optional(),
   })
   .superRefine((value, ctx) => {
     if (compareUtcTimestamps(value.range.from, value.range.to) > 0) {

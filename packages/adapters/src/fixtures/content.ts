@@ -358,6 +358,80 @@ export const HERMES_FIXTURE_SQL = [
       'coding', 1, 100, 20, 0, 0, 0, 0.01, 0.009, 'actual', 'provider', 1789604516.5, 1789605516.25)`,
 ];
 
+/**
+ * Hermes rows that collide on `(session, model)`.
+ *
+ * The real table is keyed by
+ * `(session_id, model, billing_provider, billing_base_url, billing_mode, task)`,
+ * so one session and model legitimately appears several times with a different
+ * billing route or task, each row carrying its own token counts. A fixture that
+ * only ever holds one row per `(session, model)` cannot reproduce an identity
+ * collision: the defect is structurally invisible to the suite (benchmark F037),
+ * which is why this shape exists.
+ */
+export const HERMES_PK_COLLISION_FIXTURE_SQL = [
+  "create table sessions (id text primary key, cwd text, git_repo_root text, source text)",
+  `create table session_model_usage (
+     session_id text, model text, billing_provider text, billing_base_url text, billing_mode text,
+     task text, api_call_count integer, input_tokens integer, output_tokens integer,
+     cache_read_tokens integer, cache_write_tokens integer, reasoning_tokens integer,
+     estimated_cost_usd real, actual_cost_usd real, cost_status text, cost_source text,
+     first_seen real, last_seen real)`,
+  `insert into sessions (id, cwd, git_repo_root, source) values
+     ('sess_hermes_pk', '/home/example/projects/demo-app', '/home/example/projects/demo-app', 'cli')`,
+  // 6,000 + 1,200 input tokens: the second row was discarded as an "exact
+  // duplicate" before the identity matched the source's primary key.
+  `insert into session_model_usage values
+     ('sess_hermes_pk', 'example-large', 'example-cloud', 'https://example.invalid', 'subscription',
+      '', 4, 6000, 1200, 40000, 1200, 300, 0.75, null, 'estimated', 'official_docs_snapshot',
+      1789601516.6703937, 1789603516.6703937)`,
+  `insert into session_model_usage values
+     ('sess_hermes_pk', 'example-large', 'example-cloud', 'https://example.invalid', 'subscription',
+      'title_generation', 2, 1200, 150, 0, 0, 40, 0.02, null, 'estimated', 'official_docs_snapshot',
+      1789604516.5, 1789605516.25)`,
+  // Same session, same model, different billing route: also a distinct row.
+  `insert into session_model_usage values
+     ('sess_hermes_pk', 'example-large', 'example-router', 'https://router.example.invalid',
+      'api_key', '', 1, 800, 90, 0, 0, 0, null, 0.004, 'actual', 'provider',
+      1789606516.5, 1789607516.25)`,
+];
+
+/**
+ * Hermes rows that differ only in the recorded API call count.
+ *
+ * `api_call_count` is what decides whether a row is an exact per-call counter or
+ * an aggregate: one call is exact, several calls are estimated, and a missing
+ * count cannot be either — the row may stand for any number of calls, so it must
+ * not be presented as an exact request count.
+ */
+export const HERMES_CALL_COUNT_FIXTURE_SQL = [
+  "create table sessions (id text primary key, cwd text, git_repo_root text, source text)",
+  `create table session_model_usage (
+     session_id text, model text, billing_provider text, billing_base_url text, billing_mode text,
+     task text, api_call_count integer, input_tokens integer, output_tokens integer,
+     cache_read_tokens integer, cache_write_tokens integer, reasoning_tokens integer,
+     estimated_cost_usd real, actual_cost_usd real, cost_status text, cost_source text,
+     first_seen real, last_seen real)`,
+  `insert into sessions (id, cwd, git_repo_root, source) values
+     ('sess_counts', '/home/example/projects/demo-app', null, 'cli')`,
+  // One call: an exact counter.
+  `insert into session_model_usage values
+     ('sess_counts', 'example-medium', null, null, null, 'single-call', 1, 100, 10, 0, 0, 0,
+      0.01, null, 'estimated', 'official_docs_snapshot', 1789601516.5, 1789603516.5)`,
+  // Several calls: an aggregate.
+  `insert into session_model_usage values
+     ('sess_counts', 'example-medium', null, null, null, 'many-calls', 7, 200, 20, 0, 0, 0,
+      0.02, null, 'estimated', 'official_docs_snapshot', 1789602516.5, 1789604516.5)`,
+  // No count at all: the row may stand for any number of calls.
+  `insert into session_model_usage values
+     ('sess_counts', 'example-medium', null, null, null, 'no-count', null, 300, 30, 0, 0, 0,
+      0.03, null, 'estimated', 'official_docs_snapshot', 1789603516.5, 1789605516.5)`,
+  // A count below one contradicts the token counts it carries.
+  `insert into session_model_usage values
+     ('sess_counts', 'example-medium', null, null, null, 'zero-count', 0, 400, 40, 0, 0, 0,
+      0.04, null, 'estimated', 'official_docs_snapshot', 1789604516.5, 1789606516.5)`,
+];
+
 /** T3 Code: state.sqlite plus the usage scan cache. */
 export const T3_FIXTURE_SQL = [
   `create table projection_thread_sessions (

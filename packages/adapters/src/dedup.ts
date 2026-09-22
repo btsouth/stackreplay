@@ -1,4 +1,4 @@
-import type { UsageEventV1 } from "@stackreplay/schema";
+import { compareUtcTimestamps, type UsageEventV1 } from "@stackreplay/schema";
 import type { AdapterId, AdapterWarning } from "./types.js";
 
 /**
@@ -159,7 +159,11 @@ export function dedupeEvents(events: readonly UsageEventV1[]): DedupResult {
   }
 
   const sorted = [...byOverlap.values()].sort((a, b) => {
-    if (a.occurredAt !== b.occurredAt) return a.occurredAt < b.occurredAt ? -1 : 1;
+    // Instant comparison, never a raw string comparison: ISO-8601 timestamps
+    // that differ in fractional precision order wrongly as strings
+    // (benchmark finding F034), and the export's order is this order.
+    const byTime = compareUtcTimestamps(a.occurredAt, b.occurredAt);
+    if (byTime !== 0) return byTime;
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
 

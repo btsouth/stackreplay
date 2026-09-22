@@ -16,7 +16,52 @@ import type { SafeError } from "./worker-protocol";
  * (5x) and still refuses a file no browser can hold in memory.
  */
 export const MAX_IMPORT_BYTES = 512 * 1024 * 1024;
+
+/**
+ * Where a working browser starts to struggle, as opposed to where the import is
+ * refused (benchmark finding F008).
+ *
+ * The refusal point above cannot bound *memory*: the file is read as text and
+ * then parsed, so peak usage is a multiple of the file size, and the browser
+ * usually throws a `RangeError` before a file near the ceiling is fully parsed.
+ * That is why there are two thresholds: above this one the interface says what is
+ * about to happen, and a browser that nevertheless runs out of memory reports
+ * exactly that instead of a generic failure.
+ */
+export const IMPORT_COMFORT_BYTES = 128 * 1024 * 1024;
+
 export const MAX_REPORTED_ISSUES = 8;
+
+export type ImportSizeAdvice =
+  | { level: "ok" }
+  | { level: "large"; message: string }
+  | { level: "refused"; message: string; readableSize: string; readableLimit: string };
+
+function readableBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+/** What to say about a file of this size, before any work is attempted. */
+export function importSizeAdvice(size: number): ImportSizeAdvice {
+  if (size > MAX_IMPORT_BYTES) {
+    return {
+      level: "refused",
+      message: `The file is ${readableBytes(size)}; the browser limit is ${readableBytes(MAX_IMPORT_BYTES)}.`,
+      readableSize: readableBytes(size),
+      readableLimit: readableBytes(MAX_IMPORT_BYTES),
+    };
+  }
+  if (size > IMPORT_COMFORT_BYTES) {
+    return {
+      level: "large",
+      message: `This file is ${readableBytes(size)}. It is within the import limit, but a browser needs several times that size in free memory to read and parse it, so this may fail on a busy machine. A narrower export is safer.`,
+    };
+  }
+  return { level: "ok" };
+}
 
 export type ValidationResult =
   | { ok: true; exported: StackReplayExportV1 }

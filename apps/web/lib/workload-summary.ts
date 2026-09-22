@@ -1,6 +1,6 @@
 import type { ModelIdentityIndex } from "@stackreplay/catalog";
 import { tokenAccountingOf } from "@stackreplay/replay-engine";
-import type { StackReplayExportV1 } from "@stackreplay/schema";
+import { compareUtcTimestamps, type StackReplayExportV1 } from "@stackreplay/schema";
 import type {
   ModelSummary,
   OrchestrationSummary,
@@ -132,8 +132,12 @@ export function summarizeExport(
       existing.events += 1;
     }
 
-    if (first === undefined || event.occurredAt < first) first = event.occurredAt;
-    if (last === undefined || event.occurredAt > last) last = event.occurredAt;
+    // Instant comparison, not string comparison: mixed-precision ISO
+    // timestamps order wrongly as strings (benchmark finding F034).
+    if (first === undefined || compareUtcTimestamps(event.occurredAt, first) < 0)
+      first = event.occurredAt;
+    if (last === undefined || compareUtcTimestamps(event.occurredAt, last) > 0)
+      last = event.occurredAt;
   }
 
   const usageSources: SourceSummary[] = [];

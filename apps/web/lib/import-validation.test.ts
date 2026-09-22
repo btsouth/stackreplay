@@ -1,6 +1,13 @@
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { MAX_REPORTED_ISSUES, validateExportText, validateExportValue } from "./import-validation";
+import {
+  IMPORT_COMFORT_BYTES,
+  importSizeAdvice,
+  MAX_IMPORT_BYTES,
+  MAX_REPORTED_ISSUES,
+  validateExportText,
+  validateExportValue,
+} from "./import-validation";
 
 /**
  * Import validation is a trust boundary: it decides what the app will read, and
@@ -90,5 +97,24 @@ describe("import validation", () => {
     // still fails here.
     expect(validateExportText(JSON.stringify(demo)).ok).toBe(true);
     expect(validateExportText("nope").ok).toBe(false);
+  });
+
+  /**
+   * Regression (benchmark F008): the size ceiling was the only guard, so a file
+   * just under it was accepted with no hint that the browser may not be able to
+   * hold it. The ceiling is a refusal point; between the comfort threshold and the
+   * ceiling the user is told the real risk instead of being told nothing.
+   */
+  it("warns before the ceiling instead of only refusing at it", () => {
+    expect(importSizeAdvice(1_000_000).level).toBe("ok");
+    const large = importSizeAdvice(IMPORT_COMFORT_BYTES + 1);
+    expect(large.level).toBe("large");
+    expect(large.level === "ok" ? "" : large.message).toMatch(/free memory|narrower export/i);
+
+    const refused = importSizeAdvice(MAX_IMPORT_BYTES + 1);
+    expect(refused.level).toBe("refused");
+    expect(refused.level === "ok" ? "" : refused.message).toMatch(/limit/i);
+    // The ceiling stays above the documented real workload.
+    expect(MAX_IMPORT_BYTES).toBeGreaterThan(IMPORT_COMFORT_BYTES);
   });
 });

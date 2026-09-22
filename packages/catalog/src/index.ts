@@ -79,3 +79,8 @@ export {
   validateCatalogData,
   validateLoadedCatalog,
 } from "./validate.js";
+export {
+  type PlanVersionIntervalV1,
+  selectLoadedPlanVersionAt,
+  selectPlanVersionAt,
+} from "./versions.js";

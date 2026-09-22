@@ -1,5 +1,6 @@
+import type { CatalogV1 } from "@stackreplay/catalog";
 import { describe, expect, it } from "vitest";
-import { isSyntheticCatalogId, loadPublicCatalog } from "./public-catalog";
+import { currentVersionOf, isSyntheticCatalogId, loadPublicCatalog } from "./public-catalog";
 
 /**
  * The public read model is what every public page and the sitemap are built from, so it
@@ -34,6 +35,55 @@ describe("public catalog read model", () => {
     for (const model of catalog.models) {
       for (const providerId of model.providerIds)
         expect(providerId.startsWith("example-")).toBe(false);
+    }
+  });
+
+  /**
+   * Regression (benchmark F001): the public read model treated `effectiveTo` as
+   * exclusive and, when no version applied, fell back to the newest known one —
+   * so a page could print a price from a version that was not in force, and
+   * disagree with the engine on a version's last day. A narrow fake catalog keeps
+   * the assertion on the rule rather than on today's bundled data.
+   */
+  it("selects the version in force by the engine's rule, never a future one", () => {
+    const version = (effectiveFrom: string, effectiveTo?: string) => ({
+      planId: "plan-x",
+      effectiveFrom,
+      ...(effectiveTo === undefined ? {} : { effectiveTo }),
+    });
+    const catalog = {
+      plans: {
+        "plan-x": {
+          id: "plan-x",
+          name: "Plan X",
+          providerId: "provider-x",
+          versions: [
+            version("2026-01-01", "2026-06-30"),
+            version("2026-09-01"),
+          ] as unknown as CatalogV1["plans"][string]["versions"],
+        },
+      },
+      planVersions: Object.fromEntries(
+        ["2026-01-01", "2026-06-30", "2026-09-01"].map((from) => [
+          `plan-x@${from}`,
+          { ...version(from), versionId: `plan-x@${from}` },
+        ]),
+      ),
+    } as unknown as CatalogV1;
+
+    // Inclusive end day: the ending version is still in force on its last day.
+    expect(currentVersionOf(catalog, "plan-x", "2026-06-30")?.effectiveFrom).toBe("2026-01-01");
+    // A day in the gap between versions has no version in force: previously this
+    // returned the September version, i.e. a price that had not started.
+    expect(currentVersionOf(catalog, "plan-x", "2026-07-15")).toBeUndefined();
+    expect(currentVersionOf(catalog, "plan-x", "2026-09-01")?.effectiveFrom).toBe("2026-09-01");
+    expect(currentVersionOf(catalog, "plan-x", "2025-12-31")).toBeUndefined();
+  });
+
+  it("only lists plans whose selected version is in force at the read instant", () => {
+    const asOf = "2026-09-21";
+    for (const plan of loadPublicCatalog(asOf).plans) {
+      expect(plan.effectiveFrom <= asOf).toBe(true);
     }
   });
 });

@@ -186,6 +186,156 @@ describe("replay worker client", () => {
     await expect(second).resolves.toEqual([]);
   });
 
+  /**
+   * Regression (benchmark F006): freshness is decided per channel. A list request
+   * used to be compared against the latest *import* request id, so an imports list
+   * that answered an earlier request than the newest import was discarded as
+   * superseded even though nothing had superseded it.
+   */
+  it("does not treat a list response as superseded by an import request", async () => {
+    const client = new ReplayWorkerClient();
+    const imports = client.listImports();
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+    const listRequestId = worker?.lastRequestId ?? 0;
+
+    // A much larger request id arrives while the list is still open.
+    const demo = client.importDemo("moderate", {
+      importId: "a",
+      now: "2026-09-21T00:00:00.000Z",
+    });
+    worker?.reply({ type: "IMPORTS", requestId: listRequestId, imports: [] });
+    await expect(imports).resolves.toEqual([]);
+    worker?.reply({
+      type: "IMPORT_OK",
+      requestId: worker.lastRequestId,
+      record: { id: "a" } as never,
+      replacedExisting: false,
+    });
+    await expect(demo).resolves.toMatchObject({ id: "a" });
+  });
+
+  /**
+   * Regression (benchmark F006): a superseded request may not move the interface
+   * even by reporting progress. Progress used to be dispatched before the
+   * freshness check, so a stale request kept painting progress for a request that
+   * had already been replaced.
+   */
+  it("drops progress from a superseded request", async () => {
+    const client = new ReplayWorkerClient();
+    const onStaleProgress = vi.fn();
+    const onFreshProgress = vi.fn();
+    const stale = client.runReplay("import-1", target, "2026-09-15", onStaleProgress);
+    const staleOutcome = stale.catch((error: unknown) => error);
+    const fresh = client.runReplay("import-2", target, "2026-09-15", onFreshProgress);
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+
+    worker?.reply({
+      type: "PROGRESS",
+      requestId: 1,
+      operation: "replay",
+      phase: "replaying",
+      detail: "stale",
+    });
+    worker?.reply({
+      type: "PROGRESS",
+      requestId: 2,
+      operation: "replay",
+      phase: "replaying",
+      detail: "fresh",
+    });
+
+    expect(onStaleProgress).not.toHaveBeenCalled();
+    expect(onFreshProgress).toHaveBeenCalledTimes(1);
+
+    worker?.reply(replayOk(2, "newer"));
+    await expect(fresh).resolves.toMatchObject({
+      result: { versions: { targetReference: "newer" } },
+    });
+    worker?.reply(replayOk(1, "older"));
+    await expect(staleOutcome).resolves.toBeInstanceOf(SupersededError);
+  });
+
+  /**
+   * Regression (benchmark F028): a Worker built by another version announces a
+   * different protocol. That path was unreachable code before, so a mismatched
+   * Worker looked like a Worker that never started.
+   */
+  it("names a protocol mismatch instead of waiting for a Worker that never starts", async () => {
+    const client = new ReplayWorkerClient();
+    const pending = client.listImports().catch((error: unknown) => error);
+    const worker = FakeWorker.instances[0];
+    worker?.reply({ type: "READY", protocol: WORKER_PROTOCOL_VERSION + 1 } as never);
+
+    const failure = await pending;
+    expect(failure).toBeInstanceOf(WorkerFailure);
+    expect((failure as WorkerFailure).safe.title).toMatch(/different version/i);
+    expect(worker?.terminated).toBe(true);
+  });
+
+  /**
+   * Regression (benchmark F028): a Worker that accepts a request and then goes
+   * quiet left the interface waiting forever. A request now fails when it stops
+   * making progress, and a request that is still reporting progress is not
+   * interrupted.
+   */
+  it("fails a request that stops reporting progress", async () => {
+    vi.useFakeTimers();
+    const client = new ReplayWorkerClient();
+    const pending = client.listImports().catch((error: unknown) => error);
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+
+    // A listing answers in milliseconds when it is reached; silence means hung.
+    await vi.advanceTimersByTimeAsync(59_000);
+    expect(worker?.terminated).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    const failure = await pending;
+    expect(failure).toBeInstanceOf(WorkerFailure);
+    expect((failure as WorkerFailure).safe.title).toMatch(/stopped responding/i);
+  });
+
+  it("keeps a long request alive while it reports progress", async () => {
+    vi.useFakeTimers();
+    const client = new ReplayWorkerClient();
+    const pending = client.runReplay("import-1", target, "2026-09-15");
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+    const requestId = worker?.lastRequestId ?? 0;
+
+    for (let elapsed = 0; elapsed < 600_000; elapsed += 60_000) {
+      worker?.reply({
+        type: "PROGRESS",
+        requestId,
+        operation: "replay",
+        phase: "replaying",
+        detail: "chunk",
+      });
+      await vi.advanceTimersByTimeAsync(60_000);
+    }
+    expect(worker?.terminated).toBe(false);
+
+    worker?.reply(replayOk(requestId, "done"));
+    await expect(pending).resolves.toMatchObject({
+      result: { versions: { targetReference: "done" } },
+    });
+  });
+
+  it("resolves a ping instead of waiting for a request that is never answered", async () => {
+    const client = new ReplayWorkerClient();
+    const pinged = client.ping();
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+    worker?.reply({
+      type: "PONG",
+      protocol: WORKER_PROTOCOL_VERSION,
+      requestId: worker.lastRequestId,
+    });
+    await expect(pinged).resolves.toBe(true);
+  });
+
   it("ignores a response that does not match the protocol", async () => {
     const client = new ReplayWorkerClient();
     const pending = client.listImports();

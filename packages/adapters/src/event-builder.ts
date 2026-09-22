@@ -4,6 +4,7 @@ import {
   isoUtcFromMs,
   nativeEventHash,
   nativeSessionHash,
+  normalizeProjectKey,
   projectHash,
 } from "./identity.js";
 import type { ModelMapper } from "./models.js";
@@ -31,8 +32,14 @@ export const HARNESS_IDS = {
 
 export interface EventDraft {
   adapterId: AdapterId;
-  /** Raw native session id, hashed before it reaches an export. */
-  sessionId: string;
+  /**
+   * Raw native session id, hashed before it reaches an export. Omitted when the
+   * source describes work without naming a session (a daily or monthly
+   * aggregate row): the event then carries no session hash at all, because
+   * hashing a bucket name would fabricate a session that does not exist and
+   * would make the row un-matchable against a native scan.
+   */
+  sessionId?: string;
   /** Stable native identity of this record inside its session. */
   identity: string;
   occurredAtMs: number;
@@ -72,19 +79,51 @@ export function eventContext(env: SourceEnvironment, options: CollectOptions): E
   };
 }
 
+/**
+ * Length-prefixed encoding of an identity tuple.
+ *
+ * Every element is written as `<length>:<text>`, so no element's own content can
+ * be read back as a separator: two different tuples cannot encode to the same
+ * string, even when the strings they carry contain separators themselves.
+ */
+function encodeIdentityTuple(parts: readonly string[]): string {
+  return parts.map((part) => `${part.length}:${part}`).join("");
+}
+
+/**
+ * Native identity of one source record, derived from the record's own fields.
+ *
+ * The two shapes a record can have are separated by an explicit domain tag
+ * rather than by an empty session field. A record that names a session is
+ * identified by (session, record identity); a record that names no session — a
+ * daily, monthly or block aggregate row — is identified by its own record
+ * identity under a tag no session-backed tuple can produce.
+ *
+ * Hashing an empty session identity for every session-less row gave every such
+ * row of one adapter the same native event hash and therefore the same canonical
+ * event id, so `dedupeEvents` treated the later rows as exact duplicates of the
+ * first and discarded them: two different aggregate rows collapsed into one and
+ * the tokens of the second vanished from the accounting with no warning.
+ */
+function nativeEventIdentity(draft: EventDraft): string {
+  return draft.sessionId === undefined
+    ? encodeIdentityTuple(["nosession", draft.identity])
+    : encodeIdentityTuple(["session", draft.sessionId, draft.identity]);
+}
+
 export function buildEvent(draft: EventDraft, context: EventContext): TextUsageEventV1 {
   const { salt, mapper } = context;
-  const nativeHash = nativeEventHash(
-    salt,
-    draft.adapterId,
-    `${draft.sessionId}\u0000${draft.identity}`,
-  );
+  const sessionIdentity = nativeEventIdentity(draft);
+  const nativeHash = nativeEventHash(salt, draft.adapterId, sessionIdentity);
   // The harness is known before the model is resolved so a harness-scoped alias
   // can be applied; attribution overrides the source default, exactly as it does
   // for the event's own harness field below.
-  const attributed = context.attribution?.byProviderSession.get(
-    attributionKey(draft.adapterId, draft.sessionId),
-  );
+  const attributed =
+    draft.sessionId === undefined
+      ? undefined
+      : context.attribution?.byProviderSession.get(
+          attributionKey(draft.adapterId, draft.sessionId),
+        );
   const effectiveHarnessId = attributed?.harnessId ?? draft.harnessId;
   const { model, confidence: modelConfidence } = mapper.map(
     draft.rawModel,
@@ -97,7 +136,9 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     source: {
       adapterId: draft.adapterId,
       nativeEventHash: nativeHash,
-      nativeSessionHash: nativeSessionHash(salt, draft.sessionId),
+      ...(draft.sessionId !== undefined
+        ? { nativeSessionHash: nativeSessionHash(salt, draft.sessionId) }
+        : {}),
     },
     model,
     modality: "text",
@@ -120,7 +161,13 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     event.nativeCost = { amount: draft.nativeCost, currency: "USD" };
   }
   if (draft.projectKey !== undefined && draft.projectKey.trim().length > 0) {
-    event.projectHash = projectHash(salt, draft.projectKey.trim());
+    // Normalized through the same function the project-identity tests cover
+    // (Windows separators and case, trailing separators), so `~/code/app` and
+    // `~/code/app/` hash identically in an export.
+    event.projectHash = projectHash(
+      salt,
+      normalizeProjectKey(draft.projectKey, context.env.platform),
+    );
   }
   if (draft.workloadCategory !== undefined) event.workloadCategory = draft.workloadCategory;
   if (draft.requestStartedAtMs !== undefined && Number.isFinite(draft.requestStartedAtMs)) {

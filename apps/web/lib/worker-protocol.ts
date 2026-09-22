@@ -32,8 +32,40 @@ export type SafeErrorCode =
   | "STORAGE_UNAVAILABLE"
   | "STORAGE_CORRUPT"
   | "IMPORT_NOT_FOUND"
+  | "IMPORT_CANCELLED"
+  | "MEMORY_EXHAUSTED"
   | "REPLAY_FAILED"
   | "INTERNAL";
+
+/**
+ * The codes this boundary is allowed to carry.
+ *
+ * A thrown object is not a `SafeError` just because it has a `code` property: the
+ * engine's own errors carry internal codes and identifiers, so a value only
+ * crosses the Worker boundary after `isSafeError` has checked it against this
+ * list and confirmed the shape (benchmark finding F029).
+ */
+export const SAFE_ERROR_CODES = [
+  "FILE_UNREADABLE",
+  "FILE_TOO_LARGE",
+  "NOT_JSON",
+  "NOT_STACKREPLAY",
+  "UNSUPPORTED_VERSION",
+  "SCHEMA_INVALID",
+  "REDACTION_VIOLATION",
+  "EMPTY_WORKLOAD",
+  "STORAGE_UNAVAILABLE",
+  "STORAGE_CORRUPT",
+  "IMPORT_NOT_FOUND",
+  "IMPORT_CANCELLED",
+  "MEMORY_EXHAUSTED",
+  "REPLAY_FAILED",
+  "INTERNAL",
+] as const satisfies readonly SafeErrorCode[];
+
+export function isSafeErrorCode(value: unknown): value is SafeErrorCode {
+  return typeof value === "string" && (SAFE_ERROR_CODES as readonly string[]).includes(value);
+}
 
 /** Display-safe error. Never contains file content, paths or raw JSON. */
 export interface SafeError {
@@ -43,6 +75,26 @@ export interface SafeError {
   hint?: string;
   /** Bounded, content-free details, e.g. "event 14: invalid timestamp". */
   details?: string[];
+}
+
+/**
+ * Runtime guard for a value that may cross the boundary as a display-safe error.
+ *
+ * Unknown codes are rejected rather than forwarded, and the text fields must be
+ * strings: an object with an arbitrary `code` is not a `SafeError`.
+ */
+export function isSafeError(value: unknown): value is SafeError {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as Partial<SafeError>;
+  return (
+    isSafeErrorCode(candidate.code) &&
+    typeof candidate.title === "string" &&
+    typeof candidate.message === "string" &&
+    (candidate.hint === undefined || typeof candidate.hint === "string") &&
+    (candidate.details === undefined ||
+      (Array.isArray(candidate.details) &&
+        candidate.details.every((detail) => typeof detail === "string")))
+  );
 }
 
 export interface SourceSummary {
@@ -120,12 +172,24 @@ export interface ImportRecord {
   summary: WorkloadSummary;
 }
 
-/** One activity bucket for the replay timeline. Aggregate only, no identities. */
+/**
+ * One activity bucket for the replay timeline. Aggregate only, no identities.
+ *
+ * `tokens` counts events whose token total is fully known. `partialTokens` is the
+ * reported part of events whose total is *unknown* (a lower bound), kept apart on
+ * purpose: adding it to `tokens` would present a lower bound as an exact total
+ * (benchmark finding F031). `partialEvents` says how many events contributed to it.
+ */
 export interface TimelinePoint {
   /** Bucket start, ISO-8601 UTC (daily buckets). */
   at: string;
   events: number;
+  /** Sum of the events whose token total is fully known. */
   tokens: number;
+  /** Lower-bound tokens from events whose total is unknown (buckets, never totals). */
+  partialTokens: number;
+  /** How many of this bucket's events have an unknown token total. */
+  partialEvents: number;
 }
 
 export type WorkerRequest =

@@ -106,7 +106,19 @@ Properties, all enforced in `packages/share`:
 - **Bounded and hostile-input safe.** Token length, decompressed size, JSON depth,
   string length and list sizes are all capped before anything is rendered, so a
   crafted link cannot become a decompression bomb or a huge render. A failed
-  checksum is refused rather than rendered.
+  checksum is refused rather than rendered. Source links must parse as absolute
+  `http`/`https` URLs; anything else is refused when the token is decoded, not when
+  it is rendered. When a bounded list has to be cut, the snapshot carries a
+  `truncation` marker naming that list and the number of entries the sharer's own result
+  held for it (not the number left out), and the page says so: a partial view must not
+  read as the whole result.
+- **It says what it is.** A link whose target is a synthetic `example-` demo entry
+  carries `synthetic: true`, and the public page labels the whole result as demo
+  data rather than letting a demo plan reach a visitor as a real-world claim. The
+  plan terms inside a link are the sharer's claim: the page presents them as
+  recorded by whoever made the link, together with the verification state the
+  record claims, and never in the catalog's own verified-fact language. A
+  catalogued plan of the same name is linked for comparison when one exists.
 - **Deterministic where it matters.** Canonical JSON means the same facts always
   produce the same token, and the synthetic example on the home page is therefore
   stable.

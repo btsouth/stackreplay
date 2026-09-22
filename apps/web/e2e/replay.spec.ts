@@ -55,6 +55,44 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   await expect(page.getByTestId("timeline-chart")).toBeVisible();
 });
 
+test("the timeline names what each shaded band did to the workload", async ({ page }) => {
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay");
+  await runReplay(page, "example-cloud-pro");
+
+  // Regression (benchmark F030): every band used to be described as work the
+  // target did not serve, which is wrong for a rule that served the work and
+  // billed overage. The caption now says which it was.
+  const caption = page.getByTestId("timeline-caption");
+  await expect(caption).toBeVisible();
+  await expect(caption).toContainText("Historical activity per day");
+  const text = (await caption.textContent()) ?? "";
+  if (!/No window exceeded/u.test(text)) {
+    expect(text).toMatch(/did not serve|served and billed as overage/u);
+  }
+});
+
+test("the result panel describes the replay it shows, not the current selection", async ({
+  page,
+}) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+  await runReplay(page, "example-cloud-pro");
+
+  // Regression (benchmark F026): the panel was labelled with whatever was
+  // selected, and a target change left the old result on screen under the new
+  // name.
+  const result = page.getByTestId("replay-result");
+  await expect(result).toContainText("rules as of");
+  await expect(page.getByTestId("result-computed-for")).toContainText("example-cloud-pro");
+
+  await page.getByTestId("plan-example-cloud-starter").click();
+  await expect(result).toHaveCount(0);
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("result-computed-for")).toContainText("example-cloud-starter");
+});
+
 test("keeps unknown coverage visibly unknown instead of 0% or 100%", async ({ page }) => {
   await importDemo(page, "multistack");
   await page.goto("/app/replay");
