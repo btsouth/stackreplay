@@ -591,6 +591,164 @@ places where two surfaces have to agree.
   of them as exact duplicates and the rest disappeared from the accounting with
   no warning.
 
+## 37. Model identity is factual, model translation is an assumption (M4B)
+
+- Resolution of a raw observed model identifier to a canonical catalog model is a
+  mapping over declared catalog facts, and it is classified by how it was
+  established: `exact-id` (canonical id or name), `documented-alias` (a provider
+  id or harness spelling the catalog sources), `documented-route` (another
+  provider's or router's documented route that invokes the same underlying
+  model), `unresolved` (no declared evidence). Every non-unresolved kind means
+  *the same underlying model*.
+- Cross-model translation is a different concept with different provenance: "for
+  this scenario, treat demand recorded against model A as demand on model B". It
+  is never identity, never an alias, and never proof of equal capability,
+  quality, output or token consumption.
+- Translation is scenario input, not catalog data. A `ModelTranslationPolicyV1`
+  travels with a replay (a user scenario or a synthetic fixture) and is validated
+  against the catalog, so a rule can only name models that exist. No real
+  cross-family mapping is built into the catalog by M4B.
+- The only implemented transform is token-preserving: the recorded token
+  quantities are replayed against the substitute model unchanged. Empirical
+  tokenizer, output or cache conversion ratios are deliberately absent, and no
+  result may imply that N source-model tokens equal N target-model tokens in
+  reality.
+- Raw identifiers stay preserved in results (`unsupportedModels`, the observed
+  model mix), so a later catalog improvement cannot rewrite what was observed.
+
+## 38. Exact Replay and Translated Replay are separate modes (M4B)
+
+- `exact` means no cross-model substitution was applied, including replays whose
+  models were reached through a documented alias or route. `translated` means at
+  least one explicit substitution was applied.
+- The mode classifies the scenario's routing assumption, never completeness. An
+  unresolved, unavailable or unsupported portion stays its own disposition and
+  reduces claim strength; it is never pushed into `translated`, and never hidden
+  behind the mode label.
+- A result cannot be read back as something it was not: the serialized block
+  carries the applied translation and the policy beside the mode, and the schema
+  refuses a translated result with no substitution, an exact result with one, a
+  policy without its application, or an application without its policy.
+- Outcome dispositions are distinct: `included` (within the target's allowance),
+  `overage` (served, but billed above included capacity), `blocked` (rejected or
+  deferred by the rules), `unavailable` (the effective model the target did not
+  serve, whether or not a translation produced it), `unknown` (evidence
+  insufficient). Paid overage is never collapsed
+  into blocked. Dispositions are aggregate counts only, so a 100k-event workload
+  does not grow the result.
+- Wording follows the mode and the evidence, never the other way around. An exact
+  replay may state a strong claim for the portion whose identity, pricing, rules
+  and temporal evidence are complete ("this recorded workload would have cost $X
+  at the target's published rates"). A translated replay's claim stays
+  conditional ("under this model translation, the workload is estimated to fit")
+  and never implies equal intelligence, task quality, generated text,
+  tokenization or tool behaviour. StackReplay replays a recorded demand pattern;
+  it does not re-execute prompts, and it does not claim the counterfactual
+  literally occurred.
+
+## 39. Replayability classifies target mechanics, never model equivalence (M4B)
+
+- `deterministic`: numeric rules and complete workload quantities and pricing
+  permit direct simulation, and no recorded demand was left undecided. `bounded`:
+  simulation is possible but at least one input supports a range, or part of the
+  demand could not be evaluated at all (unknown consumption, unresolved
+  identifiers, unknown or mixed reset behaviour, incomplete pricing).
+  `qualitative`: the target states its limits qualitatively, or its numeric rules
+  do not apply to this workload, so no numeric fit was simulated.
+- Calibration is deliberately not a class. A state no result could legitimately
+  carry would be a public claim waiting to be misread, so a future milestone adds
+  calibration to the schema and the methodology together with the observed meter
+  or invoice evidence that justifies it.
+- A model the target simply does not serve is a determined outcome and stays
+  compatible with a deterministic reading of its rules; demand the evidence leaves
+  undecided is not, because it is incomplete evidence about this workload.
+- A sourced or verified catalog entry never implies `deterministic`, and a
+  translated replay is not less deterministic in its target mechanics. Its public
+  claim stays conditional because the translation itself is an assumption.
+- A target that publishes no numeric limit does not get a numeric fit
+  percentage: request coverage is reported as unknown with its counts, instead of
+  manufacturing precision the evidence does not contain.
+
+## 40. Evidence is a set of dimensions, not a universal confidence score (M4B)
+
+- The authoritative M4B evidence model is a set of independent dimensions, each
+  with its own explicit denominator: model resolution, usage categories, pricing,
+  rules, temporal coverage, translation method, reset phase and workload scope.
+  Event-count coverage and usage-weighted coverage are separate fractions and are
+  never interchangeable.
+- No single blended score is synthesized. The legacy `confidence` object remains
+  for backward compatibility, is not the M4B evidence model, and is not deleted
+  or reinterpreted by M4B.
+- A dimension that cannot cover its denominator says so with a reason and, where
+  useful, the count it excluded. Material unresolved usage prevents a
+  full-coverage claim in the dimension itself.
+- Aggregates stay bounded: the evidence block carries counts, not one record per
+  historical event.
+
+## 41. StackReplay replays a recorded demand stream, within a stated scope (M4B)
+
+- The replay simulates how the target would treat the **recorded historical
+  demand stream**. Requests after a hypothetical rejection or substitution remain
+  part of that stream. Nothing here models how a person or an agent would have
+  changed behaviour, what another model would have generated, or whether it would
+  have completed the task.
+- Attempted, accepted, overage, blocked, unavailable and unknown demand stay
+  distinct in the result.
+- Every result states its workload scope. The default is `imported_workload`, and
+  its statement says in the result's own words that usage outside the workload is
+  not part of the result. `all_observed_local_adapters` says a provider account
+  can still contain unobserved usage; `provider_account_total` is recorded as the
+  caller's declaration, never as verified coverage. An imported subset is never
+  serialized or displayed as whole-account coverage.
+- Reset assumptions stay explicit: `rolling` and `fixed-known` are derived from
+  the plan version's own documented windows, `not-applicable` when the target
+  establishes no numeric allowance, and `fixed-unknown` when a scenario declares
+  the account's phase is not established. A plan that mixes rolling and calendar
+  windows is also `fixed-unknown`: it is not one known phase, and claiming the
+  calendar part alone would silently drop the rolling behaviour. The engine never
+  guesses a phase, and reset-phase sensitivity analysis remains deferred work.
+- Aggregate target states never speak for rules that disagree. A target whose own
+  limits mix overage with rejection reports `overageMode: unknown` rather than
+  `enabled`, and the per-limit simulation is what carries the outcome: a summary
+  that generalizes from the first matching rule would overstate what the target's
+  rules actually do.
+- Public disclosure copy states the routing assumption only. The exact-mode note
+  says that no cross-model substitution was applied; it never claims that every
+  recorded request was served, that the workload was fully covered, or that any
+  part of it was correct. Availability is the dispositions' job (the effective
+  model, which is the substitute when a translation applied) and undecided demand
+  is the evidence dimensions' job. The copy lives in `apps/web/lib/replay-disclosure.ts`
+  so it can be asserted rather than reworded in passing.
+
+## 42. A target is an execution stack, and its provenance is pinned (M4B)
+
+- A target is not just a plan SKU. The result's target stack records the plan and
+  provider, the pinned rule instant, the catalog version, the target's declared
+  overage behaviour, the reset assumption and the scenario translation policy
+  when one applies. Surface ids, region taxonomies and execution-route catalogs
+  are deliberately absent: they are not established by anything in this
+  repository.
+- Provenance stays additive on existing primitives: `versions` gains only a
+  pinned `translationPolicy` when a policy was applied, and `rulesAsOf`,
+  `catalog` and `targetReference` continue to carry the scenario instant, the
+  catalog and the target reference. No second historical/current mode subsystem
+  exists.
+- Sharing follows the same rule. `ShareReplaySnapshotV1` is unchanged and old
+  links keep decoding exactly as they did; a translated replay is refused by the
+  share projection, because a V1 link can only be read as an exact replay of the
+  target's own models. No successor format was created.
+
+## 43. Backtesting compares reconstructions with stated expectations (M4B)
+
+- The validation layer is fixture based and deterministic: a synthetic list-price
+  total, a documented subscription rule's crossings, a resolved identity, a
+  replay mode and a set of dispositions are stated by hand and compared with the
+  engine's reconstruction through one explicit comparison shape that carries the
+  coverage dimensions and the versions used.
+- A provider meter or invoice total, when one is ever genuinely observed, is
+  recorded beside the reconstruction with an exact decimal delta. It is never
+  blended into it, and no case is labelled `calibrated` without that evidence.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

@@ -16,6 +16,7 @@ export {
   type ModelIdentityIndex,
   type ModelIdentityResolutionV1,
   type ModelIdentityUnresolvedReasonV1,
+  modelResolutionKindOf,
 } from "./resolve.js";
 export {
   type BillingEquivalenceV1,

@@ -17,10 +17,46 @@
  * Milestone 1 implements subscription targets end to end over the generalized
  * ExecutionReplayResult. API, local and hybrid targets are schema-only.
  */
+
+export {
+  type BacktestAmountV1,
+  type BacktestCaseInputV1,
+  type BacktestComparisonV1,
+  type BacktestExpectationV1,
+  compareToExpectation,
+  crossingsExpectation,
+  crossingsOf,
+  dispositionsExpectation,
+  dispositionsOf,
+  evaluateBacktestCase,
+  type ListPriceEventV1,
+  type ListPriceReconstructionV1,
+  type MeterObservationV1,
+  modeExpectation,
+  modeOf,
+  observationDelta,
+  reconstructListPrice,
+  resolutionExpectation,
+} from "./backtest.js";
 export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+export {
+  deriveOverageMode,
+  deriveResetAssumption,
+  hasMixedWindowKinds,
+  hasNumericLimits,
+  type ReplayDispositionKindV1,
+  SemanticsAccumulator,
+  workloadScopeStatement,
+} from "./semantics.js";
 export { instantToIso, parseInstant, Temporal } from "./time.js";
+export {
+  prepareTranslation,
+  substituteFor,
+  TranslationApplication,
+  type TranslationPlan,
+} from "./translation.js";
 export {
   type DisjointBuckets,
   hasAnyReportedTokens,

@@ -2,9 +2,58 @@
 
 ## Current milestone
 
-**Milestone 4 — public site, sourced launch catalog and stateless sharing, implemented.**
-Milestone 3 remains independently audited and accepted; M4 builds on it without changing the engine,
-the result schema, the accounting rules or the browser-local architecture.
+**Milestone 4B — replay semantics and model translation foundation, implemented in the working tree.**
+M4A remains the accepted baseline; M4B extends the result contract additively, keeps every accepted
+fixture and share token readable, and deliberately leaves `target.type === "api"` at
+`TARGET_NOT_IMPLEMENTED`.
+
+## Milestone 4B — replay semantics and model translation
+
+Two concepts that must never be confused are now separate in the schema, the engine and every
+surface that displays a result: **model identity resolution** (factual: these identifiers name the
+same underlying model) and **cross-model translation** (an explicit counterfactual scenario
+assumption).
+
+**Resolution kinds are explicit.** `modelResolutionKindOf` classifies an identity as `exact-id`,
+`documented-alias`, `documented-route` or `unresolved`, and the catalog may now declare a
+`provider_route` alias for another provider's or router's documented route to the same model. Every
+non-unresolved kind still means the same underlying model, so an alias or a route keeps a replay
+`exact`; only an explicit substitution makes it `translated`.
+
+**Translation is scenario data.** `ModelTranslationPolicyV1` travels with a replay (user scenario or
+synthetic fixture), is validated against the catalog, and is never built into the catalog: M4B adds
+zero real cross-family mappings, zero empirical conversion ratios and zero model equivalences. The
+only transform is token-preserving, labelled as an assumption in the result's assumptions, in the
+evidence block and in the result's own confidence factors.
+
+**Replay modes and dispositions.** `semantics.mode` is `exact` or `translated`, and
+`semantics.dispositions` counts included, overage, blocked, unavailable and unknown events, which
+sum to the replayed event count exactly. Paid overage is its own outcome and is never counted as
+blocked, and an unresolved or unavailable portion is never pushed into `translated`.
+
+**Replayability and evidence.** `semantics.replayability.class` is `deterministic`, `bounded` or
+`qualitative` in every result M4B can produce, and the schema declares no other class. Calibration
+belongs to a future milestone that can add it together with observed meter or invoice evidence,
+rather than a state a result could wear for free. `bounded` also covers demand the evidence leaves
+undecided: an unresolved identifier is incomplete evidence about this workload, while a model the
+target simply does not serve is a determined outcome and stays compatible with `deterministic`.
+`semantics.evidence` carries independent dimensions with explicit
+denominators: model resolution, usage categories, pricing, rules, temporal coverage, translation
+method, reset phase. There is no single blended score; a target that publishes no numeric limit gets
+`unknown` request coverage instead of a fabricated fit percentage.
+
+**Target stack, scope and reset.** `semantics.targetStack` records the plan, provider, pinned rule
+instant, catalog version, declared overage behaviour, reset assumption and the scenario policy when
+one applies. `semantics.workloadScope` states what the replay covers in engine-authored wording, so
+an imported subset is never described as whole-account coverage. A scenario may declare a reset
+phase unknown, which weakens the result rather than guessing a phase; reset-phase sensitivity
+analysis remains deferred.
+
+**Sharing and backtesting.** `ShareReplaySnapshotV1` is unchanged and old links keep decoding
+exactly as before; a translated replay is refused by the share projection rather than serialized
+through a format that can only be read as exact. A deterministic fixture-based validation layer
+compares reconstructions (list price, limit crossings, identity, mode, dispositions) with stated
+expectations and leaves room for a genuine meter or invoice observation beside them.
 
 ## Milestone 4A — model identity and sourced API pricing
 

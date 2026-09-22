@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogV1 } from "./catalog.js";
-import { createModelIdentityIndex } from "./resolve.js";
+import { createModelIdentityIndex, modelResolutionKindOf } from "./resolve.js";
 
 /**
  * Identity resolution tests (M4A).
@@ -22,7 +22,7 @@ function model(
   aliases?: Array<{
     id: string;
     alias: string;
-    kind: "provider_id" | "harness_alias";
+    kind: "provider_id" | "harness_alias" | "provider_route";
     harness?: string;
   }>,
 ) {
@@ -178,5 +178,44 @@ describe("model identity resolution", () => {
       "example-sol-scoped",
     ]);
     expect(index.modelIds).toEqual(["example-opus", "example-sol"]);
+  });
+});
+
+/**
+ * M4B resolution kinds. Every alias kind still means the same underlying model,
+ * so the classification distinguishes *how* an identity was established and
+ * never turns a same-model route into a substitution.
+ */
+describe("M4B resolution kind", () => {
+  const routed = catalogWith([
+    model("example-sol", "Example Sol", [
+      { id: "example-sol-dotted", alias: "example.sol", kind: "provider_id" },
+      { id: "example-sol-classic", alias: "example.sol-classic", kind: "provider_route" },
+    ]),
+  ]);
+  const routedIndex = createModelIdentityIndex(routed);
+
+  it("classifies exact ids and canonical names as exact-id", () => {
+    expect(modelResolutionKindOf(routedIndex.resolve("example-sol"))).toBe("exact-id");
+    expect(modelResolutionKindOf(routedIndex.resolve("Example Sol"))).toBe("exact-id");
+  });
+
+  it("classifies a declared provider alias as documented-alias", () => {
+    expect(modelResolutionKindOf(routedIndex.resolve("example.sol"))).toBe("documented-alias");
+  });
+
+  it("classifies a documented same-model route as documented-route", () => {
+    const resolution = routedIndex.resolve("example.sol-classic");
+    expect(resolution).toMatchObject({
+      canonicalId: "example-sol",
+      basis: "alias",
+      aliasKind: "provider_route",
+    });
+    expect(modelResolutionKindOf(resolution)).toBe("documented-route");
+  });
+
+  it("classifies anything without declared evidence as unresolved", () => {
+    expect(modelResolutionKindOf(routedIndex.resolve("example-sol-turbo"))).toBe("unresolved");
+    expect(modelResolutionKindOf(undefined)).toBe("unresolved");
   });
 });

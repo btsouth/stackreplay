@@ -153,10 +153,10 @@ describe("result shape and determinism", () => {
   it("records generalized versions and the explicit rules context", () => {
     const result = replay({ events, target, catalog, context: fixtureContext });
     expect(result.versions).toEqual({
-      engine: "0.0.3",
+      engine: "0.0.4",
       schema: 1,
       catalog: "fixture:golden-v1",
-      methodology: "1.2.0",
+      methodology: "1.3.0",
       rulesAsOf: "2026-09-15",
       targetType: "subscription",
       targetReference: FIXTURE_PLAN_VERSION_ID,

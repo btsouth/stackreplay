@@ -8,6 +8,7 @@ import type {
   PricingV1,
   PromotionV1,
   ProviderV1,
+  QualitativeLimitV1,
 } from "@stackreplay/catalog";
 import type {
   ReplayContextV1,
@@ -105,6 +106,8 @@ export interface FixtureCatalogOptions {
   effectiveTo?: string;
   priceAmount?: string;
   limits: PlanLimitV1[];
+  /** Limits the plan states qualitatively instead of numerically (M4B). */
+  qualitativeLimits?: QualitativeLimitV1[];
   modelRules?: ModelRuleV1[];
   promotions?: PromotionV1[];
   verificationStatus?: VerificationStatusV1;
@@ -122,6 +125,9 @@ export function makeFixtureCatalog(options: FixtureCatalogOptions): CatalogV1 {
     ...(options.effectiveTo !== undefined ? { effectiveTo: options.effectiveTo } : {}),
     price: { currency: "USD", amount: options.priceAmount ?? "20.00", interval: "month" },
     limits: options.limits,
+    ...(options.qualitativeLimits !== undefined
+      ? { qualitativeLimits: options.qualitativeLimits }
+      : {}),
     modelRules: options.modelRules ?? [
       { model: "fixture-small", pricingRef: "fixture-small-pricing" },
       { model: "fixture-medium", pricingRef: "fixture-medium-pricing" },
@@ -154,6 +160,9 @@ export function makeFixtureCatalog(options: FixtureCatalogOptions): CatalogV1 {
             ...(version.effectiveTo !== undefined ? { effectiveTo: version.effectiveTo } : {}),
             price: version.price,
             limits: version.limits,
+            ...(version.qualitativeLimits !== undefined
+              ? { qualitativeLimits: version.qualitativeLimits }
+              : {}),
             modelRules: version.modelRules,
             ...(version.promotions !== undefined ? { promotions: version.promotions } : {}),
             sources: version.sources,

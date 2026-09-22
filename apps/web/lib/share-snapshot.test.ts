@@ -1,7 +1,7 @@
-import type { ExecutionReplayResultV1 } from "@stackreplay/schema";
-import { findForbiddenFields } from "@stackreplay/share";
+import type { ExecutionReplayResultV1, ReplaySemanticsV1 } from "@stackreplay/schema";
+import { findForbiddenFields, shareReplaySnapshotV1Schema } from "@stackreplay/share";
 import { describe, expect, it } from "vitest";
-import { type ShareTargetFacts, toShareSnapshot } from "./share-snapshot";
+import { type ShareTargetFacts, shareSnapshotRefusal, toShareSnapshot } from "./share-snapshot";
 
 /**
  * The share snapshot is the privacy boundary: these tests assert it is a
@@ -315,5 +315,136 @@ describe("toShareSnapshot", () => {
     const snapshot = toShareSnapshot(computed, BASE_OPTIONS);
     expect(snapshot.constraints[0]?.consumedUnits).toBe(wide);
     expect(snapshot.violations[0]?.requiredUnits).toBe(wide);
+  });
+});
+
+/**
+ * M4B: a translated replay must never reach the public page through a path that
+ * can only be read as an exact replay of the target's own models. V1 is left
+ * exactly as it was, and the projection refuses instead.
+ */
+function withSemantics(
+  semantics: Partial<ReplaySemanticsV1>,
+  mode: "exact" | "translated",
+): ExecutionReplayResultV1 {
+  const base = sampleResult();
+  const dimension = { status: "complete" as const, events: { covered: 1, total: 1 } };
+  const translationMethod =
+    mode === "translated"
+      ? { method: "token-preserving" as const, policyId: "scenario-1", policyVersion: "1.0.0" }
+      : { method: "none" as const };
+  return {
+    ...base,
+    semantics: {
+      mode,
+      targetStack: {
+        providerId: "anthropic",
+        planId: "claude-max-20x",
+        planVersionId: "claude-max-20x@2026-04-01",
+        effectiveAt: "2026-09-21",
+        catalogVersion: "2026.09.1",
+        overageMode: "disabled",
+        reset: { kind: "rolling" },
+      },
+      dispositions: { included: 1_000, overage: 0, blocked: 0, unavailable: 0, unknown: 0 },
+      replayability: { class: "deterministic", reasons: [] },
+      evidence: {
+        modelResolution: dimension,
+        usageCategories: dimension,
+        pricing: { status: "not_applicable", reason: "no monetary denominator" },
+        rules: dimension,
+        temporal: dimension,
+        translationMethod,
+        resetPhase: { status: "established" },
+      },
+      modelMix: {
+        models: [{ modelId: "anthropic:sonnet", resolutionKind: "exact-id", eventCount: 1_000 }],
+        unresolvedEventCount: 0,
+      },
+      workloadScope: {
+        kind: "imported_workload",
+        statement: "This replay covers the imported coding workload only.",
+      },
+      ...semantics,
+    },
+  } as ExecutionReplayResultV1;
+}
+
+describe("M4B share refusal", () => {
+  it("shares an exact replay and keeps the V1 snapshot shape unchanged", () => {
+    const result = withSemantics({}, "exact");
+    expect(shareSnapshotRefusal(result)).toBeUndefined();
+    const snapshot = toShareSnapshot(result, BASE_OPTIONS);
+    expect(shareReplaySnapshotV1Schema.safeParse(snapshot).success).toBe(true);
+    // No M4B field leaks into a V1 snapshot: the format is not widened here.
+    expect(Object.keys(snapshot)).not.toContain("semantics");
+    expect(Object.keys(snapshot)).not.toContain("mode");
+    expect(JSON.stringify(snapshot)).not.toContain("translation");
+  });
+
+  it("refuses a link whose stated mode disagrees with its own translation facts", () => {
+    // Defense in depth: the guard never trusts `mode` alone, so a semantics block
+    // that says exact while carrying substitutions cannot open the share path.
+    const substituted = withSemantics(
+      {
+        translation: {
+          applied: [
+            {
+              sourceModelId: "anthropic:sonnet",
+              targetModelId: "example-terra",
+              eventCount: 5,
+            },
+          ],
+          substitutedEvents: 5,
+        },
+      },
+      "exact",
+    );
+    expect(shareSnapshotRefusal(substituted)).toContain("different models");
+    expect(() => toShareSnapshot(substituted, BASE_OPTIONS)).toThrow(/cannot be shared/);
+
+    const appliedOnly = withSemantics(
+      {
+        translation: {
+          applied: [
+            {
+              sourceModelId: "anthropic:sonnet",
+              targetModelId: "example-terra",
+              eventCount: 0,
+            },
+          ],
+          substitutedEvents: 0,
+        },
+      },
+      "exact",
+    );
+    expect(shareSnapshotRefusal(appliedOnly)).toBeDefined();
+  });
+
+  it("keeps sharing a result produced before M4B", () => {
+    const legacy = sampleResult();
+    expect(legacy.semantics).toBeUndefined();
+    expect(shareSnapshotRefusal(legacy)).toBeUndefined();
+    expect(toShareSnapshot(legacy, BASE_OPTIONS).versions.schema).toBe(1);
+  });
+
+  it("refuses to publish a translated replay as an exact-reading link", () => {
+    const result = withSemantics(
+      {
+        translation: {
+          applied: [
+            {
+              sourceModelId: "anthropic:sonnet",
+              targetModelId: "example-terra",
+              eventCount: 1_000,
+            },
+          ],
+          substitutedEvents: 1_000,
+        },
+      },
+      "translated",
+    );
+    expect(shareSnapshotRefusal(result)).toContain("translated replay");
+    expect(() => toShareSnapshot(result, BASE_OPTIONS)).toThrow(/cannot be shared/);
   });
 });

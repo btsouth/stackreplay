@@ -216,6 +216,30 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
   }
   renderer.line();
 
+  if (result.semantics !== undefined) {
+    const semantics = result.semantics;
+    renderer.heading("Replay semantics");
+    renderer.field(
+      "  Mode",
+      semantics.mode === "translated" ? "translated (explicit counterfactual assumption)" : "exact",
+    );
+    for (const rule of semantics.translation?.applied ?? []) {
+      renderer.field(
+        "  Substitution",
+        `${rule.sourceModelId} -> ${rule.targetModelId} (${formatCount(rule.eventCount)} event(s))`,
+      );
+    }
+    renderer.field("  Included", formatCount(semantics.dispositions.included));
+    renderer.field("  Overage", formatCount(semantics.dispositions.overage));
+    renderer.field("  Blocked", formatCount(semantics.dispositions.blocked));
+    renderer.field("  Unavailable", formatCount(semantics.dispositions.unavailable));
+    renderer.field("  Unknown", formatCount(semantics.dispositions.unknown));
+    renderer.field("  Replayability", semantics.replayability.class);
+    renderer.field("  Reset", semantics.targetStack.reset.kind);
+    renderer.line(`  ${semantics.workloadScope.statement}`);
+    renderer.line();
+  }
+
   if (result.constraints.length > 0) {
     renderer.heading("Constraints");
     for (const constraint of result.constraints) {

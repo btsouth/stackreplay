@@ -53,6 +53,36 @@ export interface ShareSnapshotOptions {
   engineVersion?: string;
 }
 
+/**
+ * Why a result cannot be published as a V1 share link, or undefined when it can.
+ *
+ * `ShareReplaySnapshotV1` has no field for the replay's routing assumption, so a
+ * translated replay would reach a public page that can only be read as an exact
+ * replay of the target's own models. M4B refuses that path instead of widening
+ * V1: the link format is unchanged, and old links keep decoding exactly as
+ * before (M4B plan section 14).
+ *
+ * The test is defense in depth. `mode` is the engine's own statement, and the
+ * applied rules are what actually reached the public page's numbers, so the
+ * refusal holds even if a future caller hands over a semantics block whose mode
+ * and translation disagree: a substituted event or an applied rule is on its own
+ * enough to keep the link closed.
+ */
+export function shareSnapshotRefusal(result: ExecutionReplayResultV1): string | undefined {
+  const semantics = result.semantics;
+  if (semantics === undefined) return undefined;
+  const substituted = semantics.translation?.substitutedEvents ?? 0;
+  const appliedRules = semantics.translation?.applied.length ?? 0;
+  if (semantics.mode !== "translated" && substituted === 0 && appliedRules === 0) return undefined;
+  const substitutedEvents =
+    substituted > 0 ? `${substituted} event(s)` : "an unstated number of events";
+  return [
+    `this is a translated replay: it substitutes ${substitutedEvents} onto different models under an explicit`,
+    "scenario assumption. A share link carries no way to say that, so a reader could take it as an",
+    "exact replay of the target's own models.",
+  ].join(" ");
+}
+
 const dateOnly = (timestamp: string): string => timestamp.slice(0, 10);
 
 /**
@@ -98,6 +128,8 @@ export function toShareSnapshot(
   result: ExecutionReplayResultV1,
   options: ShareSnapshotOptions,
 ): ShareReplaySnapshotV1 {
+  const refusal = shareSnapshotRefusal(result);
+  if (refusal !== undefined) throw new Error(`This result cannot be shared: ${refusal}`);
   const { target } = options;
   const subscription = result.subscription;
 

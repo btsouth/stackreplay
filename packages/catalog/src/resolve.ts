@@ -21,11 +21,12 @@
  * winner.
  */
 
-import type { VerificationStatusV1 } from "@stackreplay/schema";
+import type { ModelResolutionKindV1, VerificationStatusV1 } from "@stackreplay/schema";
 import type { CatalogV1 } from "./catalog.js";
-import type { CatalogSourceV1, ModelV1 } from "./schema.js";
+import type { CatalogSourceV1, ModelAliasV1, ModelV1 } from "./schema.js";
 
-export type ModelAliasKindV1 = "provider_id" | "harness_alias";
+/** Alias kinds, derived from the catalog schema so they can never drift. */
+export type ModelAliasKindV1 = ModelAliasV1["kind"];
 
 export type ModelIdentityBasisV1 = "canonical_id" | "canonical_name" | "alias" | "unresolved";
 
@@ -44,6 +45,25 @@ export interface ModelIdentityResolutionV1 {
   harness?: string;
   /** Present only when unresolved. */
   reason?: ModelIdentityUnresolvedReasonV1;
+}
+
+/**
+ * M4B resolution kind: a stable, serializable classification of how an identity
+ * was established, derived from a resolution and never re-derived by consumers.
+ *
+ * It exists so "the same underlying model" and "a different model" cannot be
+ * confused in a result: every alias kind still means the same model, while a
+ * cross-model translation is a separate concept with its own provenance.
+ */
+export function modelResolutionKindOf(
+  resolution: ModelIdentityResolutionV1 | undefined,
+): ModelResolutionKindV1 {
+  if (resolution === undefined) return "unresolved";
+  if (resolution.basis === "canonical_id" || resolution.basis === "canonical_name")
+    return "exact-id";
+  if (resolution.basis === "alias")
+    return resolution.aliasKind === "provider_route" ? "documented-route" : "documented-alias";
+  return "unresolved";
 }
 
 export interface ModelIdentityAliasViewV1 {

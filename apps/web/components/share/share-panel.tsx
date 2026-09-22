@@ -7,6 +7,7 @@ import { useState } from "react";
 import {
   type ShareAttributionFacts,
   type ShareTargetFacts,
+  shareSnapshotRefusal,
   toShareSnapshot,
 } from "@/lib/share-snapshot";
 
@@ -42,6 +43,9 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
   const [copied, setCopied] = useState(false);
 
   const origin = siteUrl ?? (typeof window === "undefined" ? "" : window.location.origin);
+  // A translated replay has no safe reading in a V1 link, so the panel says so
+  // instead of offering a link that would be read as an exact replay (M4B).
+  const refusal = shareSnapshotRefusal(result);
 
   async function createLink() {
     setError(undefined);
@@ -102,6 +106,11 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
             the public page labels the result as demo data rather than a real-world claim.
           </p>
         ) : null}
+        {refusal === undefined ? null : (
+          <p className="text-xs text-warning" data-testid="share-refused">
+            This result cannot be shared as a link: {refusal}
+          </p>
+        )}
       </div>
 
       <fieldset className="flex flex-col gap-2">
@@ -140,7 +149,7 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={createLink} data-testid="share-create">
+        <Button onClick={createLink} data-testid="share-create" disabled={refusal !== undefined}>
           Create share link
         </Button>
         {share === undefined ? null : (

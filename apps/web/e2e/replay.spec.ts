@@ -72,6 +72,43 @@ test("the timeline names what each shaded band did to the workload", async ({ pa
   }
 });
 
+test("states whether the replay was exact and how each event was treated", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+  await runReplay(page, "example-cloud-pro");
+
+  const card = page.getByTestId("replay-semantics");
+  await expect(card).toBeVisible();
+  await expect(card.getByRole("heading", { name: "Replay semantics" })).toBeVisible();
+  // Same-model replay: the headline states exact and the card never claims a substitution.
+  await expect(page.getByTestId("replay-headline").getByTestId("replay-mode")).toHaveText(
+    "Exact replay",
+  );
+  // Exact states one thing: no cross-model substitution. It must not read as a
+  // claim that every request was served (M4B review: the note used to).
+  await expect(page.getByTestId("replay-mode-note")).toContainText(
+    "No cross-model substitution was applied",
+  );
+  await expect(page.getByTestId("replay-mode-note")).not.toContainText(
+    /every replayed request|target itself serves|covered in full/i,
+  );
+  await expect(page.getByTestId("replay-translation")).toHaveCount(0);
+  await expect(card).not.toContainText("Translated replay");
+
+  // Every event lands in exactly one outcome, and the paid case is its own row.
+  const outcomes = page.getByTestId("replay-dispositions");
+  for (const label of ["Included", "Overage", "Blocked", "Unavailable", "Unknown"])
+    await expect(outcomes).toContainText(label);
+
+  // Evidence dimensions stay separate, each with its own denominator.
+  await expect(page.getByTestId("replay-evidence")).toContainText("Model resolution");
+  await expect(page.getByTestId("replay-evidence")).toContainText("events");
+  await expect(page.getByTestId("replay-replayability")).toBeVisible();
+
+  // The scope statement must not upgrade an imported workload into account-wide coverage.
+  await expect(page.getByTestId("replay-scope")).toContainText("not the whole provider account");
+});
+
 test("the result panel describes the replay it shows, not the current selection", async ({
   page,
 }) => {
@@ -145,6 +182,48 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
   await expect(identities).toContainText(unknown);
   await expect(identities).toContainText("unmapped");
   await expect(identities).toContainText("never guesses a model identity");
+});
+
+test("never reads as served while part of the demand is unavailable or undecided", async ({
+  page,
+}) => {
+  const exported = buildDemoExport("moderate");
+  const unknown = "gpt-daybreak-blue-latest";
+  const mutated = {
+    ...exported,
+    events: exported.events.map((event, index) =>
+      index % 3 === 0 ? { ...event, model: { rawName: unknown } } : event,
+    ),
+  };
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "partly-undecided.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(mutated)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await page.goto("/app/replay");
+  await runReplay(page, "example-cloud-pro");
+
+  // An identifier no source establishes is undecided demand, so the result is
+  // exact (nothing was substituted) and bounded (something was not decided).
+  await expect(page.getByTestId("replay-headline").getByTestId("replay-mode")).toHaveText(
+    "Exact replay",
+  );
+  const note = page.getByTestId("replay-mode-note");
+  await expect(note).toContainText("No cross-model substitution was applied");
+  await expect(note).not.toContainText(/every replayed request|target itself serves/i);
+
+  const dispositions = page.getByTestId("replay-dispositions");
+  await expect(dispositions).toContainText("Unknown");
+  const undecided = await dispositions.evaluate(
+    (element) =>
+      [...element.querySelectorAll("div")]
+        .find((row) => row.querySelector("dt")?.textContent === "Unknown")
+        ?.querySelector("dd")?.textContent ?? "0",
+  );
+  expect(Number(undecided.replace(/[^0-9]/gu, ""))).toBeGreaterThan(0);
+  await expect(page.getByTestId("replay-replayability")).toContainText(/bounded|qualitative/i);
 });
 
 test("lists models the target does not serve", async ({ page }) => {

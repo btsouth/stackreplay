@@ -1,7 +1,11 @@
 "use client";
 
 import { bundledPlanFacts, bundledPlansAt } from "@stackreplay/catalog/bundled";
-import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
+import type {
+  ExecutionReplayResultV1,
+  ExecutionTargetV1,
+  ReplaySemanticsV1,
+} from "@stackreplay/schema";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import {
   Badge,
@@ -18,6 +22,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SharePanel } from "@/components/share/share-panel";
+import { DISPOSITION_ROWS, replayModeNote, resetNote } from "@/lib/replay-disclosure";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, ModelSummary, SafeError, TimelinePoint } from "@/lib/worker-protocol";
 
@@ -680,6 +685,14 @@ function ReplayResult({
               )}
             </div>
             <div className="flex items-center gap-2">
+              {result.semantics === undefined ? null : (
+                <Badge
+                  variant={result.semantics.mode === "translated" ? "warning" : "neutral"}
+                  data-testid="replay-mode"
+                >
+                  {result.semantics.mode === "translated" ? "Translated replay" : "Exact replay"}
+                </Badge>
+              )}
               <ConfidenceBadge level={result.confidence.level} />
             </div>
           </div>
@@ -961,7 +974,210 @@ function ReplayResult({
           {...(attribution === undefined ? {} : { attribution })}
         />
       )}
+
+      {result.semantics === undefined ? null : <ReplaySemanticsCard semantics={result.semantics} />}
     </div>
+  );
+}
+
+/**
+ * M4B semantic disclosures.
+ *
+ * Everything here is read straight from the result's own semantics block, so a
+ * translated replay can never be displayed as an exact one, an unresolved
+ * portion can never read as full coverage, and paid overage is never shown as a
+ * block. The card adds disclosures only; it does not restate the engine's
+ * numbers in its own words.
+ *
+ * It sits after the result's other cards on purpose: a tall block placed above
+ * the share panel pushed the share action thousands of pixels down at phone
+ * widths, and Playwright's own hit test then raced the replay timeline's late
+ * mount. The mode badge lives in the headline, where it is read first.
+ */
+function ReplaySemanticsCard({ semantics }: { semantics: ReplaySemanticsV1 }) {
+  const {
+    dispositions,
+    evidence,
+    replayability,
+    modelMix,
+    workloadScope,
+    targetStack,
+    translation,
+  } = semantics;
+  const reset = resetNote(semantics);
+  const dimensionRows: ReadonlyArray<{
+    label: string;
+    dimension: ReplaySemanticsV1["evidence"]["rules"];
+  }> = [
+    { label: "Model resolution", dimension: evidence.modelResolution },
+    { label: "Usage categories", dimension: evidence.usageCategories },
+    { label: "Pricing", dimension: evidence.pricing },
+    { label: "Rule coverage", dimension: evidence.rules },
+    { label: "Temporal coverage", dimension: evidence.temporal },
+  ];
+  const outcomeRows: ReadonlyArray<{ label: string; value: number; note: string }> =
+    DISPOSITION_ROWS.map((row) => ({
+      label: row.label,
+      value: dispositions[row.key],
+      note: row.note,
+    }));
+
+  return (
+    <Card data-testid="replay-semantics">
+      <CardContent className="flex flex-col gap-5 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-medium">Replay semantics</h2>
+          <p className="text-xs text-muted-foreground">
+            Recorded demand, replayed against the target
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground" data-testid="replay-mode-note">
+          {replayModeNote(semantics)}
+        </p>
+
+        {translation === undefined ? null : translation.substitutedEvents > 0 ? (
+          <div data-testid="replay-translation">
+            <h3 className="text-xs font-medium text-muted-foreground">Model translation applied</h3>
+            <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
+              {translation.applied.map((rule) => (
+                <li key={`${rule.sourceModelId}->${rule.targetModelId}`}>
+                  {rule.sourceModelId} &rarr; {rule.targetModelId} · {formatCount(rule.eventCount)}{" "}
+                  events
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Token-preserving assumption: the recorded token quantities are replayed unchanged
+              against the substitute model. No conversion ratio is applied or implied.
+            </p>
+          </div>
+        ) : (
+          // A supplied policy that matched nothing is provenance, not a transform:
+          // the block is only shown when demand was actually replayed elsewhere.
+          <p className="text-xs text-muted-foreground" data-testid="replay-translation-unmatched">
+            The scenario supplies a translation policy
+            {targetStack.modelTranslation === undefined
+              ? ""
+              : ` (${targetStack.modelTranslation.id}@${targetStack.modelTranslation.version})`}
+            , but no recorded model matched it, so no substitution was applied.
+          </p>
+        )}
+
+        <div>
+          <h3 className="text-xs font-medium text-muted-foreground">Outcomes</h3>
+          <dl
+            className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-5"
+            data-testid="replay-dispositions"
+          >
+            {outcomeRows.map((row) => (
+              <div key={row.label} className="flex flex-col gap-0.5" title={row.note}>
+                <dt className="text-xs text-muted-foreground">{row.label}</dt>
+                <dd className="font-mono text-lg tabular-nums">{formatCount(row.value)}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Every replayed event lands in exactly one of these. Paid overage is its own outcome and
+            is never counted as blocked.
+          </p>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Evidence</h3>
+            <ul className="mt-2 flex flex-col gap-1 text-xs" data-testid="replay-evidence">
+              {dimensionRows.map((row) => (
+                <li key={row.label} className="flex items-baseline justify-between gap-3">
+                  <span className="text-muted-foreground">{row.label}</span>
+                  <span className="font-mono tabular-nums text-muted-foreground">
+                    {row.dimension.status === "not_applicable"
+                      ? "not applicable"
+                      : `${formatCount(row.dimension.events?.covered ?? 0)} of ${formatCount(row.dimension.events?.total ?? 0)} events`}
+                    {row.dimension.status === "partial" ? " (partial)" : ""}
+                  </span>
+                </li>
+              ))}
+              <li className="flex items-baseline justify-between gap-3">
+                <span className="text-muted-foreground">Translation method</span>
+                <span className="font-mono text-muted-foreground">
+                  {evidence.translationMethod.method === "none" ? "none" : "token-preserving"}
+                </span>
+              </li>
+              <li className="flex items-baseline justify-between gap-3">
+                <span className="text-muted-foreground">Reset phase</span>
+                <span className="font-mono text-muted-foreground">
+                  {evidence.resetPhase.status === "established"
+                    ? "established"
+                    : evidence.resetPhase.status === "not_applicable"
+                      ? "not applicable"
+                      : "unknown"}
+                </span>
+              </li>
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Each dimension carries its own denominator. There is no single blended score, because
+              one number would hide which question it answers.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">
+              Replayability of the target&rsquo;s rules
+            </h3>
+            <p className="mt-2 flex items-center gap-2">
+              <Badge
+                variant={
+                  replayability.class === "deterministic"
+                    ? "positive"
+                    : replayability.class === "bounded"
+                      ? "warning"
+                      : "neutral"
+                }
+                data-testid="replay-replayability"
+              >
+                {replayability.class}
+              </Badge>
+            </p>
+            <ul className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
+              {replayability.reasons.map((reason) => (
+                <li key={reason.id}>{reason.description}</li>
+              ))}
+            </ul>
+            <h3 className="mt-4 text-xs font-medium text-muted-foreground">Observed model mix</h3>
+            <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
+              {modelMix.models.slice(0, 6).map((model) => (
+                <li key={`${model.modelId}|${model.resolutionKind}`}>
+                  {model.modelId} · {model.resolutionKind} · {formatCount(model.eventCount)} events
+                </li>
+              ))}
+              {modelMix.unresolvedEventCount > 0 ? (
+                <li>
+                  {formatCount(modelMix.unresolvedEventCount)} events · identifiers the catalog does
+                  not establish
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 border-t border-border pt-4">
+          <h3 className="text-xs font-medium text-muted-foreground">Reset assumption</h3>
+          <p className="text-xs text-muted-foreground">{reset}</p>
+          <h3 className="mt-2 text-xs font-medium text-muted-foreground">
+            What this replay covers
+          </h3>
+          <p className="text-xs text-muted-foreground" data-testid="replay-scope">
+            {workloadScope.statement}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Effective rules instant{" "}
+            <span className="font-mono tabular-nums">{targetStack.effectiveAt}</span> · catalog{" "}
+            <span className="font-mono">{targetStack.catalogVersion}</span> · plan version{" "}
+            <span className="font-mono">{targetStack.planVersionId}</span>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

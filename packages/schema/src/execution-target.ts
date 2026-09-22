@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  modelTranslationPolicyV1Schema,
+  workloadScopeDeclarationV1Schema,
+} from "./replay-semantics.js";
 import { isoDateV1Schema } from "./scalars.js";
 
 /**
@@ -20,12 +24,25 @@ import { isoDateV1Schema } from "./scalars.js";
  *   `rulesAsOf` is selected deterministically by the engine.
  *
  * The engine validates the exactly-one rule and raises IMPORT_SCHEMA_INVALID.
+ *
+ * M4B adds two optional scenario dimensions to the target because a target is
+ * an execution stack, not a plan SKU: an explicit `modelTranslation` policy
+ * (cross-model substitution, always an assumption) and a `resetAssumption`
+ * declaration. Both are scenario input; neither is catalog data, and neither
+ * changes what the plan itself claims.
  */
 export const subscriptionTargetV1Schema = z
   .strictObject({
     type: z.literal("subscription"),
     planVersionId: z.string().min(1).optional(),
     planId: z.string().min(1).optional(),
+    /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */
+    modelTranslation: modelTranslationPolicyV1Schema.optional(),
+    /**
+     * Declares that the account's allowance reset phase is not established.
+     * A scenario may only weaken what the plan's own windows establish.
+     */
+    resetAssumption: z.strictObject({ kind: z.literal("fixed-unknown") }).optional(),
   })
   .refine((target) => (target.planId === undefined) !== (target.planVersionId === undefined), {
     message: "supply exactly one of planId and planVersionId",
@@ -37,9 +54,14 @@ export type SubscriptionTargetV1 = z.infer<typeof subscriptionTargetV1Schema>;
  * so the caller must state which rule instant applies. Rule effective dates and
  * workload event times are different concepts: `rulesAsOf` selects the rule
  * snapshot, event timestamps drive workload chronology.
+ *
+ * M4B adds an optional workload-scope declaration: what the supplied event
+ * stream actually covers. Absent means the conservative reading, an imported
+ * workload only.
  */
 export const replayContextV1Schema = z.strictObject({
   rulesAsOf: isoDateV1Schema,
+  workloadScope: workloadScopeDeclarationV1Schema.optional(),
 });
 export type ReplayContextV1 = z.infer<typeof replayContextV1Schema>;
 

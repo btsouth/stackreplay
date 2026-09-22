@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { executionTargetV1Schema } from "./execution-target.js";
 import { computedMoneyV1Schema, computedSignedMoneyV1Schema, moneyV1Schema } from "./money.js";
+import { replaySemanticsV1Schema } from "./replay-semantics.js";
 import {
   computedDecimalV1Schema,
   decimalSumEquals,
@@ -325,6 +326,11 @@ export type ReplayConfidenceV1 = z.infer<typeof replayConfidenceV1Schema>;
  * Reproducibility metadata (spec point 19, Addendum A point 175, decisions 2,
  * 17, 20). Generalized on purpose: it does not require a subscription-specific
  * id, so future api, local and hybrid targets record the same shape.
+ *
+ * M4B pins the translation policy alongside the other versions. Model
+ * resolution is pinned by the catalog version: catalog model ids and declared
+ * aliases are catalog data, and the resolution order itself is fixed by the
+ * engine's methodology version.
  */
 export const replayVersionsV1Schema = z.strictObject({
   engine: z.string().min(1),
@@ -340,6 +346,10 @@ export const replayVersionsV1Schema = z.strictObject({
   targetReference: z.string().min(1),
   /** Pricing references used by this replay, when applicable. */
   pricingReferences: z.array(z.string().min(1)).optional(),
+  /** Translation policy used by this replay, when one was supplied. */
+  translationPolicy: z
+    .strictObject({ id: z.string().min(1), version: z.string().min(1) })
+    .optional(),
 });
 export type ReplayVersionsV1 = z.infer<typeof replayVersionsV1Schema>;
 
@@ -393,6 +403,12 @@ export const executionReplayResultV1Schema = z
     warnings: z.array(replayWarningV1Schema),
     versions: replayVersionsV1Schema,
     subscription: subscriptionReplayDetailV1Schema.optional(),
+    /**
+     * M4B replay semantics. Optional so every accepted M1-M4A result stays valid
+     * exactly as it was; the engine always emits it, so a missing block means a
+     * result produced before M4B.
+     */
+    semantics: replaySemanticsV1Schema.optional(),
   })
   .superRefine((result, ctx) => {
     if (result.target.type !== result.versions.targetType)
@@ -420,6 +436,82 @@ export const executionReplayResultV1Schema = z
         ctx.addIssue({
           code: "custom",
           message: "violation must reference a constraint with the same unit",
+        });
+    }
+
+    const semantics = result.semantics;
+    if (semantics === undefined) return;
+
+    // Every historical event lands in exactly one disposition, so the aggregate
+    // outcome cannot quietly lose or double count demand.
+    const dispositions = semantics.dispositions;
+    const accounted =
+      dispositions.included +
+      dispositions.overage +
+      dispositions.blocked +
+      dispositions.unavailable +
+      dispositions.unknown;
+    if (accounted !== result.workload.eventCount)
+      ctx.addIssue({
+        code: "custom",
+        path: ["semantics", "dispositions"],
+        message: "dispositions must account for every replayed event exactly once",
+      });
+
+    if (semantics.targetStack.effectiveAt !== result.versions.rulesAsOf)
+      ctx.addIssue({
+        code: "custom",
+        path: ["semantics", "targetStack", "effectiveAt"],
+        message: "the target stack's effective instant is the rules instant used",
+      });
+    if (semantics.targetStack.catalogVersion !== result.versions.catalog)
+      ctx.addIssue({
+        code: "custom",
+        path: ["semantics", "targetStack", "catalogVersion"],
+        message: "the target stack's catalog version is the catalog this replay used",
+      });
+
+    const subscription = result.subscription;
+    if (subscription !== undefined) {
+      const stack = semantics.targetStack;
+      if (
+        stack.planId !== subscription.planId ||
+        stack.planVersionId !== subscription.planVersionId ||
+        stack.providerId !== subscription.providerId
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["semantics", "targetStack"],
+          message: "the target stack identifies the plan this replay simulated",
+        });
+    }
+
+    const policy = semantics.targetStack.modelTranslation;
+    const pinnedPolicy = result.versions.translationPolicy;
+    if ((policy === undefined) !== (pinnedPolicy === undefined))
+      ctx.addIssue({
+        code: "custom",
+        path: ["versions", "translationPolicy"],
+        message: "the pinned translation policy matches the stack's translation policy",
+      });
+    else if (policy !== undefined && pinnedPolicy !== undefined) {
+      if (policy.id !== pinnedPolicy.id || policy.version !== pinnedPolicy.version)
+        ctx.addIssue({
+          code: "custom",
+          path: ["versions", "translationPolicy"],
+          message: "the pinned translation policy identifies the policy that was applied",
+        });
+    }
+
+    if (semantics.evidence.translationMethod.policyId !== undefined && policy !== undefined) {
+      if (
+        semantics.evidence.translationMethod.policyId !== policy.id ||
+        semantics.evidence.translationMethod.policyVersion !== policy.version
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["semantics", "evidence", "translationMethod"],
+          message: "the stated translation method belongs to the policy that was applied",
         });
     }
   });

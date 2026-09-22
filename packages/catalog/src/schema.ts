@@ -186,12 +186,16 @@ export type ProviderV1 = z.infer<typeof providerV1Schema>;
  * dated or dotted API id). `harness_alias` is a spelling a third-party harness or
  * router emits, which the provider's documentation does not prove on its own, so
  * it carries its own sources and may be scoped to the harness that uses it.
+ * `provider_route` (M4B) is a differently-branded route that another provider or
+ * router documents as invoking this same underlying model. All three mean the
+ * same model; none of them is a capability-equivalent substitute, and a route is
+ * never a reason to expect equal quality, tokenization or tool behaviour.
  */
 export const modelAliasV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   /** The observed identifier, verbatim. */
   alias: z.string().min(1),
-  kind: z.enum(["provider_id", "harness_alias"]),
+  kind: z.enum(["provider_id", "harness_alias", "provider_route"]),
   /** Harness this spelling is scoped to, when it is harness-specific. */
   harness: catalogIdV1Schema.optional(),
   sources: z.array(catalogSourceV1Schema).min(1),

@@ -6,6 +6,7 @@ import {
   getPricing,
   type LoadedPlanVersionV1,
   type ModelRuleV1,
+  modelResolutionKindOf,
   type PlanLimitV1,
   selectLoadedPlanVersionAt,
   validateLoadedCatalog,
@@ -22,23 +23,42 @@ import {
   type FeasibilityV1,
   isSubscriptionTargetV1,
   type MeasurementUnitV1,
+  type ModelResolutionKindV1,
   type ReplayAssumptionV1,
   type ReplayConfidenceV1,
   type ReplayContextV1,
+  type ReplaySemanticsV1,
+  type ReplayTranslationV1,
   type ReplayViolationV1,
   type ReplayWarningV1,
+  type ResetAssumptionV1,
   replayContextV1Schema,
   type SubscriptionTargetV1,
   type TextUsageEventV1,
   type TokenTotalsV1,
   type UnsupportedModelV1,
   usageEventV1Schema,
+  type WorkloadScopeKindV1,
   type WorkloadSummaryV1,
 } from "@stackreplay/schema";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+import {
+  deriveResetAssumption,
+  type EventSemanticsFacts,
+  hasMixedWindowKinds,
+  hasNumericLimits,
+  type ReplayDispositionKindV1,
+  SemanticsAccumulator,
+} from "./semantics.js";
 import { dateRangeContains, epochMsFromIso, isoFromEpochMs } from "./time.js";
+import {
+  prepareTranslation,
+  substituteFor,
+  TranslationApplication,
+  type TranslationPlan,
+} from "./translation.js";
 import {
   hasAnyReportedTokens,
   moneyUnitsForUsage,
@@ -99,12 +119,55 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const events = validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
 
+  // Cross-model translation is scenario input, validated against the catalog and
+  // never read from it (M4B): a policy names the exact substitutions to apply,
+  // and nothing is substituted when no policy was supplied.
+  const translationPlan = prepareTranslation(
+    isSubscriptionTargetV1(target) ? target.modelTranslation : undefined,
+    catalog,
+  );
+  const translationApplication = new TranslationApplication();
+  const scopeKind: WorkloadScopeKindV1 = context.workloadScope?.kind ?? "imported_workload";
+
   const tracker = new Tracker();
-  const resolution = resolveModels(timed, planVersion, catalog, context.rulesAsOf, tracker);
+  const resolution = resolveModels(
+    timed,
+    planVersion,
+    catalog,
+    context.rulesAsOf,
+    tracker,
+    translationPlan,
+    translationApplication,
+  );
   const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker);
   const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
-  const coverage = computeCoverage(timed, prepared);
-  const confidence = computeConfidence(timed, prepared, planVersion, catalog, evaluation, tracker);
+  const coverage = computeCoverage(timed, prepared, planVersion, tracker);
+  const confidence = computeConfidence(
+    timed,
+    prepared,
+    planVersion,
+    catalog,
+    evaluation,
+    tracker,
+    translationApplication,
+  );
+
+  const translation = translationApplication.finish(translationPlan);
+  const reset = deriveResetAssumption(
+    planVersion,
+    isSubscriptionTargetV1(target) && target.resetAssumption?.kind === "fixed-unknown",
+  );
+  const semantics = computeSemantics({
+    timed,
+    prepared,
+    planVersion,
+    catalogVersion: catalog.catalogVersion,
+    rulesAsOf: context.rulesAsOf,
+    scopeKind,
+    reset,
+    translationPlan,
+    translation,
+  });
 
   const pricingReferences = collectPricingReferences(planVersion);
   const economics =
@@ -127,7 +190,7 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     violations: evaluation.violations,
     unsupportedModels: collectUnsupportedModels(timed, resolution),
     ...(economics !== undefined ? { economics } : {}),
-    assumptions: buildAssumptions(planVersion, tracker, evaluation.constraints),
+    assumptions: buildAssumptions(planVersion, tracker, evaluation.constraints, reset, translation),
     confidence,
     warnings: buildWarnings(tracker),
     versions: {
@@ -139,6 +202,14 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
       targetType: target.type,
       targetReference: planVersion.versionId,
       ...(pricingReferences.length > 0 ? { pricingReferences } : {}),
+      ...(translationPlan === undefined
+        ? {}
+        : {
+            translationPolicy: {
+              id: translationPlan.policy.id,
+              version: translationPlan.policy.version,
+            },
+          }),
     },
     subscription: {
       planId: planVersion.planId,
@@ -149,7 +220,97 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
       interval: planVersion.price.interval,
       verificationStatus: planVersion.verificationStatus,
     },
+    semantics,
   };
+}
+
+/**
+ * Aggregates the M4B result semantics in one pass. Per-event facts are counted
+ * and discarded; the result carries aggregates only, so a large workload does
+ * not grow the serialized result.
+ */
+function computeSemantics(input: {
+  timed: readonly TimedEvent[];
+  prepared: ReadonlyMap<string, PreparedEvent>;
+  planVersion: LoadedPlanVersionV1;
+  catalogVersion: string;
+  rulesAsOf: string;
+  scopeKind: WorkloadScopeKindV1;
+  reset: ResetAssumptionV1;
+  translationPlan: TranslationPlan | undefined;
+  translation: ReplayTranslationV1 | undefined;
+}): ReplaySemanticsV1 {
+  const accumulator = new SemanticsAccumulator({
+    planVersion: input.planVersion,
+    catalogVersion: input.catalogVersion,
+    rulesAsOf: input.rulesAsOf,
+    scopeKind: input.scopeKind,
+    reset: input.reset,
+    translationPlan: input.translationPlan,
+    translation: input.translation,
+  });
+
+  // One mutable facts record, reused for every event: the accumulator copies each
+  // value into its aggregates and retains no reference, so a 100k-event workload
+  // allocates nothing per event here.
+  let facts: EventSemanticsFacts = {
+    occurredOn: "",
+    resolutionKind: "unresolved",
+    ruleDeclared: false,
+    numericRuleApplies: false,
+    tokensKnown: false,
+    needsPrice: false,
+    priced: false,
+    missingPricingEntry: false,
+    unpricedCategories: false,
+    indeterminate: false,
+    disposition: "unknown",
+  };
+
+  for (const { event } of input.timed) {
+    const preparedEvent = input.prepared.get(event.id);
+    if (preparedEvent === undefined) continue;
+    const res = preparedEvent.resolution;
+    facts = {
+      occurredOn: event.occurredAt.slice(0, 10),
+      resolutionKind: res.resolutionKind,
+      sourceModelId: res.sourceModelId,
+      ruleDeclared: res.rule !== undefined,
+      numericRuleApplies: preparedEvent.subjectToNumericRule,
+      tokensKnown: preparedEvent.tokens.known,
+      tokenCount: preparedEvent.tokenCount,
+      needsPrice: preparedEvent.needsMoney,
+      priced: preparedEvent.moneyUnits !== undefined,
+      missingPricingEntry: preparedEvent.missingPricing,
+      unpricedCategories: preparedEvent.unpricedCategories,
+      indeterminate: preparedEvent.outcome === "indeterminate",
+      disposition: dispositionOf(preparedEvent),
+    };
+    accumulator.observe(facts);
+  }
+  return accumulator.finish();
+}
+
+/**
+ * One historical event, exactly one disposition. Served demand is `overage`
+ * when any of its consumption was billed above included capacity, and a model
+ * the target does not serve is `unavailable` when its identity is established
+ * and `unknown` when it is not.
+ */
+function dispositionOf(preparedEvent: PreparedEvent): ReplayDispositionKindV1 {
+  const res = preparedEvent.resolution;
+  if (!res.supported) return res.unsupportedReason === "unresolved" ? "unknown" : "unavailable";
+  switch (preparedEvent.outcome) {
+    case "served":
+      return preparedEvent.overageConsumption ? "overage" : "included";
+    case "rejected":
+      return "blocked";
+    case "indeterminate":
+    case "model_unsupported":
+      return "unknown";
+    default:
+      return "unknown";
+  }
 }
 
 class Tracker {
@@ -322,7 +483,12 @@ function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[]
 
 interface ModelResolution {
   quality: "exact" | "mapped" | "unknown";
-  modelId?: string;
+  /** M4B classification of how the observed identity was established. */
+  resolutionKind: ModelResolutionKindV1;
+  /** Observed canonical model id, preserved even when a translation applies. */
+  sourceModelId?: string;
+  /** Model the target would actually run: the substitute when translated. */
+  effectiveModelId?: string;
   supported: boolean;
   unsupportedReason?: "not_supported" | "excluded" | "unresolved";
   rule?: ModelRuleV1;
@@ -336,6 +502,8 @@ function resolveModels(
   catalog: CatalogV1,
   rulesAsOf: string,
   tracker: Tracker,
+  translationPlan: TranslationPlan | undefined,
+  translationApplication: TranslationApplication,
 ): Map<string, ModelResolution> {
   const ruleByModel = new Map<string, ModelRuleV1>();
   for (const rule of planVersion.modelRules) ruleByModel.set(rule.model, rule);
@@ -370,32 +538,36 @@ function resolveModels(
   const resolution = new Map<string, ModelResolution>();
   for (const { event } of timed) {
     const canonicalId = event.model.canonicalId;
-    let modelId: string | undefined;
+    let sourceModelId: string | undefined;
     let quality: ModelResolution["quality"];
+    let resolutionKind: ModelResolutionKindV1;
 
     if (canonicalId !== undefined && catalog.models[canonicalId] !== undefined) {
-      modelId = canonicalId;
+      sourceModelId = canonicalId;
       quality = "exact";
+      resolutionKind = "exact-id";
     } else {
       const mapped = identity.resolve(
         event.model.rawName,
         event.harness === undefined ? undefined : { harness: event.harness.id },
       );
+      resolutionKind = modelResolutionKindOf(mapped);
       if (mapped.canonicalId !== undefined) {
-        modelId = mapped.canonicalId;
+        sourceModelId = mapped.canonicalId;
         quality = "mapped";
       } else {
         quality = "unknown";
       }
     }
 
-    if (modelId === undefined) {
+    if (sourceModelId === undefined) {
       tracker.warn(
         "MODEL_UNRESOLVED",
         "One or more events use models that could not be mapped to the catalog.",
       );
       resolution.set(event.id, {
         quality,
+        resolutionKind: "unresolved",
         supported: false,
         unsupportedReason: "unresolved",
         multiplier: ONE,
@@ -403,11 +575,24 @@ function resolveModels(
       continue;
     }
 
-    const rule = ruleByModel.get(modelId);
+    /**
+     * Cross-model substitution stays separate from identity: the observed
+     * canonical model is preserved as `sourceModelId`, and the substitute is the
+     * model the target's rules are evaluated against. A substitution is an
+     * explicit scenario assumption, so it is never inferred from a name, a tier
+     * or a benchmark (M4B).
+     */
+    const substitute = substituteFor(translationPlan, sourceModelId);
+    const effectiveModelId = substitute ?? sourceModelId;
+    if (substitute !== undefined) translationApplication.record(sourceModelId);
+
+    const rule = ruleByModel.get(effectiveModelId);
     if (rule === undefined) {
       resolution.set(event.id, {
         quality,
-        modelId,
+        resolutionKind,
+        sourceModelId,
+        effectiveModelId,
         supported: false,
         unsupportedReason: "not_supported",
         multiplier: ONE,
@@ -417,7 +602,9 @@ function resolveModels(
     if (rule.excluded === true) {
       resolution.set(event.id, {
         quality,
-        modelId,
+        resolutionKind,
+        sourceModelId,
+        effectiveModelId,
         supported: false,
         unsupportedReason: "excluded",
         rule,
@@ -427,10 +614,12 @@ function resolveModels(
     }
     resolution.set(event.id, {
       quality,
-      modelId,
+      resolutionKind,
+      sourceModelId,
+      effectiveModelId,
       supported: true,
       rule,
-      multiplier: multiplierFor(modelId, rule),
+      multiplier: multiplierFor(effectiveModelId, rule),
     });
   }
   return resolution;
@@ -445,6 +634,16 @@ interface PreparedEvent {
   /** Exact integer token total, present only when accounting is complete. */
   tokenCount: number | undefined;
   multiplier: Decimal;
+  /** Whether an applicable rule prices this event's consumption in money. */
+  needsMoney: boolean;
+  /** The model has no pricing entry at all. */
+  missingPricing: boolean;
+  /** A consumed category the selected pricing record does not establish. */
+  unpricedCategories: boolean;
+  /** Whether at least one numeric rule of the target applies to this event. */
+  subjectToNumericRule: boolean;
+  /** Whether any of this event's consumption was billed above included capacity. */
+  overageConsumption: boolean;
   /** Filled in during the admission pass. */
   outcome: EventOutcome | undefined;
 }
@@ -479,6 +678,8 @@ function prepareEvents(
     }
 
     let moneyUnits: Decimal | undefined;
+    let missingPricing = false;
+    let unpricedCategories = false;
     if (needsMoney && res.supported) {
       const pricing =
         res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
@@ -495,6 +696,8 @@ function prepareEvents(
           "One or more events consume nonzero tokens in a category the selected pricing rule does not establish; monetary consumption for those events is unknown rather than guessed.",
         );
       }
+      missingPricing = outcome.missingPricing;
+      unpricedCategories = outcome.unpricedCategories.length > 0;
       moneyUnits = outcome.known ? outcome.units : undefined;
     }
 
@@ -504,6 +707,11 @@ function prepareEvents(
       moneyUnits,
       tokenCount: tokens.known ? tokens.total : undefined,
       multiplier: res.multiplier,
+      needsMoney: needsMoney && res.supported,
+      missingPricing,
+      unpricedCategories,
+      subjectToNumericRule: false,
+      overageConsumption: false,
       outcome: undefined,
     });
   }
@@ -611,7 +819,7 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
 function appliesTo(rt: ConstraintRuntime, res: ModelResolution): boolean {
   if (!res.supported) return false;
   if (rt.limit.models === undefined) return true;
-  return res.modelId !== undefined && rt.limit.models.includes(res.modelId);
+  return res.effectiveModelId !== undefined && rt.limit.models.includes(res.effectiveModelId);
 }
 
 /**
@@ -682,7 +890,8 @@ function evaluateConstraints(
       const res = resolution.get(event.id);
       if (res === undefined || !res.supported) return false;
       if (limit.models !== undefined) {
-        if (res.modelId === undefined || !limit.models.includes(res.modelId)) return false;
+        if (res.effectiveModelId === undefined || !limit.models.includes(res.effectiveModelId))
+          return false;
       }
       return true;
     });
@@ -700,6 +909,7 @@ function evaluateConstraints(
     }
 
     const applicable = runtimes.filter((rt) => appliesTo(rt, preparedEvent.resolution));
+    preparedEvent.subjectToNumericRule = applicable.length > 0;
 
     // Attempted demand is recorded for every applicable constraint, whatever
     // the eventual outcome, so diagnostics stay complete.
@@ -760,8 +970,19 @@ function evaluateConstraints(
       continue;
     }
 
-    // Served: every applicable pool advances by its own quantity.
+    // Served: every applicable pool advances by its own quantity. An event whose
+    // consumption does not fit entirely inside an allow_overage pool's included
+    // capacity consumes paid overage, which is a disposition of its own and is
+    // never collapsed into a rejection (M4B).
     preparedEvent.outcome = "served";
+    preparedEvent.overageConsumption = applicable.some((rt) => {
+      if (rt.limit.exceed !== "allow_overage") return false;
+      const index = sliceIndexFor(rt, timedEvent);
+      if (index === undefined) return false;
+      const run = rt.slices[index] as SliceRun;
+      const quantity = quantityOf(rt, preparedEvent) as Units;
+      return exceedsCapacity(run.accepted, quantity, rt.limitAmount, rt.limitNumber);
+    });
     for (const rt of applicable) {
       const index = sliceIndexFor(rt, timedEvent);
       if (index === undefined) continue;
@@ -895,6 +1116,8 @@ function unknownDimension(
 function computeCoverage(
   timed: readonly TimedEvent[],
   prepared: ReadonlyMap<string, PreparedEvent>,
+  planVersion: LoadedPlanVersionV1,
+  tracker: Tracker,
 ): CoverageDimensionsV1 {
   let served = 0;
   let indeterminate = 0;
@@ -920,7 +1143,10 @@ function computeCoverage(
       unknownTokenEvents += 1;
     }
 
-    const key = preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`;
+    // This dimension counts the models the target itself would run, so a
+    // translated event is counted under its substitute: the source mix stays
+    // visible separately in the result's model mix.
+    const key = preparedEvent.resolution.effectiveModelId ?? `raw:${event.model.rawName}`;
     usedModels.set(key, preparedEvent.resolution.supported);
     if (preparedEvent.resolution.quality === "unknown") {
       unresolvedModelKeys.add(key);
@@ -928,8 +1154,25 @@ function computeCoverage(
     }
   }
 
-  const requests =
-    indeterminate > 0
+  /**
+   * A target that publishes no numeric limit cannot support a numeric fit
+   * percentage: nothing was simulated, so reporting 100% would manufacture
+   * precision the evidence does not contain (M4B, and the spirit of decision
+   * 16). The dimension still reports the counts it established.
+   */
+  const numericRules = hasNumericLimits(planVersion);
+  if (!numericRules) {
+    tracker.warn(
+      "TARGET_RULES_QUALITATIVE",
+      "The target states its limits qualitatively rather than as numbers, so no numeric fit could be simulated and request coverage is reported as unknown.",
+    );
+  }
+  const requests = !numericRules
+    ? unknownDimension(
+        "the target states its limits qualitatively, so no numeric capacity rule exists to simulate",
+        { covered: served, total: timed.length },
+      )
+    : indeterminate > 0
       ? unknownDimension(
           `${indeterminate} event(s) could not be evaluated because their consumption is unknown`,
           { covered: served, total: timed.length, unknownCount: indeterminate },
@@ -1008,7 +1251,9 @@ function collectUnsupportedModels(
   for (const { event } of timed) {
     const res = resolution.get(event.id);
     if (res === undefined || res.supported) continue;
-    const key = res.modelId ?? `raw:${event.model.rawName}`;
+    // The entry reports the observed identity, so a translated event still names
+    // the model it was recorded against (M4B).
+    const key = res.sourceModelId ?? `raw:${event.model.rawName}`;
     const existing = byKey.get(key);
     if (existing !== undefined) {
       existing.count += 1;
@@ -1016,7 +1261,7 @@ function collectUnsupportedModels(
     }
     byKey.set(key, {
       rawName: event.model.rawName,
-      ...(res.modelId !== undefined ? { canonicalId: res.modelId } : {}),
+      ...(res.sourceModelId !== undefined ? { canonicalId: res.sourceModelId } : {}),
       count: 1,
       reason: res.unsupportedReason ?? "unresolved",
     });
@@ -1060,6 +1305,7 @@ function computeConfidence(
   catalog: CatalogV1,
   evaluation: ConstraintEvaluation,
   tracker: Tracker,
+  translation: TranslationApplication,
 ): ReplayConfidenceV1 {
   const factors: ConfidenceFactor[] = [];
 
@@ -1165,6 +1411,14 @@ function computeConfidence(
     });
   }
 
+  if (translation.substitutedEvents > 0) {
+    factors.push({
+      id: "model_translation",
+      level: "low",
+      description: `${translation.substitutedEvents} event(s) were replayed against a substitute model under an explicit scenario assumption. A translated replay is a counterfactual: its token quantities are assumed to carry over unchanged rather than measured.`,
+    });
+  }
+
   return { level: worstLevel(factors.map((factor) => factor.level)), factors };
 }
 
@@ -1199,7 +1453,9 @@ function summarizeWorkload(
     }
     const session = event.source.nativeSessionHash;
     if (session !== undefined) sessions.add(session);
-    models.add(preparedEvent.resolution.modelId ?? `raw:${event.model.rawName}`);
+    // The workload summary describes the workload as it was observed, so it
+    // counts source models even when a translation substituted others (M4B).
+    models.add(preparedEvent.resolution.sourceModelId ?? `raw:${event.model.rawName}`);
   }
 
   // Totals are complete disjoint totals, never an unlabeled known subtotal.
@@ -1237,6 +1493,8 @@ function buildAssumptions(
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
   constraints: readonly ConstraintResultV1[],
+  reset: ResetAssumptionV1,
+  translation: ReplayTranslationV1 | undefined,
 ): ReplayAssumptionV1[] {
   const assumptions = new Map(tracker.assumptions);
   assumptions.set(
@@ -1247,6 +1505,28 @@ function buildAssumptions(
     "CURRENT_RULE_SNAPSHOT",
     "Plan rules, pricing references and promotions are the snapshot in effect at rulesAsOf; workload chronology inside the simulation uses the historical event timestamps.",
   );
+  assumptions.set(
+    "RECORDED_DEMAND_STREAM",
+    "The replay simulates how the target would treat the recorded demand stream: requests after a hypothetical rejection or substitution remain part of the replayed demand, and nothing here models how a person or an agent would have changed behaviour.",
+  );
+  if (translation !== undefined && translation.substitutedEvents > 0) {
+    assumptions.set(
+      "MODEL_TRANSLATION_ASSUMPTION",
+      "Cross-model translation is an explicit scenario assumption: the substitute model is not an alias of the recorded model, and nothing here claims equal capability, quality, output length or tool behaviour.",
+    );
+    assumptions.set(
+      "TRANSLATION_TOKEN_PRESERVING",
+      "The translation preserves the recorded token quantities: the substitute model is assumed to consume the same input, cache, output and reasoning amounts. No empirical conversion ratio or equivalence is applied or implied.",
+    );
+  }
+  if (reset.kind === "fixed-unknown") {
+    assumptions.set(
+      "RESET_PHASE_UNKNOWN",
+      hasMixedWindowKinds(planVersion)
+        ? "The target's own windows mix rolling and calendar behaviour, so this replay does not assume one homogeneous reset phase; window outcomes are modelled rather than exact."
+        : "The account's allowance reset phase is not established for this scenario and reset-phase sensitivity is not analysed, so window outcomes are modelled rather than exact.",
+    );
+  }
   if (constraints.length > 1) {
     assumptions.set(
       "ATOMIC_ADMISSION",
