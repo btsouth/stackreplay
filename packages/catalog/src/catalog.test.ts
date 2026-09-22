@@ -46,6 +46,7 @@ const validPricing = {
   modelId: "example-model",
   currency: "USD",
   unit: "per_1m_tokens",
+  basis: "api_list_price",
   rates: { input: "1.00", output: "2.00" },
   effectiveFrom: "2026-01-01",
   sources: [{ url: "https://example.invalid/pricing", title: "Example", checkedAt: "2026-01-01" }],
@@ -356,29 +357,36 @@ describe("launch catalog: model identity", () => {
 
     // Identifiers taken from a real local workload: provider spellings with dots,
     // and vendor-qualified router ids. Each is resolvable because the catalog
-    // declares it with a source.
+    // declares it with a source whose scope matches its evidence.
     const resolvable: Array<[string, string]> = [
       ["gpt-5.6-sol", "gpt-5-6-sol"],
       ["gpt-5.6", "gpt-5-6-sol"],
       ["openai/gpt-5.6-terra", "gpt-5-6-terra"],
-      ["claude-opus-4.8", "claude-opus-4-8"],
+      ["claude-opus-4-8", "claude-opus-4-8"],
       ["anthropic/claude-opus-4.8", "claude-opus-4-8"],
       ["deepseek-v4.1-flash", "deepseek-v4-1-flash"],
       ["deepseek/deepseek-v4.1-flash", "deepseek-v4-1-flash"],
       ["deepseek-flash", "deepseek-v4-1-flash"],
       ["z-ai/glm-5.3-flashx", "glm-5-3-flashx"],
       ["glm-5.3-flashx", "glm-5-3-flashx"],
+      // Z.ai publishes the row name GLM-5.3; the bare spelling matches that
+      // verified provider id case-insensitively, not the removed unscoped
+      // bare-router alias.
+      ["glm-5.3", "glm-5-3"],
     ];
     for (const [observed, canonical] of resolvable) {
       const resolution = identity.resolve(observed);
       expect(resolution.canonicalId, observed).toBe(canonical);
-      // A declaration, not a guess: either an alias the catalog carries or the
-      // model's own catalog name. Never a similarity match.
-      expect(["alias", "canonical_name"], observed).toContain(resolution.basis);
+      // A declaration, not a guess: an exact catalog id or name, or an alias
+      // the catalog carries. Never a similarity match.
+      expect(["alias", "canonical_name", "canonical_id"], observed).toContain(resolution.basis);
     }
 
     // Identifiers no source justifies stay unresolved. Guessing one of these onto
-    // a similar-looking model would silently attribute consumption.
+    // a similar-looking model would silently attribute consumption. Bare router
+    // spellings whose evidence only covers the prefixed id are declared scoped
+    // to the harnesses where they are observed; unobserved bare spellings have
+    // no declaration at all and stay unresolved everywhere.
     for (const observed of [
       "gpt-daybreak-blue-latest",
       "gpt-5.3-codex-spark",
@@ -388,10 +396,29 @@ describe("launch catalog: model identity", () => {
       "cline-pass/deepseek-v4.1-flash",
       "muse-spark-1.3-contributor",
       "deepseek-flash-2",
+      "claude-opus-4.8",
     ]) {
       const resolution = identity.resolve(observed);
       expect(resolution.canonicalId, observed).toBeUndefined();
       expect(resolution.reason, observed).toBe("unknown");
+    }
+
+    // Harness-scoped bare spellings resolve in their observing harnesses via
+    // the scoped alias. Outside those harnesses they resolve only where a
+    // separate verified declaration covers the spelling (DeepSeek's published
+    // model name; Z.ai's published GLM-5.3-Flash provider id, matched
+    // case-insensitively). The scoped aliases never widen resolution.
+    for (const harness of ["opencode", "t3-code", "hermes"]) {
+      const scoped = identity.resolve("glm-5.3-flash", { harness });
+      expect(scoped.canonicalId, `glm-5.3-flash@${harness}`).toBe("glm-5-3-flash");
+      expect(scoped.aliasKind, `glm-5.3-flash@${harness}`).toBe("harness_alias");
+      expect(scoped.harness, `glm-5.3-flash@${harness}`).toBe(harness);
+    }
+    // deepseek-v4.1-flash matches the model's published name before any alias
+    // lookup, so its scoped aliases are provenance only.
+    for (const harness of ["t3-code", "opencode", "hermes"]) {
+      const scoped = identity.resolve("deepseek-v4.1-flash", { harness });
+      expect(scoped.canonicalId, `deepseek-v4.1-flash@${harness}`).toBe("deepseek-v4-1-flash");
     }
   });
 
@@ -418,7 +445,10 @@ describe("launch catalog: model identity", () => {
       ["claude-opus-5", "5.00", "25.00"],
       ["claude-fable-5-1", "10.00", "50.00"],
       ["claude-opus-4-8", "5.00", "25.00"],
-      ["deepseek-v4-1-flash", "0.30", "1.20"],
+      // DeepSeek publishes no unconditional flat rates: the record's base rates
+      // are the documented off-peak rates and its tier carries the peak window.
+      // Values stay as the provider prints them (one decimal: "$0.6").
+      ["deepseek-v4-1-flash", "0.15", "0.6"],
       ["glm-5-3-flash", "0.15", "0.50"],
     ];
     for (const [modelId, input, output] of priced) {
@@ -428,11 +458,20 @@ describe("launch catalog: model identity", () => {
       expect(record?.rates.output, modelId).toBe(output);
       expect(record?.sources.length ?? 0, modelId).toBeGreaterThan(0);
     }
-    // A model whose provider documents no cache-read rate must not invent one.
+    // A model whose provider documents no cache-write rate or no reasoning
+    // billing relationship must not invent one.
     const deepseek = Object.values(catalog.pricing).find(
       (entry) => entry.modelId === "deepseek-v4-1-flash",
     );
     expect(deepseek?.rates.cacheWrite).toBeUndefined();
+    expect(deepseek?.rates.reasoning).toBeUndefined();
+    // DeepSeek's peak window is the documented schedule, not a fabricated
+    // flattened rate: it lives on a tier with the published UTC windows.
+    const peak = deepseek?.tiers?.find((tier) => tier.id === "peak-hours");
+    expect(peak && "utcWindows" in peak.when ? peak.when.utcWindows.length : 0).toBe(2);
+    expect(peak?.rates.input).toBe("0.3");
+    expect(peak?.rates.output).toBe("1.2");
+    expect(peak?.rates.cacheRead).toBe("0.006");
   });
 });
 

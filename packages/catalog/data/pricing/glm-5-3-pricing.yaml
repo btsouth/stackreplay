@@ -3,14 +3,15 @@ role: pricing
 modelId: glm-5-3
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
-  input: "1.40"
-  output: "4.40"
+  input: "1.4"
+  output: "4.4"
   cacheRead: "0.26"
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://docs.z.ai/guides/overview/pricing
-    title: "GLM 5.3 API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional."
-    checkedAt: 2026-09-21
+      - url: https://docs.z.ai/guides/overview/pricing
+        title: 'Z.ai API list pricing (Model row for glm-5-3); no cache-write rate and no reasoning-token billing relationship is published.'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

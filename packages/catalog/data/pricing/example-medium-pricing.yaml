@@ -3,11 +3,13 @@ role: pricing
 modelId: example-medium
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "0.50"
   output: "1.50"
   cacheRead: "0.05"
   cacheWrite: "0.60"
+  reasoning: "2.00"
 effectiveFrom: 2026-01-01
 sources:
   - url: https://example.invalid/pricing/example-medium

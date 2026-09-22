@@ -1,0 +1,26 @@
+id: claude-opus-4-8-github-pricing
+role: pricing
+modelId: claude-opus-4-8
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+rates:
+  input: "5.00"
+  output: "25.00"
+  cacheRead: "0.50"
+  cacheWrite: "6.25"
+  reasoning:
+    billedAs: output
+effectiveFrom: 2026-09-21
+sources:
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'GitHub Copilot target billing: "additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD)."'
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'GitHub Copilot billing table row for Claude Opus 4.8 (per 1M tokens).'
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'Thinking-token billing relationship: GitHub bills "output tokens (what the model generates)" at the published Output rate and publishes no separate reasoning category.'
+        checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

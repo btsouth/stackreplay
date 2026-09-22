@@ -24,7 +24,13 @@ export { instantToIso, parseInstant, Temporal } from "./time.js";
 export {
   type DisjointBuckets,
   hasAnyReportedTokens,
+  type MoneyConversionOutcome,
+  moneyUnitsForUsage,
+  type PricingCategory,
+  type PricingSelectionContext,
+  type RateSetSelection,
   reportedTokenCount,
+  selectRateSet,
   type TokenAccounting,
   tokenAccountingOf,
 } from "./units.js";

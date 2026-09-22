@@ -9,8 +9,8 @@ aliases:
     alias: "google/gemini-3.8-flash"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/google/gemini-3.8-flash
+        title: "OpenRouter model record `google/gemini-3.8-flash` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified

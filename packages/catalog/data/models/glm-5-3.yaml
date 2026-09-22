@@ -8,20 +8,11 @@ aliases:
     alias: "z-ai/glm-5.3"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/z-ai/glm-5.3
+        title: "OpenRouter model record `z-ai/glm-5.3` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
-  - id: glm-5-3-router-glm-5-3
-    alias: "glm-5.3"
-    kind: harness_alias
-    sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "Bare form of the OpenRouter id z-ai/glm-5.3, without the author prefix; the router publishes the prefixed id, not this spelling"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
   - id: glm-5-3-observed-glm-5-3
     alias: "GLM-5.3"
     kind: provider_id

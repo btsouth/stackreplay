@@ -3,14 +3,21 @@ role: pricing
 modelId: gemini-3-8-flash
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "0.75"
   output: "3.75"
-  cacheRead: "0.07"
+  cacheRead: "0.075"
+  reasoning:
+    billedAs: output
 effectiveFrom: 2026-09-21
+effectiveTo: 2026-12-31
 sources:
-  - url: https://ai.google.dev/gemini-api/docs/pricing
-    title: "Gemini 3.8 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.. Promotional: The input, output and cache rates are explicitly time-limited on the page: they apply \"through December 31, 2026\", with higher rates \"starting January 1, 2027\" (input $1.50, output $7.50, cache $0.15)."
-    checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Gemini 3.8 Flash promotional API list pricing, valid "through December 31, 2026": input "$0.75", output (including thinking tokens) "$3.75", context caching "$0.075" (exactly three decimal places). Higher rates apply starting January 1, 2027 (see gemini-3-8-flash-pricing-2027).'
+        checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Thinking-token billing relationship: "Output price (including thinking tokens)".'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

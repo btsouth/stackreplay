@@ -66,7 +66,14 @@ export const fixturePricing: Record<string, PricingV1> = {
     modelId: "fixture-small",
     currency: "USD",
     unit: "per_1m_tokens",
-    rates: { input: "1.00", output: "2.00", cacheRead: "0.10", cacheWrite: "1.00" },
+    basis: "api_list_price",
+    rates: {
+      input: "1.00",
+      output: "2.00",
+      cacheRead: "0.10",
+      cacheWrite: "1.00",
+      reasoning: "3.00",
+    },
     effectiveFrom: "2026-01-01",
     sources: [
       { url: "https://example.invalid/pricing", title: "Fixture", checkedAt: "2026-01-01" },
@@ -80,6 +87,7 @@ export const fixturePricing: Record<string, PricingV1> = {
     modelId: "fixture-medium",
     currency: "USD",
     unit: "per_1m_tokens",
+    basis: "api_list_price",
     rates: { input: "2.00", output: "4.00" },
     effectiveFrom: "2026-01-01",
     sources: [

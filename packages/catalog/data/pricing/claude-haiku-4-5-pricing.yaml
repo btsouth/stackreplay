@@ -3,15 +3,21 @@ role: pricing
 modelId: claude-haiku-4-5
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "1.00"
   output: "5.00"
   cacheRead: "0.10"
   cacheWrite: "1.25"
+  reasoning:
+    billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://docs.claude.com/en/docs/about-claude/pricing
-    title: "Claude Haiku 4.5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\""
-    checkedAt: 2026-09-21
+      - url: https://docs.claude.com/en/docs/about-claude/pricing
+        title: 'Claude haiku 4 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.'
+        checkedAt: 2026-09-21
+      - url: https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost
+        title: 'Thinking-token billing relationship: "Tokens Claude uses while thinking (billed as output tokens)"; "output_tokens" remains the inclusive, authoritative total used for billing.'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

@@ -1,0 +1,22 @@
+id: gemini-3-8-flash-pricing-2027
+role: pricing
+modelId: gemini-3-8-flash
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: "1.50"
+  output: "7.50"
+  cacheRead: "0.15"
+  reasoning:
+    billedAs: output
+effectiveFrom: 2027-01-01
+sources:
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Gemini 3.8 Flash API list pricing "starting January 1, 2027": input "$1.50", output (including thinking tokens) "$7.50", context caching "$0.15".'
+        checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Thinking-token billing relationship: "Output price (including thinking tokens)".'
+        checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

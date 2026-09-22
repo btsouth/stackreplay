@@ -8,17 +8,38 @@ aliases:
     alias: "z-ai/glm-5.3-flash"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/z-ai/glm-5.3-flash
+        title: "OpenRouter model record `z-ai/glm-5.3-flash` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
-  - id: glm-5-3-flash-router-glm-5-3-flash
+  - id: glm-5-3-flash-router-glm-5-3-flash-opencode
     alias: "glm-5.3-flash"
     kind: harness_alias
+    harness: opencode
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "Bare form of the OpenRouter id z-ai/glm-5.3-flash, without the author prefix; the router publishes the prefixed id, not this spelling"
+      - url: https://openrouter.ai/z-ai/glm-5.3-flash
+        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: glm-5-3-flash-router-glm-5-3-flash-t3-code
+    alias: "glm-5.3-flash"
+    kind: harness_alias
+    harness: t3-code
+    sources:
+      - url: https://openrouter.ai/z-ai/glm-5.3-flash
+        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: glm-5-3-flash-router-glm-5-3-flash-hermes
+    alias: "glm-5.3-flash"
+    kind: harness_alias
+    harness: hermes
+    sources:
+      - url: https://openrouter.ai/z-ai/glm-5.3-flash
+        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: estimated

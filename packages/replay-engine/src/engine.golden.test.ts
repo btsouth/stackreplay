@@ -764,7 +764,7 @@ describe("golden fixture: unknown consumption", () => {
 });
 
 describe("golden fixture: cache pricing", () => {
-  it("prices cache reads at the cache rate and falls back explicitly", () => {
+  it("prices documented categories and reports undocumented ones as unknown, never guessed", () => {
     const catalog = makeFixtureCatalog({
       limits: [rollingLimit({ id: "credits", type: "credit_pool", amount: "100.00" })],
     });
@@ -790,10 +790,20 @@ describe("golden fixture: cache pricing", () => {
 
     const result = run(catalog, events);
 
-    // $0.10 (cache rate) + $2.00 (cache at input rate, no cache rate) + $4.00 (reasoning at output rate).
-    expect(result.constraints[0]?.consumedUnits).toBe("6.1");
-    expect(result.warnings.map((warning) => warning.code)).toContain("PRICING_RATE_FALLBACK");
-    expect(result.assumptions.map((assumption) => assumption.id)).toContain(
+    // Only e1 prices: $0.10 at the documented cache rate. e2 has no cache rate
+    // and e3 no reasoning rate on fixture-medium, and neither may fall back to
+    // the input or output rate (decision 35): their monetary consumption is
+    // unknown instead of guessed.
+    expect(result.constraints[0]).toMatchObject({
+      status: "unknown",
+      consumedUnits: "0.1",
+      indeterminateEvents: 2,
+    });
+    expect(result.warnings.map((warning) => warning.code)).toContain(
+      "PRICING_CATEGORY_UNDOCUMENTED",
+    );
+    expect(result.warnings.map((warning) => warning.code)).not.toContain("PRICING_RATE_FALLBACK");
+    expect(result.assumptions.map((assumption) => assumption.id)).not.toContain(
       "REASONING_PRICED_AS_OUTPUT",
     );
   });
@@ -840,8 +850,10 @@ describe("golden fixture: disjoint token accounting", () => {
         }),
       }),
     ]);
-    // 600k output at $2/1M plus 400k reasoning at the output fallback rate.
-    expect(result.constraints[0]?.consumedUnits).toBe("2");
+    // 600k output at $2/1M plus 400k reasoning at its own documented $3/1M
+    // rate: the subset is subtracted from output and each disjoint bucket is
+    // priced at its own rate.
+    expect(result.constraints[0]?.consumedUnits).toBe("2.4");
   });
 });
 

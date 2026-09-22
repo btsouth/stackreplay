@@ -9,8 +9,8 @@ aliases:
     alias: "openai/gpt-6-astra"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/openai/gpt-6-astra
+        title: "OpenRouter model record `openai/gpt-6-astra` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified

@@ -3,15 +3,36 @@ role: pricing
 modelId: gpt-5-6-sol
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "4.00"
   output: "20.00"
   cacheRead: "0.40"
   cacheWrite: "5.00"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "8.00"
+      output: "30.00"
+      cacheRead: "0.80"
+      cacheWrite: "10.00"
+      reasoning:
+        billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://developers.openai.com/api/docs/pricing
-    title: "GPT-5.6 Sol API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\". Promotional: \"GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026.\" (note printed under the official Standard pricing table; the model page repeats it.)"
-    checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/pricing
+        title: 'GPT-5.6 Sol API list pricing (short-context row). Promotional pricing note: "GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/guides/reasoning
+        title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/pricing
+        title: 'Long-context rates row: "gpt-5.6-sol | $4.00 | $0.40 | $5.00 | $20.00 | $8.00 | $0.80 | $10.00 | $30.00" (short input | cached input | cache writes | output | long input | long cached | long writes | long output).'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

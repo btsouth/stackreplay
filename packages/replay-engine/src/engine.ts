@@ -465,7 +465,8 @@ function prepareEvents(
   const needsMoney = planVersion.limits.some((limit) => limit.type === "credit_pool");
   const prepared = new Map<string, PreparedEvent>();
 
-  for (const { event } of timed) {
+  for (const timedEvent of timed) {
+    const { event } = timedEvent;
     const res = resolution.get(event.id);
     if (res === undefined) continue;
     const tokens = tokenAccountingOf(event.usage);
@@ -487,23 +488,17 @@ function prepareEvents(
     if (needsMoney && res.supported) {
       const pricing =
         res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
-      const outcome = moneyUnitsForUsage(event.usage, pricing);
+      const outcome = moneyUnitsForUsage(event.usage, pricing, { atMs: timedEvent.atMs });
       if (outcome.missingPricing) {
         tracker.warn(
           "PRICING_MISSING",
           "One or more events use a model without a pricing entry; credit consumption could not be measured for them.",
         );
       }
-      if (outcome.usedCacheFallbackRate) {
+      if (outcome.unpricedCategories.length > 0) {
         tracker.warn(
-          "PRICING_RATE_FALLBACK",
-          "One or more events include cache tokens priced at the input rate because the pricing entry has no cache rate.",
-        );
-      }
-      if (outcome.usedReasoningFallbackRate) {
-        tracker.assume(
-          "REASONING_PRICED_AS_OUTPUT",
-          "Reasoning tokens are priced at the output rate when a pricing entry has no dedicated reasoning rate.",
+          "PRICING_CATEGORY_UNDOCUMENTED",
+          "One or more events consume nonzero tokens in a category the selected pricing rule does not establish; monetary consumption for those events is unknown rather than guessed.",
         );
       }
       moneyUnits = outcome.known ? outcome.units : undefined;
@@ -1129,14 +1124,14 @@ function computeConfidence(
   }
 
   if (
-    tracker.warnings.has("PRICING_RATE_FALLBACK") ||
-    tracker.assumptions.has("REASONING_PRICED_AS_OUTPUT")
+    tracker.warnings.has("PRICING_MISSING") ||
+    tracker.warnings.has("PRICING_CATEGORY_UNDOCUMENTED")
   ) {
     factors.push({
-      id: "pricing_fallback",
+      id: "pricing_completeness",
       level: "low",
       description:
-        "Some token categories use fallback rates rather than verified category-specific pricing.",
+        "Some events could not be priced from the selected pricing rules (no pricing entry, or nonzero token categories the pricing rule does not establish), so their monetary consumption is unknown.",
     });
   }
 

@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:6f3e7dcabf509b4f3df73019e3ed9775fc8e45ec5dec1b2a91e7d3c0068091c5";
+export const BUNDLED_CATALOG_VERSION = "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:6f3e7dcabf509b4f3df73019e3ed9775fc8e45ec5dec1b2a91e7d3c0068091c5",
+  "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -156,8 +156,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/anthropic/claude-fable-5.1",
+              "title": "OpenRouter model record `anthropic/claude-fable-5.1` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -194,8 +194,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/anthropic/claude-fable-5",
+              "title": "OpenRouter model record `anthropic/claude-fable-5` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -328,27 +328,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/anthropic/claude-opus-4.8",
+              "title": "OpenRouter model record `anthropic/claude-opus-4.8` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
-        },
-        {
-          "id": "claude-opus-4-8-router-claude-opus-4-8",
-          "alias": "claude-opus-4.8",
-          "kind": "harness_alias",
-          "sources": [
-            {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "Bare form of the OpenRouter id anthropic/claude-opus-4.8, without the author prefix; the router publishes the prefixed id, not this spelling",
-              "checkedAt": "2026-09-21"
-            }
-          ],
-          "lastVerifiedAt": "2026-09-21",
-          "verificationStatus": "estimated"
         }
       ],
       "sources": [
@@ -376,8 +362,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/anthropic/claude-opus-5",
+              "title": "OpenRouter model record `anthropic/claude-opus-5` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -449,8 +435,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/anthropic/claude-sonnet-5",
+              "title": "OpenRouter model record `anthropic/claude-sonnet-5` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -521,8 +507,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/deepseek/deepseek-v4.1-flash",
+              "title": "OpenRouter model record `deepseek/deepseek-v4.1-flash` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -530,13 +516,44 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "verificationStatus": "verified"
         },
         {
-          "id": "deepseek-v4-1-flash-router-deepseek-v4-1-flash",
+          "id": "deepseek-v4-1-flash-router-deepseek-v4-1-flash-t3-code",
           "alias": "deepseek-v4.1-flash",
           "kind": "harness_alias",
+          "harness": "t3-code",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "Bare form of the OpenRouter id deepseek/deepseek-v4.1-flash, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "url": "https://openrouter.ai/deepseek/deepseek-v4.1-flash",
+              "title": "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "deepseek-v4-1-flash-router-deepseek-v4-1-flash-opencode",
+          "alias": "deepseek-v4.1-flash",
+          "kind": "harness_alias",
+          "harness": "opencode",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/deepseek/deepseek-v4.1-flash",
+              "title": "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "deepseek-v4-1-flash-router-deepseek-v4-1-flash-hermes",
+          "alias": "deepseek-v4.1-flash",
+          "kind": "harness_alias",
+          "harness": "hermes",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/deepseek/deepseek-v4.1-flash",
+              "title": "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -582,8 +599,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/deepseek/deepseek-v4-flash-vision-exp",
+              "title": "OpenRouter model record `deepseek/deepseek-v4-flash-vision-exp` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -615,8 +632,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/deepseek/deepseek-v4-flash",
+              "title": "OpenRouter model record `deepseek/deepseek-v4-flash` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -805,8 +822,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/google/gemini-3.8-flash",
+              "title": "OpenRouter model record `google/gemini-3.8-flash` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -924,8 +941,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/z-ai/glm-5.3-flash",
+              "title": "OpenRouter model record `z-ai/glm-5.3-flash` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -933,13 +950,44 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "verificationStatus": "verified"
         },
         {
-          "id": "glm-5-3-flash-router-glm-5-3-flash",
+          "id": "glm-5-3-flash-router-glm-5-3-flash-opencode",
           "alias": "glm-5.3-flash",
           "kind": "harness_alias",
+          "harness": "opencode",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "Bare form of the OpenRouter id z-ai/glm-5.3-flash, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "url": "https://openrouter.ai/z-ai/glm-5.3-flash",
+              "title": "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "glm-5-3-flash-router-glm-5-3-flash-t3-code",
+          "alias": "glm-5.3-flash",
+          "kind": "harness_alias",
+          "harness": "t3-code",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.3-flash",
+              "title": "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "glm-5-3-flash-router-glm-5-3-flash-hermes",
+          "alias": "glm-5.3-flash",
+          "kind": "harness_alias",
+          "harness": "hermes",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.3-flash",
+              "title": "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -985,8 +1033,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/z-ai/glm-5.3-flashx",
+              "title": "OpenRouter model record `z-ai/glm-5.3-flashx` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -1032,27 +1080,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/z-ai/glm-5.3",
+              "title": "OpenRouter model record `z-ai/glm-5.3` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
-        },
-        {
-          "id": "glm-5-3-router-glm-5-3",
-          "alias": "glm-5.3",
-          "kind": "harness_alias",
-          "sources": [
-            {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "Bare form of the OpenRouter id z-ai/glm-5.3, without the author prefix; the router publishes the prefixed id, not this spelling",
-              "checkedAt": "2026-09-21"
-            }
-          ],
-          "lastVerifiedAt": "2026-09-21",
-          "verificationStatus": "estimated"
         },
         {
           "id": "glm-5-3-observed-glm-5-3",
@@ -1306,8 +1340,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/openai/gpt-5.6-sol",
+              "title": "OpenRouter model record `openai/gpt-5.6-sol` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -1379,8 +1413,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/openai/gpt-5.6-terra",
+              "title": "OpenRouter model record `openai/gpt-5.6-terra` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -1487,8 +1521,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "harness_alias",
           "sources": [
             {
-              "url": "https://openrouter.ai/docs/overview/models",
-              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "url": "https://openrouter.ai/openai/gpt-6-astra",
+              "title": "OpenRouter model record `openai/gpt-6-astra` (exact id as published in the model list)",
               "checkedAt": "2026-09-21"
             }
           ],
@@ -2843,29 +2877,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "claude-fable-5",
-              "pricingRef": "claude-fable-5-pricing"
+              "pricingRef": "claude-fable-5-github-pricing"
             },
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "pricingRef": "claude-fable-5-1-github-pricing"
             },
             {
               "model": "claude-haiku-4-5",
-              "pricingRef": "claude-haiku-4-5-pricing"
+              "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
               "model": "claude-opus-4-8",
-              "pricingRef": "claude-opus-4-8-pricing"
+              "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "pricingRef": "claude-opus-5-github-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
@@ -2873,7 +2907,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2886,19 +2920,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "pricingRef": "gemini-3-8-flash-github-pricing"
             },
             {
               "model": "gpt-5-3-codex",
-              "pricingRef": "gpt-5-3-codex-pricing"
+              "pricingRef": "gpt-5-3-codex-github-pricing"
             },
             {
               "model": "gpt-5-4",
-              "pricingRef": "gpt-5-4-pricing"
+              "pricingRef": "gpt-5-4-github-pricing"
             },
             {
               "model": "gpt-5-4-mini",
-              "pricingRef": "gpt-5-4-mini-pricing"
+              "pricingRef": "gpt-5-4-mini-github-pricing"
             },
             {
               "model": "gpt-5-4-nano",
@@ -2906,27 +2940,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-5",
-              "pricingRef": "gpt-5-5-pricing"
+              "pricingRef": "gpt-5-5-github-pricing"
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "pricingRef": "gpt-5-6-luna-github-pricing"
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "pricingRef": "gpt-5-6-sol-github-pricing"
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "pricingRef": "gpt-5-6-terra-github-pricing"
             },
             {
               "model": "gpt-5-mini",
-              "pricingRef": "gpt-5-mini-pricing"
+              "pricingRef": "gpt-5-mini-github-pricing"
             },
             {
               "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
+              "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
               "model": "grok-4-5"
@@ -3037,29 +3071,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "claude-fable-5",
-              "pricingRef": "claude-fable-5-pricing"
+              "pricingRef": "claude-fable-5-github-pricing"
             },
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "pricingRef": "claude-fable-5-1-github-pricing"
             },
             {
               "model": "claude-haiku-4-5",
-              "pricingRef": "claude-haiku-4-5-pricing"
+              "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
               "model": "claude-opus-4-8",
-              "pricingRef": "claude-opus-4-8-pricing"
+              "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "pricingRef": "claude-opus-5-github-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
@@ -3067,7 +3101,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -3080,19 +3114,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "pricingRef": "gemini-3-8-flash-github-pricing"
             },
             {
               "model": "gpt-5-3-codex",
-              "pricingRef": "gpt-5-3-codex-pricing"
+              "pricingRef": "gpt-5-3-codex-github-pricing"
             },
             {
               "model": "gpt-5-4",
-              "pricingRef": "gpt-5-4-pricing"
+              "pricingRef": "gpt-5-4-github-pricing"
             },
             {
               "model": "gpt-5-4-mini",
-              "pricingRef": "gpt-5-4-mini-pricing"
+              "pricingRef": "gpt-5-4-mini-github-pricing"
             },
             {
               "model": "gpt-5-4-nano",
@@ -3100,27 +3134,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-5",
-              "pricingRef": "gpt-5-5-pricing"
+              "pricingRef": "gpt-5-5-github-pricing"
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "pricingRef": "gpt-5-6-luna-github-pricing"
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "pricingRef": "gpt-5-6-sol-github-pricing"
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "pricingRef": "gpt-5-6-terra-github-pricing"
             },
             {
               "model": "gpt-5-mini",
-              "pricingRef": "gpt-5-mini-pricing"
+              "pricingRef": "gpt-5-mini-github-pricing"
             },
             {
               "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
+              "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
               "model": "grok-4-5"
@@ -3226,29 +3260,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "claude-fable-5",
-              "pricingRef": "claude-fable-5-pricing"
+              "pricingRef": "claude-fable-5-github-pricing"
             },
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "pricingRef": "claude-fable-5-1-github-pricing"
             },
             {
               "model": "claude-haiku-4-5",
-              "pricingRef": "claude-haiku-4-5-pricing"
+              "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
               "model": "claude-opus-4-8",
-              "pricingRef": "claude-opus-4-8-pricing"
+              "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "pricingRef": "claude-opus-5-github-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
@@ -3256,7 +3290,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -3269,19 +3303,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "pricingRef": "gemini-3-8-flash-github-pricing"
             },
             {
               "model": "gpt-5-3-codex",
-              "pricingRef": "gpt-5-3-codex-pricing"
+              "pricingRef": "gpt-5-3-codex-github-pricing"
             },
             {
               "model": "gpt-5-4",
-              "pricingRef": "gpt-5-4-pricing"
+              "pricingRef": "gpt-5-4-github-pricing"
             },
             {
               "model": "gpt-5-4-mini",
-              "pricingRef": "gpt-5-4-mini-pricing"
+              "pricingRef": "gpt-5-4-mini-github-pricing"
             },
             {
               "model": "gpt-5-4-nano",
@@ -3289,27 +3323,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-5",
-              "pricingRef": "gpt-5-5-pricing"
+              "pricingRef": "gpt-5-5-github-pricing"
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "pricingRef": "gpt-5-6-luna-github-pricing"
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "pricingRef": "gpt-5-6-sol-github-pricing"
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "pricingRef": "gpt-5-6-terra-github-pricing"
             },
             {
               "model": "gpt-5-mini",
-              "pricingRef": "gpt-5-mini-pricing"
+              "pricingRef": "gpt-5-mini-github-pricing"
             },
             {
               "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
+              "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
               "model": "grok-4-5"
@@ -3415,29 +3449,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "claude-fable-5",
-              "pricingRef": "claude-fable-5-pricing"
+              "pricingRef": "claude-fable-5-github-pricing"
             },
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "pricingRef": "claude-fable-5-1-github-pricing"
             },
             {
               "model": "claude-haiku-4-5",
-              "pricingRef": "claude-haiku-4-5-pricing"
+              "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
               "model": "claude-opus-4-8",
-              "pricingRef": "claude-opus-4-8-pricing"
+              "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "pricingRef": "claude-opus-5-github-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
@@ -3445,7 +3479,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -3458,19 +3492,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "pricingRef": "gemini-3-8-flash-github-pricing"
             },
             {
               "model": "gpt-5-3-codex",
-              "pricingRef": "gpt-5-3-codex-pricing"
+              "pricingRef": "gpt-5-3-codex-github-pricing"
             },
             {
               "model": "gpt-5-4",
-              "pricingRef": "gpt-5-4-pricing"
+              "pricingRef": "gpt-5-4-github-pricing"
             },
             {
               "model": "gpt-5-4-mini",
-              "pricingRef": "gpt-5-4-mini-pricing"
+              "pricingRef": "gpt-5-4-mini-github-pricing"
             },
             {
               "model": "gpt-5-4-nano",
@@ -3478,27 +3512,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-5",
-              "pricingRef": "gpt-5-5-pricing"
+              "pricingRef": "gpt-5-5-github-pricing"
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "pricingRef": "gpt-5-6-luna-github-pricing"
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "pricingRef": "gpt-5-6-sol-github-pricing"
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "pricingRef": "gpt-5-6-terra-github-pricing"
             },
             {
               "model": "gpt-5-mini",
-              "pricingRef": "gpt-5-mini-pricing"
+              "pricingRef": "gpt-5-mini-github-pricing"
             },
             {
               "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
+              "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
               "model": "grok-4-5"
@@ -3610,29 +3644,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "claude-fable-5",
-              "pricingRef": "claude-fable-5-pricing"
+              "pricingRef": "claude-fable-5-github-pricing"
             },
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "pricingRef": "claude-fable-5-1-github-pricing"
             },
             {
               "model": "claude-haiku-4-5",
-              "pricingRef": "claude-haiku-4-5-pricing"
+              "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
               "model": "claude-opus-4-8",
-              "pricingRef": "claude-opus-4-8-pricing"
+              "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "pricingRef": "claude-opus-5-github-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
@@ -3640,7 +3674,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -3653,19 +3687,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "pricingRef": "gemini-3-8-flash-github-pricing"
             },
             {
               "model": "gpt-5-3-codex",
-              "pricingRef": "gpt-5-3-codex-pricing"
+              "pricingRef": "gpt-5-3-codex-github-pricing"
             },
             {
               "model": "gpt-5-4",
-              "pricingRef": "gpt-5-4-pricing"
+              "pricingRef": "gpt-5-4-github-pricing"
             },
             {
               "model": "gpt-5-4-mini",
-              "pricingRef": "gpt-5-4-mini-pricing"
+              "pricingRef": "gpt-5-4-mini-github-pricing"
             },
             {
               "model": "gpt-5-4-nano",
@@ -3673,27 +3707,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-5",
-              "pricingRef": "gpt-5-5-pricing"
+              "pricingRef": "gpt-5-5-github-pricing"
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "pricingRef": "gpt-5-6-luna-github-pricing"
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "pricingRef": "gpt-5-6-sol-github-pricing"
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "pricingRef": "gpt-5-6-terra-github-pricing"
             },
             {
               "model": "gpt-5-mini",
-              "pricingRef": "gpt-5-mini-pricing"
+              "pricingRef": "gpt-5-mini-github-pricing"
             },
             {
               "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
+              "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
               "model": "grok-4-5"
@@ -5625,29 +5659,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "claude-fable-5",
-          "pricingRef": "claude-fable-5-pricing"
+          "pricingRef": "claude-fable-5-github-pricing"
         },
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "pricingRef": "claude-fable-5-1-github-pricing"
         },
         {
           "model": "claude-haiku-4-5",
-          "pricingRef": "claude-haiku-4-5-pricing"
+          "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
           "model": "claude-opus-4-8",
-          "pricingRef": "claude-opus-4-8-pricing"
+          "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "pricingRef": "claude-opus-5-github-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
@@ -5655,7 +5689,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -5668,19 +5702,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "pricingRef": "gemini-3-8-flash-github-pricing"
         },
         {
           "model": "gpt-5-3-codex",
-          "pricingRef": "gpt-5-3-codex-pricing"
+          "pricingRef": "gpt-5-3-codex-github-pricing"
         },
         {
           "model": "gpt-5-4",
-          "pricingRef": "gpt-5-4-pricing"
+          "pricingRef": "gpt-5-4-github-pricing"
         },
         {
           "model": "gpt-5-4-mini",
-          "pricingRef": "gpt-5-4-mini-pricing"
+          "pricingRef": "gpt-5-4-mini-github-pricing"
         },
         {
           "model": "gpt-5-4-nano",
@@ -5688,27 +5722,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-5",
-          "pricingRef": "gpt-5-5-pricing"
+          "pricingRef": "gpt-5-5-github-pricing"
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "pricingRef": "gpt-5-6-luna-github-pricing"
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "pricingRef": "gpt-5-6-sol-github-pricing"
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "pricingRef": "gpt-5-6-terra-github-pricing"
         },
         {
           "model": "gpt-5-mini",
-          "pricingRef": "gpt-5-mini-pricing"
+          "pricingRef": "gpt-5-mini-github-pricing"
         },
         {
           "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
+          "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
           "model": "grok-4-5"
@@ -5815,29 +5849,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "claude-fable-5",
-          "pricingRef": "claude-fable-5-pricing"
+          "pricingRef": "claude-fable-5-github-pricing"
         },
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "pricingRef": "claude-fable-5-1-github-pricing"
         },
         {
           "model": "claude-haiku-4-5",
-          "pricingRef": "claude-haiku-4-5-pricing"
+          "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
           "model": "claude-opus-4-8",
-          "pricingRef": "claude-opus-4-8-pricing"
+          "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "pricingRef": "claude-opus-5-github-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
@@ -5845,7 +5879,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -5858,19 +5892,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "pricingRef": "gemini-3-8-flash-github-pricing"
         },
         {
           "model": "gpt-5-3-codex",
-          "pricingRef": "gpt-5-3-codex-pricing"
+          "pricingRef": "gpt-5-3-codex-github-pricing"
         },
         {
           "model": "gpt-5-4",
-          "pricingRef": "gpt-5-4-pricing"
+          "pricingRef": "gpt-5-4-github-pricing"
         },
         {
           "model": "gpt-5-4-mini",
-          "pricingRef": "gpt-5-4-mini-pricing"
+          "pricingRef": "gpt-5-4-mini-github-pricing"
         },
         {
           "model": "gpt-5-4-nano",
@@ -5878,27 +5912,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-5",
-          "pricingRef": "gpt-5-5-pricing"
+          "pricingRef": "gpt-5-5-github-pricing"
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "pricingRef": "gpt-5-6-luna-github-pricing"
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "pricingRef": "gpt-5-6-sol-github-pricing"
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "pricingRef": "gpt-5-6-terra-github-pricing"
         },
         {
           "model": "gpt-5-mini",
-          "pricingRef": "gpt-5-mini-pricing"
+          "pricingRef": "gpt-5-mini-github-pricing"
         },
         {
           "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
+          "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
           "model": "grok-4-5"
@@ -6000,29 +6034,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "claude-fable-5",
-          "pricingRef": "claude-fable-5-pricing"
+          "pricingRef": "claude-fable-5-github-pricing"
         },
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "pricingRef": "claude-fable-5-1-github-pricing"
         },
         {
           "model": "claude-haiku-4-5",
-          "pricingRef": "claude-haiku-4-5-pricing"
+          "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
           "model": "claude-opus-4-8",
-          "pricingRef": "claude-opus-4-8-pricing"
+          "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "pricingRef": "claude-opus-5-github-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
@@ -6030,7 +6064,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -6043,19 +6077,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "pricingRef": "gemini-3-8-flash-github-pricing"
         },
         {
           "model": "gpt-5-3-codex",
-          "pricingRef": "gpt-5-3-codex-pricing"
+          "pricingRef": "gpt-5-3-codex-github-pricing"
         },
         {
           "model": "gpt-5-4",
-          "pricingRef": "gpt-5-4-pricing"
+          "pricingRef": "gpt-5-4-github-pricing"
         },
         {
           "model": "gpt-5-4-mini",
-          "pricingRef": "gpt-5-4-mini-pricing"
+          "pricingRef": "gpt-5-4-mini-github-pricing"
         },
         {
           "model": "gpt-5-4-nano",
@@ -6063,27 +6097,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-5",
-          "pricingRef": "gpt-5-5-pricing"
+          "pricingRef": "gpt-5-5-github-pricing"
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "pricingRef": "gpt-5-6-luna-github-pricing"
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "pricingRef": "gpt-5-6-sol-github-pricing"
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "pricingRef": "gpt-5-6-terra-github-pricing"
         },
         {
           "model": "gpt-5-mini",
-          "pricingRef": "gpt-5-mini-pricing"
+          "pricingRef": "gpt-5-mini-github-pricing"
         },
         {
           "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
+          "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
           "model": "grok-4-5"
@@ -6185,29 +6219,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "claude-fable-5",
-          "pricingRef": "claude-fable-5-pricing"
+          "pricingRef": "claude-fable-5-github-pricing"
         },
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "pricingRef": "claude-fable-5-1-github-pricing"
         },
         {
           "model": "claude-haiku-4-5",
-          "pricingRef": "claude-haiku-4-5-pricing"
+          "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
           "model": "claude-opus-4-8",
-          "pricingRef": "claude-opus-4-8-pricing"
+          "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "pricingRef": "claude-opus-5-github-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
@@ -6215,7 +6249,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -6228,19 +6262,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "pricingRef": "gemini-3-8-flash-github-pricing"
         },
         {
           "model": "gpt-5-3-codex",
-          "pricingRef": "gpt-5-3-codex-pricing"
+          "pricingRef": "gpt-5-3-codex-github-pricing"
         },
         {
           "model": "gpt-5-4",
-          "pricingRef": "gpt-5-4-pricing"
+          "pricingRef": "gpt-5-4-github-pricing"
         },
         {
           "model": "gpt-5-4-mini",
-          "pricingRef": "gpt-5-4-mini-pricing"
+          "pricingRef": "gpt-5-4-mini-github-pricing"
         },
         {
           "model": "gpt-5-4-nano",
@@ -6248,27 +6282,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-5",
-          "pricingRef": "gpt-5-5-pricing"
+          "pricingRef": "gpt-5-5-github-pricing"
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "pricingRef": "gpt-5-6-luna-github-pricing"
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "pricingRef": "gpt-5-6-sol-github-pricing"
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "pricingRef": "gpt-5-6-terra-github-pricing"
         },
         {
           "model": "gpt-5-mini",
-          "pricingRef": "gpt-5-mini-pricing"
+          "pricingRef": "gpt-5-mini-github-pricing"
         },
         {
           "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
+          "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
           "model": "grok-4-5"
@@ -6376,29 +6410,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "claude-fable-5",
-          "pricingRef": "claude-fable-5-pricing"
+          "pricingRef": "claude-fable-5-github-pricing"
         },
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "pricingRef": "claude-fable-5-1-github-pricing"
         },
         {
           "model": "claude-haiku-4-5",
-          "pricingRef": "claude-haiku-4-5-pricing"
+          "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
           "model": "claude-opus-4-8",
-          "pricingRef": "claude-opus-4-8-pricing"
+          "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "pricingRef": "claude-opus-5-github-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
@@ -6406,7 +6440,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -6419,19 +6453,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "pricingRef": "gemini-3-8-flash-github-pricing"
         },
         {
           "model": "gpt-5-3-codex",
-          "pricingRef": "gpt-5-3-codex-pricing"
+          "pricingRef": "gpt-5-3-codex-github-pricing"
         },
         {
           "model": "gpt-5-4",
-          "pricingRef": "gpt-5-4-pricing"
+          "pricingRef": "gpt-5-4-github-pricing"
         },
         {
           "model": "gpt-5-4-mini",
-          "pricingRef": "gpt-5-4-mini-pricing"
+          "pricingRef": "gpt-5-4-mini-github-pricing"
         },
         {
           "model": "gpt-5-4-nano",
@@ -6439,27 +6473,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-5",
-          "pricingRef": "gpt-5-5-pricing"
+          "pricingRef": "gpt-5-5-github-pricing"
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "pricingRef": "gpt-5-6-luna-github-pricing"
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "pricingRef": "gpt-5-6-sol-github-pricing"
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "pricingRef": "gpt-5-6-terra-github-pricing"
         },
         {
           "model": "gpt-5-mini",
-          "pricingRef": "gpt-5-mini-pricing"
+          "pricingRef": "gpt-5-mini-github-pricing"
         },
         {
           "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
+          "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
           "model": "grok-4-5"
@@ -7231,23 +7265,106 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "pricing": {
+    "claude-fable-5-1-github-pricing": {
+      "id": "claude-fable-5-1-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-fable-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "0.25",
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Fable 5.1 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
     "claude-fable-5-1-pricing": {
       "id": "claude-fable-5-1-pricing",
       "role": "pricing",
       "modelId": "claude-fable-5-1",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "10.00",
         "output": "50.00",
         "cacheRead": "0.25",
-        "cacheWrite": "12.50"
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Fable 5.1 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude fable 5 1 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-fable-5-github-pricing": {
+      "id": "claude-fable-5-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-fable-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "1.00",
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Fable 5 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7260,17 +7377,63 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "claude-fable-5",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "10.00",
         "output": "50.00",
         "cacheRead": "1.00",
-        "cacheWrite": "12.50"
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Fable 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude fable 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-haiku-4-5-github-pricing": {
+      "id": "claude-haiku-4-5-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-haiku-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "1.00",
+        "output": "5.00",
+        "cacheRead": "0.10",
+        "cacheWrite": "1.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Haiku 4.5 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7283,17 +7446,63 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "claude-haiku-4-5",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "1.00",
         "output": "5.00",
         "cacheRead": "0.10",
-        "cacheWrite": "1.25"
+        "cacheWrite": "1.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Haiku 4.5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude haiku 4 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-8-github-pricing": {
+      "id": "claude-opus-4-8-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "5.00",
+        "output": "25.00",
+        "cacheRead": "0.50",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Opus 4.8 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7306,17 +7515,63 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "claude-opus-4-8",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "5.00",
         "output": "25.00",
         "cacheRead": "0.50",
-        "cacheWrite": "6.25"
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Opus 4.8 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude opus 4 8 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-5-github-pricing": {
+      "id": "claude-opus-5-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "5.00",
+        "output": "25.00",
+        "cacheRead": "0.50",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Opus 5 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7329,17 +7584,63 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "claude-opus-5",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "5.00",
         "output": "25.00",
         "cacheRead": "0.50",
-        "cacheWrite": "6.25"
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Opus 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude opus 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-sonnet-5-github-pricing": {
+      "id": "claude-sonnet-5-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "10.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Claude Sonnet 5 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7352,17 +7653,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "claude-sonnet-5",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "2.00",
         "output": "10.00",
         "cacheRead": "0.20",
-        "cacheWrite": "2.50"
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
-          "title": "Claude Sonnet 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "title": "Claude sonnet 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7375,16 +7685,59 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "deepseek-v4-1-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
-        "input": "0.30",
-        "output": "1.20",
-        "cacheRead": "0.01"
+        "input": "0.15",
+        "output": "0.6",
+        "cacheRead": "0.003"
       },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ]
+          },
+          "rates": {
+            "input": "0.3",
+            "output": "1.2",
+            "cacheRead": "0.006"
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7397,16 +7750,64 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "deepseek-v4-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
-        "input": "0.30",
-        "output": "1.20",
-        "cacheRead": "0.01"
+        "input": "0.15",
+        "output": "0.6",
+        "cacheRead": "0.003"
       },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ]
+          },
+          "rates": {
+            "input": "0.3",
+            "output": "1.2",
+            "cacheRead": "0.006"
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4-Flash (legacy name, model retired) API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "title": "Legacy name: \"Use deepseek-flash as the model name. The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash model and billed at the Flash price.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7419,16 +7820,64 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "deepseek-v4-flash-vision-exp",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
-        "input": "0.30",
-        "output": "1.20",
-        "cacheRead": "0.01"
+        "input": "0.15",
+        "output": "0.6",
+        "cacheRead": "0.003"
       },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ]
+          },
+          "rates": {
+            "input": "0.3",
+            "output": "1.2",
+            "cacheRead": "0.006"
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired) API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "title": "Legacy name: \"Use deepseek-flash as the model name. The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash model and billed at the Flash price.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7441,9 +7890,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "example-large",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "2.00",
-        "output": "6.00"
+        "output": "6.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.40",
+        "reasoning": "8.00"
       },
       "effectiveFrom": "2026-01-01",
       "sources": [
@@ -7462,11 +7915,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "example-medium",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.50",
         "output": "1.50",
         "cacheRead": "0.05",
-        "cacheWrite": "0.60"
+        "cacheWrite": "0.60",
+        "reasoning": "2.00"
       },
       "effectiveFrom": "2026-01-01",
       "sources": [
@@ -7485,11 +7940,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "example-small",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.10",
         "output": "0.40",
         "cacheRead": "0.01",
-        "cacheWrite": "0.12"
+        "cacheWrite": "0.12",
+        "reasoning": "0.50"
       },
       "effectiveFrom": "2026-01-01",
       "sources": [
@@ -7508,16 +7965,115 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gemini-3-1-pro",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "2.00",
         "output": "12.00",
-        "cacheRead": "0.20"
+        "cacheRead": "0.20",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "over-200k",
+          "label": "Prompts > 200k tokens",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "18.00",
+            "cacheRead": "0.40",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
-          "title": "Gemini 3.1 Pro API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.",
+          "title": "Gemini 3.1 Pro API list pricing (prompts <= 200k tier). No cache-write rate is published; context caching is a read rate plus a per-hour storage price.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Long-context tier rows: \"$2.00, prompts <= 200k tokens\" / \"$4.00, prompts > 200k tokens\" (input) and \"$12.00, prompts <= 200k tokens$18.00, prompts > 200k\" (output).",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-8-flash-github-pricing": {
+      "id": "gemini-3-8-flash-github-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-8-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-12-31",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for Gemini 3.8 Flash: \"Gemini 3.6 Flash, Gemini 3.7 Flash, and Gemini 3.8 Flash are available at the promotional pricing of $0.75 per 1M input tokens, $0.075 per 1M cached input tokens, and $3.75 per 1M output tokens through December 31, 2026.\" No cache-write column is published for Google models. GitHub publishes no rate for this model after that date.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-8-flash-pricing-2027": {
+      "id": "gemini-3-8-flash-pricing-2027",
+      "role": "pricing",
+      "modelId": "gemini-3-8-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.50",
+        "output": "7.50",
+        "cacheRead": "0.15",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2027-01-01",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3.8 Flash API list pricing \"starting January 1, 2027\": input \"$1.50\", output (including thinking tokens) \"$7.50\", context caching \"$0.15\".",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7530,16 +8086,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gemini-3-8-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.75",
         "output": "3.75",
-        "cacheRead": "0.07"
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-12-31",
       "sources": [
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
-          "title": "Gemini 3.8 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.. Promotional: The input, output and cache rates are explicitly time-limited on the page: they apply \"through December 31, 2026\", with higher rates \"starting January 1, 2027\" (input $1.50, output $7.50, cache $0.15).",
+          "title": "Gemini 3.8 Flash promotional API list pricing, valid \"through December 31, 2026\": input \"$0.75\", output (including thinking tokens) \"$3.75\", context caching \"$0.075\" (exactly three decimal places). Higher rates apply starting January 1, 2027 (see gemini-3-8-flash-pricing-2027).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7552,16 +8118,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gemini-3-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.50",
         "output": "3.00",
-        "cacheRead": "0.05"
+        "cacheRead": "0.05",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
-          "title": "Gemini 3 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.",
+          "title": "Gemini 3 Flash API list pricing (text / image / video modality rates; no request-size tiers).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7574,6 +8149,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "glm-5-3-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.15",
         "output": "0.50",
@@ -7583,7 +8159,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "sources": [
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
-          "title": "GLM 5.3 Flash API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "title": "Z.ai API list pricing (Model row for glm-5-3-flash); no cache-write rate and no reasoning-token billing relationship is published.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7596,16 +8172,17 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "glm-5-3-flashx",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.37",
         "output": "1.25",
-        "cacheRead": "0.07"
+        "cacheRead": "0.075"
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
-          "title": "GLM 5.3 FlashX API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "title": "Z.ai API list pricing (Model row for glm-5-3-flashx); no cache-write rate and no reasoning-token billing relationship is published.",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7618,16 +8195,61 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "glm-5-3",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
-        "input": "1.40",
-        "output": "4.40",
+        "input": "1.4",
+        "output": "4.4",
         "cacheRead": "0.26"
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
-          "title": "GLM 5.3 API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "title": "Z.ai API list pricing (Model row for glm-5-3); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-3-codex-github-pricing": {
+      "id": "gpt-5-3-codex-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-3-codex",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "1.75",
+        "output": "14.00",
+        "cacheRead": "0.175",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.3-Codex (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7640,16 +8262,146 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-3-codex",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "1.75",
         "output": "14.00",
-        "cacheRead": "0.17"
+        "cacheRead": "0.175",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.3-Codex API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.3-Codex API list pricing (row \"Codex | gpt-5.3-codex | $1.75 | $0.175 | $14.00\"); published cache-read rate is exactly \"$0.175\". \"Maximum input tokens: 272,000\" (no long-context tier).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+          "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-github-pricing": {
+      "id": "gpt-5-4-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-4",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.50",
+        "output": "15.00",
+        "cacheRead": "0.25",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "5.00",
+            "output": "22.50",
+            "cacheRead": "0.50",
+            "cacheWrite": {
+              "billedAs": "input"
+            },
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.4 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.4 | GA | Versatile | Long context | > 272K | $5.00 | $0.50 | Not applicable | $22.50",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-mini-github-pricing": {
+      "id": "gpt-5-4-mini-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-4-mini",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.75",
+        "output": "4.50",
+        "cacheRead": "0.075",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.4 mini (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7662,16 +8414,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-4-mini",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.75",
         "output": "4.50",
-        "cacheRead": "0.07"
+        "cacheRead": "0.075",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.4 mini API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.4 mini API list pricing; published cache-read rate is exactly \"$0.075\". \"Maximum input tokens: 272,000\" (no long-context tier).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+          "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7684,16 +8453,127 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-4",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "2.50",
         "output": "15.00",
-        "cacheRead": "0.25"
+        "cacheRead": "0.25",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "5.00",
+            "output": "22.50",
+            "cacheRead": "0.50",
+            "cacheWrite": {
+              "billedAs": "input"
+            },
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.4 API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.4 API list pricing (row \"gpt-5.4 (<272K context length)\").",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.4",
+          "title": "Long-context relationship: \"For models with a 1.05M context window (GPT-5.4 and GPT-5.4 Pro), prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+          "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-5-github-pricing": {
+      "id": "gpt-5-5-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "5.00",
+        "output": "30.00",
+        "cacheRead": "0.50",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "10.00",
+            "output": "45.00",
+            "cacheRead": "1.00",
+            "cacheWrite": {
+              "billedAs": "input"
+            },
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.5 (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.5 | GA | Powerful | Long context | > 272K | $10.00 | $1.00 | Not applicable | $45.00",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7706,16 +8586,118 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-5",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "5.00",
         "output": "30.00",
-        "cacheRead": "0.50"
+        "cacheRead": "0.50",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "10.00",
+            "output": "45.00",
+            "cacheRead": "1.00",
+            "cacheWrite": {
+              "billedAs": "input"
+            },
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.5 API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.5 API list pricing (row \"gpt-5.5 (<272K context length)\").",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.5",
+          "title": "Long-context relationship: \"For GPT-5.5, prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+          "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-luna-github-pricing": {
+      "id": "gpt-5-6-luna-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-luna",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.20",
+        "output": "1.20",
+        "cacheRead": "0.02",
+        "cacheWrite": "0.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 200K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "0.40",
+            "output": "1.80",
+            "cacheRead": "0.04",
+            "cacheWrite": "0.50",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.6 Luna (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Luna | GA | Lightweight | Long context | > 200K | $0.40 | $0.04 | $0.50 | $1.80",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7728,17 +8710,109 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-6-luna",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.20",
         "output": "1.20",
         "cacheRead": "0.02",
-        "cacheWrite": "0.25"
+        "cacheWrite": "0.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "0.40",
+            "output": "1.80",
+            "cacheRead": "0.04",
+            "cacheWrite": "0.50",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.6 Luna API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.6 Luna API list pricing (short-context row).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+          "title": "Long-context relationship: \"Prompts with >272K input tokens are priced at 2x input and 1.5x output for the full request.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-sol-github-pricing": {
+      "id": "gpt-5-6-sol-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "4.00",
+        "output": "20.00",
+        "cacheRead": "0.40",
+        "cacheWrite": "5.00",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "8.00",
+            "output": "30.00",
+            "cacheRead": "0.80",
+            "cacheWrite": "10.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.6 Sol (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Sol | GA | Powerful | Long context | > 272K | $8.00 | $0.80 | $10.00 | $30.00",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7751,17 +8825,109 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-6-sol",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "4.00",
         "output": "20.00",
         "cacheRead": "0.40",
-        "cacheWrite": "5.00"
+        "cacheWrite": "5.00",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "8.00",
+            "output": "30.00",
+            "cacheRead": "0.80",
+            "cacheWrite": "10.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.6 Sol API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\". Promotional: \"GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026.\" (note printed under the official Standard pricing table; the model page repeats it.)",
+          "title": "GPT-5.6 Sol API list pricing (short-context row). Promotional pricing note: \"GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "Long-context rates row: \"gpt-5.6-sol | $4.00 | $0.40 | $5.00 | $20.00 | $8.00 | $0.80 | $10.00 | $30.00\" (short input | cached input | cache writes | output | long input | long cached | long writes | long output).",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-terra-github-pricing": {
+      "id": "gpt-5-6-terra-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-terra",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "12.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "18.00",
+            "cacheRead": "0.40",
+            "cacheWrite": "5.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5.6 Terra (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Terra | GA | Versatile | Long context | > 272K | $4.00 | $0.40 | $5.00 | $18.00",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7774,17 +8940,93 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-6-terra",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "2.00",
         "output": "12.00",
         "cacheRead": "0.20",
-        "cacheWrite": "2.50"
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "18.00",
+            "cacheRead": "0.40",
+            "cacheWrite": "5.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5.6 Terra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5.6 Terra API list pricing (short-context row).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+          "title": "Long-context relationship: \"Prompts with >272K input tokens are priced at 2x input and 1.5x output for the full request.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-mini-github-pricing": {
+      "id": "gpt-5-mini-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-mini",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.25",
+        "output": "2.00",
+        "cacheRead": "0.025",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-5 mini (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7797,16 +9039,93 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-5-mini",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "0.25",
         "output": "2.00",
-        "cacheRead": "0.03"
+        "cacheRead": "0.025",
+        "cacheWrite": {
+          "billedAs": "input"
+        },
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-5 mini API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-5 mini API list pricing; published cache-read rate is exactly \"$0.025\". \"Maximum input tokens: 272,000\" (no long-context tier).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+          "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-astra-github-pricing": {
+      "id": "gpt-6-astra-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-astra",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "1.00",
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (GitHub long-context tier)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "20.00",
+            "output": "75.00",
+            "cacheRead": "2.00",
+            "cacheWrite": "25.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing table row for GPT-6 Astra (per 1M tokens).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot billing long-context row (verbatim): GPT-6 Astra | GA | Powerful | Long context | > 272K | $20.00 | $2.00 | $25.00 | $75.00",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -7819,17 +9138,49 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelId": "gpt-6-astra",
       "currency": "USD",
       "unit": "per_1m_tokens",
+      "basis": "api_list_price",
       "rates": {
         "input": "10.00",
         "output": "50.00",
         "cacheRead": "1.00",
-        "cacheWrite": "12.50"
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
       },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "20.00",
+            "output": "75.00",
+            "cacheRead": "2.00",
+            "cacheWrite": "25.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
           "url": "https://developers.openai.com/api/docs/pricing",
-          "title": "GPT-6 Astra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "title": "GPT-6 Astra API list pricing (short-context row).",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "title": "Long-context relationship: \"Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request.\"",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
           "checkedAt": "2026-09-21"
         }
       ],

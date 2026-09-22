@@ -8,17 +8,38 @@ aliases:
     alias: "deepseek/deepseek-v4.1-flash"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+        title: "OpenRouter model record `deepseek/deepseek-v4.1-flash` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
-  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash
+  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-t3-code
     alias: "deepseek-v4.1-flash"
     kind: harness_alias
+    harness: t3-code
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "Bare form of the OpenRouter id deepseek/deepseek-v4.1-flash, without the author prefix; the router publishes the prefixed id, not this spelling"
+      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-opencode
+    alias: "deepseek-v4.1-flash"
+    kind: harness_alias
+    harness: opencode
+    sources:
+      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-hermes
+    alias: "deepseek-v4.1-flash"
+    kind: harness_alias
+    harness: hermes
+    sources:
+      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: estimated

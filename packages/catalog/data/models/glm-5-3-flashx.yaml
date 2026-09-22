@@ -8,8 +8,8 @@ aliases:
     alias: "z-ai/glm-5.3-flashx"
     kind: harness_alias
     sources:
-      - url: https://openrouter.ai/docs/overview/models
-        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+      - url: https://openrouter.ai/z-ai/glm-5.3-flashx
+        title: "OpenRouter model record `z-ai/glm-5.3-flashx` (exact id as published in the model list)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified

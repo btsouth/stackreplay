@@ -1,0 +1,41 @@
+id: gpt-5-6-sol-github-pricing
+role: pricing
+modelId: gpt-5-6-sol
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+rates:
+  input: "4.00"
+  output: "20.00"
+  cacheRead: "0.40"
+  cacheWrite: "5.00"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens (GitHub long-context tier)"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "8.00"
+      output: "30.00"
+      cacheRead: "0.80"
+      cacheWrite: "10.00"
+      reasoning:
+        billedAs: output
+effectiveFrom: 2026-09-21
+sources:
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'GitHub Copilot target billing: "additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD)."'
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'GitHub Copilot billing table row for GPT-5.6 Sol (per 1M tokens).'
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'Thinking-token billing relationship: GitHub bills "output tokens (what the model generates)" at the published Output rate and publishes no separate reasoning category.'
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+        title: 'GitHub Copilot billing long-context row (verbatim): GPT-5.6 Sol | GA | Powerful | Long context | > 272K | $8.00 | $0.80 | $10.00 | $30.00'
+        checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

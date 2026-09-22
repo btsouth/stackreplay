@@ -3,15 +3,36 @@ role: pricing
 modelId: gpt-5-6-luna
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "0.20"
   output: "1.20"
   cacheRead: "0.02"
   cacheWrite: "0.25"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "0.40"
+      output: "1.80"
+      cacheRead: "0.04"
+      cacheWrite: "0.50"
+      reasoning:
+        billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://developers.openai.com/api/docs/pricing
-    title: "GPT-5.6 Luna API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\""
-    checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/pricing
+        title: 'GPT-5.6 Luna API list pricing (short-context row).'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/models/gpt-5.6-luna
+        title: 'Long-context relationship: "Prompts with >272K input tokens are priced at 2x input and 1.5x output for the full request."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/guides/reasoning
+        title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

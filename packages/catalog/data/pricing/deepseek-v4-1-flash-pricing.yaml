@@ -3,14 +3,33 @@ role: pricing
 modelId: deepseek-v4-1-flash
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
-  input: "0.30"
-  output: "1.20"
-  cacheRead: "0.01"
+  input: "0.15"
+  output: "0.6"
+  cacheRead: "0.003"
+tiers:
+  - id: peak-hours
+    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)"
+    when:
+      utcWindows:
+        - days: [mon, tue, wed, thu, fri]
+          start: "01:00"
+          end: "04:00"
+        - days: [mon, tue, wed, thu, fri]
+          start: "06:00"
+          end: "10:00"
+    rates:
+      input: "0.3"
+      output: "1.2"
+      cacheRead: "0.006"
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://api-docs.deepseek.com/quick_start/pricing
-    title: "DeepSeek-V4.1-Flash API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens."
-    checkedAt: 2026-09-21
+      - url: https://api-docs.deepseek.com/quick_start/pricing
+        title: 'DeepSeek-V4.1-Flash peak/off-peak schedule: "Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full." Base rates are the documented off-peak rates; the tier is the documented peak window.'
+        checkedAt: 2026-09-21
+      - url: https://api-docs.deepseek.com/quick_start/pricing
+        title: 'Rate rows: cache hit "OFF-PEAK | $0.003" / "PEAK | $0.006"; cache miss "OFF-PEAK | $0.15" / "PEAK | $0.3"; output "OFF-PEAK | $0.6" / "PEAK | $1.2" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

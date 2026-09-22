@@ -3,15 +3,36 @@ role: pricing
 modelId: gpt-6-astra
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "10.00"
   output: "50.00"
   cacheRead: "1.00"
   cacheWrite: "12.50"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "20.00"
+      output: "75.00"
+      cacheRead: "2.00"
+      cacheWrite: "25.00"
+      reasoning:
+        billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://developers.openai.com/api/docs/pricing
-    title: "GPT-6 Astra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\""
-    checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/pricing
+        title: 'GPT-6 Astra API list pricing (short-context row).'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/models/gpt-6-astra
+        title: 'Long-context relationship: "Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/guides/reasoning
+        title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

@@ -139,3 +139,22 @@ export function dateRangeContains(date: string, from: string, to?: string): bool
 export function utcDateOf(instant: Temporal.Instant): string {
   return instant.toZonedDateTimeISO("UTC").toPlainDate().toString();
 }
+
+/**
+ * UTC wall-clock position of an epoch-millisecond instant (M4A pricing
+ * remediation). Used to select conditional pricing tiers with time-of-day
+ * schedules. Reads no clock and no locale state; the weekday is 0 = Sunday
+ * through 6 = Saturday and `minutes` counts minutes since midnight UTC.
+ */
+export interface UtcWallClock {
+  day: number;
+  minutes: number;
+}
+
+export function utcWallClock(atMs: number): UtcWallClock {
+  const date = new Date(atMs);
+  return {
+    day: date.getUTCDay(),
+    minutes: date.getUTCHours() * 60 + date.getUTCMinutes(),
+  };
+}

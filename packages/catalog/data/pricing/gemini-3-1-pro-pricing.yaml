@@ -3,14 +3,34 @@ role: pricing
 modelId: gemini-3-1-pro
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "2.00"
   output: "12.00"
   cacheRead: "0.20"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: over-200k
+    label: "Prompts > 200k tokens"
+    when:
+      inputTokensAbove: 200000
+    rates:
+      input: "4.00"
+      output: "18.00"
+      cacheRead: "0.40"
+      reasoning:
+        billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://ai.google.dev/gemini-api/docs/pricing
-    title: "Gemini 3.1 Pro API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price."
-    checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Gemini 3.1 Pro API list pricing (prompts <= 200k tier). No cache-write rate is published; context caching is a read rate plus a per-hour storage price.'
+        checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Thinking-token billing relationship: "Output price (including thinking tokens)".'
+        checkedAt: 2026-09-21
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: 'Long-context tier rows: "$2.00, prompts <= 200k tokens" / "$4.00, prompts > 200k tokens" (input) and "$12.00, prompts <= 200k tokens$18.00, prompts > 200k" (output).'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

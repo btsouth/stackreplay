@@ -7,9 +7,12 @@ import {
   modelV1Schema,
   type PlanLimitV1,
   type PlanV1,
+  type PricingRateSetV1,
+  type PricingV1,
   planV1Schema,
   pricingV1Schema,
   providerV1Schema,
+  type UtcTimeWindowV1,
 } from "./schema.js";
 
 /**
@@ -382,6 +385,137 @@ function checkLimit(
   }
 }
 
+/**
+ * Pricing semantics (M4A pricing remediation): a `billedAs` relationship must
+ * name a different category with a published amount in the same rate set (no
+ * chains, no cycles), a tier is a complete alternative rate set, and tier
+ * conditions cannot overlap. With at most one input-token tier and pairwise
+ * disjoint UTC windows, at most one tier can match any event, so rate selection
+ * never depends on declaration order.
+ */
+const RATE_CATEGORIES = ["input", "output", "cacheRead", "cacheWrite", "reasoning"] as const;
+
+function minutesOfDay(value: string): number {
+  return Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
+}
+
+function timeWindowsOverlap(a: UtcTimeWindowV1, b: UtcTimeWindowV1): boolean {
+  if (!a.days.some((day) => b.days.includes(day))) return false;
+  return minutesOfDay(a.start) < minutesOfDay(b.end) && minutesOfDay(b.start) < minutesOfDay(a.end);
+}
+
+function checkRateSet(
+  rates: PricingRateSetV1,
+  prefix: string,
+  file: string,
+  issues: CatalogValidationIssue[],
+): void {
+  for (const category of RATE_CATEGORIES) {
+    const value = rates[category];
+    if (value === undefined || typeof value === "string") continue;
+    const target = rates[value.billedAs];
+    if (value.billedAs === category || target === undefined || typeof target !== "string") {
+      issues.push({
+        severity: "error",
+        code: "PRICING_EQUIVALENCE_INVALID",
+        message: `${prefix}: rate "${category}" declares billedAs "${value.billedAs}", which must name a different category with a published amount in the same rate set`,
+        file,
+      });
+    }
+  }
+}
+
+function checkPricingSemantics(
+  pricing: PricingV1,
+  file: string,
+  issues: CatalogValidationIssue[],
+): void {
+  const prefix = `pricing "${pricing.id}"`;
+  checkRateSet(pricing.rates, `${prefix}: base rates`, file, issues);
+  const tierIds = new Set<string>();
+  let inputTierSeen = false;
+  const windows: Array<{ tier: string; window: UtcTimeWindowV1 }> = [];
+
+  for (const tier of pricing.tiers ?? []) {
+    const tierPrefix = `${prefix}: tier "${tier.id}"`;
+    if (tierIds.has(tier.id)) {
+      issues.push({
+        severity: "error",
+        code: "PRICING_TIER_ID_DUPLICATE",
+        message: `${prefix}: duplicate tier id "${tier.id}"`,
+        file,
+      });
+    }
+    tierIds.add(tier.id);
+    checkRateSet(tier.rates, tierPrefix, file, issues);
+    const baseKeys = RATE_CATEGORIES.filter((category) => pricing.rates[category] !== undefined);
+    const tierKeys = RATE_CATEGORIES.filter((category) => tier.rates[category] !== undefined);
+    if (baseKeys.join(",") !== tierKeys.join(",")) {
+      issues.push({
+        severity: "error",
+        code: "PRICING_TIER_RATES_INCOMPLETE",
+        message: `${tierPrefix}: a tier must establish exactly the categories of the base rates; it is a complete alternative rate set, never a partial override`,
+        file,
+      });
+    }
+    if ("inputTokensAbove" in tier.when) {
+      if (inputTierSeen || windows.length > 0) {
+        issues.push({
+          severity: "error",
+          code: "PRICING_TIER_OVERLAP",
+          message: `${prefix}: mixes request-size and time-of-day tier conditions; at most one condition family is allowed so rate selection can never depend on declaration order`,
+          file,
+        });
+      }
+      inputTierSeen = true;
+      continue;
+    }
+    if (inputTierSeen) {
+      issues.push({
+        severity: "error",
+        code: "PRICING_TIER_OVERLAP",
+        message: `${prefix}: mixes request-size and time-of-day tier conditions; at most one condition family is allowed so rate selection can never depend on declaration order`,
+        file,
+      });
+    }
+    for (const window of tier.when.utcWindows) {
+      if (minutesOfDay(window.end) <= minutesOfDay(window.start)) {
+        issues.push({
+          severity: "error",
+          code: "PRICING_TIER_WINDOW_INVALID",
+          message: `${tierPrefix}: window ${window.start}-${window.end} must be half-open with start before end; a schedule that wraps midnight is not representable and must not be flattened`,
+          file,
+        });
+      }
+      if (new Set(window.days).size !== window.days.length) {
+        issues.push({
+          severity: "error",
+          code: "PRICING_TIER_WINDOW_INVALID",
+          message: `${tierPrefix}: a window names a weekday more than once`,
+          file,
+        });
+      }
+      windows.push({ tier: tier.id, window });
+    }
+  }
+
+  for (let i = 0; i < windows.length; i += 1) {
+    for (let j = i + 1; j < windows.length; j += 1) {
+      const a = windows[i];
+      const b = windows[j];
+      if (a === undefined || b === undefined || a.tier === b.tier) continue;
+      if (timeWindowsOverlap(a.window, b.window)) {
+        issues.push({
+          severity: "error",
+          code: "PRICING_TIER_OVERLAP",
+          message: `${prefix}: tiers "${a.tier}" and "${b.tier}" have overlapping UTC windows, so more than one rate set could match one event`,
+          file,
+        });
+      }
+    }
+  }
+}
+
 export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue[] {
   const issues: CatalogValidationIssue[] = [];
 
@@ -516,9 +650,10 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
         file: entry.file,
       });
     }
+    checkPricingSemantics(entry.value, entry.file, issues);
     pricingRanges.push({
       file: entry.file,
-      label: `pricing:${entry.value.modelId}`,
+      label: `pricing:${entry.value.modelId}:${entry.value.basis}`,
       range: {
         from: entry.value.effectiveFrom,
         ...(entry.value.effectiveTo !== undefined ? { to: entry.value.effectiveTo } : {}),

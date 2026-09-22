@@ -3,11 +3,13 @@ role: pricing
 modelId: example-small
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "0.10"
   output: "0.40"
   cacheRead: "0.01"
   cacheWrite: "0.12"
+  reasoning: "0.50"
 effectiveFrom: 2026-01-01
 sources:
   - url: https://example.invalid/pricing/example-small

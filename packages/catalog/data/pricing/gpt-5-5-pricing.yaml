@@ -3,14 +3,41 @@ role: pricing
 modelId: gpt-5-5
 currency: USD
 unit: per_1m_tokens
+basis: api_list_price
 rates:
   input: "5.00"
   output: "30.00"
   cacheRead: "0.50"
+  cacheWrite:
+    billedAs: input
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "10.00"
+      output: "45.00"
+      cacheRead: "1.00"
+      cacheWrite:
+        billedAs: input
+      reasoning:
+        billedAs: output
 effectiveFrom: 2026-09-21
 sources:
-  - url: https://developers.openai.com/api/docs/pricing
-    title: "GPT-5.5 API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\""
-    checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/pricing
+        title: 'GPT-5.5 API list pricing (row "gpt-5.5 (<272K context length)").'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/models/gpt-5.5
+        title: 'Long-context relationship: "For GPT-5.5, prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/guides/reasoning
+        title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
+        checkedAt: 2026-09-21
+      - url: https://developers.openai.com/api/docs/guides/prompt-caching
+        title: 'Cache-write billing relationship: "Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate." Earlier models: "No additional cache-write charge".'
+        checkedAt: 2026-09-21
 lastVerifiedAt: 2026-09-21
 verificationStatus: verified

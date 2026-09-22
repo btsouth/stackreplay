@@ -17,11 +17,11 @@ model can now declare `aliases`, each with its own kind, optional harness scope,
 verification state, and one shared resolver (`createModelIdentityIndex`) is used by the adapters and
 the replay engine alike. Resolution is exact id, then canonical name, then a declared alias, then
 unresolved with a reason. There is no fuzzy matching, no prefix or substring matching and no provider
-inference. The catalog carries 37 aliases: 33 verified (the provider's own documented id, or a slug
-OpenRouter publishes in its models API) and 4 estimated (a router slug with the author prefix dropped,
-which the router does not itself publish as an identifier).
+inference. The catalog carries 35 aliases: 33 verified (the provider's own documented id, or a slug
+OpenRouter publishes in its models API) and 2 estimated (a router slug with the author prefix dropped,
+which the router does not itself publish as an identifier; scoped to the harnesses that emit them).
 
-**Sourced API list pricing.** 24 pricing records cover the models real workloads run, each recording
+**Sourced API list pricing.** 24 models carry sourced pricing records, each recording
 only the categories the provider documents: input and output always, cache reads and cache writes
 where published. OpenAI and Google document reasoning tokens as billed output; Anthropic bills
 thinking inside output; DeepSeek and Z.ai do not document the category at all, so it is absent from
@@ -95,6 +95,45 @@ is the single place that names those paths, and the UI package receives them as 
 Full structure, data flow and testing notes: `docs/PUBLIC_SITE.md`. Decisions 30 to 33 in
 `docs/ARCHITECTURE_DECISIONS.md` record local-first-not-local-only, the brand rule, the share
 architecture and the catalog policy.
+
+### M4A pricing remediation (2026-09-22)
+
+The M4A pricing layer was rebuilt around sourced rate sets: the numbers one provider publishes for
+one model on one billing basis. 41 pricing records cover the 24 models on two bases (`api_list_price`
+and GitHub's target billing for the Copilot plans), and the schema now validates the relationships
+between categories rather than trusting flat numbers.
+
+- **Billing equivalences replace fallbacks.** `reasoning` is priced through an explicit, sourced
+  `billedAs` relationship where the provider documents one: Anthropic ("Tokens Claude uses while
+  thinking (billed as output tokens)"), OpenAI ("billed as output tokens"), Google ("Output price
+  (including thinking tokens)"), GitHub ("output tokens (what the model generates)"). DeepSeek and
+  Z.ai publish no such relationship, so reasoning stays absent from their records and unknown in
+  results, never guessed at an output rate.
+- **Published rates changed by tiers are now recorded.** DeepSeek's peak schedule (01:00-04:00 and
+  06:00-10:00 UTC, Monday-Friday, excluding Chinese public holidays) is a conditional tier over the
+  documented off-peak base. The long-context tiers are recorded at their published thresholds:
+  >272K input (2x input and cache rates, 1.5x output, for the full request) and >200K for
+  GPT-5.6 Luna at GitHub; Google's Gemini 3.1 Pro >200k tier and the Gemini 3.8 Flash rates valid
+  through 2026-12-31 with the 2027 rates behind `effectiveTo`.
+- **Exact published decimals.** The ingestion's two-decimal formatter had flattened published rates
+  ($0.075 became `0.07`); every rate now carries the decimal string the provider prints (`0.075`,
+  `0.175`, `0.025`, `0.003`, `0.006`), and one-decimal rows stay one-decimal (Z.ai `1.4`/`4.4`,
+  DeepSeek `0.3`/`0.6`/`1.2`). Money is computed at full precision and rounded only when displayed.
+- **Alias provenance scope.** The estimated bare-router aliases now carry exactly the scope their
+  evidence supports: `deepseek-v4.1-flash` and `glm-5.3-flash` are scoped to the observing harnesses
+  (`t3-code`, `opencode`, `hermes`); `glm-5.3` and `claude-opus-4.8` were removed where no source
+  supports the bare form. Verified prefix aliases cite the exact router model record.
+
+**Corrected measurement** (the real 97,031-event export against `github-copilot-pro` at
+`rulesAsOf 2026-09-21`, production engine, target billing records): credit-pool consumption
+**$18,200.728869** ($18,200.73 presented), overage $18,170.728869, target cost $18,180.728869
+against the $10.00 base. The corrected pricing path reproduces the M4A figures to the cent, so
+$18,200.73 stands as an accepted measurement. Unresolved models remain exactly 153 events across
+the same ten spellings. The credit-pool constraint reports 0 indeterminate events (feasibility
+`partial` on request coverage: 82.72%), and no reasoning or cache category stays unknown for any
+model the Copilot plans serve: 11,292 events consume reasoning on DeepSeek/Z.ai models where no
+billing relationship is documented, those stay unknown and outside the served set, and 16 events
+reporting no complete token accounting keep usage coverage unknown.
 
 ### Known limitations at M4
 
