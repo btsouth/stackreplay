@@ -435,7 +435,15 @@ describe("built CLI entry point", () => {
         XDG_CONFIG_HOME: join(homeDir, ".config"),
         NO_COLOR: "1",
       };
-      for (const args of [["--version"], ["detect"], ["plans", "--json"], ["scan", "--json"]]) {
+      // `plans` defaults its rule date to today, which differs between the spawned
+      // process (real clock) and the in-process run (fixture clock), so the date is
+      // pinned here instead of making this test depend on the day it runs.
+      for (const args of [
+        ["--version"],
+        ["detect"],
+        ["plans", "--json", "--as-of", "2026-09-21"],
+        ["scan", "--json"],
+      ]) {
         const result = spawnSync(process.execPath, [bin, ...args], {
           encoding: "utf8",
           env: environment,
