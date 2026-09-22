@@ -51,15 +51,16 @@ Two rules keep this honest:
 
 ## What the launch catalog contains
 
-5 providers, 19 plans and 43 models of sourced product data, alongside the synthetic `example-`
+5 providers, 19 plans and 42 models of sourced product data, alongside the synthetic `example-`
 development set. Every real entry carries at least one source URL with a `checkedAt` date, a
 `lastVerifiedAt` date and a verification state.
 
 Numeric limits exist only where a provider states a number **and** a window a replay can simulate
-over. That is 7 limits across 7 plans: GitHub Copilot AI credits on Pro, Pro+, Business and Enterprise
-(converted at the documented `$0.01` per credit, with the conversion written into the limit label),
-GitHub Copilot Free inline suggestion completions, and Anthropic's daily usage-credit redemption cap
-on Pro and Max 20x. Everything else the providers state
+over. That is 5 limits across 5 plans, all GitHub Copilot: AI credits on Pro, Pro+, Business and
+Enterprise (converted at the documented `$0.01` per credit, with the conversion written into the
+limit label) and Copilot Free inline suggestion completions. Anthropic's `$2000` daily redemption
+figure is a usage-credit funding rule rather than simulated workload capacity, so Pro, Max 5x and
+Max 20x record it qualitatively, as they do the `$2000/month` discounted-bundle purchase cap. Everything else the providers state
 without a number is recorded as a qualitative limit carrying the provider's own wording, and the
 pages label it as such rather than converting it into an amount the catalog cannot source. A plan
 with no numeric limit is valid and renders its qualitative statements only.

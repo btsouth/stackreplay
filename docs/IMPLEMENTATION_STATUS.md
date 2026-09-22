@@ -10,16 +10,18 @@ the result schema, the accounting rules or the browser-local architecture.
 
 Three deliverables, one of which is data rather than code.
 
-**Sourced launch catalog.** The catalog now carries 5 providers, 19 plans and 43 models of real
+**Sourced launch catalog.** The catalog now carries 5 providers, 19 plans and 42 models of real
 product data, alongside the synthetic `example-` development set that demo workloads, fixtures and
 tests use. Every real entry carries at least one source URL with a `checkedAt` date, a
 `lastVerifiedAt` date and a verification state; the public read model and the sitemap filter the
 synthetic namespace out, so synthetic data is never published as a real claim.
 
 Only facts a provider publishes were recorded. Numeric limits exist only where a provider states a
-number *and* a window a replay can simulate over: 7 numeric limits across 7 plans (GitHub Copilot AI
-credits on Pro, Pro+, Business and Enterprise, GitHub Copilot Free inline-suggestion completions, and
-Anthropic's daily usage-credit redemption cap on Pro and Max 20x).
+number *and* a window a replay can simulate over: 5 numeric limits across 5 plans, all GitHub Copilot
+(AI credits on Pro, Pro+, Business and Enterprise, plus Copilot Free inline-suggestion completions).
+Anthropic's `$2000` daily figure belongs to the usage-credit funding flow, not to simulated workload
+capacity, so it is recorded qualitatively on Pro, Max 5x and Max 20x rather than as a replay limit;
+the `$2000/month` discounted-bundle cap is a billing rule and is recorded the same way.
 Everything else the providers state without a number ("5x more usage", "significantly more included
 usage", "generous limits", "unlimited") is recorded as a qualitative limit carrying the provider's
 own wording, and the interface states it as qualitative. No number was invented to fill a shape, and

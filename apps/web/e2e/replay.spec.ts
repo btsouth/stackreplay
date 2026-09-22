@@ -118,3 +118,24 @@ test("a replay can be re-run for a different target without leaving the page", a
   expect(secondHeadline).not.toBe(firstHeadline);
   await expect(page.getByTestId("replay-result")).toContainText("example-cloud-pro");
 });
+
+test("the share panel discloses what a link reveals before one is created", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+  await runReplay(page, "example-cloud-starter");
+
+  const panel = page.getByTestId("share-panel");
+  await expect(panel).toBeVisible();
+  // Creation-time disclosure: possession of the URL is access, and the payload is not
+  // encrypted. It must not read as a security guarantee.
+  await expect(page.getByTestId("share-disclosure")).toHaveText(
+    /Anyone with this link can read the aggregate numbers it contains\. The link is not encrypted\./u,
+  );
+  await expect(panel).not.toContainText(/tamper-proof|authenticat|signed|verif/u);
+
+  await panel.getByTestId("share-create").click();
+  const url = page.getByTestId("share-url");
+  await expect(url).toBeVisible();
+  expect(await url.textContent()).toContain("/s/");
+  await expect(page.getByTestId("share-open")).toBeVisible();
+});

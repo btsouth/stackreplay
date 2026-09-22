@@ -90,6 +90,10 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
           versions. It never contains events, sessions, projects, prompts, responses, file names or
           paths.
         </p>
+        <p className="text-xs text-muted-foreground" data-testid="share-disclosure">
+          Anyone with this link can read the aggregate numbers it contains. The link is not
+          encrypted.
+        </p>
       </div>
 
       <fieldset className="flex flex-col gap-2">

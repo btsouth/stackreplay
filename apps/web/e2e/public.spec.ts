@@ -72,6 +72,9 @@ test.describe("public site", () => {
     }
     expect(sitemap).not.toContain("/app/");
     expect(sitemap).not.toContain("/s/");
+    // The synthetic `example-` development catalog is fixtures and demos, never a
+    // published claim, so no synthetic plan or model id may reach the sitemap.
+    expect(sitemap).not.toMatch(/example-/u);
   });
 
   test("plan pages publish sources and verification, not bare prices", async ({ page }) => {

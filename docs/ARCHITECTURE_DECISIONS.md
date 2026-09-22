@@ -465,6 +465,13 @@ The launch catalog publishes sourced facts about real plans and nothing else.
   provider's own wording, and the UI states it as qualitative. A plan version may
   therefore ship with zero numeric limits and only qualitative statements; the
   validator requires at least one limit of either kind.
+- **A sourced number is not automatically a replay limit.** A limit is recorded
+  numerically only when the provider documents it as consumption capacity over a
+  window a replay can simulate. A figure that belongs to funding, prepayment,
+  redemption or purchasing (Anthropic's `$2000` daily usage-credit redemption
+  limit and `$2000/month` discounted-bundle purchase cap) is recorded as a sourced
+  qualitative fact with a label that says what it is, because simulating it as
+  capacity would claim admission behaviour the provider never documented.
 - **Derived values state their basis.** GitHub AI credits are stored in USD only
   because GitHub documents the conversion rate; the limit label carries the
   conversion so a reader can check it.

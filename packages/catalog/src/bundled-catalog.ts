@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:a92d427d58ad6ddf2d80573257a6511d10d5782029e61c64538538868e5cfa29";
+export const BUNDLED_CATALOG_VERSION = "sha256:3c43d90921e5cc042e1aef65c2dc0b46a706f6e5cc0a1dd2a33e9ff4675479ad";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:a92d427d58ad6ddf2d80573257a6511d10d5782029e61c64538538868e5cfa29",
+  "catalogVersion": "sha256:3c43d90921e5cc042e1aef65c2dc0b46a706f6e5cc0a1dd2a33e9ff4675479ad",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -985,20 +985,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "interval": "month"
           },
           "billingMechanics": "Official pricing: 'Max 20x : $200 per month'.",
-          "limits": [
-            {
-              "id": "daily-credit-redemption",
-              "label": "Daily usage-credit redemption limit",
-              "type": "credit_pool",
-              "amount": "2000.00",
-              "window": {
-                "type": "calendar",
-                "unit": "day",
-                "timezone": "UTC"
-              },
-              "exceed": "reject_request"
-            }
-          ],
+          "limits": [],
           "qualitativeLimits": [
             {
               "id": "per-session-usage-allowance-multiple-of-pro",
@@ -1035,6 +1022,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "label": "Usage credits (opt-in pay-as-you-go overage)",
               "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
               "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
+              "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+              "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+              "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
             },
             {
               "id": "what-the-provider-does-not-publish",
@@ -1078,6 +1077,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
               "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-21"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+              "title": "Anthropic plan documentation (official)",
               "checkedAt": "2026-09-21"
             },
             {
@@ -1145,9 +1149,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
-              "label": "Discounted usage-bundle purchase cap (Pro and Max)",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
               "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
               "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+            },
+            {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
             },
             {
               "id": "what-the-provider-does-not-publish",
@@ -1199,6 +1209,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "checkedAt": "2026-09-21"
             },
             {
+              "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-21"
+            },
+            {
               "url": "https://claude.com/pricing",
               "title": "Anthropic pricing (official)",
               "checkedAt": "2026-09-21"
@@ -1223,20 +1238,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "interval": "month"
           },
           "billingMechanics": "Monthly price is $20 (pricing page card: '$17 Per month with annual subscription discount ( $200 billed up front).",
-          "limits": [
-            {
-              "id": "daily-credit-redemption",
-              "label": "Daily usage-credit redemption limit",
-              "type": "credit_pool",
-              "amount": "2000.00",
-              "window": {
-                "type": "calendar",
-                "unit": "day",
-                "timezone": "UTC"
-              },
-              "exceed": "reject_request"
-            }
-          ],
+          "limits": [],
           "qualitativeLimits": [
             {
               "id": "5-hour-session-usage-limit-rolling",
@@ -1269,8 +1271,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
             },
             {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
               "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
-              "label": "Discounted usage-bundle purchase cap (Pro and Max)",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
               "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
               "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
             },
@@ -3661,20 +3669,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "interval": "month"
       },
       "billingMechanics": "Official pricing: 'Max 20x : $200 per month'.",
-      "limits": [
-        {
-          "id": "daily-credit-redemption",
-          "label": "Daily usage-credit redemption limit",
-          "type": "credit_pool",
-          "amount": "2000.00",
-          "window": {
-            "type": "calendar",
-            "unit": "day",
-            "timezone": "UTC"
-          },
-          "exceed": "reject_request"
-        }
-      ],
+      "limits": [],
       "qualitativeLimits": [
         {
           "id": "per-session-usage-allowance-multiple-of-pro",
@@ -3711,6 +3706,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "label": "Usage credits (opt-in pay-as-you-go overage)",
           "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
           "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
+          "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+          "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+          "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
         },
         {
           "id": "what-the-provider-does-not-publish",
@@ -3754,6 +3761,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
           "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-21"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+          "title": "Anthropic plan documentation (official)",
           "checkedAt": "2026-09-21"
         },
         {
@@ -3817,9 +3829,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
-          "label": "Discounted usage-bundle purchase cap (Pro and Max)",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
           "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
           "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+        },
+        {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
         },
         {
           "id": "what-the-provider-does-not-publish",
@@ -3871,6 +3889,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-21"
         },
         {
+          "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-21"
+        },
+        {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
           "checkedAt": "2026-09-21"
@@ -3891,20 +3914,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "interval": "month"
       },
       "billingMechanics": "Monthly price is $20 (pricing page card: '$17 Per month with annual subscription discount ( $200 billed up front).",
-      "limits": [
-        {
-          "id": "daily-credit-redemption",
-          "label": "Daily usage-credit redemption limit",
-          "type": "credit_pool",
-          "amount": "2000.00",
-          "window": {
-            "type": "calendar",
-            "unit": "day",
-            "timezone": "UTC"
-          },
-          "exceed": "reject_request"
-        }
-      ],
+      "limits": [],
       "qualitativeLimits": [
         {
           "id": "5-hour-session-usage-limit-rolling",
@@ -3937,8 +3947,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
         },
         {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
           "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
-          "label": "Discounted usage-bundle purchase cap (Pro and Max)",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
           "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
           "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
         },

@@ -9,16 +9,7 @@ versions:
       amount: "200"
       interval: month
     billingMechanics: "Official pricing: 'Max 20x : $200 per month'."
-    limits:
-      - id: daily-credit-redemption
-        label: "Daily usage-credit redemption limit"
-        type: credit_pool
-        amount: "2000.00"
-        exceed: reject_request
-        window:
-          type: calendar
-          unit: day
-          timezone: UTC
+    limits: []
     qualitativeLimits:
       - id: per-session-usage-allowance-multiple-of-pro
         label: "Per-session usage allowance (multiple of Pro)"
@@ -44,6 +35,14 @@ versions:
         label: "Usage credits (opt-in pay-as-you-go overage)"
         statement: "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits."
         sourceUrl: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+      - id: usage-credit-daily-redemption-limit
+        label: "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)"
+        statement: "There is a daily redemption limit of $2000."
+        sourceUrl: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+      - id: discounted-usage-bundle-purchase-cap-pro-and-max
+        label: "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)"
+        statement: "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates."
+        sourceUrl: https://support.claude.com/en/articles/14246112-buy-usage-bundles
       - id: what-the-provider-does-not-publish
         label: "What the provider does not publish"
         statement: "Same as Max 5x: no absolute numeric allowance published; only the 20x multiple relative to Pro, whose own allowance is unquantified."
@@ -67,6 +66,9 @@ versions:
         checkedAt: 2026-09-21
       - url: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
         title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/14246112-buy-usage-bundles
+        title: "Anthropic plan documentation (official)"
         checkedAt: 2026-09-21
       - url: https://claude.com/pricing
         title: "Anthropic pricing (official)"

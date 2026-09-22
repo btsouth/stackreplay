@@ -336,6 +336,68 @@ describe("loader", () => {
   });
 });
 
+describe("launch catalog: Anthropic usage-credit semantics", () => {
+  /**
+   * Anthropic's $2000 daily figure is a usage-credit *funding* rule: it belongs to the
+   * prepaid Add Funds / auto-reload flow, not to how much workload the plan will admit
+   * before rejecting requests. Recording it as a numeric replay limit would let a replay
+   * simulate capacity Anthropic never documented, so it is a sourced qualitative fact on
+   * every individual paid tier instead. The $2000/month discounted-bundle cap is a
+   * billing rule for the same reason.
+   */
+  const paidTiers = ["anthropic-claude-pro", "anthropic-claude-max-5x", "anthropic-claude-max-20x"];
+
+  it("exposes no numeric replay limit on any individual paid Anthropic tier", () => {
+    const catalog = loadDefaultCatalog();
+    for (const planId of paidTiers) {
+      const version = required(catalog.plans[planId]).versions[0];
+      expect(version?.limits).toEqual([]);
+      expect(version?.limits.some((limit) => limit.id === "daily-credit-redemption")).toBe(false);
+    }
+  });
+
+  it("records both documented usage-credit facts qualitatively, with sources", () => {
+    const catalog = loadDefaultCatalog();
+    for (const planId of paidTiers) {
+      const version = required(catalog.plans[planId]).versions[0];
+      const statements = (version?.qualitativeLimits ?? []).map((limit) => limit.statement);
+      const redemption = (version?.qualitativeLimits ?? []).find((limit) =>
+        limit.statement.includes("daily redemption limit of $2000"),
+      );
+      const bundleCap = (version?.qualitativeLimits ?? []).find((limit) =>
+        limit.statement.includes("$2000 worth of discounted bundles per month"),
+      );
+      expect(statements.length).toBeGreaterThan(0);
+      expect(redemption?.sourceUrl).toBe(
+        "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+      );
+      expect(bundleCap?.sourceUrl).toBe(
+        "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+      );
+      // The label has to keep a reader from reading a funding rule as simulated capacity.
+      expect(redemption?.label).toContain("not simulated workload capacity");
+    }
+  });
+
+  it("keeps numeric replay limits to the plans that document a consumable allowance", () => {
+    const catalog = loadDefaultCatalog();
+    const numeric = Object.values(catalog.plans)
+      // The synthetic `example-` development plans are fixtures, not launch claims.
+      .filter((plan) => !plan.id.startsWith("example-"))
+      .flatMap((plan) =>
+        plan.versions.flatMap((version) =>
+          version.limits.map((limit) => ({ planId: plan.id, providerId: plan.providerId, limit })),
+        ),
+      );
+    // Five limits across five plans, all GitHub Copilot. A new numeric limit means a
+    // provider documented a consumable allowance with a simulatable window, so this
+    // count is expected to change deliberately, never incidentally.
+    expect(numeric).toHaveLength(5);
+    expect(new Set(numeric.map((entry) => entry.planId)).size).toBe(5);
+    expect(new Set(numeric.map((entry) => entry.providerId))).toEqual(new Set(["github"]));
+  });
+});
+
 describe("canonicalize", () => {
   it("is independent of key order", () => {
     const a = { b: 1, a: { d: 2, c: [3, 4] } };
