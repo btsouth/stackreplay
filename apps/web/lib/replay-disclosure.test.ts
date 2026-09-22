@@ -1,6 +1,6 @@
 import type { ReplaySemanticsV1 } from "@stackreplay/schema";
 import { describe, expect, it } from "vitest";
-import { DISPOSITION_ROWS, replayModeNote, resetNote } from "./replay-disclosure";
+import { dispositionRows, replayModeNote, resetNote, targetStackNote } from "./replay-disclosure";
 
 /**
  * M4B disclosure copy.
@@ -14,10 +14,12 @@ import { DISPOSITION_ROWS, replayModeNote, resetNote } from "./replay-disclosure
 
 const dimension = { status: "complete" as const, events: { covered: 1, total: 1 } };
 
+type SubscriptionStack = Extract<ReplaySemanticsV1["targetStack"], { planId: string }>;
+
 function semantics(overrides: {
   mode?: "exact" | "translated";
   dispositions?: Partial<ReplaySemanticsV1["dispositions"]>;
-  reset?: ReplaySemanticsV1["targetStack"]["reset"];
+  reset?: SubscriptionStack["reset"];
   resetPhase?: ReplaySemanticsV1["evidence"]["resetPhase"];
 }): ReplaySemanticsV1 {
   const mode = overrides.mode ?? "exact";
@@ -145,11 +147,78 @@ describe("M4B disclosure: reset and outcome wording", () => {
   });
 
   it("describes unavailable as the effective model rather than the absence of a substitute", () => {
-    const unavailable = DISPOSITION_ROWS.find((row) => row.key === "unavailable");
+    const unavailable = dispositionRows(semantics({})).find((row) => row.key === "unavailable");
     expect(unavailable?.note).toBe("effective model is not served by the target");
     expect(unavailable?.note).not.toContain("no substitution");
     // Every disposition has a row, and the rows cover the schema's counts.
-    expect(DISPOSITION_ROWS.map((row) => row.key)).toEqual([
+    expect(dispositionRows(semantics({})).map((row) => row.key)).toEqual([
+      "included",
+      "overage",
+      "blocked",
+      "unavailable",
+      "unknown",
+    ]);
+  });
+});
+
+describe("M4C disclosure: a Direct API target is described as one", () => {
+  /** The same semantics block with the API target stack M4C added. */
+  function apiSemantics(
+    resetPhase?: ReplaySemanticsV1["evidence"]["resetPhase"],
+  ): ReplaySemanticsV1 {
+    const base = semantics({});
+    return {
+      ...base,
+      targetStack: {
+        type: "api",
+        providerId: "example-provider",
+        effectiveAt: "2026-09-15",
+        catalogVersion: "example:fixture",
+      },
+      evidence: {
+        ...base.evidence,
+        resetPhase: resetPhase ?? {
+          status: "not_applicable",
+          reason:
+            "a Direct API target has no subscription allowance window, so no reset phase can apply to it",
+        },
+      },
+    };
+  }
+
+  it("says the reset question does not apply, not that it is unknown", () => {
+    const note = resetNote(apiSemantics());
+    expect(note.startsWith("Not applicable")).toBe(true);
+    expect(note).toContain("no allowance window");
+    expect(note).not.toContain("Not established");
+  });
+
+  it("names the provider as the reference instead of a plan version", () => {
+    expect(targetStackNote(apiSemantics())).toEqual({
+      label: "example-provider",
+      reference: "example-provider",
+      referenceLabel: "Direct API provider",
+    });
+    expect(targetStackNote(semantics({}))).toEqual({
+      label: "example-plan",
+      reference: "example-plan@2026-08-01",
+      referenceLabel: "plan version",
+    });
+  });
+
+  it("labels the outcomes in the API target's own terms", () => {
+    const rows = dispositionRows(apiSemantics());
+    expect(rows.find((row) => row.key === "included")?.label).toBe("Served");
+    expect(rows.find((row) => row.key === "included")?.note).toContain("API list price");
+    expect(rows.find((row) => row.key === "unavailable")?.note).toBe(
+      "the selected provider is not recorded as offering the model",
+    );
+    // The plan-specific readings must not survive into the API wording.
+    for (const row of rows) {
+      expect(row.note).not.toContain("within the target's allowance");
+      expect(row.note).not.toContain("billed above allowance");
+    }
+    expect(rows.map((row) => row.key)).toEqual([
       "included",
       "overage",
       "blocked",

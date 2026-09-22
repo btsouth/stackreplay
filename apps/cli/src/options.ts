@@ -24,10 +24,12 @@ const FLAGS_WITH_VALUES = new Set([
   "compare",
   "plan",
   "project",
+  "target",
+  "provider",
   "format",
 ]);
 
-const BOOLEAN_FLAGS = new Set(["json", "help", "quiet", "no-color", "all"]);
+const BOOLEAN_FLAGS = new Set(["json", "help", "quiet", "no-color", "all", "providers"]);
 
 export function parseArgs(argv: readonly string[]): ParseResult {
   const [command, ...rest] = argv;

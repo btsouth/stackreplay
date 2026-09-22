@@ -52,6 +52,13 @@ const sections = [
     ],
   },
   {
+    heading: "Direct API targets",
+    body: [
+      "A replay can also target a provider's published API list prices instead of a subscription plan. Nothing is admitted, rejected or deferred: every recorded event is served, and its token categories are priced from the list-price records in force at the rules date, with each event's own timestamp selecting any conditional tier or schedule inside the record it was priced from.",
+      "Availability still comes from the catalog: a model is priced only when the catalog records the selected provider as offering it. A model with no list-price record, a record that is not in force at the rules date, or a token category the record does not cover is reported as a gap rather than filled in. No cost is shown unless the whole workload could be priced, because a partial sum would be read as what the workload would have cost. Discounts, provisioned capacity, taxes, minimums and negotiated rates are not modelled, and a real invoice can differ.",
+    ],
+  },
+  {
     heading: "Versions and reproducibility",
     body: [
       "Every result records the engine version, the result schema version, the catalog version, the methodology version, the date the target rules were taken as of, and the plan version used. A replay is reproducible from those, and a share link carries them so a shared result can be audited.",

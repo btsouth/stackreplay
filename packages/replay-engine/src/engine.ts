@@ -15,12 +15,11 @@ import {
   type ConstraintResultV1,
   type ConstraintStatusV1,
   type CoverageDimensionsV1,
-  type CoverageDimensionV1,
   type EconomicsV1,
   type ExecutionReplayResultV1,
   type ExecutionTargetV1,
   executionTargetV1Schema,
-  type FeasibilityV1,
+  isApiTargetV1,
   isSubscriptionTargetV1,
   type MeasurementUnitV1,
   type ModelResolutionKindV1,
@@ -30,20 +29,28 @@ import {
   type ReplaySemanticsV1,
   type ReplayTranslationV1,
   type ReplayViolationV1,
-  type ReplayWarningV1,
   type ResetAssumptionV1,
   replayContextV1Schema,
   type SubscriptionTargetV1,
   type TextUsageEventV1,
-  type TokenTotalsV1,
   type UnsupportedModelV1,
   usageEventV1Schema,
   type WorkloadScopeKindV1,
   type WorkloadSummaryV1,
 } from "@stackreplay/schema";
+import { replayApiTarget } from "./api-replay.js";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+import {
+  buildWarnings,
+  CoverageBuilder,
+  feasibilityOf,
+  money,
+  Tracker,
+  UnsupportedModelBuilder,
+  WorkloadSummaryBuilder,
+} from "./reporting.js";
 import {
   deriveResetAssumption,
   type EventSemanticsFacts,
@@ -115,6 +122,21 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
   const context = parseContext(input.context);
   const target = parseTarget(input.target);
+
+  /**
+   * A Direct API target is a different execution path, not a degenerate plan: it
+   * has no allowance, no admission and no reset, so it prices every event at its
+   * model's published API list price at the pinned instant (M4C).
+   */
+  if (isApiTargetV1(target)) {
+    return replayApiTarget({
+      target,
+      catalog,
+      context,
+      events: validateEvents(input.events),
+    });
+  }
+
   const planVersion = resolveTargetPlan(target, catalog, context.rulesAsOf);
   const events = validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
@@ -166,7 +188,7 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     scopeKind,
     reset,
     translationPlan,
-    translation,
+    translationApplication,
   });
 
   const pricingReferences = collectPricingReferences(planVersion);
@@ -238,16 +260,15 @@ function computeSemantics(input: {
   scopeKind: WorkloadScopeKindV1;
   reset: ResetAssumptionV1;
   translationPlan: TranslationPlan | undefined;
-  translation: ReplayTranslationV1 | undefined;
+  translationApplication: TranslationApplication;
 }): ReplaySemanticsV1 {
   const accumulator = new SemanticsAccumulator({
-    planVersion: input.planVersion,
+    target: { kind: "subscription", planVersion: input.planVersion, reset: input.reset },
     catalogVersion: input.catalogVersion,
     rulesAsOf: input.rulesAsOf,
     scopeKind: input.scopeKind,
-    reset: input.reset,
     translationPlan: input.translationPlan,
-    translation: input.translation,
+    translationApplication: input.translationApplication,
   });
 
   // One mutable facts record, reused for every event: the accumulator copies each
@@ -310,24 +331,6 @@ function dispositionOf(preparedEvent: PreparedEvent): ReplayDispositionKindV1 {
       return "unknown";
     default:
       return "unknown";
-  }
-}
-
-class Tracker {
-  readonly warnings = new Map<string, { message: string; count: number }>();
-  readonly assumptions = new Map<string, string>();
-
-  warn(code: string, message: string): void {
-    const existing = this.warnings.get(code);
-    if (existing === undefined) {
-      this.warnings.set(code, { message, count: 1 });
-    } else {
-      existing.count += 1;
-    }
-  }
-
-  assume(id: string, description: string): void {
-    if (!this.assumptions.has(id)) this.assumptions.set(id, description);
   }
 }
 
@@ -1083,82 +1086,30 @@ function evaluateConstraints(
   return { constraints, violations, overageCost, hasOverageRule, unknownConstraints };
 }
 
-function money(amount: Decimal, currency: "USD"): { amount: string; currency: "USD" } {
-  return { amount: toUnitString(amount), currency };
-}
-
-function roundPercent(value: number): number {
-  return Math.round(value * 10000) / 10000;
-}
-
-function knownDimension(covered: number, total: number): CoverageDimensionV1 {
-  return {
-    status: "known",
-    percent: roundPercent(total === 0 ? 100 : (covered / total) * 100),
-    covered,
-    total,
-  };
-}
-
-function unknownDimension(
-  reason: string,
-  counts: { covered?: number; total?: number; unknownCount?: number },
-): CoverageDimensionV1 {
-  return {
-    status: "unknown",
-    reason,
-    ...(counts.covered !== undefined ? { covered: counts.covered } : {}),
-    ...(counts.total !== undefined ? { total: counts.total } : {}),
-    ...(counts.unknownCount !== undefined ? { unknownCount: counts.unknownCount } : {}),
-  };
-}
-
 function computeCoverage(
   timed: readonly TimedEvent[],
   prepared: ReadonlyMap<string, PreparedEvent>,
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
 ): CoverageDimensionsV1 {
-  let served = 0;
-  let indeterminate = 0;
-  let knownTokens = 0;
-  let servedKnownTokens = 0;
-  let unknownTokenEvents = 0;
-  const usedModels = new Map<string, boolean>();
-  /** Models with at least one event whose resolution quality is unknown. */
-  const unresolvedModelKeys = new Set<string>();
-  let unresolvedModelEvents = 0;
-
+  const builder = new CoverageBuilder();
   for (const { event } of timed) {
     const preparedEvent = prepared.get(event.id);
     if (preparedEvent === undefined) continue;
-    const outcome = preparedEvent.outcome;
-    if (outcome === "served") served += 1;
-    else if (outcome === "indeterminate") indeterminate += 1;
-
-    if (preparedEvent.tokenCount !== undefined) {
-      knownTokens += preparedEvent.tokenCount;
-      if (outcome === "served") servedKnownTokens += preparedEvent.tokenCount;
-    } else {
-      unknownTokenEvents += 1;
-    }
-
-    // This dimension counts the models the target itself would run, so a
-    // translated event is counted under its substitute: the source mix stays
-    // visible separately in the result's model mix.
-    const key = preparedEvent.resolution.effectiveModelId ?? `raw:${event.model.rawName}`;
-    usedModels.set(key, preparedEvent.resolution.supported);
-    if (preparedEvent.resolution.quality === "unknown") {
-      unresolvedModelKeys.add(key);
-      unresolvedModelEvents += 1;
-    }
+    builder.observe({
+      served: preparedEvent.outcome === "served",
+      undecided: preparedEvent.outcome === "indeterminate",
+      tokenCount: preparedEvent.tokenCount,
+      modelKey: preparedEvent.resolution.effectiveModelId ?? `raw:${event.model.rawName}`,
+      modelSupported: preparedEvent.resolution.supported,
+      modelQuality: preparedEvent.resolution.quality,
+    });
   }
 
   /**
    * A target that publishes no numeric limit cannot support a numeric fit
    * percentage: nothing was simulated, so reporting 100% would manufacture
-   * precision the evidence does not contain (M4B, and the spirit of decision
-   * 16). The dimension still reports the counts it established.
+   * precision the evidence does not contain (M4B, and the spirit of decision 16).
    */
   const numericRules = hasNumericLimits(planVersion);
   if (!numericRules) {
@@ -1167,114 +1118,33 @@ function computeCoverage(
       "The target states its limits qualitatively rather than as numbers, so no numeric fit could be simulated and request coverage is reported as unknown.",
     );
   }
-  const requests = !numericRules
-    ? unknownDimension(
-        "the target states its limits qualitatively, so no numeric capacity rule exists to simulate",
-        { covered: served, total: timed.length },
-      )
-    : indeterminate > 0
-      ? unknownDimension(
-          `${indeterminate} event(s) could not be evaluated because their consumption is unknown`,
-          { covered: served, total: timed.length, unknownCount: indeterminate },
-        )
-      : knownDimension(served, timed.length);
-
-  /**
-   * Every count inside a dimension is in that dimension's own unit (benchmark
-   * finding F033). For usage that unit is tokens, and the tokens of an event that
-   * reports no total cannot be counted at all, so this dimension states the
-   * event-level detail in its reason and emits no count in the wrong unit.
-   */
-  const usage =
-    unknownTokenEvents > 0
-      ? unknownDimension(
-          `${unknownTokenEvents} event(s) do not report every canonical token category, so no non-overlapping token denominator exists`,
-          { covered: servedKnownTokens, total: knownTokens },
-        )
-      : knownDimension(servedKnownTokens, knownTokens);
-
-  const coveredModels = [...usedModels.values()].filter(Boolean).length;
-  // `covered`/`total` are models here, so the unknown count is models too; the
-  // event-level detail belongs in the reason, not in a field that reads as a model
-  // count (benchmark finding F033).
-  const models =
-    unresolvedModelEvents > 0
-      ? unknownDimension(
-          `${unresolvedModelEvents} event(s) use ${unresolvedModelKeys.size} model(s) that could not be resolved against the catalog`,
-          {
-            covered: coveredModels,
-            total: usedModels.size,
-            unknownCount: unresolvedModelKeys.size,
-          },
-        )
-      : knownDimension(coveredModels, usedModels.size);
-
-  return { requests, usage, models };
-}
-
-function feasibilityOf(
-  coverage: CoverageDimensionsV1,
-  constraints: readonly ConstraintResultV1[],
-): FeasibilityV1 {
-  const unknownConstraint = constraints.some((constraint) => constraint.status === "unknown");
-  const requestUnknown = coverage.requests.status === "unknown";
-  if (unknownConstraint || requestUnknown) {
-    const reason =
-      requestUnknown && coverage.requests.reason !== undefined
-        ? coverage.requests.reason
-        : "One or more constraints could not be evaluated from the workload data.";
-    return {
-      status: "unknown",
-      coverageDimension: "requests",
-      ...(coverage.requests.percent !== undefined
-        ? { coveragePercent: coverage.requests.percent }
-        : {}),
-      reason,
-    };
-  }
-
-  const percent = coverage.requests.percent as number;
-  const status: FeasibilityV1["status"] =
-    percent >= 100 ? "full" : percent === 0 ? "none" : "partial";
-  return { status, coveragePercent: percent, coverageDimension: "requests" };
+  return builder.build({
+    numericMechanics: numericRules,
+    qualitativeReason:
+      "the target states its limits qualitatively, so no numeric capacity rule exists to simulate",
+    undecidedReason: (count) =>
+      `${count} event(s) could not be evaluated because their consumption is unknown`,
+  });
 }
 
 function collectUnsupportedModels(
   timed: readonly TimedEvent[],
   resolution: ReadonlyMap<string, ModelResolution>,
 ): UnsupportedModelV1[] {
-  const byKey = new Map<
-    string,
-    { rawName: string; canonicalId?: string; count: number; reason: UnsupportedModelV1["reason"] }
-  >();
-
+  const builder = new UnsupportedModelBuilder();
   for (const { event } of timed) {
     const res = resolution.get(event.id);
     if (res === undefined || res.supported) continue;
     // The entry reports the observed identity, so a translated event still names
     // the model it was recorded against (M4B).
-    const key = res.sourceModelId ?? `raw:${event.model.rawName}`;
-    const existing = byKey.get(key);
-    if (existing !== undefined) {
-      existing.count += 1;
-      continue;
-    }
-    byKey.set(key, {
+    builder.observe({
+      modelKey: res.sourceModelId ?? `raw:${event.model.rawName}`,
       rawName: event.model.rawName,
       ...(res.sourceModelId !== undefined ? { canonicalId: res.sourceModelId } : {}),
-      count: 1,
       reason: res.unsupportedReason ?? "unresolved",
     });
   }
-
-  return [...byKey.values()]
-    .sort((a, b) => (a.rawName < b.rawName ? -1 : a.rawName > b.rawName ? 1 : 0))
-    .map((entry) => ({
-      rawName: entry.rawName,
-      ...(entry.canonicalId !== undefined ? { canonicalId: entry.canonicalId } : {}),
-      eventCount: entry.count,
-      reason: entry.reason,
-    }));
+  return builder.build();
 }
 
 function computeEconomics(
@@ -1426,59 +1296,17 @@ function summarizeWorkload(
   timed: readonly TimedEvent[],
   prepared: ReadonlyMap<string, PreparedEvent>,
 ): WorkloadSummaryV1 {
-  let uncachedInput = 0;
-  let cacheRead = 0;
-  let cacheWrite = 0;
-  let output = 0;
-  let reasoning = 0;
-  let hasInput = false;
-  let hasOutput = false;
-  let hasCacheRead = false;
-  let hasCacheWrite = false;
-  let hasReasoning = false;
-  const sessions = new Set<string>();
-  const models = new Set<string>();
-
-  for (const { event } of timed) {
-    const preparedEvent = prepared.get(event.id);
+  const builder = new WorkloadSummaryBuilder();
+  for (const timedEvent of timed) {
+    const preparedEvent = prepared.get(timedEvent.event.id);
     if (preparedEvent === undefined) continue;
-    const tokens = preparedEvent.tokens;
-    if (tokens.known) {
-      uncachedInput += tokens.buckets.uncachedInputTokens;
-      output += tokens.buckets.outputTokens;
-      cacheRead += tokens.buckets.cacheReadTokens;
-      cacheWrite += tokens.buckets.cacheWriteTokens;
-      reasoning += tokens.buckets.reasoningTokens;
-      hasInput = hasOutput = hasCacheRead = hasCacheWrite = hasReasoning = true;
-    }
-    const session = event.source.nativeSessionHash;
-    if (session !== undefined) sessions.add(session);
-    // The workload summary describes the workload as it was observed, so it
-    // counts source models even when a translation substituted others (M4B).
-    models.add(preparedEvent.resolution.sourceModelId ?? `raw:${event.model.rawName}`);
+    builder.observe(timedEvent, {
+      tokens: preparedEvent.tokens,
+      sourceModelKey:
+        preparedEvent.resolution.sourceModelId ?? `raw:${timedEvent.event.model.rawName}`,
+    });
   }
-
-  // Totals are complete disjoint totals, never an unlabeled known subtotal.
-  if ([...prepared.values()].some((entry) => !entry.tokens.known)) {
-    hasInput = hasOutput = hasCacheRead = hasCacheWrite = hasReasoning = false;
-  }
-  const tokenTotals: TokenTotalsV1 = {};
-  if (hasCacheRead) tokenTotals.cacheReadTokens = cacheRead;
-  if (hasCacheWrite) tokenTotals.cacheWriteTokens = cacheWrite;
-  if (hasInput) tokenTotals.inputTokens = uncachedInput;
-  if (hasOutput) tokenTotals.outputTokens = output;
-  if (hasReasoning) tokenTotals.reasoningTokens = reasoning;
-
-  const first = timed[0];
-  const last = timed[timed.length - 1];
-  return {
-    eventCount: timed.length,
-    ...(first !== undefined ? { from: isoFromEpochMs(first.atMs, first.subMs) } : {}),
-    ...(last !== undefined ? { to: isoFromEpochMs(last.atMs, last.subMs) } : {}),
-    modelCount: models.size,
-    ...(sessions.size > 0 ? { sessionCount: sessions.size } : {}),
-    tokenTotals,
-  };
+  return builder.build();
 }
 
 function collectPricingReferences(planVersion: LoadedPlanVersionV1): string[] {
@@ -1572,10 +1400,4 @@ function buildAssumptions(
   return [...assumptions.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([id, description]) => ({ id, description }));
-}
-
-function buildWarnings(tracker: Tracker): ReplayWarningV1[] {
-  return [...tracker.warnings.entries()]
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .map(([code, entry]) => ({ code, message: entry.message, eventCount: entry.count }));
 }

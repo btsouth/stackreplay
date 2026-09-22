@@ -1,6 +1,11 @@
 "use client";
 
-import { bundledPlanFacts, bundledPlansAt } from "@stackreplay/catalog/bundled";
+import {
+  bundledApiProviders,
+  bundledPlanFacts,
+  bundledPlansAt,
+  bundledProviderFacts,
+} from "@stackreplay/catalog/bundled";
 import type {
   ExecutionReplayResultV1,
   ExecutionTargetV1,
@@ -22,9 +27,25 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SharePanel } from "@/components/share/share-panel";
-import { DISPOSITION_ROWS, replayModeNote, resetNote } from "@/lib/replay-disclosure";
+import {
+  dispositionRows,
+  referenceFieldLabel,
+  replayModeNote,
+  resetNote,
+  targetStackNote,
+} from "@/lib/replay-disclosure";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, ModelSummary, SafeError, TimelinePoint } from "@/lib/worker-protocol";
+
+/** Styling for the execution-target switch (M4C). */
+function segmentedClass(active: boolean): string {
+  return [
+    "rounded-md border px-3 py-1.5 text-xs",
+    active
+      ? "border-accent bg-surface-2 text-foreground"
+      : "border-control-border text-muted-foreground",
+  ].join(" ");
+}
 
 /**
  * Replay surface: the signature product surface (M3 brief).
@@ -155,6 +176,14 @@ export function ReplaySurface({
   const [rulesAsOf, setRulesAsOf] = useState<string>(todayUtc());
   const [query, setQuery] = useState("");
   const [planId, setPlanId] = useState<string | undefined>(initialTarget);
+  /**
+   * Which kind of execution target this surface replays against (M4C). A
+   * subscription plan is the default; a Direct API target prices the same
+   * workload at the selected provider's published list prices instead, with no
+   * plan, allowance or admission involved.
+   */
+  const [targetKind, setTargetKind] = useState<"subscription" | "api">("subscription");
+  const [providerId, setProviderId] = useState<string | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [outcome, setOutcome] = useState<ReplayOutcome | undefined>(undefined);
@@ -164,7 +193,7 @@ export function ReplaySurface({
    * (benchmark finding F026).
    */
   const [outcomeSelection, setOutcomeSelection] = useState<
-    { workloadLabel: string; workloadId: string; planId: string; rulesAsOf: string } | undefined
+    { workloadLabel: string; workloadId: string; target: string; rulesAsOf: string } | undefined
   >(undefined);
   const [error, setError] = useState<SafeError | undefined>(undefined);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -187,6 +216,31 @@ export function ReplaySurface({
       filteredPlans.find((plan) => plan.id === planId) ?? plans.find((plan) => plan.id === planId),
     [filteredPlans, planId, plans],
   );
+
+  /**
+   * Providers a Direct API replay can be run against. The list comes from the
+   * same bundled catalog the worker replays against, and each entry carries the
+   * counts a visitor needs: how many models the catalog records this provider as
+   * offering, and how many of those have API list prices, so a replay that can
+   * only price part of the demand says so before it runs.
+   */
+  const providers = useMemo(() => bundledApiProviders(rulesAsOf), [rulesAsOf]);
+  const filteredProviders = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (needle.length === 0) return providers;
+    return providers.filter(
+      (provider) =>
+        provider.name.toLowerCase().includes(needle) || provider.id.toLowerCase().includes(needle),
+    );
+  }, [providers, query]);
+  const selectedProvider = useMemo(
+    () =>
+      filteredProviders.find((provider) => provider.id === providerId) ??
+      providers.find((provider) => provider.id === providerId),
+    [filteredProviders, providerId, providers],
+  );
+  const targetReady =
+    targetKind === "api" ? selectedProvider !== undefined : selectedPlan !== undefined;
   /**
    * The workload the surface is working on, and only that one.
    *
@@ -230,12 +284,19 @@ export function ReplaySurface({
   }, [client, initialImportId]);
 
   const runReplay = useCallback(async () => {
-    if (workload === undefined || selectedPlan === undefined) return;
+    const target: ExecutionTargetV1 | undefined =
+      targetKind === "api"
+        ? selectedProvider === undefined
+          ? undefined
+          : { type: "api", providerId: selectedProvider.id }
+        : selectedPlan === undefined
+          ? undefined
+          : { type: "subscription", planId: selectedPlan.id };
+    if (workload === undefined || target === undefined) return;
     setPhase("loading");
     setError(undefined);
     setOutcome(undefined);
     setOutcomeSelection(undefined);
-    const target: ExecutionTargetV1 = { type: "subscription", planId: selectedPlan.id };
     try {
       const response = await client.runReplay(
         workload.id,
@@ -250,7 +311,7 @@ export function ReplaySurface({
       setOutcomeSelection({
         workloadLabel: workload.label,
         workloadId: workload.id,
-        planId: selectedPlan.id,
+        target: target.type === "api" ? target.providerId : (selectedPlan?.id ?? ""),
         rulesAsOf,
       });
       setPhase("done");
@@ -260,7 +321,7 @@ export function ReplaySurface({
       setError(describeWorkerFailure(failure));
       setPhase("idle");
     }
-  }, [client, rulesAsOf, selectedPlan, workload]);
+  }, [client, rulesAsOf, selectedPlan, selectedProvider, targetKind, workload]);
 
   /**
    * Choosing a different target or rules date drops the displayed result: it was
@@ -269,6 +330,25 @@ export function ReplaySurface({
    */
   const selectPlan = useCallback((id: string) => {
     setPlanId(id);
+    setOutcome(undefined);
+    setOutcomeSelection(undefined);
+    setPhase("idle");
+  }, []);
+
+  const selectProvider = useCallback((id: string) => {
+    setProviderId(id);
+    setOutcome(undefined);
+    setOutcomeSelection(undefined);
+    setPhase("idle");
+  }, []);
+
+  /**
+   * Switching the target kind drops the displayed result for the same reason
+   * choosing a different target does: the panel would otherwise describe a
+   * replay that was never run against what the surface now shows.
+   */
+  const selectTargetKind = useCallback((kind: "subscription" | "api") => {
+    setTargetKind(kind);
     setOutcome(undefined);
     setOutcomeSelection(undefined);
     setPhase("idle");
@@ -345,12 +425,23 @@ export function ReplaySurface({
         <CardContent className="flex flex-col gap-5 p-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-sm font-medium">Target plan</h2>
+              <h2 className="text-sm font-medium">Execution target</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Catalogued plans are the real, sourced entries the public pages describe. The
-                synthetic <span className="font-mono text-xs">example-</span> plans are demos kept
-                for trying the replay mechanics; each one is labelled and none of them is a
-                real-world claim.
+                {targetKind === "api" ? (
+                  <>
+                    A Direct API target applies the selected provider&apos;s published API list
+                    prices to every recorded event. No plan, allowance, admission or reset is
+                    simulated, and no discount, batch price, tax or negotiated rate is assumed.
+                    Prices are the catalog&apos;s records in force at the rules date.
+                  </>
+                ) : (
+                  <>
+                    Catalogued plans are the real, sourced entries the public pages describe. The
+                    synthetic <span className="font-mono text-xs">example-</span> plans are demos
+                    kept for trying the replay mechanics; each one is labelled and none of them is a
+                    real-world claim.
+                  </>
+                )}
               </p>
             </div>
             <div className="flex items-end gap-3">
@@ -372,12 +463,41 @@ export function ReplaySurface({
           </div>
 
           <div className="flex flex-col gap-3">
+            <fieldset className="flex flex-col gap-2" data-testid="target-kind">
+              <legend className="text-xs uppercase tracking-widest text-muted-foreground">
+                Target kind
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  aria-pressed={targetKind === "subscription"}
+                  data-testid="target-kind-subscription"
+                  onClick={() => selectTargetKind("subscription")}
+                  className={segmentedClass(targetKind === "subscription")}
+                >
+                  Subscription plan
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={targetKind === "api"}
+                  data-testid="target-kind-api"
+                  onClick={() => selectTargetKind("api")}
+                  className={segmentedClass(targetKind === "api")}
+                >
+                  Direct API list prices
+                </button>
+              </div>
+            </fieldset>
             <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-              Find a plan
+              {targetKind === "api" ? "Find a provider" : "Find a plan"}
               <input
                 type="search"
                 value={query}
-                placeholder="Search plans, providers, or IDs"
+                placeholder={
+                  targetKind === "api"
+                    ? "Search providers or IDs"
+                    : "Search plans, providers, or IDs"
+                }
                 data-testid="plan-search"
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -391,63 +511,141 @@ export function ReplaySurface({
                 className="max-w-xl text-xs text-muted-foreground"
                 data-testid="demo-workload-note"
               >
-                This workload is one of the bundled synthetic demos, so its models belong to the
-                demo catalog. It replays against a demo plan; import your own export to replay
-                against a catalogued plan.
+                {targetKind === "api"
+                  ? "This workload is one of the bundled synthetic demos, so its models belong to the demo catalog. Its models are offered by the demo providers (example-cloud, example-open); a catalogued provider will report them as unavailable rather than price them."
+                  : "This workload is one of the bundled synthetic demos, so its models belong to the demo catalog. It replays against a demo plan; import your own export to replay against a catalogued plan."}
               </p>
             ) : null}
-            <ul
-              ref={listRef}
-              aria-label="Target plans"
-              data-testid="plan-list"
-              onKeyDown={onPlanKeyDown}
-              className="flex max-h-72 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border"
-            >
-              {filteredPlans.length === 0 ? (
-                <li className="p-3 text-sm text-muted-foreground">
-                  No plan is effective at this rules date.
-                </li>
-              ) : (
-                filteredPlans.map((plan, index) => (
-                  <li key={plan.id}>
-                    <button
-                      type="button"
-                      aria-pressed={plan.id === planId}
-                      data-plan-option={plan.id}
-                      data-testid={`plan-${plan.id}`}
-                      onClick={() => selectPlan(plan.id)}
-                      onFocus={() => setActiveIndex(index)}
-                      className={[
-                        "flex w-full items-baseline justify-between gap-4 border-l-2 px-3 py-2.5 text-left",
-                        plan.id === planId
-                          ? "border-accent bg-surface-2"
-                          : "border-transparent bg-transparent",
-                      ].join(" ")}
-                    >
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate text-sm">
-                          {plan.name}
-                          {isSyntheticCatalogId(plan.id) ? (
-                            <span className="ml-2 rounded border border-warning/50 px-1 text-[10px] text-warning">
-                              demo
-                            </span>
-                          ) : null}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {plan.providerId} · rules from {plan.effectiveFrom}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-mono text-sm tabular-nums">
-                        {formatMoney(plan.price.amount)}/{plan.price.interval}
-                      </span>
-                    </button>
+            {targetKind === "api" ? (
+              <ul
+                aria-label="Direct API providers"
+                data-testid="provider-list"
+                className="flex max-h-72 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border"
+              >
+                {filteredProviders.length === 0 ? (
+                  <li className="p-3 text-sm text-muted-foreground">
+                    No catalogued provider is recorded as offering a model.
                   </li>
-                ))
-              )}
-            </ul>
+                ) : (
+                  filteredProviders.map((provider) => (
+                    <li key={provider.id}>
+                      <button
+                        type="button"
+                        aria-pressed={provider.id === providerId}
+                        data-provider-option={provider.id}
+                        data-testid={`provider-${provider.id}`}
+                        onClick={() => selectProvider(provider.id)}
+                        className={[
+                          "flex w-full items-baseline justify-between gap-4 border-l-2 px-3 py-2.5 text-left",
+                          provider.id === providerId
+                            ? "border-accent bg-surface-2"
+                            : "border-transparent bg-transparent",
+                        ].join(" ")}
+                      >
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm">
+                            {provider.name}
+                            {isSyntheticCatalogId(provider.id) ? (
+                              <span className="ml-2 rounded border border-warning/50 px-1 text-[10px] text-warning">
+                                demo
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            {provider.id} · {formatCount(provider.pricedModelCount)} of{" "}
+                            {formatCount(provider.modelCount)} offered models have API list prices
+                            in force at this rules date
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                          {provider.verificationStatus}
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            ) : (
+              <ul
+                ref={listRef}
+                aria-label="Target plans"
+                data-testid="plan-list"
+                onKeyDown={onPlanKeyDown}
+                className="flex max-h-72 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border"
+              >
+                {filteredPlans.length === 0 ? (
+                  <li className="p-3 text-sm text-muted-foreground">
+                    No plan is effective at this rules date.
+                  </li>
+                ) : (
+                  filteredPlans.map((plan, index) => (
+                    <li key={plan.id}>
+                      <button
+                        type="button"
+                        aria-pressed={plan.id === planId}
+                        data-plan-option={plan.id}
+                        data-testid={`plan-${plan.id}`}
+                        onClick={() => selectPlan(plan.id)}
+                        onFocus={() => setActiveIndex(index)}
+                        className={[
+                          "flex w-full items-baseline justify-between gap-4 border-l-2 px-3 py-2.5 text-left",
+                          plan.id === planId
+                            ? "border-accent bg-surface-2"
+                            : "border-transparent bg-transparent",
+                        ].join(" ")}
+                      >
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm">
+                            {plan.name}
+                            {isSyntheticCatalogId(plan.id) ? (
+                              <span className="ml-2 rounded border border-warning/50 px-1 text-[10px] text-warning">
+                                demo
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="truncate text-xs text-muted-foreground">
+                            {plan.providerId} · rules from {plan.effectiveFrom}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono text-sm tabular-nums">
+                          {formatMoney(plan.price.amount)}/{plan.price.interval}
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
           </div>
 
-          {selectedPlan !== undefined ? (
+          {targetKind === "api" ? (
+            selectedProvider === undefined ? null : (
+              <div
+                className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"
+                data-testid="provider-facts"
+              >
+                <Badge variant="outline">{selectedProvider.id}</Badge>
+                <span>
+                  {formatCount(selectedProvider.pricedModelCount)} of{" "}
+                  {formatCount(selectedProvider.modelCount)} offered models carry API list prices in
+                  force at this rules date
+                </span>
+                {selectedProvider.pricedModelCount === 0 ? (
+                  <span className="text-warning" data-testid="provider-unpriced-note">
+                    No model this provider offers has an API list price record, so a replay will
+                    report the demand as unpriced rather than invent a cost.
+                  </span>
+                ) : null}
+                <Badge
+                  variant={
+                    selectedProvider.verificationStatus === "verified" ? "positive" : "warning"
+                  }
+                >
+                  catalog: {selectedProvider.verificationStatus}
+                </Badge>
+              </div>
+            )
+          ) : selectedPlan !== undefined ? (
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <Badge variant="outline">{selectedPlan.versionId}</Badge>
               <span>
@@ -469,7 +667,7 @@ export function ReplaySurface({
               type="button"
               data-testid="run-replay"
               disabled={
-                selectedPlan === undefined ||
+                !targetReady ||
                 workload === undefined ||
                 phase === "loading" ||
                 phase === "replaying"
@@ -640,14 +838,20 @@ function ReplayResult({
 }: {
   outcome: ReplayOutcome;
   /** What this result was computed from; may be absent for older callers. */
-  computedFor: { workloadLabel: string; planId: string; rulesAsOf: string } | undefined;
+  computedFor: { workloadLabel: string; target: string; rulesAsOf: string } | undefined;
   workload: ImportRecord | undefined;
 }) {
   const { result, timeline } = outcome;
-  const shareTarget = bundledPlanFacts(result.versions.targetReference);
+  const apiTarget = result.target.type === "api";
+  const shareTarget = apiTarget ? undefined : bundledPlanFacts(result.versions.targetReference);
+  const providerFacts = apiTarget
+    ? bundledProviderFacts(result.versions.targetReference)
+    : undefined;
+  const targetStack =
+    result.semantics === undefined ? undefined : targetStackNote(result.semantics);
   // Every label comes from the result, never from the surface's current
   // selection: the panel describes the replay that ran (benchmark finding F026).
-  const planLabel = shareTarget?.planName ?? result.versions.targetReference;
+  const planLabel = providerFacts?.name ?? shareTarget?.planName ?? result.versions.targetReference;
   const attribution = workload?.summary.usageSources
     .filter((source) => source.role === "usage" && source.events > 0)
     .map((source) => ({ name: source.name, eventCount: source.events }));
@@ -672,14 +876,22 @@ function ReplayResult({
                 {headline}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {planLabel} · rules as of{" "}
+                {planLabel}
+                {targetStack === undefined ? null : (
+                  <>
+                    {" "}
+                    · {targetStack.referenceLabel}{" "}
+                    <span className="font-mono">{targetStack.reference}</span>
+                  </>
+                )}{" "}
+                · rules as of{" "}
                 <span className="font-mono tabular-nums">{result.versions.rulesAsOf}</span>
               </p>
               {computedFor === undefined ? null : (
                 <p className="mt-1 text-xs text-muted-foreground" data-testid="result-computed-for">
                   Computed from &ldquo;{computedFor.workloadLabel}&rdquo; ·{" "}
                   {formatCount(result.workload.eventCount)} events · target{" "}
-                  <span className="font-mono">{computedFor.planId}</span> · rules as of{" "}
+                  <span className="font-mono">{computedFor.target}</span> · rules as of{" "}
                   <span className="font-mono">{computedFor.rulesAsOf}</span>
                 </p>
               )}
@@ -721,7 +933,19 @@ function ReplayResult({
         </CardContent>
       </Card>
 
-      {result.constraints.length > 0 ? (
+      {apiTarget ? (
+        <Card data-testid="api-no-constraints">
+          <CardContent className="flex flex-col gap-2 p-5">
+            <h2 className="text-sm font-medium">No allowance constraints</h2>
+            <p className="text-sm text-muted-foreground">
+              A Direct API target has no plan, no included capacity and no admission decision, so
+              there is nothing to accept or reject: every recorded event is served and priced at its
+              model&apos;s published API list price. Whether that price was established is reported
+              under Evidence.
+            </p>
+          </CardContent>
+        </Card>
+      ) : result.constraints.length > 0 ? (
         <Card>
           <CardContent className="flex flex-col gap-4 p-5">
             <h2 className="text-sm font-medium">Constraints</h2>
@@ -803,7 +1027,14 @@ function ReplayResult({
 
       <Card>
         <CardContent className="flex flex-col gap-5 p-5">
-          <h2 className="text-sm font-medium">When this plan would have failed</h2>
+          <h2 className="text-sm font-medium">
+            {apiTarget ? "Activity over the workload window" : "When this plan would have failed"}
+          </h2>
+          <p className="text-xs text-muted-foreground" data-testid="timeline-note">
+            {apiTarget
+              ? "A Direct API target rejects nothing, so there are no failure windows to shade. The bars show the recorded activity the list prices were applied to."
+              : "Shaded bands are the windows where the target's own rules would have pushed back on this workload."}
+          </p>
           <ReplayTimeline
             points={timeline}
             violations={result.violations}
@@ -922,7 +1153,12 @@ function ReplayResult({
               <Detail label="Methodology" value={result.versions.methodology} />
               <Detail label="Catalog" value={result.versions.catalog.slice(0, 22)} />
               <Detail label="Rules as of" value={result.versions.rulesAsOf} />
-              <Detail label="Plan version" value={result.versions.targetReference} />
+              <Detail
+                label={
+                  targetStack === undefined ? "Plan version" : referenceFieldLabel(targetStack)
+                }
+                value={result.versions.targetReference}
+              />
               <Detail label="Events replayed" value={formatCount(result.workload.eventCount)} />
             </dl>
             {result.unsupportedModels.length > 0 ? (
@@ -967,13 +1203,13 @@ function ReplayResult({
           </CardContent>
         </Card>
       </div>
-      {shareTarget === undefined ? null : (
-        <SharePanel
-          result={result}
-          target={shareTarget}
-          {...(attribution === undefined ? {} : { attribution })}
-        />
-      )}
+      {/* The panel is always present: a result that cannot become a link says
+          why (a Direct API target has no plan facts a V1 link could carry). */}
+      <SharePanel
+        result={result}
+        {...(shareTarget === undefined ? {} : { target: shareTarget })}
+        {...(attribution === undefined ? {} : { attribution })}
+      />
 
       {result.semantics === undefined ? null : <ReplaySemanticsCard semantics={result.semantics} />}
     </div>
@@ -1016,7 +1252,7 @@ function ReplaySemanticsCard({ semantics }: { semantics: ReplaySemanticsV1 }) {
     { label: "Temporal coverage", dimension: evidence.temporal },
   ];
   const outcomeRows: ReadonlyArray<{ label: string; value: number; note: string }> =
-    DISPOSITION_ROWS.map((row) => ({
+    dispositionRows(semantics).map((row) => ({
       label: row.label,
       value: dispositions[row.key],
       note: row.note,
@@ -1169,11 +1405,12 @@ function ReplaySemanticsCard({ semantics }: { semantics: ReplaySemanticsV1 }) {
           <p className="text-xs text-muted-foreground" data-testid="replay-scope">
             {workloadScope.statement}
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground" data-testid="replay-target-stack">
             Effective rules instant{" "}
             <span className="font-mono tabular-nums">{targetStack.effectiveAt}</span> · catalog{" "}
-            <span className="font-mono">{targetStack.catalogVersion}</span> · plan version{" "}
-            <span className="font-mono">{targetStack.planVersionId}</span>
+            <span className="font-mono">{targetStack.catalogVersion}</span> ·{" "}
+            {targetStackNote(semantics).referenceLabel}{" "}
+            <span className="font-mono">{targetStackNote(semantics).reference}</span>
           </p>
         </div>
       </CardContent>

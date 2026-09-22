@@ -2,10 +2,78 @@
 
 ## Current milestone
 
-**Milestone 4B — replay semantics and model translation foundation, implemented in the working tree.**
-M4A remains the accepted baseline; M4B extends the result contract additively, keeps every accepted
-fixture and share token readable, and deliberately leaves `target.type === "api"` at
-`TARGET_NOT_IMPLEMENTED`.
+**Milestone 4C — the Direct API execution target, implemented in the working tree.**
+M4A and M4B remain the accepted baselines; M4C implements what M4B deliberately left at
+`TARGET_NOT_IMPLEMENTED`, as a second kind of execution target beside the subscription plan. Every
+accepted subscription fixture and share token stays readable, and the subscription path's numbers
+are unchanged apart from the methodology version.
+
+## Milestone 4C — Direct API execution target
+
+The engine now replays a workload against a provider's published API list prices as well as against
+a subscription plan, and the result contract says which of the two happened.
+
+**Target kinds are a discriminated union.** `ExecutionTargetV1` is `subscription` (a plan version)
+or `api` (a provider). `replaySemanticsV1Schema.targetStack` follows the same split, and the result
+schema enforces agreement in both directions: an API target with a subscription stack, or the
+reverse, is invalid. Those target-level checks run before the optional `semantics` block is
+consulted, because the block is optional so pre-M4B documents stay readable: a plan replay must not
+become a list-price replay by dropping it, and that gap is covered by tests that assert the checks
+fire without the block. The schema also refuses billed overage or blocked demand on an API result.
+`unsupportedModels[].reason` gained `not_offered` for the API reading, distinct from the subscription
+reading `not_supported`, and an empty `providerIds` list reads the same as an absent one: offering
+data that is not recorded is undecided, never a decided rejection. Identity is
+decided before provider applicability, and never the other way round: an event
+whose canonical model could not be established is reported as an unresolved
+identity, not as a model whose provider offering the catalog failed to record, and
+its consumption is judged on its own token accounting rather than on the fact that
+it stayed undecided. Only events whose identity is established can be counted as
+unestablished offerings.
+
+**Nothing is simulated that the target does not do.** A Direct API replay has no plan, no included
+capacity, no allowance window, no admission decision and no reset: `overage` and `blocked` are always
+zero, `constraints` and `violations` are empty, and the reset-phase evidence dimension is
+`not_applicable` with the reason stated, never `unknown` and never an assumed phase.
+
+**Availability and price come from the catalog, per model.** A model is served when the selected
+provider is recorded in its `providerIds`; a model whose offering is not established stays undecided
+rather than being called unavailable. Prices are selected per model from the `api_list_price` records
+in force at the pinned instant, and each event's own timestamp still selects conditional tiers and
+schedules inside the selected record. A record that exists but is not in force, a record on another
+basis, a category the record does not establish and a model with no record are four distinct named
+gaps, each with its own warning, rather than a fallback to the base record or to another model's
+price. The evidence dimensions only claim gaps they can see: the temporal dimension reports record
+gaps for events whose price was actually sought, so a model the provider does not offer is not
+reported as pricing the pinned instant failed to cover. The catalog enforces one non-overlapping list-price record per model and basis, so a list
+price belongs to the model while the selected provider decides availability; the result states that
+in its assumptions instead of implying a provider-scoped price.
+
+**Money is only reported when the whole workload is priced.** `economics.targetCost` with
+`costBasis: "api_list_price"` appears when every event is served and priced from a record in force.
+Otherwise no cost is reported at all, with an `API_COST_INCOMPLETE` warning, because a partial sum
+would be read as what the workload would have cost. An empty workload is not incomplete demand: it
+reports no cost and no warning, since there is nothing unserved or unpriced to report. No plan price is ever mixed in: `basePlanCost`
+and `overageCost` are absent, and the schema refuses an `api_list_price` cost that carries either.
+
+**Every surface is honest about the target it replayed.** The engine's evidence dimensions, the CLI
+summary (`--target api --provider <id>`, plus `plans --providers`), the browser-free release's replay
+surface (target-kind switch, provider picker with list-price coverage, API wording for dispositions,
+an explicit "no allowance constraints" card and an activity timeline rather than failure windows),
+and the public methodology page all describe an API replay as a priced workload with no plan. The
+share panel refuses a Direct API result rather than coercing it: `ShareReplaySnapshotV1` carries a
+plan id, a plan version, a plan name and a plan price, so the link has no faithful reading for it.
+
+**The subscription path is unchanged.** `packages/replay-engine/src/semantics.ts` now shares its
+reporting primitives with the API path through `reporting.ts` (tracker, coverage builder, feasibility,
+workload summary, unsupported-model collection, warnings), and the only golden-fixture difference is
+`versions.methodology`, which is bumped to 1.4.0 because coverage and economics semantics changed.
+
+**Evidence.** 685 unit tests (schema 71, catalog 65, share 37, ui 15, web 70, replay-engine 247, cli
+36, adapters 144) and 186 browser tests pass; typecheck, lint and the contrast check are clean; the
+100,000-event benchmark adds a Direct API case at 544.7-581.5 ms (median 550.0 ms, about 182,000
+events/second, every event priced) beside subscription cases that stay in the 824.8-986.6 ms range
+they showed before this milestone. Runs vary by roughly ten percent between machines and invocations;
+the point is the new path is not slower than the one that was already there.
 
 ## Milestone 4B — replay semantics and model translation
 

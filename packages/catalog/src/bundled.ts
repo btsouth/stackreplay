@@ -131,3 +131,101 @@ export function bundledPlanFacts(versionId: string): BundledPlanFacts | undefine
     sources: version.sources.map((source) => ({ url: source.url, title: source.title })),
   };
 }
+
+/** Provider facts a Direct API surface needs, resolved from the bundled catalog. */
+export interface BundledProviderFacts {
+  id: string;
+  name: string;
+  verificationStatus: VerificationStatusV1;
+  lastVerifiedAt: string;
+  sources: readonly { url: string; title: string }[];
+}
+
+export function bundledProviderFacts(providerId: string): BundledProviderFacts | undefined {
+  const provider = loadBundledCatalog().providers[providerId];
+  if (provider === undefined) return undefined;
+  return {
+    id: provider.id,
+    name: provider.name,
+    verificationStatus: provider.verificationStatus,
+    lastVerifiedAt: provider.lastVerifiedAt,
+    sources: provider.sources.map((source) => ({ url: source.url, title: source.title })),
+  };
+}
+
+/**
+ * One provider a Direct API replay could be run against (M4C), with the counts a
+ * picker has to show to be honest about what the replay can then do.
+ *
+ * A provider qualifies when the catalog records at least one model it offers.
+ * `pricedModelCount` is the subset of those models with an API list-price record,
+ * so a picker can say up front how much of the catalog's demand could actually be
+ * priced rather than letting a replay report it afterwards.
+ */
+export interface BundledApiProviderSummary {
+  id: string;
+  name: string;
+  /** Models the catalog records this provider as offering. */
+  modelCount: number;
+  /**
+   * Of those, the models with an api_list_price record in force at the instant
+   * the summary was taken for. A picker that promised a price the replay then
+   * reports as not yet in force would contradict the result it leads to, so the
+   * count follows the same effective ranges the engine selects from.
+   */
+  pricedModelCount: number;
+  /** The instant the counts were taken for, when one was given. */
+  effectiveAt?: string | undefined;
+  verificationStatus: VerificationStatusV1;
+}
+
+/**
+ * Whether a pricing record's effective range covers an instant. The bounds are
+ * inclusive and ISO dates compare lexicographically, which is the same reading
+ * `selectPlanVersionAt` applies when the replay picks the record in force.
+ */
+function coversInstant(
+  instant: string,
+  record: { effectiveFrom: string; effectiveTo?: string | undefined },
+): boolean {
+  return (
+    record.effectiveFrom <= instant &&
+    (record.effectiveTo === undefined || instant <= record.effectiveTo)
+  );
+}
+
+export function bundledApiProviders(rulesAsOf?: string): BundledApiProviderSummary[] {
+  const catalog = loadBundledCatalog();
+  const priced = new Set(
+    Object.values(catalog.pricing)
+      .filter(
+        (pricing) =>
+          pricing.basis === "api_list_price" &&
+          (rulesAsOf === undefined || coversInstant(rulesAsOf, pricing)),
+      )
+      .map((pricing) => pricing.modelId),
+  );
+  const offered = new Map<string, { modelCount: number; pricedModelCount: number }>();
+  for (const model of Object.values(catalog.models)) {
+    const isPriced = priced.has(model.id);
+    for (const providerId of model.providerIds ?? []) {
+      const entry = offered.get(providerId) ?? { modelCount: 0, pricedModelCount: 0 };
+      entry.modelCount += 1;
+      if (isPriced) entry.pricedModelCount += 1;
+      offered.set(providerId, entry);
+    }
+  }
+  const summaries: BundledApiProviderSummary[] = [];
+  for (const [providerId, counts] of offered.entries()) {
+    const provider = catalog.providers[providerId];
+    summaries.push({
+      id: providerId,
+      name: provider?.name ?? providerId,
+      modelCount: counts.modelCount,
+      pricedModelCount: counts.pricedModelCount,
+      ...(rulesAsOf !== undefined ? { effectiveAt: rulesAsOf } : {}),
+      verificationStatus: provider?.verificationStatus ?? "unknown",
+    });
+  }
+  return summaries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}

@@ -18,7 +18,7 @@ import type {
   WorkloadScopeV1,
 } from "@stackreplay/schema";
 import { dateRangeContains } from "./time.js";
-import type { TranslationPlan } from "./translation.js";
+import type { TranslationApplication, TranslationPlan } from "./translation.js";
 
 /**
  * M4B result semantics: replay mode, target execution stack, aggregate outcome
@@ -64,6 +64,19 @@ export interface EventSemanticsFacts {
   unpricedCategories: boolean;
   indeterminate: boolean;
   disposition: ReplayDispositionKindV1;
+  /**
+   * Direct API only: an API list-price record for this event's effective model
+   * is in force at the replay's pinned instant, so the temporal contract covers
+   * it. A subscription event's temporal coverage comes from the plan version's
+   * own effective window, so this field stays unset there.
+   */
+  temporalCovered?: boolean | undefined;
+  /**
+   * Direct API only: the catalog does not establish whether the selected
+   * provider offers this event's effective model. That is undecided demand
+   * about this workload, which keeps the result out of `deterministic`.
+   */
+  applicabilityUnknown?: boolean | undefined;
 }
 
 /** A target that publishes no numeric limit cannot support a numeric fit claim. */
@@ -167,16 +180,41 @@ function partialDimension(
   };
 }
 
+/**
+ * The target facts the M4B semantics block is derived from (M4C generalizes it).
+ *
+ * - `subscription`: the plan version whose rules were simulated, and the reset
+ *   assumption derived from its own documented windows.
+ * - `api`: the provider the demand was applied to. A Direct API target declares
+ *   no allowance, so its reset assumption is `not-applicable` by construction
+ *   and is carried rather than omitted: the evidence block states it.
+ */
+export type SemanticsTargetFactsV1 =
+  | {
+      kind: "subscription";
+      planVersion: LoadedPlanVersionV1;
+      /** Resolved reset assumption of the target account (derived, never guessed). */
+      reset: ResetAssumptionV1;
+    }
+  | {
+      kind: "api";
+      providerId: string;
+      /** A Direct API target establishes no allowance window at all. */
+      reset: ResetAssumptionV1;
+    };
+
 export interface SemanticsInputs {
-  planVersion: LoadedPlanVersionV1;
+  target: SemanticsTargetFactsV1;
   catalogVersion: string;
   rulesAsOf: string;
   scopeKind: WorkloadScopeKindV1;
-  /** Resolved reset assumption of the target account (derived, never guessed). */
-  reset: ResetAssumptionV1;
   translationPlan: TranslationPlan | undefined;
-  /** Applied translation, present exactly when the scenario supplied a policy. */
-  translation: ReplayTranslationV1 | undefined;
+  /**
+   * Live substitution counter. Substitution is recorded while events are
+   * replayed, so the accumulator holds the application rather than a snapshot
+   * taken before the clock ran.
+   */
+  translationApplication: TranslationApplication;
 }
 
 const CLASS_ORDER: readonly ReplayabilityClassV1[] = ["deterministic", "bounded", "qualitative"];
@@ -217,6 +255,7 @@ export class SemanticsAccumulator {
     Map<ModelResolutionKindV1, { entry: ModelMixEntryV1; tokensComplete: boolean }>
   >();
   private unknownConsumptionEvents = 0;
+  private applicabilityUnknownEvents = 0;
   private unresolvedEventCount = 0;
   private eventsWithoutKnownTokens = 0;
   private numericRuleEvents = 0;
@@ -233,7 +272,7 @@ export class SemanticsAccumulator {
    * 100k-event workload does not allocate one record per event.
    */
   observe(facts: EventSemanticsFacts): void {
-    const { planVersion } = this.inputs;
+    const target = this.inputs.target;
     const tokenCount = facts.tokensKnown ? (facts.tokenCount ?? 0) : undefined;
     const resolved = facts.resolutionKind !== "unresolved";
 
@@ -254,11 +293,19 @@ export class SemanticsAccumulator {
     this.ruleEvents.total += 1;
     if (facts.ruleDeclared) this.ruleEvents.covered += 1;
 
-    const insideWindow = dateRangeContains(
-      facts.occurredOn,
-      planVersion.effectiveFrom,
-      planVersion.effectiveTo,
-    );
+    // A subscription event is covered when its date lies inside the plan
+    // version's own effective window; a Direct API event is covered when an API
+    // list-price record for its effective model is in force at the pinned
+    // instant. Both answer the same question: does the pinned evidence validly
+    // cover this event?
+    const insideWindow =
+      target.kind === "subscription"
+        ? dateRangeContains(
+            facts.occurredOn,
+            target.planVersion.effectiveFrom,
+            target.planVersion.effectiveTo,
+          )
+        : facts.temporalCovered === true;
     this.temporalEvents.total += 1;
     if (insideWindow) this.temporalEvents.covered += 1;
 
@@ -279,6 +326,7 @@ export class SemanticsAccumulator {
     }
 
     if (facts.indeterminate) this.unknownConsumptionEvents += 1;
+    if (facts.applicabilityUnknown === true) this.applicabilityUnknownEvents += 1;
     if (facts.numericRuleApplies) this.numericRuleEvents += 1;
 
     const sourceModelId = facts.sourceModelId;
@@ -353,33 +401,28 @@ export class SemanticsAccumulator {
         ? {
             status: "not_applicable",
             reason:
-              "the target's rules do not bill consumption above included capacity in currency, so there is no monetary denominator",
+              this.inputs.target.kind === "api"
+                ? "no event's effective model is served by the selected provider, so there is no monetary denominator"
+                : "the target's rules do not bill consumption above included capacity in currency, so there is no monetary denominator",
           }
         : this.priced.covered === this.priced.total
           ? completeDimension(this.priced, undefined)
-          : partialDimension(
-              this.priced,
-              undefined,
-              [
-                this.missingPricingEvents > 0
-                  ? `${this.missingPricingEvents} event(s) use a model with no pricing entry`
-                  : undefined,
-                this.unpricedCategoryEvents > 0
-                  ? `${this.unpricedCategoryEvents} event(s) consume a category the selected pricing record does not establish`
-                  : undefined,
-              ]
-                .filter((part): part is string => part !== undefined)
-                .join("; ") || "part of the priced demand could not be converted to money",
-            );
+          : partialDimension(this.priced, undefined, this.pricingPartialReason());
 
     const rules =
-      this.ruleEvents.covered === this.ruleEvents.total
-        ? completeDimension(this.ruleEvents, tokensComplete ? this.ruleTokens : undefined)
-        : partialDimension(
-            this.ruleEvents,
-            tokensComplete ? this.ruleTokens : undefined,
-            `${this.ruleEvents.total - this.ruleEvents.covered} event(s) use models or identifiers the target's rules do not mention`,
-          );
+      this.inputs.target.kind === "api"
+        ? {
+            status: "not_applicable" as const,
+            reason:
+              "a Direct API target prices every event at its model's published API list price: there is no allowance or rule system for this dimension to cover",
+          }
+        : this.ruleEvents.covered === this.ruleEvents.total
+          ? completeDimension(this.ruleEvents, tokensComplete ? this.ruleTokens : undefined)
+          : partialDimension(
+              this.ruleEvents,
+              tokensComplete ? this.ruleTokens : undefined,
+              `${this.ruleEvents.total - this.ruleEvents.covered} event(s) use models or identifiers the target's rules do not mention`,
+            );
 
     const temporal =
       this.temporalEvents.covered === this.temporalEvents.total
@@ -387,11 +430,11 @@ export class SemanticsAccumulator {
         : partialDimension(
             this.temporalEvents,
             tokensComplete ? this.temporalTokens : undefined,
-            `${this.temporalEvents.total - this.temporalEvents.covered} event(s) fall outside the pinned plan version's effective window (${this.inputs.planVersion.effectiveFrom} to ${this.inputs.planVersion.effectiveTo ?? "open"})`,
+            this.temporalPartialReason(),
           );
 
     const reset = this.resetAssumption();
-    const substituted = this.inputs.translation?.substitutedEvents ?? 0;
+    const substituted = this.inputs.translationApplication.substitutedEvents;
     const translationPlan = this.inputs.translationPlan;
     // The transform is recorded only when it actually replayed demand: a policy
     // that matched no event is a supplied scenario, not an applied transform.
@@ -410,22 +453,80 @@ export class SemanticsAccumulator {
       rules,
       temporal,
       translationMethod,
-      resetPhase:
-        reset.kind === "fixed-unknown"
-          ? {
-              status: "unknown",
-              reason: hasMixedWindowKinds(this.inputs.planVersion)
-                ? "the target's allowance windows mix rolling and calendar behaviour, so no single reset phase is established, and reset-phase sensitivity is not analysed in this milestone"
-                : "the account's allowance reset phase was declared not established, and reset-phase sensitivity is not analysed in this milestone",
-            }
-          : reset.kind === "not-applicable"
-            ? { status: "not_applicable" }
-            : { status: "established" },
+      resetPhase: this.resetPhaseEvidence(reset),
     };
   }
 
+  /**
+   * How the reset phase reads for this target kind. A Direct API target has no
+   * allowance window, so the dimension is not applicable by construction rather
+   * than unknown by missing evidence.
+   */
+  private resetPhaseEvidence(reset: ResetAssumptionV1): ReplayEvidenceV1["resetPhase"] {
+    const target = this.inputs.target;
+    if (target.kind === "api")
+      return {
+        status: "not_applicable",
+        reason:
+          "a Direct API target has no subscription allowance window, so no reset phase can apply to it",
+      };
+    if (reset.kind === "fixed-unknown")
+      return {
+        status: "unknown",
+        reason: hasMixedWindowKinds(target.planVersion)
+          ? "the target's allowance windows mix rolling and calendar behaviour, so no single reset phase is established, and reset-phase sensitivity is not analysed in this milestone"
+          : "the account's allowance reset phase was declared not established, and reset-phase sensitivity is not analysed in this milestone",
+      };
+    return reset.kind === "not-applicable"
+      ? { status: "not_applicable" }
+      : { status: "established" };
+  }
+
+  /**
+   * Why the monetary side of the result is partial, worded for the target kind:
+   * a subscription reason talks about model pricing entries and unestablished
+   * categories, an API reason about the list-price records in force.
+   */
+  private pricingPartialReason(): string {
+    const parts = [
+      this.missingPricingEvents > 0
+        ? this.inputs.target.kind === "api"
+          ? `${this.missingPricingEvents} event(s) have no API list-price record in force for their effective model at the selected instant`
+          : `${this.missingPricingEvents} event(s) use a model with no pricing entry`
+        : undefined,
+      this.unpricedCategoryEvents > 0
+        ? `${this.unpricedCategoryEvents} event(s) consume a category the selected pricing record does not establish`
+        : undefined,
+    ].filter((part): part is string => part !== undefined);
+    return (
+      parts.join("; ") ||
+      (this.inputs.target.kind === "api"
+        ? "part of the applicable demand could not be converted to money with the pinned API list prices"
+        : "part of the priced demand could not be converted to money")
+    );
+  }
+
+  /** Why temporal coverage is partial, worded for the target kind. */
+  private temporalPartialReason(): string {
+    const target = this.inputs.target;
+    const missing = this.temporalEvents.total - this.temporalEvents.covered;
+    if (target.kind !== "subscription")
+      return `${missing} event(s) use a model the selected provider offers but have no API list-price record in force for that model at the pinned instant, so the pinned pricing semantics do not cover them`;
+    return `${missing} event(s) fall outside the pinned plan version's effective window (${target.planVersion.effectiveFrom} to ${target.planVersion.effectiveTo ?? "open"})`;
+  }
+
   private resetAssumption(): ResetAssumptionV1 {
-    return this.inputs.reset;
+    return this.inputs.target.reset;
+  }
+
+  /**
+   * The applied translation, read from the live application at the moment the
+   * semantics block is built. An exact replay therefore carries no translation
+   * block at all, which is what keeps a translated scenario from ever reading
+   * back as exact (M4B).
+   */
+  private translation(): ReplayTranslationV1 | undefined {
+    return this.inputs.translationApplication.finish(this.inputs.translationPlan);
   }
 
   /**
@@ -443,8 +544,12 @@ export class SemanticsAccumulator {
   private replayability(evidence: ReplayEvidenceV1): ReplayabilityV1 {
     const reasons: ReplayabilityReasonV1[] = [];
     let level: ReplayabilityClassV1 = "deterministic";
+    const targetKind = this.inputs.target.kind;
 
-    if (this.numericRuleEvents === 0) {
+    // A Direct API target's mechanics are its list prices, which are numeric by
+    // construction, so the "no numeric rule applied" clause is a subscription
+    // reading only.
+    if (targetKind === "subscription" && this.numericRuleEvents === 0) {
       level = weakest(level, "qualitative");
       reasons.push({
         id: "no_numeric_rules",
@@ -466,10 +571,18 @@ export class SemanticsAccumulator {
         description: `${this.unresolvedEventCount} event(s) use model identifiers no catalog source establishes, so part of the recorded demand could not be evaluated against the target's rules and the outcome is bounded rather than deterministic.`,
       });
     }
+    if (this.applicabilityUnknownEvents > 0) {
+      level = weakest(level, "bounded");
+      reasons.push({
+        id: "target_applicability_unknown",
+        description: `${this.applicabilityUnknownEvents} event(s) use models whose availability on the selected provider the catalog does not establish, so whether the target serves that demand is undecided rather than determined.`,
+      });
+    }
     // Every undecided event keeps the class out of `deterministic`, whatever its
     // cause, so a future path to `unknown` cannot silently inherit the strongest
     // class by being left out of the two reasons above.
-    const explainedUnknown = this.unresolvedEventCount + this.unknownConsumptionEvents;
+    const explainedUnknown =
+      this.unresolvedEventCount + this.unknownConsumptionEvents + this.applicabilityUnknownEvents;
     const unexplainedUnknown = this.dispositions.unknown - explainedUnknown;
     if (this.dispositions.unknown > 0) {
       level = weakest(level, "bounded");
@@ -499,7 +612,9 @@ export class SemanticsAccumulator {
       reasons.push({
         id: "numeric_mechanics",
         description:
-          "Every applicable rule is numeric, the workload's required quantities and the pricing used are established, and the reset timing follows the plan's own documented windows.",
+          targetKind === "api"
+            ? "Every event's model identity, its availability on the selected provider and its recorded token quantities are established, and each event is priced from an API list-price record in force at the pinned instant."
+            : "Every applicable rule is numeric, the workload's required quantities and the pricing used are established, and the reset timing follows the plan's own documented windows.",
       });
     }
     return { class: level, reasons };
@@ -527,25 +642,36 @@ export class SemanticsAccumulator {
       unknown: this.dispositions.unknown,
     };
     const translationPolicy = this.inputs.translationPlan?.policy;
-    const targetStack: ReplayTargetStackV1 = {
-      providerId: this.inputs.planVersion.providerId,
-      planId: this.inputs.planVersion.planId,
-      planVersionId: this.inputs.planVersion.versionId,
-      effectiveAt: this.inputs.rulesAsOf,
-      catalogVersion: this.inputs.catalogVersion,
-      overageMode: deriveOverageMode(this.inputs.planVersion),
-      reset: this.resetAssumption(),
-      ...(translationPolicy === undefined ? {} : { modelTranslation: translationPolicy }),
-    };
+    const target = this.inputs.target;
+    const targetStack: ReplayTargetStackV1 =
+      target.kind === "api"
+        ? {
+            type: "api",
+            providerId: target.providerId,
+            effectiveAt: this.inputs.rulesAsOf,
+            catalogVersion: this.inputs.catalogVersion,
+            ...(translationPolicy === undefined ? {} : { modelTranslation: translationPolicy }),
+          }
+        : {
+            providerId: target.planVersion.providerId,
+            planId: target.planVersion.planId,
+            planVersionId: target.planVersion.versionId,
+            effectiveAt: this.inputs.rulesAsOf,
+            catalogVersion: this.inputs.catalogVersion,
+            overageMode: deriveOverageMode(target.planVersion),
+            reset: this.resetAssumption(),
+            ...(translationPolicy === undefined ? {} : { modelTranslation: translationPolicy }),
+          };
     const scope: WorkloadScopeV1 = {
       kind: this.inputs.scopeKind,
       statement: workloadScopeStatement(this.inputs.scopeKind),
     };
-    const substituted = this.inputs.translation?.substitutedEvents ?? 0;
+    const translation = this.translation();
+    const substituted = translation?.substitutedEvents ?? 0;
     return {
       mode: substituted > 0 ? "translated" : "exact",
       targetStack,
-      ...(this.inputs.translation === undefined ? {} : { translation: this.inputs.translation }),
+      ...(translation === undefined ? {} : { translation }),
       dispositions,
       replayability: this.replayability(evidence),
       evidence,

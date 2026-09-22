@@ -56,19 +56,33 @@ export interface ShareSnapshotOptions {
 /**
  * Why a result cannot be published as a V1 share link, or undefined when it can.
  *
- * `ShareReplaySnapshotV1` has no field for the replay's routing assumption, so a
- * translated replay would reach a public page that can only be read as an exact
- * replay of the target's own models. M4B refuses that path instead of widening
- * V1: the link format is unchanged, and old links keep decoding exactly as
- * before (M4B plan section 14).
+ * A Direct API result cannot be published at all (M4C): `ShareReplaySnapshotV1`
+ * carries a plan id, a plan version, a plan name and a plan price, and a Direct
+ * API replay has none of those. Widening V1 would change the link format for
+ * every existing reader, so this path is refused with a reason instead, exactly
+ * as the M4B translated case is.
+ *
+ * `ShareReplaySnapshotV1` also has no field for the replay's routing assumption,
+ * so a translated replay would reach a public page that can only be read as an
+ * exact replay of the target's own models. M4B refuses that path instead of
+ * widening V1: the link format is unchanged, and old links keep decoding exactly
+ * as before (M4B plan section 14).
  *
  * The test is defense in depth. `mode` is the engine's own statement, and the
  * applied rules are what actually reached the public page's numbers, so the
  * refusal holds even if a future caller hands over a semantics block whose mode
  * and translation disagree: a substituted event or an applied rule is on its own
- * enough to keep the link closed.
+ * enough to keep the link closed. The target check reads `result.target` rather
+ * than the semantics block, so a result whose semantics were dropped is still
+ * refused.
  */
 export function shareSnapshotRefusal(result: ExecutionReplayResultV1): string | undefined {
+  if (result.target.type !== "subscription")
+    return [
+      `this is a ${result.target.type === "api" ? "Direct API" : result.target.type} replay, and a`,
+      "share link carries a subscription target only: a plan id, a plan version, a plan name and a",
+      "plan price. Publishing it as a subscription link would describe a plan this replay never ran against.",
+    ].join(" ");
   const semantics = result.semantics;
   if (semantics === undefined) return undefined;
   const substituted = semantics.translation?.substitutedEvents ?? 0;

@@ -2,14 +2,18 @@ import type { ModelV1 } from "@stackreplay/catalog";
 import {
   type ExecutionReplayResultV1,
   executionReplayResultV1Schema,
+  isApiReplayTargetStackV1,
   type ModelTranslationPolicyV1,
+  type SubscriptionReplayTargetStackV1,
 } from "@stackreplay/schema";
 import { describe, expect, it } from "vitest";
 import { replay } from "./engine.js";
 import { ReplayEngineError } from "./errors.js";
 import {
   calendarLimit,
+  FIXTURE_CATALOG_VERSION,
   FIXTURE_PLAN_VERSION_ID,
+  FIXTURE_RULES_AS_OF,
   fixtureContext,
   fixtureModels,
   makeFixtureCatalog,
@@ -31,6 +35,19 @@ const input = (tokens: number, model?: string) => ({
   usage: completeUsage({ uncachedInputTokens: tokens }),
   ...(model === undefined ? {} : { model: { rawName: model, canonicalId: model } }),
 });
+
+/**
+ * The subscription target stack of a fixture replay. The result's stack is a
+ * backward-compatible union since M4C; these M4B tests narrow to the branch
+ * they exercise, and a replay that pinned the API branch would fail here rather
+ * than read a field off the wrong shape.
+ */
+function subscriptionStack(result: ExecutionReplayResultV1): SubscriptionReplayTargetStackV1 {
+  const stack = result.semantics?.targetStack;
+  if (stack === undefined) throw new Error("expected replay semantics");
+  if (isApiReplayTargetStackV1(stack)) throw new Error("expected a subscription target stack");
+  return stack;
+}
 
 const aliasSource = {
   url: "https://example.invalid/alias",
@@ -661,7 +678,7 @@ describe("M4B: reset and workload scope stay explicit", () => {
       }),
       context: fixtureContext,
     });
-    expect(rolling.semantics?.targetStack.reset).toEqual({ kind: "rolling" });
+    expect(subscriptionStack(rolling).reset).toEqual({ kind: "rolling" });
 
     const calendar = replay({
       events: [makeEvent({ id: "e1", occurredAt: at(0), ...input(500) })],
@@ -671,7 +688,7 @@ describe("M4B: reset and workload scope stay explicit", () => {
       }),
       context: fixtureContext,
     });
-    expect(calendar.semantics?.targetStack.reset).toEqual({
+    expect(subscriptionStack(calendar).reset).toEqual({
       kind: "fixed-known",
       phase: "calendar month (UTC)",
     });
@@ -700,7 +717,7 @@ describe("M4B: reset and workload scope stay explicit", () => {
       catalog: makeFixtureCatalog({ limits: [creditPool("allow_overage")] }),
       context: fixtureContext,
     });
-    expect(result.semantics?.targetStack.reset).toEqual({ kind: "fixed-unknown" });
+    expect(subscriptionStack(result).reset).toEqual({ kind: "fixed-unknown" });
     expect(result.semantics?.evidence.resetPhase.status).toBe("unknown");
     expect(result.semantics?.evidence.resetPhase.reason).toContain("not established");
     expect(result.semantics?.replayability.class).toBe("bounded");
@@ -765,7 +782,7 @@ describe("M4B: target stack and provenance are pinned", () => {
     });
     expect(result.semantics?.targetStack.effectiveAt).toBe(result.versions.rulesAsOf);
     // The version the result was computed against is the version the stack names.
-    expect(result.semantics?.targetStack.planVersionId).toBe(result.versions.targetReference);
+    expect(subscriptionStack(result).planVersionId).toBe(result.versions.targetReference);
   });
 
   it("marks a target whose rules allow overage", () => {
@@ -775,18 +792,56 @@ describe("M4B: target stack and provenance are pinned", () => {
       catalog: makeFixtureCatalog({ limits: [creditPool("allow_overage")] }),
       context: fixtureContext,
     });
-    expect(result.semantics?.targetStack.overageMode).toBe("enabled");
+    expect(subscriptionStack(result).overageMode).toBe("enabled");
   });
 
-  it("still refuses an api target: Direct API execution is not implemented in M4B", () => {
+  it("runs an api target as a Direct API replay instead of refusing it (M4C)", () => {
+    // M4B refused this target kind outright. M4C implements it, so the same
+    // shape now replays: the provider must exist in the catalog, and the result
+    // pins the API target stack rather than a plan.
+    const catalog = makeFixtureCatalog({ limits: [tokenLimit()] });
+    const result = replay({
+      events: [makeEvent({ id: "e1", occurredAt: at(0), ...input(500) })],
+      target: { type: "api", providerId: "fixture-provider" },
+      catalog,
+      context: fixtureContext,
+    });
+    expect(result.target).toEqual({ type: "api", providerId: "fixture-provider" });
+    expect(result.subscription).toBeUndefined();
+    expect(result.constraints).toEqual([]);
+    expect(result.violations).toEqual([]);
+    expect(result.semantics?.targetStack).toEqual({
+      type: "api",
+      providerId: "fixture-provider",
+      effectiveAt: FIXTURE_RULES_AS_OF,
+      catalogVersion: FIXTURE_CATALOG_VERSION,
+    });
+    expect(executionReplayResultV1Schema.safeParse(result).success).toBe(true);
+  });
+
+  it("still refuses the pre-M4A api shell's pricing reference and model mapping (M4C)", () => {
+    const catalog = makeFixtureCatalog({ limits: [tokenLimit()] });
+    const events = [makeEvent({ id: "e1", occurredAt: at(0), ...input(500) })];
     expect(() =>
       replay({
-        events: [makeEvent({ id: "e1", occurredAt: at(0), ...input(500) })],
-        target: { type: "api", providerId: "synthetic", pricingVersionId: "synthetic" },
-        catalog: makeFixtureCatalog({ limits: [tokenLimit()] }),
+        events,
+        target: { type: "api", providerId: "fixture-provider", pricingVersionId: "synthetic" },
+        catalog,
         context: fixtureContext,
       }),
-    ).toThrow(/TARGET_NOT_IMPLEMENTED/);
+    ).toThrow(/API_PRICING_REFERENCE_NOT_SUPPORTED/);
+    expect(() =>
+      replay({
+        events,
+        target: {
+          type: "api",
+          providerId: "fixture-provider",
+          modelMapping: [{ fromModelId: "fixture-small", toModelId: "fixture-medium" }],
+        },
+        catalog,
+        context: fixtureContext,
+      }),
+    ).toThrow(/API_MODEL_MAPPING_NOT_SUPPORTED/);
   });
 });
 
@@ -898,7 +953,7 @@ describe("M4B: collapse guards reject a hand-edited result", () => {
     );
     const semantics = result.semantics;
     if (semantics === undefined) throw new Error("expected semantics");
-    expect(semantics.targetStack.overageMode).toBe("disabled");
+    expect(subscriptionStack(result).overageMode).toBe("disabled");
     expect(semantics.dispositions).toMatchObject({ included: 1, blocked: 1, overage: 0 });
     expect(
       executionReplayResultV1Schema.safeParse({
@@ -958,7 +1013,7 @@ describe("M4B remediation: a summary must not outrun the evidence behind it", ()
     // The plan resets one allowance on a rolling window and another on a calendar
     // boundary: there is no single phase, and claiming the calendar one alone
     // would silently drop the rolling behaviour.
-    expect(semantics?.targetStack.reset).toEqual({ kind: "fixed-unknown" });
+    expect(subscriptionStack(result).reset).toEqual({ kind: "fixed-unknown" });
     expect(semantics?.evidence.resetPhase.status).toBe("unknown");
     expect(semantics?.evidence.resetPhase.reason).toContain("mix rolling and calendar");
     expect(semantics?.replayability.class).toBe("bounded");
@@ -994,7 +1049,7 @@ describe("M4B remediation: a summary must not outrun the evidence behind it", ()
     });
     // One rule bills overage and another rejects: the aggregate state is unknown,
     // and the per-rule simulation is what carries the actual outcome.
-    expect(result.semantics?.targetStack.overageMode).toBe("unknown");
+    expect(subscriptionStack(result).overageMode).toBe("unknown");
     expect(result.semantics?.dispositions).toEqual({
       included: 1,
       overage: 0,
@@ -1016,8 +1071,8 @@ describe("M4B remediation: a summary must not outrun the evidence behind it", ()
       }),
       context: fixtureContext,
     });
-    expect(result.semantics?.targetStack.overageMode).toBe("unknown");
-    expect(result.semantics?.targetStack.reset).toEqual({ kind: "not-applicable" });
+    expect(subscriptionStack(result).overageMode).toBe("unknown");
+    expect(subscriptionStack(result).reset).toEqual({ kind: "not-applicable" });
     expect(result.semantics?.replayability.class).toBe("qualitative");
   });
 
@@ -1043,7 +1098,7 @@ describe("M4B remediation: a summary must not outrun the evidence behind it", ()
     expect(semantics?.replayability.reasons.map((reason) => reason.id)).not.toContain(
       "unknown_consumption",
     );
-    expect(semantics?.targetStack.overageMode).toBe("disabled");
+    expect(subscriptionStack(result).overageMode).toBe("disabled");
   });
 
   it("still reads as deterministic when an unserved model is a known outcome", () => {

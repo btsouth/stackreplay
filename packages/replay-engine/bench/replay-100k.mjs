@@ -89,11 +89,23 @@ const cases = [
     label: "example-cloud-pro@2026-08-01",
     target: { type: "subscription", planVersionId: "example-cloud-pro@2026-08-01" },
   },
+  {
+    // M4C: the same workload priced at a provider's list prices, with no plan
+    // simulation at all. It is benchmarked here so the new path carries the same
+    // performance evidence the subscription path has.
+    label: "example-cloud (Direct API list prices)",
+    target: { type: "api", providerId: "example-cloud" },
+    api: true,
+  },
 ];
 
 for (const benchmarkCase of cases) {
-  if (catalog.planVersions[benchmarkCase.target.planVersionId] === undefined) {
-    throw new Error(`benchmark target missing from catalog: ${benchmarkCase.target.planVersionId}`);
+  const reference =
+    benchmarkCase.target.type === "api"
+      ? catalog.providers[benchmarkCase.target.providerId]
+      : catalog.planVersions[benchmarkCase.target.planVersionId];
+  if (reference === undefined) {
+    throw new Error(`benchmark target missing from catalog: ${benchmarkCase.label}`);
   }
 }
 
@@ -124,6 +136,9 @@ for (const benchmarkCase of cases) {
   ) {
     throw new Error("benchmark did not evaluate the full known workload");
   }
+  if (benchmarkCase.api && result.economics?.costBasis !== "api_list_price") {
+    throw new Error("the Direct API benchmark case did not price the workload");
+  }
   const sorted = [...samples].sort((a, b) => a - b);
   const min = sorted[0];
   const middle = Math.floor(sorted.length / 2);
@@ -141,7 +156,11 @@ for (const benchmarkCase of cases) {
   lines.push(`  samples (ms): ${samples.map((sample) => sample.toFixed(1)).join(", ")}`);
   lines.push(`  throughput at median: ${throughput} events/second`);
   lines.push(
-    `  constraints: ${result.constraints.map((constraint) => `${constraint.id}=${constraint.status}`).join(", ")}`,
+    `  constraints: ${
+      result.constraints.length === 0
+        ? "none (a Direct API target admits everything)"
+        : result.constraints.map((constraint) => `${constraint.id}=${constraint.status}`).join(", ")
+    }`,
   );
   lines.push(
     `  coverage: requests ${coverage(result.coverage.requests)} | usage ${coverage(result.coverage.usage)} | models ${coverage(result.coverage.models)}`,
@@ -150,10 +169,20 @@ for (const benchmarkCase of cases) {
     `  violations: ${result.violations.length} | unsupported models: ${result.unsupportedModels.length} | warnings: ${result.warnings.length} | confidence: ${result.confidence.level}`,
   );
   lines.push(
-    `  accepted / attempted: ${result.constraints.map((c) => `${c.id} ${c.consumedUnits}/${c.attemptedUnits} ${c.unit}`).join(", ")}`,
+    `  accepted / attempted: ${
+      result.constraints.length === 0
+        ? `every event served; target cost ${result.economics?.targetCost.amount ?? "not reported"} USD`
+        : result.constraints
+            .map((c) => `${c.id} ${c.consumedUnits}/${c.attemptedUnits} ${c.unit}`)
+            .join(", ")
+    }`,
   );
   lines.push(
-    `  overage cost: ${result.economics?.overageCost?.amount ?? "not applicable"} USD; rulesAsOf: ${result.versions.rulesAsOf}`,
+    `  ${result.target.type === "api" ? "target cost" : "overage cost"}: ${
+      result.target.type === "api"
+        ? `${result.economics?.targetCost.amount ?? "not reported"} USD (api_list_price)`
+        : `${result.economics?.overageCost?.amount ?? "not applicable"} USD`
+    }; rulesAsOf: ${result.versions.rulesAsOf}`,
   );
   lines.push(
     `  peak RSS after this target: ${(process.resourceUsage().maxRSS / 1024).toFixed(1)} MiB`,

@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { executionTargetV1Schema } from "./execution-target.js";
 import { computedMoneyV1Schema, computedSignedMoneyV1Schema, moneyV1Schema } from "./money.js";
-import { replaySemanticsV1Schema } from "./replay-semantics.js";
+import {
+  isApiReplayTargetStackV1,
+  isSubscriptionReplayTargetStackV1,
+  replaySemanticsV1Schema,
+} from "./replay-semantics.js";
 import {
   computedDecimalV1Schema,
   decimalSumEquals,
@@ -213,11 +217,28 @@ export const replayViolationV1Schema = z.strictObject({
 });
 export type ReplayViolationV1 = z.infer<typeof replayViolationV1Schema>;
 
+/**
+ * A model the target does not run, and why.
+ *
+ * `not_supported` is a subscription reading: the plan's own rules do not
+ * mention the model. `not_offered` is the Direct API reading: the catalog
+ * records the model's offering providers and the selected provider is not
+ * among them. `offering_unestablished` is the honest third case: the catalog
+ * does not record which providers offer the model at all, so the target's
+ * applicability is undecided rather than refuted. `excluded` stays the plan
+ * reading of an explicitly excluded model.
+ */
 export const unsupportedModelV1Schema = z.strictObject({
   rawName: z.string().min(1),
   canonicalId: z.string().min(1).optional(),
   eventCount: z.number().int().positive(),
-  reason: z.enum(["not_supported", "excluded", "unresolved"]),
+  reason: z.enum([
+    "not_supported",
+    "excluded",
+    "unresolved",
+    "not_offered",
+    "offering_unestablished",
+  ]),
 });
 export type UnsupportedModelV1 = z.infer<typeof unsupportedModelV1Schema>;
 
@@ -263,6 +284,17 @@ export const economicsV1Schema = z
       economics.overageCost === undefined
     )
       ctx.addIssue({ code: "custom", message: "overage basis requires overageCost" });
+    // An API-list-price total is the sum of the events' own prices: it has no
+    // subscription component. A base plan cost or an overage cost beside it
+    // would be a fabricated subscription reading of a Direct API replay.
+    if (
+      economics.costBasis === "api_list_price" &&
+      (economics.basePlanCost !== undefined || economics.overageCost !== undefined)
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "an api_list_price total has no base plan cost and no overage cost",
+      });
     if (
       economics.costDifference !== undefined &&
       economics.baselineCost !== undefined &&
@@ -342,7 +374,11 @@ export const replayVersionsV1Schema = z.strictObject({
   /** The explicit rule instant used to resolve current rules. */
   rulesAsOf: isoDateV1Schema,
   targetType: z.enum(["subscription", "api", "local", "hybrid"]),
-  /** Resolved target reference: the plan version for subscription targets. */
+  /**
+   * Resolved target reference. A subscription target references the selected
+   * plan version; a Direct API target references the selected API provider id,
+   * because a Direct API replay pins no plan version to reference (M4C).
+   */
   targetReference: z.string().min(1),
   /** Pricing references used by this replay, when applicable. */
   pricingReferences: z.array(z.string().min(1)).optional(),
@@ -439,6 +475,32 @@ export const executionReplayResultV1Schema = z
         });
     }
 
+    // A Direct API target is checked before the optional semantics block is
+    // consulted. That block is optional so pre-M4B stored documents stay
+    // readable, and the absence of an optional block cannot be read as an
+    // assertion of nothing: a plan replay must not become a list-price replay by
+    // dropping it (M4C).
+    if (result.target.type === "api") {
+      if (result.subscription !== undefined)
+        ctx.addIssue({
+          code: "custom",
+          path: ["subscription"],
+          message: "a Direct API replay carries no subscription detail",
+        });
+      if (result.constraints.length > 0 || result.violations.length > 0)
+        ctx.addIssue({
+          code: "custom",
+          path: ["constraints"],
+          message: "a Direct API replay has no subscription allowance constraints",
+        });
+      if (result.economics !== undefined && result.economics.costBasis !== "api_list_price")
+        ctx.addIssue({
+          code: "custom",
+          path: ["economics", "costBasis"],
+          message: "a Direct API replay's cost is an API list-price total",
+        });
+    }
+
     const semantics = result.semantics;
     if (semantics === undefined) return;
 
@@ -472,18 +534,54 @@ export const executionReplayResultV1Schema = z
       });
 
     const subscription = result.subscription;
-    if (subscription !== undefined) {
-      const stack = semantics.targetStack;
-      if (
-        stack.planId !== subscription.planId ||
-        stack.planVersionId !== subscription.planVersionId ||
-        stack.providerId !== subscription.providerId
-      )
+    const targetStack = semantics.targetStack;
+
+    // Target type and target stack must agree, in both directions: a Direct API
+    // replay pins the API stack, and no other target type may wear it.
+    if (result.target.type === "api") {
+      if (!isApiReplayTargetStackV1(targetStack))
         ctx.addIssue({
           code: "custom",
           path: ["semantics", "targetStack"],
-          message: "the target stack identifies the plan this replay simulated",
+          message: "a Direct API replay pins the Direct API target stack",
         });
+      else if (targetStack.providerId !== result.target.providerId)
+        ctx.addIssue({
+          code: "custom",
+          path: ["semantics", "targetStack"],
+          message: "the target stack identifies the provider the demand was applied to",
+        });
+      /**
+       * A Direct API target admits every request: it has no capacity to exceed
+       * and no rule that can refuse one, so billed overage and blocked demand
+       * cannot be readings of this target (M4C).
+       */
+      if (dispositions.overage > 0 || dispositions.blocked > 0)
+        ctx.addIssue({
+          code: "custom",
+          path: ["semantics", "dispositions"],
+          message: "a Direct API target bills no overage and blocks no request",
+        });
+    } else {
+      if (isApiReplayTargetStackV1(targetStack))
+        ctx.addIssue({
+          code: "custom",
+          path: ["semantics", "targetStack"],
+          message: "an API target stack belongs to a Direct API replay",
+        });
+      if (subscription !== undefined) {
+        if (
+          !isSubscriptionReplayTargetStackV1(targetStack) ||
+          targetStack.planId !== subscription.planId ||
+          targetStack.planVersionId !== subscription.planVersionId ||
+          targetStack.providerId !== subscription.providerId
+        )
+          ctx.addIssue({
+            code: "custom",
+            path: ["semantics", "targetStack"],
+            message: "the target stack identifies the plan this replay simulated",
+          });
+      }
     }
 
     const policy = semantics.targetStack.modelTranslation;

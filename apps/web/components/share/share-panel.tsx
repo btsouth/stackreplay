@@ -22,7 +22,12 @@ import {
 
 export interface SharePanelProps {
   result: ExecutionReplayResultV1;
-  target: ShareTargetFacts;
+  /**
+   * The target facts a link would carry. Absent for a result a link cannot carry
+   * at all (a Direct API replay, M4C): the panel then states the refusal instead
+   * of offering options that could never produce a link.
+   */
+  target?: ShareTargetFacts | undefined;
   attribution?: readonly ShareAttributionFacts[];
   /** Canonical origin for the displayed link; falls back to the page origin. */
   siteUrl?: string;
@@ -50,6 +55,12 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
   async function createLink() {
     setError(undefined);
     setStatus("Building the link…");
+    if (target === undefined) {
+      // Unreachable through the UI (the button is disabled), but a link must
+      // never be built from a result with no target facts to carry.
+      setError(refusal ?? "This result has no target facts a link could carry.");
+      return;
+    }
     try {
       const snapshot = toShareSnapshot(result, {
         target,
@@ -100,7 +111,7 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
         </p>
         {/* A share link carries its target in the token, so a demo plan reaches the
             public page; the link says so, and the sharer should know it will. */}
-        {isSyntheticCatalogId(target.planId) ? (
+        {target !== undefined && isSyntheticCatalogId(target.planId) ? (
           <p className="text-xs text-warning" data-testid="share-synthetic-notice">
             This target is a synthetic <code>example-</code> demo plan. The link still works, and
             the public page labels the result as demo data rather than a real-world claim.
@@ -113,7 +124,11 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
         )}
       </div>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset
+        className="flex flex-col gap-2"
+        data-testid="share-options"
+        hidden={target === undefined}
+      >
         <legend className="text-xs uppercase tracking-widest text-muted-foreground">
           What to include
         </legend>

@@ -749,6 +749,77 @@ places where two surfaces have to agree.
   recorded beside the reconstruction with an exact decimal delta. It is never
   blended into it, and no case is labelled `calibrated` without that evidence.
 
+## 44. A Direct API target prices the workload instead of admitting it (M4C)
+
+- The execution target is a discriminated union, not a widened subscription
+  object: a subscription target carries a plan version, an API target carries a
+  provider. The result's target type and its target stack must agree in both
+  directions, so a subscription result can never be relabelled as an API result
+  or the reverse.
+- A Direct API replay simulates no plan: no included capacity, no allowance
+  window, no admission decision and no reset. `overage` and `blocked` are always
+  zero, `constraints` and `violations` are empty, and the reset-phase question is
+  reported as not applicable rather than as unknown or as an assumed phase.
+- Provider identity decides availability, and nothing else does. A model is
+  offered when the catalog records the selected provider in its `providerIds`;
+  when the model's offering is not established at all the event stays undecided
+  rather than being called unavailable. The unsupported-model reading is named for
+  the kind: `not_supported` when a plan's own rules do not mention the model,
+  `not_offered` when a provider is not recorded as offering it.
+- Prices are selected per model from the `api_list_price` records in force at the
+  pinned instant, and the historical event timestamp still selects conditional
+  tiers and schedules inside the selected record, exactly as it does for a plan
+  rule. A record that exists but is not in force, or one on another basis, is a
+  named gap, never a fallback to the base record or to another model's price. The
+  catalog cannot scope a list price to one provider (it enforces one
+  non-overlapping record per model and basis), so the price belongs to the model
+  while the selected provider decides whether the model is served at all; the
+  result states this in its assumptions instead of implying a provider-specific
+  price.
+- A Direct API result reports a cost only when every event in the workload is both
+  served and priced from a record in force. Otherwise no cost is reported at all,
+  because a partial sum presented as the target cost would be read as what the
+  workload would have cost. No plan price is ever mixed into it: the basis is
+  `api_list_price` and the fixed-plan-cost fields are absent.
+- Sharing is refused, not coerced. `ShareReplaySnapshotV1` carries a plan id, a
+  plan version, a plan name and a plan price, so a Direct API result has no
+  faithful reading in a V1 link. The share panel states the refusal where it would
+  otherwise offer a link.
+- Nothing here is a second replay engine. API semantics are reported through the
+  same `semantics` block as subscription replays (mode, dispositions, evidence,
+  replayability, model mix, workspace scope); the API path only supplies its own
+  facts and its own reading of each evidence dimension.
+- An absent `providerIds` list and an empty one are the same statement: the
+  catalog does not record which providers offer the model. Both are undecided,
+  because reading "nobody offers it" into missing offering data would turn a data
+  gap into a decided rejection.
+- Only an offered model has a price question, so the temporal dimension counts a
+  model the provider does not offer as covered rather than as a record that failed
+  to cover it: the dimension reports the record gaps of events whose price was
+  actually sought.
+- The schema refuses billed overage and blocked demand on a Direct API result,
+  because the target has no capacity to exceed and no request to refuse. A later
+  milestone that models provider-side capacity has to relax that guard
+  deliberately.
+- The API-target checks that do not need the `semantics` block run before it is
+  consulted. That block is optional so pre-M4B stored documents stay readable, and
+  the absence of an optional block cannot be read as an assertion of nothing: a
+  plan replay must not become a list-price replay by dropping it.
+- Identity, provider applicability and pricing are three separate questions asked
+  in that order, and an event whose canonical model is not established never
+  reaches the provider question: reporting the offering set as unestablished for
+  a name the catalog never resolved would blame the catalog for an identity gap.
+  An unresolved model is therefore undecided and `unresolved` in the
+  unsupported-model list, with no `model_availability` factor, no
+  `target_applicability_unknown` and no `API_MODEL_OFFERING_UNESTABLISHED`
+  warning. Consumption knownness follows the event's own token accounting rather
+  than its disposition, so an unresolved model with complete telemetry is not
+  reported as an unknown-consumption event either.
+- A workload with no events has no cost and nothing to warn about. Missing
+  coverage is a finding about demand that exists, so an empty workload reports no
+  economics and no `API_COST_INCOMPLETE`, rather than a zero total or a warning
+  with a count of zero.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

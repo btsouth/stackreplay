@@ -2,32 +2,51 @@ import { readFile } from "node:fs/promises";
 import type { AdapterId } from "@stackreplay/adapters";
 import {
   type CoverageDimensionV1,
+  isApiReplayTargetStackV1,
   stackReplayExportV1Schema,
   type UsageEventV1,
 } from "@stackreplay/schema";
 import { type CommandContext, EXIT_FAILED, EXIT_OK, usageError } from "../command.js";
 import { flagValue, flagValues } from "../options.js";
 import { formatCount } from "../output.js";
-import { resolveTarget, runReplay } from "../replay-target.js";
+import { apiProviders, resolveCliTarget, runReplay } from "../replay-target.js";
 import { checkRangeOrder, parseDateBound, utcDate } from "../runtime.js";
 
 /**
- * `stackreplay replay <plan>`
+ * `stackreplay replay <plan>` or `stackreplay replay --target api --provider <id>`
  *
- * Replays a workload against a plan's actual mechanics. The workload comes
+ * Replays a workload against a plan's actual mechanics, or (M4C) against a
+ * provider's published API list prices with no plan involved. The workload comes
  * either from an existing export (`--input`) or from a fresh local scan, and
  * the rules instant is always explicit (`--as-of`, default today).
  */
 export async function runReplayCommand(context: CommandContext): Promise<number> {
   const { renderer, runtime, args } = context;
   const reference = args.positionals[0];
-  if (reference === undefined) {
+  const selection = resolveCliTarget({
+    kind: flagValue(args, "target"),
+    reference,
+    provider: flagValue(args, "provider"),
+  });
+  if (!selection.ok) {
+    return usageError(context, selection.error, selection.hint);
+  }
+  // A Direct API replay is only meaningful against a provider the catalog
+  // records, and the engine's own error is better raised here as a usage error
+  // that names the providers this build can price.
+  if (
+    selection.target.type === "api" &&
+    runtime.catalog.providers[selection.target.providerId] === undefined
+  ) {
     return usageError(
       context,
-      "replay needs a plan",
-      "Example: stackreplay replay example-cloud-starter --as-of 2026-09-21",
+      `no provider "${selection.target.providerId}" in the catalog`,
+      `Known providers: ${apiProviders()
+        .map((provider) => provider.id)
+        .join(", ")}.`,
     );
   }
+
   const input = flagValue(args, "input");
   const compare = flagValue(args, "compare");
   const asOf = flagValue(args, "as-of");
@@ -128,7 +147,7 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
   try {
     result = runReplay({
       events,
-      target: resolveTarget(reference),
+      target: selection.target,
       catalog: runtime.catalog,
       context: { rulesAsOf },
     });
@@ -138,10 +157,20 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
 
   let comparison: ReturnType<typeof runReplay> | undefined;
   if (compare !== undefined) {
+    // The comparison target is built the same way as the primary one: in API
+    // mode `--compare` names another provider, so two providers' list prices can
+    // be held against the same workload (M4C).
+    const compareSelection =
+      selection.kind === "api"
+        ? resolveCliTarget({ kind: "api", provider: compare })
+        : resolveCliTarget({ kind: "subscription", reference: compare });
+    if (!compareSelection.ok) {
+      return usageError(context, compareSelection.error, compareSelection.hint);
+    }
     try {
       comparison = runReplay({
         events,
-        target: resolveTarget(compare),
+        target: compareSelection.target,
         catalog: runtime.catalog,
         context: { rulesAsOf },
       });
@@ -163,7 +192,10 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     return EXIT_OK;
   }
 
-  const label = result.subscription?.name ?? result.versions.targetReference;
+  const label =
+    result.target.type === "api"
+      ? `${result.versions.targetReference} (Direct API list prices)`
+      : (result.subscription?.name ?? result.versions.targetReference);
   renderer.heading(`StackReplay replay: ${label}`);
   renderer.line();
   renderer.field(
@@ -177,7 +209,10 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     );
   }
   renderer.field("  Rules as of", rulesAsOf);
-  renderer.field("  Plan version", result.versions.targetReference);
+  renderer.field(
+    result.target.type === "api" ? "  Provider" : "  Plan version",
+    result.versions.targetReference,
+  );
   if (result.workload.from !== undefined && result.workload.to !== undefined) {
     renderer.field("  Activity", `${result.workload.from} to ${result.workload.to}`);
   }
@@ -235,7 +270,12 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     renderer.field("  Unavailable", formatCount(semantics.dispositions.unavailable));
     renderer.field("  Unknown", formatCount(semantics.dispositions.unknown));
     renderer.field("  Replayability", semantics.replayability.class);
-    renderer.field("  Reset", semantics.targetStack.reset.kind);
+    renderer.field(
+      "  Reset",
+      isApiReplayTargetStackV1(semantics.targetStack)
+        ? "not applicable (a Direct API target has no allowance window)"
+        : semantics.targetStack.reset.kind,
+    );
     renderer.line(`  ${semantics.workloadScope.statement}`);
     renderer.line();
   }
@@ -305,7 +345,11 @@ export async function runReplayCommand(context: CommandContext): Promise<number>
     renderer.heading("Comparison");
     renderer.field("  This target", `$${result.economics?.targetCost.amount ?? "-"}`);
     renderer.field(
-      `  ${comparison.subscription?.name ?? comparison.versions.targetReference}`,
+      `  ${
+        comparison.target.type === "api"
+          ? `${comparison.versions.targetReference} (Direct API list prices)`
+          : (comparison.subscription?.name ?? comparison.versions.targetReference)
+      }`,
       `$${comparison.economics?.targetCost.amount ?? "-"}`,
     );
     renderer.line();

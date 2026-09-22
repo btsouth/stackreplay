@@ -370,6 +370,55 @@ function withSemantics(
   } as ExecutionReplayResultV1;
 }
 
+describe("M4C share refusal", () => {
+  it("refuses a Direct API result outright: the V1 link has no shape for one", () => {
+    const result = withSemantics({}, "exact");
+    const api: ExecutionReplayResultV1 = {
+      ...result,
+      target: { type: "api", providerId: "deepseek" },
+      semantics: {
+        ...(result.semantics as ReplaySemanticsV1),
+        targetStack: {
+          type: "api",
+          providerId: "deepseek",
+          effectiveAt: result.versions.rulesAsOf,
+          catalogVersion: result.versions.catalog,
+        },
+      },
+      versions: { ...result.versions, targetType: "api", targetReference: "deepseek" },
+      economics: {
+        targetCost: { amount: "12.34", currency: "USD" },
+        costBasis: "api_list_price",
+      },
+      constraints: [],
+      violations: [],
+    } satisfies ExecutionReplayResultV1;
+    const refusal = shareSnapshotRefusal(api);
+    expect(refusal).toBeDefined();
+    expect(refusal).toContain("Direct API");
+    // The reason names what the format would have to carry and cannot.
+    expect(refusal).toContain("plan id");
+    expect(refusal).toContain("subscription target only");
+    expect(() => toShareSnapshot(api, BASE_OPTIONS)).toThrow();
+  });
+});
+
+describe("M4C share refusal", () => {
+  it("refuses a Direct API result even when it carries no semantics block", () => {
+    const base = withSemantics({}, "exact");
+    const api: ExecutionReplayResultV1 = {
+      ...base,
+      target: { type: "api", providerId: "deepseek" },
+      versions: { ...base.versions, targetType: "api", targetReference: "deepseek" },
+    };
+    // A pre-M4B document has no semantics block at all, so the refusal cannot
+    // depend on it: it reads the target type first.
+    const { semantics: _semantics, ...noSemantics } = api;
+    expect(shareSnapshotRefusal(noSemantics)).toContain("Direct API");
+    expect(() => toShareSnapshot(noSemantics, BASE_OPTIONS)).toThrow();
+  });
+});
+
 describe("M4B share refusal", () => {
   it("shares an exact replay and keeps the V1 snapshot shape unchanged", () => {
     const result = withSemantics({}, "exact");

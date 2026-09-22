@@ -69,6 +69,34 @@ const CLAUDE_SESSION = [
   }),
 ].join("\n");
 
+/**
+ * Fills in every canonical token category a fixture export leaves unreported, so
+ * the workload has a complete accounting the Direct API path can price.
+ *
+ * The product never does this: an event that stays silent about a category is
+ * reported as uncostable, on purpose. This helper exists so the CLI test pins the
+ * per-category list-price arithmetic instead of the adapter's reporting gaps.
+ */
+async function completeTokenAccounting(path: string): Promise<void> {
+  const exported = JSON.parse(await readFile(path, "utf8")) as {
+    events: { usage: Record<string, unknown> }[];
+  };
+  for (const event of exported.events) {
+    const usage = event.usage;
+    const accounting = (usage.accounting ?? {}) as Record<string, unknown>;
+    for (const [field, declaration] of [
+      ["cacheReadTokens", "cacheReadIncludedInInput"],
+      ["cacheWriteTokens", "cacheWriteIncludedInInput"],
+      ["reasoningTokens", "reasoningIncludedInOutput"],
+    ] as const) {
+      if (usage[field] === undefined) usage[field] = 0;
+      accounting[declaration] = accounting[declaration] ?? false;
+    }
+    usage.accounting = accounting;
+  }
+  await writeFile(path, JSON.stringify(exported), "utf8");
+}
+
 /** A synthetic home directory with one Claude Code session and one Codex rollout. */
 async function withFixtureHome<T>(run: (homeDir: string) => Promise<T>): Promise<T> {
   const homeDir = await mkdtemp(join(tmpdir(), "stackreplay-cli-"));
@@ -439,6 +467,216 @@ describe("stackreplay export and replay", () => {
       expect(code).toBe(0);
       const parsed = JSON.parse(stdout) as { result: unknown; comparison?: unknown };
       expect(parsed.comparison).toBeDefined();
+    });
+  });
+
+  it("replays a Direct API target at the provider's list prices (M4C)", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const out = join(homeDir, "export.json");
+      await capture(["export", "--out", out], { homeDir, env: {} });
+      // The collectors record what each harness reported: Claude Code does not
+      // report cache writes, so those events stay uncostable on purpose. This
+      // test pins the API arithmetic, so it completes the accounting first.
+      await completeTokenAccounting(out);
+      const { code, stdout } = await capture(
+        [
+          "replay",
+          "--target",
+          "api",
+          "--provider",
+          "example-cloud",
+          "--input",
+          out,
+          "--json",
+          "--as-of",
+          "2026-09-15",
+        ],
+        { homeDir, env: {} },
+      );
+      expect(code).toBe(0);
+      const parsed = JSON.parse(stdout) as {
+        result: {
+          target: { type: string; providerId?: string };
+          subscription?: unknown;
+          constraints: unknown[];
+          economics?: {
+            costBasis: string;
+            targetCost: { amount: string };
+            basePlanCost?: { amount: string };
+            overageCost?: { amount: string };
+          };
+          versions: { targetType: string; targetReference: string };
+          semantics: { targetStack: { type?: string; providerId: string } };
+        };
+      };
+      expect(parsed.result.target).toEqual({ type: "api", providerId: "example-cloud" });
+      expect(parsed.result.versions.targetType).toBe("api");
+      expect(parsed.result.versions.targetReference).toBe("example-cloud");
+      // The API reading of the target stack, and none of the plan-era fields.
+      expect(parsed.result.semantics.targetStack.type).toBe("api");
+      expect(parsed.result.subscription).toBeUndefined();
+      expect(parsed.result.constraints).toEqual([]);
+      // Both fixture events use example-medium, which the demo catalog prices,
+      // so the cost is established and stated on the API basis.
+      expect(parsed.result.economics?.costBasis).toBe("api_list_price");
+      // Every category is priced from its own model's record, in disjoint buckets.
+      // example-medium (input 0.50, output 1.50, cacheRead 0.05 per 1M):
+      //   1,200 in + 5,000 cache reads + 400 out = 1,450 units; 300 in + 120 out = 330.
+      // example-large (uncached in 2.00, output 6.00, cacheRead 0.20, cacheWrite
+      // 2.40, reasoning 8.00), with cache reads and writes included in its input:
+      //   300 uncached in + 1,500 cache reads + 200 cache writes + 200 out + 100
+      //   reasoning = 3,380 units.
+      // (1,450 + 330 + 3,380) / 1e6 = 0.00516.
+      expect(parsed.result.economics?.targetCost.amount).toBe("0.00516");
+      // A fixed plan price must never appear on an API result.
+      expect(parsed.result.economics?.basePlanCost).toBeUndefined();
+      expect(parsed.result.economics?.overageCost).toBeUndefined();
+      const validated = executionReplayResultV1Schema.safeParse(parsed.result);
+      expect(validated.success).toBe(true);
+    });
+  });
+
+  it("prints a Direct API summary without plan-era wording", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const out = join(homeDir, "export.json");
+      await capture(["export", "--out", out], { homeDir, env: {} });
+      await completeTokenAccounting(out);
+      const { code, stdout } = await capture(
+        [
+          "replay",
+          "--target",
+          "api",
+          "--provider",
+          "example-cloud",
+          "--input",
+          out,
+          "--as-of",
+          "2026-09-15",
+        ],
+        { homeDir, env: {} },
+      );
+      expect(code).toBe(0);
+      expect(stdout).toContain("Direct API list prices");
+      expect(stdout).toContain("Provider");
+      expect(stdout).toContain("api_list_price");
+      expect(stdout).not.toContain("Plan version");
+      expect(stdout).not.toContain("Plan cost");
+      expect(stdout).toContain("no allowance window");
+    });
+  });
+
+  it("refuses to mix a plan with --target api, and needs a provider", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const mixed = await capture(
+        ["replay", "example-cloud-starter", "--target", "api", "--provider", "example-cloud"],
+        { homeDir, env: {} },
+      );
+      expect(mixed.code).toBe(1);
+      expect(mixed.stderr).toContain("not a plan");
+
+      const missing = await capture(["replay", "--target", "api"], { homeDir, env: {} });
+      expect(missing.code).toBe(1);
+      expect(missing.stderr).toContain("--provider");
+
+      const unknown = await capture(
+        ["replay", "--target", "api", "--provider", "no-such-provider", "--as-of", "2026-09-15"],
+        { homeDir, env: {} },
+      );
+      expect(unknown.code).toBe(1);
+      expect(unknown.stderr).toContain("no provider");
+
+      const bogus = await capture(["replay", "example-cloud-starter", "--target", "quantum"], {
+        homeDir,
+        env: {},
+      });
+      expect(bogus.code).toBe(1);
+      expect(bogus.stderr).toContain("not a target this build can replay");
+
+      const providerOnPlan = await capture(
+        ["replay", "example-cloud-starter", "--provider", "example-cloud"],
+        { homeDir, env: {} },
+      );
+      expect(providerOnPlan.code).toBe(1);
+      expect(providerOnPlan.stderr).toContain("--provider only applies to --target api");
+    });
+  });
+
+  it("compares two providers' list prices for the same workload", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const { code, stdout } = await capture(
+        [
+          "replay",
+          "--target",
+          "api",
+          "--provider",
+          "example-cloud",
+          "--compare",
+          "example-open",
+          "--as-of",
+          "2026-09-15",
+          "--json",
+        ],
+        { homeDir, env: {} },
+      );
+      expect(code).toBe(0);
+      const parsed = JSON.parse(stdout) as {
+        result: { target: { providerId?: string } };
+        comparison?: { target: { providerId?: string } };
+      };
+      expect(parsed.result.target.providerId).toBe("example-cloud");
+      expect(parsed.comparison?.target.providerId).toBe("example-open");
+    });
+  });
+
+  it("lists the Direct API providers with their list-price coverage", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const text = await capture(["plans", "--providers"], { homeDir, env: {} });
+      expect(text.code).toBe(0);
+      expect(text.stdout).toContain("Direct API providers");
+      expect(text.stdout).toContain("example-cloud");
+      expect(text.stdout).toContain("With list prices in force");
+
+      const json = await capture(["plans", "--providers", "--json"], { homeDir, env: {} });
+      expect(json.code).toBe(0);
+      const parsed = JSON.parse(json.stdout) as {
+        target: string;
+        providers: { id: string; modelCount: number; pricedModelCount: number }[];
+      };
+      expect(parsed.target).toBe("api");
+      const exampleCloud = parsed.providers.find((provider) => provider.id === "example-cloud");
+      expect(exampleCloud?.modelCount).toBeGreaterThan(0);
+      expect(exampleCloud?.pricedModelCount).toBe(exampleCloud?.modelCount);
+    });
+  });
+
+  it("scopes the provider counts to the rules date, so the list cannot promise an unusable price", async () => {
+    await withFixtureHome(async (homeDir) => {
+      const parse = (output: string) =>
+        JSON.parse(output) as {
+          rulesAsOf: string;
+          providers: { id: string; modelCount: number; pricedModelCount: number }[];
+        };
+      const current = await capture(["plans", "--providers", "--as-of", "2026-11-01", "--json"], {
+        homeDir,
+        env: {},
+      });
+      const earlier = await capture(["plans", "--providers", "--as-of", "2025-12-01", "--json"], {
+        homeDir,
+        env: {},
+      });
+      expect(current.code).toBe(0);
+      expect(earlier.code).toBe(0);
+      const at2026 = parse(current.stdout).providers.find(
+        (provider) => provider.id === "example-cloud",
+      );
+      const at2025 = parse(earlier.stdout).providers.find(
+        (provider) => provider.id === "example-cloud",
+      );
+      // Same offering set, different price coverage: the demo records start in
+      // 2026, so a replay pinned before that has nothing in force to price with.
+      expect(at2026?.pricedModelCount).toBeGreaterThan(0);
+      expect(at2025?.pricedModelCount).toBe(0);
+      expect(at2025?.modelCount).toBe(at2026?.modelCount);
     });
   });
 

@@ -9,5 +9,10 @@ export const ENGINE_VERSION = "0.0.4";
  * Semantic revision of the replay rules (decision 20). Bump when admission,
  * accounting, coverage, economics or time semantics change, so stored results
  * remain comparable by methodology as well as by engine build.
+ *
+ * 1.4.0 (M4C): Direct API replay. New execution path with its own availability,
+ * list-price selection, coverage and economics semantics, plus the API target
+ * stack and the unsupported-model reasons that name its findings. Subscription
+ * results are unchanged.
  */
-export const REPLAY_METHODOLOGY_VERSION = "1.3.0";
+export const REPLAY_METHODOLOGY_VERSION = "1.4.0";

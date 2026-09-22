@@ -382,7 +382,16 @@ export type ModelMixV1 = z.infer<typeof modelMixV1Schema>;
 export const targetOverageModeV1Schema = z.enum(["enabled", "disabled", "unknown"]);
 export type TargetOverageModeV1 = z.infer<typeof targetOverageModeV1Schema>;
 
-export const replayTargetStackV1Schema = z.strictObject({
+/**
+ * A subscription target stack: the plan and provider, the pinned rule instant,
+ * the catalog version, the target's declared overage behaviour, the reset
+ * assumption and an optional scenario translation policy. Surface ids, region
+ * taxonomies and execution-route catalogs are deliberately absent.
+ *
+ * This branch is byte-for-byte the shape M4B accepted: no field was added, so
+ * every serialized subscription result stays valid without migration.
+ */
+export const subscriptionReplayTargetStackV1Schema = z.strictObject({
   providerId: z.string().min(1),
   planId: z.string().min(1),
   planVersionId: z.string().min(1),
@@ -395,7 +404,55 @@ export const replayTargetStackV1Schema = z.strictObject({
   /** Scenario translation policy in force for this replay, when one was supplied. */
   modelTranslation: modelTranslationPolicyV1Schema.optional(),
 });
+export type SubscriptionReplayTargetStackV1 = z.infer<typeof subscriptionReplayTargetStackV1Schema>;
+
+/**
+ * A Direct API target stack (M4C): the provider whose API the recorded demand
+ * was applied to, the pinned instant its pricing was resolved at, and the
+ * catalog version, plus the scenario translation policy when one applies.
+ *
+ * It carries no plan, no plan version, no overage mode and no reset: a Direct
+ * API target has no subscription allowance, no included capacity and no reset
+ * window, so pinning those would pin facts that do not exist. The pricing
+ * records actually used are pinned in `versions.pricingReferences` rather than
+ * duplicated here.
+ */
+export const apiReplayTargetStackV1Schema = z.strictObject({
+  type: z.literal("api"),
+  providerId: z.string().min(1),
+  /** The pinned instant this stack's API prices were resolved at. */
+  effectiveAt: isoDateV1Schema,
+  catalogVersion: z.string().min(1),
+  /** Scenario translation policy in force for this replay, when one was supplied. */
+  modelTranslation: modelTranslationPolicyV1Schema.optional(),
+});
+export type ApiReplayTargetStackV1 = z.infer<typeof apiReplayTargetStackV1Schema>;
+
+/**
+ * The target stack is a backward-compatible union: the subscription branch is
+ * the accepted M4B shape unchanged, and the API branch is additive. A
+ * subscription stack can never parse as an API stack (it carries no `type`),
+ * and an API stack can never parse as a subscription stack (it has no plan and
+ * its strict shape rejects the extra fields), so the branches cannot be
+ * confused.
+ */
+export const replayTargetStackV1Schema = z.union([
+  subscriptionReplayTargetStackV1Schema,
+  apiReplayTargetStackV1Schema,
+]);
 export type ReplayTargetStackV1 = z.infer<typeof replayTargetStackV1Schema>;
+
+export function isApiReplayTargetStackV1(
+  stack: ReplayTargetStackV1,
+): stack is ApiReplayTargetStackV1 {
+  return "type" in stack && stack.type === "api";
+}
+
+export function isSubscriptionReplayTargetStackV1(
+  stack: ReplayTargetStackV1,
+): stack is SubscriptionReplayTargetStackV1 {
+  return !isApiReplayTargetStackV1(stack);
+}
 
 /** A translation rule that actually substituted at least one historical event. */
 export const appliedTranslationRuleV1Schema = z.strictObject({
@@ -456,7 +513,11 @@ export const replaySemanticsV1Schema = z
         });
     }
 
-    if (semantics.targetStack.overageMode === "disabled" && semantics.dispositions.overage > 0)
+    if (
+      isSubscriptionReplayTargetStackV1(semantics.targetStack) &&
+      semantics.targetStack.overageMode === "disabled" &&
+      semantics.dispositions.overage > 0
+    )
       ctx.addIssue({
         code: "custom",
         path: ["dispositions", "overage"],

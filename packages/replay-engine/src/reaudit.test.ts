@@ -12,6 +12,7 @@ import {
   fixtureContext,
   fixturePricing,
   fixtureTarget,
+  makeApiFixtureCatalog,
   makeFixtureCatalog,
   rollingLimit,
 } from "./fixtures/catalog.js";
@@ -334,18 +335,46 @@ describe("independent re-audit: request billing and target serialization", () =>
     expect(executionReplayResultV1Schema.safeParse(result).success).toBe(true);
   });
 
-  it("enforces subscription selection and permits generalized API metadata without subscription detail", () => {
+  it("refuses a subscription result relabelled as an API target, and accepts a faithful one", () => {
     const result = run(makeFixtureCatalog({ limits: [limit("cap", "10")] }), []);
     for (const target of [{ type: "subscription" }, { ...fixtureTarget, planId: "fixture-plan" }]) {
       expect(executionReplayResultV1Schema.safeParse({ ...result, target }).success).toBe(false);
     }
+
+    /**
+     * The M1 re-audit permitted a subscription result to be relabelled as an API
+     * target once the subscription detail was dropped: the result schema was
+     * generalized so a future target kind would not need a second result type.
+     * M4C tightens that deliberately. An API target now has to agree with its
+     * target stack, carry no allowance constraints and no plan economics, so the
+     * relabel is refused instead of accepted. What the M1 finding was protecting
+     * (a real API result needs no subscription detail) is covered by the
+     * positive case below and by api-replay.test.ts.
+     */
     const { subscription: _subscription, ...generalized } = result;
+    const relabelled = {
+      ...generalized,
+      target: { type: "api", providerId: "synthetic", pricingVersionId: "synthetic" },
+      versions: { ...result.versions, targetType: "api", targetReference: "synthetic" },
+    };
+    expect(executionReplayResultV1Schema.safeParse(relabelled).success).toBe(false);
+
+    const apiResult = replay({
+      catalog: makeApiFixtureCatalog(),
+      events: [event("api-1", 1_000_000)],
+      target: { type: "api", providerId: "fixture-provider" },
+      context: fixtureContext,
+    });
+    expect(executionReplayResultV1Schema.safeParse(apiResult).success).toBe(true);
+    expect(apiResult.subscription).toBeUndefined();
+    expect(apiResult.constraints).toEqual([]);
+    // And the reverse relabel is refused: an API stack cannot be pinned by a
+    // subscription target.
     expect(
       executionReplayResultV1Schema.safeParse({
-        ...generalized,
-        target: { type: "api", providerId: "synthetic", pricingVersionId: "synthetic" },
-        versions: { ...result.versions, targetType: "api", targetReference: "synthetic" },
+        ...apiResult,
+        target: { type: "subscription", planVersionId: FIXTURE_PLAN_VERSION_ID },
       }).success,
-    ).toBe(true);
+    ).toBe(false);
   });
 });

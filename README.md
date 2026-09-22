@@ -40,20 +40,21 @@ promotions. The result is a deterministic report of what would have happened, in
 It is not a token dashboard, an observability platform or a coding agent. It is a deterministic
 replay engine with a product around it.
 
-## Plan Replay first, then more execution targets
+## Two replay targets today, more later
 
 The launch experience, **Plan Replay**, answers "what if I switched to this subscription?" The
 architecture is deliberately broader than subscriptions:
 
-- **Plan Replay** (subscription targets): the first replay experience.
-- **Direct API Replay** (next): what the same workload would have cost through the provider's API,
-  with cache-aware token pricing. The data model reserves space for versioned API pricing; the
-  behavior is not implemented yet.
+- **Plan Replay** (subscription targets): simulates a plan's documented mechanics against your
+  workload: windows, limits, model rules, overage and hard stops.
+- **Direct API Replay** (API targets): prices the same workload at a provider's published API list
+  prices, with cache-aware token pricing, no plan and no admission decision. Implemented in the CLI
+  and the browser release.
 - **Local and hybrid replay** (later): feasibility and economics for running workloads locally, and
   hybrid routes such as subscription-first with API overflow. Not implemented.
 
-The items after the first are described because the schema, catalog and engine are being built to
-support them from the start, not because they work today.
+The last item is described because the schema, catalog and engine are being built to support it from
+the start, not because it works today.
 
 ## Privacy architecture
 
@@ -114,9 +115,16 @@ node apps/cli/dist/bin.js detect                       # what exists locally
 node apps/cli/dist/bin.js scan                         # what the workload looks like
 node apps/cli/dist/bin.js export --out usage.json      # sanitized, versioned export
 node apps/cli/dist/bin.js replay example-cloud-starter --input usage.json --as-of 2026-09-15
+node apps/cli/dist/bin.js replay --target api --provider example-cloud --input usage.json
 node apps/cli/dist/bin.js plans                        # bundled catalog
+node apps/cli/dist/bin.js plans --providers            # Direct API providers and their list prices
 node apps/cli/dist/bin.js doctor                       # diagnose a missing source
 ```
+
+`--target api --provider <id>` replays against that provider's published list prices instead of a
+plan; `--compare <other-provider>` prices the same workload on both. An API replay reports a cost
+only when every event is served by the provider and priced from a record in force, and it says
+plainly when it could not.
 
 Every command supports `--json` for machine-readable output. `scan` and `export` accept
 `--since` / `--until` / `--source`, and `export` accepts `--input <ccusage.json>` to include an

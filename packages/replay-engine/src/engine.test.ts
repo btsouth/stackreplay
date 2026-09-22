@@ -47,7 +47,7 @@ describe("replay input handling", () => {
       () =>
         replay({
           events,
-          target: { type: "api", providerId: "p", pricingVersionId: "v" },
+          target: { type: "local", hardwareProfileId: "h", localModelProfileId: "m" },
           catalog,
           context: fixtureContext,
         }),
@@ -57,11 +57,30 @@ describe("replay input handling", () => {
       () =>
         replay({
           events,
-          target: { type: "local", hardwareProfileId: "h", localModelProfileId: "m" },
+          target: {
+            type: "hybrid",
+            routes: [{ priority: 0, target: { type: "api", providerId: "p" } }],
+          },
           catalog,
           context: fixtureContext,
         }),
       "TARGET_NOT_IMPLEMENTED",
+    );
+  });
+
+  it("refuses an api target whose provider the catalog does not contain", () => {
+    // M4C implements Direct API replay, so an api target is no longer refused as
+    // unimplemented: it is refused when the catalog cannot answer for the
+    // provider it names.
+    expectEngineError(
+      () =>
+        replay({
+          events,
+          target: { type: "api", providerId: "no-such-provider" },
+          catalog,
+          context: fixtureContext,
+        }),
+      "TARGET_PROVIDER_UNKNOWN",
     );
   });
 
@@ -156,7 +175,7 @@ describe("result shape and determinism", () => {
       engine: "0.0.4",
       schema: 1,
       catalog: "fixture:golden-v1",
-      methodology: "1.3.0",
+      methodology: "1.4.0",
       rulesAsOf: "2026-09-15",
       targetType: "subscription",
       targetReference: FIXTURE_PLAN_VERSION_ID,
