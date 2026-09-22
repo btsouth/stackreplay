@@ -757,6 +757,11 @@ describe("M4C: the API path is deterministic and bounded in work", () => {
     expect(build()).toBe(build());
   });
 
+  /**
+   * This test builds 100,000 events and replays them, which a hosted runner does
+   * in about 7s where a workstation needs well under one, so it carries a budget
+   * above the 5s suite default. Its own wall-clock bound is the assertion.
+   */
   it("handles a 100k-event workload in one pass without per-event result growth", () => {
     const events = Array.from({ length: 100_000 }, (_, index) =>
       apiEvent(
@@ -777,7 +782,7 @@ describe("M4C: the API path is deterministic and bounded in work", () => {
     const serialized = JSON.stringify(result);
     expect(serialized.length).toBeLessThan(20_000);
     expect(elapsed).toBeLessThan(20_000);
-  });
+  }, 30_000);
 });
 
 describe("M4C audit: identity, provider applicability and pricing stay separate", () => {
