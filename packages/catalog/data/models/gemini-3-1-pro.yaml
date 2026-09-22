@@ -1,0 +1,15 @@
+id: gemini-3-1-pro
+role: model
+name: "Gemini 3.1 Pro"
+providerIds:
+  - cursor
+  - google
+sources:
+  - url: https://cursor.com/pricing
+    title: "Cursor pricing (official)"
+    checkedAt: 2026-09-21
+  - url: https://gemini.google/subscriptions/
+    title: "Google official page"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

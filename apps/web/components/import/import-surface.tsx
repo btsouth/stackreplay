@@ -35,7 +35,21 @@ const PHASE_LABEL: Record<Phase, string> = {
   ready: "Ready",
 };
 
-export function ImportSurface({ initialImports }: { initialImports: ImportRecord[] }) {
+/** Replay link for an import, carrying a preselected target when there is one. */
+function replayHref(importId: string, target?: string | undefined): string {
+  return target === undefined
+    ? `/app/replay?import=${importId}`
+    : `/app/replay?import=${importId}&target=${encodeURIComponent(target)}`;
+}
+
+export function ImportSurface({
+  initialImports,
+  initialTarget,
+}: {
+  initialImports: ImportRecord[];
+  /** Plan id chosen on a public plan page; forwarded to the replay surface. */
+  initialTarget?: string | undefined;
+}) {
   const client = getWorkerClient();
   const inputId = useId();
   const [phase, setPhase] = useState<Phase>("idle");
@@ -307,7 +321,7 @@ export function ImportSurface({ initialImports }: { initialImports: ImportRecord
                   </p>
                 </div>
                 <Link
-                  href={`/app/replay?import=${record.id}`}
+                  href={replayHref(record.id, initialTarget)}
                   data-testid="continue-to-replay"
                   className={buttonVariants({ size: "sm" })}
                 >
@@ -371,7 +385,7 @@ export function ImportSurface({ initialImports }: { initialImports: ImportRecord
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <Link
-                        href={`/app/replay?import=${entry.id}`}
+                        href={replayHref(entry.id, initialTarget)}
                         className={buttonVariants({ variant: "ghost", size: "sm" })}
                       >
                         Replay

@@ -90,7 +90,7 @@ test("plan picker is searchable and keyboard operable", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
 
-  await page.getByTestId("plan-search").fill("pro");
+  await page.getByTestId("plan-search").fill("example-cloud-pro");
   await expect(page.getByTestId("plan-list").getByRole("button")).toHaveCount(1);
 
   await page.getByTestId("plan-search").fill("");

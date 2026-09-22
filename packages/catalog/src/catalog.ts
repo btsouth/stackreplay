@@ -13,12 +13,16 @@ import {
  * This module is browser-safe: loading from disk lives in `./load.js`.
  */
 
-export const loadedPlanVersionV1Schema = planVersionEntryV1Schema.extend({
-  versionId: z.string().min(1),
-  planId: z.string().min(1),
-  planName: z.string().min(1),
-  providerId: z.string().min(1),
-});
+export const loadedPlanVersionV1Schema = planVersionEntryV1Schema
+  .extend({
+    versionId: z.string().min(1),
+    planId: z.string().min(1),
+    planName: z.string().min(1),
+    providerId: z.string().min(1),
+  })
+  .refine((version) => version.limits.length > 0 || (version.qualitativeLimits?.length ?? 0) > 0, {
+    message: "a plan version must state at least one limit, numeric or qualitative",
+  });
 export type LoadedPlanVersionV1 = z.infer<typeof loadedPlanVersionV1Schema>;
 
 export const catalogV1Schema = z.strictObject({

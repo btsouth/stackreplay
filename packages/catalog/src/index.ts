@@ -37,6 +37,8 @@ export {
   pricingV1Schema,
   promotionV1Schema,
   providerV1Schema,
+  type QualitativeLimitV1,
+  qualitativeLimitV1Schema,
   type RollingWindowV1,
   rollingWindowV1Schema,
 } from "./schema.js";

@@ -23,5 +23,17 @@ export { Input, type InputProps } from "./components/input";
 export { Metric, type MetricProps, type MetricTone } from "./components/metric";
 export { MobileNav } from "./components/mobile-nav";
 export { NavLink, type NavLinkProps } from "./components/nav-link";
+export { PublicNav } from "./components/public-nav";
+export { PublicSection, PublicShell, type PublicShellProps } from "./components/public-shell";
 export { cn } from "./lib/cn";
 export { type AppNavItem, appBrand, appNavItems, isNavItemActive } from "./lib/nav";
+export {
+  isPublicNavItemActive,
+  type PublicFooterGroup,
+  type PublicNavItem,
+  primaryCta,
+  publicFooterGroups,
+  publicNavItems,
+  repositoryNavItem,
+  secondaryCta,
+} from "./lib/public-nav";

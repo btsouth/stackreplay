@@ -36,7 +36,9 @@ export const computedMoneyV1Schema = z.strictObject({
   amount: computedDecimalV1Schema,
   currency: currencyV1Schema,
 });
+export type ComputedMoneyV1 = z.infer<typeof computedMoneyV1Schema>;
 export const computedSignedMoneyV1Schema = z.strictObject({
   amount: computedSignedDecimalV1Schema,
   currency: currencyV1Schema,
 });
+export type ComputedSignedMoneyV1 = z.infer<typeof computedSignedMoneyV1Schema>;

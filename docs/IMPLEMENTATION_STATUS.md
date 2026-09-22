@@ -2,6 +2,78 @@
 
 ## Current milestone
 
+**Milestone 4 — public site, sourced launch catalog and stateless sharing, implemented.**
+Milestone 3 remains independently audited and accepted; M4 builds on it without changing the engine,
+the result schema, the accounting rules or the browser-local architecture.
+
+## Milestone 4 — public site, launch catalog, sharing
+
+Three deliverables, one of which is data rather than code.
+
+**Sourced launch catalog.** The catalog now carries 5 providers, 19 plans and 43 models of real
+product data, alongside the synthetic `example-` development set that demo workloads, fixtures and
+tests use. Every real entry carries at least one source URL with a `checkedAt` date, a
+`lastVerifiedAt` date and a verification state; the public read model and the sitemap filter the
+synthetic namespace out, so synthetic data is never published as a real claim.
+
+Only facts a provider publishes were recorded. Numeric limits exist only where a provider states a
+number *and* a window a replay can simulate over: 7 numeric limits across 6 plans (GitHub Copilot
+AI credits and inline-suggestion completions, Anthropic's daily usage-credit redemption cap).
+Everything else the providers state without a number ("5x more usage", "significantly more included
+usage", "generous limits", "unlimited") is recorded as a qualitative limit carrying the provider's
+own wording, and the interface states it as qualitative. No number was invented to fill a shape, and
+the catalog validator now requires at least one limit of either kind rather than at least one numeric
+limit.
+
+**Public site.** `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/compare`,
+`/methodology`, `/changelog` are server-rendered from the same bundled catalog snapshot the
+application replays against, so a public page cannot describe a plan differently from the plan a
+replay would use. Every plan, model and provider page shows its sources, verification state and
+last-checked date. `/changelog` is derived deterministically from the catalog's own version history.
+Metadata always describes the canonical production origin (`https://stackreplay.com`, overridable
+through `NEXT_PUBLIC_SITE_URL`), never localhost; `robots.txt` keeps `/app` out of search results and
+the sitemap lists public pages plus catalogued plans and models.
+
+**Sharing.** A share link is `/s/<token>` where the token carries the entire result:
+`<version>.<checksum>.<base64url(deflate(canonical JSON))>`. No database, no account, no server copy.
+`ShareReplaySnapshotV1` is a strict aggregate-only schema, `FORBIDDEN_SHARE_KEYS` scans for fields
+that must never be public independently of the schema, and the projection from a replay result
+(`apps/web/lib/share-snapshot.ts`) is a whitelist that names every field it copies, so a field added
+to the result later cannot leak by default. Decoding treats a token as hostile input: version,
+checksum, token length, decompressed size, JSON depth, string length and list sizes are all bounded,
+and a failed checksum is refused rather than rendered. The sharer chooses whether the aggregate date
+range, the session count and the per-source breakdown are included; all three are off by default.
+
+**Brand.** The approved kit is the source of truth; the application serves a runtime subset copied to
+`apps/web/public/brand` (navbar and footer lockups in both themes, favicon set, Apple touch icon, PWA
+icons, social card, mark) and never the masters or internal reference sheets. `apps/web/lib/site.ts`
+is the single place that names those paths, and the UI package receives them as props.
+
+Full structure, data flow and testing notes: `docs/PUBLIC_SITE.md`. Decisions 30 to 33 in
+`docs/ARCHITECTURE_DECISIONS.md` record local-first-not-local-only, the brand rule, the share
+architecture and the catalog policy.
+
+### Known limitations at M4
+
+- The catalog covers subscription plans and their models. A workload dominated by API-only model
+  names (the machine this was built on uses DeepSeek, GLM and Muse models through API-style
+  harnesses) maps partially, and a replay reports those models as unresolved rather than guessing.
+  Measured on a real 23,486-event export replayed against a catalogued plan: 13,578 events
+  unresolved, 9,908 with unknown consumption.
+- Credit-pool consumption needs API list prices for the models in a workload, which the launch
+  catalog does not carry (no sourced API price table yet). The validator reports a missing
+  `pricingRef` as a warning and the engine ignores warnings, so a subscription catalog stays usable;
+  the consequence is a result without a list-price equivalent and, for credit pools, an unknown
+  consumption. This is adjacent to the deferred M4A question (fallback pricing when detailed token
+  categories are unavailable) and stays deferred.
+- The bundled demo workloads are synthetic and use the `example-` model namespace, so they map onto
+  the synthetic demo plans. The replay surface says so when a demo workload is selected instead of
+  leaving a visitor to read an unmapped-model result as a failure.
+- Model availability is recorded at provider level because providers publish it that way; each plan
+  states that scope as a qualitative limit so the approximation is visible.
+
+## Milestone 3 — browser-local replay (accepted)
+
 **Milestone 3 — browser-local replay, implemented, independently audited and accepted.**
 Accepted after corrections and two independent reviews: the audit log below records what was
 verified, what it found and what changed. The measurement reported in an earlier revision (a

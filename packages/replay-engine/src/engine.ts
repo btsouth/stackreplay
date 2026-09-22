@@ -179,7 +179,10 @@ function parseCatalog(catalog: CatalogV1): CatalogV1 {
         .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`),
     );
   }
-  const issues = validateLoadedCatalog(parsed.data);
+  // Errors only: the catalog validator reports advisory warnings (for example a
+  // model rule with no API pricing reference, which simply means no list-price
+  // equivalent is available) and a warning must not make a catalog unusable.
+  const issues = validateLoadedCatalog(parsed.data).filter((issue) => issue.severity === "error");
   if (issues.length > 0)
     throw new ReplayEngineError(
       "CATALOG_INVALID",

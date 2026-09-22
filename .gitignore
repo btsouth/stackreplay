@@ -44,3 +44,6 @@ blob-report/
 # Local usage exports (never commit personal workload data)
 *.stackreplay.json
 stackreplay-export-*.json
+
+# Brand reference material dropped for design review; the approved kit lives in brand/.
+docs/brand/

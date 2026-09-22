@@ -25,7 +25,8 @@
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "recharts": "^3.2.1"
+    "recharts": "^3.2.1",
+    "@stackreplay/share": "workspace:*"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

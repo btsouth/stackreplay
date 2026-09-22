@@ -1,0 +1,11 @@
+id: claude-opus-4-8-fast-mode
+role: model
+name: "Claude Opus 4.8 (fast mode) (preview)"
+providerIds:
+  - github
+sources:
+  - url: https://github.com/features/copilot/plans
+    title: "GitHub pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

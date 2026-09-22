@@ -104,3 +104,63 @@ test.describe("M3 screenshots", () => {
     await shoot(page, "replay-unknown-desktop-dark");
   });
 });
+
+/**
+ * M4 screenshots: the public site and a shared result, in both themes, plus a
+ * mobile capture. Public pages render the sourced catalog, so these shots are
+ * also a visual record of what the launch catalog actually publishes.
+ */
+test.describe("M4 screenshots", () => {
+  const publicPages = [
+    { path: "/", name: "home" },
+    { path: "/plans", name: "plans" },
+    { path: "/methodology", name: "methodology" },
+    { path: "/changelog", name: "changelog" },
+  ] as const;
+
+  for (const theme of ["dark", "light"] as const) {
+    for (const page_ of publicPages) {
+      test(`${page_.name} desktop ${theme}`, async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== "desktop", "desktop capture");
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+        await page.goto(page_.path);
+        await shoot(page, `${page_.name}-desktop-${theme}`);
+      });
+    }
+
+    test(`plan detail desktop ${theme}`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "desktop capture");
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+      await page.goto("/plans");
+      const first = page.getByTestId("plan-card").first().getByRole("link").first();
+      test.skip((await page.getByTestId("plan-card").count()) === 0, "no catalogued plan");
+      await first.click();
+      await shoot(page, `plan-detail-desktop-${theme}`);
+    });
+
+    test(`share page desktop ${theme}`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop", "desktop capture");
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+      await page.goto("/");
+      const link = page.getByRole("link", { name: "See a replayed result" });
+      test.skip((await link.count()) === 0, "no catalogued plan to build an example from");
+      await link.click();
+      await expect(page.getByTestId("share-card")).toBeVisible();
+      await shoot(page, `share-desktop-${theme}`);
+    });
+  }
+
+  test("home mobile dark", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile capture");
+    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+    await page.goto("/");
+    await shoot(page, "home-mobile-dark");
+  });
+
+  test("plans mobile dark", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile capture");
+    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+    await page.goto("/plans");
+    await shoot(page, "plans-mobile-dark");
+  });
+});

@@ -58,6 +58,49 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/web/app/(public)/**", "apps/web/components/public/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noNoninteractiveTabindex": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/ui/src/components/public-shell.tsx"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noImgElement": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/share/src/*.test.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExportsInTest": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/catalog/src/bundled-catalog.ts"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExportsInTest": "off"
+          }
+        }
+      }
     }
   ]
 }

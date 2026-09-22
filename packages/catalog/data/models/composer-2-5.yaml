@@ -1,0 +1,11 @@
+id: composer-2-5
+role: model
+name: "Composer 2.5"
+providerIds:
+  - cursor
+sources:
+  - url: https://cursor.com/pricing
+    title: "Cursor pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

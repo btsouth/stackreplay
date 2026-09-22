@@ -1,0 +1,75 @@
+id: anthropic-claude-max-20x
+role: plan
+name: Claude Max 20x
+providerId: anthropic
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "200"
+      interval: month
+    billingMechanics: "Official pricing: 'Max 20x : $200 per month'."
+    limits:
+      - id: daily-credit-redemption
+        label: "Daily usage-credit redemption limit"
+        type: credit_pool
+        amount: "2000.00"
+        exceed: reject_request
+        window:
+          type: calendar
+          unit: day
+          timezone: UTC
+    qualitativeLimits:
+      - id: per-session-usage-allowance-multiple-of-pro
+        label: "Per-session usage allowance (multiple of Pro)"
+        statement: "Max 20x includes 20 times the Pro plan's per-session usage allowance. This tier is ideal for daily users who collaborate often with Claude for most tasks."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: session-usage-limit-reset
+        label: "Session usage limit reset"
+        statement: "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: weekly-usage-limit-across-all-models
+        label: "Weekly usage limit across all models"
+        statement: "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: fable-model-share-of-weekly-usage-limits
+        label: "Fable model share of weekly usage limits"
+        statement: "You can use up to 50% of your weekly usage limits on Fable models at no extra cost."
+        sourceUrl: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan
+      - id: discretionary-weekly-monthly-caps-and-model-or-f
+        label: "Discretionary weekly/monthly caps and model or feature usage limits"
+        statement: "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: usage-credits-opt-in-pay-as-you-go-overage
+        label: "Usage credits (opt-in pay-as-you-go overage)"
+        statement: "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits."
+        sourceUrl: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Same as Max 5x: no absolute numeric allowance published; only the 20x multiple relative to Pro, whose own allowance is unquantified."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://claude.com/pricing
+    modelRules:
+      - model: claude-fable
+        excluded: true
+      - model: claude-haiku
+      - model: claude-opus
+      - model: claude-sonnet
+    sources:
+      - url: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+        title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://claude.com/pricing
+        title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

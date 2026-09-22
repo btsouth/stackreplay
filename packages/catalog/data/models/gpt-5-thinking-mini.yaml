@@ -1,0 +1,11 @@
+id: gpt-5-thinking-mini
+role: model
+name: "GPT-5 Thinking Mini"
+providerIds:
+  - openai
+sources:
+  - url: https://openai.com/chatgpt/pricing/
+    title: "OpenAI pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

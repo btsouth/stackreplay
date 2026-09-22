@@ -171,8 +171,19 @@ function checkLimits(
 ): void {
   for (const version of plan.versions) {
     const where = `${plan.id}@${version.effectiveFrom}`;
+    // A plan version states at least one limit. A plan whose provider publishes
+    // no number states its limits qualitatively; the array is never padded with
+    // an invented amount to satisfy a shape.
+    if (version.limits.length === 0 && (version.qualitativeLimits ?? []).length === 0)
+      issues.push({
+        severity: "error",
+        code: "MISSING_LIMIT",
+        message: `${where}: a plan version must state at least one limit, numeric or qualitative`,
+        file,
+      });
     for (const [kind, ids] of [
       ["limit", version.limits.map((limit) => limit.id)],
+      ["qualitative limit", (version.qualitativeLimits ?? []).map((limit) => limit.id)],
       ["model rule", version.modelRules.map((rule) => rule.model)],
       ["promotion", (version.promotions ?? []).map((promotion) => promotion.id)],
     ] as const) {
@@ -246,8 +257,12 @@ function checkLimits(
         });
       const excluded = rule.excluded === true;
       if (!excluded && rule.pricingRef === undefined) {
+        // A warning, not an error: a subscription catalog may legitimately ship
+        // without API list prices for a model. The replay engine only prices what
+        // it has a reference for, so the consequence is a missing list-price
+        // equivalent, which the result already reports as absent.
         issues.push({
-          severity: "error",
+          severity: "warning",
           code: "MODEL_RULE_INVALID",
           message: `${where}: model rule for "${rule.model}" needs a pricingRef or must be excluded`,
           file,

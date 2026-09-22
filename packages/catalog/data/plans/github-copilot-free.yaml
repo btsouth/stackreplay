@@ -1,0 +1,86 @@
+id: github-copilot-free
+role: plan
+name: Copilot Free
+providerId: github
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "0"
+      interval: month
+    billingMechanics: "Docs: 'Copilot Free : .."
+    limits:
+      - id: inline-suggestions
+        label: "Inline suggestion completions"
+        type: request_limit
+        amount: "2000"
+        exceed: reject_request
+        window:
+          type: calendar
+          unit: month
+          timezone: UTC
+    qualitativeLimits:
+      - id: github-ai-credits-allowance-amount-not-published
+        label: "GitHub AI Credits allowance (amount not published)"
+        statement: "Copilot Free and Copilot Student both have an allowance of AI credits."
+        sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+      - id: model-access-restricted-to-auto-model-selection
+        label: "Model access restricted to auto model selection"
+        statement: "On Copilot Free and Copilot Student plans, access to models is available through auto model selection only."
+        sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+      - id: rate-limits-unquantified-apply-to-copilot-genera
+        label: "Rate limits (unquantified, apply to Copilot generally)"
+        statement: "Rate limiting is a mechanism used to control the number of requests a user or application can make in a given time period. GitHub uses rate limits to ensure everyone has fair access to GitHub Copilot and to protect against abuse."
+        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "The size of Copilot Free's GitHub AI Credits allowance is not published as a number. No billing interval applies (no charge)."
+        sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "GitHub publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://github.com/features/copilot/plans
+    modelRules:
+      - model: claude-fable-5
+      - model: claude-fable-5-1
+      - model: claude-haiku-4-5
+      - model: claude-opus-4-7
+      - model: claude-opus-4-8
+      - model: claude-opus-4-8-fast-mode
+      - model: claude-opus-5
+      - model: claude-sonnet-4-6
+        excluded: true
+      - model: claude-sonnet-5
+      - model: gemini-3-5-flash
+      - model: gemini-3-6-flash
+      - model: gemini-3-7-flash
+      - model: gemini-3-8-flash
+      - model: gpt-5-3-codex
+      - model: gpt-5-4
+      - model: gpt-5-4-mini
+      - model: gpt-5-4-nano
+        excluded: true
+      - model: gpt-5-5
+      - model: gpt-5-6-luna
+      - model: gpt-5-6-sol
+      - model: gpt-5-6-terra
+      - model: gpt-5-mini
+      - model: gpt-6-astra
+      - model: grok-4-5
+      - model: grok-4-6
+      - model: grok-4-7
+      - model: kimi-k2-7-code
+      - model: kimi-k3
+      - model: mai-code-1-1-flash
+    sources:
+      - url: https://docs.github.com/en/copilot/get-started/plans
+        title: "GitHub pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits
+        title: "GitHub plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://github.com/features/copilot/plans
+        title: "GitHub pricing (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

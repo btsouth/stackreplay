@@ -1,0 +1,9 @@
+id: cursor
+role: provider
+name: Cursor
+sources:
+  - url: https://cursor.com/pricing
+    title: "Cursor pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

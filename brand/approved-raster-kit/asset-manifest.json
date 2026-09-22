@@ -1,0 +1,18 @@
+{
+  "canonicalRasterMaster": "master/stackreplay-mark-master.png",
+  "source": "master/stackreplay-mark-source-1254.png",
+  "note": "All assets in this kit are mechanically derived from the approved raster master. The mark is never regenerated.",
+  "m4Recommended": {
+    "navbarDark": "lockups/navbar-64-dark.png",
+    "navbarLight": "lockups/navbar-64-light.png",
+    "favicon": "icons/favicon.ico",
+    "appleTouch": "icons/apple-touch-icon.png",
+    "pwa192": "icons/pwa-icon-192.png",
+    "pwa512": "icons/pwa-icon-512.png",
+    "openGraph": "social/open-graph-1200x630.png",
+    "githubSocial": "social/github-social-preview-1280x640.png",
+    "xHeader": "social/x-header-1500x500.png",
+    "githubAvatar": "social/github-avatar-512.png",
+    "xAvatar": "social/x-avatar-400.png"
+  }
+}

@@ -1,0 +1,9 @@
+id: openai
+role: provider
+name: OpenAI
+sources:
+  - url: https://openai.com/chatgpt/pricing/
+    title: "OpenAI pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

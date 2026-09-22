@@ -1,3 +1,4 @@
+import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
 import { type CatalogV1, catalogV1Schema } from "./catalog.js";
 
@@ -73,4 +74,45 @@ export function bundledPlansAt(rulesAsOf: string): BundledPlanSummary[] {
     });
   }
   return summaries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+
+/** Target facts a share snapshot needs, resolved from the bundled catalog. */
+export interface BundledPlanFacts {
+  planId: string;
+  planVersionId: string;
+  planName: string;
+  providerId: string;
+  providerName: string;
+  price: { currency: "USD"; amount: string; interval: "month" | "year" };
+  verificationStatus: VerificationStatusV1;
+  lastVerifiedAt: string;
+  sources: readonly { url: string; title: string }[];
+}
+
+/**
+ * Full plan-version facts for a resolved target reference, so a surface that
+ * already holds a replay result can describe the plan it replayed against
+ * without re-deriving anything.
+ */
+export function bundledPlanFacts(versionId: string): BundledPlanFacts | undefined {
+  const catalog = loadBundledCatalog();
+  const version = catalog.planVersions[versionId];
+  if (version === undefined) return undefined;
+  const plan = catalog.plans[version.planId];
+  const provider = plan === undefined ? undefined : catalog.providers[plan.providerId];
+  return {
+    planId: version.planId,
+    planVersionId: version.versionId,
+    planName: version.planName,
+    providerId: version.providerId,
+    providerName: provider?.name ?? version.providerId,
+    price: {
+      currency: version.price.currency,
+      amount: version.price.amount,
+      interval: version.price.interval,
+    },
+    verificationStatus: version.verificationStatus,
+    lastVerifiedAt: version.lastVerifiedAt,
+    sources: version.sources.map((source) => ({ url: source.url, title: source.title })),
+  };
 }

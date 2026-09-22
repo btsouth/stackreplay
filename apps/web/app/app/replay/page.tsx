@@ -14,17 +14,18 @@ export const metadata: Metadata = {
 export default async function ReplayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string }>;
+  searchParams: Promise<{ import?: string; target?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
+  const target = typeof params.target === "string" ? params.target : undefined;
   return (
     <>
       <PageHeader
         title="Replay"
         description="Your workload, a target plan, and exactly what would have happened."
       />
-      <ReplaySurface initialImportId={importId} />
+      <ReplaySurface initialImportId={importId} initialTarget={target} />
     </>
   );
 }

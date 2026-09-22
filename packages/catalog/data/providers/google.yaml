@@ -1,0 +1,9 @@
+id: google
+role: provider
+name: Google
+sources:
+  - url: https://gemini.google/subscriptions/
+    title: "Google official page"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

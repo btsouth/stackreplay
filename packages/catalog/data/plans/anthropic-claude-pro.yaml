@@ -1,0 +1,75 @@
+id: anthropic-claude-pro
+role: plan
+name: Claude Pro
+providerId: anthropic
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "20"
+      interval: month
+    billingMechanics: "Monthly price is $20 (pricing page card: '$17 Per month with annual subscription discount ( $200 billed up front)."
+    limits:
+      - id: daily-credit-redemption
+        label: "Daily usage-credit redemption limit"
+        type: credit_pool
+        amount: "2000.00"
+        exceed: reject_request
+        window:
+          type: calendar
+          unit: day
+          timezone: UTC
+    qualitativeLimits:
+      - id: 5-hour-session-usage-limit-rolling
+        label: "5-hour session usage limit (rolling)"
+        statement: "Your session-based usage limit will reset every five hours."
+        sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+      - id: weekly-usage-limit-across-all-models
+        label: "Weekly usage limit across all models"
+        statement: "Pro plans also have a weekly usage limit that applies across all models. Weekly limits reset at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle. You can see your next reset time in Settings > Usage ."
+        sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+      - id: pro-usage-relative-to-free-per-5-hour-session
+        label: "Pro usage relative to Free (per 5-hour session)"
+        statement: "Free covers everyday questions. Pro gives you at least 5x more usage per 5-hour session than Free. Max gives you 5x or 20x more usage per 5-hour session than Pro."
+        sourceUrl: https://claude.com/pricing
+      - id: discretionary-weekly-monthly-caps-and-model-or-f
+        label: "Discretionary weekly/monthly caps and model or feature usage limits"
+        statement: "To manage capacity and make sure all users have fair access, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion. When you reach a limit, you can wait for it to reset, move to a higher plan, or, on paid plans, turn on usage credits to keep working at standard API rates. You can see where you stand anytime in Settings > Usage ."
+        sourceUrl: https://claude.com/pricing
+      - id: usage-credits-opt-in-pay-as-you-go-overage
+        label: "Usage credits (opt-in pay-as-you-go overage)"
+        statement: "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits. Instead of being blocked when you hit your session limits, you can switch to consumption-based pricing at standard API rates and continue your work without interruption."
+        sourceUrl: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+      - id: discounted-usage-bundle-purchase-cap-pro-and-max
+        label: "Discounted usage-bundle purchase cap (Pro and Max)"
+        statement: "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates."
+        sourceUrl: https://support.claude.com/en/articles/14246112-buy-usage-bundles
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Anthropic does not publish numeric session/weekly allowances for Pro; only relative multiples ('at least 5x more usage per 5-hour session than Free') and the 5-hour/weekly window structure. Limits are measured as compute-weighted 'usage', not literal request counts ('there's no fixed message count')."
+        sourceUrl: https://claude.com/pricing
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://claude.com/pricing
+    modelRules:
+      - model: claude-fable
+        excluded: true
+      - model: claude-haiku
+      - model: claude-opus
+      - model: claude-sonnet
+    sources:
+      - url: https://claude.com/pricing
+        title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans
+        title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/14246112-buy-usage-bundles
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

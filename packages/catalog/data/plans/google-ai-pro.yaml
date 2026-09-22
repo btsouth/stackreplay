@@ -1,0 +1,63 @@
+id: google-ai-pro
+role: plan
+name: Google AI Pro
+providerId: google
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "19.99"
+      interval: month
+    billingMechanics: "gemini.google/subscriptions lists 'Google AI Pro 1 .."
+    limits: []
+    qualitativeLimits:
+      - id: gemini-apps-compute-based-usage-limit-relative-t
+        label: "Gemini Apps compute-based usage limit (relative to no-plan users)"
+        statement: "Gemini Apps have compute-based usage limits that determine how much you can interact with Gemini tools and features. These limits factor in the complexity of your prompt, the models and features you use, and the length of your chat. Your limit refreshes every 5 hours until you reach your weekly limit. ... AI Pro | 4x higher than standard limits | AI Ultra | 5x or 20x higher than AI Pro limits depending on your subscription"
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: context-window-gemini-apps
+        label: "Context window (Gemini Apps)"
+        statement: "Plan Context window ... AI Pro & AI Ultra 1 million tokens"
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: what-happens-when-you-reach-a-usage-limit
+        label: "What happens when you reach a usage limit"
+        statement: "If you have a Google AI subscription and reach your limit, you can continue your conversation with Flash-Lite. If you reach your five hour or weekly usage limits you can upgrade to a Google AI subscription with higher limits or wait until your model limit is refreshed."
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: ai-credits-for-extra-usage-flow-antigravity-othe
+        label: "AI credits for extra usage (Flow, Antigravity, other products)"
+        statement: "Each product has its own AI usage limits. Your usage limits depend on which features you are using and your Google AI plan. If you reach your plan's limit, Google AI Pro and Google AI Ultra members can purchase AI credits to get extra usage in Google Flow and Google Antigravity."
+        sourceUrl: https://support.google.com/googleone/answer/14534406
+      - id: limits-may-change-without-notice
+        label: "Limits may change without notice"
+        statement: "Limits may change without notice, including due to capacity constraints. When there's a large increase in activity in Gemini Apps, we may change limits to maintain a high standard of quality."
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: antigravity-jules-limits-relative-unquantified
+        label: "Antigravity / Jules limits (relative, unquantified)"
+        statement: "Jules 9 - Higher limits to our asynchronous coding agent for software developers. Google Antigravity - Entry rate limits to agent model in Google Antigravity, our agentic development platform."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Google describes Gemini Apps limits in relative terms only ('4x higher than standard limits'), with no absolute counts. Context window is the only absolute number published (1 million tokens for AI Pro and AI Ultra). The Google One plans page describes a 'Google AI Plus (2 TB)' plan at $9.99/mo while gemini.google/subscriptions describes 'Google AI Plus' at $4.99/month with 400 GB storage - the two official pages describe different Google AI Plus entitlements, so the Plus tier is not recorded here."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Google publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://gemini.google/subscriptions/
+    modelRules:
+      - model: gemini-3-1-pro
+      - model: gemini-3-flash
+      - model: gemini-3-flash-lite
+      - model: gemini-3-pro
+      - model: nano-banana-pro
+    sources:
+      - url: https://gemini.google/subscriptions/
+        title: "Google official page"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/gemini/answer/16275805
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/googleone/answer/14534406
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

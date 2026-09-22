@@ -135,7 +135,7 @@ describe("validateCatalogData", () => {
     expect(issues.some((issue) => issue.code === "VERSION_DATE_ORDER")).toBe(true);
   });
 
-  it("requires a pricingRef for non-excluded model rules", () => {
+  it("warns when a non-excluded model rule has no pricingRef", () => {
     const plan = validPlan();
     const versions = plan.versions as Array<Record<string, unknown>>;
     const rule = { model: "example-model" };
@@ -284,16 +284,35 @@ describe("loader", () => {
     const second = loadDefaultCatalog();
     expect(first.catalogVersion).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(first.catalogVersion).toBe(second.catalogVersion);
-    expect(Object.keys(first.providers)).toEqual(["example-cloud", "example-open"]);
-    expect(Object.keys(first.models)).toHaveLength(3);
-    expect(Object.keys(first.plans)).toHaveLength(3);
-    expect(Object.keys(first.planVersions).sort()).toEqual([
-      "example-cloud-pro@2026-08-01",
-      "example-cloud-starter@2026-08-01",
-      "example-cloud-starter@2026-09-15",
-      "example-open-basic@2026-08-01",
-    ]);
+    // The catalog ships two namespaces: the synthetic development set and the
+    // sourced launch catalog. The synthetic one is asserted exactly; the real one
+    // is asserted structurally, so adding a sourced provider does not require
+    // editing this test.
+    const providerIds = Object.keys(first.providers);
+    expect(providerIds).toContain("example-cloud");
+    expect(providerIds).toContain("example-open");
+    const syntheticModels = Object.keys(first.models).filter((id) => id.startsWith("example-"));
+    const syntheticPlans = Object.keys(first.plans).filter((id) => id.startsWith("example-"));
+    expect(syntheticModels).toHaveLength(3);
+    expect(syntheticPlans).toHaveLength(3);
+    expect(Object.keys(first.planVersions).sort()).toEqual(
+      expect.arrayContaining([
+        "example-cloud-pro@2026-08-01",
+        "example-cloud-starter@2026-08-01",
+        "example-cloud-starter@2026-09-15",
+        "example-open-basic@2026-08-01",
+      ]),
+    );
     expect(Object.keys(first.pricing)).toHaveLength(3);
+    // Every real entry carries a source and a verification state.
+    for (const planId of Object.keys(first.plans).filter((id) => !id.startsWith("example-"))) {
+      const plan = first.plans[planId];
+      expect(plan?.versions.length ?? 0).toBeGreaterThan(0);
+      for (const version of plan?.versions ?? []) {
+        expect(version.sources.length).toBeGreaterThan(0);
+        expect(version.lastVerifiedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+      }
+    }
   });
 
   it("exposes plan versions through the version id convention", () => {

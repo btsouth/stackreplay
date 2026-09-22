@@ -113,12 +113,35 @@ export const planPriceV1Schema = z.strictObject({
 });
 export type PlanPriceV1 = z.infer<typeof planPriceV1Schema>;
 
+/**
+ * A limit a provider states qualitatively ("5x more usage than Pro") rather than
+ * as a number. Recorded as a first-class, sourced statement so the product can
+ * say "stated qualitatively" instead of inventing an amount to fit a numeric
+ * schema (M4 requirement: never guess a limit).
+ */
+export const qualitativeLimitV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  label: z.string().min(1),
+  /** The provider's own wording, quoted rather than paraphrased. */
+  statement: z.string().min(1),
+  /** Where the wording comes from, when it is not the plan page itself. */
+  sourceUrl: z.string().min(1).optional(),
+});
+export type QualitativeLimitV1 = z.infer<typeof qualitativeLimitV1Schema>;
+
 export const planVersionEntryV1Schema = z.strictObject({
   effectiveFrom: isoDateV1Schema,
   effectiveTo: isoDateV1Schema.optional(),
   price: planPriceV1Schema,
   billingMechanics: z.string().min(1).optional(),
-  limits: z.array(planLimitV1Schema).min(1),
+  /**
+   * Numeric limits only. A plan whose provider publishes no number has an empty
+   * list and states its limits qualitatively instead; a number is never invented
+   * to fill this array.
+   */
+  limits: z.array(planLimitV1Schema),
+  /** Limits the provider describes without a number. Never a substitute for one. */
+  qualitativeLimits: z.array(qualitativeLimitV1Schema).optional(),
   modelRules: z.array(modelRuleV1Schema).min(1),
   promotions: z.array(promotionV1Schema).optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
@@ -126,6 +149,12 @@ export const planVersionEntryV1Schema = z.strictObject({
   verificationStatus: verificationStatusV1Schema,
 });
 export type PlanVersionEntryV1 = z.infer<typeof planVersionEntryV1Schema>;
+
+/** A plan version must state at least one limit, numeric or qualitative. */
+export const planVersionEntryWithLimitsV1Schema = planVersionEntryV1Schema.refine(
+  (version) => version.limits.length > 0 || (version.qualitativeLimits?.length ?? 0) > 0,
+  { message: "a plan version must state at least one limit" },
+);
 
 export const planV1Schema = z.strictObject({
   id: catalogIdV1Schema,

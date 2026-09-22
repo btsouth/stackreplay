@@ -1,0 +1,67 @@
+id: google-ai-ultra
+role: plan
+name: Google AI Ultra (5x tier)
+providerId: google
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "99.99"
+      interval: month
+    billingMechanics: "The page presents Google AI Ultra with two price points: 'Starting at: $99.99 / month - $99.99 / month: 5x higher usage limits vs."
+    limits: []
+    qualitativeLimits:
+      - id: gemini-apps-usage-limit-relative-to-google-ai-pr
+        label: "Gemini Apps usage limit relative to Google AI Pro (5x tier)"
+        statement: "AI Ultra | 5x or 20x higher than AI Pro limits depending on your subscription"
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: usage-quota-vs-google-ai-pro-google-one-help
+        label: "Usage quota vs Google AI Pro (Google One help)"
+        statement: "With a Google AI Ultra plan, you get the highest access to Google AI. Based on your specific Google AI Ultra plan, you get 5x or 20x usage quota in Gemini and Google Antigravity compared to the Google AI Pro plan."
+        sourceUrl: https://support.google.com/googleone/answer/16286513
+      - id: context-window-gemini-apps
+        label: "Context window (Gemini Apps)"
+        statement: "Plan Context window ... AI Pro & AI Ultra 1 million tokens"
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: deep-think-ai-ultra-only
+        label: "Deep Think (AI Ultra only)"
+        statement: "Deep think (AI Ultra only) provides maximum parallel reasoning. Deep Think queries generally can take a few minutes before seeing a response. Deep think requires the Pro model."
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: google-flow-credits-included
+        label: "Google Flow credits included"
+        statement: "Google Flow 3 - Get 10,000 or 25,000 Google Flow Credits to use across our AI creative studio to create cinematic scenes and stories with access to Gemini Omni Flash and custom tool creation."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: ai-credits-for-extra-usage-flow-antigravity-othe
+        label: "AI credits for extra usage (Flow, Antigravity, other products)"
+        statement: "You can also purchase AI credits with the Google AI Ultra plan, which can be used to extend your usage in Google Flow, Google Antigravity, and other products where AI credits are supported."
+        sourceUrl: https://support.google.com/googleone/answer/16286513
+      - id: jules-and-antigravity-limits-relative-unquantifi
+        label: "Jules and Antigravity limits (relative, unquantified)"
+        statement: "Jules 9 - Highest limits to our asynchronous coding agent for software developers ... Google Antigravity - Ultra 5x: Higher rate limits to agent model in Google Antigravity, our agentic development platform."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Ultra's limits are stated only relative to Google AI Pro (5x or 20x), and AI Pro's own limit is stated only relative to the no-plan standard ('4x higher than standard limits'), so no absolute Ultra allowance is published. Deep Think is listed as available only on AI Ultra."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Google publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://gemini.google/subscriptions/
+    modelRules:
+      - model: gemini-3-1-pro
+      - model: gemini-3-flash
+      - model: gemini-3-flash-lite
+      - model: gemini-3-pro
+      - model: nano-banana-pro
+    sources:
+      - url: https://gemini.google/subscriptions/
+        title: "Google official page"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/gemini/answer/16275805
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/googleone/answer/16286513
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

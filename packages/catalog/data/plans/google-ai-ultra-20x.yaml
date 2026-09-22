@@ -1,0 +1,63 @@
+id: google-ai-ultra-20x
+role: plan
+name: Google AI Ultra (20x tier)
+providerId: google
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "199.99"
+      interval: month
+    billingMechanics: "Second official price point for Google AI Ultra: '$199.99 / month: 20x higher usage limits vs."
+    limits: []
+    qualitativeLimits:
+      - id: gemini-apps-usage-limit-relative-to-google-ai-pr
+        label: "Gemini Apps usage limit relative to Google AI Pro (20x tier)"
+        statement: "$199.99 / month: 20x higher usage limits vs. AI Pro"
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: usage-quota-vs-google-ai-pro-google-one-help
+        label: "Usage quota vs Google AI Pro (Google One help)"
+        statement: "Based on your specific Google AI Ultra plan, you get 5x or 20x usage quota in Gemini and Google Antigravity compared to the Google AI Pro plan."
+        sourceUrl: https://support.google.com/googleone/answer/16286513
+      - id: context-window-gemini-apps
+        label: "Context window (Gemini Apps)"
+        statement: "Plan Context window ... AI Pro & AI Ultra 1 million tokens"
+        sourceUrl: https://support.google.com/gemini/answer/16275805
+      - id: google-flow-credits-included
+        label: "Google Flow credits included"
+        statement: "Google Flow 3 - Get 10,000 or 25,000 Google Flow Credits to use across our AI creative studio."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: antigravity-agent-rate-limits-highest-tier
+        label: "Antigravity agent rate limits (highest tier)"
+        statement: "Ultra 20x: Highest rate limits to agent model in Google Antigravity, our agentic development platform."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: ai-credits-for-extra-usage
+        label: "AI credits for extra usage"
+        statement: "If you reach your plan's limit, Google AI Pro and Google AI Ultra members can purchase AI credits to get extra usage in Google Flow and Google Antigravity."
+        sourceUrl: https://support.google.com/googleone/answer/16286513
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Google does not publish absolute quotas for either Ultra tier; the tiers differ only by the relative multiple (5x vs 20x of AI Pro). Google does not label these tiers with distinct product names on the pricing page beyond the price and multiple."
+        sourceUrl: https://gemini.google/subscriptions/
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Google publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://gemini.google/subscriptions/
+    modelRules:
+      - model: gemini-3-1-pro
+      - model: gemini-3-flash
+      - model: gemini-3-flash-lite
+      - model: gemini-3-pro
+      - model: nano-banana-pro
+    sources:
+      - url: https://gemini.google/subscriptions/
+        title: "Google official page"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/googleone/answer/16286513
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.google.com/gemini/answer/16275805
+        title: "Google plan documentation (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

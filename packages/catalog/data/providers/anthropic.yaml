@@ -1,0 +1,9 @@
+id: anthropic
+role: provider
+name: Anthropic
+sources:
+  - url: https://claude.com/pricing
+    title: "Anthropic pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

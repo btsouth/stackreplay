@@ -382,6 +382,103 @@ Milestone 3 runs the same deterministic engine in the browser under a strict bou
 - **URLs**: navigation uses an opaque local import id only. Workload content, project hashes, session
   hashes and file names never appear in a URL, and hashed identifiers are not shown to users.
 
+## 30. Local-first, not local-only
+
+StackReplay is local-first. It is not local-only. The privacy-preserving local experience is a
+permanent first-class product mode, not the final limit of the product.
+
+The long-term shape is: local collection -> sanitized canonical usage metadata -> local or browser
+Replay by default -> optional cloud history and intelligence when the user explicitly enables it.
+The hosted capabilities (persistent account history, multi-machine sync, saved replay history,
+continuous analytics, plan-change impact, alerts, optimizer, advanced API/local/hybrid analysis)
+arrive in their own milestones. None of them exist yet.
+
+Consequences that bind every milestone before M5:
+
+- The free local path stays complete on its own: collect, import, replay, persist locally, no account.
+- Nothing may present an unimplemented hosted capability as available. Marketing copy may describe
+  planned cloud capabilities only where it is labelled as planned or future.
+- Navigation and information architecture must leave room for account-backed surfaces (Overview,
+  Replay, Stack, Plans, History, Changes or Insights, Settings) without building them early and
+  without assuming IndexedDB is the permanent and only source of history.
+- The browser-local architecture of decision 29 is permanent, not a stopgap.
+
+## 31. Approved brand assets are the implementation source of truth
+
+StackReplay has an approved brand identity. `docs/brand/stylesheet.png` is the human visual
+authority. `brand/approved-raster-kit/` is the implementation source, mechanically derived from the
+single approved raster master `master/stackreplay-mark-master.png`, and `brand/README.md` documents
+the asset policy.
+
+The mark is never regenerated, redrawn, traced, approximated, reinterpreted or recoloured. Slab
+geometry, endpoint-circle sizes, the blue path and proportions are fixed. Previous experimental
+logo variants are not valid substitutes.
+
+Where a placement needs an asset the kit does not already contain, it is derived from an existing
+approved master by resizing or compositing, never by inventing geometry. The stylesheet is
+reference, the approved kit is implementation, and runtime copies under `apps/web/public/brand/`
+are deployment artifacts copied from the kit rather than new designs.
+
+## 32. Public sharing is stateless and aggregate-only
+
+M4 needs shareable public results without accounts, a database or cloud history, so sharing is a
+self-contained artifact:
+
+- The shareable unit is a versioned `ShareReplaySnapshotV1`, an aggregate-only projection of a
+  replay result. It contains the sanitized workload aggregate, the target, coverage dimensions, a
+  constraint summary, economics, confidence and the engine/catalog/methodology versions. It cannot
+  contain individual usage events, event/session/project hashes, repository names, local paths,
+  source file names, prompts, responses, source code or raw import contents. The schema is strict:
+  unknown keys are rejected rather than ignored, and a forbidden-field scan guards the boundary.
+- The public link is `/s/<token>`, where the token carries the snapshot itself: canonical JSON,
+  DEFLATE-compressed, base64url-encoded, prefixed with a version and a truncated SHA-256 checksum
+  of the canonical bytes. Deterministic for a given snapshot, corruption-detectable, URL-safe, and
+  bounded. No database and no server-side storage are involved.
+- Encoding is not encryption. Public share data is public by design, so nothing sensitive may enter
+  the token in the first place. The snapshot is the only thing transmitted, ever: share creation
+  never sends raw events, and an image or metadata renderer receives only the already-sanitized
+  snapshot.
+- Share tokens are untrusted input. Decoding validates the version, checksum, byte length,
+  decompressed size, JSON shape, depth, string lengths and list sizes before anything is rendered,
+  and malformed input fails with a typed error rather than a partial page. Output size is bounded
+  while decompressing, so a crafted token cannot become a decompression bomb.
+- Creating a share is explicit: the interface shows what will be included and what will never be
+  included before the link exists, and nothing is published automatically.
+
+## 33. Launch catalog policy (M4)
+
+The launch catalog publishes sourced facts about real plans and nothing else.
+
+- **Two namespaces, never mixed.** `example-*` is synthetic development data for
+  demo workloads, fixtures and tests. Everything else is sourced product data.
+  Public pages, the sitemap and the public read model filter the synthetic
+  namespace out, so synthetic data is never presented as a real claim. The
+  application may show both, labelled.
+- **Every claim is sourced and dated.** A provider, model or plan version carries
+  at least one source URL with a `checkedAt` date, a `lastVerifiedAt` date and a
+  verification state. `verified` means the provider's own page stated it on that
+  date. Where two official pages disagree, or a number is derived, the entry says
+  so in its own qualitative statements rather than picking a value silently.
+- **No number is invented to satisfy a shape.** A limit is recorded numerically
+  only when the provider publishes a number *and* a window a replay can simulate
+  over. Everything else is recorded as a qualitative limit carrying the
+  provider's own wording, and the UI states it as qualitative. A plan version may
+  therefore ship with zero numeric limits and only qualitative statements; the
+  validator requires at least one limit of either kind.
+- **Derived values state their basis.** GitHub AI credits are stored in USD only
+  because GitHub documents the conversion rate; the limit label carries the
+  conversion so a reader can check it.
+- **Missing API pricing is a warning, not an error.** A model rule without a
+  `pricingRef` means the catalog has no sourced API list price for that model. The
+  replay engine prices only what it has a reference for, so the consequence is a
+  result without a list-price equivalent. The validator reports this as a warning
+  and the engine ignores warnings, so a subscription catalog does not need to
+  invent API prices to be usable.
+- **Model availability is recorded at provider level.** Providers publish which
+  models a subscription can use per provider, not per plan. Each plan records the
+  provider lineup and states that scope explicitly as a qualitative limit, so the
+  approximation is visible instead of implied.
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

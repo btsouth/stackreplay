@@ -1,6 +1,10 @@
 "use client";
 
-import { type BundledPlanSummary, bundledPlansAt } from "@stackreplay/catalog/bundled";
+import {
+  type BundledPlanSummary,
+  bundledPlanFacts,
+  bundledPlansAt,
+} from "@stackreplay/catalog/bundled";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import {
   Badge,
@@ -16,6 +20,7 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SharePanel } from "@/components/share/share-panel";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError, TimelinePoint } from "@/lib/worker-protocol";
 
@@ -134,13 +139,20 @@ function groupQuantity(value: string): string {
   return fraction === undefined ? grouped : `${grouped}.${fraction}`;
 }
 
-export function ReplaySurface({ initialImportId }: { initialImportId?: string | undefined }) {
+export function ReplaySurface({
+  initialImportId,
+  initialTarget,
+}: {
+  initialImportId?: string | undefined;
+  /** Plan id preselected from a public plan page, never a workload detail. */
+  initialTarget?: string | undefined;
+}) {
   const client = getWorkerClient();
   const [imports, setImports] = useState<ImportRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
   const [rulesAsOf, setRulesAsOf] = useState<string>(todayUtc());
   const [query, setQuery] = useState("");
-  const [planId, setPlanId] = useState<string | undefined>(undefined);
+  const [planId, setPlanId] = useState<string | undefined>(initialTarget);
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [outcome, setOutcome] = useState<ReplayOutcome | undefined>(undefined);
@@ -169,6 +181,17 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
     () => imports.find((entry) => entry.id === selectedId) ?? imports[0],
     [imports, selectedId],
   );
+
+  /**
+   * The bundled demo workloads are synthetic and use the `example-` model
+   * namespace, so they only map onto the synthetic demo plans. Saying so beats a
+   * result that reads as a failure when a visitor replays a demo against a
+   * catalogued plan.
+   */
+  const selectedWorkloadIsDemo = useMemo(() => {
+    const models = workload?.summary.models ?? [];
+    return models.length > 0 && models.every((model) => model.rawName.startsWith("example-"));
+  }, [workload]);
 
   useEffect(() => {
     let cancelled = false;
@@ -307,6 +330,16 @@ export function ReplaySurface({ initialImportId }: { initialImportId?: string | 
                 className="w-full max-w-sm rounded-md border border-control-border bg-surface px-3 py-2 text-sm"
               />
             </label>
+            {selectedWorkloadIsDemo ? (
+              <p
+                className="max-w-xl text-xs text-muted-foreground"
+                data-testid="demo-workload-note"
+              >
+                This workload is one of the bundled synthetic demos, so its models belong to the
+                demo catalog. It replays against a demo plan; import your own export to replay
+                against a catalogued plan.
+              </p>
+            ) : null}
             <ul
               ref={listRef}
               aria-label="Target plans"
@@ -489,6 +522,10 @@ function ReplayResult({
   workload: ImportRecord | undefined;
 }) {
   const { result, timeline } = outcome;
+  const shareTarget = bundledPlanFacts(result.versions.targetReference);
+  const attribution = workload?.summary.usageSources
+    .filter((source) => source.role === "usage" && source.events > 0)
+    .map((source) => ({ name: source.name, eventCount: source.events }));
   const [focusedViolation, setFocusedViolation] = useState<string | undefined>(undefined);
   const headline =
     result.feasibility.status === "full"
@@ -785,6 +822,13 @@ function ReplayResult({
           </CardContent>
         </Card>
       </div>
+      {shareTarget === undefined ? null : (
+        <SharePanel
+          result={result}
+          target={shareTarget}
+          {...(attribution === undefined ? {} : { attribution })}
+        />
+      )}
     </div>
   );
 }

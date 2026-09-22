@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { encodeShareToken } from "@stackreplay/share";
 import { importDemo, runReplay } from "./helpers";
 
 /**
@@ -125,6 +126,118 @@ test.describe("replay surface accessibility", () => {
     expect(heights.summaries.length).toBeGreaterThan(0);
     for (const height of [...heights.planRows, ...heights.summaries]) {
       expect(height).toBeGreaterThanOrEqual(44);
+    }
+  });
+});
+
+/**
+ * Public site accessibility (M4 brief): the same WCAG 2.2 AA target applies to
+ * the pages anyone can read, in both themes, including the shared-result page.
+ */
+test.describe("public site accessibility", () => {
+  const routes = ["/", "/plans", "/models", "/compare", "/methodology", "/changelog"] as const;
+
+  for (const theme of ["dark", "light"] as const) {
+    test(`passes axe across the public site in ${theme} mode`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+      for (const route of routes) {
+        await page.goto(route);
+        await expectNoSeriousViolations(page);
+      }
+    });
+  }
+
+  test("the public site is reachable with the keyboard alone", async ({ page }, testInfo) => {
+    await page.goto("/");
+    await page.keyboard.press("Tab");
+    const skipLink = page.getByRole("link", { name: /skip to content/iu });
+    if (await skipLink.count()) {
+      await expect(skipLink.first()).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#main-content")).toBeFocused();
+    }
+    // Every primary destination is reachable and labelled. Wide viewports show the
+    // header navigation; narrow ones reach the same destinations through the menu
+    // button's panel, and the footer lists them at every width.
+    const footerDestinations = ["Plans", "Models", "Compare", "Methodology", "Catalog changelog"];
+    for (const label of footerDestinations) {
+      await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
+    }
+
+    if (testInfo.project.name === "mobile") {
+      const menu = page.getByTestId("public-nav-menu");
+      await expect(menu).toBeVisible();
+      await menu.focus();
+      await page.keyboard.press("Enter");
+      await expect(menu).toHaveAttribute("aria-expanded", "true");
+      for (const label of ["Plans", "Models", "Compare", "Methodology", "Changelog"]) {
+        await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
+      }
+      await menu.focus();
+      await page.keyboard.press("Enter");
+      await expect(menu).toHaveAttribute("aria-expanded", "false");
+    }
+  });
+
+  test("a shared result page passes axe in both themes", async ({ page }) => {
+    const token = await encodeShareToken({
+      version: 1,
+      workload: {
+        eventCount: 120,
+        modelCount: 2,
+        tokenTotals: { outputTokens: 4_000 },
+        rangeIncluded: false,
+      },
+      target: {
+        type: "subscription",
+        planId: "example-cloud-pro",
+        planVersionId: "example-cloud-pro@2026-08-01",
+        planName: "Example Cloud Pro",
+        providerId: "example-cloud",
+        providerName: "Example Cloud",
+        price: { currency: "USD", amount: "50.00", interval: "month" },
+        verificationStatus: "estimated",
+        lastVerifiedAt: "2026-09-01",
+        sources: [{ url: "https://example.invalid/pricing", title: "Example pricing" }],
+      },
+      feasibility: { status: "full", coveragePercent: 100, coverageDimension: "requests" },
+      coverage: {
+        requests: { status: "known", percent: 100, covered: 120, total: 120 },
+        usage: { status: "known", percent: 100, covered: 120, total: 120 },
+        models: { status: "known", percent: 100, covered: 2, total: 2 },
+      },
+      constraints: [
+        {
+          id: "example-small-plan@2026-09-01:request_limit",
+          label: "Requests",
+          kind: "request_limit",
+          unit: "requests",
+          window: { kind: "rolling", description: "rolling PT5H" },
+          exceed: "reject_request",
+          status: "pass",
+          limitUnits: "200",
+          consumedUnits: "120",
+          attemptedUnits: "120",
+          violationCount: 0,
+          rejectedEvents: 0,
+        },
+      ],
+      violations: [],
+      confidence: { level: "high", factors: [] },
+      versions: {
+        engine: "0.0.2",
+        schema: 1,
+        catalog: "2026.09.1",
+        methodology: "1.1.0",
+        rulesAsOf: "2026-09-15",
+        targetReference: "example-small-plan@2026-09-01",
+      },
+    });
+    for (const theme of ["dark", "light"] as const) {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+      await page.goto(`/s/${token}`);
+      await expect(page.getByTestId("share-card")).toBeVisible();
+      await expectNoSeriousViolations(page);
     }
   });
 });

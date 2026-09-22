@@ -1,0 +1,67 @@
+id: openai-chatgpt-pro
+role: plan
+name: ChatGPT Pro ($100 / Pro 10x tier)
+providerId: openai
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "100"
+      interval: month
+    billingMechanics: "ChatGPT Pro is sold as two priced tiers in the same help article: 'The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus.' and 'The $100 Pro tier includes lower usage allowances than t..."
+    limits: []
+    qualitativeLimits:
+      - id: pro-100-usage-relative-to-plus
+        label: "Pro $100 usage relative to Plus"
+        statement: "Both Pro tiers include the same core capabilities. The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: per-model-usage-allowances-temporary-model-unava
+        label: "Per-model usage allowances (temporary model unavailability)"
+        statement: "Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier. The $100 Pro tier includes lower usage allowances than the $200 Pro tier. When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available. Reaching a model's allowance does not by itself mean that your account was restricted or that your subscription ended. You can use another available model or wait until the displayed reset time. There is no setting to increase or bypass a model's usage allowance."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: 5-hour-and-weekly-codex-work-allowances
+        label: "5-hour and weekly Codex/Work allowances"
+        statement: "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage. It pulls your normal weekly allowance forward rather than adding a separate usage entitlement."
+        sourceUrl: https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets
+      - id: paid-instant-weekly-reset-plus-and-pro-only
+        label: "Paid instant weekly reset (Plus and Pro only)"
+        statement: "Buying a reset is available to eligible ChatGPT Plus and Pro personal accounts on ChatGPT web and the Codex desktop app. It is not available on Free, Go, Business, Enterprise, or Edu plans."
+        sourceUrl: https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets
+      - id: usage-credits-pay-as-you-go-overage
+        label: "Usage credits (pay-as-you-go overage)"
+        statement: "For Plus and Pro, Codex, ChatGPT Work, Excel, and PowerPoint can share the same agentic usage allowance when those features are available on your plan."
+        sourceUrl: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
+      - id: pro-200-new-signup-pause-as-of-2026-09-10
+        label: "Pro $200 new-signup pause (as of 2026-09-10)"
+        statement: "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "OpenAI publishes no numeric allowance for Pro; usage is given only as a multiple of Plus ('5x higher usage than Plus'), and Plus's own allowance is unquantified. 'Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier.'"
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-5-6-luna
+      - model: gpt-5-6-sol
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+    sources:
+      - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://openai.com/chatgpt/pricing/
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

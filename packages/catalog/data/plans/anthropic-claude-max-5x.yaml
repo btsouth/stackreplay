@@ -1,0 +1,73 @@
+id: anthropic-claude-max-5x
+role: plan
+name: Claude Max 5x
+providerId: anthropic
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "100"
+      interval: month
+    billingMechanics: "Official pricing: 'Max 5x : $100 per month'."
+    limits: []
+    qualitativeLimits:
+      - id: per-session-usage-allowance-multiple-of-pro
+        label: "Per-session usage allowance (multiple of Pro)"
+        statement: "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: session-usage-limit-reset
+        label: "Session usage limit reset"
+        statement: "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: weekly-usage-limit-across-all-models
+        label: "Weekly usage limit across all models"
+        statement: "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: fable-model-share-of-weekly-usage-limits
+        label: "Fable model share of weekly usage limits"
+        statement: "Max plans, premium seats on Team plans, and premium seats on seat-based Enterprise plans: Fable 5 and Fable 5.1 are included as a standard part of your plan. You can use up to 50% of your weekly usage limits on Fable models at no extra cost. They draw from your plan's regular weekly usage limits and use them faster than other Claude models. When you reach your Fable limit, you can keep using Fable models with usage credits, or switch to another model to stay within your plan's usage limits."
+        sourceUrl: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan
+      - id: discretionary-weekly-monthly-caps-and-model-or-f
+        label: "Discretionary weekly/monthly caps and model or feature usage limits"
+        statement: "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: usage-credits-opt-in-pay-as-you-go-overage
+        label: "Usage credits (opt-in pay-as-you-go overage)"
+        statement: "Max plan users - If you're on the Max 5x plan, consider upgrading to the Max 20x plan if you consistently hit limits. - Enable usage credits to continue using Claude with your Max plan after hitting the included usage limit."
+        sourceUrl: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+      - id: discounted-usage-bundle-purchase-cap-pro-and-max
+        label: "Discounted usage-bundle purchase cap (Pro and Max)"
+        statement: "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates."
+        sourceUrl: https://support.claude.com/en/articles/14246112-buy-usage-bundles
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "No numeric session or weekly allowance is published; usage is expressed only as a multiple of Pro ('five times the Pro plan's per-session usage allowance') and Pro's own allowance is unquantified."
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://claude.com/pricing
+    modelRules:
+      - model: claude-fable
+        excluded: true
+      - model: claude-haiku
+      - model: claude-opus
+      - model: claude-sonnet
+    sources:
+      - url: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://support.claude.com/en/articles/14246112-buy-usage-bundles
+        title: "Anthropic plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://claude.com/pricing
+        title: "Anthropic pricing (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

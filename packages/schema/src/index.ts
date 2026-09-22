@@ -28,6 +28,10 @@ export {
   stackReplayExportV1Schema,
 } from "./export.js";
 export {
+  type ComputedMoneyV1,
+  type ComputedSignedMoneyV1,
+  computedMoneyV1Schema,
+  computedSignedMoneyV1Schema,
   type MoneyV1,
   moneyV1Schema,
   type SignedMoneyV1,

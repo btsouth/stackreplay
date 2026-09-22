@@ -1,0 +1,11 @@
+id: gpt-5-5
+role: model
+name: "GPT-5.5"
+providerIds:
+  - github
+sources:
+  - url: https://github.com/features/copilot/plans
+    title: "GitHub pricing (official)"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

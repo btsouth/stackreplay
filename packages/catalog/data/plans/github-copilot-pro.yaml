@@ -1,0 +1,90 @@
+id: github-copilot-pro
+role: plan
+name: Copilot Pro
+providerId: github
+versions:
+  - effectiveFrom: 2026-09-21
+    price:
+      currency: USD
+      amount: "10"
+      interval: month
+    billingMechanics: "Plan table: 'Copilot Pro - $10 USD per month (free for some users)'; GitHub AI Credits 'Base: 1,000'."
+    limits:
+      - id: monthly-ai-credits
+        label: "Monthly AI credits (1,500 credits = $15.00 at the documented $0.01 per credit)"
+        type: credit_pool
+        amount: "15.00"
+        exceed: allow_overage
+        window:
+          type: calendar
+          unit: month
+          timezone: UTC
+    qualitativeLimits:
+      - id: credit-reset-behaviour-no-carryover
+        label: "Credit reset behaviour (no carryover)"
+        statement: "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month. This reset date is fixed and does not change based on your subscription billing date."
+        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+      - id: code-completions-and-next-edit-suggestions-unlim
+        label: "Code completions and next edit suggestions (unlimited)"
+        statement: "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans."
+        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+      - id: what-happens-when-included-credits-are-exhausted
+        label: "What happens when included credits are exhausted"
+        statement: "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets."
+        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+      - id: additional-usage-budget-usd-fixed-conversion-rat
+        label: "Additional usage budget (USD, fixed conversion rate)"
+        statement: "Your additional usage budget is set in US dollars, and your usage is shown in GitHub AI Credits. GitHub AI Credits draw down your budget at a fixed rate: 1 AI credits = $0.01 USD, so a $10 budget covers 1,000 AI credits."
+        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "Copilot Pro is 'free for some users' (verified teachers, popular open-source maintainers) - the $10 USD/month is the standard price. The flex allotment is described as variable by GitHub."
+        sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "GitHub publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://github.com/features/copilot/plans
+    modelRules:
+      - model: claude-fable-5
+      - model: claude-fable-5-1
+      - model: claude-haiku-4-5
+      - model: claude-opus-4-7
+      - model: claude-opus-4-8
+      - model: claude-opus-4-8-fast-mode
+      - model: claude-opus-5
+      - model: claude-sonnet-4-6
+        excluded: true
+      - model: claude-sonnet-5
+      - model: gemini-3-5-flash
+      - model: gemini-3-6-flash
+      - model: gemini-3-7-flash
+      - model: gemini-3-8-flash
+      - model: gpt-5-3-codex
+      - model: gpt-5-4
+      - model: gpt-5-4-mini
+      - model: gpt-5-4-nano
+        excluded: true
+      - model: gpt-5-5
+      - model: gpt-5-6-luna
+      - model: gpt-5-6-sol
+      - model: gpt-5-6-terra
+      - model: gpt-5-mini
+      - model: gpt-6-astra
+      - model: grok-4-5
+      - model: grok-4-6
+      - model: grok-4-7
+      - model: kimi-k2-7-code
+      - model: kimi-k3
+      - model: mai-code-1-1-flash
+    sources:
+      - url: https://docs.github.com/en/copilot/get-started/plans
+        title: "GitHub pricing (official)"
+        checkedAt: 2026-09-21
+      - url: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+        title: "GitHub plan documentation (official)"
+        checkedAt: 2026-09-21
+      - url: https://github.com/features/copilot/plans
+        title: "GitHub pricing (official)"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified

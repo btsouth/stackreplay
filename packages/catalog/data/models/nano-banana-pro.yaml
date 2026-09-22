@@ -1,0 +1,11 @@
+id: nano-banana-pro
+role: model
+name: "Nano Banana Pro"
+providerIds:
+  - google
+sources:
+  - url: https://gemini.google/subscriptions/
+    title: "Google official page"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified
