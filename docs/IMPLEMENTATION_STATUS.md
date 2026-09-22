@@ -17,8 +17,9 @@ tests use. Every real entry carries at least one source URL with a `checkedAt` d
 synthetic namespace out, so synthetic data is never published as a real claim.
 
 Only facts a provider publishes were recorded. Numeric limits exist only where a provider states a
-number *and* a window a replay can simulate over: 7 numeric limits across 6 plans (GitHub Copilot
-AI credits and inline-suggestion completions, Anthropic's daily usage-credit redemption cap).
+number *and* a window a replay can simulate over: 7 numeric limits across 7 plans (GitHub Copilot AI
+credits on Pro, Pro+, Business and Enterprise, GitHub Copilot Free inline-suggestion completions, and
+Anthropic's daily usage-credit redemption cap on Pro and Max 20x).
 Everything else the providers state without a number ("5x more usage", "significantly more included
 usage", "generous limits", "unlimited") is recorded as a qualitative limit carrying the provider's
 own wording, and the interface states it as qualitative. No number was invented to fill a shape, and

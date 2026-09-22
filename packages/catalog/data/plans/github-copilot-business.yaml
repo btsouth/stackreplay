@@ -9,12 +9,17 @@ versions:
       amount: "19"
       interval: month
     billingMechanics: "Price is 'per granted seat per month': 'Copilot Business | $19 USD | 1,900'."
-    limits: []
+    limits:
+      - id: monthly-ai-credits
+        label: "Monthly AI credits per seat (1,900 credits = $19.00 at the documented $0.01 per credit)"
+        type: credit_pool
+        amount: "19.00"
+        exceed: allow_overage
+        window:
+          type: calendar
+          unit: month
+          timezone: UTC
     qualitativeLimits:
-      - id: included-ai-credits-per-user-per-month-pooled
-        label: "Included AI credits per user per month (pooled)"
-        statement: "Copilot Business 1,900 ... A user's included AI credits are pooled at the billing entity level. For example, an enterprise with 100 Copilot Business users gets a shared pool of 190,000 AI credits rather than 100 individual buckets."
-        sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing
       - id: additional-usage-beyond-the-pool
         label: "Additional usage beyond the pool"
         statement: "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit."

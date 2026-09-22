@@ -56,9 +56,10 @@ development set. Every real entry carries at least one source URL with a `checke
 `lastVerifiedAt` date and a verification state.
 
 Numeric limits exist only where a provider states a number **and** a window a replay can simulate
-over. That is 7 limits across 6 plans: GitHub Copilot AI credits (converted at the documented `$0.01`
-per credit, with the conversion written into the limit label), GitHub Copilot inline suggestion
-completions, and Anthropic's daily usage-credit redemption cap. Everything else the providers state
+over. That is 7 limits across 7 plans: GitHub Copilot AI credits on Pro, Pro+, Business and Enterprise
+(converted at the documented `$0.01` per credit, with the conversion written into the limit label),
+GitHub Copilot Free inline suggestion completions, and Anthropic's daily usage-credit redemption cap
+on Pro and Max 20x. Everything else the providers state
 without a number is recorded as a qualitative limit carrying the provider's own wording, and the
 pages label it as such rather than converting it into an amount the catalog cannot source. A plan
 with no numeric limit is valid and renders its qualitative statements only.
