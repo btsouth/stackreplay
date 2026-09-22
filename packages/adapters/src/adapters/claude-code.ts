@@ -223,8 +223,14 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
                   usage,
                   projectKey,
                   harnessId: HARNESS_IDS["claude-code"],
-                  ...(providerIdForModel(options.mapper, rawModel) !== undefined
-                    ? { providerId: providerIdForModel(options.mapper, rawModel) as string }
+                  ...(providerIdForModel(options.mapper, rawModel, {
+                    harness: HARNESS_IDS["claude-code"],
+                  }) !== undefined
+                    ? {
+                        providerId: providerIdForModel(options.mapper, rawModel, {
+                          harness: HARNESS_IDS["claude-code"],
+                        }) as string,
+                      }
                     : {}),
                   workloadCategory: "coding",
                 },

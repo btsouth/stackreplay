@@ -1,0 +1,16 @@
+id: gemini-3-flash-pricing
+role: pricing
+modelId: gemini-3-flash
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "0.50"
+  output: "3.00"
+  cacheRead: "0.05"
+effectiveFrom: 2026-09-21
+sources:
+  - url: https://ai.google.dev/gemini-api/docs/pricing
+    title: "Gemini 3 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price."
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

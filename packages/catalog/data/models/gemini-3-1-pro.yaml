@@ -4,6 +4,25 @@ name: "Gemini 3.1 Pro"
 providerIds:
   - cursor
   - google
+aliases:
+  - id: gemini-3-1-pro-observed-gemini-3-1-pro-preview
+    alias: "gemini-3.1-pro-preview"
+    kind: provider_id
+    sources:
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: "Gemini 3.1 Pro API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: gemini-3-1-pro-observed-gemini-3-1-pro-preview-customtools
+    alias: "gemini-3.1-pro-preview-customtools"
+    kind: provider_id
+    sources:
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: "Gemini 3.1 Pro API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://cursor.com/pricing
     title: "Cursor pricing (official)"

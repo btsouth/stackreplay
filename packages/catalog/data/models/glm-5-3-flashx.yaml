@@ -1,0 +1,30 @@
+id: glm-5-3-flashx
+role: model
+name: "GLM 5.3 FlashX"
+providerIds:
+  - z-ai
+aliases:
+  - id: glm-5-3-flashx-router-z-ai-glm-5-3-flashx
+    alias: "z-ai/glm-5.3-flashx"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: glm-5-3-flashx-observed-glm-5-3-flashx
+    alias: "GLM-5.3-FlashX"
+    kind: provider_id
+    sources:
+      - url: https://docs.z.ai/guides/overview/pricing
+        title: "GLM 5.3 FlashX API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+sources:
+  - url: https://docs.z.ai/guides/overview/pricing
+    title: "GLM 5.3 FlashX model documentation"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

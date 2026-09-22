@@ -412,6 +412,57 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
     }
   }
 
+  // Alias declarations must be unambiguous: an alias is the only thing that can
+  // map an outside identifier onto a model, so two models claiming the same
+  // spelling in the same scope, a duplicate alias id, or an alias that shadows
+  // another model's canonical id or name are all catalog authoring errors.
+  const aliasIds = new Set<string>();
+  const aliasOwners = new Map<string, string>();
+  const canonicalNames = new Map<string, string>();
+  for (const entry of models) {
+    for (const candidate of [entry.value.id.toLowerCase(), entry.value.name.toLowerCase()]) {
+      const previous = canonicalNames.get(candidate);
+      if (previous === undefined || previous === entry.value.id) {
+        canonicalNames.set(candidate, entry.value.id);
+      }
+    }
+  }
+  for (const entry of models) {
+    for (const alias of entry.value.aliases ?? []) {
+      if (aliasIds.has(alias.id)) {
+        issues.push({
+          severity: "error",
+          code: "ALIAS_ID_DUPLICATE",
+          message: `alias id "${alias.id}" is declared more than once`,
+          file: entry.file,
+        });
+      }
+      aliasIds.add(alias.id);
+
+      const key = `${alias.harness?.toLowerCase() ?? "*"}|${alias.alias.trim().toLowerCase()}`;
+      const owner = aliasOwners.get(key);
+      if (owner !== undefined && owner !== entry.value.id) {
+        issues.push({
+          severity: "error",
+          code: "ALIAS_CONFLICT",
+          message: `alias "${alias.alias}"${alias.harness === undefined ? "" : ` for harness "${alias.harness}"`} is claimed by both "${owner}" and "${entry.value.id}"`,
+          file: entry.file,
+        });
+      }
+      aliasOwners.set(key, entry.value.id);
+
+      const shadowed = canonicalNames.get(alias.alias.trim().toLowerCase());
+      if (shadowed !== undefined && shadowed !== entry.value.id) {
+        issues.push({
+          severity: "error",
+          code: "ALIAS_SHADOWS_CANONICAL",
+          message: `alias "${alias.alias}" on "${entry.value.id}" is the canonical id or name of "${shadowed}" and would never apply`,
+          file: entry.file,
+        });
+      }
+    }
+  }
+
   const planVersionRanges: Array<{ file: string; range: DateRange; label: string }> = [];
   const pricingRanges: Array<{ file: string; range: DateRange; label: string }> = [];
 

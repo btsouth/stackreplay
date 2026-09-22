@@ -4,6 +4,16 @@ name: "GPT-6 Astra"
 providerIds:
   - github
   - openai
+aliases:
+  - id: gpt-6-astra-router-openai-gpt-6-astra
+    alias: "openai/gpt-6-astra"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://openai.com/chatgpt/pricing/
     title: "OpenAI pricing (official)"

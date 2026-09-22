@@ -1,0 +1,39 @@
+id: deepseek-v4-1-flash
+role: model
+name: "DeepSeek-V4.1-Flash"
+providerIds:
+  - deepseek
+aliases:
+  - id: deepseek-v4-1-flash-router-deepseek-deepseek-v4-1-flash
+    alias: "deepseek/deepseek-v4.1-flash"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash
+    alias: "deepseek-v4.1-flash"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "Bare form of the OpenRouter id deepseek/deepseek-v4.1-flash, without the author prefix; the router publishes the prefixed id, not this spelling"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: deepseek-v4-1-flash-observed-deepseek-flash
+    alias: "deepseek-flash"
+    kind: provider_id
+    sources:
+      - url: https://api-docs.deepseek.com/quick_start/pricing
+        title: "DeepSeek-V4.1-Flash API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+sources:
+  - url: https://api-docs.deepseek.com/quick_start/pricing
+    title: "DeepSeek-V4.1-Flash model documentation"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

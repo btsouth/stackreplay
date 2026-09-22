@@ -1,0 +1,16 @@
+id: deepseek-v4-flash-pricing
+role: pricing
+modelId: deepseek-v4-flash
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "0.30"
+  output: "1.20"
+  cacheRead: "0.01"
+effectiveFrom: 2026-09-21
+sources:
+  - url: https://api-docs.deepseek.com/quick_start/pricing
+    title: "DeepSeek-V4-Flash (legacy name, model retired) API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens."
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

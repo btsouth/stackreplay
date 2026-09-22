@@ -79,7 +79,17 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     draft.adapterId,
     `${draft.sessionId}\u0000${draft.identity}`,
   );
-  const { model, confidence: modelConfidence } = mapper.map(draft.rawModel);
+  // The harness is known before the model is resolved so a harness-scoped alias
+  // can be applied; attribution overrides the source default, exactly as it does
+  // for the event's own harness field below.
+  const attributed = context.attribution?.byProviderSession.get(
+    attributionKey(draft.adapterId, draft.sessionId),
+  );
+  const effectiveHarnessId = attributed?.harnessId ?? draft.harnessId;
+  const { model, confidence: modelConfidence } = mapper.map(
+    draft.rawModel,
+    effectiveHarnessId === undefined ? undefined : { harness: effectiveHarnessId },
+  );
   const event: TextUsageEventV1 = {
     schemaVersion: 1,
     id: canonicalEventId(draft.adapterId, nativeHash),
@@ -100,9 +110,6 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
   if (draft.harnessId !== undefined) {
     event.harness = { id: draft.harnessId, attribution: "exact" };
   }
-  const attributed = context.attribution?.byProviderSession.get(
-    attributionKey(draft.adapterId, draft.sessionId),
-  );
   if (attributed !== undefined) {
     event.harness = { id: attributed.harnessId, attribution: attributed.attribution };
   }
@@ -133,8 +140,12 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
 }
 
 /** Provider id from the catalog when the model is mapped, otherwise undefined. */
-export function providerIdForModel(mapper: ModelMapper, rawModel: string): string | undefined {
-  const { model } = mapper.map(rawModel);
+export function providerIdForModel(
+  mapper: ModelMapper,
+  rawModel: string,
+  options?: { harness?: string },
+): string | undefined {
+  const { model } = mapper.map(rawModel, options);
   if (model.canonicalId === undefined) return undefined;
   const catalogModel = mapper.modelById(model.canonicalId);
   return catalogModel?.providerIds?.[0];

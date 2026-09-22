@@ -3,6 +3,16 @@ role: model
 name: "Claude Fable 5"
 providerIds:
   - github
+aliases:
+  - id: claude-fable-5-router-anthropic-claude-fable-5
+    alias: "anthropic/claude-fable-5"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"

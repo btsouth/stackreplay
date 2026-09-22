@@ -1,0 +1,17 @@
+id: claude-sonnet-5-pricing
+role: pricing
+modelId: claude-sonnet-5
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "2.00"
+  output: "10.00"
+  cacheRead: "0.20"
+  cacheWrite: "2.50"
+effectiveFrom: 2026-09-21
+sources:
+  - url: https://docs.claude.com/en/docs/about-claude/pricing
+    title: "Claude Sonnet 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\""
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

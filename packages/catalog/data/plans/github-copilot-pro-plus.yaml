@@ -42,30 +42,46 @@ versions:
         sourceUrl: https://github.com/features/copilot/plans
     modelRules:
       - model: claude-fable-5
+        pricingRef: claude-fable-5-pricing
       - model: claude-fable-5-1
+        pricingRef: claude-fable-5-1-pricing
       - model: claude-haiku-4-5
+        pricingRef: claude-haiku-4-5-pricing
       - model: claude-opus-4-7
       - model: claude-opus-4-8
+        pricingRef: claude-opus-4-8-pricing
       - model: claude-opus-4-8-fast-mode
       - model: claude-opus-5
+        pricingRef: claude-opus-5-pricing
       - model: claude-sonnet-4-6
         excluded: true
       - model: claude-sonnet-5
+        pricingRef: claude-sonnet-5-pricing
       - model: gemini-3-5-flash
       - model: gemini-3-6-flash
       - model: gemini-3-7-flash
       - model: gemini-3-8-flash
+        pricingRef: gemini-3-8-flash-pricing
       - model: gpt-5-3-codex
+        pricingRef: gpt-5-3-codex-pricing
       - model: gpt-5-4
+        pricingRef: gpt-5-4-pricing
       - model: gpt-5-4-mini
+        pricingRef: gpt-5-4-mini-pricing
       - model: gpt-5-4-nano
         excluded: true
       - model: gpt-5-5
+        pricingRef: gpt-5-5-pricing
       - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
       - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
       - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
       - model: gpt-5-mini
+        pricingRef: gpt-5-mini-pricing
       - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
       - model: grok-4-5
       - model: grok-4-6
       - model: grok-4-7

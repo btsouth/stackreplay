@@ -1,0 +1,21 @@
+id: deepseek-v4-flash-vision-exp
+role: model
+name: "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired)"
+providerIds:
+  - deepseek
+aliases:
+  - id: deepseek-v4-flash-vision-exp-router-deepseek-deepseek-v4-flash-vision-exp
+    alias: "deepseek/deepseek-v4-flash-vision-exp"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+sources:
+  - url: https://api-docs.deepseek.com/quick_start/pricing
+    title: "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired) model documentation"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

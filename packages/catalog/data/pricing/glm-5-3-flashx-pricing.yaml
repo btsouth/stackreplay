@@ -1,0 +1,16 @@
+id: glm-5-3-flashx-pricing
+role: pricing
+modelId: glm-5-3-flashx
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "0.37"
+  output: "1.25"
+  cacheRead: "0.07"
+effectiveFrom: 2026-09-21
+sources:
+  - url: https://docs.z.ai/guides/overview/pricing
+    title: "GLM 5.3 FlashX API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional."
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

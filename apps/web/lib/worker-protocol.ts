@@ -68,6 +68,13 @@ export interface ModelSummary {
   canonicalId?: string;
   events: number;
   mapped: boolean;
+  /**
+   * How the identity was established (M4A): an exact canonical id, the canonical
+   * name, or a catalog-declared alias. Absent for unmapped identifiers.
+   */
+  basis?: "canonical_id" | "canonical_name" | "alias";
+  /** The declared alias record behind an alias mapping. */
+  aliasId?: string;
 }
 
 export interface WorkloadSummary {

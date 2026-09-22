@@ -1,3 +1,4 @@
+import type { ModelIdentityIndex } from "@stackreplay/catalog";
 import { tokenAccountingOf } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import type {
@@ -32,9 +33,15 @@ export function sourceRole(adapterId: string, role?: string): "usage" | "attribu
   return "usage";
 }
 
+/** True when the catalog still knows this canonical id. */
+function catalogHasModel(identity: ModelIdentityIndex, modelId: string): boolean {
+  return identity.modelIds.includes(modelId);
+}
+
 export function summarizeExport(
   exported: StackReplayExportV1,
   catalogVersion: string,
+  identity: ModelIdentityIndex,
 ): WorkloadSummary {
   const sessions = new Set<string>();
   const projects = new Set<string>();
@@ -93,13 +100,33 @@ export function summarizeExport(
       lowerBound += accounting.knownSubtotal;
     }
 
+    // The identity is re-established against the catalog this build carries, with
+    // the same shared resolution rules the engine applies: an event's recorded
+    // canonicalId is honoured when the catalog still knows it, otherwise the raw
+    // name is resolved (which is how a catalog alias turns a dotted provider
+    // spelling into a canonical model). An identifier that resolves to nothing is
+    // reported as unmapped rather than guessed at (M4A).
+    const recorded = event.model.canonicalId;
+    const resolution =
+      recorded !== undefined && catalogHasModel(identity, recorded)
+        ? ({ observed: event.model.rawName, canonicalId: recorded, basis: "canonical_id" } as const)
+        : identity.resolve(
+            event.model.rawName,
+            event.harness === undefined ? undefined : { harness: event.harness.id },
+          );
+    const canonicalId = resolution.canonicalId;
+    const basis = resolution.basis === "unresolved" ? undefined : resolution.basis;
+    const aliasId = "aliasId" in resolution ? resolution.aliasId : undefined;
+
     const existing = models.get(event.model.rawName);
     if (existing === undefined) {
       models.set(event.model.rawName, {
         rawName: event.model.rawName,
-        ...(event.model.canonicalId !== undefined ? { canonicalId: event.model.canonicalId } : {}),
+        ...(canonicalId !== undefined ? { canonicalId } : {}),
         events: 1,
-        mapped: event.model.canonicalId !== undefined,
+        mapped: canonicalId !== undefined,
+        ...(basis === undefined ? {} : { basis }),
+        ...(aliasId === undefined ? {} : { aliasId }),
       });
     } else {
       existing.events += 1;

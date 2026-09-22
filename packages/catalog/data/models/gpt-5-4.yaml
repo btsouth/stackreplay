@@ -3,6 +3,16 @@ role: model
 name: "GPT-5.4"
 providerIds:
   - github
+aliases:
+  - id: gpt-5-4-observed-gpt-5-4
+    alias: "gpt-5.4"
+    kind: provider_id
+    sources:
+      - url: https://developers.openai.com/api/docs/pricing
+        title: "GPT-5.4 API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"

@@ -486,6 +486,61 @@ The launch catalog publishes sourced facts about real plans and nothing else.
   provider lineup and states that scope explicitly as a qualitative limit, so the
   approximation is visible instead of implied.
 
+## 34. Model identity is a declared mapping, not recognition (M4A)
+
+Real workloads carry identifiers the catalog never authored: dotted provider ids
+(`gpt-5.6-sol`), vendor-qualified router names (`deepseek/deepseek-v4.1-flash`),
+and harness spellings. Identity is established by declaration, never by
+similarity.
+
+- **Aliases are catalog facts with their own provenance.** A model may declare an
+  `aliases` list; each alias carries the verbatim identifier, a kind
+  (`provider_id` for a spelling the model's own provider issues, `harness_alias`
+  for a spelling a third party emits), an optional harness scope, its own sources,
+  a verification state and a last-verified date. An alias that cannot be sourced
+  is not written.
+- **Resolution order is fixed and deterministic:** exact canonical id, then
+  canonical name (case-insensitive), then a harness-scoped alias for the event's
+  harness, then a harness-agnostic alias, then unresolved with a reason
+  (`empty`, `unknown`, or `ambiguous`).
+- **One implementation, shared.** `createModelIdentityIndex` in
+  `@stackreplay/catalog` is used by the adapters and the replay engine alike, so a
+  mapping can never differ between the two. The engine resolves with the event's
+  harness, which is why harness scoping works on historic exports too.
+- **No fuzzy matching, no inference.** No prefix, substring, punctuation
+  normalization or provider-crossing inference happens at runtime. Punctuation and
+  casing differences are covered only when an alias declares that exact spelling.
+- **Ambiguity is an authoring error.** Two models claiming the same alias in the
+  same scope, a duplicate alias id, or an alias that shadows another model's
+  canonical id or name are catalog validation errors; at runtime a contested
+  spelling resolves to unresolved rather than picking a winner.
+- **The observed name is never rewritten.** Every event keeps the identifier the
+  source reported as `rawName`, and the mapping basis (`canonical_id`,
+  `canonical_name`, `alias`) is reported wherever the mapping is explained.
+
+## 35. API pricing is sourced per category, and unknown stays unknown (M4A)
+
+M4A adds a sourced API list-price layer so a replay can report a list-price
+equivalent and price credit-pool consumption for models a plan serves.
+
+- **Only documented categories are recorded.** A pricing record carries the rates
+  the provider's own documentation states. A category the provider does not
+  document is left absent and stays unknown in results; it is never filled with
+  another category's rate.
+- **A documented shared rate is allowed, an assumed one is not.** If a provider
+  states that one rate applies to all input token types, that documented
+  semantics may back a `cacheRead` rate, and the record says so. Assuming cache
+  reads or reasoning tokens cost what input or output costs, without that
+  statement, is forbidden.
+- **Pricing never implies subscription availability.** A price record does not add
+  a model to any plan's model rules, and API availability is not subscription
+  availability. A model can be priced, known, and still unsupported by the target
+  plan, which is reported as such.
+- **The deferred fallback-pricing question stays deferred.** This work records
+  what providers document. It does not implement a less-granular fallback method
+  for sources with no detailed token categories, and missing pricing remains a
+  warning rather than an error (decisions 15, 16 and 33 apply unchanged).
+
 ## Clarifying readings carried with these decisions
 
 Readings that came out of the same clarification exchange. If any of them ever appears to conflict with decisions 1-8, decisions 1-8 win.

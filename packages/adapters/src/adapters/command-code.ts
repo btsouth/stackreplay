@@ -236,8 +236,14 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
                   ...(nativeCost !== undefined ? { nativeCost } : {}),
                   projectKey,
                   harnessId: HARNESS_IDS["command-code"],
-                  ...(providerIdForModel(options.mapper, rawModel) !== undefined
-                    ? { providerId: providerIdForModel(options.mapper, rawModel) as string }
+                  ...(providerIdForModel(options.mapper, rawModel, {
+                    harness: HARNESS_IDS["command-code"],
+                  }) !== undefined
+                    ? {
+                        providerId: providerIdForModel(options.mapper, rawModel, {
+                          harness: HARNESS_IDS["command-code"],
+                        }) as string,
+                      }
                     : {}),
                   workloadCategory: "coding",
                 },

@@ -71,6 +71,8 @@ export function makeEvent(input: {
   confidence?: EventConfidenceV1;
   source?: SourceRefV1;
   workloadCategory?: WorkloadCategoryV1;
+  /** Harness attribution, when the fixture needs one for alias scoping. */
+  harnessId?: string;
 }): TextUsageEventV1 {
   return {
     schemaVersion: 1,
@@ -82,5 +84,8 @@ export function makeEvent(input: {
     usage: input.usage ?? completeUsage(),
     confidence: input.confidence ?? { usage: "exact", model: "exact" },
     ...(input.workloadCategory !== undefined ? { workloadCategory: input.workloadCategory } : {}),
+    ...(input.harnessId !== undefined
+      ? { harness: { id: input.harnessId, attribution: "exact" as const } }
+      : {}),
   };
 }

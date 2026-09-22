@@ -10,6 +10,7 @@ import {
   loadCatalogFromDirectory,
   loadDefaultCatalog,
 } from "./load.js";
+import { createModelIdentityIndex } from "./resolve.js";
 import { type RawCatalogData, validateCatalogData } from "./validate.js";
 
 function required<T>(value: T | undefined): T {
@@ -303,7 +304,19 @@ describe("loader", () => {
         "example-open-basic@2026-08-01",
       ]),
     );
-    expect(Object.keys(first.pricing)).toHaveLength(3);
+    // Pricing ships in two namespaces too: the three synthetic records and the
+    // sourced API list-price layer. The synthetic set is asserted exactly; the
+    // sourced set is asserted structurally, and every sourced record must be
+    // attached to a model the catalog knows and carry its own sources.
+    const syntheticPricing = Object.keys(first.pricing).filter((id) => id.startsWith("example-"));
+    expect(syntheticPricing).toHaveLength(3);
+    for (const pricingId of Object.keys(first.pricing).filter((id) => !id.startsWith("example-"))) {
+      const record = first.pricing[pricingId];
+      expect(record?.sources.length ?? 0).toBeGreaterThan(0);
+      expect(record?.currency).toBe("USD");
+      expect(record?.unit).toBe("per_1m_tokens");
+      expect(first.models[record?.modelId ?? ""]).toBeDefined();
+    }
     // Every real entry carries a source and a verification state.
     for (const planId of Object.keys(first.plans).filter((id) => !id.startsWith("example-"))) {
       const plan = first.plans[planId];
@@ -333,6 +346,93 @@ describe("loader", () => {
       "id: example-provider\nrole: provider\nname: Broken\n",
     );
     expect(() => loadCatalogFromDirectory(dir)).toThrow(CatalogValidationError);
+  });
+});
+
+describe("launch catalog: model identity", () => {
+  it("resolves the identifiers real workloads emit and leaves the rest unresolved", () => {
+    const catalog = loadDefaultCatalog();
+    const identity = createModelIdentityIndex(catalog);
+
+    // Identifiers taken from a real local workload: provider spellings with dots,
+    // and vendor-qualified router ids. Each is resolvable because the catalog
+    // declares it with a source.
+    const resolvable: Array<[string, string]> = [
+      ["gpt-5.6-sol", "gpt-5-6-sol"],
+      ["gpt-5.6", "gpt-5-6-sol"],
+      ["openai/gpt-5.6-terra", "gpt-5-6-terra"],
+      ["claude-opus-4.8", "claude-opus-4-8"],
+      ["anthropic/claude-opus-4.8", "claude-opus-4-8"],
+      ["deepseek-v4.1-flash", "deepseek-v4-1-flash"],
+      ["deepseek/deepseek-v4.1-flash", "deepseek-v4-1-flash"],
+      ["deepseek-flash", "deepseek-v4-1-flash"],
+      ["z-ai/glm-5.3-flashx", "glm-5-3-flashx"],
+      ["glm-5.3-flashx", "glm-5-3-flashx"],
+    ];
+    for (const [observed, canonical] of resolvable) {
+      const resolution = identity.resolve(observed);
+      expect(resolution.canonicalId, observed).toBe(canonical);
+      // A declaration, not a guess: either an alias the catalog carries or the
+      // model's own catalog name. Never a similarity match.
+      expect(["alias", "canonical_name"], observed).toContain(resolution.basis);
+    }
+
+    // Identifiers no source justifies stay unresolved. Guessing one of these onto
+    // a similar-looking model would silently attribute consumption.
+    for (const observed of [
+      "gpt-daybreak-blue-latest",
+      "gpt-5.3-codex-spark",
+      "ox-alpha-free",
+      "omen-alpha",
+      "codex-auto-review",
+      "cline-pass/deepseek-v4.1-flash",
+      "muse-spark-1.3-contributor",
+      "deepseek-flash-2",
+    ]) {
+      const resolution = identity.resolve(observed);
+      expect(resolution.canonicalId, observed).toBeUndefined();
+      expect(resolution.reason, observed).toBe("unknown");
+    }
+  });
+
+  it("gives every declared alias its own sources and a verification state", () => {
+    const catalog = loadDefaultCatalog();
+    const identity = createModelIdentityIndex(catalog);
+    const aliases = identity.aliases.filter((alias) => !alias.id.startsWith("example-"));
+    expect(aliases.length).toBeGreaterThan(0);
+    for (const alias of aliases) {
+      expect(alias.sources.length, alias.id).toBeGreaterThan(0);
+      expect(alias.lastVerifiedAt, alias.id).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+      expect(["verified", "estimated"], alias.id).toContain(alias.verificationStatus);
+      for (const source of alias.sources) {
+        expect(source.url, alias.id).toMatch(/^https:\/\//u);
+        expect(source.checkedAt, alias.id).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+      }
+    }
+  });
+
+  it("prices the models real workloads run, per documented category only", () => {
+    const catalog = loadDefaultCatalog();
+    const priced: Array<[string, string, string]> = [
+      ["gpt-5-6-sol", "4.00", "20.00"],
+      ["claude-opus-5", "5.00", "25.00"],
+      ["claude-fable-5-1", "10.00", "50.00"],
+      ["claude-opus-4-8", "5.00", "25.00"],
+      ["deepseek-v4-1-flash", "0.30", "1.20"],
+      ["glm-5-3-flash", "0.15", "0.50"],
+    ];
+    for (const [modelId, input, output] of priced) {
+      const record = Object.values(catalog.pricing).find((entry) => entry.modelId === modelId);
+      expect(record, modelId).toBeDefined();
+      expect(record?.rates.input, modelId).toBe(input);
+      expect(record?.rates.output, modelId).toBe(output);
+      expect(record?.sources.length ?? 0, modelId).toBeGreaterThan(0);
+    }
+    // A model whose provider documents no cache-read rate must not invent one.
+    const deepseek = Object.values(catalog.pricing).find(
+      (entry) => entry.modelId === "deepseek-v4-1-flash",
+    );
+    expect(deepseek?.rates.cacheWrite).toBeUndefined();
   });
 });
 

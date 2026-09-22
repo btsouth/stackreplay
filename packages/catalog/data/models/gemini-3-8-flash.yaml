@@ -4,6 +4,25 @@ name: "Gemini 3.8 Flash"
 providerIds:
   - cursor
   - github
+aliases:
+  - id: gemini-3-8-flash-router-google-gemini-3-8-flash
+    alias: "google/gemini-3.8-flash"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: gemini-3-8-flash-observed-gemini-3-8-flash
+    alias: "gemini-3.8-flash"
+    kind: provider_id
+    sources:
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: "Gemini 3.8 Flash API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"

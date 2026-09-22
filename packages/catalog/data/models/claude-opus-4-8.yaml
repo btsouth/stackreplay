@@ -3,6 +3,25 @@ role: model
 name: "Claude Opus 4.8"
 providerIds:
   - github
+aliases:
+  - id: claude-opus-4-8-router-anthropic-claude-opus-4-8
+    alias: "anthropic/claude-opus-4.8"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: claude-opus-4-8-router-claude-opus-4-8
+    alias: "claude-opus-4.8"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "Bare form of the OpenRouter id anthropic/claude-opus-4.8, without the author prefix; the router publishes the prefixed id, not this spelling"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"

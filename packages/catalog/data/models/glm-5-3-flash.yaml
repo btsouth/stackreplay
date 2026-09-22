@@ -1,0 +1,39 @@
+id: glm-5-3-flash
+role: model
+name: "GLM 5.3 Flash"
+providerIds:
+  - z-ai
+aliases:
+  - id: glm-5-3-flash-router-z-ai-glm-5-3-flash
+    alias: "z-ai/glm-5.3-flash"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: glm-5-3-flash-router-glm-5-3-flash
+    alias: "glm-5.3-flash"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "Bare form of the OpenRouter id z-ai/glm-5.3-flash, without the author prefix; the router publishes the prefixed id, not this spelling"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: glm-5-3-flash-observed-glm-5-3-flash
+    alias: "GLM-5.3-Flash"
+    kind: provider_id
+    sources:
+      - url: https://docs.z.ai/guides/overview/pricing
+        title: "GLM 5.3 Flash API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+sources:
+  - url: https://docs.z.ai/guides/overview/pricing
+    title: "GLM 5.3 Flash model documentation"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

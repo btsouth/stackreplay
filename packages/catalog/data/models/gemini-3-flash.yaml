@@ -3,6 +3,16 @@ role: model
 name: "Gemini 3 Flash"
 providerIds:
   - google
+aliases:
+  - id: gemini-3-flash-observed-gemini-3-flash-preview
+    alias: "gemini-3-flash-preview"
+    kind: provider_id
+    sources:
+      - url: https://ai.google.dev/gemini-api/docs/pricing
+        title: "Gemini 3 Flash API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://gemini.google/subscriptions/
     title: "Google official page"

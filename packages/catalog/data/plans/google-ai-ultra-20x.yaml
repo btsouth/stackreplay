@@ -45,7 +45,9 @@ versions:
         sourceUrl: https://gemini.google/subscriptions/
     modelRules:
       - model: gemini-3-1-pro
+        pricingRef: gemini-3-1-pro-pricing
       - model: gemini-3-flash
+        pricingRef: gemini-3-flash-pricing
       - model: gemini-3-flash-lite
       - model: gemini-3-pro
       - model: nano-banana-pro

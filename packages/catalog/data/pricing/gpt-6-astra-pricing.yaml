@@ -1,0 +1,17 @@
+id: gpt-6-astra-pricing
+role: pricing
+modelId: gpt-6-astra
+currency: USD
+unit: per_1m_tokens
+rates:
+  input: "10.00"
+  output: "50.00"
+  cacheRead: "1.00"
+  cacheWrite: "12.50"
+effectiveFrom: 2026-09-21
+sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: "GPT-6 Astra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\""
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

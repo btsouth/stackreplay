@@ -1,3 +1,5 @@
+import { createModelIdentityIndex } from "@stackreplay/catalog";
+import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
@@ -5,9 +7,14 @@ import { sourceRole, summarizeExport } from "./workload-summary";
 
 const CATALOG = "sha256:test";
 
+/** The bundled identity index, so the summary resolves names the way the app does. */
+function identity() {
+  return createModelIdentityIndex(loadBundledCatalog());
+}
+
 describe("workload summary", () => {
   it("counts events, sessions, projects and known tokens", () => {
-    const summary = summarizeExport(buildDemoExport("moderate"), CATALOG);
+    const summary = summarizeExport(buildDemoExport("moderate"), CATALOG, identity());
     expect(summary.eventCount).toBeGreaterThan(0);
     expect(summary.sessionCount).toBeGreaterThan(0);
     expect(summary.projectCount).toBeGreaterThan(0);
@@ -16,14 +23,14 @@ describe("workload summary", () => {
   });
 
   it("keeps incomplete accounting visibly unknown instead of estimating", () => {
-    const summary = summarizeExport(buildDemoExport("multistack"), CATALOG);
+    const summary = summarizeExport(buildDemoExport("multistack"), CATALOG, identity());
     expect(summary.tokens.unknownEvents).toBeGreaterThan(0);
     expect(summary.tokens.lowerBound).toBeGreaterThan(0);
     expect(summary.tokens.known).toBeGreaterThan(0);
   });
 
   it("separates usage sources from orchestration", () => {
-    const summary = summarizeExport(buildDemoExport("multistack"), CATALOG);
+    const summary = summarizeExport(buildDemoExport("multistack"), CATALOG, identity());
     expect(summary.usageSources.map((source) => source.adapterId)).not.toContain("t3-code");
     expect(summary.usageSources.every((source) => source.events > 0)).toBe(true);
     const t3 = summary.orchestration.find((entry) => entry.harnessId === "t3-code");
@@ -39,7 +46,7 @@ describe("workload summary", () => {
         .filter((event) => event.harness?.id === "t3-code")
         .map((event) => event.source.nativeSessionHash),
     );
-    const summary = summarizeExport(exported, CATALOG);
+    const summary = summarizeExport(exported, CATALOG, identity());
     expect(summary.orchestration.find((entry) => entry.harnessId === "t3-code")?.sessions).toBe(
       attributed.size,
     );
@@ -51,13 +58,13 @@ describe("workload summary", () => {
       ...legacy,
       detectedSources: legacy.detectedSources.map(({ role: _role, ...rest }) => rest),
     };
-    const summary = summarizeExport(stripped, CATALOG);
+    const summary = summarizeExport(stripped, CATALOG, identity());
     expect(summary.usageSources.map((source) => source.adapterId)).not.toContain("t3-code");
     expect(summary.orchestration.some((entry) => entry.harnessId === "t3-code")).toBe(true);
   });
 
   it("never reports an attribution source as a zero-event usage source", () => {
-    const summary = summarizeExport(buildDemoExport("moderate"), CATALOG);
+    const summary = summarizeExport(buildDemoExport("moderate"), CATALOG, identity());
     for (const source of summary.usageSources) {
       expect(source.role).not.toBe("attribution");
       expect(source.events).toBeGreaterThan(0);
@@ -72,8 +79,8 @@ describe("workload summary", () => {
   });
 
   it("is deterministic for the same preset", () => {
-    const first = summarizeExport(buildDemoExport("heavy"), CATALOG);
-    const second = summarizeExport(buildDemoExport("heavy"), CATALOG);
+    const first = summarizeExport(buildDemoExport("heavy"), CATALOG, identity());
+    const second = summarizeExport(buildDemoExport("heavy"), CATALOG, identity());
     expect(second).toEqual(first);
   });
 });

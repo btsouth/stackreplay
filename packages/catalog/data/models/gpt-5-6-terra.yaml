@@ -5,6 +5,25 @@ providerIds:
   - cursor
   - github
   - openai
+aliases:
+  - id: gpt-5-6-terra-router-openai-gpt-5-6-terra
+    alias: "openai/gpt-5.6-terra"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: gpt-5-6-terra-observed-gpt-5-6-terra
+    alias: "gpt-5.6-terra"
+    kind: provider_id
+    sources:
+      - url: https://developers.openai.com/api/docs/pricing
+        title: "GPT-5.6 Terra API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://openai.com/chatgpt/pricing/
     title: "OpenAI pricing (official)"

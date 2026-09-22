@@ -1,0 +1,9 @@
+id: z-ai
+role: provider
+name: "Z.AI (Zhipu)"
+sources:
+  - url: https://docs.z.ai/guides/overview/pricing
+    title: "Z.AI (Zhipu) API pricing"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

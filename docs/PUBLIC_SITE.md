@@ -51,7 +51,7 @@ Two rules keep this honest:
 
 ## What the launch catalog contains
 
-5 providers, 19 plans and 42 models of sourced product data, alongside the synthetic `example-`
+7 providers, 19 plans and 48 models of sourced product data, alongside the synthetic `example-`
 development set. Every real entry carries at least one source URL with a `checkedAt` date, a
 `lastVerifiedAt` date and a verification state.
 
@@ -68,10 +68,16 @@ with no numeric limit is valid and renders its qualitative statements only.
 Model availability is recorded at provider level because that is how providers publish it. Each plan
 states that scope as a qualitative limit so the approximation is visible instead of implied.
 
-The validator reports a model rule without a `pricingRef` as a warning, not an error: the catalog
-carries no sourced API list prices yet, the engine prices only what it has a reference for, and the
-engine ignores warnings so a subscription catalog stays usable. The consequence is a result without a
-list-price equivalent, and for credit pools an unknown consumption.
+The catalog also carries a sourced API list-price layer (M4A): 24 pricing records for the models real
+workloads run, each recording only the token categories the provider documents, with a source and a
+verification state. The public site renders plan facts and model availability, never a price that is
+not sourced, and an API list price is never presented as subscription availability. 37 model aliases
+let a replay recognise the identifiers real harnesses emit; anything no source justifies is reported
+as unresolved instead of being guessed onto a similar-looking model.
+
+The validator still reports a model rule without a `pricingRef` as a warning rather than an error, so
+a subscription catalog stays usable with no prices at all: the engine prices only what it has a
+reference for.
 
 ## Sharing (decision 32)
 

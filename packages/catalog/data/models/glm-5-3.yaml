@@ -1,0 +1,39 @@
+id: glm-5-3
+role: model
+name: "GLM 5.3"
+providerIds:
+  - z-ai
+aliases:
+  - id: glm-5-3-router-z-ai-glm-5-3
+    alias: "z-ai/glm-5.3"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "OpenRouter model list: id is the `author/slug` used in API requests"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - id: glm-5-3-router-glm-5-3
+    alias: "glm-5.3"
+    kind: harness_alias
+    sources:
+      - url: https://openrouter.ai/docs/overview/models
+        title: "Bare form of the OpenRouter id z-ai/glm-5.3, without the author prefix; the router publishes the prefixed id, not this spelling"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: estimated
+  - id: glm-5-3-observed-glm-5-3
+    alias: "GLM-5.3"
+    kind: provider_id
+    sources:
+      - url: https://docs.z.ai/guides/overview/pricing
+        title: "GLM 5.3 API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+sources:
+  - url: https://docs.z.ai/guides/overview/pricing
+    title: "GLM 5.3 model documentation"
+    checkedAt: 2026-09-21
+lastVerifiedAt: 2026-09-21
+verificationStatus: verified

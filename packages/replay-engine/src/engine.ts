@@ -1,6 +1,7 @@
 import {
   type CatalogV1,
   catalogV1Schema,
+  createModelIdentityIndex,
   getPlanVersion,
   getPricing,
   type LoadedPlanVersionV1,
@@ -345,13 +346,11 @@ function resolveModels(
   const ruleByModel = new Map<string, ModelRuleV1>();
   for (const rule of planVersion.modelRules) ruleByModel.set(rule.model, rule);
 
-  const byName = new Map<string, string | null>();
-  for (const model of Object.values(catalog.models)) {
-    for (const name of [model.id.toLowerCase(), model.name.toLowerCase()]) {
-      const previous = byName.get(name);
-      byName.set(name, previous === undefined || previous === model.id ? model.id : null);
-    }
-  }
+  // One shared identity index with the adapters: exact canonical id, canonical
+  // name, or a catalog-declared alias scoped to the event's harness. Aliases are
+  // declarations with their own sources, so this stays a mapping and never a guess
+  // (M4A).
+  const identity = createModelIdentityIndex(catalog);
 
   /**
    * Promotions are resolved once per model from the rules snapshot: a promotion
@@ -384,9 +383,12 @@ function resolveModels(
       modelId = canonicalId;
       quality = "exact";
     } else {
-      const mapped = byName.get(event.model.rawName.toLowerCase());
-      if (mapped !== undefined && mapped !== null) {
-        modelId = mapped;
+      const mapped = identity.resolve(
+        event.model.rawName,
+        event.harness === undefined ? undefined : { harness: event.harness.id },
+      );
+      if (mapped.canonicalId !== undefined) {
+        modelId = mapped.canonicalId;
         quality = "mapped";
       } else {
         quality = "unknown";

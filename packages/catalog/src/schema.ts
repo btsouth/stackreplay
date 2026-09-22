@@ -175,11 +175,37 @@ export const providerV1Schema = z.strictObject({
 });
 export type ProviderV1 = z.infer<typeof providerV1Schema>;
 
+/**
+ * A model identity an outside system may observe for this model (M4A).
+ *
+ * Aliases are declarations, not patterns: the catalog names the exact identifier
+ * a provider or harness emits and says where that spelling comes from. Nothing is
+ * matched by similarity, so an undeclared spelling stays unresolved.
+ *
+ * `provider_id` is a spelling the model's own provider issues (for example a
+ * dated or dotted API id). `harness_alias` is a spelling a third-party harness or
+ * router emits, which the provider's documentation does not prove on its own, so
+ * it carries its own sources and may be scoped to the harness that uses it.
+ */
+export const modelAliasV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  /** The observed identifier, verbatim. */
+  alias: z.string().min(1),
+  kind: z.enum(["provider_id", "harness_alias"]),
+  /** Harness this spelling is scoped to, when it is harness-specific. */
+  harness: catalogIdV1Schema.optional(),
+  sources: z.array(catalogSourceV1Schema).min(1),
+  lastVerifiedAt: isoDateV1Schema,
+  verificationStatus: verificationStatusV1Schema,
+});
+export type ModelAliasV1 = z.infer<typeof modelAliasV1Schema>;
+
 export const modelV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("model"),
   name: z.string().min(1),
   providerIds: z.array(catalogIdV1Schema).optional(),
+  aliases: z.array(modelAliasV1Schema).optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
   lastVerifiedAt: isoDateV1Schema,
   verificationStatus: verificationStatusV1Schema,

@@ -6,11 +6,51 @@
 Milestone 3 remains independently audited and accepted; M4 builds on it without changing the engine,
 the result schema, the accounting rules or the browser-local architecture.
 
+## Milestone 4A — model identity and sourced API pricing
+
+Two capabilities, both data-driven and both bounded by what providers actually publish.
+
+**Model identity is declared, not recognized.** Real workloads carry identifiers the catalog never
+authored: dotted provider ids (`gpt-5.6-sol`), vendor-qualified router ids
+(`deepseek/deepseek-v4.1-flash`), and bare forms a local harness emits (`deepseek-v4.1-flash`). A
+model can now declare `aliases`, each with its own kind, optional harness scope, sources and
+verification state, and one shared resolver (`createModelIdentityIndex`) is used by the adapters and
+the replay engine alike. Resolution is exact id, then canonical name, then a declared alias, then
+unresolved with a reason. There is no fuzzy matching, no prefix or substring matching and no provider
+inference. The catalog carries 37 aliases: 33 verified (the provider's own documented id, or a slug
+OpenRouter publishes in its models API) and 4 estimated (a router slug with the author prefix dropped,
+which the router does not itself publish as an identifier).
+
+**Sourced API list pricing.** 24 pricing records cover the models real workloads run, each recording
+only the categories the provider documents: input and output always, cache reads and cache writes
+where published. OpenAI and Google document reasoning tokens as billed output; Anthropic bills
+thinking inside output; DeepSeek and Z.ai do not document the category at all, so it is absent from
+their records and stays unknown in results. Promotional standing is recorded in the source titles
+(GPT-5.6 Sol's promotional pricing runs at least through 2026-11-21; the Z.ai and Gemini 3.8 Flash
+rates are marked promotional). Pricing never adds a model to a plan: 134 of the 248 plan model rules
+now carry a `pricingRef`, and every one of them was a rule the plan already recorded as served.
+
+**Measured effect** on a real 97,031-event export (6 harnesses, 13 platform sources) replayed against
+`github-copilot-pro` at `rulesAsOf 2026-09-21`:
+
+| | before M4A | after M4A |
+|---|---|---|
+| requests coverage | unknown | known, 82.72% |
+| feasibility | unknown | partial |
+| credit-pool consumption | unknown (0 recorded) | exceeded: $18,200.73 consumed against a $15.00 allowance |
+| economics | absent (`ECONOMICS_UNKNOWN`, `PRICING_MISSING`) | base $10.00, target cost $18,180.73, overage $18,170.73 |
+| unresolved models | 33,442 events | 153 events |
+
+The remaining unknowns are honest ones: usage coverage stays unknown because 16 events do not report
+every canonical token category, models coverage stays unknown because 153 events use identifiers no
+source justifies, and `MODEL_UNRESOLVED` remains the only warning. Confidence stays low because the
+replay answers a counterfactual over a window the plan's rules only partly cover.
+
 ## Milestone 4 — public site, launch catalog, sharing
 
 Three deliverables, one of which is data rather than code.
 
-**Sourced launch catalog.** The catalog now carries 5 providers, 19 plans and 42 models of real
+**Sourced launch catalog.** The catalog now carries 7 providers, 19 plans and 48 models of real
 product data, alongside the synthetic `example-` development set that demo workloads, fixtures and
 tests use. Every real entry carries at least one source URL with a `checkedAt` date, a
 `lastVerifiedAt` date and a verification state; the public read model and the sitemap filter the
@@ -58,17 +98,21 @@ architecture and the catalog policy.
 
 ### Known limitations at M4
 
-- The catalog covers subscription plans and their models. A workload dominated by API-only model
-  names (the machine this was built on uses DeepSeek, GLM and Muse models through API-style
-  harnesses) maps partially, and a replay reports those models as unresolved rather than guessing.
-  Measured on a real 23,486-event export replayed against a catalogued plan: 13,578 events
-  unresolved, 9,908 with unknown consumption.
-- Credit-pool consumption needs API list prices for the models in a workload, which the launch
-  catalog does not carry (no sourced API price table yet). The validator reports a missing
-  `pricingRef` as a warning and the engine ignores warnings, so a subscription catalog stays usable;
-  the consequence is a result without a list-price equivalent and, for credit pools, an unknown
-  consumption. This is adjacent to the deferred M4A question (fallback pricing when detailed token
-  categories are unavailable) and stays deferred.
+- The catalog covers subscription plans and their models plus a sourced API list-price layer (M4A).
+  Identifiers a workload emits that no source justifies stay unresolved and are reported with their
+  event counts: on a real 97,031-event export replayed against `github-copilot-pro`, 153 events
+  (0.16%) remain unresolved, all small tails: `gpt-daybreak-blue-latest` (51), `ox-alpha-free` (33),
+  `cline-pass/deepseek-v4.1-flash` (22), `codex-auto-review` (22), `omen-alpha` (15),
+  `gpt-5.3-codex-spark` (3), `muse-spark-1.3-contributor` (3), `muse-spark-1.2-contributor` (2),
+  `union-alpha` (1), `xiaomi/mimo-v2.6-flash` (1). Left unresolved on purpose, because no official
+  source establishes what they are. Another 16,610 events resolve to models the target plan does not
+  serve, which the result reports as `not_supported` rather than as an identity failure.
+- Credit-pool consumption needs API list prices for the models in a workload, and M4A added them for
+  the 24 models real workloads run (Anthropic, OpenAI, DeepSeek, Z.ai and Google), each recorded per
+  documented token category with its own source. Plan rules that already served a priced model now
+  carry a `pricingRef`, so a subscription replay reports a list-price equivalent and, for credit
+  pools, real consumption. The deferred M4A question (fallback pricing when detailed token categories
+  are unavailable) stays deferred: undocumented categories are left absent and stay unknown.
 - The bundled demo workloads are synthetic and use the `example-` model namespace, so they map onto
   the synthetic demo plans. The replay surface says so when a demo workload is selected instead of
   leaving a visitor to read an unmapped-model result as a failure.

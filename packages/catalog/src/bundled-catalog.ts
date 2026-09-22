@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:3c43d90921e5cc042e1aef65c2dc0b46a706f6e5cc0a1dd2a33e9ff4675479ad";
+export const BUNDLED_CATALOG_VERSION = "sha256:6f3e7dcabf509b4f3df73019e3ed9775fc8e45ec5dec1b2a91e7d3c0068091c5";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:3c43d90921e5cc042e1aef65c2dc0b46a706f6e5cc0a1dd2a33e9ff4675479ad",
+  "catalogVersion": "sha256:6f3e7dcabf509b4f3df73019e3ed9775fc8e45ec5dec1b2a91e7d3c0068091c5",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -35,6 +35,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek": {
+      "id": "deepseek",
+      "role": "provider",
+      "name": "DeepSeek",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek API pricing",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -110,6 +124,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "lastVerifiedAt": "2026-09-21",
       "verificationStatus": "verified"
+    },
+    "z-ai": {
+      "id": "z-ai",
+      "role": "provider",
+      "name": "Z.AI (Zhipu)",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI (Zhipu) API pricing",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
     }
   },
   "models": {
@@ -120,6 +148,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "cursor",
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "claude-fable-5-1-router-anthropic-claude-fable-5-1",
+          "alias": "anthropic/claude-fable-5.1",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -142,6 +186,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "Claude Fable 5",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "claude-fable-5-router-anthropic-claude-fable-5",
+          "alias": "anthropic/claude-fable-5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -176,6 +236,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "Claude Haiku 4.5",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "claude-haiku-4-5-observed-claude-haiku-4-5-20251001",
+          "alias": "claude-haiku-4-5-20251001",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+              "title": "Claude Haiku 4.5 API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -245,6 +321,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "github"
       ],
+      "aliases": [
+        {
+          "id": "claude-opus-4-8-router-anthropic-claude-opus-4-8",
+          "alias": "anthropic/claude-opus-4.8",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "claude-opus-4-8-router-claude-opus-4-8",
+          "alias": "claude-opus-4.8",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "Bare form of the OpenRouter id anthropic/claude-opus-4.8, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        }
+      ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
@@ -262,6 +368,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "cursor",
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "claude-opus-5-router-anthropic-claude-opus-5",
+          "alias": "anthropic/claude-opus-5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -320,6 +442,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "cursor",
         "github"
       ],
+      "aliases": [
+        {
+          "id": "claude-sonnet-5-router-anthropic-claude-sonnet-5",
+          "alias": "anthropic/claude-sonnet-5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
@@ -363,6 +501,133 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-1-flash": {
+      "id": "deepseek-v4-1-flash",
+      "role": "model",
+      "name": "DeepSeek-V4.1-Flash",
+      "providerIds": [
+        "deepseek"
+      ],
+      "aliases": [
+        {
+          "id": "deepseek-v4-1-flash-router-deepseek-deepseek-v4-1-flash",
+          "alias": "deepseek/deepseek-v4.1-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "deepseek-v4-1-flash-router-deepseek-v4-1-flash",
+          "alias": "deepseek-v4.1-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "Bare form of the OpenRouter id deepseek/deepseek-v4.1-flash, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "deepseek-v4-1-flash-observed-deepseek-flash",
+          "alias": "deepseek-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://api-docs.deepseek.com/quick_start/pricing",
+              "title": "DeepSeek-V4.1-Flash API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4.1-Flash model documentation",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-flash-vision-exp": {
+      "id": "deepseek-v4-flash-vision-exp",
+      "role": "model",
+      "name": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired)",
+      "providerIds": [
+        "deepseek"
+      ],
+      "aliases": [
+        {
+          "id": "deepseek-v4-flash-vision-exp-router-deepseek-deepseek-v4-flash-vision-exp",
+          "alias": "deepseek/deepseek-v4-flash-vision-exp",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired) model documentation",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-flash": {
+      "id": "deepseek-v4-flash",
+      "role": "model",
+      "name": "DeepSeek-V4-Flash (legacy name, model retired)",
+      "providerIds": [
+        "deepseek"
+      ],
+      "aliases": [
+        {
+          "id": "deepseek-v4-flash-router-deepseek-deepseek-v4-flash",
+          "alias": "deepseek/deepseek-v4-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4-Flash (legacy name, model retired) model documentation",
           "checkedAt": "2026-09-21"
         }
       ],
@@ -428,6 +693,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "cursor",
         "google"
+      ],
+      "aliases": [
+        {
+          "id": "gemini-3-1-pro-observed-gemini-3-1-pro-preview",
+          "alias": "gemini-3.1-pro-preview",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "title": "Gemini 3.1 Pro API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gemini-3-1-pro-observed-gemini-3-1-pro-preview-customtools",
+          "alias": "gemini-3.1-pro-preview-customtools",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "title": "Gemini 3.1 Pro API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -503,6 +798,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "cursor",
         "github"
       ],
+      "aliases": [
+        {
+          "id": "gemini-3-8-flash-router-google-gemini-3-8-flash",
+          "alias": "google/gemini-3.8-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gemini-3-8-flash-observed-gemini-3-8-flash",
+          "alias": "gemini-3.8-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "title": "Gemini 3.8 Flash API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
@@ -542,6 +867,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "google"
       ],
+      "aliases": [
+        {
+          "id": "gemini-3-flash-observed-gemini-3-flash-preview",
+          "alias": "gemini-3-flash-preview",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/pricing",
+              "title": "Gemini 3 Flash API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://gemini.google/subscriptions/",
@@ -569,12 +910,197 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-21",
       "verificationStatus": "verified"
     },
+    "glm-5-3-flash": {
+      "id": "glm-5-3-flash",
+      "role": "model",
+      "name": "GLM 5.3 Flash",
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-3-flash-router-z-ai-glm-5-3-flash",
+          "alias": "z-ai/glm-5.3-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-3-flash-router-glm-5-3-flash",
+          "alias": "glm-5.3-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "Bare form of the OpenRouter id z-ai/glm-5.3-flash, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "glm-5-3-flash-observed-glm-5-3-flash",
+          "alias": "GLM-5.3-Flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/overview/pricing",
+              "title": "GLM 5.3 Flash API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 Flash model documentation",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "glm-5-3-flashx": {
+      "id": "glm-5-3-flashx",
+      "role": "model",
+      "name": "GLM 5.3 FlashX",
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-3-flashx-router-z-ai-glm-5-3-flashx",
+          "alias": "z-ai/glm-5.3-flashx",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-3-flashx-observed-glm-5-3-flashx",
+          "alias": "GLM-5.3-FlashX",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/overview/pricing",
+              "title": "GLM 5.3 FlashX API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 FlashX model documentation",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "glm-5-3": {
+      "id": "glm-5-3",
+      "role": "model",
+      "name": "GLM 5.3",
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-3-router-z-ai-glm-5-3",
+          "alias": "z-ai/glm-5.3",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-3-router-glm-5-3",
+          "alias": "glm-5.3",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "Bare form of the OpenRouter id z-ai/glm-5.3, without the author prefix; the router publishes the prefixed id, not this spelling",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "estimated"
+        },
+        {
+          "id": "glm-5-3-observed-glm-5-3",
+          "alias": "GLM-5.3",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/overview/pricing",
+              "title": "GLM 5.3 API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 model documentation",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
     "gpt-5-3-codex": {
       "id": "gpt-5-3-codex",
       "role": "model",
       "name": "GPT-5.3-Codex",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-5-3-codex-observed-gpt-5-3-codex",
+          "alias": "gpt-5.3-codex",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.3-Codex API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -592,6 +1118,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "GPT-5.4 mini",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-5-4-mini-observed-gpt-5-4-mini",
+          "alias": "gpt-5.4-mini",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.4 mini API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -627,6 +1169,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "github"
       ],
+      "aliases": [
+        {
+          "id": "gpt-5-4-observed-gpt-5-4",
+          "alias": "gpt-5.4",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.4 API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
@@ -643,6 +1201,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "GPT-5.5",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-5-5-observed-gpt-5-5",
+          "alias": "gpt-5.5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.5 API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -662,6 +1236,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "cursor",
         "github",
         "openai"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-5-6-luna-observed-gpt-5-6-luna",
+          "alias": "gpt-5.6-luna",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.6 Luna API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -709,6 +1299,50 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "github",
         "openai"
       ],
+      "aliases": [
+        {
+          "id": "gpt-5-6-sol-router-openai-gpt-5-6-sol",
+          "alias": "openai/gpt-5.6-sol",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gpt-5-6-sol-observed-gpt-5-6-sol",
+          "alias": "gpt-5.6-sol",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.6 Sol API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gpt-5-6-sol-observed-gpt-5-6",
+          "alias": "gpt-5.6",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.6 Sol API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://openai.com/chatgpt/pricing/",
@@ -738,6 +1372,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "github",
         "openai"
       ],
+      "aliases": [
+        {
+          "id": "gpt-5-6-terra-router-openai-gpt-5-6-terra",
+          "alias": "openai/gpt-5.6-terra",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gpt-5-6-terra-observed-gpt-5-6-terra",
+          "alias": "gpt-5.6-terra",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5.6 Terra API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://openai.com/chatgpt/pricing/",
@@ -764,6 +1428,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "GPT-5 mini",
       "providerIds": [
         "github"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-5-mini-observed-gpt-5-mini-2025-08-07",
+          "alias": "gpt-5-mini-2025-08-07",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/pricing",
+              "title": "GPT-5 mini API model id",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -799,6 +1479,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "github",
         "openai"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-6-astra-router-openai-gpt-6-astra",
+          "alias": "openai/gpt-6-astra",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/docs/overview/models",
+              "title": "OpenRouter model list: id is the `author/slug` used in API requests",
+              "checkedAt": "2026-09-21"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-21",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -1380,31 +2076,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "composer-2-5"
             },
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -1491,31 +2195,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "composer-2-5"
             },
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -1614,31 +2326,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "composer-2-5"
             },
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -1725,31 +2445,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "composer-2-5"
             },
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2114,32 +2842,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5"
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-pricing"
             },
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-haiku-4-5"
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
-              "model": "claude-opus-4-8"
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
               "excluded": true
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2151,38 +2885,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-7-flash"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-3-codex"
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-pricing"
             },
             {
-              "model": "gpt-5-4"
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-pricing"
             },
             {
-              "model": "gpt-5-4-mini"
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-pricing"
             },
             {
               "model": "gpt-5-4-nano",
               "excluded": true
             },
             {
-              "model": "gpt-5-5"
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
-              "model": "gpt-5-mini"
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-pricing"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2292,32 +3036,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5"
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-pricing"
             },
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-haiku-4-5"
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
-              "model": "claude-opus-4-8"
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
               "excluded": true
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2329,38 +3079,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-7-flash"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-3-codex"
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-pricing"
             },
             {
-              "model": "gpt-5-4"
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-pricing"
             },
             {
-              "model": "gpt-5-4-mini"
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-pricing"
             },
             {
               "model": "gpt-5-4-nano",
               "excluded": true
             },
             {
-              "model": "gpt-5-5"
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
-              "model": "gpt-5-mini"
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-pricing"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2465,32 +3225,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5"
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-pricing"
             },
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-haiku-4-5"
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
-              "model": "claude-opus-4-8"
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
               "excluded": true
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2502,38 +3268,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-7-flash"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-3-codex"
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-pricing"
             },
             {
-              "model": "gpt-5-4"
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-pricing"
             },
             {
-              "model": "gpt-5-4-mini"
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-pricing"
             },
             {
               "model": "gpt-5-4-nano",
               "excluded": true
             },
             {
-              "model": "gpt-5-5"
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
-              "model": "gpt-5-mini"
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-pricing"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2638,32 +3414,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5"
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-pricing"
             },
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-haiku-4-5"
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
-              "model": "claude-opus-4-8"
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
               "excluded": true
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2675,38 +3457,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-7-flash"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-3-codex"
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-pricing"
             },
             {
-              "model": "gpt-5-4"
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-pricing"
             },
             {
-              "model": "gpt-5-4-mini"
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-pricing"
             },
             {
               "model": "gpt-5-4-nano",
               "excluded": true
             },
             {
-              "model": "gpt-5-5"
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
-              "model": "gpt-5-mini"
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-pricing"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2817,32 +3609,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "claude-fable-5"
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-pricing"
             },
             {
-              "model": "claude-fable-5-1"
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-pricing"
             },
             {
-              "model": "claude-haiku-4-5"
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-pricing"
             },
             {
               "model": "claude-opus-4-7"
             },
             {
-              "model": "claude-opus-4-8"
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-pricing"
             },
             {
               "model": "claude-opus-4-8-fast-mode"
             },
             {
-              "model": "claude-opus-5"
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-pricing"
             },
             {
               "model": "claude-sonnet-4-6",
               "excluded": true
             },
             {
-              "model": "claude-sonnet-5"
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-pricing"
             },
             {
               "model": "gemini-3-5-flash"
@@ -2854,38 +3652,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-7-flash"
             },
             {
-              "model": "gemini-3-8-flash"
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-pricing"
             },
             {
-              "model": "gpt-5-3-codex"
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-pricing"
             },
             {
-              "model": "gpt-5-4"
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-pricing"
             },
             {
-              "model": "gpt-5-4-mini"
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-pricing"
             },
             {
               "model": "gpt-5-4-nano",
               "excluded": true
             },
             {
-              "model": "gpt-5-5"
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-pricing"
             },
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
-              "model": "gpt-5-mini"
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-pricing"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             },
             {
               "model": "grok-4-5"
@@ -2995,10 +3803,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-flash"
+              "model": "gemini-3-flash",
+              "pricingRef": "gemini-3-flash-pricing"
             },
             {
               "model": "gemini-3-flash-lite"
@@ -3099,10 +3909,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-flash"
+              "model": "gemini-3-flash",
+              "pricingRef": "gemini-3-flash-pricing"
             },
             {
               "model": "gemini-3-flash-lite"
@@ -3209,10 +4021,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gemini-3-1-pro"
+              "model": "gemini-3-1-pro",
+              "pricingRef": "gemini-3-1-pro-pricing"
             },
             {
-              "model": "gemini-3-flash"
+              "model": "gemini-3-flash",
+              "pricingRef": "gemini-3-flash-pricing"
             },
             {
               "model": "gemini-3-flash-lite"
@@ -3307,22 +4121,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
               "model": "gpt-5-6-sol-pro"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "gpt-5-thinking-mini"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             }
           ],
           "sources": [
@@ -3413,22 +4231,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
               "model": "gpt-5-6-sol-pro"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "gpt-5-thinking-mini"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             }
           ],
           "sources": [
@@ -3512,22 +4334,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
               "model": "gpt-5-6-sol-pro"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "gpt-5-thinking-mini"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             }
           ],
           "sources": [
@@ -3614,22 +4440,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "modelRules": [
             {
-              "model": "gpt-5-6-luna"
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
             },
             {
-              "model": "gpt-5-6-sol"
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
             },
             {
               "model": "gpt-5-6-sol-pro"
             },
             {
-              "model": "gpt-5-6-terra"
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
             },
             {
               "model": "gpt-5-thinking-mini"
             },
             {
-              "model": "gpt-6-astra"
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
             }
           ],
           "sources": [
@@ -4052,31 +4882,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "composer-2-5"
         },
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -4159,31 +4997,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "composer-2-5"
         },
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -4278,31 +5124,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "composer-2-5"
         },
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -4385,31 +5239,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "composer-2-5"
         },
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -4762,32 +5624,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5"
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-pricing"
         },
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-haiku-4-5"
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
-          "model": "claude-opus-4-8"
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
           "excluded": true
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -4799,38 +5667,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-7-flash"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-3-codex"
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-pricing"
         },
         {
-          "model": "gpt-5-4"
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-pricing"
         },
         {
-          "model": "gpt-5-4-mini"
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-pricing"
         },
         {
           "model": "gpt-5-4-nano",
           "excluded": true
         },
         {
-          "model": "gpt-5-5"
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
-          "model": "gpt-5-mini"
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-pricing"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -4936,32 +5814,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5"
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-pricing"
         },
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-haiku-4-5"
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
-          "model": "claude-opus-4-8"
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
           "excluded": true
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -4973,38 +5857,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-7-flash"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-3-codex"
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-pricing"
         },
         {
-          "model": "gpt-5-4"
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-pricing"
         },
         {
-          "model": "gpt-5-4-mini"
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-pricing"
         },
         {
           "model": "gpt-5-4-nano",
           "excluded": true
         },
         {
-          "model": "gpt-5-5"
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
-          "model": "gpt-5-mini"
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-pricing"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -5105,32 +5999,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5"
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-pricing"
         },
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-haiku-4-5"
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
-          "model": "claude-opus-4-8"
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
           "excluded": true
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -5142,38 +6042,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-7-flash"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-3-codex"
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-pricing"
         },
         {
-          "model": "gpt-5-4"
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-pricing"
         },
         {
-          "model": "gpt-5-4-mini"
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-pricing"
         },
         {
           "model": "gpt-5-4-nano",
           "excluded": true
         },
         {
-          "model": "gpt-5-5"
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
-          "model": "gpt-5-mini"
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-pricing"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -5274,32 +6184,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5"
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-pricing"
         },
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-haiku-4-5"
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
-          "model": "claude-opus-4-8"
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
           "excluded": true
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -5311,38 +6227,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-7-flash"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-3-codex"
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-pricing"
         },
         {
-          "model": "gpt-5-4"
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-pricing"
         },
         {
-          "model": "gpt-5-4-mini"
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-pricing"
         },
         {
           "model": "gpt-5-4-nano",
           "excluded": true
         },
         {
-          "model": "gpt-5-5"
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
-          "model": "gpt-5-mini"
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-pricing"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -5449,32 +6375,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "claude-fable-5"
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-pricing"
         },
         {
-          "model": "claude-fable-5-1"
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-pricing"
         },
         {
-          "model": "claude-haiku-4-5"
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-pricing"
         },
         {
           "model": "claude-opus-4-7"
         },
         {
-          "model": "claude-opus-4-8"
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-pricing"
         },
         {
           "model": "claude-opus-4-8-fast-mode"
         },
         {
-          "model": "claude-opus-5"
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-pricing"
         },
         {
           "model": "claude-sonnet-4-6",
           "excluded": true
         },
         {
-          "model": "claude-sonnet-5"
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-pricing"
         },
         {
           "model": "gemini-3-5-flash"
@@ -5486,38 +6418,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-7-flash"
         },
         {
-          "model": "gemini-3-8-flash"
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-pricing"
         },
         {
-          "model": "gpt-5-3-codex"
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-pricing"
         },
         {
-          "model": "gpt-5-4"
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-pricing"
         },
         {
-          "model": "gpt-5-4-mini"
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-pricing"
         },
         {
           "model": "gpt-5-4-nano",
           "excluded": true
         },
         {
-          "model": "gpt-5-5"
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-pricing"
         },
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
-          "model": "gpt-5-mini"
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-pricing"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         },
         {
           "model": "grok-4-5"
@@ -5623,10 +6565,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-flash"
+          "model": "gemini-3-flash",
+          "pricingRef": "gemini-3-flash-pricing"
         },
         {
           "model": "gemini-3-flash-lite"
@@ -5723,10 +6667,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-flash"
+          "model": "gemini-3-flash",
+          "pricingRef": "gemini-3-flash-pricing"
         },
         {
           "model": "gemini-3-flash-lite"
@@ -5829,10 +6775,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gemini-3-1-pro"
+          "model": "gemini-3-1-pro",
+          "pricingRef": "gemini-3-1-pro-pricing"
         },
         {
-          "model": "gemini-3-flash"
+          "model": "gemini-3-flash",
+          "pricingRef": "gemini-3-flash-pricing"
         },
         {
           "model": "gemini-3-flash-lite"
@@ -5923,22 +6871,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
           "model": "gpt-5-6-sol-pro"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "gpt-5-thinking-mini"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         }
       ],
       "sources": [
@@ -6025,22 +6977,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
           "model": "gpt-5-6-sol-pro"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "gpt-5-thinking-mini"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         }
       ],
       "sources": [
@@ -6120,22 +7076,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
           "model": "gpt-5-6-sol-pro"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "gpt-5-thinking-mini"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         }
       ],
       "sources": [
@@ -6218,22 +7178,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "modelRules": [
         {
-          "model": "gpt-5-6-luna"
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
         },
         {
-          "model": "gpt-5-6-sol"
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
         },
         {
           "model": "gpt-5-6-sol-pro"
         },
         {
-          "model": "gpt-5-6-terra"
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
         },
         {
           "model": "gpt-5-thinking-mini"
         },
         {
-          "model": "gpt-6-astra"
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
         }
       ],
       "sources": [
@@ -6267,6 +7231,210 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "pricing": {
+    "claude-fable-5-1-pricing": {
+      "id": "claude-fable-5-1-pricing",
+      "role": "pricing",
+      "modelId": "claude-fable-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "0.25",
+        "cacheWrite": "12.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Fable 5.1 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-fable-5-pricing": {
+      "id": "claude-fable-5-pricing",
+      "role": "pricing",
+      "modelId": "claude-fable-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "1.00",
+        "cacheWrite": "12.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Fable 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-haiku-4-5-pricing": {
+      "id": "claude-haiku-4-5-pricing",
+      "role": "pricing",
+      "modelId": "claude-haiku-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "1.00",
+        "output": "5.00",
+        "cacheRead": "0.10",
+        "cacheWrite": "1.25"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Haiku 4.5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-8-pricing": {
+      "id": "claude-opus-4-8-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "5.00",
+        "output": "25.00",
+        "cacheRead": "0.50",
+        "cacheWrite": "6.25"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Opus 4.8 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-5-pricing": {
+      "id": "claude-opus-5-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "5.00",
+        "output": "25.00",
+        "cacheRead": "0.50",
+        "cacheWrite": "6.25"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Opus 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "claude-sonnet-5-pricing": {
+      "id": "claude-sonnet-5-pricing",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "2.00",
+        "output": "10.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+          "title": "Claude Sonnet 5 API list pricing. Cache semantics: Cache reads are a separately published rate, not a discount off a merged input rate and not equal to input: table column \"Cache hits and refreshes\", with footnote 1 \"Cache hits and refreshes on Claude Fable 5.1 and Claude Mythos 5.1 are priced at 0.025x the base input price. All other models use the standard 0.1x multiplier.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-1-flash-pricing": {
+      "id": "deepseek-v4-1-flash-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-1-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.01"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4.1-Flash API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-flash-pricing": {
+      "id": "deepseek-v4-flash-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.01"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4-Flash (legacy name, model retired) API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-flash-vision-exp-pricing": {
+      "id": "deepseek-v4-flash-vision-exp-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-flash-vision-exp",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.01"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired) API list pricing. Cache semantics: Cache hit and cache miss are separate documented rates: the table has distinct \"1M INPUT TOKENS (CACHE HIT)\" and \"1M INPUT TOKENS (CACHE MISS)\" rows, with matching usage fields prompt_cache_hit_tokens and prompt_cache_miss_tokens.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
     "example-large-pricing": {
       "id": "example-large-pricing",
       "role": "pricing",
@@ -6333,6 +7501,340 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "lastVerifiedAt": "2026-09-01",
       "verificationStatus": "estimated"
+    },
+    "gemini-3-1-pro-pricing": {
+      "id": "gemini-3-1-pro-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-1-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "2.00",
+        "output": "12.00",
+        "cacheRead": "0.20"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3.1 Pro API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-8-flash-pricing": {
+      "id": "gemini-3-8-flash-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-8-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.07"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3.8 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.. Promotional: The input, output and cache rates are explicitly time-limited on the page: they apply \"through December 31, 2026\", with higher rates \"starting January 1, 2027\" (input $1.50, output $7.50, cache $0.15).",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-flash-pricing": {
+      "id": "gemini-3-flash-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.50",
+        "output": "3.00",
+        "cacheRead": "0.05"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3 Flash API list pricing. Cache semantics: Cached input is a separate published rate: the \"Context caching price\" row gives a per-token cached-input rate plus a separate per-hour storage price.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "glm-5-3-flash-pricing": {
+      "id": "glm-5-3-flash-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-3-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.15",
+        "output": "0.50",
+        "cacheRead": "0.03"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 Flash API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "glm-5-3-flashx-pricing": {
+      "id": "glm-5-3-flashx-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-3-flashx",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.37",
+        "output": "1.25",
+        "cacheRead": "0.07"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 FlashX API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "glm-5-3-pricing": {
+      "id": "glm-5-3-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "1.40",
+        "output": "4.40",
+        "cacheRead": "0.26"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "GLM 5.3 API list pricing. Cache semantics: Cache reads are a separately published \"Cached Input\" column, not a discount expressed off input and not equal to input; cache storage is a third column, \"Cached Input Storage\".. Promotional: Only the \"Cached Input Storage\" cell of this row is promotional: it reads \"Limited-time Free\". The input, cached-input and output per-token rates are not marked as promotional.",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-3-codex-pricing": {
+      "id": "gpt-5-3-codex-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-3-codex",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "1.75",
+        "output": "14.00",
+        "cacheRead": "0.17"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.3-Codex API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-mini-pricing": {
+      "id": "gpt-5-4-mini-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-4-mini",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.75",
+        "output": "4.50",
+        "cacheRead": "0.07"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.4 mini API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-pricing": {
+      "id": "gpt-5-4-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-4",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "2.50",
+        "output": "15.00",
+        "cacheRead": "0.25"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.4 API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-5-pricing": {
+      "id": "gpt-5-5-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "5.00",
+        "output": "30.00",
+        "cacheRead": "0.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.5 API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-luna-pricing": {
+      "id": "gpt-5-6-luna-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-luna",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.20",
+        "output": "1.20",
+        "cacheRead": "0.02",
+        "cacheWrite": "0.25"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.6 Luna API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-sol-pricing": {
+      "id": "gpt-5-6-sol-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "4.00",
+        "output": "20.00",
+        "cacheRead": "0.40",
+        "cacheWrite": "5.00"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.6 Sol API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\". Promotional: \"GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026.\" (note printed under the official Standard pricing table; the model page repeats it.)",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-6-terra-pricing": {
+      "id": "gpt-5-6-terra-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-6-terra",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "2.00",
+        "output": "12.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5.6 Terra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-mini-pricing": {
+      "id": "gpt-5-mini-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-mini",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "0.25",
+        "output": "2.00",
+        "cacheRead": "0.03"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-5 mini API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-astra-pricing": {
+      "id": "gpt-6-astra-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-astra",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "1.00",
+        "cacheWrite": "12.50"
+      },
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-6 Astra API list pricing. Cache semantics: Cached input is a separate published rate described as a discount off the input rate: \"Pay the model's reduced cached-input rate for reused tokens, discounted up to 90%.\"",
+          "checkedAt": "2026-09-21"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-21",
+      "verificationStatus": "verified"
     }
   }
 };

@@ -9,6 +9,15 @@ export {
   planVersionId,
 } from "./catalog.js";
 export {
+  createModelIdentityIndex,
+  type ModelAliasKindV1,
+  type ModelIdentityAliasViewV1,
+  type ModelIdentityBasisV1,
+  type ModelIdentityIndex,
+  type ModelIdentityResolutionV1,
+  type ModelIdentityUnresolvedReasonV1,
+} from "./resolve.js";
+export {
   type CalendarWindowV1,
   type CatalogSourceV1,
   calendarWindowV1Schema,
@@ -17,8 +26,10 @@ export {
   ISO_DURATION_PATTERN,
   type LimitWindowV1,
   limitWindowV1Schema,
+  type ModelAliasV1,
   type ModelRuleV1,
   type ModelV1,
+  modelAliasV1Schema,
   modelRuleV1Schema,
   modelV1Schema,
   type OverageRateV1,

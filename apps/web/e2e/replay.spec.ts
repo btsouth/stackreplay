@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, runReplay } from "./helpers";
+import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { gotoImport, importDemo, runReplay } from "./helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -66,6 +67,46 @@ test("keeps unknown coverage visibly unknown instead of 0% or 100%", async ({ pa
 
   const constraints = page.getByTestId("constraints");
   await expect(constraints).toContainText("UNKNOWN");
+});
+
+test("explains how observed model names map onto the catalog", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+
+  const identities = page.getByTestId("model-identities");
+  await expect(identities).toBeVisible();
+  await expect(identities.getByRole("heading", { name: "Models in this workload" })).toBeVisible();
+  // The demo workloads use the catalog's synthetic namespace, which the bundled
+  // catalog does carry, so they resolve exactly and the panel says so.
+  await expect(identities).toContainText("exact id");
+  await expect(identities).toContainText("Every observed model name resolved to a catalog model.");
+});
+
+test("an identifier no source justifies is reported as unmapped, never guessed", async ({
+  page,
+}) => {
+  const exported = buildDemoExport("moderate");
+  const unknown = "gpt-daybreak-blue-latest";
+  const mutated = {
+    ...exported,
+    events: exported.events.map((event, index) =>
+      index % 3 === 0 ? { ...event, model: { rawName: unknown } } : event,
+    ),
+  };
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "unmapped-model.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(mutated)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await page.goto("/app/replay");
+
+  const identities = page.getByTestId("model-identities");
+  await expect(identities).toBeVisible();
+  await expect(identities).toContainText(unknown);
+  await expect(identities).toContainText("unmapped");
+  await expect(identities).toContainText("never guesses a model identity");
 });
 
 test("lists models the target does not serve", async ({ page }) => {

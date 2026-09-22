@@ -22,7 +22,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SharePanel } from "@/components/share/share-panel";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
-import type { ImportRecord, SafeError, TimelinePoint } from "@/lib/worker-protocol";
+import type { ImportRecord, ModelSummary, SafeError, TimelinePoint } from "@/lib/worker-protocol";
 
 /**
  * Replay surface: the signature product surface (M3 brief).
@@ -505,8 +505,64 @@ function WorkloadStrip({
             </span>
           ))}
         </div>
+        <ModelIdentityList models={summary.models} />
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * How each observed model name maps onto the catalog (M4A).
+ *
+ * The observed identifier is always shown as it was reported, next to the
+ * canonical model it was resolved to and the basis for that mapping. Identifiers
+ * the catalog cannot justify are listed as unmapped, because leaving a name
+ * unresolved and saying so is the honest outcome: nothing here guesses an
+ * identity from a similar-looking name.
+ */
+function ModelIdentityList({ models }: { models: ModelSummary[] }) {
+  if (models.length === 0) return null;
+  const ordered = [...models].sort((a, b) => b.events - a.events);
+  const unmapped = ordered.filter((model) => !model.mapped).length;
+  const basisLabel: Record<NonNullable<ModelSummary["basis"]>, string> = {
+    canonical_id: "exact id",
+    canonical_name: "catalog name",
+    alias: "catalog alias",
+  };
+  return (
+    <div data-testid="model-identities" className="border-t border-border pt-4">
+      <h3 className="text-xs font-medium text-muted-foreground">Models in this workload</h3>
+      <ul className="mt-2 flex flex-col gap-1 font-mono text-xs">
+        {ordered.slice(0, 12).map((model) => (
+          <li key={model.rawName} className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-foreground">{model.rawName}</span>
+            {model.mapped ? (
+              <>
+                <span aria-hidden="true" className="text-muted-foreground">
+                  →
+                </span>
+                <span className="text-muted-foreground">{model.canonicalId}</span>
+                <span className="rounded border border-border px-1 text-[10px] text-muted-foreground">
+                  {model.basis === undefined ? "mapped" : basisLabel[model.basis]}
+                </span>
+              </>
+            ) : (
+              <span className="rounded border border-border px-1 text-[10px] text-warning">
+                unmapped
+              </span>
+            )}
+            <span className="tabular-nums text-muted-foreground">
+              {formatCount(model.events)} events
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {unmapped === 0
+          ? "Every observed model name resolved to a catalog model."
+          : `${formatCount(unmapped)} observed model ${unmapped === 1 ? "name" : "names"} did not resolve. Unresolved names are left unmapped and reported: StackReplay never guesses a model identity.`}
+      </p>
+    </div>
   );
 }
 
@@ -796,6 +852,10 @@ function ReplayResult({
                     </li>
                   ))}
                 </ul>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Consumption for these identifiers is left unknown rather than estimated. A name
+                  StackReplay cannot map to the catalog is never guessed at.
+                </p>
               </div>
             ) : null}
             {result.warnings.length > 0 ? (

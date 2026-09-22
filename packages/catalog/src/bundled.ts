@@ -1,6 +1,7 @@
 import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
 import { type CatalogV1, catalogV1Schema } from "./catalog.js";
+import { createModelIdentityIndex, type ModelIdentityIndex } from "./resolve.js";
 
 /**
  * Browser-safe catalog access.
@@ -30,6 +31,19 @@ export function loadBundledCatalog(): CatalogV1 {
   }
   cached = parsed.data;
   return cached;
+}
+
+let cachedIdentity: ModelIdentityIndex | undefined;
+
+/**
+ * The bundled catalog's model identity index (M4A): the same resolution rules the
+ * adapters and the engine use, so the browser summary can explain a mapping
+ * exactly the way a replay applies it.
+ */
+export function bundledModelIdentity(): ModelIdentityIndex {
+  if (cachedIdentity !== undefined) return cachedIdentity;
+  cachedIdentity = createModelIdentityIndex(loadBundledCatalog());
+  return cachedIdentity;
 }
 
 export interface BundledPlanSummary {

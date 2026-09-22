@@ -3,6 +3,16 @@ role: model
 name: "Claude Haiku 4.5"
 providerIds:
   - github
+aliases:
+  - id: claude-haiku-4-5-observed-claude-haiku-4-5-20251001
+    alias: "claude-haiku-4-5-20251001"
+    kind: provider_id
+    sources:
+      - url: https://docs.claude.com/en/docs/about-claude/pricing
+        title: "Claude Haiku 4.5 API model id"
+        checkedAt: 2026-09-21
+    lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"

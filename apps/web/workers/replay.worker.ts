@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
-import { BUNDLED_CATALOG_VERSION, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import {
+  BUNDLED_CATALOG_VERSION,
+  bundledModelIdentity,
+  loadBundledCatalog,
+} from "@stackreplay/catalog/bundled";
 import { replay, tokenAccountingOf } from "@stackreplay/replay-engine";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -114,7 +118,11 @@ async function handleImportFile(
   }
 
   progress(requestId, "import", "preparing", "Preparing the workload");
-  const summary = summarizeExport(validated.exported, BUNDLED_CATALOG_VERSION);
+  const summary = summarizeExport(
+    validated.exported,
+    BUNDLED_CATALOG_VERSION,
+    bundledModelIdentity(),
+  );
   const record: ImportRecord = {
     id: importId,
     label,
@@ -157,7 +165,11 @@ async function handleImportDemo(
     post({ type: "ERROR", requestId, error: validated.error });
     return;
   }
-  const summary = summarizeExport(validated.exported, BUNDLED_CATALOG_VERSION);
+  const summary = summarizeExport(
+    validated.exported,
+    BUNDLED_CATALOG_VERSION,
+    bundledModelIdentity(),
+  );
   const record: ImportRecord = {
     id: importId,
     label: `Demo: ${preset}`,
