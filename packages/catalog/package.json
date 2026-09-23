@@ -17,6 +17,10 @@
     "./bundled": {
       "types": "./dist/bundled.d.ts",
       "default": "./dist/bundled.js"
+    },
+    "./intelligence": {
+      "types": "./dist/intelligence/index.d.ts",
+      "default": "./dist/intelligence/index.js"
     }
   },
   "files": [

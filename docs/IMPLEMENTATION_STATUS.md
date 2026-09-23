@@ -2,12 +2,26 @@
 
 ## Current milestone
 
-**Milestone 4E: browser workload intake, implemented in the working tree and pending independent review.**
+### Milestone 4H-B — catalog intelligence evidence contract (working tree)
+
+A separate `@stackreplay/catalog/intelligence` export now defines source registry, evidence,
+candidate, source-health reference, deterministic identity/serialization, and pure validation
+contracts. It is absent from accepted catalog loading and Replay execution. Synthetic tests
+prove that even an accepted candidate leaves accepted catalog output and Replay unchanged.
+Targeted audit closure added complete published-truth evidence guards, effective-date evidence
+checks, artifact identity, unknown-timezone preservation, accepted-reference relationship checks,
+incomplete-value findings, versioned source health, and strict HTTPS URL validation.
+This is foundation work pending independent review; no watcher, migration, UI, catalog facts,
+commit, push, or deployment. See [catalog intelligence](CATALOG_INTELLIGENCE.md).
+
+## Milestone 4E — browser workload intake
+
+**Implemented at the prior baseline.**
 The locked starting M4D SHA is `a3f6710536f94c18d00b25975db16219a6e38e25`; `main` matched
 `origin/main` and hosted CI was green before M4E edits. The browser now accepts selected files,
 ZIP archives and folders for verified file-based adapters, using the existing versioned export and
 Replay engine. See [workload intake](INGESTION.md) for the exact supported formats and boundaries.
-No M4E work has been committed or pushed.
+The M4E work is part of the locked M4H-B starting baseline.
 
 ## Milestone 4C — Direct API execution target
 
