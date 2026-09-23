@@ -50,6 +50,12 @@
   },
   "overrides": [
     {
+      "includes": ["data/catalog-intelligence/**/candidates/*.json"],
+      "formatter": {
+        "enabled": false
+      }
+    },
+    {
       "includes": ["packages/ui/src/styles/theme.css"],
       "linter": {
         "rules": {

@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "cohort": "M4H-C1",
+  "limitwatch": {
+    "repository": "https://github.com/btsouth/limitwatch",
+    "commit": "e135b9492b0a09cda9ca49496206f09d90cb8fde"
+  },
+  "acceptedCatalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+  "entries": [
+    {
+      "slug": "anthropic-max-20x-monthly-price",
+      "candidateFile": "candidates/anthropic-max-20x-monthly-price.json",
+      "candidateId": "sha256:75ce6609997dd65c69ec898162ebd820e579de37e5548222ecc651aedaa8d2ef",
+      "sourceId": "anthropic-max-plan-docs",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-06-07.json",
+        "entryIndex": 5,
+        "snapshotDate": "2026-06-07",
+        "asOf": "2026-06-07",
+        "verifiedOn": "2026-06-07",
+        "originalSourceUrl": "https://claude.com/pricing"
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        }
+      ],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "NEEDS_MORE_EVIDENCE",
+      "promotionTarget": "packages/catalog/data/plans/anthropic-claude-max-20x.yaml"
+    },
+    {
+      "slug": "anthropic-max-20x-relative-usage",
+      "candidateFile": "candidates/anthropic-max-20x-relative-usage.json",
+      "candidateId": "sha256:e9fd17466c07ec100091e262845bba02844f483d229365116fe76a395cb99029",
+      "sourceId": "anthropic-max-plan-docs",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-06-07.json",
+        "entryIndex": 5,
+        "snapshotDate": "2026-06-07",
+        "asOf": "2026-06-07",
+        "verifiedOn": "2026-06-07",
+        "originalSourceUrl": "https://claude.com/pricing",
+        "limitIndex": 0
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        }
+      ],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "NEEDS_MORE_EVIDENCE",
+      "promotionTarget": "packages/catalog/data/plans/anthropic-claude-max-20x.yaml"
+    },
+    {
+      "slug": "anthropic-max-5x-monthly-price",
+      "candidateFile": "candidates/anthropic-max-5x-monthly-price.json",
+      "candidateId": "sha256:f9447c75ff04089a09737aa85944ded3a5fb2da1dcddba75188de0c7bf8982d1",
+      "sourceId": "anthropic-max-plan-docs",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-06-07.json",
+        "entryIndex": 4,
+        "snapshotDate": "2026-06-07",
+        "asOf": "2026-06-07",
+        "verifiedOn": "2026-06-07",
+        "originalSourceUrl": "https://claude.com/pricing"
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        }
+      ],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "NEEDS_MORE_EVIDENCE",
+      "promotionTarget": "packages/catalog/data/plans/anthropic-claude-max-5x.yaml"
+    },
+    {
+      "slug": "anthropic-max-5x-relative-usage",
+      "candidateFile": "candidates/anthropic-max-5x-relative-usage.json",
+      "candidateId": "sha256:baaeb665ef70877f75bf193fdc0df94408af9f2a4f4cb7d1ae55b1fecf8406ad",
+      "sourceId": "anthropic-max-plan-docs",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-06-07.json",
+        "entryIndex": 4,
+        "snapshotDate": "2026-06-07",
+        "asOf": "2026-06-07",
+        "verifiedOn": "2026-06-07",
+        "originalSourceUrl": "https://claude.com/pricing",
+        "limitIndex": 0
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        }
+      ],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "NEEDS_MORE_EVIDENCE",
+      "promotionTarget": "packages/catalog/data/plans/anthropic-claude-max-5x.yaml"
+    },
+    {
+      "slug": "anthropic-pro-weekly-account-reset",
+      "candidateFile": "candidates/anthropic-pro-weekly-account-reset.json",
+      "candidateId": "sha256:7f98b5902c48a4fa30d36a207e19647679611786888d556b151e5c6ff76ffec2",
+      "sourceId": "anthropic-pro-plan-docs",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/reset-windows.json",
+        "entryIndex": 1,
+        "originalSourceUrl": "https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work"
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        }
+      ],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "NEEDS_MORE_EVIDENCE",
+      "promotionTarget": "packages/catalog/data/plans/anthropic-claude-pro.yaml"
+    },
+    {
+      "slug": "google-ai-plus-archive-price",
+      "candidateFile": "candidates/google-ai-plus-archive-price.json",
+      "candidateId": "sha256:422cfca949972e5d724c4d28c82061f7610bc7a05ab2d10ab77500896aee35a3",
+      "sourceId": "google-subscriptions-archive-20260401",
+      "evidenceClass": "observed",
+      "limitwatch": {
+        "path": "data/snapshots/2026-04-01.json",
+        "entryIndex": 0,
+        "snapshotDate": "2026-04-01",
+        "asOf": "2026-04-01",
+        "verifiedOn": "2026-04-01",
+        "originalSourceUrl": "http://web.archive.org/web/20260401134314/https://gemini.google/subscriptions/"
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        },
+        {
+          "severity": "error",
+          "code": "observed_not_published"
+        },
+        {
+          "severity": "warning",
+          "code": "unknown_plan"
+        }
+      ],
+      "collision": "UNMAPPABLE",
+      "recommendation": "REFERENCE_ONLY"
+    },
+    {
+      "slug": "google-ai-pro-launch-price",
+      "candidateFile": "candidates/google-ai-pro-launch-price.json",
+      "candidateId": "sha256:3b798c734fb7176f17ffdf7950a64bcc85ecdcea40a85e191a6c7a782644e83b",
+      "sourceId": "google-ai-launch-2025",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-01-15.json",
+        "entryIndex": 0,
+        "snapshotDate": "2026-01-15",
+        "asOf": "2026-01-15",
+        "verifiedOn": "2026-01-15",
+        "originalSourceUrl": "http://web.archive.org/web/20260115024110/https://gemini.google/subscriptions/"
+      },
+      "findings": [],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "READY_FOR_CATALOG_REVIEW",
+      "promotionTarget": "packages/catalog/data/plans/google-ai-pro.yaml"
+    },
+    {
+      "slug": "google-ai-ultra-original-price",
+      "candidateFile": "candidates/google-ai-ultra-original-price.json",
+      "candidateId": "sha256:cbc8ec83a6e798532b45b6c9bbd34645e4585472a5ec07e9e9c9ff0ec8e7734f",
+      "sourceId": "google-ai-ultra-launch-2025",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-01-15.json",
+        "entryIndex": 1,
+        "snapshotDate": "2026-01-15",
+        "asOf": "2026-01-15",
+        "verifiedOn": "2026-01-15",
+        "originalSourceUrl": "http://web.archive.org/web/20260115024110/https://gemini.google/subscriptions/"
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "unknown_plan"
+        }
+      ],
+      "collision": "UNMAPPABLE",
+      "recommendation": "NEEDS_MORE_EVIDENCE"
+    },
+    {
+      "slug": "openai-plus-gpt53-archive-allowance",
+      "candidateFile": "candidates/openai-plus-gpt53-archive-allowance.json",
+      "candidateId": "sha256:0b6e7f416b4e54657b7ec849a0375dc14f6770aff4103f159a1ccf22ca2f84f2",
+      "sourceId": "openai-gpt53-archive-20260401",
+      "evidenceClass": "observed",
+      "limitwatch": {
+        "path": "data/snapshots/2026-04-01.json",
+        "entryIndex": 3,
+        "snapshotDate": "2026-04-01",
+        "asOf": "2026-04-01",
+        "verifiedOn": "2026-04-01",
+        "originalSourceUrl": "http://web.archive.org/web/20260401185524/https://help.openai.com/en/articles/11909943-gpt-5-in-chatgpt",
+        "limitIndex": 0
+      },
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "effective_date_unestablished"
+        },
+        {
+          "severity": "error",
+          "code": "observed_not_published"
+        }
+      ],
+      "collision": "NEW_HISTORICAL_INFORMATION",
+      "recommendation": "REFERENCE_ONLY",
+      "promotionTarget": "packages/catalog/data/plans/openai-chatgpt-plus.yaml"
+    },
+    {
+      "slug": "openai-pro-100-introduction-price",
+      "candidateFile": "candidates/openai-pro-100-introduction-price.json",
+      "candidateId": "sha256:dcba738be79a57145da9057f0b87f28acf700e0fdf3ed9fc451779316d86b513",
+      "sourceId": "openai-release-notes-20260409",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-07-01.json",
+        "entryIndex": 2,
+        "snapshotDate": "2026-07-01",
+        "asOf": "2026-07-09",
+        "verifiedOn": "2026-07-09",
+        "originalSourceUrl": "https://openai.com/chatgpt/pricing/"
+      },
+      "findings": [],
+      "collision": "DUPLICATES_CURRENT_TRUTH",
+      "recommendation": "READY_FOR_CATALOG_REVIEW",
+      "promotionTarget": "packages/catalog/data/plans/openai-chatgpt-pro.yaml"
+    },
+    {
+      "slug": "openai-pro-100-standard-allowance",
+      "candidateFile": "candidates/openai-pro-100-standard-allowance.json",
+      "candidateId": "sha256:0cd91fdd738fb79246104f5249b4b971637afb2781a1f6774a019031db7390c8",
+      "sourceId": "openai-release-notes-20260409",
+      "evidenceClass": "published",
+      "limitwatch": {
+        "path": "data/snapshots/2026-07-01.json",
+        "entryIndex": 2,
+        "snapshotDate": "2026-07-01",
+        "asOf": "2026-07-09",
+        "verifiedOn": "2026-07-09",
+        "originalSourceUrl": "https://openai.com/chatgpt/pricing/",
+        "limitIndex": 0
+      },
+      "findings": [],
+      "collision": "NEW_HISTORICAL_INFORMATION",
+      "recommendation": "READY_FOR_CATALOG_REVIEW",
+      "promotionTarget": "packages/catalog/data/plans/openai-chatgpt-pro.yaml"
+    }
+  ]
+}

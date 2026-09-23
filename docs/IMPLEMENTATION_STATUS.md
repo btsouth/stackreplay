@@ -2,7 +2,18 @@
 
 ## Current milestone
 
-### Milestone 4H-B — catalog intelligence evidence contract (working tree)
+### Milestone 4H-C1 — selective historical LimitWatch review (working tree)
+
+Eleven historical research candidates and seven real, narrowly scoped source entries now sit under
+`data/catalog-intelligence/m4h-c1`, with a deterministic manifest and [review dossier](M4H_C1_REVIEW.md).
+Three receive a research recommendation of `READY_FOR_CATALOG_REVIEW`; the others retain unresolved
+date, identity, or archival-authority findings. No accepted provider, plan, model, pricing, version,
+constraint, alias, availability, Replay target, public page, or changelog was changed. Real-candidate
+tests exercise serialization, traceability, validation, source authority, dates, accepted-loader
+isolation, and unchanged Replay output. The independent historical audit's source and traceability
+corrections are applied; one targeted closure review remains. M4H-C1 remains uncommitted.
+
+### Milestone 4H-B — catalog intelligence evidence contract (locked baseline)
 
 A separate `@stackreplay/catalog/intelligence` export now defines source registry, evidence,
 candidate, source-health reference, deterministic identity/serialization, and pure validation
@@ -11,8 +22,8 @@ prove that even an accepted candidate leaves accepted catalog output and Replay 
 Targeted audit closure added complete published-truth evidence guards, effective-date evidence
 checks, artifact identity, unknown-timezone preservation, accepted-reference relationship checks,
 incomplete-value findings, versioned source health, and strict HTTPS URL validation.
-This is foundation work pending independent review; no watcher, migration, UI, catalog facts,
-commit, push, or deployment. See [catalog intelligence](CATALOG_INTELLIGENCE.md).
+This is the locked `f02a9112f17c7f9edbc204a7e80b200175b12697` foundation. No watcher, UI,
+accepted catalog fact, or deployment followed from it. See [catalog intelligence](CATALOG_INTELLIGENCE.md).
 
 ## Milestone 4E — browser workload intake
 

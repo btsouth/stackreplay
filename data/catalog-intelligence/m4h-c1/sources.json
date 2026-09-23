@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "google-ai-launch-2025",
+      "url": "https://blog.google/products-and-platforms/products/gemini/gemini-app-updates-io-2025/",
+      "providerId": "google",
+      "kind": "provider_changelog",
+      "authority": "provider_owned",
+      "claimKinds": ["subscription_price"],
+      "evidenceClasses": ["published"],
+      "retrievalMode": "http",
+      "status": "active",
+      "label": "Google AI Pro launch, May 20 2025"
+    },
+    {
+      "id": "google-ai-ultra-launch-2025",
+      "url": "https://blog.google/products-and-platforms/products/google-one/google-ai-ultra/",
+      "providerId": "google",
+      "kind": "provider_changelog",
+      "authority": "provider_owned",
+      "claimKinds": ["subscription_price"],
+      "evidenceClasses": ["published"],
+      "retrievalMode": "http",
+      "status": "active",
+      "label": "Google AI Ultra announcement, May 20 2025"
+    },
+    {
+      "id": "google-subscriptions-archive-20260401",
+      "url": "https://web.archive.org/web/20260401134314/https://gemini.google/subscriptions/",
+      "providerId": "google",
+      "kind": "archive",
+      "authority": "archival",
+      "claimKinds": ["subscription_price"],
+      "evidenceClasses": ["observed"],
+      "retrievalMode": "manual",
+      "status": "active",
+      "label": "Google subscriptions capture, April 1 2026"
+    },
+    {
+      "id": "openai-release-notes-20260409",
+      "url": "https://help.openai.com/en/articles/6825453-chatgpt-plus",
+      "providerId": "openai",
+      "kind": "provider_changelog",
+      "authority": "provider_owned",
+      "claimKinds": ["subscription_price", "qualitative_limit"],
+      "evidenceClasses": ["published"],
+      "retrievalMode": "http",
+      "status": "active",
+      "label": "ChatGPT release notes, April 9 2026"
+    },
+    {
+      "id": "openai-gpt53-archive-20260401",
+      "url": "https://web.archive.org/web/20260401185524/https://help.openai.com/en/articles/11909943-gpt-5-in-chatgpt",
+      "providerId": "openai",
+      "kind": "archive",
+      "authority": "archival",
+      "claimKinds": ["qualitative_limit"],
+      "evidenceClasses": ["observed"],
+      "retrievalMode": "manual",
+      "status": "active",
+      "label": "GPT-5.3 and GPT-5.4 help capture, April 1 2026"
+    },
+    {
+      "id": "anthropic-max-plan-docs",
+      "url": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+      "providerId": "anthropic",
+      "kind": "provider_docs",
+      "authority": "provider_owned",
+      "claimKinds": ["subscription_price", "qualitative_limit"],
+      "evidenceClasses": ["published"],
+      "retrievalMode": "http",
+      "status": "active",
+      "label": "Claude Max plan documentation"
+    },
+    {
+      "id": "anthropic-pro-plan-docs",
+      "url": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+      "providerId": "anthropic",
+      "kind": "provider_docs",
+      "authority": "provider_owned",
+      "claimKinds": ["qualitative_limit"],
+      "evidenceClasses": ["published"],
+      "retrievalMode": "http",
+      "status": "active",
+      "label": "Claude Pro plan documentation"
+    }
+  ]
+}
