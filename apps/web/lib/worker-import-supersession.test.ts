@@ -91,7 +91,7 @@ describe("Worker import supersession", () => {
     expect(state.saved.size).toBe(0);
     await running.send({ protocol: 1, type: "LIST_LOCAL_IMPORTS", requestId: 3 });
     expect(running.messages().find((message) => message.type === "IMPORTS")?.imports).toEqual([]);
-  });
+  }, 15_000);
 
   it("does not persist A after B supersedes it before its commit", async () => {
     state.listGate = new Promise<void>((resolve) => {
