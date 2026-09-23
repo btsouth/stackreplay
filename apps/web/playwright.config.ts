@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI);
+const workersRuntime = process.env.STACKREPLAY_E2E_RUNTIME === "workers";
 const port = 3100;
 const baseURL = `http://localhost:${port}`;
 
@@ -16,7 +17,9 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: `pnpm exec next start -p ${port}`,
+    command: workersRuntime
+      ? `pnpm run start:vinext --port ${port}`
+      : `pnpm exec next start -p ${port}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,

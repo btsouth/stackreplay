@@ -67,7 +67,11 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["recharts", "lucide-react"],
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // vinext's route matcher does not include the root path in /:path*.
+    return [
+      { source: "/", headers: securityHeaders },
+      { source: "/:path*", headers: securityHeaders },
+    ];
   },
 };
 

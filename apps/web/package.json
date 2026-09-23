@@ -12,7 +12,12 @@
     "test": "vitest run",
     "test:e2e": "node scripts/build-worker.mjs && playwright test",
     "clean": "rm -rf .next .turbo test-results playwright-report",
-    "build:worker": "node scripts/build-worker.mjs"
+    "build:worker": "node scripts/build-worker.mjs",
+    "dev:vinext": "vinext dev --port 3001",
+    "build:vinext": "turbo run build --filter=@stackreplay/web^... && node scripts/build-worker.mjs && vinext build && node scripts/build-cloudflare-headers.mjs",
+    "start:vinext": "wrangler dev --config dist/server/wrangler.json",
+    "deploy:vinext": "vinext-cloudflare deploy --name stackreplay --config dist/server/wrangler.json --skip-build",
+    "smoke:deployment": "node scripts/check-deployment.mjs"
   },
   "dependencies": {
     "@stackreplay/adapters": "workspace:*",
@@ -22,26 +27,34 @@
     "@stackreplay/share": "workspace:*",
     "@stackreplay/test-fixtures": "workspace:*",
     "@stackreplay/ui": "workspace:*",
+    "@vinext/cloudflare": "1.0.0-beta.9",
     "geist": "^1.7.2",
     "lucide-react": "^1.47.0",
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-server-dom-webpack": "^19.3.0",
     "recharts": "^3.2.1",
+    "vinext": "1.0.0-beta.11",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/vite-plugin": "^1.57.3",
     "@playwright/test": "^1.63.0",
     "@stackreplay/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.13.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-rsc": "^0.5.35",
     "fflate": "^0.8.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.1"
-  }
+    "vitest": "^5.0.1",
+    "wrangler": "^4.136.3"
+  },
+  "type": "module"
 }
