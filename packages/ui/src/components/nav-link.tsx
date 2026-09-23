@@ -26,7 +26,7 @@ export function NavLink({ href, label, size = "sm", onNavigate }: NavLinkProps) 
       className={cn(
         "block rounded-md transition-colors duration-150 ease-out",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        size === "md" ? "px-3 py-3 text-sm" : "px-2.5 py-1.5 text-[13px]",
+        size === "md" ? "px-3 py-3 text-sm" : "inline-flex min-h-11 items-center px-3 text-sm",
         active
           ? "bg-surface-2 font-medium text-foreground shadow-[inset_2px_0_0_0_var(--color-accent)]"
           : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",

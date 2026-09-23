@@ -7,17 +7,23 @@ import { NavLink } from "./nav-link";
 
 export interface ApplicationShellProps {
   children: ReactNode;
-  /** Header right slot: theme controls now; user/sync state in later milestones. */
+  logoSrc: { light: string; dark: string };
+  logoWidth: number;
+  logoHeight: number;
+  /** Header right slot for the existing theme control. */
   right?: ReactNode;
   className?: string;
 }
 
-/**
- * ApplicationShell (spec point 41): quiet narrow sidebar, restrained header,
- * dense main surface (application width ~1440px, spec point 37). Navigation
- * is deliberately not the visual focus.
- */
-export function ApplicationShell({ children, right, className }: ApplicationShellProps) {
+/** The local workspace shares one brand, navigation model and content rail. */
+export function ApplicationShell({
+  children,
+  logoSrc,
+  logoWidth,
+  logoHeight,
+  right,
+  className,
+}: ApplicationShellProps) {
   return (
     <div className={cn("flex min-h-dvh flex-col bg-background text-foreground", className)}>
       <a
@@ -30,39 +36,49 @@ export function ApplicationShell({ children, right, className }: ApplicationShel
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-3 sm:px-4 lg:px-[22px]">
-        <MobileNav />
-        <Link
-          href={appBrand.href}
-          className={[
-            "inline-flex min-h-11 items-center rounded-sm text-sm font-medium tracking-tight text-foreground",
-            "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          ].join(" ")}
-        >
-          {appBrand.name}
-        </Link>
-        <div className="ml-auto flex items-center gap-2">{right}</div>
-      </header>
-      <div className="flex flex-1">
-        <aside className="hidden w-52 shrink-0 border-r border-border lg:block">
-          <nav aria-label="Primary" className="sticky top-12 p-3">
-            <ul className="flex flex-col gap-0.5">
-              {appNavItems.map((item) => (
-                <li key={item.href}>
-                  <NavLink href={item.href} label={item.label} />
-                </li>
-              ))}
-            </ul>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+        <div className="sr-page-rail flex h-16 items-center gap-3 sm:h-[4.5rem]">
+          <Link
+            href={appBrand.href}
+            aria-label="StackReplay home"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            {/* biome-ignore lint/performance/noImgElement: approved raster lockup is served as a static asset */}
+            <img
+              src={logoSrc.light}
+              alt="StackReplay"
+              width={logoWidth}
+              height={logoHeight}
+              className="h-14 w-40 object-cover object-left dark:hidden sm:h-16 sm:w-[182px]"
+            />
+            {/* biome-ignore lint/performance/noImgElement: approved raster lockup is served as a static asset */}
+            <img
+              src={logoSrc.dark}
+              alt=""
+              aria-hidden="true"
+              width={logoWidth}
+              height={logoHeight}
+              className="hidden h-14 w-40 object-cover object-left dark:block sm:h-16 sm:w-[182px]"
+            />
+          </Link>
+          <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 md:flex">
+            {appNavItems.map((item) => (
+              <NavLink key={item.href} href={item.href} label={item.label} />
+            ))}
           </nav>
-        </aside>
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className="min-w-0 flex-1 px-4 py-6 outline-none lg:px-8 lg:py-8"
-        >
-          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
-        </main>
-      </div>
+          <div className="ml-auto flex items-center gap-1 md:ml-2">
+            {right}
+            <MobileNav logoSrc={logoSrc} logoWidth={logoWidth} logoHeight={logoHeight} />
+          </div>
+        </div>
+      </header>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="sr-page-rail min-w-0 flex-1 py-8 outline-none sm:py-10"
+      >
+        {children}
+      </main>
     </div>
   );
 }

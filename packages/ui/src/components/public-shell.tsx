@@ -38,7 +38,7 @@ export function PublicShell({
   return (
     <div className={cn("flex min-h-dvh flex-col bg-background text-foreground", className)}>
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="relative mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <div className="sr-page-rail relative flex h-16 items-center gap-3 sm:h-[4.5rem]">
           <Link
             href="/"
             aria-label="StackReplay home"
@@ -50,7 +50,7 @@ export function PublicShell({
               alt="StackReplay"
               width={logoWidth}
               height={logoHeight}
-              className="h-7 w-auto dark:hidden"
+              className="h-14 w-40 object-cover object-left dark:hidden sm:h-16 sm:w-[182px]"
             />
             <img
               src={logoSrc.dark}
@@ -58,7 +58,7 @@ export function PublicShell({
               aria-hidden="true"
               width={logoWidth}
               height={logoHeight}
-              className="hidden h-7 w-auto dark:block"
+              className="hidden h-14 w-40 object-cover object-left dark:block sm:h-16 sm:w-[182px]"
             />
           </Link>
           <div className="ml-auto flex items-center">
@@ -67,12 +67,16 @@ export function PublicShell({
         </div>
       </header>
 
-      <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 outline-none">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="sr-page-rail min-w-0 flex-1 py-8 outline-none sm:py-10"
+      >
         {children}
       </main>
 
       <footer className="border-t border-border bg-surface-2">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+        <div className="sr-page-rail py-10">
           <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
             <div className="max-w-sm">
               <img
@@ -80,7 +84,7 @@ export function PublicShell({
                 alt="StackReplay"
                 width={footerLogoWidth}
                 height={footerLogoHeight}
-                className="h-8 w-auto dark:hidden"
+                className="h-16 w-[184px] object-cover object-left dark:hidden"
               />
               <img
                 src={footerLogoSrc.dark}
@@ -88,7 +92,7 @@ export function PublicShell({
                 aria-hidden="true"
                 width={footerLogoWidth}
                 height={footerLogoHeight}
-                className="hidden h-8 w-auto dark:block"
+                className="hidden h-16 w-[184px] object-cover object-left dark:block"
               />
               <p className="mt-4 text-sm text-muted-foreground">
                 Local-first workload replay for AI coding subscriptions. Your workload, any stack,

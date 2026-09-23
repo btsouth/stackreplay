@@ -93,7 +93,11 @@ export default function MethodologyPage() {
 
       <div className="flex flex-col gap-8">
         {sections.map((section) => (
-          <section key={section.heading} className="flex flex-col gap-2">
+          <section
+            key={section.heading}
+            id={section.heading === "What a replay does not do" ? "privacy" : undefined}
+            className="flex scroll-mt-24 flex-col gap-2"
+          >
             <h2 className="text-lg font-medium text-foreground">{section.heading}</h2>
             {section.body.map((paragraph) => (
               <p key={paragraph.slice(0, 32)} className="max-w-3xl text-sm text-muted-foreground">

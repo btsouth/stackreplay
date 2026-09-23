@@ -69,7 +69,11 @@ export function ImportSurface({
   const [visibleOutcomes, setVisibleOutcomes] = useState(30);
   const [imports, setImports] = useState<ImportRecord[]>(initialImports);
   const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState({ source: "", folder: "", workload: "" });
   const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setReady(true), []);
 
   const refreshImports = useCallback(async () => {
     try {
@@ -259,8 +263,12 @@ export function ImportSurface({
   const activePhaseIndex = PHASE_ORDER.indexOf(phase === "idle" ? "reading" : phase);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start">
-      <div className="flex flex-col gap-6">
+    <div
+      className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start"
+      data-testid="intake-surface"
+      data-ready={ready}
+    >
+      <div className="flex min-w-0 flex-col gap-6">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
             target, not a control. The file input inside it is the keyboard and
             screen-reader path; dragging is an additional convenience. */}
@@ -275,8 +283,8 @@ export function ImportSurface({
           data-testid="import-dropzone"
           data-drag-active={dragActive ? "true" : "false"}
           className={[
-            "rounded-lg border border-dashed p-8 transition-colors",
-            dragActive ? "border-accent bg-surface-2" : "border-border-strong bg-surface",
+            "border border-dashed p-5 transition-colors sm:p-6",
+            dragActive ? "border-accent bg-surface-2" : "border-border-strong bg-transparent",
           ].join(" ")}
         >
           <div className="flex flex-col gap-4">
@@ -289,39 +297,81 @@ export function ImportSurface({
             </div>
             <div className="grid gap-3">
               <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
-                <label htmlFor={sourceInputId} className="text-xs font-medium">
+                <label htmlFor={sourceInputId} className="text-sm font-medium">
                   Source files or ZIP
                 </label>
-                <input
-                  id={sourceInputId}
-                  type="file"
-                  multiple
-                  accept=".json,.jsonl,.zip,application/json,application/zip"
-                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm"
-                  data-testid="source-file-input"
-                  onChange={(event) => {
-                    void importSources(Array.from(event.target.files ?? []));
-                    event.target.value = "";
-                  }}
-                />
+                <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+                  <span
+                    className="min-w-0 text-foreground [overflow-wrap:anywhere]"
+                    id={`${sourceInputId}-selection`}
+                  >
+                    {selectedFiles.source || "Choose files or ZIP"}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-xs text-accent">
+                    Browse
+                  </span>
+                  <input
+                    id={sourceInputId}
+                    type="file"
+                    disabled={!ready}
+                    multiple
+                    accept=".json,.jsonl,.zip,application/json,application/zip"
+                    aria-describedby={`${sourceInputId}-selection`}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    data-testid="source-file-input"
+                    onChange={(event) => {
+                      const files = Array.from(event.target.files ?? []);
+                      setSelectedFiles((current) => ({
+                        ...current,
+                        source:
+                          files.length === 1
+                            ? (files[0]?.name ?? "")
+                            : `${files.length} files selected`,
+                      }));
+                      void importSources(files);
+                      event.target.value = "";
+                    }}
+                  />
+                </div>
               </div>
               <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
-                <label htmlFor={folderInputId} className="text-xs font-medium">
+                <label htmlFor={folderInputId} className="text-sm font-medium">
                   Selected folder
                 </label>
-                <input
-                  id={folderInputId}
-                  ref={folderInputRef}
-                  type="file"
-                  multiple
-                  {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
-                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm"
-                  data-testid="source-folder-input"
-                  onChange={(event) => {
-                    void importSources(Array.from(event.target.files ?? []));
-                    event.target.value = "";
-                  }}
-                />
+                <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+                  <span
+                    className="min-w-0 text-foreground [overflow-wrap:anywhere]"
+                    id={`${folderInputId}-selection`}
+                  >
+                    {selectedFiles.folder || "Choose folder"}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-xs text-accent">
+                    Browse
+                  </span>
+                  <input
+                    id={folderInputId}
+                    ref={folderInputRef}
+                    type="file"
+                    disabled={!ready}
+                    multiple
+                    {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
+                    aria-describedby={`${folderInputId}-selection`}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    data-testid="source-folder-input"
+                    onChange={(event) => {
+                      const files = Array.from(event.target.files ?? []);
+                      setSelectedFiles((current) => ({
+                        ...current,
+                        folder:
+                          files.length === 0
+                            ? ""
+                            : `${files[0]?.webkitRelativePath?.split("/")[0] || "Folder"} · ${files.length} files selected`,
+                      }));
+                      void importSources(files);
+                      event.target.value = "";
+                    }}
+                  />
+                </div>
               </div>
               {!folderSupported ? (
                 <p className="text-xs text-muted-foreground">
@@ -329,20 +379,37 @@ export function ImportSurface({
                 </p>
               ) : null}
               <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
-                <label htmlFor={inputId} className="text-xs font-medium">
+                <label htmlFor={inputId} className="text-sm font-medium">
                   StackReplay workload
                 </label>
-                <input
-                  id={inputId}
-                  type="file"
-                  accept=".stackreplay.json,.json,application/json"
-                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm file:mr-3 file:rounded-sm file:border-0 file:bg-surface-2 file:px-2 file:py-1 file:text-xs file:font-medium"
-                  data-testid="import-file-input"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file !== undefined) void importFile(file);
-                  }}
-                />
+                <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+                  <span
+                    className="min-w-0 text-foreground [overflow-wrap:anywhere]"
+                    id={`${inputId}-selection`}
+                  >
+                    {selectedFiles.workload || "Choose workload file"}
+                  </span>
+                  <span aria-hidden="true" className="shrink-0 text-xs text-accent">
+                    Browse
+                  </span>
+                  <input
+                    id={inputId}
+                    type="file"
+                    disabled={!ready}
+                    accept=".stackreplay.json,.json,application/json"
+                    aria-describedby={`${inputId}-selection`}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    data-testid="import-file-input"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file !== undefined) {
+                        setSelectedFiles((current) => ({ ...current, workload: file.name }));
+                        void importFile(file);
+                      }
+                      event.target.value = "";
+                    }}
+                  />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
                 Use an existing CLI export here, or drop selected files above. If your browser
@@ -352,6 +419,7 @@ export function ImportSurface({
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <input
                 type="checkbox"
+                disabled={!ready}
                 checked={saveLocal}
                 onChange={(event) => setSaveLocal(event.target.checked)}
               />
@@ -365,7 +433,7 @@ export function ImportSurface({
           </div>
         </div>
 
-        <Card>
+        <Card className="rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none">
           <CardContent className="flex flex-col gap-4 p-5">
             <div>
               <h2 className="text-sm font-medium">Demo workloads</h2>
@@ -380,7 +448,7 @@ export function ImportSurface({
                   type="button"
                   variant="secondary"
                   size="sm"
-                  disabled={busy}
+                  disabled={busy || !ready}
                   data-testid={`demo-${presetId}`}
                   onClick={() => void importDemo(presetId)}
                 >
@@ -392,7 +460,10 @@ export function ImportSurface({
           </CardContent>
         </Card>
 
-        <Card aria-busy={busy}>
+        <Card
+          aria-busy={busy}
+          className="rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none"
+        >
           <CardContent className="flex flex-col gap-4 p-5">
             <h2 className="text-sm font-medium">Import progress</h2>
             <p className="sr-only" role="status">
@@ -482,12 +553,12 @@ export function ImportSurface({
         ) : null}
 
         {record !== undefined ? (
-          <Card data-testid="import-summary" className="border-positive/40">
-            <CardContent className="flex flex-col gap-5 p-5">
+          <Card data-testid="import-summary" className="min-w-0 border-positive/40">
+            <CardContent className="flex min-w-0 flex-col gap-5 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-sm font-medium">StackReplay understood your file</h2>
-                  <p className="mt-1 break-words text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">
                     {record.label} ·{" "}
                     {record.savedLocally === false
                       ? "temporary until reload"
@@ -564,7 +635,7 @@ export function ImportSurface({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-6">
         <Card className="bg-surface-2">
           <CardContent className="flex flex-col gap-3 p-5">
             <h2 className="text-sm font-medium">Processed locally in your browser</h2>
@@ -587,7 +658,7 @@ export function ImportSurface({
 
         <Card>
           <CardContent className="flex flex-col gap-4 p-5">
-            <div className="flex items-baseline justify-between gap-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-sm font-medium">Local workloads</h2>
               {imports.length > 0 ? (
                 <Button
@@ -607,11 +678,16 @@ export function ImportSurface({
               </p>
             ) : (
               <ul className="flex flex-col divide-y divide-border" data-testid="stored-imports">
-                {imports.map((entry) => (
-                  <li key={entry.id} className="flex items-center justify-between gap-3 py-2">
+                {imports.map((entry, index) => (
+                  <li
+                    key={entry.id}
+                    className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
                     <div className="min-w-0">
-                      <p className="truncate text-sm">{entry.label}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="break-words text-sm font-medium [overflow-wrap:anywhere]">
+                        {entry.label}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                         {entry.eventCount.toLocaleString("en-US")} events ·{" "}
                         {entry.savedLocally === false
                           ? "temporary until reload"
@@ -619,10 +695,14 @@ export function ImportSurface({
                         · {new Date(entry.createdAt).toISOString().slice(0, 10)}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div
+                      className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0 sm:items-center"
+                      data-testid="stored-import-actions"
+                    >
                       <Link
                         href={replayHref(entry.id, initialTarget)}
-                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                        aria-label={`Replay ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
+                        className={`${buttonVariants({ variant: "ghost", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
                       >
                         Replay
                       </Link>
@@ -630,7 +710,9 @@ export function ImportSurface({
                         type="button"
                         variant="ghost"
                         size="sm"
+                        className="min-h-11 border border-negative/40 text-negative sm:min-h-0"
                         data-testid={`delete-import-${entry.id}`}
+                        aria-label={`Delete ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
                         onClick={() => void removeImport(entry.id)}
                       >
                         Delete
@@ -639,6 +721,8 @@ export function ImportSurface({
                         type="button"
                         variant="ghost"
                         size="sm"
+                        className="min-h-11 sm:min-h-0"
+                        aria-label={`Export ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
                         onClick={() => void exportWorkload(entry.id)}
                       >
                         Export
@@ -663,7 +747,7 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
       ? `${summary.firstEventAt.slice(0, 10)} to ${summary.lastEventAt.slice(0, 10)}`
       : "unknown";
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex min-w-0 flex-col gap-5">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Metric label="Events" value={summary.eventCount.toLocaleString("en-US")} size="lg" />
         <Metric
@@ -686,7 +770,9 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
           }
         />
       </div>
-      <p className="text-xs text-muted-foreground">Activity range: {range}</p>
+      <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+        Activity range: {range}
+      </p>
 
       <div>
         <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -694,9 +780,9 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
         </h3>
         <ul className="mt-2 flex flex-col gap-1.5 text-xs" data-testid="intake-models">
           {summary.models.slice(0, 8).map((model) => (
-            <li key={model.rawName} className="flex flex-wrap justify-between gap-2">
-              <span className="font-mono">{model.rawName}</span>
-              <span className="text-muted-foreground">
+            <li key={model.rawName} className="flex min-w-0 flex-wrap justify-between gap-2">
+              <span className="min-w-0 font-mono [overflow-wrap:anywhere]">{model.rawName}</span>
+              <span className="min-w-0 text-muted-foreground [overflow-wrap:anywhere]">
                 {model.events.toLocaleString("en-US")} events ·{" "}
                 {model.canonicalId === undefined
                   ? "canonical identity unknown"
@@ -724,9 +810,9 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
               summary.usageSources.map((source) => (
                 <li
                   key={source.adapterId}
-                  className="flex items-baseline justify-between gap-3 text-sm"
+                  className="flex min-w-0 flex-wrap items-baseline justify-between gap-3 text-sm"
                 >
-                  <span>{source.name}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{source.name}</span>
                   <span className="font-mono tabular-nums text-muted-foreground">
                     {source.events.toLocaleString("en-US")} events
                   </span>
@@ -748,9 +834,9 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
               summary.orchestration.map((entry) => (
                 <li
                   key={entry.harnessId}
-                  className="flex items-baseline justify-between gap-3 text-sm"
+                  className="flex min-w-0 flex-wrap items-baseline justify-between gap-3 text-sm"
                 >
-                  <span>{entry.name}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{entry.name}</span>
                   <span className="font-mono tabular-nums text-muted-foreground">
                     {entry.precise
                       ? `${entry.sessions.toLocaleString("en-US")} sessions attributed`
@@ -768,7 +854,10 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
       </div>
 
       {summary.otherSources.length > 0 ? (
-        <p className="text-xs text-muted-foreground" data-testid="other-sources">
+        <p
+          className="text-xs text-muted-foreground [overflow-wrap:anywhere]"
+          data-testid="other-sources"
+        >
           Detected with no events in this file:{" "}
           {summary.otherSources.map((source) => source.name).join(", ")}.
         </p>

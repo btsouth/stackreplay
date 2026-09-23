@@ -18,6 +18,7 @@ import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { brandAssets } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Design system" };
 
@@ -48,7 +49,12 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
  */
 export default function DesignPage() {
   return (
-    <ApplicationShell right={<ThemeToggle />}>
+    <ApplicationShell
+      logoSrc={brandAssets.navbar}
+      logoWidth={brandAssets.navbar.width}
+      logoHeight={brandAssets.navbar.height}
+      right={<ThemeToggle />}
+    >
       <div className="flex max-w-3xl flex-col gap-10">
         <header className="flex flex-col gap-1">
           <h1 className="text-lg font-medium tracking-tight text-foreground">Design system</h1>

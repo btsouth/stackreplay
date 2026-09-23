@@ -48,7 +48,7 @@ export function CostCounterfactual({
       }`}
       data-testid="cost-counterfactual"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
         <SectionIndex index={index} label="Cost counterfactual" />
         <MicroLabel>
           {economics.targetCostEstablished
@@ -78,10 +78,10 @@ export function CostCounterfactual({
               </span>
             </div>
           ))}
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-border-strong pt-3">
+          <div className="grid min-w-0 gap-2 border-t border-border-strong pt-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,auto)] sm:items-baseline">
             <span className="flex min-w-0 flex-col">
               <span className="text-xs text-foreground">Counterfactual at list price</span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {pricing === undefined
                   ? "priceability was not reported for this target"
                   : `${formatCount(pricing.pricedEvents) ?? "unknown"} of ${
@@ -90,7 +90,7 @@ export function CostCounterfactual({
               </span>
             </span>
             <span
-              className="font-mono text-lg tabular-nums text-foreground"
+              className="min-w-0 break-words font-mono text-lg tabular-nums text-foreground sm:text-right"
               data-testid="api-total"
               title={economics.targetCost}
             >
@@ -101,14 +101,14 @@ export function CostCounterfactual({
           </div>
           {pricing?.reason === undefined ? null : (
             <p
-              className="text-[11px] leading-relaxed text-muted-foreground"
+              className="text-xs leading-relaxed text-muted-foreground"
               data-testid="cost-price-note"
             >
               {pricing.reason}
             </p>
           )}
           {economics.targetCostEstablished ? null : (
-            <p className="text-[11px] leading-relaxed text-warning" data-testid="cost-incomplete">
+            <p className="text-xs leading-relaxed text-warning" data-testid="cost-incomplete">
               {incompleteReason}. No total is reported for this workload.
             </p>
           )}
@@ -139,17 +139,17 @@ export function CostCounterfactual({
                 : (formatMoney(economics.overageCost) ?? "unknown")
             }
           />
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-border-strong pt-3">
+          <div className="grid min-w-0 gap-2 border-t border-border-strong pt-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,auto)] sm:items-baseline">
             <span className="flex min-w-0 flex-col">
               <span className="text-xs text-foreground">Simulated target cost</span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {economics.costBasis === "fixed_plan_price_plus_overage"
                   ? "plan price plus billed overage"
                   : "plan price only"}
               </span>
             </span>
             <span
-              className="font-mono text-lg tabular-nums text-foreground"
+              className="min-w-0 break-words font-mono text-lg tabular-nums text-foreground sm:text-right"
               data-testid="subscription-total"
               title={economics.targetCost}
             >
@@ -167,17 +167,14 @@ export function CostCounterfactual({
             />
           )}
           {economics.targetCostEstablished ? null : (
-            <p className="text-[11px] leading-relaxed text-warning" data-testid="cost-incomplete">
+            <p className="text-xs leading-relaxed text-warning" data-testid="cost-incomplete">
               {incompleteReason}. No total is reported for this workload.
             </p>
           )}
         </div>
       )}
       {consumptionOpen && economics.targetCostEstablished ? (
-        <p
-          className="text-[11px] leading-relaxed text-muted-foreground"
-          data-testid="cost-consumption"
-        >
+        <p className="text-xs leading-relaxed text-muted-foreground" data-testid="cost-consumption">
           {economics.consumptionReading}.
         </p>
       ) : null}
@@ -187,7 +184,7 @@ export function CostCounterfactual({
       {economics.ratios.length === 0 || !economics.targetCostEstablished ? null : (
         <ul className="flex flex-wrap gap-x-6 gap-y-1">
           {economics.ratios.map((ratio) => (
-            <li className="text-[11px] text-muted-foreground" key={ratio.name}>
+            <li className="text-xs text-muted-foreground" key={ratio.name}>
               <StatusWord tone="neutral">{ratio.name}</StatusWord>{" "}
               <span className="font-mono tabular-nums text-foreground">{ratio.value}</span>
             </li>
@@ -197,8 +194,8 @@ export function CostCounterfactual({
       {projection.warnings.length === 0 ? null : (
         <ul className="flex flex-col gap-1 border-t border-border pt-3" data-testid="cost-warnings">
           {projection.warnings.map((warning) => (
-            <li className="text-[11px] leading-relaxed text-muted-foreground" key={warning.code}>
-              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-warning">
+            <li className="text-xs leading-relaxed text-muted-foreground" key={warning.code}>
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-warning">
                 {warning.code.replace(/_/gu, " ").toLowerCase()}
               </span>{" "}
               {warning.message}

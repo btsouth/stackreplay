@@ -13,16 +13,16 @@
   color-scheme: light;
 
   /* Surfaces: neutral, low-contrast separation. */
-  --background: oklch(0.985 0.002 264);
-  --surface: oklch(1 0 0);
-  --surface-2: oklch(0.965 0.003 264);
-  --border: oklch(0.9 0.004 264);
-  --border-strong: oklch(0.8 0.006 264);
-  --control-border: oklch(0.55 0.006 264);
+  --background: oklch(0.978 0.008 83);
+  --surface: oklch(0.995 0.004 83);
+  --surface-2: oklch(0.955 0.011 83);
+  --border: oklch(0.87 0.012 83);
+  --border-strong: oklch(0.76 0.015 83);
+  --control-border: oklch(0.54 0.014 83);
 
   /* Text */
-  --foreground: oklch(0.22 0.012 264);
-  --muted-foreground: oklch(0.47 0.012 258);
+  --foreground: oklch(0.22 0.012 67);
+  --muted-foreground: oklch(0.44 0.014 67);
 
   /* Accent: interaction only, never decoration. */
   --accent: oklch(0.5 0.16 258);

@@ -51,7 +51,7 @@ export function ConstraintTrace({
             rejects nothing at the allowance level, so the panel says so
             instead of rendering an empty table. */}
         <p
-          className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+          className="max-w-prose text-xs leading-relaxed text-muted-foreground"
           data-testid="api-no-constraints"
         >
           A Direct API target declares no allowance, no reset and no admission rule, so there is no
@@ -80,13 +80,13 @@ export function ConstraintTrace({
         </div>
         {pricing?.reason === undefined ? null : (
           <p
-            className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+            className="max-w-prose text-xs leading-relaxed text-muted-foreground"
             data-testid="api-pricing-reason"
           >
             {pricing.reason}
           </p>
         )}
-        <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
           {projection.economics.targetCostEstablished
             ? "The engine priced every event it could decide, so the total below covers this workload. "
             : "The engine reported no total for this workload: part of the demand is unpriced or unserved, and a subtotal would present part of it as the whole. "}
@@ -124,7 +124,7 @@ export function ConstraintTrace({
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="flex min-w-0 flex-col">
                 <span className="text-xs text-foreground">{constraint.label}</span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {constraint.window} · {constraint.exceed.replace(/_/gu, " ")}
                 </span>
               </span>
@@ -139,7 +139,7 @@ export function ConstraintTrace({
                 <ConstraintStatus status={constraint.status} />
               </span>
             </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
               <span>
                 {formatUnit(constraint.attemptedUnits, constraint.unit) ?? "unknown"}{" "}
                 {unitNoun(constraint.unit)} attempted
@@ -178,7 +178,7 @@ export function ConstraintTrace({
         ))}
       </ul>
       {crossings.length === 0 ? (
-        <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
           This demand stayed inside every window the target declares. That is a statement about the
           rules that were modelled, not about the whole account.
         </p>
@@ -233,11 +233,11 @@ function CrossingRow({
         <span className="flex min-w-0 flex-col">
           <span className="text-xs text-foreground">
             {crossing.constraintLabel}
-            <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
+            <span className="ml-2 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">
               {crossing.kind === "rolling_window_exceeded" ? "rolling window" : "calendar window"}
             </span>
           </span>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             from {formatInstant(crossing.startedAt) ?? "an unrecorded instant"}
             {crossing.endedAt === "" ? "" : ` to ${formatInstant(crossing.endedAt)}`}
           </span>
@@ -251,7 +251,7 @@ function CrossingRow({
         </span>
       </summary>
       <dl
-        className="grid grid-cols-2 gap-x-6 gap-y-2 pb-2 pt-1 text-[11px] sm:grid-cols-3"
+        className="grid grid-cols-2 gap-x-6 gap-y-2 pb-2 pt-1 text-xs sm:grid-cols-3"
         data-testid={`crossing-detail-${crossing.index}`}
       >
         <CrossingFact

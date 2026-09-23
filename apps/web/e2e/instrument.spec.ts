@@ -13,6 +13,27 @@ const INSTRUMENT = '[data-testid="replay-instrument"]';
 const SELECTED_TARGET = "exact-subscription";
 
 test.describe("the replay instrument", () => {
+  test("keeps every numbered section in narrative DOM order", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await expect(page.getByTestId("replay-instrument")).toHaveAttribute("data-phase", "settled");
+    expect(
+      await page
+        .getByTestId("replay-instrument")
+        .locator("[data-section-index]")
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-section-index"))),
+    ).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+
+    await importDemo(page, "moderate");
+    await page.goto("/app/replay");
+    await runReplay(page, "example-cloud-pro");
+    expect(
+      await page
+        .getByTestId("replay-result")
+        .locator("[data-section-index]")
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-section-index"))),
+    ).toEqual(["01", "02", "03", "04", "05", "06", "07", "08"]);
+  });
   test("settles on a result for the selected target", async ({ page }) => {
     await page.goto("/");
     const instrument = page.locator(INSTRUMENT);
@@ -32,10 +53,16 @@ test.describe("the replay instrument", () => {
     await trigger.focus();
     await expect(trigger).toBeFocused();
 
-    // ArrowDown opens the list and focuses the option the run is currently using.
-    await page.keyboard.press("ArrowDown");
     const list = page.locator('[data-testid="target-selector-list"]');
-    await expect(list).toBeVisible();
+    // The server renders the control before its client handler is attached.
+    // Retry the real key action until hydration makes it operable.
+    await expect
+      .poll(async () => {
+        await trigger.focus();
+        await page.keyboard.press("ArrowDown");
+        return list.isVisible();
+      })
+      .toBe(true);
     const option = list.locator('[role="option"][aria-selected="true"]');
     await expect(option).toBeFocused();
 

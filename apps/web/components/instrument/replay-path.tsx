@@ -65,7 +65,7 @@ export function ReplayPath({
             />
             <span className="flex min-w-0 flex-col">
               <span
-                className={`font-mono text-[10px] uppercase tracking-[0.18em] ${
+                className={`font-mono text-[11px] uppercase tracking-[0.18em] ${
                   active ? "text-accent" : reached ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -76,7 +76,7 @@ export function ReplayPath({
                   </span>
                 ) : null}
               </span>
-              <span className="text-[11px] leading-snug text-muted-foreground">
+              <span className="text-xs leading-snug text-muted-foreground">
                 {PHASE_CAPTIONS[step.phase]}
               </span>
             </span>

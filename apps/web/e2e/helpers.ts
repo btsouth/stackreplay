@@ -8,6 +8,13 @@ export type DemoPreset = (typeof DEMO_PRESETS)[number];
 export async function gotoImport(page: Page): Promise<void> {
   await page.goto("/app/import");
   await expect(page.getByTestId("import-dropzone")).toBeVisible();
+  await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+}
+
+/** Waits until the Replay route's embedded intake can accept the first action. */
+export async function gotoReplayImport(page: Page): Promise<void> {
+  await page.goto("/app/replay");
+  await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
 
 /** Imports a deterministic demo workload and waits for the summary. */

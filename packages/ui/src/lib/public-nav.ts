@@ -62,7 +62,7 @@ export const publicFooterGroups = [
       { label: "Methodology", href: "/methodology" },
       { label: "Catalog changelog", href: "/changelog" },
       { label: "Privacy model", href: "/methodology#privacy" },
-      { label: "Catalog sources", href: "/methodology#catalog" },
+      { label: "Catalog sources", href: "/plans" },
     ],
   },
   {

@@ -64,16 +64,16 @@ export function HomepageDemo({
                   <span className="flex items-center gap-2">
                     <span className="truncate text-sm text-foreground">{target.label}</span>
                     {target.translated ? (
-                      <span className="border border-accent px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
+                      <span className="border border-accent px-1.5 py-px font-mono text-[11px] uppercase tracking-[0.14em] text-accent">
                         Translated
                       </span>
                     ) : null}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">{target.detail}</span>
+                  <span className="text-xs text-muted-foreground">{target.detail}</span>
                 </span>
                 <span className="col-span-2 flex min-w-0 flex-col gap-0.5 lg:col-span-1">
                   <span className="text-xs text-foreground">{projection.headline.statement}</span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                  <span className="font-mono text-xs text-muted-foreground">
                     {projection.target.reference} ·{" "}
                     {projection.replayability.class ?? "replayability not established"}
                   </span>
@@ -97,7 +97,7 @@ export function HomepageDemo({
                 <span className="col-span-2 lg:col-span-1">
                   <button
                     aria-pressed={active}
-                    className="w-fit border border-border-strong px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-accent aria-pressed:text-accent"
+                    className="w-fit border border-border-strong px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-accent aria-pressed:text-accent"
                     data-testid={`load-target-${target.id}`}
                     onClick={() => setSelectedId(target.id)}
                     type="button"
@@ -109,7 +109,7 @@ export function HomepageDemo({
             );
           })}
         </ul>
-        <p className="flex flex-wrap items-baseline gap-3 text-[11px] text-muted-foreground">
+        <p className="flex flex-wrap items-baseline gap-3 text-xs text-muted-foreground">
           <StatusWord tone="neutral">no recommendation</StatusWord>
           These rows describe what each target would have done with this demand. StackReplay does
           not rank them or tell you which one to buy.

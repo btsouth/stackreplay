@@ -350,7 +350,7 @@ export function ReplaySurface({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-8">
       {requestedWorkloadMissing ? (
         <Card role="alert" className="border-warning/40" data-testid="workload-missing">
           <CardContent className="flex flex-col gap-2 p-5">
@@ -374,8 +374,8 @@ export function ReplaySurface({
         }}
       />
 
-      <Card>
-        <CardContent className="flex flex-col gap-5 p-5">
+      <Card className="rounded-none border-x-0 border-b-0 bg-transparent p-0">
+        <CardContent className="flex flex-col gap-5 py-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-sm font-medium">Execution target</h2>
@@ -676,23 +676,26 @@ function WorkloadStrip({
       ? `${summary.firstEventAt.slice(0, 10)} to ${summary.lastEventAt.slice(0, 10)}`
       : "unknown";
   return (
-    <Card data-testid="workload-strip">
-      <CardContent className="flex flex-col gap-4 p-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+    <Card
+      data-testid="workload-strip"
+      className="min-w-0 rounded-none border-x-0 border-b-0 bg-transparent p-0"
+    >
+      <CardContent className="flex min-w-0 flex-col gap-4 py-5">
+        <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 max-w-full">
             <h2 className="text-sm font-medium">Your actual workload</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">
               {workload.label} · {range}
             </p>
           </div>
           {imports.length > 1 ? (
-            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            <label className="flex w-full min-w-0 max-w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto sm:max-w-xs">
               Stored workload
               <select
                 value={workload.id}
                 data-testid="workload-select"
                 onChange={(event) => onSelect(event.target.value)}
-                className="rounded-md border border-control-border bg-surface px-2 py-1.5 text-sm"
+                className="block w-full min-w-0 max-w-full rounded-md border border-control-border bg-surface px-2 py-1.5 text-sm"
               >
                 {imports.map((entry) => (
                   <option key={entry.id} value={entry.id}>
@@ -751,14 +754,18 @@ function ModelIdentityList({ models }: { models: ModelSummary[] }) {
       <h3 className="text-xs font-medium text-muted-foreground">Models in this workload</h3>
       <ul className="mt-2 flex flex-col gap-1 font-mono text-xs">
         {ordered.slice(0, 12).map((model) => (
-          <li key={model.rawName} className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-foreground">{model.rawName}</span>
+          <li key={model.rawName} className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+            <span className="min-w-0 text-foreground [overflow-wrap:anywhere]">
+              {model.rawName}
+            </span>
             {model.mapped ? (
               <>
                 <span aria-hidden="true" className="text-muted-foreground">
                   →
                 </span>
-                <span className="text-muted-foreground">{model.canonicalId}</span>
+                <span className="min-w-0 text-muted-foreground [overflow-wrap:anywhere]">
+                  {model.canonicalId}
+                </span>
                 <span className="rounded border border-border px-1 text-[10px] text-muted-foreground">
                   {model.basis === undefined ? "mapped" : basisLabel[model.basis]}
                 </span>
@@ -838,7 +845,7 @@ function ReplayResult({
   const targetName = providerFacts?.name ?? shareTarget?.planName ?? projection.target.label;
 
   return (
-    <div className="flex flex-col gap-10" data-testid="replay-result">
+    <div className="flex min-w-0 flex-col gap-10" data-testid="replay-result">
       <section className="flex flex-col gap-5" data-testid="replay-headline">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -846,13 +853,16 @@ function ReplayResult({
             <h2 className="mt-1 text-2xl font-medium" data-testid="headline-status">
               {projection.headline.statusLabel}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground [overflow-wrap:anywhere]">
               {targetName} · {projection.target.referenceLabel}{" "}
               <span className="font-mono">{projection.target.reference}</span> · rules as of{" "}
               <span className="font-mono tabular-nums">{projection.provenance.rulesAsOf}</span>
             </p>
             {computedFor === undefined ? null : (
-              <p className="mt-1 text-xs text-muted-foreground" data-testid="result-computed-for">
+              <p
+                className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]"
+                data-testid="result-computed-for"
+              >
                 Computed from &ldquo;{computedFor.workloadLabel}&rdquo; ·{" "}
                 {formatCount(result.workload.eventCount)} events · target{" "}
                 <span className="font-mono">{computedFor.target}</span> · rules as of{" "}
@@ -880,28 +890,24 @@ function ReplayResult({
         </p>
       </section>
 
-      <div className="grid gap-x-10 gap-y-8 xl:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-8">
-          <WorkloadSpecimen active index="02" projection={projection} />
-          <ModelLanes
-            identityActive
-            index="03"
-            projection={projection}
-            translationActive={translated}
-          />
-          <ExecutionStack index="04" projection={projection} targetActive />
-        </div>
-        <div className="flex min-w-0 flex-col gap-8">
-          <ConstraintTrace chronologyActive index="05" projection={projection} />
-          <OutcomeLedger index="06" projection={projection} settled />
-          <section className="flex flex-col gap-3 border-t border-border pt-4">
-            <h2 className="text-sm text-foreground" data-testid="cost-heading">
-              Cost on this target
-            </h2>
-            <CostCounterfactual index="07" projection={projection} settled />
-          </section>
-          <EvidenceLedger index="08" projection={projection} />
-        </div>
+      <div className="flex max-w-[68rem] min-w-0 flex-col gap-8">
+        <WorkloadSpecimen active index="02" projection={projection} />
+        <ModelLanes
+          identityActive
+          index="03"
+          projection={projection}
+          translationActive={translated}
+        />
+        <ExecutionStack index="04" projection={projection} targetActive />
+        <ConstraintTrace chronologyActive index="05" projection={projection} />
+        <OutcomeLedger index="06" projection={projection} settled />
+        <EvidenceLedger index="07" projection={projection} />
+        <section className="flex flex-col gap-3 border-t border-border pt-4">
+          <h2 className="text-sm text-foreground" data-testid="cost-heading">
+            Cost on this target
+          </h2>
+          <CostCounterfactual index="08" projection={projection} settled />
+        </section>
       </div>
 
       <section
@@ -967,7 +973,7 @@ function ReplayResult({
                 </h3>
                 <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
                   {result.unsupportedModels.slice(0, 8).map((model) => (
-                    <li key={model.rawName}>
+                    <li key={model.rawName} className="[overflow-wrap:anywhere]">
                       {model.rawName} · {formatCount(model.eventCount)} events · {model.reason}
                     </li>
                   ))}
@@ -979,7 +985,7 @@ function ReplayResult({
               </div>
             ) : null}
             {workload === undefined ? null : (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
                 Workload stored locally in this browser: {workload.label}. No workload data has left
                 this browser.
               </p>
@@ -1017,9 +1023,9 @@ function ReplayResult({
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="font-mono tabular-nums">{value}</dd>
+      <dd className="font-mono tabular-nums [overflow-wrap:anywhere]">{value}</dd>
     </div>
   );
 }

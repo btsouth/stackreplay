@@ -1,12 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
+import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { strToU8, zipSync } from "fflate";
 import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests } from "./helpers";
+import { captureRequests, gotoReplayImport } from "./helpers";
 
 const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   type: "response_item",
@@ -19,7 +20,7 @@ const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
 
 test("selected source stays local, can be saved, exported and replayed", async ({ page }) => {
   const requests = captureRequests(page);
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await expect(page.getByTestId("source-file-input")).toBeVisible();
   await page.getByText("Save normalized workload on this browser").click();
   await page.getByTestId("source-file-input").setInputFiles({
@@ -27,8 +28,10 @@ test("selected source stays local, can be saved, exported and replayed", async (
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(raw),
   });
+  await expect(page.getByTestId("import-dropzone")).toContainText("rollout-fixture.jsonl");
   await expect(page.getByTestId("intake-review")).toContainText("Codex");
   await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(JSON.stringify(requests)).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
   expect(JSON.stringify(requests)).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
   const persisted = await page.evaluate(async () => {
@@ -64,12 +67,85 @@ test("selected source stays local, can be saved, exported and replayed", async (
   await page.reload();
   await page.goto("/app/import");
   await expect(page.getByTestId("stored-imports")).toContainText("rollout-fixture.jsonl");
-  await page.getByTestId("stored-imports").getByRole("link", { name: "Replay" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: /^Replay /u })
+    .click();
   await expect(page.getByTestId("run-replay")).toBeVisible();
 });
 
+test("custom file controls retain native labels and mobile saved actions reflow", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await gotoReplayImport(page);
+  for (const [name, testId] of [
+    ["Source files or ZIP", "source-file-input"],
+    ["Selected folder", "source-folder-input"],
+    ["StackReplay workload", "import-file-input"],
+  ] as const) {
+    const input = page.getByTestId(testId);
+    await expect(input).toHaveAccessibleName(name);
+    await expect(input).toBeVisible();
+    expect(await input.getAttribute("type")).toBe("file");
+    const box = await input.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.getByText("Save normalized workload on this browser").click();
+  await page.getByTestId("source-file-input").setInputFiles({
+    name: "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
+    mimeType: "application/x-ndjson",
+    buffer: Buffer.from(CODEX_ROLLOUT),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  const row = page.getByTestId("stored-imports").locator("li").first();
+  await expect(row).toContainText(
+    "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
+  );
+  const actions = row.getByTestId("stored-import-actions");
+  await expect(actions).toHaveCSS("display", "grid");
+  for (const name of ["Replay", "Delete", "Export"]) {
+    const control = actions.getByRole(name === "Replay" ? "link" : "button", {
+      name: `${name} a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl`,
+    });
+    await expect(control).toBeVisible();
+    expect((await control.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("portable workload picker accepts the same file twice", async ({ page }) => {
+  await gotoReplayImport(page);
+  const input = page.getByTestId("import-file-input");
+  const file = {
+    name: "repeat.stackreplay.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
+  };
+  await input.setInputFiles(file);
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await expect(input).toHaveValue("");
+  await expect(page.getByTestId("import-dropzone")).toContainText(file.name);
+  const firstId = new URL(
+    (await page.getByTestId("continue-to-replay").getAttribute("href")) ?? "",
+    "http://localhost",
+  ).searchParams.get("import");
+  await input.setInputFiles(file);
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await expect(input).toHaveValue("");
+  await expect(page.getByTestId("import-dropzone")).toContainText(file.name);
+  await expect
+    .poll(async () =>
+      new URL(
+        (await page.getByTestId("continue-to-replay").getAttribute("href")) ?? "",
+        "http://localhost",
+      ).searchParams.get("import"),
+    )
+    .not.toBe(firstId);
+});
+
 test("unsupported selected source reports its reason", async ({ page }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "unsupported.json",
     mimeType: "application/json",
@@ -88,7 +164,7 @@ test("selected folder is scanned without implying a whole computer scan", async 
   await mkdir(directory, { recursive: true });
   await writeFile(`${directory}/rollout.jsonl`, CODEX_ROLLOUT);
   await writeFile(`${directory}/other.json`, '{"messages":[]}');
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-folder-input").setInputFiles(directory);
   await expect(page.getByTestId("intake-review")).toContainText("Codex");
   await expect(page.getByTestId("intake-review")).toContainText(
@@ -100,7 +176,7 @@ test("selected folder is scanned without implying a whole computer scan", async 
 test("an unsaved source can replay in this session without IndexedDB persistence", async ({
   page,
 }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "rollout-unsaved.jsonl",
     mimeType: "application/x-ndjson",
@@ -132,7 +208,7 @@ test("ZIP selection expands supported members and reports unsafe paths", async (
     "history/rollout.jsonl": strToU8(CODEX_ROLLOUT),
     "../escape.jsonl": strToU8(CODEX_ROLLOUT),
   });
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "history.zip",
     mimeType: "application/zip",
@@ -143,7 +219,7 @@ test("ZIP selection expands supported members and reports unsafe paths", async (
 });
 
 test("corrupt ZIP is a precise failed candidate", async ({ page }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "broken.zip",
     mimeType: "application/zip",
@@ -154,7 +230,7 @@ test("corrupt ZIP is a precise failed candidate", async ({ page }) => {
 });
 
 test("malformed ZIP does not discard valid siblings", async ({ page }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles([
     { name: "codex.jsonl", mimeType: "application/x-ndjson", buffer: Buffer.from(CODEX_ROLLOUT) },
     {
@@ -180,7 +256,7 @@ test("archive hierarchy is absent from both stores and portable export", async (
     "home/alice/private-repo/messages.jsonl": strToU8(CLAUDE_CODE_SESSION),
     "Users/alice/private-repo/notes.txt": strToU8("private"),
   });
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByText("Save normalized workload on this browser").click();
   await page
     .getByTestId("source-file-input")
@@ -218,7 +294,7 @@ test("archive hierarchy is absent from both stores and portable export", async (
 });
 
 test("CLI compatible V1 named usage.json imports and replays", async ({ page }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "source.jsonl",
     mimeType: "application/x-ndjson",
@@ -243,12 +319,15 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   await page.reload();
   await page.goto("/app/import");
   await expect(page.getByTestId("stored-imports")).toContainText("usage.json");
-  await page.getByTestId("stored-imports").getByRole("link", { name: "Replay" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: /^Replay /u })
+    .click();
   await expect(page.getByTestId("run-replay")).toBeVisible();
 });
 
 test("future portable version gets a version error through source selection", async ({ page }) => {
-  await page.goto("/app/replay");
+  await gotoReplayImport(page);
   await page.getByTestId("source-file-input").setInputFiles({
     name: "usage.json",
     mimeType: "application/json",

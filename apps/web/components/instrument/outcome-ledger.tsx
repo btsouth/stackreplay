@@ -56,7 +56,7 @@ export function OutcomeLedger({
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="flex min-w-0 flex-col">
                   <span className="text-xs text-foreground">{outcome.label}</span>
-                  <span className="text-[11px] text-muted-foreground">{outcome.note}</span>
+                  <span className="text-xs text-muted-foreground">{outcome.note}</span>
                 </span>
                 <span className="font-mono text-sm tabular-nums text-foreground">
                   {impossible ? "not applicable" : (formatCount(outcome.count) ?? "unknown")}
@@ -81,7 +81,7 @@ export function OutcomeLedger({
         })}
       </ul>
       {undecided === undefined || undecided === 0 ? null : (
-        <p className="text-[11px] text-muted-foreground" data-testid="outcome-undecided">
+        <p className="text-xs text-muted-foreground" data-testid="outcome-undecided">
           <StatusWord tone="warning">undecided</StatusWord> {formatCount(undecided)} events are
           counted as unknown rather than assumed to fit: the engine&apos;s evidence does not
           establish a disposition for them.

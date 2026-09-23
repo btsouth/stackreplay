@@ -75,6 +75,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
   const requests = captureRequests(page);
 
   await page.goto("/app/import");
+  await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("import-file-input").setInputFiles(path);
   await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 150_000 });
 

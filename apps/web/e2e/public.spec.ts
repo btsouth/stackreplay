@@ -119,9 +119,153 @@ test.describe("public site", () => {
       expect(overflow, `${route.path} overflows horizontally`).toBeLessThanOrEqual(1);
     }
   });
+
+  test("catalog facts remain inside the mobile content rail", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    for (const route of ["/models", "/compare", "/plans/github-copilot-business"]) {
+      await page.goto(route);
+      await expect(page.getByRole("table").first()).toBeVisible();
+      const outside = await page.locator("table td").evaluateAll((cells) => {
+        const main = document.querySelector("main");
+        if (main === null) return ["missing content rail"];
+        const rail = main.getBoundingClientRect();
+        const style = getComputedStyle(main);
+        const left = rail.left + Number.parseFloat(style.paddingLeft);
+        const right = rail.right - Number.parseFloat(style.paddingRight);
+        return cells
+          .filter((cell) => {
+            const rect = cell.getBoundingClientRect();
+            return rect.width > 0 && (rect.left < left - 1 || rect.right > right + 1);
+          })
+          .map((cell) => cell.textContent?.trim().slice(0, 60) ?? "unknown cell");
+      });
+      expect(outside, `${route} has facts outside the content rail`).toEqual([]);
+    }
+  });
+
+  test("catalog target actions and provider groups remain reachable at mobile width", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const route of ["/plans", "/compare"]) {
+      await page.goto(route);
+      const action = page.getByRole("link", { name: /Load into Replay/u }).first();
+      await expect(action).toBeVisible();
+      expect(await action.getAttribute("href")).toMatch(/^\/app\/import\?target=/u);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+    }
+    await page.goto("/compare");
+    await expect(page.locator('th[scope="rowgroup"]').first()).toBeVisible();
+    await page.goto("/models");
+    await expect(page.getByTestId("model-table").getByRole("link").first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  });
+
+  test("public navigation identifies the current section on desktop and mobile", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto("/plans/github-copilot-business");
+    const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
+    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(desktopNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    const menu = page.getByTestId("public-nav-menu");
+    await expect(async () => {
+      await menu.click();
+      await expect(menu).toHaveAttribute("aria-expanded", "true");
+    }).toPass();
+    const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
+    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(mobileNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  test("public footer destinations resolve to real sections or routes", async ({ page }) => {
+    await page.goto("/plans");
+    const privacy = page.getByRole("link", { name: "Privacy model" });
+    await expect(privacy).toHaveAttribute("href", "/methodology#privacy");
+    await privacy.click();
+    await expect(page.locator("#privacy")).toBeVisible();
+    const catalog = page.getByRole("link", { name: "Catalog sources" });
+    await expect(catalog).toHaveAttribute("href", "/plans");
+    await catalog.click();
+    await expect(page.getByTestId("plan-card").first().getByTestId("source-list")).toBeVisible();
+  });
 });
 
 test.describe("share links", () => {
+  test("plan detail action resolves only for a public catalogued target", async ({ page }) => {
+    const base = {
+      version: 1 as const,
+      workload: { eventCount: 10, modelCount: 1, tokenTotals: {}, rangeIncluded: false },
+      target: {
+        type: "subscription" as const,
+        planId: "anthropic-claude-pro",
+        planVersionId: "anthropic-claude-pro@2026-09-21",
+        planName: "Claude Pro",
+        providerId: "anthropic",
+        providerName: "Anthropic",
+        price: { currency: "USD" as const, amount: "20.00", interval: "month" as const },
+        verificationStatus: "verified" as const,
+        lastVerifiedAt: "2026-09-21",
+        sources: [],
+      },
+      feasibility: {
+        status: "full" as const,
+        coveragePercent: 100,
+        coverageDimension: "requests" as const,
+      },
+      coverage: {
+        requests: { status: "known" as const, percent: 100, covered: 10, total: 10 },
+        usage: { status: "known" as const, percent: 100, covered: 10, total: 10 },
+        models: { status: "known" as const, percent: 100, covered: 1, total: 1 },
+      },
+      constraints: [],
+      violations: [],
+      confidence: { level: "high" as const, factors: [] },
+      versions: {
+        engine: ENGINE_VERSION,
+        schema: 1 as const,
+        catalog: "2026.09.1",
+        methodology: REPLAY_METHODOLOGY_VERSION,
+        rulesAsOf: "2026-09-21",
+        targetReference: "anthropic-claude-pro@2026-09-21",
+      },
+    };
+    const catalogued = await encodeShareToken(base);
+    await page.goto(`/s/${catalogued}`);
+    const details = page.getByRole("link", { name: "Plan details" });
+    await expect(details).toHaveAttribute("href", "/plans/anthropic-claude-pro");
+    expect((await page.request.get("/plans/anthropic-claude-pro")).status()).toBe(200);
+
+    for (const planId of ["example-cloud-pro", "unknown-public-target"]) {
+      const token = await encodeShareToken({
+        ...base,
+        target: { ...base.target, planId, planVersionId: `${planId}@2026-09-21`, planName: planId },
+        versions: { ...base.versions, targetReference: `${planId}@2026-09-21` },
+      });
+      await page.goto(`/s/${token}`);
+      await expect(page.getByTestId("share-card")).toBeVisible();
+      await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
+    }
+  });
+
   test("a stateless link renders the aggregate result it carries", async ({ page }) => {
     const snapshot = {
       version: 1 as const,
@@ -203,9 +347,26 @@ test.describe("share links", () => {
     await page.goto(`/s/${token}`);
     await expect(page.getByRole("heading", { level: 1 })).toContainText("5,000 events replayed");
     await expect(page.getByTestId("share-card")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
     await expect(page.getByTestId("share-card-plan")).toHaveText("Example Medium");
+    await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
     await expect(page.getByTestId("share-constraints")).toContainText("600");
     await expect(page.getByTestId("share-constraints")).toContainText("2 window(s) exceeded");
+    await page.setViewportSize({ width: 390, height: 900 });
+    expect(
+      await page
+        .getByTestId("share-constraints")
+        .locator("table")
+        .evaluate((table) => {
+          const main = document.querySelector("main");
+          if (main === null) return false;
+          const rail = main.getBoundingClientRect();
+          const right = rail.right - Number.parseFloat(getComputedStyle(main).paddingRight);
+          return table.getBoundingClientRect().right <= right + 1;
+        }),
+    ).toBe(true);
     // The page states the versions a reader would need to audit the result.
     await expect(page.getByText(REPLAY_METHODOLOGY_VERSION).first()).toBeVisible();
 
@@ -302,6 +463,7 @@ test.describe("share links", () => {
     // A demo target must therefore reach the page as labelled demo data, never as
     // a real-world claim.
     await expect(page.getByTestId("share-synthetic")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
     // Regression (benchmark F004): the plan terms in a link are the sharer's
     // claim, so the page says so instead of borrowing the catalog's "verified"
     // badge language.

@@ -43,7 +43,7 @@ export function CoverageDimensions({
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="flex min-w-0 flex-col">
                   <span className="text-xs text-foreground">{dimension.label}</span>
-                  <span className="text-[11px] text-muted-foreground">{dimension.note}</span>
+                  <span className="text-xs text-muted-foreground">{dimension.note}</span>
                 </span>
                 <span className="flex items-baseline gap-3">
                   {percent === undefined ? (
@@ -56,7 +56,7 @@ export function CoverageDimensions({
                 </span>
               </div>
               {percent === undefined ? (
-                <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+                <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
                   {dimension.reason ?? "This dimension could not be established."}
                   {dimension.unknownCount === undefined
                     ? ""
@@ -65,7 +65,7 @@ export function CoverageDimensions({
               ) : (
                 <>
                   <ProportionBar percent={percent} />
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
                     <span>
                       {formatCount(dimension.covered) ?? "—"} of{" "}
                       {formatCount(dimension.total) ?? "—"} covered
@@ -80,7 +80,7 @@ export function CoverageDimensions({
           );
         })}
       </ul>
-      <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+      <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
         These dimensions are reported separately on purpose. A request covered in full says nothing
         about the model dimension, and the figure above the list is the request dimension only.
       </p>

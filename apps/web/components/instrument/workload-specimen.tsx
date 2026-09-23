@@ -41,7 +41,7 @@ export function WorkloadSpecimen({
             : projection.provenance.workloadScopeKind.replace(/_/gu, " ")}
         </MicroLabel>
       </div>
-      <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+      <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
         {projection.provenance.workloadScope}
       </p>
       <div className="grid gap-x-8 sm:grid-cols-2">
@@ -120,7 +120,7 @@ export function WorkloadSpecimen({
         </div>
       </div>
       {complete === true ? null : (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {complete === undefined
             ? "This result does not record whether every event reports every canonical category, so the sum above is not a completeness claim."
             : workload.knownTokens === undefined

@@ -77,7 +77,7 @@ export function ModelLanes({
                   </span>
                   {substitute === undefined ? null : (
                     <span
-                      className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-accent"
+                      className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-accent"
                       data-testid="translation-crossing"
                     >
                       <span aria-hidden="true">→</span>
@@ -85,7 +85,7 @@ export function ModelLanes({
                     </span>
                   )}
                 </span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {formatCount(share.eventCount) ?? "—"} events
                   {eventShare === undefined ? "" : ` · ${eventShare.toFixed(1)}% of demand`}
                 </span>
@@ -97,7 +97,7 @@ export function ModelLanes({
                     tone={substitute === undefined ? "muted" : "accent"}
                   />
                 )}
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {tokens === undefined || totalTokens === undefined
                     ? "token share unknown"
                     : `${formatTokens(tokens)} tokens`}
@@ -121,7 +121,7 @@ export function ModelLanes({
                   ? "unresolved events not established"
                   : `${formatCount(unresolved) ?? "—"} events unresolved`}
               </span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {unresolved === undefined
                   ? "this result carries no resolution count, so whether every identifier resolved is not recorded"
                   : projection.models
@@ -139,7 +139,7 @@ export function ModelLanes({
         )}
       </ul>
       {translation === undefined ? (
-        <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
           {projection.modeNote}
         </p>
       ) : (
@@ -150,12 +150,12 @@ export function ModelLanes({
           data-testid="translation-assumption"
         >
           <MicroLabel>Scenario assumption</MicroLabel>
-          <p className="text-[11px] leading-relaxed text-foreground">
+          <p className="text-xs leading-relaxed text-foreground">
             {formatCount(translation.substitutedEvents) ?? "—"} events recorded against{" "}
             {translation.applied.map((entry) => entry.sourceModelId).join(", ")} were replayed
             against {translation.applied.map((entry) => entry.targetModelId).join(", ")}.
           </p>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
+          <p className="text-xs leading-relaxed text-muted-foreground">
             Method: {translation.method.replace(/-/gu, " ")} · policy {translation.policyId}@
             {translation.policyVersion}. {projection.modeNote}
           </p>

@@ -33,15 +33,15 @@ export default async function ModelDetailPage({ params }: ModelPageProps) {
     .filter((plan): plan is NonNullable<typeof plan> => plan !== undefined);
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
-      <header className="flex flex-col gap-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+    <div className="flex flex-col gap-10 pb-8">
+      <header className="flex flex-col gap-3 border-b border-border-strong pb-8">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-accent">
           <Link className="underline-offset-2 hover:underline" href="/models">
             Models
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold text-foreground">{model.name}</h1>
-        <p className="font-mono text-xs text-muted-foreground">{model.id}</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">{model.name}</h1>
+        <p className="font-mono text-sm text-muted-foreground">{model.id}</p>
         <VerificationBadge
           status={model.verificationStatus}
           lastVerifiedAt={model.lastVerifiedAt}
@@ -49,21 +49,29 @@ export default async function ModelDetailPage({ params }: ModelPageProps) {
       </header>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium text-foreground">Providers</h2>
-        <p className="text-sm text-muted-foreground">{model.providerNames.join(", ") || "—"}</p>
+        <h2 className="text-xl font-medium tracking-tight text-foreground">Providers</h2>
+        <p className="text-base text-muted-foreground">{model.providerNames.join(", ") || "—"}</p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium text-foreground">Included in</h2>
+        <h2 className="text-xl font-medium tracking-tight text-foreground">
+          Included in target plans
+        </h2>
         {plans.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No catalogued plan includes this model. A replay reports it as unmapped rather than
             inventing a price.
           </p>
         ) : (
-          <ul className="flex flex-col gap-2 text-sm" data-testid="model-plan-list">
+          <ul
+            className="flex max-w-4xl flex-col border-t border-border text-sm"
+            data-testid="model-plan-list"
+          >
             {plans.map((plan) => (
-              <li key={plan.id} className="flex flex-wrap items-baseline gap-2">
+              <li
+                key={plan.id}
+                className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-b border-border py-3"
+              >
                 <Link
                   className="text-accent underline underline-offset-2"
                   href={`/plans/${plan.id}`}
@@ -80,7 +88,7 @@ export default async function ModelDetailPage({ params }: ModelPageProps) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium text-foreground">Sources</h2>
+        <h2 className="text-xl font-medium tracking-tight text-foreground">Source evidence</h2>
         <SourceList sources={model.sources} />
       </section>
     </div>

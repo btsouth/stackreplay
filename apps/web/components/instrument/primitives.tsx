@@ -18,7 +18,7 @@ export function MicroLabel({
 }) {
   return (
     <span
-      className={`font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground ${className ?? ""}`}
+      className={`font-mono text-xs leading-snug uppercase tracking-[0.12em] text-muted-foreground ${className ?? ""}`}
     >
       {children}
     </span>
@@ -28,7 +28,10 @@ export function MicroLabel({
 /** A numbered section heading. The number is part of the composition. */
 export function SectionIndex({ index, label }: { index: string; label: string }) {
   return (
-    <div className="flex items-baseline gap-3">
+    <div
+      className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1"
+      data-section-index={index}
+    >
       <MicroLabel>{index}</MicroLabel>
       <span className="text-sm text-foreground">{label}</span>
     </div>
@@ -56,17 +59,17 @@ export function LedgerRow({
 }) {
   return (
     <div
-      className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border py-2 last:border-b-0"
+      className="grid min-w-0 gap-x-5 gap-y-2 border-b border-border py-3 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,auto)] sm:items-baseline"
       data-testid={testId}
     >
       <span className="flex min-w-0 flex-col">
-        <span className="text-xs text-foreground">{label}</span>
+        <span className="text-sm text-foreground">{label}</span>
         {note === undefined ? null : (
-          <span className="text-[11px] leading-snug text-muted-foreground">{note}</span>
+          <span className="text-xs leading-snug text-muted-foreground">{note}</span>
         )}
       </span>
       <span
-        className={`font-mono text-sm tabular-nums ${muted === true ? "text-muted-foreground" : "text-foreground"}`}
+        className={`min-w-0 break-words font-mono text-sm tabular-nums sm:text-right ${muted === true ? "text-muted-foreground" : "text-foreground"}`}
         title={title}
       >
         {value}
@@ -97,7 +100,9 @@ export function StatusWord({
             ? "text-negative"
             : "text-muted-foreground";
   return (
-    <span className={`font-mono text-[10px] uppercase tracking-[0.18em] ${toneClass}`}>
+    <span
+      className={`min-w-0 font-mono text-xs leading-snug uppercase tracking-[0.1em] ${toneClass}`}
+    >
       {children}
     </span>
   );

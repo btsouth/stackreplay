@@ -40,7 +40,7 @@ export function ResultSettlement({
       }`}
       data-testid="result-settlement"
     >
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+      <div className="flex min-w-0 flex-wrap items-end justify-between gap-x-8 gap-y-4">
         <div className="flex min-w-0 flex-col gap-1">
           <MicroLabel>
             {projection.target.kind === "api"
@@ -68,7 +68,7 @@ export function ResultSettlement({
               : `of modelled ${headline.dimension === "usage" ? "token demand" : "requests"} would have fit`}
           </span>
         </div>
-        <div className="flex min-w-0 flex-col gap-1 sm:items-end">
+        <div className="flex min-w-0 max-w-full flex-col gap-1 sm:items-end">
           <MicroLabel>
             {projection.target.kind === "api"
               ? listPriceWindowLabel(projection.workload.windowDays)
@@ -79,26 +79,26 @@ export function ResultSettlement({
               the whole workload's cost. */}
           {cost === undefined ? (
             <span
-              className="font-mono text-2xl leading-none text-warning sm:text-3xl"
+              className="max-w-full break-words font-mono text-2xl leading-tight text-warning sm:text-3xl"
               data-testid="result-cost"
             >
               not determinable
             </span>
           ) : (
             <span
-              className="font-mono text-2xl leading-none text-foreground sm:text-3xl"
+              className="max-w-full break-words font-mono text-2xl leading-tight text-foreground sm:text-3xl"
               data-testid="result-cost"
               title={cost}
             >
               {formatMoney(cost) ?? "—"}
             </span>
           )}
-          <span className="text-[11px] text-muted-foreground">{economics.costReading}</span>
+          <span className="text-xs text-muted-foreground">{economics.costReading}</span>
         </div>
       </div>
       {economics.consumptionEstablished ? null : (
         <p
-          className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+          className="max-w-prose text-xs leading-relaxed text-muted-foreground"
           data-testid="cost-consumption"
         >
           {/* The consumption sentence comes from the projection, so the two

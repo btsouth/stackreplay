@@ -32,6 +32,7 @@ test.describe("import surface accessibility", () => {
 
   test("is operable with the keyboard alone", async ({ page }) => {
     await page.goto("/app/import");
+    await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     const input = page.getByTestId("import-file-input");
     await input.focus();
     await expect(input).toBeFocused();
@@ -45,6 +46,7 @@ test.describe("import surface accessibility", () => {
 
   test("import errors are announced", async ({ page }) => {
     await page.goto("/app/import");
+    await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     await page.getByTestId("import-file-input").setInputFiles({
       name: "broken.json",
       mimeType: "application/json",

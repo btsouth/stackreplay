@@ -123,7 +123,7 @@ export function TargetSelector({
   return (
     <div className="flex flex-col gap-2">
       <span
-        className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+        className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
         id={`${listId}-label`}
       >
         {label}
@@ -133,7 +133,7 @@ export function TargetSelector({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-labelledby={`${listId}-label`}
-        className="group flex w-full items-center justify-between gap-4 border border-border-strong bg-surface px-3 py-2.5 text-left transition-colors hover:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[open=true]:border-accent"
+        className="group flex min-h-11 w-full items-center justify-between gap-4 border border-border-strong bg-surface px-3 py-2.5 text-left transition-colors hover:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[open=true]:border-accent"
         data-open={open}
         data-testid="target-selector"
         data-value={selected?.id}
@@ -150,7 +150,7 @@ export function TargetSelector({
               {selected?.label ?? "No target"}
             </span>
           </span>
-          <span className="truncate font-mono text-[11px] text-muted-foreground">
+          <span className="truncate font-mono text-xs text-muted-foreground">
             {selected?.reference ?? ""}
           </span>
         </span>
@@ -195,15 +195,13 @@ export function TargetSelector({
                   <TargetKindMark kind={option.kind} />
                   <span className="text-sm text-foreground">{option.label}</span>
                   {option.translated ? (
-                    <span className="border border-accent px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
+                    <span className="border border-accent px-1.5 py-px font-mono text-[11px] uppercase tracking-[0.14em] text-accent">
                       Translated
                     </span>
                   ) : null}
                 </span>
                 <span className="text-xs text-muted-foreground">{option.detail}</span>
-                <span className="font-mono text-[11px] text-muted-foreground">
-                  {option.reference}
-                </span>
+                <span className="font-mono text-xs text-muted-foreground">{option.reference}</span>
               </div>
             );
           })}
@@ -218,7 +216,7 @@ export function TargetSelector({
  */
 function TargetKindMark({ kind }: { kind: "subscription" | "api" }) {
   return (
-    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+    <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
       {kind === "api" ? "Direct API" : "Subscr."}
     </span>
   );

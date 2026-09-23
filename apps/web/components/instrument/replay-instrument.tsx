@@ -82,7 +82,7 @@ export function ReplayInstrument({
 
   return (
     <div className="flex flex-col gap-6" data-phase={phase} data-testid={testId}>
-      <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <TargetSelector
             onChange={selectTarget}
@@ -97,13 +97,13 @@ export function ReplayInstrument({
           <div className="flex flex-col gap-2 border-t border-border pt-3">
             <p
               aria-live="polite"
-              className="text-[11px] leading-relaxed text-muted-foreground"
+              className="text-xs leading-relaxed text-muted-foreground"
               data-testid="instrument-status"
             >
               {PHASE_CAPTIONS[phase]}
             </p>
             <button
-              className="w-fit border border-border-strong px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+              className="w-fit border border-border-strong px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
               data-testid="instrument-rerun"
               disabled={running}
               onClick={replay}
@@ -113,7 +113,7 @@ export function ReplayInstrument({
             </button>
           </div>
           {provenanceNote === undefined ? null : (
-            <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+            <p className="border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
               {provenanceNote}
             </p>
           )}
@@ -121,25 +121,18 @@ export function ReplayInstrument({
 
         <div className="flex min-w-0 flex-col gap-8">
           <ResultSettlement projection={projection} settled={effects.settled} />
-          <div className="grid gap-x-10 gap-y-8 xl:grid-cols-2">
-            <div className="flex min-w-0 flex-col gap-8">
-              <WorkloadSpecimen active={effects.workloadActive} projection={projection} />
-              <ModelLanes
-                identityActive={effects.identityActive}
-                projection={projection}
-                translationActive={effects.translationActive}
-              />
-              <ExecutionStack projection={projection} targetActive={effects.targetActive} />
-            </div>
-            <div className="flex min-w-0 flex-col gap-8">
-              <ConstraintTrace
-                chronologyActive={effects.chronologyActive}
-                projection={projection}
-              />
-              <OutcomeLedger projection={projection} settled={effects.settled} />
-              <CostCounterfactual projection={projection} settled={effects.settled} />
-              <EvidenceLedger projection={projection} />
-            </div>
+          <div className="flex min-w-0 flex-col gap-8">
+            <WorkloadSpecimen active={effects.workloadActive} projection={projection} />
+            <ModelLanes
+              identityActive={effects.identityActive}
+              projection={projection}
+              translationActive={effects.translationActive}
+            />
+            <ExecutionStack projection={projection} targetActive={effects.targetActive} />
+            <ConstraintTrace chronologyActive={effects.chronologyActive} projection={projection} />
+            <OutcomeLedger projection={projection} settled={effects.settled} />
+            <EvidenceLedger projection={projection} />
+            <CostCounterfactual projection={projection} settled={effects.settled} />
           </div>
         </div>
       </div>

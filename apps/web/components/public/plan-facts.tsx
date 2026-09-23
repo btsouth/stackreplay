@@ -1,5 +1,4 @@
 import type { ModelRuleV1, PlanLimitV1 } from "@stackreplay/catalog";
-import { Badge } from "@stackreplay/ui";
 
 /**
  * Plan fact tables (M4).
@@ -37,10 +36,10 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
     );
   }
   return (
-    <section className="w-full min-w-0 overflow-x-auto" aria-label="Plan limits" tabIndex={0}>
-      <table className="w-full border-collapse text-sm" data-testid="limit-table">
+    <section className="w-full min-w-0" aria-label="Plan limits">
+      <table className="block w-full border-collapse text-sm lg:table" data-testid="limit-table">
         <caption className="sr-only">Documented plan limits</caption>
-        <thead>
+        <thead className="sr-only lg:not-sr-only lg:table-header-group">
           <tr className="border-b border-border text-left text-xs text-muted-foreground">
             <th className="py-2 pr-4 font-medium">Limit</th>
             <th className="py-2 pr-4 font-medium">Allowance</th>
@@ -49,16 +48,28 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
             <th className="py-2 font-medium">Applies to</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="block lg:table-row-group">
           {limits.map((limit) => (
-            <tr key={limit.id} className="border-b border-border/60 align-top">
-              <td className="py-2 pr-4 text-foreground">{limit.label}</td>
-              <td className="py-2 pr-4 tabular-nums text-foreground">
+            <tr
+              key={limit.id}
+              className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/60 py-5 align-top lg:table-row lg:py-0"
+            >
+              <td className="col-span-2 block min-w-0 text-base font-medium text-foreground lg:table-cell lg:py-2 lg:pr-4 lg:text-sm lg:font-normal">
+                {limit.label}
+              </td>
+              <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
+                <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                  Allowance
+                </span>
                 {limit.amount}
                 <span className="ml-1 text-xs text-muted-foreground">{limitUnitText(limit)}</span>
               </td>
-              <td className="py-2 pr-4 text-muted-foreground">{limitWindowText(limit)}</td>
-              <td className="py-2 pr-4 text-muted-foreground">
+              <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                <span className="mb-1 block text-xs lg:hidden">Window</span>
+                {limitWindowText(limit)}
+              </td>
+              <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                <span className="mb-1 block text-xs lg:hidden">When exceeded</span>
                 {exceedLabel[limit.exceed]}
                 {limit.overageRate === undefined ? null : (
                   <span className="ml-1 text-xs">
@@ -66,7 +77,8 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
                   </span>
                 )}
               </td>
-              <td className="py-2 text-muted-foreground">
+              <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
+                <span className="mb-1 block text-xs lg:hidden">Applies to</span>
                 {limit.models === undefined || limit.models.length === 0
                   ? "all models"
                   : limit.models.join(", ")}
@@ -88,14 +100,19 @@ export function ModelRuleList({ rules }: { rules: readonly ModelRuleV1[] }) {
     );
   }
   return (
-    <ul className="flex flex-wrap gap-2" data-testid="model-rule-list">
+    <ul className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3" data-testid="model-rule-list">
       {rules.map((rule) => (
-        <li key={rule.model}>
-          <Badge variant={rule.excluded === true ? "negative" : "neutral"}>
+        <li
+          key={rule.model}
+          className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 border-b border-border py-2 text-sm"
+        >
+          <span className="min-w-0 break-words text-foreground [overflow-wrap:anywhere]">
             {rule.model}
-            {rule.excluded === true ? " · not included" : ""}
-            {rule.multiplier === undefined ? "" : ` · ×${rule.multiplier}`}
-          </Badge>
+          </span>
+          {rule.excluded === true ? <span className="text-negative">not included</span> : null}
+          {rule.multiplier === undefined ? null : (
+            <span className="tabular-nums text-muted-foreground">×{rule.multiplier}</span>
+          )}
         </li>
       ))}
     </ul>

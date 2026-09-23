@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appNavItems, isNavItemActive } from "./nav";
 
 describe("isNavItemActive", () => {
-  it("marks /app active only on the overview route", () => {
+  it("marks /app active only on the workspace route", () => {
     expect(isNavItemActive("/app", "/app")).toBe(true);
     expect(isNavItemActive("/app/replay", "/app")).toBe(false);
   });
@@ -10,7 +10,7 @@ describe("isNavItemActive", () => {
   it("marks nested routes active for their section", () => {
     expect(isNavItemActive("/app/replay", "/app/replay")).toBe(true);
     expect(isNavItemActive("/app/replay/abc123", "/app/replay")).toBe(true);
-    expect(isNavItemActive("/app/replay", "/app/stack")).toBe(false);
+    expect(isNavItemActive("/app/replay", "/app/settings")).toBe(false);
   });
 
   it("does not match prefixes of other routes", () => {
@@ -19,16 +19,11 @@ describe("isNavItemActive", () => {
 });
 
 describe("appNavItems", () => {
-  it("covers the shell surfaces from the specification plus the import entry point", () => {
-    // Import joins the six original surfaces in Milestone 3: the browser-local
-    // experience starts with importing a workload.
+  it("only advertises working local workspace surfaces", () => {
     expect(appNavItems.map((item) => item.label)).toEqual([
-      "Overview",
-      "Import",
+      "Workspace",
       "Replay",
-      "Stack",
-      "Plans",
-      "History",
+      "Import",
       "Settings",
     ]);
   });

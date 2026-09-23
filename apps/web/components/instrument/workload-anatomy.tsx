@@ -167,7 +167,7 @@ export function WorkloadAnatomy({
                 ) : (
                   <ProportionBar percent={sharePercent} tone="muted" />
                 )}
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {share.tokenCount === undefined
                     ? "token share unknown"
                     : `${formatTokens(share.tokenCount)} tokens · ${sharePercent?.toFixed(1) ?? "—"}% of known tokens`}
@@ -176,7 +176,7 @@ export function WorkloadAnatomy({
             );
           })}
           {workload.unresolvedEventCount === 0 ? null : (
-            <p className="pt-2 text-[11px] leading-relaxed text-warning">
+            <p className="pt-2 text-xs leading-relaxed text-warning">
               {workload.unresolvedEventCount === undefined
                 ? "This result carries no resolution count, so whether every observed identifier resolved against the catalog is not established."
                 : "Unresolved identifiers are not folded into a neighbouring model. They keep their own lane below, because a share that was never established is not a share of zero."}

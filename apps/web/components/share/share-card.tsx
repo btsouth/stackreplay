@@ -82,7 +82,7 @@ export function ShareCard({
           width={logoWidth}
           height={logoHeight}
           alt="StackReplay"
-          className="h-7 w-auto"
+          className="h-12 w-[137px] object-cover object-left"
         />
         <span className="text-xs uppercase tracking-widest text-muted-foreground">
           Replay result

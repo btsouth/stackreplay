@@ -25,6 +25,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
+      className="size-11 [&_svg]:size-5"
       aria-label="Toggle theme"
       disabled={!ready}
       onClick={toggle}

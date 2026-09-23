@@ -135,14 +135,10 @@ export default async function SharePage({ params }: SharePageProps) {
 
       <section className="flex flex-col gap-3" data-testid="share-constraints">
         <h2 className="text-lg font-medium text-foreground">Documented limits checked</h2>
-        <section
-          className="w-full min-w-0 overflow-x-auto"
-          aria-label="Replayed limits"
-          tabIndex={0}
-        >
-          <table className="w-full border-collapse text-sm">
+        <section className="w-full min-w-0" aria-label="Replayed limits">
+          <table className="block w-full border-collapse text-sm lg:table">
             <caption className="sr-only">Limits checked in this replay</caption>
-            <thead>
+            <thead className="sr-only lg:not-sr-only lg:table-header-group">
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Limit</th>
                 <th className="py-2 pr-4 font-medium">Allowance</th>
@@ -151,20 +147,31 @@ export default async function SharePage({ params }: SharePageProps) {
                 <th className="py-2 font-medium">Outcome</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="block lg:table-row-group">
               {snapshot.constraints.map((constraint) => (
-                <tr key={constraint.id} className="border-b border-border/60 align-top">
-                  <td className="py-2 pr-4 text-foreground">{constraint.label}</td>
-                  <td className="py-2 pr-4 tabular-nums text-foreground">
+                <tr
+                  key={constraint.id}
+                  className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/60 py-5 align-top lg:table-row lg:py-0"
+                >
+                  <td className="col-span-2 block min-w-0 text-base font-medium text-foreground lg:table-cell lg:py-2 lg:pr-4 lg:text-sm lg:font-normal">
+                    {constraint.label}
+                  </td>
+                  <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
+                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                      Allowance
+                    </span>
                     {constraint.limitUnits} {constraint.unit}
                   </td>
-                  <td className="py-2 pr-4 text-muted-foreground">
+                  <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                    <span className="mb-1 block text-xs lg:hidden">Window</span>
                     {constraint.window.description}
                   </td>
-                  <td className="py-2 pr-4 tabular-nums text-muted-foreground">
+                  <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                    <span className="mb-1 block text-xs lg:hidden">Attempted</span>
                     {constraint.attemptedUnits}
                   </td>
-                  <td className="py-2 text-muted-foreground">
+                  <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
+                    <span className="mb-1 block text-xs lg:hidden">Outcome</span>
                     {constraint.status === "exceeded"
                       ? `${constraint.violationCount} window(s) exceeded · ${constraint.rejectedEvents} events not served`
                       : constraint.status === "unknown"
@@ -247,20 +254,22 @@ export default async function SharePage({ params }: SharePageProps) {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-foreground">Versions and confidence</h2>
-        <dl className="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-          <div className="flex justify-between gap-4">
+        <dl className="grid min-w-0 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+          <div className="flex min-w-0 justify-between gap-4">
             <dt className="text-muted-foreground">Engine</dt>
             <dd className="tabular-nums text-foreground">{snapshot.versions.engine}</dd>
           </div>
-          <div className="flex justify-between gap-4">
+          <div className="flex min-w-0 justify-between gap-4">
             <dt className="text-muted-foreground">Methodology</dt>
             <dd className="tabular-nums text-foreground">{snapshot.versions.methodology}</dd>
           </div>
-          <div className="flex justify-between gap-4">
+          <div className="flex min-w-0 justify-between gap-4">
             <dt className="text-muted-foreground">Catalog</dt>
-            <dd className="tabular-nums text-foreground">{snapshot.versions.catalog}</dd>
+            <dd className="min-w-0 break-all text-right font-mono text-xs text-foreground">
+              {snapshot.versions.catalog}
+            </dd>
           </div>
-          <div className="flex justify-between gap-4">
+          <div className="flex min-w-0 justify-between gap-4">
             <dt className="text-muted-foreground">Confidence</dt>
             <dd className="capitalize text-foreground">{snapshot.confidence.level}</dd>
           </div>
@@ -285,12 +294,14 @@ export default async function SharePage({ params }: SharePageProps) {
           <Link className={buttonVariants()} href="/app/import">
             Try Replay
           </Link>
-          <Link
-            className={buttonVariants({ variant: "secondary" })}
-            href={`/plans/${snapshot.target.planId}`}
-          >
-            Plan details
-          </Link>
+          {catalogued === undefined ? null : (
+            <Link
+              className={buttonVariants({ variant: "secondary" })}
+              href={`/plans/${catalogued.id}`}
+            >
+              Plan details
+            </Link>
+          )}
         </div>
       </section>
 

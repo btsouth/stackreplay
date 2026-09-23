@@ -81,7 +81,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-16 pb-8">
-      <section className="flex flex-col gap-8 pt-4" data-testid="home-hero">
+      <section className="flex flex-col gap-8" data-testid="home-hero">
         <div className="flex flex-col gap-4">
           <MicroLabel>observed workload · replay · evidence</MicroLabel>
           <h1 className="max-w-4xl text-balance text-2xl font-semibold leading-snug text-foreground sm:text-3xl">
@@ -112,7 +112,7 @@ export default async function HomePage() {
               </Link>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Local-first. Your workload stays in your browser; a share link carries aggregates only.
           </p>
         </div>
@@ -144,7 +144,7 @@ export default async function HomePage() {
           been served, and every crossing is inspectable.
         </p>
         <ConstraintTrace chronologyActive index="03" projection={exact} />
-        <p className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
           A Direct API target has no allowance to exceed, so it is never given one: selecting it in
           the instrument replaces this trace with pricing applicability and the provider&apos;s own
           list price, which is everything a metered target can establish about a workload.
@@ -172,7 +172,7 @@ export default async function HomePage() {
             </span>
             <StatusWord tone="warning">partial evidence</StatusWord>
           </div>
-          <p className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+          <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
             {formatCount(artifact.unknownSample.eventCount) ?? "A few"} events in this companion
             sample report an incomplete token category set, and a few name a model no catalog entry
             maps ({artifact.unknownSample.unmappedModel}). Consumption constraints become unknown
@@ -197,7 +197,7 @@ export default async function HomePage() {
           free, so a total only appears when every served event could be priced.
         </p>
         <CostCounterfactual index="05" projection={api} settled />
-        <p className="max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+        <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
           The same month against the example subscription targets costs{" "}
           {exact.economics.targetCost === undefined
             ? "an amount this result does not establish"

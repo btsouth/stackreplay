@@ -10,16 +10,13 @@ export interface AppNavItem {
 
 export const appBrand = {
   name: "StackReplay",
-  href: "/app",
+  href: "/",
 } as const;
 
 export const appNavItems = [
-  { label: "Overview", href: "/app" },
-  { label: "Import", href: "/app/import" },
+  { label: "Workspace", href: "/app" },
   { label: "Replay", href: "/app/replay" },
-  { label: "Stack", href: "/app/stack" },
-  { label: "Plans", href: "/app/plans" },
-  { label: "History", href: "/app/history" },
+  { label: "Import", href: "/app/import" },
   { label: "Settings", href: "/app/settings" },
 ] as const satisfies readonly AppNavItem[];
 

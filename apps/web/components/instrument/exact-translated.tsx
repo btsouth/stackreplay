@@ -72,14 +72,14 @@ export function ExactTranslated({
                 </li>
               ))}
             </ul>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
+            <p className="text-xs leading-relaxed text-muted-foreground">
               Transform: {translated.translation.method.replace(/-/gu, " ")} · policy{" "}
               {translated.translation.policyId}@{translated.translation.policyVersion}.{" "}
               {translated.modeNote}
             </p>
           </>
         )}
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           A translated replay is a scenario authored for this demonstration. It is not a claim that
           these two models behave alike, cost alike, or produce the same number of tokens.
         </p>
@@ -124,7 +124,7 @@ function ReplayModeColumn({
         <span className="text-sm text-foreground">{headline}</span>
         <StatusWord tone={tone}>{projection.mode ?? "not recorded"}</StatusWord>
       </div>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-xs leading-relaxed text-muted-foreground">
         {projection.target.label} · {projection.target.reference}
       </p>
       <div className="flex flex-col">
@@ -152,11 +152,11 @@ function ReplayModeColumn({
           value={formatCount(projection.crossings.length) ?? "0"}
         />
       </div>
-      <p className="max-w-prose text-[11px] leading-relaxed text-muted-foreground">
+      <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
         {projection.modeNote}
       </p>
       {projection.mode === "exact" && blocked !== undefined && blocked > 0 ? (
-        <p className="text-[11px] leading-relaxed text-foreground" data-testid="exact-not-complete">
+        <p className="text-xs leading-relaxed text-foreground" data-testid="exact-not-complete">
           This exact replay still refused {formatCount(blocked)} events: exact says nothing about
           whether the target serves everything.
         </p>

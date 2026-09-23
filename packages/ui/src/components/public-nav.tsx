@@ -23,10 +23,6 @@ export function PublicNav() {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    setOpen(false);
-  }, []);
-
-  useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -51,7 +47,12 @@ export function PublicNav() {
     <>
       <nav aria-label="Public" className="hidden items-center gap-0.5 lg:flex">
         {publicNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={linkClass(item.href)}>
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}
+            className={linkClass(item.href)}
+          >
             {item.label}
           </Link>
         ))}
@@ -80,7 +81,7 @@ export function PublicNav() {
         <Link
           href={primaryCta.href}
           className={cn(
-            "inline-flex min-h-11 items-center rounded-sm px-3 text-sm font-medium",
+            "hidden min-h-11 items-center rounded-sm px-3 text-sm font-medium sm:inline-flex",
             "bg-accent-solid text-accent-foreground hover:bg-accent-solid-hover",
             "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           )}
@@ -112,16 +113,27 @@ export function PublicNav() {
       </div>
 
       {open ? (
-        <div
+        <nav
           id={panelId}
-          className="absolute inset-x-0 top-12 z-40 border-b border-border bg-surface p-3 shadow-sm lg:hidden"
+          aria-label="Public"
+          className="absolute inset-x-0 top-16 z-40 border-b border-border bg-surface p-4 shadow-sm sm:top-[4.5rem] lg:hidden"
         >
           <ul className="flex flex-col">
+            <li className="sm:hidden">
+              <Link
+                href={primaryCta.href}
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center rounded-sm px-2 text-sm font-medium text-foreground"
+              >
+                {primaryCta.label}
+              </Link>
+            </li>
             {[...publicNavItems, repositoryNavItem].map((item) => (
               <li key={item.href}>
                 {"external" in item && item.external ? (
                   <a
                     href={item.href}
+                    onClick={() => setOpen(false)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex min-h-11 items-center rounded-sm px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -132,6 +144,8 @@ export function PublicNav() {
                 ) : (
                   <Link
                     href={item.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}
                     className="flex min-h-11 items-center rounded-sm px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {item.label}
@@ -140,7 +154,7 @@ export function PublicNav() {
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
       ) : null}
     </>
   );
