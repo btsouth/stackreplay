@@ -83,9 +83,10 @@ test.describe("replay surface accessibility", () => {
     await importDemo(page, "heavy");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
-    const constraints = page.getByTestId("constraints");
-    await expect(constraints).toContainText("PASS");
-    await expect(constraints).toContainText("EXCEEDED");
+    const trace = page.getByTestId("constraint-trace");
+    // Status is a word, not a colour, so every state reads without contrast.
+    await expect(trace).toContainText("within limits");
+    await expect(trace).toContainText("exceeded");
   });
 
   test("the timeline exposes a text alternative", async ({ page }) => {

@@ -9,10 +9,16 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
-    }
+    },
+    "./demo-scenario": {
+      "types": "./src/demo-scenario.ts",
+      "default": "./src/demo-scenario.ts"
+    },
+    "./generated/m4d-demo.json": "./generated/m4d-demo.json"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "demo": "pnpm --filter @stackreplay/replay-engine build && node ../../apps/web/scripts/build-demo-artifact.mjs",
     "clean": "rm -rf .turbo"
   },
   "devDependencies": {

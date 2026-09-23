@@ -42,6 +42,26 @@ export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {
+  crossingCount,
+  dispositionCount,
+  type ProjectedConstraintV1,
+  type ProjectedCrossingV1,
+  type ProjectedDimensionV1,
+  type ProjectedEconomicsV1,
+  type ProjectedEvidenceRowV1,
+  type ProjectedHeadlineV1,
+  type ProjectedModelResolutionV1,
+  type ProjectedOutcomeV1,
+  type ProjectedPriceabilityV1,
+  type ProjectedPricingCategoryV1,
+  type ProjectedProvenanceV1,
+  type ProjectedReplayV1,
+  type ProjectedTargetV1,
+  type ProjectedWorkloadV1,
+  type ProjectionCatalogV1,
+  projectReplay,
+} from "./projection.js";
+export {
   deriveOverageMode,
   deriveResetAssumption,
   hasMixedWindowKinds,

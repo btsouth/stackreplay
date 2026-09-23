@@ -1,3 +1,4 @@
+import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 
@@ -246,6 +247,12 @@ export type WorkerResponse =
       result: ExecutionReplayResultV1;
       /** Aggregate activity buckets for the timeline; no identities. */
       timeline: TimelinePoint[];
+      /**
+       * The same result as the display contract every surface reads (M4D).
+       * Projected in the worker so the app and the homepage cannot disagree
+       * about the facts of one replay.
+       */
+      projection: ProjectedReplayV1;
     }
   | { type: "IMPORTS"; requestId: number; imports: ImportRecord[] }
   | { type: "DELETED"; requestId: number; importId: string }

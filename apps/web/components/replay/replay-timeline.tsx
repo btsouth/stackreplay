@@ -12,6 +12,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  type BehaviourGroups,
+  behaviourKind,
+  type ExceedBehaviour,
+  groupByBehaviour,
+} from "@/components/instrument/constraint-behaviour";
 import type { TimelinePoint } from "@/lib/worker-protocol";
 
 /**
@@ -22,11 +28,16 @@ import type { TimelinePoint } from "@/lib/worker-protocol";
  * aggregate only: no event, session or project identity reaches the chart, so it
  * cannot leak private project information.
  *
- * Two things are kept honest here (benchmark findings F030 and F031):
+ * Three things are kept honest here (benchmark findings F030, F031 and the M4D
+ * projection audit):
  *
  * - not every exceeded window was refused. A rule that bills overage served the
- *   work and charged for it, so the bands are labelled and coloured by outcome
- *   instead of all being described as work the target did not serve;
+ *   work and charged for it, one that latches blocked it until the window reset,
+ *   and a record-only rule did neither. Bands are labelled and coloured by the
+ *   rule's declared behaviour, never by the presence of an overage quantity: a
+ *   record-only rule measures units above capacity without billing anything. A
+ *   window whose rule this result does not carry says so, rather than borrowing
+ *   record-only's meaning;
  * - tokens from events whose total is unknown are a lower bound and are plotted
  *   as their own band, never added into the exact series.
  *
@@ -39,11 +50,17 @@ const numberFormat = new Intl.NumberFormat("en-US", { notation: "compact" });
 interface ReplayTimelineProps {
   points: TimelinePoint[];
   violations: readonly ReplayViolationV1[];
+  /**
+   * Each constraint's declared behaviour, keyed by constraint id. Billing is a
+   * fact about the rule, so the chart reads it from the rule rather than
+   * inferring it from a violation's own quantities.
+   */
+  behaviours: ReadonlyMap<string, ExceedBehaviour>;
   /** ISO day to centre the view on, when a violation is focused. */
   focusAt?: string | undefined;
 }
 
-export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelineProps) {
+export function ReplayTimeline({ points, violations, behaviours, focusAt }: ReplayTimelineProps) {
   const data = useMemo(
     () =>
       points.map((point) => ({
@@ -58,13 +75,18 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
     [points],
   );
 
-  const refused = useMemo(
-    () => violations.filter((violation) => violation.overageUnits === undefined),
-    [violations],
+  /**
+   * Each crossing belongs to its rule's declared behaviour, and a rule this
+   * result does not carry belongs to none of them: it gets its own group
+   * instead of being filed under record-only.
+   */
+  const groups: BehaviourGroups<ReplayViolationV1> = useMemo(
+    () => groupByBehaviour(violations, (violation) => behaviours.get(violation.constraintId)),
+    [behaviours, violations],
   );
-  const billed = useMemo(
-    () => violations.filter((violation) => violation.overageUnits !== undefined),
-    [violations],
+  const behaviourOf = useMemo(
+    () => (violation: ReplayViolationV1) => behaviours.get(violation.constraintId),
+    [behaviours],
   );
   const partialDays = useMemo(() => data.filter((entry) => entry.partialEvents > 0).length, [data]);
 
@@ -76,27 +98,34 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
       (best, entry) => (entry.events > best.events ? entry : best),
       firstDay,
     );
+    const days = (entries: readonly ReplayViolationV1[]): string =>
+      entries.map((violation) => violation.startedAt.slice(0, 10)).join(", ");
     return [
       `${data.length} day(s) of activity.`,
       `Busiest day ${busiest.label} with ${busiest.events.toLocaleString("en-US")} events.`,
-      refused.length === 0
+      groups.refused.length === 0
         ? ""
-        : `${refused.length} window(s) exceeded and not served: ${refused
-            .map((violation) => violation.startedAt.slice(0, 10))
-            .join(", ")}.`,
-      billed.length === 0
+        : `${groups.refused.length} window(s) the rules refused individual requests in: ${days(groups.refused)}.`,
+      groups.latched.length === 0
         ? ""
-        : `${billed.length} window(s) exceeded and billed as overage: ${billed
-            .map((violation) => violation.startedAt.slice(0, 10))
-            .join(", ")}.`,
-      refused.length === 0 && billed.length === 0 ? "No window exceeded." : "",
+        : `${groups.latched.length} window(s) the rules blocked until the window reset: ${days(groups.latched)}.`,
+      groups.billed.length === 0
+        ? ""
+        : `${groups.billed.length} window(s) exceeded and billed at the rule's declared rate: ${days(groups.billed)}.`,
+      violations.length === 0 ? "No window exceeded." : "",
+      groups.recorded.length === 0
+        ? ""
+        : `${groups.recorded.length} window(s) exceeded without admitting or refusing anything: ${days(groups.recorded)}.`,
+      groups.unestablished.length === 0
+        ? ""
+        : `${groups.unestablished.length} window(s) whose rule this result does not carry, so what the rule did is not established: ${days(groups.unestablished)}.`,
       partialDays === 0
         ? ""
         : `Token totals are a lower bound on ${partialDays} day(s): some events report no total.`,
     ]
       .filter((part) => part.length > 0)
       .join(" ");
-  }, [billed, data, partialDays, refused]);
+  }, [data, groups, partialDays, violations.length]);
 
   if (data.length === 0) {
     return (
@@ -110,15 +139,22 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
     <figure className="flex flex-col gap-3" data-testid="replay-timeline">
       <figcaption className="text-xs text-muted-foreground" data-testid="timeline-caption">
         Historical activity per day.{" "}
-        {refused.length === 0
+        {groups.billed.length === 0
           ? null
-          : `${refused.length} shaded band(s) mark windows the target did not serve. `}
-        {billed.length === 0
+          : `${groups.billed.length} band(s) mark windows the rule served and billed above the included allowance. `}
+        {groups.refused.length === 0
           ? null
-          : `${billed.length} band(s) mark windows that exceeded the included allowance and were served and billed as overage. `}
-        {refused.length === 0 && billed.length === 0
-          ? "No window exceeded, so no band is shaded. "
-          : null}
+          : `${groups.refused.length} band(s) mark windows the target refused individual requests in because they exceeded the constraint. `}
+        {groups.latched.length === 0
+          ? null
+          : `${groups.latched.length} band(s) mark windows the target blocked until the window reset. `}
+        {groups.recorded.length === 0
+          ? null
+          : `${groups.recorded.length} band(s) mark windows the target recorded without admitting or refusing anything. `}
+        {groups.unestablished.length === 0
+          ? null
+          : `${groups.unestablished.length} band(s) mark windows whose rule this result does not carry: what the rule did with the demand is not established. `}
+        {violations.length === 0 ? "No window exceeded, so no band is shaded. " : null}
         {partialDays === 0
           ? null
           : `Token totals are a lower bound on ${partialDays} day(s): events that report no total are plotted separately.`}
@@ -197,10 +233,16 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
               const to =
                 [...data].reverse().find((entry) => entry.day <= end)?.label ?? data.at(-1)?.label;
               if (from === undefined || to === undefined) return null;
-              // A window billed as overage was served and charged; one without
-              // overage is work the target refused. Same band, different meaning.
-              const billedWindow = violation.overageUnits !== undefined;
-              const colour = billedWindow ? "var(--warning)" : "var(--negative)";
+              // The band's meaning comes from the rule's own behaviour: billed,
+              // refused or blocked, recorded, or not established in this result.
+              const behaviour = behaviourOf(violation);
+              const kind = behaviourKind(behaviour);
+              const colour =
+                kind === "billed"
+                  ? "var(--warning)"
+                  : kind === "refused" || kind === "latched"
+                    ? "var(--negative)"
+                    : "var(--border-strong)";
               return (
                 <ReferenceArea
                   key={`${violation.constraintId}-${violation.startedAt}`}
@@ -210,7 +252,7 @@ export function ReplayTimeline({ points, violations, focusAt }: ReplayTimelinePr
                   fillOpacity={0.12}
                   stroke={colour}
                   strokeOpacity={0.35}
-                  strokeDasharray={billedWindow ? "4 2" : undefined}
+                  strokeDasharray={kind === "refused" || kind === "latched" ? undefined : "4 2"}
                 />
               );
             })}

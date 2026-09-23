@@ -23,7 +23,12 @@ test("replays a demo workload with full coverage", async ({ page }) => {
   await expect(page.getByTestId("headline-status")).toContainText(/Fully served|Partly served/);
   await expect(page.getByTestId("coverage-requests")).toHaveAttribute("data-status", "known");
   await expect(page.getByTestId("coverage-requests")).toContainText("%");
-  await expect(page.getByTestId("confidence-factors")).toBeVisible();
+  // The dimension the headline figure comes from is one of three, each with its
+  // own denominator, and the evidence ledger sits beside them: one score is
+  // never derived across unlike dimensions.
+  await expect(page.getByTestId("coverage-dimensions").locator("li")).toHaveCount(3);
+  await expect(page.getByTestId("coverage-usage")).toHaveAttribute("data-status", "known");
+  await expect(page.getByTestId("evidence-ledger")).toBeVisible();
 });
 
 test("shows exceeded constraints with violation detail and a timeline", async ({ page }) => {
@@ -31,14 +36,14 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-pro");
 
-  const constraints = page.getByTestId("constraints");
-  await expect(constraints).toContainText("EXCEEDED");
-  await expect(constraints).toContainText("attempted");
+  const trace = page.getByTestId("constraint-trace");
+  await expect(trace).toContainText("exceeded");
+  await expect(trace).toContainText("attempted");
   // Enum values are humanized for display: no raw underscores leak through.
-  // This covers constraint detail rows AND the result warnings (the
-  // LATCH_TRIGGERED warning text also embeds the enum).
-  await expect(constraints).toContainText("latch until reset");
-  await expect(constraints).not.toContainText("until_reset");
+  // This covers constraint rows AND the result warnings (the LATCH_TRIGGERED
+  // warning text also embeds the enum).
+  await expect(trace).toContainText("latch until reset");
+  await expect(trace).not.toContainText("until_reset");
   await expect(page.getByTestId("replay-warnings")).toContainText("latch until reset rule");
   await expect(page.getByTestId("replay-warnings")).not.toContainText("until_reset");
 
@@ -47,9 +52,24 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   await violations.locator("summary").first().click();
   await expect(violations).toContainText("Attempted demand");
   await expect(violations).toContainText("Affected events");
-  await expect(violations).toContainText(
-    /latched until the window reset|individual requests rejected|served, billed as overage|recorded only/,
+  // The wording follows this rule's own declared behaviour. This plan latches,
+  // so the crossing says so and claims neither billing nor a per-request refusal
+  // (the four behaviours are mutually exclusive; accepting any of them would
+  // pass while the panel described the wrong one).
+  await expect(violations).toContainText("latched until the window reset");
+  await expect(violations).toContainText("further requests blocked until the window resets");
+  await expect(violations).not.toContainText(/served and billed|individual requests rejected/u);
+
+  // Each constraint row carries its own behaviour too: rejected per request,
+  // blocked while latched, or billed instead of refused.
+  await expect(trace.getByTestId("constraint-monthly-tokens")).toContainText("events rejected");
+  await expect(trace.getByTestId("constraint-rolling-5h-requests")).toContainText(
+    "events blocked while latched",
   );
+  await expect(trace.getByTestId("constraint-large-model-credits")).toContainText(
+    "bills the excess instead",
+  );
+  await expect(trace).not.toContainText("until_reset");
 
   await expect(page.getByTestId("replay-timeline")).toBeVisible();
   await expect(page.getByTestId("timeline-chart")).toBeVisible();
@@ -68,8 +88,160 @@ test("the timeline names what each shaded band did to the workload", async ({ pa
   await expect(caption).toContainText("Historical activity per day");
   const text = (await caption.textContent()) ?? "";
   if (!/No window exceeded/u.test(text)) {
-    expect(text).toMatch(/did not serve|served and billed as overage/u);
+    // The demo's exact plan latches on its rolling request window, so the band
+    // wording is the latch's own. Asserting the actual behaviour, and negating
+    // the others, is what stops a caption that describes the wrong one from
+    // passing: a per-request refusal and a billed window are different events.
+    expect(text).toMatch(/\d+ band\(s\) mark windows the target blocked until the window reset/u);
+    expect(text).not.toMatch(
+      /refused individual requests|billed above the included allowance|recorded without admitting|not established/u,
+    );
   }
+});
+
+test("a target change during a replay never displays the earlier result", async ({ page }) => {
+  /**
+   * Deterministic version of the in-flight case (finding F026).
+   *
+   * A sleep cannot prove that run A resolved after target B was selected: on a
+   * fast machine A may have finished first, and the assertion then passes
+   * because nothing was ever in flight. This test holds A's own request at the
+   * Worker boundary, changes the selection, releases A, and only then asserts
+   * what the surface shows. The gate is a test-only wrapper around the page's
+   * `Worker` constructor: it withholds the `RUN_REPLAY` message and forwards it
+   * verbatim on release, so A really runs and really answers.
+   */
+  await page.addInitScript(() => {
+    const RealWorker = window.Worker;
+    const held: { release: () => void }[] = [];
+    const gate = { armed: false, held: 0, released: 0, responses: [] as string[] };
+    (window as unknown as { __replayGate: typeof gate }).__replayGate = gate;
+    (window as unknown as { __armReplayGate: () => void }).__armReplayGate = () => {
+      gate.armed = true;
+    };
+    (window as unknown as { __releaseReplays: () => number }).__releaseReplays = () => {
+      gate.armed = false;
+      const queued = held.splice(0, held.length);
+      gate.released += queued.length;
+      for (const entry of queued) entry.release();
+      return queued.length;
+    };
+    /**
+     * A Worker that holds back `RUN_REPLAY` messages while the gate is armed and
+     * forwards them verbatim on release. Nothing else about the Worker changes:
+     * the request is the app's own, and the answer is the real engine's.
+     */
+    function GatedWorker(this: unknown, url: string | URL, options?: WorkerOptions): Worker {
+      const worker = new RealWorker(url, options);
+      const post = worker.postMessage.bind(worker);
+      worker.postMessage = ((message: unknown, transfer?: Transferable[]) => {
+        const isReplay =
+          typeof message === "object" &&
+          message !== null &&
+          (message as { type?: unknown }).type === "RUN_REPLAY";
+        if (gate.armed && isReplay) {
+          held.push({
+            release: () => {
+              if (transfer === undefined) post(message);
+              else post(message, transfer);
+            },
+          });
+          gate.held += 1;
+          return;
+        }
+        if (transfer === undefined) post(message);
+        else post(message, transfer);
+      }) as Worker["postMessage"];
+      // Every answer the page receives is recorded, so the test can wait for the
+      // stale run's own reply to land instead of waiting on a clock.
+      return new Proxy(worker, {
+        set(target, property, value) {
+          if (property === "onmessage" && typeof value === "function") {
+            target.onmessage = (event: MessageEvent<unknown>) => {
+              const type = (event.data as { type?: unknown } | null)?.type;
+              if (typeof type === "string") gate.responses.push(type);
+              (value as (event: MessageEvent<unknown>) => void)(event);
+            };
+            return true;
+          }
+          return Reflect.set(target, property, value);
+        },
+      }) as unknown as Worker;
+    }
+    (window as unknown as { Worker: unknown }).Worker = GatedWorker;
+  });
+
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+
+  // Select target A, hold its replay at the Worker boundary, and start it.
+  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await page.getByTestId("plan-example-cloud-pro").click();
+  await page.evaluate(() => {
+    (window as unknown as { __armReplayGate: () => void }).__armReplayGate();
+  });
+  await page.getByTestId("run-replay").click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { __replayGate: { held: number } }).__replayGate.held,
+      ),
+    )
+    .toBe(1);
+  // A is running and has not answered: the surface is in its replaying phase.
+  await expect(page.getByTestId("run-replay")).toBeDisabled();
+
+  // Change the selection to target B while A is still in flight.
+  await page.getByTestId("plan-example-cloud-starter").click();
+  await expect(page.getByTestId("plan-example-cloud-starter")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  // Release A: it completes for real, after B was selected.
+  expect(
+    await page.evaluate(() =>
+      (window as unknown as { __releaseReplays: () => number }).__releaseReplays(),
+    ),
+  ).toBe(1);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { __replayGate: { released: number } }).__replayGate.released,
+      ),
+    )
+    .toBe(1);
+  // A's own answer reaching the page is the event the assertion waits on: the
+  // response was delivered, not merely slow, so what follows proves the surface
+  // refused to move rather than proving the machine was quick.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          window as unknown as { __replayGate: { responses: string[] } }
+        ).__replayGate.responses.includes("REPLAY_OK"),
+      ),
+    )
+    .toBe(true);
+  // Let React commit anything the delivered response set, then assert the
+  // surface never moved. With the in-flight guard removed, A's result is on
+  // screen at this point, under labels that describe B.
+  await page.waitForTimeout(750);
+  await expect(page.getByTestId("workload-strip")).toBeVisible();
+  await expect(page.getByTestId("replay-result")).toHaveCount(0);
+  await expect(page.getByTestId("replay-error")).toHaveCount(0);
+  // B is still what the surface is showing.
+  await expect(page.getByTestId("plan-example-cloud-starter")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.getByTestId("plan-example-cloud-pro")).toHaveAttribute("aria-pressed", "false");
+
+  // B replays normally afterwards: the guard drops the stale run, it does not
+  // wedge the surface.
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("result-computed-for")).toContainText("example-cloud-starter");
 });
 
 test("states whether the replay was exact and how each event was treated", async ({ page }) => {
@@ -77,10 +249,8 @@ test("states whether the replay was exact and how each event was treated", async
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-pro");
 
-  const card = page.getByTestId("replay-semantics");
-  await expect(card).toBeVisible();
-  await expect(card.getByRole("heading", { name: "Replay semantics" })).toBeVisible();
-  // Same-model replay: the headline states exact and the card never claims a substitution.
+  // Same-model replay: the headline states exact and the result never claims a
+  // substitution happened.
   await expect(page.getByTestId("replay-headline").getByTestId("replay-mode")).toHaveText(
     "Exact replay",
   );
@@ -92,18 +262,19 @@ test("states whether the replay was exact and how each event was treated", async
   await expect(page.getByTestId("replay-mode-note")).not.toContainText(
     /every replayed request|target itself serves|covered in full/i,
   );
-  await expect(page.getByTestId("replay-translation")).toHaveCount(0);
-  await expect(card).not.toContainText("Translated replay");
+  await expect(page.getByTestId("translation-assumption")).toHaveCount(0);
 
   // Every event lands in exactly one outcome, and the paid case is its own row.
-  const outcomes = page.getByTestId("replay-dispositions");
+  const outcomes = page.getByTestId("outcome-ledger");
   for (const label of ["Included", "Overage", "Blocked", "Unavailable", "Unknown"])
     await expect(outcomes).toContainText(label);
 
-  // Evidence dimensions stay separate, each with its own denominator.
-  await expect(page.getByTestId("replay-evidence")).toContainText("Model resolution");
-  await expect(page.getByTestId("replay-evidence")).toContainText("events");
-  await expect(page.getByTestId("replay-replayability")).toBeVisible();
+  // Evidence dimensions stay separate, each with its own reading.
+  await expect(page.getByTestId("evidence-ledger")).toContainText("Model identity");
+  await expect(page.getByTestId("evidence-ledger")).toContainText("events");
+  await expect(page.getByTestId("result-settlement")).toContainText(
+    /deterministic|bounded|qualitative/i,
+  );
 
   // The scope statement must not upgrade an imported workload into account-wide coverage.
   await expect(page.getByTestId("replay-scope")).toContainText("not the whole provider account");
@@ -137,11 +308,11 @@ test("keeps unknown coverage visibly unknown instead of 0% or 100%", async ({ pa
 
   const requests = page.getByTestId("coverage-requests");
   await expect(requests).toHaveAttribute("data-status", "unknown");
-  await expect(requests).toContainText("UNKNOWN");
+  await expect(requests).toContainText(/unknown/i);
   await expect(requests).not.toContainText("%");
 
-  const constraints = page.getByTestId("constraints");
-  await expect(constraints).toContainText("UNKNOWN");
+  const trace = page.getByTestId("constraint-trace");
+  await expect(trace).toContainText(/unknown/i);
 });
 
 test("explains how observed model names map onto the catalog", async ({ page }) => {
@@ -214,26 +385,27 @@ test("never reads as served while part of the demand is unavailable or undecided
   await expect(note).toContainText("No cross-model substitution was applied");
   await expect(note).not.toContainText(/every replayed request|target itself serves/i);
 
-  const dispositions = page.getByTestId("replay-dispositions");
+  const dispositions = page.getByTestId("outcome-ledger");
   await expect(dispositions).toContainText("Unknown");
-  const undecided = await dispositions.evaluate(
-    (element) =>
-      [...element.querySelectorAll("div")]
-        .find((row) => row.querySelector("dt")?.textContent === "Unknown")
-        ?.querySelector("dd")?.textContent ?? "0",
-  );
+  const undecidedRow = page.getByTestId("outcome-unknown");
+  await expect(undecidedRow).toBeVisible();
+  const undecided = (await undecidedRow.textContent()) ?? "0";
   expect(Number(undecided.replace(/[^0-9]/gu, ""))).toBeGreaterThan(0);
-  await expect(page.getByTestId("replay-replayability")).toContainText(/bounded|qualitative/i);
+  await expect(page.getByTestId("result-settlement")).toContainText(/bounded|qualitative/i);
 });
 
 test("lists models the target does not serve", async ({ page }) => {
   await importDemo(page, "multistack");
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-starter");
-  await expect(page.getByTestId("unsupported-models")).toBeVisible();
-  await expect(page.getByTestId("unsupported-models")).toContainText(
-    /unresolved|not_supported|excluded/,
-  );
+  // Secondary detail under the result: the engine's own per-model records, each
+  // with its reason, so an unserved model is never folded into a served one.
+  const unserved = page.getByTestId("unserved-models");
+  await expect(unserved).toBeVisible();
+  await expect(unserved).toContainText(/unresolved|not_supported|excluded/);
+  // The same fact is stated once at the top as demand the target would not
+  // serve, and never as a request that was merely unmeasured.
+  await expect(page.getByTestId("outcome-unavailable")).toContainText(/[1-9]/u);
 });
 
 test("shows the rules instant and the plan version used", async ({ page }) => {

@@ -70,6 +70,10 @@ function replayOk(requestId: number, reference: string): WorkerResponse {
       versions: { targetReference: reference },
     } as never,
     timeline: [],
+    // The client's job here is to carry the worker's payload unmodified. The
+    // projection's own contents are covered by the engine tests and by
+    // `demo-artifact.test.ts`, so this fixture only has to be a projection.
+    projection: {} as never,
   };
 }
 

@@ -4,7 +4,7 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { replay } from "@stackreplay/replay-engine";
+import { projectReplay, replay } from "@stackreplay/replay-engine";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
 import {
@@ -326,10 +326,11 @@ async function handleRunReplay(
 
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
+    const catalog = loadBundledCatalog();
     const result = replay({
       events: loaded.value.events,
       target,
-      catalog: loadBundledCatalog(),
+      catalog,
       context: { rulesAsOf },
     });
     post({
@@ -337,6 +338,10 @@ async function handleRunReplay(
       requestId,
       result,
       timeline: buildTimeline(loaded.value.events),
+      // The projection is the display contract the surfaces read (M4D). It is
+      // built here, next to the replay itself, so the app and the demonstration
+      // cannot describe the same result differently.
+      projection: projectReplay(result, catalog),
     });
   } catch (error) {
     post({

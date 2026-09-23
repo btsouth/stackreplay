@@ -1,5 +1,6 @@
 "use client";
 
+import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import {
@@ -20,6 +21,8 @@ import {
 export interface ReplayOutcome {
   result: ExecutionReplayResultV1;
   timeline: TimelinePoint[];
+  /** The display contract for the same result (M4D). */
+  projection: ProjectedReplayV1;
 }
 
 /**
@@ -361,7 +364,11 @@ export class ReplayWorkerClient {
       "replay",
     );
     if (response.type !== "REPLAY_OK") throw new Error("unexpected worker response");
-    return { result: response.result, timeline: response.timeline };
+    return {
+      result: response.result,
+      timeline: response.timeline,
+      projection: response.projection,
+    };
   }
 
   async listImports(): Promise<ImportRecord[]> {
