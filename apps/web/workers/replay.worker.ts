@@ -1,10 +1,21 @@
 /// <reference lib="webworker" />
 import {
+  type BrowserCandidate,
+  BrowserIntakeBudget,
+  BrowserIntakeBudgetError,
+  type CandidateOutcome,
+  expandZipCandidate,
+  intakeBrowserCandidates,
+  safeCandidateName,
+  safeIntakeMessage,
+} from "@stackreplay/adapters/browser";
+import {
   BUNDLED_CATALOG_VERSION,
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import { projectReplay, replay } from "@stackreplay/replay-engine";
+import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
 import {
@@ -37,6 +48,39 @@ import { summarizeExport } from "../lib/workload-summary";
  */
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
+const sessionWorkloads = new Map<string, { record: ImportRecord; exported: StackReplayExportV1 }>();
+let currentImportRequestId = 0;
+let currentImportController: AbortController | undefined;
+
+function beginImport(
+  requestId: number,
+  supersessionMessage = "A newer import selection replaced it.",
+): AbortSignal {
+  if (currentImportController !== undefined && !currentImportController.signal.aborted) {
+    post({
+      type: "ERROR",
+      requestId: currentImportRequestId,
+      error: {
+        code: "IMPORT_CANCELLED",
+        title: "This import was superseded.",
+        message: supersessionMessage,
+      },
+    });
+  }
+  currentImportController?.abort();
+  currentImportRequestId = requestId;
+  currentImportController = new AbortController();
+  return currentImportController.signal;
+}
+
+function invalidateCurrentImport(requestId: number, supersessionMessage?: string): void {
+  beginImport(requestId, supersessionMessage);
+  currentImportController?.abort();
+}
+
+function importIsCurrent(requestId: number, signal: AbortSignal): boolean {
+  return currentImportRequestId === requestId && !signal.aborted;
+}
 
 function post(message: WorkerResponse): void {
   scope.postMessage(message);
@@ -68,6 +112,14 @@ function progress(
  * finding F029).
  */
 function toSafeError(error: unknown): SafeError {
+  if (error instanceof BrowserIntakeBudgetError) {
+    return {
+      code: "INTAKE_BUDGET_EXCEEDED",
+      title: "This selection exceeds the browser intake budget.",
+      message: `${error.bound} exceeds the aggregate limit of ${error.limit}.`,
+      hint: "Select a smaller batch or a narrower history.",
+    };
+  }
   if (typeof error === "object" && error !== null) {
     const candidate = error as Partial<SafeError>;
     if (isSafeErrorCode(candidate.code) && typeof candidate.message === "string") {
@@ -130,8 +182,11 @@ function sanitizeMessage(message: string): string {
 
 async function handleImportFile(
   request: Extract<WorkerRequest, { type: "IMPORT_FILE" }>,
+  signal: AbortSignal,
+  preReadText?: string,
 ): Promise<void> {
   const { requestId, file, importId, label, now } = request;
+  const saveLocal = request.saveLocal ?? true;
   // One rule, shared with the interface: the refusal point and the wording come
   // from `importSizeAdvice` so the two surfaces cannot describe the same file
   // differently (benchmark finding F008).
@@ -157,7 +212,7 @@ async function handleImportFile(
   const storeWhenStarted = storage.localStoreGeneration();
   let text: string;
   try {
-    text = await file.text();
+    text = preReadText ?? (await file.text());
   } catch (error) {
     post({
       type: "ERROR",
@@ -198,15 +253,19 @@ async function handleImportFile(
   }
   const record: ImportRecord = {
     id: importId,
-    label,
+    label: safeCandidateName(label),
     createdAt: now,
     eventCount: summary.eventCount,
     summary,
+    savedLocally: saveLocal,
   };
-  const existing = await storage.listImports();
-  const saved = await storage.saveImport(record, validated.exported, {
-    observed: storeWhenStarted,
-  });
+  if (!importIsCurrent(requestId, signal)) return;
+  const existing = saveLocal ? await storage.listImports() : [];
+  if (!importIsCurrent(requestId, signal)) return;
+  const saved = saveLocal
+    ? await storage.saveImport(record, validated.exported, { observed: storeWhenStarted, signal })
+    : { ok: true as const, value: record };
+  if (!importIsCurrent(requestId, signal)) return;
   if (!saved.ok) {
     if (saved.code === "IMPORT_CANCELLED") {
       post({
@@ -235,6 +294,7 @@ async function handleImportFile(
     });
     return;
   }
+  if (!saveLocal) sessionWorkloads.set(importId, { record, exported: validated.exported });
   post({
     type: "IMPORT_OK",
     requestId,
@@ -243,8 +303,184 @@ async function handleImportFile(
   });
 }
 
+async function handleImportSources(
+  request: Extract<WorkerRequest, { type: "IMPORT_SOURCES" }>,
+  signal: AbortSignal,
+): Promise<void> {
+  const { requestId, importId, files, now, saveLocal } = request;
+  if (files.length === 0) {
+    post({
+      type: "ERROR",
+      requestId,
+      error: {
+        code: "EMPTY_WORKLOAD",
+        title: "No files selected.",
+        message: "Choose source files or a folder to scan.",
+      },
+    });
+    return;
+  }
+  const storeWhenStarted = storage.localStoreGeneration();
+  const budget = new BrowserIntakeBudget();
+  budget.select(files.map(({ file, path }) => ({ size: file.size, path })));
+  let preReadFile: File | undefined;
+  let preReadText: string | undefined;
+  // A portable V1 envelope is identified by content. The filename is only a
+  // UI convention, so a CLI export named usage.json follows the same path.
+  const onlySelection = files.length === 1 ? files[0] : undefined;
+  if (onlySelection !== undefined && !/\.zip$/iu.test(onlySelection.file.name)) {
+    const file = onlySelection.file;
+    if (/\.(json|jsonl|stackreplay)$/iu.test(file.name) && file.size <= 512 * 1024 * 1024) {
+      budget.add("readBytes", file.size);
+      const text = await file.text();
+      let envelope: unknown;
+      try {
+        envelope = JSON.parse(text);
+      } catch {
+        /* Raw JSONL is handled below. */
+      }
+      if (
+        typeof envelope === "object" &&
+        envelope !== null &&
+        (envelope as { format?: unknown }).format === "stackreplay"
+      ) {
+        await handleImportFile(
+          {
+            protocol: WORKER_PROTOCOL_VERSION,
+            type: "IMPORT_FILE",
+            requestId,
+            importId,
+            label: file.name,
+            file,
+            now,
+            saveLocal,
+          },
+          signal,
+          text,
+        );
+        return;
+      }
+      // Reuse the bytes already read for ordinary one-file source intake.
+      preReadFile = file;
+      preReadText = text;
+    }
+  }
+  progress(
+    requestId,
+    "import",
+    "reading",
+    `Scanning ${files.length} selected file${files.length === 1 ? "" : "s"}`,
+  );
+  const candidates: BrowserCandidate[] = [];
+  const archiveOutcomes: CandidateOutcome[] = [];
+  for (const { file, path } of files) {
+    if (!importIsCurrent(requestId, signal)) return;
+    const selected = {
+      path,
+      size: file.size,
+      lastModified: file.lastModified,
+      text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
+      readCost: file === preReadFile ? 0 : file.size,
+      arrayBuffer: () => file.arrayBuffer(),
+    };
+    if (/\.zip$/iu.test(file.name)) {
+      try {
+        const expanded = await expandZipCandidate(selected, budget);
+        candidates.push(...expanded.candidates);
+        archiveOutcomes.push(...expanded.outcomes);
+      } catch (failure) {
+        if (failure instanceof BrowserIntakeBudgetError) throw failure;
+        archiveOutcomes.push({
+          path: safeCandidateName(file.name),
+          status: "malformed",
+          events: 0,
+          reason:
+            failure instanceof Error ? sanitizeMessage(failure.message) : "Archive is malformed",
+        });
+      }
+    } else candidates.push(selected);
+  }
+  const result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
+    now,
+    budget,
+    onProgress: (done, total) =>
+      progress(requestId, "import", "validating", `Scanned ${done} of ${total} selected files`),
+  });
+  if (!importIsCurrent(requestId, signal)) return;
+  result.outcomes.unshift(...archiveOutcomes);
+  if (result.exported === undefined) {
+    post({
+      type: "ERROR",
+      requestId,
+      error: {
+        code: "EMPTY_WORKLOAD",
+        title: "No replayable usage found.",
+        message: "The selected files did not contain records in a supported source format.",
+        details: result.outcomes.slice(0, 8).map((item) => `${item.path}: ${item.reason}`),
+      },
+    });
+    return;
+  }
+  progress(requestId, "import", "preparing", "Preparing the recognized workload");
+  const summary = summarizeExport(result.exported, BUNDLED_CATALOG_VERSION, bundledModelIdentity());
+  const record: ImportRecord = {
+    id: importId,
+    label:
+      files.length === 1
+        ? safeCandidateName(files[0]?.file.name ?? "Selected workload")
+        : `Selected workload (${files.length} files)`,
+    createdAt: now,
+    eventCount: summary.eventCount,
+    summary,
+    savedLocally: saveLocal,
+    intake: {
+      outcomes: result.outcomes.map((item) => ({
+        path: safeCandidateName(item.path),
+        status: item.status,
+        ...(item.source !== undefined ? { source: item.source } : {}),
+        reason: safeIntakeMessage(item.reason),
+        events: item.events,
+      })),
+      exactDuplicates: result.exactDuplicates,
+      overlaps: result.overlaps,
+      warnings: result.warnings.map((warning) => ({
+        code: warning.code,
+        message: safeIntakeMessage(warning.message),
+      })),
+    },
+  };
+  if (!importIsCurrent(requestId, signal)) return;
+  if (saveLocal) {
+    const saved = await storage.saveImport(record, result.exported, {
+      observed: storeWhenStarted,
+      signal,
+    });
+    if (!importIsCurrent(requestId, signal)) return;
+    if (!saved.ok) {
+      post({
+        type: "ERROR",
+        requestId,
+        error: {
+          code: saved.code === "IMPORT_CANCELLED" ? "IMPORT_CANCELLED" : "STORAGE_UNAVAILABLE",
+          title: "This workload could not be saved on this browser.",
+          message:
+            saved.code === "IMPORT_CANCELLED"
+              ? "Local data was cleared during import."
+              : "Browser storage is unavailable or full.",
+          hint: "Try again without saving locally, then export a portable workload if needed.",
+        },
+      });
+      return;
+    }
+  } else {
+    sessionWorkloads.set(importId, { record, exported: result.exported });
+  }
+  post({ type: "IMPORT_OK", requestId, record, replacedExisting: false });
+}
+
 async function handleImportDemo(
   request: Extract<WorkerRequest, { type: "IMPORT_DEMO" }>,
+  signal: AbortSignal,
 ): Promise<void> {
   const { requestId, preset, importId, now } = request;
   progress(requestId, "import", "preparing", "Building the demo workload");
@@ -267,9 +503,12 @@ async function handleImportDemo(
     eventCount: summary.eventCount,
     summary,
   };
+  if (!importIsCurrent(requestId, signal)) return;
   const saved = await storage.saveImport(record, validated.exported, {
     observed: storeWhenStarted,
+    signal,
   });
+  if (!importIsCurrent(requestId, signal)) return;
   if (!saved.ok) {
     post({
       type: "ERROR",
@@ -300,7 +539,11 @@ async function handleRunReplay(
 ): Promise<void> {
   const { requestId, importId, target, rulesAsOf } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
-  const loaded = await storage.loadImport(importId);
+  const sessionWorkload = sessionWorkloads.get(importId);
+  const loaded =
+    sessionWorkload !== undefined
+      ? { ok: true as const, value: sessionWorkload.exported }
+      : await storage.loadImport(importId);
   if (!loaded.ok) {
     post({
       type: "ERROR",
@@ -400,11 +643,56 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
       case "PING":
         post({ type: "PONG", requestId: request.requestId, protocol: WORKER_PROTOCOL_VERSION });
         return;
-      case "IMPORT_FILE":
-        await queueMutation(() => handleImportFile(request));
+      case "CANCEL_IMPORT":
+        invalidateCurrentImport(request.requestId);
+        post({ type: "CANCELLED", requestId: request.requestId });
         return;
+      case "IMPORT_FILE":
+        {
+          const signal = beginImport(request.requestId);
+          await queueMutation(() => handleImportFile(request, signal));
+        }
+        return;
+      case "IMPORT_SOURCES":
+        {
+          const signal = beginImport(request.requestId);
+          await queueMutation(() => handleImportSources(request, signal));
+        }
+        return;
+      case "EXPORT_LOCAL_IMPORT": {
+        const sessionWorkload = sessionWorkloads.get(request.importId);
+        const loaded =
+          sessionWorkload !== undefined
+            ? { ok: true as const, value: sessionWorkload.exported }
+            : await storage.loadImport(request.importId);
+        if (!loaded.ok) {
+          post({
+            type: "ERROR",
+            requestId: request.requestId,
+            error: {
+              code: "IMPORT_NOT_FOUND",
+              title: "Workload unavailable.",
+              message: "The local workload could not be opened for export.",
+            },
+          });
+          return;
+        }
+        const validated = validateExportValue(loaded.value);
+        if (!validated.ok) {
+          post({ type: "ERROR", requestId: request.requestId, error: validated.error });
+          return;
+        }
+        const bytes = new TextEncoder().encode(JSON.stringify(validated.exported));
+        scope.postMessage({ type: "EXPORTED", requestId: request.requestId, bytes }, [
+          bytes.buffer,
+        ]);
+        return;
+      }
       case "IMPORT_DEMO":
-        await queueMutation(() => handleImportDemo(request));
+        {
+          const signal = beginImport(request.requestId);
+          await queueMutation(() => handleImportDemo(request, signal));
+        }
         return;
       case "RUN_REPLAY":
         await handleRunReplay(request);
@@ -413,10 +701,13 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         post({
           type: "IMPORTS",
           requestId: request.requestId,
-          imports: await storage.listImports(),
+          imports: [...sessionWorkloads.values()]
+            .map((item) => item.record)
+            .concat(await storage.listImports()),
         });
         return;
       case "DELETE_LOCAL_IMPORT": {
+        sessionWorkloads.delete(request.importId);
         // Registered first: an import running right now must not be able to write
         // this record back after the queue reaches the deletion.
         storage.invalidateInFlightWrites(request.importId);
@@ -437,6 +728,8 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       }
       case "CLEAR_LOCAL_DATA": {
+        invalidateCurrentImport(request.requestId, "Clearing local data cancelled this import.");
+        sessionWorkloads.clear();
         // Same rule as a delete: clearing invalidates imports that are running now,
         // so nothing lands after the clear.
         storage.invalidateInFlightWrites();

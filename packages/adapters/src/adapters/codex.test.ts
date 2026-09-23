@@ -104,6 +104,36 @@ describe("codex adapter", () => {
 });
 
 describe("codex adapter: schema validity when fields are absent", () => {
+  it("distinguishes explicit zero, missing total, malformed total, and valid total", async () => {
+    const change = (total: "zero" | "missing" | "malformed" | "valid") =>
+      CODEX_ROLLOUT.split("\n")
+        .map((line) => {
+          if (!line.includes("last_token_usage")) return line;
+          const record = JSON.parse(line) as {
+            payload: { info: { last_token_usage: Record<string, unknown> } };
+          };
+          const usage = record.payload.info.last_token_usage;
+          if (total === "missing") delete usage.total_tokens;
+          else if (total === "malformed") usage.total_tokens = "not a count";
+          else if (total === "zero") {
+            for (const key of Object.keys(usage)) usage[key] = 0;
+          }
+          return JSON.stringify(record);
+        })
+        .join("\n");
+    const zero = await collectFrom(change("zero"));
+    expect(zero.events).toHaveLength(0);
+    const missing = await collectFrom(change("missing"));
+    const malformed = await collectFrom(change("malformed"));
+    for (const result of [missing, malformed]) {
+      expect(result.events).toHaveLength(2);
+      expect(result.events[0]?.usage.inputTokens).toBe(2000);
+      expect(result.warnings.map((warning) => warning.code)).toContain("RECORD_INCOMPLETE");
+    }
+    const valid = await collectFrom(change("valid"));
+    expect(valid.events).toHaveLength(2);
+    expect(valid.warnings.map((warning) => warning.code)).not.toContain("RECORD_INCOMPLETE");
+  });
   it("emits a schema-valid event when the record omits reasoning and cache fields", async () => {
     const { usageEventV1Schema } = await import("@stackreplay/schema");
     const trimmed = CODEX_ROLLOUT.split("\n")

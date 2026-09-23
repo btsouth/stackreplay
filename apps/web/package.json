@@ -15,9 +15,11 @@
     "build:worker": "node scripts/build-worker.mjs"
   },
   "dependencies": {
+    "@stackreplay/adapters": "workspace:*",
     "@stackreplay/catalog": "workspace:*",
     "@stackreplay/replay-engine": "workspace:*",
     "@stackreplay/schema": "workspace:*",
+    "@stackreplay/share": "workspace:*",
     "@stackreplay/test-fixtures": "workspace:*",
     "@stackreplay/ui": "workspace:*",
     "geist": "^1.7.2",
@@ -26,7 +28,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "recharts": "^3.2.1",
-    "@stackreplay/share": "workspace:*"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -36,6 +38,7 @@
     "@types/node": "^24.13.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "fflate": "^0.8.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",

@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 export const metadata: Metadata = {
   title: "Import",
   description:
-    "Import a StackReplay export. It is read and replayed in your browser; nothing is uploaded.",
+    "Load supported AI history files, a folder, ZIP archive, or a StackReplay workload in your browser.",
 };
 
 export default async function ImportPage({
@@ -19,7 +19,7 @@ export default async function ImportPage({
     <>
       <PageHeader
         title="Import"
-        description="Bring in a StackReplay export and see what your workload actually looks like."
+        description="Select a workload and review the usage StackReplay can establish."
       />
       <ImportSurface initialImports={[]} initialTarget={target} />
     </>

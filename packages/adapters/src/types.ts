@@ -213,6 +213,8 @@ export interface SourceEnvironment {
   homeDir: string;
   env: Record<string, string | undefined>;
   fs: FileSystem;
+  /** The collector supplied user-selected files, not a known native directory layout. */
+  selectedFiles?: boolean;
   /** Import file supplied on the command line (import adapters only). */
   inputFile?: string;
 }

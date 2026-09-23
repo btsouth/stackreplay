@@ -1,3 +1,4 @@
+import type { CandidateOutcome } from "@stackreplay/adapters/browser";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
@@ -24,6 +25,7 @@ export type ReplayPhase = "loading" | "replaying";
 export type SafeErrorCode =
   | "FILE_UNREADABLE"
   | "FILE_TOO_LARGE"
+  | "INTAKE_BUDGET_EXCEEDED"
   | "NOT_JSON"
   | "NOT_STACKREPLAY"
   | "UNSUPPORTED_VERSION"
@@ -49,6 +51,7 @@ export type SafeErrorCode =
 export const SAFE_ERROR_CODES = [
   "FILE_UNREADABLE",
   "FILE_TOO_LARGE",
+  "INTAKE_BUDGET_EXCEEDED",
   "NOT_JSON",
   "NOT_STACKREPLAY",
   "UNSUPPORTED_VERSION",
@@ -171,6 +174,13 @@ export interface ImportRecord {
   createdAt: string;
   eventCount: number;
   summary: WorkloadSummary;
+  intake?: {
+    outcomes: CandidateOutcome[];
+    exactDuplicates: number;
+    overlaps: number;
+    warnings: { code: string; message: string }[];
+  };
+  savedLocally?: boolean;
 }
 
 /**
@@ -196,12 +206,28 @@ export interface TimelinePoint {
 export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "IMPORT_SOURCES";
+      requestId: number;
+      importId: string;
+      files: { file: File; path: string }[];
+      now: string;
+      saveLocal: boolean;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "EXPORT_LOCAL_IMPORT";
+      requestId: number;
+      importId: string;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "IMPORT_FILE";
       requestId: number;
       importId: string;
       label: string;
       file: File;
       now: string;
+      saveLocal?: boolean;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -227,11 +253,13 @@ export type WorkerRequest =
       importId: string;
     }
   | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CLEAR_LOCAL_DATA"; requestId: number }
-  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "PING"; requestId: number };
+  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "PING"; requestId: number }
+  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CANCEL_IMPORT"; requestId: number };
 
 export type WorkerResponse =
   | { type: "READY"; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "PONG"; requestId: number; protocol: typeof WORKER_PROTOCOL_VERSION }
+  | { type: "CANCELLED"; requestId: number }
   | {
       type: "PROGRESS";
       requestId: number;
@@ -241,6 +269,7 @@ export type WorkerResponse =
       detail?: string;
     }
   | { type: "IMPORT_OK"; requestId: number; record: ImportRecord; replacedExisting: boolean }
+  | { type: "EXPORTED"; requestId: number; bytes: Uint8Array }
   | {
       type: "REPLAY_OK";
       requestId: number;

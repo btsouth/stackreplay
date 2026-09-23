@@ -1,7 +1,7 @@
-import { createHash, createHmac, randomBytes } from "node:crypto";
-import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
+import { hmac as nobleHmac } from "@noble/hashes/hmac.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { isRealCalendarDate } from "./parse.js";
-import { joinPath, stackReplayStateDir } from "./platform.js";
 import type { AdapterId, SourceEnvironment } from "./types.js";
 
 /**
@@ -18,59 +18,13 @@ const SALT_BYTES = 32;
 const HASH_HEX_LENGTH = 32;
 
 export function generateSalt(): string {
-  return randomBytes(SALT_BYTES).toString("hex");
-}
-
-export function saltFilePath(env: SourceEnvironment): string {
-  return joinPath(env.platform, stackReplayStateDir(env), "salt");
-}
-
-/** Reads the local salt. Returns undefined when none has been created yet. */
-export async function readSalt(env: SourceEnvironment): Promise<string | undefined> {
-  try {
-    const value = (await readFile(saltFilePath(env), "utf8")).trim();
-    return value.length > 0 ? value : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Reads the local salt, creating it on first use. The file is written with
- * owner-only permissions; it is local state and is never part of an export.
- *
- * Creation is exclusive: two first runs racing each other cannot each install a
- * different salt, because the loser re-reads the winner's file instead of
- * overwriting it. Two salts in play would mean hashes written by one process
- * never match a later scan, which silently breaks dedup and project identity.
- */
-export async function ensureSalt(env: SourceEnvironment): Promise<string> {
-  const existing = await readSalt(env);
-  if (existing !== undefined) return existing;
-  const directory = stackReplayStateDir(env);
-  await mkdir(directory, { recursive: true, mode: 0o700 });
-  const salt = generateSalt();
-  const path = saltFilePath(env);
-  try {
-    await writeFile(path, `${salt}\n`, { mode: 0o600, flag: "wx" });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      const winner = await readSalt(env);
-      if (winner !== undefined) return winner;
-    }
-    throw error;
-  }
-  await chmod(path, 0o600).catch(() => undefined);
-  return salt;
+  return bytesToHex(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
 }
 
 function hmac(salt: string, purpose: string, value: string): string {
-  return createHmac("sha256", salt)
-    .update(purpose)
-    .update("\u0000")
-    .update(value)
-    .digest("hex")
-    .slice(0, HASH_HEX_LENGTH);
+  return bytesToHex(
+    nobleHmac(sha256, utf8ToBytes(salt), utf8ToBytes(`${purpose}\u0000${value}`)),
+  ).slice(0, HASH_HEX_LENGTH);
 }
 
 /**
@@ -101,7 +55,7 @@ export function nativeEventHash(salt: string, adapterId: AdapterId, identity: st
 
 /** Stable canonical event id derived from the adapter and native identity. */
 export function canonicalEventId(adapterId: AdapterId, nativeHash: string): string {
-  return `ev_${createHash("sha256").update(adapterId).update("\u0000").update(nativeHash).digest("hex").slice(0, 24)}`;
+  return `ev_${bytesToHex(sha256(utf8ToBytes(`${adapterId}\u0000${nativeHash}`))).slice(0, 24)}`;
 }
 
 /** Canonical ISO-8601 UTC timestamp with millisecond precision. */

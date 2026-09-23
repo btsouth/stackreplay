@@ -304,9 +304,28 @@ export class ReplayWorkerClient {
     return response.type === "PONG" && response.protocol === WORKER_PROTOCOL_VERSION;
   }
 
+  async cancelImport(): Promise<void> {
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "CANCEL_IMPORT",
+        requestId,
+      }),
+      undefined,
+      "import",
+    );
+    if (response.type !== "CANCELLED") throw new Error("unexpected worker response");
+  }
+
   async importFile(
     file: File,
-    options: { importId: string; label: string; now: string; onProgress?: ProgressHandler },
+    options: {
+      importId: string;
+      label: string;
+      now: string;
+      saveLocal?: boolean;
+      onProgress?: ProgressHandler;
+    },
   ): Promise<ImportRecord> {
     const response = await this.send(
       (requestId) => ({
@@ -317,12 +336,45 @@ export class ReplayWorkerClient {
         label: options.label,
         file,
         now: options.now,
+        ...(options.saveLocal !== undefined ? { saveLocal: options.saveLocal } : {}),
       }),
       options.onProgress,
       "import",
     );
     if (response.type !== "IMPORT_OK") throw new Error("unexpected worker response");
     return response.record;
+  }
+
+  async importSources(
+    files: { file: File; path: string }[],
+    options: { importId: string; now: string; saveLocal: boolean; onProgress?: ProgressHandler },
+  ): Promise<ImportRecord> {
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "IMPORT_SOURCES",
+        requestId,
+        importId: options.importId,
+        files,
+        now: options.now,
+        saveLocal: options.saveLocal,
+      }),
+      options.onProgress,
+      "import",
+    );
+    if (response.type !== "IMPORT_OK") throw new Error("unexpected worker response");
+    return response.record;
+  }
+
+  async exportImport(importId: string): Promise<Uint8Array> {
+    const response = await this.send((requestId) => ({
+      protocol: WORKER_PROTOCOL_VERSION,
+      type: "EXPORT_LOCAL_IMPORT",
+      requestId,
+      importId,
+    }));
+    if (response.type !== "EXPORTED") throw new Error("unexpected worker response");
+    return response.bytes;
   }
 
   async importDemo(

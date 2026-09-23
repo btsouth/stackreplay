@@ -12,7 +12,9 @@ test("empty import surface states the privacy contract up front", async ({ page 
   await gotoImport(page);
   await expect(page.getByText("Processed locally in your browser")).toBeVisible();
   await expect(page.getByText("No prompts.")).toBeVisible();
-  await expect(page.getByText("Nothing uploaded. There is no import endpoint.")).toBeVisible();
+  await expect(
+    page.getByText("Selected raw workload files are never uploaded to StackReplay."),
+  ).toBeVisible();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await expect(page.getByTestId("demo-presets")).toBeVisible();
 });

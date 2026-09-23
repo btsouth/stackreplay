@@ -103,7 +103,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
   await expect(page.getByTestId("stored-imports")).toContainText("Demo: multistack");
 });
 
-test("a corrupted stored workload fails safely", async ({ page }) => {
+test("a corrupted stored workload is removed before it can be reopened", async ({ page }) => {
   await importDemo(page, "moderate");
 
   // Replace the stored payload with something incompatible, as an older or
@@ -128,14 +128,27 @@ test("a corrupted stored workload fails safely", async ({ page }) => {
     });
   });
 
-  await page.goto("/app/replay");
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
-  await page.getByTestId("plan-example-cloud-starter").click();
-  await page.getByTestId("run-replay").click();
-
-  const error = page.getByTestId("replay-error");
-  await expect(error).toBeVisible({ timeout: 30_000 });
-  await expect(error).toContainText(/cannot be read|no longer stored/i);
+  await page.goto("/app/import");
+  await expect(page.getByTestId("no-stored-imports")).toBeVisible();
+  const count = () =>
+    page.evaluate(async () => {
+      const open = indexedDB.open("stackreplay");
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      const tx = db.transaction(["imports", "payloads"], "readonly");
+      const read = (store: string) =>
+        new Promise<number>((resolve, reject) => {
+          const request = tx.objectStore(store).count();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      const counts = await Promise.all([read("imports"), read("payloads")]);
+      db.close();
+      return counts;
+    });
+  await expect.poll(count).toEqual([0, 0]);
 });
 
 /**
@@ -153,6 +166,7 @@ test("clearing local data during an import leaves nothing stored", async ({ page
 
   await importDemo(page, "moderate");
   await gotoImport(page);
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
 
   // A browser-sized export, written to a path of this process's own so a parallel
   // spec cannot be regenerating the same file underneath it.

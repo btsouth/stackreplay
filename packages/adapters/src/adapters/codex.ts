@@ -158,18 +158,42 @@ export function createCodexAdapter(): LocalSourceAdapter {
               stats.recordsUnsupported += 1;
               continue;
             }
-            const totalTokens = readCount(lastUsage, "total_tokens") ?? 0;
-            if (totalTokens === 0) continue;
-            if (currentModel === undefined) {
-              warnings.add("MODEL_UNKNOWN", "token_count record precedes any model context", file);
-              stats.recordsUnsupported += 1;
-              continue;
-            }
+            const totalTokens = readCount(lastUsage, "total_tokens");
             const inputTokens = readCount(lastUsage, "input_tokens");
             const outputTokens = readCount(lastUsage, "output_tokens");
             const cacheReadTokens = readCount(lastUsage, "cached_input_tokens");
             const cacheWriteTokens = readCount(lastUsage, "cache_write_input_tokens");
             const reasoningTokens = readCount(lastUsage, "reasoning_output_tokens");
+            const categoryEvidence = [
+              inputTokens,
+              outputTokens,
+              cacheReadTokens,
+              cacheWriteTokens,
+              reasoningTokens,
+            ].some((value) => value !== undefined && value > 0);
+            if (totalTokens === 0 && !categoryEvidence) continue;
+            if (totalTokens === undefined) {
+              warnings.add(
+                "RECORD_INCOMPLETE",
+                "per-turn total_tokens is absent or invalid; reported categories remain partial evidence",
+                file,
+              );
+              if (!categoryEvidence) {
+                stats.recordsUnsupported += 1;
+                continue;
+              }
+            } else if (totalTokens === 0) {
+              warnings.add(
+                "RECORD_INCOMPLETE",
+                "zero per-turn total conflicts with reported categories",
+                file,
+              );
+            }
+            if (currentModel === undefined) {
+              warnings.add("MODEL_UNKNOWN", "token_count record precedes any model context", file);
+              stats.recordsUnsupported += 1;
+              continue;
+            }
 
             // Declarations are attached only to categories the record actually
             // reports: an included quantity must be reported (decision 22), so

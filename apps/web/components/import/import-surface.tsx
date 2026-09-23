@@ -1,5 +1,6 @@
 "use client";
 
+import { BROWSER_SOURCE_FORMATS } from "@stackreplay/adapters/browser-formats";
 import {
   type DemoWorkloadPresetId,
   demoWorkloadPresetIds,
@@ -53,6 +54,11 @@ export function ImportSurface({
 }) {
   const client = getWorkerClient();
   const inputId = useId();
+  const sourceInputId = useId();
+  const folderInputId = useId();
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const [folderSupported, setFolderSupported] = useState(true);
+  const [saveLocal, setSaveLocal] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [dragActive, setDragActive] = useState(false);
@@ -60,6 +66,7 @@ export function ImportSurface({
   /** A large-but-allowed file: said out loud before the work starts. */
   const [notice, setNotice] = useState<string | undefined>(undefined);
   const [record, setRecord] = useState<ImportRecord | undefined>(undefined);
+  const [visibleOutcomes, setVisibleOutcomes] = useState(30);
   const [imports, setImports] = useState<ImportRecord[]>(initialImports);
   const [busy, setBusy] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
@@ -76,6 +83,14 @@ export function ImportSurface({
     void refreshImports();
   }, [refreshImports]);
 
+  useEffect(() => {
+    const input = folderInputRef.current;
+    if (input === null) return;
+    setFolderSupported(
+      (input as HTMLInputElement & { webkitdirectory?: boolean }).webkitdirectory === true,
+    );
+  }, []);
+
   const runImport = useCallback(
     async (
       run: (onProgress: (next: Phase, nextDetail?: string) => void) => Promise<ImportRecord>,
@@ -83,6 +98,7 @@ export function ImportSurface({
       setBusy(true);
       setError(undefined);
       setRecord(undefined);
+      setVisibleOutcomes(30);
       setPhase("reading");
       setDetail(undefined);
       // A superseded request must not clear the interface state a newer request
@@ -121,6 +137,8 @@ export function ImportSurface({
     (file: File) => {
       const advice = importSizeAdvice(file.size);
       if (advice.level === "refused") {
+        void client.cancelImport().catch(() => undefined);
+        setBusy(false);
         setRecord(undefined);
         setPhase("idle");
         setError({
@@ -137,11 +155,12 @@ export function ImportSurface({
           importId: createLocalImportId(),
           label: file.name.replace(/\.json$/u, ""),
           now: new Date().toISOString(),
+          saveLocal,
           onProgress: (next, nextDetail) => onProgress(next as Phase, nextDetail),
         }),
       );
     },
-    [client, runImport],
+    [client, runImport, saveLocal],
   );
 
   const importDemo = useCallback(
@@ -154,6 +173,44 @@ export function ImportSurface({
         }),
       ),
     [client, runImport],
+  );
+
+  const importSources = useCallback(
+    (files: File[]) => {
+      if (files.length === 0) return;
+      setNotice(undefined);
+      return runImport((onProgress) =>
+        client.importSources(
+          files.map((file) => ({ file, path: file.webkitRelativePath || file.name })),
+          {
+            importId: createLocalImportId(),
+            now: new Date().toISOString(),
+            saveLocal,
+            onProgress: (next, nextDetail) => onProgress(next as Phase, nextDetail),
+          },
+        ),
+      );
+    },
+    [client, runImport, saveLocal],
+  );
+
+  const exportWorkload = useCallback(
+    async (importId: string) => {
+      try {
+        const bytes = await client.exportImport(importId);
+        const url = URL.createObjectURL(
+          new Blob([bytes as Uint8Array<ArrayBuffer>], { type: "application/json" }),
+        );
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "workload.stackreplay.json";
+        anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      } catch (failure) {
+        setError(describeWorkerFailure(failure));
+      }
+    },
+    [client],
   );
 
   /**
@@ -191,10 +248,12 @@ export function ImportSurface({
     (event: React.DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       setDragActive(false);
-      const file = event.dataTransfer.files?.[0];
-      if (file !== undefined) void importFile(file);
+      const files = Array.from(event.dataTransfer.files ?? []);
+      if (files.length === 1 && files[0]?.name.endsWith(".stackreplay.json"))
+        void importFile(files[0]);
+      else void importSources(files);
     },
-    [importFile],
+    [importFile, importSources],
   );
 
   const activePhaseIndex = PHASE_ORDER.indexOf(phase === "idle" ? "reading" : phase);
@@ -222,30 +281,87 @@ export function ImportSurface({
         >
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-base font-medium">Drop a StackReplay export</h2>
+              <h2 className="text-base font-medium">Load workload</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                The file is read by this browser. Nothing is uploaded.
+                Your selected workload files are processed in this browser. StackReplay does not
+                upload the raw workload files.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <label htmlFor={inputId} className="sr-only">
-                Choose a StackReplay export file
-              </label>
-              <input
-                id={inputId}
-                type="file"
-                accept=".json,application/json"
-                className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm file:mr-3 file:rounded-sm file:border-0 file:bg-surface-2 file:px-2 file:py-1 file:text-xs file:font-medium"
-                data-testid="import-file-input"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file !== undefined) void importFile(file);
-                }}
-              />
-              <span className="text-xs text-muted-foreground">
-                or drop a file above, or start from a demo workload
-              </span>
+            <div className="grid gap-3">
+              <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
+                <label htmlFor={sourceInputId} className="text-xs font-medium">
+                  Source files or ZIP
+                </label>
+                <input
+                  id={sourceInputId}
+                  type="file"
+                  multiple
+                  accept=".json,.jsonl,.zip,application/json,application/zip"
+                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm"
+                  data-testid="source-file-input"
+                  onChange={(event) => {
+                    void importSources(Array.from(event.target.files ?? []));
+                    event.target.value = "";
+                  }}
+                />
+              </div>
+              <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
+                <label htmlFor={folderInputId} className="text-xs font-medium">
+                  Selected folder
+                </label>
+                <input
+                  id={folderInputId}
+                  ref={folderInputRef}
+                  type="file"
+                  multiple
+                  {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
+                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm"
+                  data-testid="source-folder-input"
+                  onChange={(event) => {
+                    void importSources(Array.from(event.target.files ?? []));
+                    event.target.value = "";
+                  }}
+                />
+              </div>
+              {!folderSupported ? (
+                <p className="text-xs text-muted-foreground">
+                  Folder selection is unavailable in this browser. Choose files above instead.
+                </p>
+              ) : null}
+              <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
+                <label htmlFor={inputId} className="text-xs font-medium">
+                  StackReplay workload
+                </label>
+                <input
+                  id={inputId}
+                  type="file"
+                  accept=".stackreplay.json,.json,application/json"
+                  className="block w-full max-w-xs cursor-pointer rounded-md border border-control-border bg-surface px-3 py-2 text-sm file:mr-3 file:rounded-sm file:border-0 file:bg-surface-2 file:px-2 file:py-1 file:text-xs file:font-medium"
+                  data-testid="import-file-input"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file !== undefined) void importFile(file);
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Use an existing CLI export here, or drop selected files above. If your browser
+                cannot select a folder, choose its files instead.
+              </p>
             </div>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={saveLocal}
+                onChange={(event) => setSaveLocal(event.target.checked)}
+              />
+              Save normalized workload on this browser
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Supported raw files:{" "}
+              {BROWSER_SOURCE_FORMATS.map((source) => `${source.name} ${source.format}`).join(", ")}
+              . Other formats are reported without guessing.
+            </p>
           </div>
         </div>
 
@@ -276,9 +392,16 @@ export function ImportSurface({
           </CardContent>
         </Card>
 
-        <Card aria-live="polite" aria-busy={busy}>
+        <Card aria-busy={busy}>
           <CardContent className="flex flex-col gap-4 p-5">
             <h2 className="text-sm font-medium">Import progress</h2>
+            <p className="sr-only" role="status">
+              {busy
+                ? `Import ${PHASE_LABEL[phase]}`
+                : phase === "ready"
+                  ? "Import ready"
+                  : "Import idle"}
+            </p>
             <ol className="flex flex-wrap gap-x-6 gap-y-2" data-testid="import-phases">
               {PHASE_ORDER.map((entry, index) => {
                 const state =
@@ -362,10 +485,13 @@ export function ImportSurface({
           <Card data-testid="import-summary" className="border-positive/40">
             <CardContent className="flex flex-col gap-5 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-sm font-medium">StackReplay understood your file</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {record.label} · stored only in this browser
+                  <p className="mt-1 break-words text-xs text-muted-foreground">
+                    {record.label} ·{" "}
+                    {record.savedLocally === false
+                      ? "temporary until reload"
+                      : "saved on this browser"}
                   </p>
                 </div>
                 <Link
@@ -377,6 +503,62 @@ export function ImportSurface({
                 </Link>
               </div>
               <ImportSummaryGrid record={record} />
+              {record.intake !== undefined ? (
+                <div data-testid="intake-review" className="border-t border-border pt-4">
+                  <h3 className="text-xs font-medium uppercase tracking-wide">
+                    Selected file review
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {record.intake.exactDuplicates} exact event duplicates removed ·{" "}
+                    {record.intake.overlaps} recognized overlaps
+                  </p>
+                  <ul className="mt-3 divide-y divide-border text-xs">
+                    {record.intake.outcomes.slice(0, visibleOutcomes).map((item) => (
+                      <li
+                        key={`${item.path}-${item.status}-${item.reason}`}
+                        className="flex min-w-0 flex-wrap justify-between gap-2 py-2"
+                      >
+                        <span className="min-w-0 break-all font-mono">{item.path}</span>
+                        <span className="min-w-0 break-words">
+                          {item.source ?? item.status} · {item.reason} · {item.events} events
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {record.intake.outcomes.length > visibleOutcomes ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setVisibleOutcomes((count) => count + 30)}
+                    >
+                      Show more files ({record.intake.outcomes.length - visibleOutcomes} remaining)
+                    </Button>
+                  ) : null}
+                  {record.intake.warnings.length > 0 ? (
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      <h4 className="font-medium">
+                        Source notes ({record.intake.warnings.length})
+                      </h4>
+                      <ul className="mt-1 list-inside list-disc">
+                        {record.intake.warnings.slice(0, 12).map((warning) => (
+                          <li key={`${warning.code}-${warning.message}`} className="break-words">
+                            {warning.code}: {warning.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => void exportWorkload(record.id)}
+              >
+                Export portable workload
+              </Button>
             </CardContent>
           </Card>
         ) : null}
@@ -386,12 +568,15 @@ export function ImportSurface({
         <Card className="bg-surface-2">
           <CardContent className="flex flex-col gap-3 p-5">
             <h2 className="text-sm font-medium">Processed locally in your browser</h2>
+            <p className="text-xs text-muted-foreground">
+              Saved and exported workloads contain replay telemetry, with:
+            </p>
             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
               <li>No prompts.</li>
               <li>No responses.</li>
               <li>No source code.</li>
               <li>No file paths or repository names.</li>
-              <li>Nothing uploaded. There is no import endpoint.</li>
+              <li>Selected raw workload files are never uploaded to StackReplay.</li>
             </ul>
             <p className="text-xs text-muted-foreground">
               Replay runs in a Web Worker on this device, using the same deterministic engine as the
@@ -403,7 +588,7 @@ export function ImportSurface({
         <Card>
           <CardContent className="flex flex-col gap-4 p-5">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-sm font-medium">Stored in this browser</h2>
+              <h2 className="text-sm font-medium">Local workloads</h2>
               {imports.length > 0 ? (
                 <Button
                   type="button"
@@ -428,7 +613,10 @@ export function ImportSurface({
                       <p className="truncate text-sm">{entry.label}</p>
                       <p className="text-xs text-muted-foreground">
                         {entry.eventCount.toLocaleString("en-US")} events ·{" "}
-                        {new Date(entry.createdAt).toISOString().slice(0, 10)}
+                        {entry.savedLocally === false
+                          ? "temporary until reload"
+                          : "saved on this browser"}{" "}
+                        · {new Date(entry.createdAt).toISOString().slice(0, 10)}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -446,6 +634,14 @@ export function ImportSurface({
                         onClick={() => void removeImport(entry.id)}
                       >
                         Delete
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void exportWorkload(entry.id)}
+                      >
+                        Export
                       </Button>
                     </div>
                   </li>
@@ -470,8 +666,16 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Metric label="Events" value={summary.eventCount.toLocaleString("en-US")} size="lg" />
-        <Metric label="Sessions" value={summary.sessionCount.toLocaleString("en-US")} />
-        <Metric label="Projects" value={summary.projectCount.toLocaleString("en-US")} />
+        <Metric
+          label="Sessions"
+          value={summary.sessionCount === 0 ? "N/A" : summary.sessionCount.toLocaleString("en-US")}
+          {...(summary.sessionCount === 0 ? { hint: "Not identified" } : {})}
+        />
+        <Metric
+          label="Projects"
+          value={summary.projectCount === 0 ? "N/A" : summary.projectCount.toLocaleString("en-US")}
+          {...(summary.projectCount === 0 ? { hint: "Not identified" } : {})}
+        />
         <Metric
           label="Known tokens"
           value={summary.tokens.known.toLocaleString("en-US")}
@@ -483,6 +687,30 @@ export function ImportSummaryGrid({ record }: { record: ImportRecord }) {
         />
       </div>
       <p className="text-xs text-muted-foreground">Activity range: {range}</p>
+
+      <div>
+        <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Observed models
+        </h3>
+        <ul className="mt-2 flex flex-col gap-1.5 text-xs" data-testid="intake-models">
+          {summary.models.slice(0, 8).map((model) => (
+            <li key={model.rawName} className="flex flex-wrap justify-between gap-2">
+              <span className="font-mono">{model.rawName}</span>
+              <span className="text-muted-foreground">
+                {model.events.toLocaleString("en-US")} events ·{" "}
+                {model.canonicalId === undefined
+                  ? "canonical identity unknown"
+                  : `resolved as ${model.canonicalId}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {summary.models.length > 8 ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {summary.models.length - 8} more raw model identifiers
+          </p>
+        ) : null}
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

@@ -67,7 +67,7 @@ const sections = [
   {
     heading: "What a replay does not do",
     body: [
-      "It does not read your prompts, responses or files, and it does not upload anything: import, validation and replay run in a browser worker on your device, and the parsed workload is kept in IndexedDB.",
+      "StackReplay reads the workload files you select and processes them locally in a browser worker. Raw workload files are not uploaded. Saving the normalized workload in this browser is optional; temporary imports can be replayed without saving.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
       "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
     ],

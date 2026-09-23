@@ -1,4 +1,6 @@
 import type { StackReplayExportV1 } from "@stackreplay/schema";
+import { stackReplayExportV1Schema } from "@stackreplay/schema";
+import { importRecordSchema, validateStoredPair } from "./local-record-schema";
 import type { ImportRecord } from "./worker-protocol";
 
 /**
@@ -17,7 +19,6 @@ const DATABASE_NAME = "stackreplay";
 const DATABASE_VERSION = 1;
 const IMPORTS_STORE = "imports";
 const PAYLOADS_STORE = "payloads";
-const SUPPORTED_PAYLOAD_VERSION = 1;
 
 export type StorageResult<T> =
   | { ok: true; value: T }
@@ -189,10 +190,23 @@ export async function storageAvailable(): Promise<boolean> {
 export async function saveImport(
   record: ImportRecord,
   exported: StackReplayExportV1,
-  options: { observed?: StoreGeneration } = {},
+  options: { observed?: StoreGeneration; signal?: AbortSignal } = {},
 ): Promise<StorageResult<ImportRecord>> {
+  // This is the generic persistence boundary, including calls outside intake.
+  // Both values must satisfy the strict allowlists before either store is touched.
+  if (
+    !importRecordSchema.safeParse(record).success ||
+    !stackReplayExportV1Schema.safeParse(exported).success ||
+    record.eventCount !== exported.events.length ||
+    record.summary.eventCount !== record.eventCount
+  ) {
+    return { ok: false, code: "STORAGE_CORRUPT" };
+  }
   const observed = options.observed;
-  if (observed !== undefined && writeWouldResurrect(observed, record.id)) {
+  const cancelled = () =>
+    options.signal?.aborted === true ||
+    (observed !== undefined && writeWouldResurrect(observed, record.id));
+  if (cancelled()) {
     return { ok: false, code: "IMPORT_CANCELLED" };
   }
   try {
@@ -200,55 +214,142 @@ export async function saveImport(
     // listing without its payload, which is what two transactions allowed
     // (benchmark finding F005).
     return await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
-      if (observed !== undefined && writeWouldResurrect(observed, record.id)) {
-        // Checked inside the transaction too: the delete can land between the
-        // first check and the write.
-        transaction.abort();
-        throw new Error("import cancelled");
+      const abort = () => {
+        try {
+          transaction.abort();
+        } catch {
+          /* Already committed or aborted. */
+        }
+      };
+      options.signal?.addEventListener("abort", abort, { once: true });
+      try {
+        if (cancelled()) {
+          // Checked inside the transaction too: the delete can land between the
+          // first check and the write.
+          transaction.abort();
+          throw new Error("import cancelled");
+        }
+        await requestToPromise(
+          storeOf(transaction, PAYLOADS_STORE).put({ id: record.id, exported }),
+        );
+        if (cancelled()) {
+          transaction.abort();
+          throw new Error("import cancelled");
+        }
+        await requestToPromise(storeOf(transaction, IMPORTS_STORE).put(record));
+        if (cancelled()) {
+          transaction.abort();
+          throw new Error("import cancelled");
+        }
+        return { ok: true as const, value: record };
+      } finally {
+        // Keep the listener until the transaction settles: supersession between
+        // the last put and commit must still abort the atomic write.
+        transaction.addEventListener(
+          "complete",
+          () => options.signal?.removeEventListener("abort", abort),
+          { once: true },
+        );
+        transaction.addEventListener(
+          "abort",
+          () => options.signal?.removeEventListener("abort", abort),
+          { once: true },
+        );
       }
-      await requestToPromise(storeOf(transaction, PAYLOADS_STORE).put({ id: record.id, exported }));
-      await requestToPromise(storeOf(transaction, IMPORTS_STORE).put(record));
-      return { ok: true as const, value: record };
     });
   } catch {
-    if (observed !== undefined && writeWouldResurrect(observed, record.id)) {
+    if (cancelled()) {
       return { ok: false, code: "IMPORT_CANCELLED" };
     }
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
   }
 }
 
-/** Lists stored imports, newest first. Corrupted entries are dropped, not shown. */
+/** Lists valid pairs only. Corrupt pairs are removed from both stores. */
 export async function listImports(): Promise<ImportRecord[]> {
   try {
-    const records = await withStores(IMPORTS_STORE, "readonly", (transaction) =>
-      requestToPromise(storeOf(transaction, IMPORTS_STORE).getAll() as IDBRequest<unknown[]>),
+    const [records, payloads] = await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE],
+      "readonly",
+      async (transaction) =>
+        Promise.all([
+          requestToPromise(storeOf(transaction, IMPORTS_STORE).getAll() as IDBRequest<unknown[]>),
+          requestToPromise(storeOf(transaction, PAYLOADS_STORE).getAll() as IDBRequest<unknown[]>),
+        ]),
     );
-    return records
-      .filter((value): value is ImportRecord => isImportRecord(value))
-      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+    const byId = new Map(
+      payloads.map((value) => [
+        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined,
+        value,
+      ]),
+    );
+    const valid: ImportRecord[] = [];
+    const corruptIds: string[] = [];
+    const recordIds = new Set<string>();
+    for (const value of records) {
+      const id =
+        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
+      if (typeof id !== "string") continue;
+      recordIds.add(id);
+      const checked = validateStoredPair(value, byId.get(id));
+      if (checked === undefined) corruptIds.push(id);
+      else valid.push(checked);
+    }
+    for (const value of payloads) {
+      const id =
+        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
+      if (typeof id === "string" && !recordIds.has(id)) corruptIds.push(id);
+    }
+    for (const id of corruptIds) await removeCorruptPair(id);
+    return valid.sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+    );
   } catch {
     return [];
+  }
+}
+
+async function removeCorruptPair(importId: string): Promise<void> {
+  try {
+    await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
+      const [record, payload] = await Promise.all([
+        requestToPromise(storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<unknown>),
+        requestToPromise(storeOf(transaction, PAYLOADS_STORE).get(importId) as IDBRequest<unknown>),
+      ]);
+      // Recheck under the write lock, so a newer valid pair is never deleted.
+      if (validateStoredPair(record, payload) === undefined) {
+        await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
+        await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
+      }
+    });
+  } catch {
+    /* Listing still excludes the damaged record. */
   }
 }
 
 /** Loads a stored export. Unknown or incompatible payloads fail safely. */
 export async function loadImport(importId: string): Promise<StorageResult<StackReplayExportV1>> {
   try {
-    const stored = await withStores(PAYLOADS_STORE, "readonly", (transaction) =>
-      requestToPromise(storeOf(transaction, PAYLOADS_STORE).get(importId) as IDBRequest<unknown>),
+    const [record, payload] = await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE],
+      "readonly",
+      async (transaction) =>
+        Promise.all([
+          requestToPromise(
+            storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<unknown>,
+          ),
+          requestToPromise(
+            storeOf(transaction, PAYLOADS_STORE).get(importId) as IDBRequest<unknown>,
+          ),
+        ]),
     );
-    if (stored === undefined) return { ok: false, code: "IMPORT_NOT_FOUND" };
-    const payload = stored as { exported?: unknown };
-    const exported = payload.exported as { version?: unknown; events?: unknown } | undefined;
-    if (
-      exported === undefined ||
-      exported.version !== SUPPORTED_PAYLOAD_VERSION ||
-      !Array.isArray(exported.events)
-    ) {
+    if (record === undefined && payload === undefined)
+      return { ok: false, code: "IMPORT_NOT_FOUND" };
+    if (validateStoredPair(record, payload) === undefined) {
+      await removeCorruptPair(importId);
       return { ok: false, code: "STORAGE_CORRUPT" };
     }
-    return { ok: true, value: exported as StackReplayExportV1 };
+    return { ok: true, value: (payload as { exported: StackReplayExportV1 }).exported };
   } catch {
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
   }
@@ -288,19 +389,6 @@ export async function clearLocalData(): Promise<StorageResult<true>> {
   } catch {
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
   }
-}
-
-function isImportRecord(value: unknown): value is ImportRecord {
-  if (typeof value !== "object" || value === null) return false;
-  const record = value as Partial<ImportRecord>;
-  return (
-    typeof record.id === "string" &&
-    typeof record.label === "string" &&
-    typeof record.createdAt === "string" &&
-    typeof record.eventCount === "number" &&
-    typeof record.summary === "object" &&
-    record.summary !== null
-  );
 }
 
 /** Opaque local identifier: never derived from workload content. */

@@ -8,9 +8,9 @@ export const metadata: Metadata = { title: "Overview" };
 const STEPS = [
   {
     title: "1. Import",
-    body: "Bring in a StackReplay export from the CLI, or start from a deterministic demo workload. The file is read by this browser.",
-    href: "/app/import",
-    action: "Import a workload",
+    body: "Select supported AI history files, a folder, a ZIP archive, or a StackReplay workload. Processing happens in this browser.",
+    href: "/app/replay",
+    action: "Load workload",
   },
   {
     title: "2. Replay",
@@ -51,9 +51,10 @@ export default function OverviewPage() {
           <CardContent className="flex flex-col gap-2 p-5">
             <h2 className="text-sm font-medium">Local by construction</h2>
             <p className="text-sm text-muted-foreground">
-              Imported workloads are stored only in this browser, and replay runs on this device.
-              There is no import endpoint and no account. Prompts, responses, source code, file
-              paths and repository names are never part of a StackReplay export.
+              Selected source files are processed in this browser. You can save normalized usage
+              locally here, and replay runs on this device. There is no import endpoint or account.
+              Prompts, responses, source code, file paths and repository names are not part of a
+              StackReplay export.
             </p>
           </CardContent>
         </Card>

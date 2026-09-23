@@ -8,7 +8,7 @@ import { createHermesAdapter } from "./adapters/hermes.js";
 import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import { createT3CodeAdapter } from "./adapters/t3-code.js";
 import { dedupeEvents } from "./dedup.js";
-import { ensureSalt } from "./identity.js";
+import { ensureSalt } from "./identity-node.js";
 import { createModelMapper } from "./models.js";
 import {
   type AdapterId,

@@ -1,3 +1,4 @@
+import { createExport } from "@stackreplay/adapters";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import {
@@ -21,6 +22,22 @@ describe("import validation", () => {
     const result = validateExportValue(demo);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.exported.events.length).toBe(demo.events.length);
+  });
+
+  it("imports the portable contract produced by the CLI export builder", () => {
+    const cliExport = createExport(
+      {
+        detectedSources: demo.detectedSources,
+        events: demo.events,
+        warnings: [],
+        stats: { perAdapter: {}, totalEvents: demo.events.length, exactDuplicates: 0, overlaps: 0 },
+        attribution: { enabled: false, sessionsMapped: 0, rootsAdded: 0, warnings: [] },
+      },
+      { range: demo.range, generatedAt: demo.generatedAt, collectorVersion: "round-trip-test" },
+    );
+    const imported = validateExportText(JSON.stringify(cliExport));
+    expect(imported.ok).toBe(true);
+    if (imported.ok) expect(imported.exported.events).toEqual(demo.events);
   });
 
   it("rejects malformed JSON", () => {

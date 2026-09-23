@@ -2,11 +2,12 @@
 
 ## Current milestone
 
-**Milestone 4C — the Direct API execution target, implemented in the working tree.**
-M4A and M4B remain the accepted baselines; M4C implements what M4B deliberately left at
-`TARGET_NOT_IMPLEMENTED`, as a second kind of execution target beside the subscription plan. Every
-accepted subscription fixture and share token stays readable, and the subscription path's numbers
-are unchanged apart from the methodology version.
+**Milestone 4E: browser workload intake, implemented in the working tree and pending independent review.**
+The locked starting M4D SHA is `a3f6710536f94c18d00b25975db16219a6e38e25`; `main` matched
+`origin/main` and hosted CI was green before M4E edits. The browser now accepts selected files,
+ZIP archives and folders for verified file-based adapters, using the existing versioned export and
+Replay engine. See [workload intake](INGESTION.md) for the exact supported formats and boundaries.
+No M4E work has been committed or pushed.
 
 ## Milestone 4C — Direct API execution target
 

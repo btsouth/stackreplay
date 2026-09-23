@@ -11,8 +11,8 @@ import { gotoImport, importDemo, runReplay } from "./helpers";
 test("direct navigation without an import shows an intentional empty state", async ({ page }) => {
   await page.goto("/app/replay");
   await expect(page.getByTestId("replay-empty")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "No workload yet" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Import a workload" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Load workload" })).toBeVisible();
+  await expect(page.getByTestId("source-file-input")).toBeVisible();
 });
 
 test("replays a demo workload with full coverage", async ({ page }) => {
@@ -340,6 +340,7 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
     ),
   };
   await gotoImport(page);
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "unmapped-model.json",
     mimeType: "application/json",
@@ -367,6 +368,7 @@ test("never reads as served while part of the demand is unavailable or undecided
     ),
   };
   await gotoImport(page);
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "partly-undecided.json",
     mimeType: "application/json",

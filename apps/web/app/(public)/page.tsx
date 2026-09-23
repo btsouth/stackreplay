@@ -65,7 +65,7 @@ export default async function HomePage() {
         <p className="max-w-2xl text-base text-muted-foreground">
           The demonstration artifact is missing from this build, so there is no replay to show. The
           application still works: run it locally from{" "}
-          <Link className="text-accent underline underline-offset-2" href="/app/import">
+          <Link className="text-accent underline underline-offset-2" href="/app/replay">
             your own import
           </Link>
           .
@@ -92,8 +92,11 @@ export default async function HomePage() {
             demand against another target&apos;s real mechanics: rolling windows, allowances, model
             rules and list prices. What it can establish, it reports. What it cannot, it says so.
           </p>
+          <p className="max-w-2xl text-xs text-muted-foreground">
+            Select supported history files or a folder in your browser to load a real workload.
+          </p>
           <div className="flex flex-wrap items-center gap-3">
-            <Link className={buttonVariants({ size: "lg" })} href="/app/import">
+            <Link className={buttonVariants({ size: "lg" })} href="/app/replay">
               Try Replay
             </Link>
             {exampleToken === undefined ? (
@@ -242,7 +245,7 @@ export default async function HomePage() {
           </ul>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link className={buttonVariants({ size: "lg" })} href="/app/import">
+          <Link className={buttonVariants({ size: "lg" })} href="/app/replay">
             Replay your own workload
           </Link>
           <Link className="text-sm text-accent underline underline-offset-2" href="/methodology">
@@ -260,9 +263,9 @@ export default async function HomePage() {
           <div className="flex flex-col gap-2">
             <MicroLabel>by default: nothing</MicroLabel>
             <p className="text-sm text-muted-foreground">
-              Import, validation and replay run in a browser worker on your device, and the parsed
-              workload is stored in IndexedDB so a reload does not lose it. There is no upload
-              endpoint in this application.
+              StackReplay reads the files you select and processes them locally in a browser worker.
+              Raw workload files are not uploaded. You can replay a temporary import, or choose to
+              save its normalized workload in this browser for later.
             </p>
           </div>
           <div className="flex flex-col gap-2">

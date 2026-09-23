@@ -211,7 +211,10 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             if (!inWindow(occurredAtMs, options)) continue;
             sessionId = readString(record, "sessionId") ?? sessionId;
             const identity = readString(record, "uuid") ?? `${occurredAtMs}#${lineIndex}`;
-            const projectKey = readString(record, "cwd") ?? projectSlug;
+            // Browser-selected single files have no established project folder.
+            // The synthetic collection root must never become a project identity.
+            const projectKey =
+              readString(record, "cwd") ?? (env.selectedFiles ? undefined : projectSlug);
             events.push(
               buildEvent(
                 {
@@ -221,7 +224,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
                   occurredAtMs,
                   rawModel,
                   usage,
-                  projectKey,
+                  ...(projectKey !== undefined ? { projectKey } : {}),
                   harnessId: HARNESS_IDS["claude-code"],
                   ...(providerIdForModel(options.mapper, rawModel, {
                     harness: HARNESS_IDS["claude-code"],

@@ -9,10 +9,10 @@ import {
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import { isSyntheticCatalogId } from "@stackreplay/share";
-import { Badge, Button, buttonVariants, Card, CardContent, Metric } from "@stackreplay/ui";
+import { Badge, Button, Card, CardContent, Metric } from "@stackreplay/ui";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ImportSurface } from "@/components/import/import-surface";
 import { ConstraintTrace } from "@/components/instrument/constraint-trace";
 import { CostCounterfactual } from "@/components/instrument/cost-counterfactual";
 import { CoverageDimensions } from "@/components/instrument/coverage-dimensions";
@@ -206,6 +206,12 @@ export function ReplaySurface({
   );
   const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
 
+  // The first-run intake changes only this route's query string. React keeps
+  // the Replay surface mounted, so the selected id must follow the new prop.
+  useEffect(() => {
+    if (initialImportId !== undefined) setSelectedId(initialImportId);
+  }, [initialImportId]);
+
   /**
    * The bundled demo workloads are synthetic and use the `example-` model
    * namespace, so they only map onto the synthetic demo plans. Saying so beats a
@@ -337,20 +343,9 @@ export function ReplaySurface({
 
   if (imports.length === 0) {
     return (
-      <Card data-testid="replay-empty">
-        <CardContent className="flex flex-col gap-3 p-6">
-          <h2 className="text-sm font-medium">No workload yet</h2>
-          <p className="text-sm text-muted-foreground">
-            Replay needs a workload. Import a StackReplay export, or start from a demo workload.
-            Everything stays in this browser.
-          </p>
-          <div>
-            <Link href="/app/import" className={buttonVariants({ size: "sm" })}>
-              Import a workload
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      <div data-testid="replay-empty">
+        <ImportSurface initialImports={[]} initialTarget={initialTarget} />
+      </div>
     );
   }
 

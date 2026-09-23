@@ -52,7 +52,6 @@ export {
 export {
   canonicalEventId,
   decimalStringFromNumber,
-  ensureSalt,
   epochMsFromIso,
   generateSalt,
   isoUtcFromMs,
@@ -60,9 +59,8 @@ export {
   nativeSessionHash,
   normalizeProjectKey,
   projectHash,
-  readSalt,
-  saltFilePath,
 } from "./identity.js";
+export { ensureSalt, readSalt, saltFilePath } from "./identity-node.js";
 export { createModelMapper, type ModelMapper } from "./models.js";
 export {
   asArray,
@@ -75,12 +73,12 @@ export {
 } from "./parse.js";
 export {
   configHome,
-  createNodeFileSystem,
   dataHome,
   joinPath,
   stackReplayStateDir,
   toPlatformId,
 } from "./platform.js";
+export { createNodeFileSystem } from "./platform-node.js";
 export { openReadOnly, toFiniteNumber, toSafeCount, toText } from "./sqlite.js";
 export {
   type AdapterId,

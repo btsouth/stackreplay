@@ -94,9 +94,13 @@ working CLI. The statements above are architecture intentions;
   timeline) is **implemented, and passed an independent M3 audit after the corrections recorded in
   the implementation status**. Imported data never leaves the browser: a browser test records every
   request during import and replay and fails if any body, URL or header carries workload content.
-- The bundled catalog is still synthetic demo data, so replaying a real local workload reports its
-  models as unmapped rather than pretending to know their pricing. Real catalog data, the public
-  share layer, accounts and cloud sync arrive in later milestones.
+- Milestone 4E browser intake is implemented locally and pending independent review. The website
+  accepts selected Codex, Claude Code and Command Code JSONL, ccusage JSON, ZIP archives, folders,
+  and existing StackReplay exports. See [workload intake](docs/INGESTION.md) for exact format and
+  privacy boundaries.
+- The bundled catalog includes sourced public facts and separate synthetic demo data. A real
+  workload with an unresolved model identifier remains unmapped. Accounts and cloud sync are not
+  implemented.
 
 `docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
 and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and

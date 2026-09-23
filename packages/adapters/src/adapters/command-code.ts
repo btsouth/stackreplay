@@ -163,7 +163,7 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
           stats.filesScanned += 1;
           const projectSlug = baseName(env, dirName(env, file));
           let sessionId = baseName(env, file).replace(/\.jsonl$/u, "");
-          let projectKey: string | undefined = projectSlug;
+          let projectKey: string | undefined = env.selectedFiles ? undefined : projectSlug;
           let lineIndex = 0;
           let fileEvents = 0;
 
@@ -234,7 +234,7 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
                   rawModel,
                   usage,
                   ...(nativeCost !== undefined ? { nativeCost } : {}),
-                  projectKey,
+                  ...(projectKey !== undefined ? { projectKey } : {}),
                   harnessId: HARNESS_IDS["command-code"],
                   ...(providerIdForModel(options.mapper, rawModel, {
                     harness: HARNESS_IDS["command-code"],

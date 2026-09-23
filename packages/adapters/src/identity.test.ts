@@ -1,19 +1,18 @@
+import { createHash, createHmac } from "node:crypto";
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { createFixtureEnvironment, FIXTURE_SALT, withTempDir } from "./fixtures/helpers.js";
 import {
   canonicalEventId,
   decimalStringFromNumber,
-  ensureSalt,
   epochMsFromIso,
   generateSalt,
   isoUtcFromMs,
   nativeEventHash,
   normalizeProjectKey,
   projectHash,
-  readSalt,
-  saltFilePath,
 } from "./identity.js";
+import { ensureSalt, readSalt, saltFilePath } from "./identity-node.js";
 import { isRealCalendarDate } from "./parse.js";
 
 describe("identity and hashing", () => {
@@ -62,6 +61,13 @@ describe("identity and hashing", () => {
     const id = canonicalEventId("codex", nativeHash);
     expect(id).toMatch(/^ev_[0-9a-f]{24}$/u);
     expect(id).toBe(canonicalEventId("codex", nativeHash));
+  });
+
+  it("matches the locked Node HMAC and SHA-256 event identities", () => {
+    const native = `ne_${createHmac("sha256", FIXTURE_SALT).update("event:codex").update("\u0000").update("session#1").digest("hex").slice(0, 32)}`;
+    expect(nativeEventHash(FIXTURE_SALT, "codex", "session#1")).toBe(native);
+    const canonical = `ev_${createHash("sha256").update("codex").update("\u0000").update(native).digest("hex").slice(0, 24)}`;
+    expect(canonicalEventId("codex", native)).toBe(canonical);
   });
 
   it("formats timestamps as canonical ISO UTC", () => {
