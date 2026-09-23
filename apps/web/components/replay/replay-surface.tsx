@@ -350,7 +350,7 @@ export function ReplaySurface({
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-6">
       {requestedWorkloadMissing ? (
         <Card role="alert" className="border-warning/40" data-testid="workload-missing">
           <CardContent className="flex flex-col gap-2 p-5">
@@ -845,7 +845,7 @@ function ReplayResult({
   const targetName = providerFacts?.name ?? shareTarget?.planName ?? projection.target.label;
 
   return (
-    <div className="flex min-w-0 flex-col gap-10" data-testid="replay-result">
+    <div className="flex min-w-0 flex-col gap-7" data-testid="replay-result">
       <section className="flex flex-col gap-5" data-testid="replay-headline">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -890,7 +890,7 @@ function ReplayResult({
         </p>
       </section>
 
-      <div className="flex max-w-[68rem] min-w-0 flex-col gap-8">
+      <div className="flex max-w-[80rem] min-w-0 flex-col gap-6">
         <WorkloadSpecimen active index="02" projection={projection} />
         <ModelLanes
           identityActive

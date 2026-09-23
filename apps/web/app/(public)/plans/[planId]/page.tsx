@@ -32,8 +32,8 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
   const versions = catalog.planVersions(plan.id);
 
   return (
-    <div className="flex flex-col gap-12 pb-8">
-      <header className="flex flex-col gap-3 border-b border-border-strong pb-8">
+    <div className="flex flex-col gap-8 pb-8">
+      <header className="flex flex-col gap-3 border-b border-border-strong pb-6">
         <p className="text-xs font-medium uppercase tracking-[0.12em] text-accent">
           <Link className="underline-offset-2 hover:underline" href="/plans">
             Plans
@@ -72,19 +72,19 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
         </h2>
         <LimitTable limits={plan.limits} />
         {plan.qualitativeLimits.length === 0 ? null : (
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
               {plan.providerName} states the following without a number. They are recorded as
               qualitative statements rather than converted into amounts this catalog cannot source.
             </p>
             <ul
-              className="flex max-w-5xl flex-col border-t border-border text-sm text-muted-foreground"
+              className="flex max-w-6xl flex-col border-t border-border text-sm text-muted-foreground"
               data-testid="qualitative-limits"
             >
               {plan.qualitativeLimits.map((limit) => (
                 <li
                   key={limit.id}
-                  className="grid gap-2 border-b border-border py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6"
+                  className="grid gap-2 border-b border-border py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6"
                 >
                   <span className="font-medium text-foreground">{limit.label}</span>
                   <div className="min-w-0">
@@ -93,7 +93,7 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
                     </blockquote>
                     {limit.sourceUrl === undefined ? null : (
                       <a
-                        className="mt-2 inline-block text-xs text-accent underline underline-offset-2"
+                        className="mt-1 inline-block text-xs text-accent underline underline-offset-2"
                         href={limit.sourceUrl}
                         rel="noreferrer noopener"
                         target="_blank"

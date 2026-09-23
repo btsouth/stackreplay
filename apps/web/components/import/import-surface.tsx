@@ -264,11 +264,11 @@ export function ImportSurface({
 
   return (
     <div
-      className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start"
+      className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start"
       data-testid="intake-surface"
       data-ready={ready}
     >
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-5">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
             target, not a control. The file input inside it is the keyboard and
             screen-reader path; dragging is an additional convenience. */}
@@ -635,7 +635,7 @@ export function ImportSurface({
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-5">
         <Card className="bg-surface-2">
           <CardContent className="flex flex-col gap-3 p-5">
             <h2 className="text-sm font-medium">Processed locally in your browser</h2>

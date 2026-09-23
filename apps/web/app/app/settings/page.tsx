@@ -9,7 +9,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" description="Appearance and local workspace information." />
-      <div className="flex max-w-3xl flex-col gap-10">
+      <div className="flex max-w-3xl flex-col gap-6">
         <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[11rem_minmax(0,1fr)]">
           <h2 className="text-base font-medium">Appearance</h2>
           <div className="flex items-center justify-between gap-4">

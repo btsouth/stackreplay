@@ -16,7 +16,7 @@ export default function PlansPage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="flex flex-col gap-12 pb-8">
+    <div className="flex flex-col gap-9 pb-8">
       <header className="flex flex-col gap-3">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Replay target library / plans
@@ -70,7 +70,7 @@ export default function PlansPage() {
                 return (
                   <article
                     key={plan.id}
-                    className="grid min-w-0 gap-5 border-b border-border py-6 lg:grid-cols-[minmax(12rem,0.32fr)_minmax(0,0.68fr)] lg:gap-10 lg:py-8"
+                    className="grid min-w-0 gap-5 border-b border-border py-6 lg:grid-cols-[minmax(12rem,0.27fr)_minmax(0,0.73fr)] lg:gap-8 lg:py-6"
                     data-testid="plan-card"
                   >
                     <div className="flex min-w-0 flex-col items-start gap-3">
@@ -101,13 +101,13 @@ export default function PlansPage() {
                         </span>
                       </Link>
                     </div>
-                    <div className="flex min-w-0 flex-col gap-5">
+                    <div className="flex min-w-0 flex-col gap-4">
                       {plan.billingMechanics === undefined ? null : (
                         <div className="grid gap-1 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4">
                           <p className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
                             Billing basis
                           </p>
-                          <p className="max-w-[65ch] text-sm leading-relaxed text-foreground/85">
+                          <p className="max-w-[75ch] text-sm leading-relaxed text-foreground/85">
                             {plan.billingMechanics}
                           </p>
                         </div>
@@ -120,7 +120,7 @@ export default function PlansPage() {
                       </div>
                       {plan.qualitativeLimits.length === 0 ? null : (
                         <ul
-                          className="flex flex-col gap-3 text-sm"
+                          className="flex flex-col gap-2 text-sm"
                           data-testid="qualitative-limits"
                         >
                           {plan.qualitativeLimits.map((limit) => (
@@ -129,14 +129,14 @@ export default function PlansPage() {
                               className="grid gap-1 border-l border-border-strong pl-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4"
                             >
                               <span className="font-medium text-foreground">{limit.label}</span>
-                              <span className="max-w-[65ch] leading-relaxed text-muted-foreground">
+                              <span className="max-w-[75ch] leading-relaxed text-muted-foreground">
                                 &ldquo;{limit.statement}&rdquo;
                               </span>
                             </li>
                           ))}
                         </ul>
                       )}
-                      <div className="flex flex-wrap items-start justify-between gap-4 border-t border-border pt-4">
+                      <div className="flex flex-wrap items-start justify-between gap-4 border-t border-border pt-3">
                         <div className="flex min-w-0 flex-col gap-1">
                           <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
                             Source evidence

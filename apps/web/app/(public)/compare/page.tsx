@@ -15,7 +15,7 @@ export default function ComparePage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-6 pb-8">
       <header className="flex flex-col gap-3">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Replay target library / documented comparison
@@ -76,7 +76,7 @@ export default function ComparePage() {
                       key={plan.id}
                       className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/70 py-6 align-top lg:table-row lg:py-0"
                     >
-                      <td className="col-span-2 block min-w-0 text-lg font-medium tracking-tight sm:col-span-1 lg:table-cell lg:py-6 lg:pr-5 lg:pl-3 lg:text-base">
+                      <td className="col-span-2 block min-w-0 text-lg font-medium tracking-tight sm:col-span-1 lg:table-cell lg:py-4 lg:pr-5 lg:pl-3 lg:text-base">
                         <Link
                           className="text-foreground underline-offset-4 hover:text-accent hover:underline"
                           href={`/plans/${plan.id}`}
@@ -90,7 +90,7 @@ export default function ComparePage() {
                           Load into Replay ↗
                         </Link>
                       </td>
-                      <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-6 lg:pr-5">
+                      <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-4 lg:pr-5">
                         <span className="mb-1 block text-xs text-muted-foreground">Price</span>
                         <span className="text-base font-medium">${plan.price.amount}</span>
                         <span className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export default function ComparePage() {
                         </span>
                         <span className="text-sm text-muted-foreground">{plan.effectiveFrom}</span>
                       </td>
-                      <td className="col-span-2 block min-w-0 text-sm leading-relaxed text-muted-foreground lg:table-cell lg:py-6 lg:pr-5">
+                      <td className="col-span-2 block min-w-0 text-sm leading-relaxed text-muted-foreground lg:table-cell lg:py-4 lg:pr-5">
                         <span className="mb-1 block text-xs">Documented constraints</span>
                         {plan.limits.length === 0 ? (
                           <span>No quantitative limit recorded in this catalog.</span>
@@ -121,7 +121,7 @@ export default function ComparePage() {
                           ? " (some excluded)"
                           : ""}
                       </td>
-                      <td className="col-span-2 block min-w-0 lg:table-cell lg:py-6">
+                      <td className="col-span-2 block min-w-0 lg:table-cell lg:py-4">
                         <span className="mb-1 block text-xs text-muted-foreground">
                           Verification
                         </span>

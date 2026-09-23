@@ -80,8 +80,8 @@ export default async function HomePage() {
   const blocked = exact.outcomes.find((outcome) => outcome.key === "blocked")?.count ?? 0;
 
   return (
-    <div className="flex flex-col gap-16 pb-8">
-      <section className="flex flex-col gap-8" data-testid="home-hero">
+    <div className="flex flex-col gap-10 pb-8 sm:gap-12">
+      <section className="flex flex-col gap-7" data-testid="home-hero">
         <div className="flex flex-col gap-4">
           <MicroLabel>observed workload · replay · evidence</MicroLabel>
           <h1 className="max-w-4xl text-balance text-2xl font-semibold leading-snug text-foreground sm:text-3xl">

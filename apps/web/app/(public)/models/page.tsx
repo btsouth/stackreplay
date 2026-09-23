@@ -14,7 +14,7 @@ export default function ModelsPage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-6 pb-8">
       <header className="flex flex-col gap-3">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-accent">
           Replay target library / model identities
@@ -57,7 +57,7 @@ export default function ModelsPage() {
                   key={model.id}
                   className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/70 py-6 align-top lg:table-row lg:py-0"
                 >
-                  <td className="col-span-2 block min-w-0 text-lg font-medium tracking-tight text-foreground lg:table-cell lg:py-5 lg:pr-5 lg:text-base">
+                  <td className="col-span-2 block min-w-0 text-lg font-medium tracking-tight text-foreground lg:table-cell lg:py-3.5 lg:pr-5 lg:text-base">
                     <Link
                       className="underline-offset-4 hover:text-accent hover:underline"
                       href={`/models/${model.id}`}
@@ -65,17 +65,17 @@ export default function ModelsPage() {
                       {model.name}
                     </Link>
                   </td>
-                  <td className="block min-w-0 break-words font-mono text-xs leading-relaxed text-muted-foreground lg:table-cell lg:py-5 lg:pr-5">
+                  <td className="block min-w-0 break-words font-mono text-xs leading-relaxed text-muted-foreground lg:table-cell lg:py-3.5 lg:pr-5">
                     <span className="mb-1 block font-sans text-xs text-muted-foreground lg:hidden">
                       Catalog id
                     </span>
                     {model.id}
                   </td>
-                  <td className="block min-w-0 text-sm text-muted-foreground lg:table-cell lg:py-5 lg:pr-5">
+                  <td className="block min-w-0 text-sm text-muted-foreground lg:table-cell lg:py-3.5 lg:pr-5">
                     <span className="mb-1 block text-xs lg:hidden">Providers</span>
                     {model.providerNames.join(", ") || "—"}
                   </td>
-                  <td className="col-span-2 block min-w-0 text-sm text-muted-foreground lg:table-cell lg:py-5 lg:pr-5">
+                  <td className="col-span-2 block min-w-0 text-sm text-muted-foreground lg:table-cell lg:py-3.5 lg:pr-5">
                     <span className="mb-1 block text-xs lg:hidden">Target plans</span>
                     {model.planIds.length === 0
                       ? "no catalogued plan"
@@ -91,7 +91,7 @@ export default function ModelsPage() {
                           </span>
                         ))}
                   </td>
-                  <td className="col-span-2 block min-w-0 lg:table-cell lg:py-5">
+                  <td className="col-span-2 block min-w-0 lg:table-cell lg:py-3.5">
                     <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
                       Verification
                     </span>

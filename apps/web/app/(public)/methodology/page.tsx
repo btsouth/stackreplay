@@ -78,7 +78,7 @@ export default function MethodologyPage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="flex flex-col gap-10 pb-8">
+    <div className="flex flex-col gap-8 pb-8">
       <header className="flex flex-col gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Methodology</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
@@ -91,7 +91,7 @@ export default function MethodologyPage() {
         </p>
       </header>
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         {sections.map((section) => (
           <section
             key={section.heading}

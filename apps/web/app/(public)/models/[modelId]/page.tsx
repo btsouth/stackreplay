@@ -33,8 +33,8 @@ export default async function ModelDetailPage({ params }: ModelPageProps) {
     .filter((plan): plan is NonNullable<typeof plan> => plan !== undefined);
 
   return (
-    <div className="flex flex-col gap-10 pb-8">
-      <header className="flex flex-col gap-3 border-b border-border-strong pb-8">
+    <div className="flex flex-col gap-7 pb-8">
+      <header className="flex flex-col gap-3 border-b border-border-strong pb-6">
         <p className="text-xs font-medium uppercase tracking-[0.12em] text-accent">
           <Link className="underline-offset-2 hover:underline" href="/models">
             Models
@@ -64,7 +64,7 @@ export default async function ModelDetailPage({ params }: ModelPageProps) {
           </p>
         ) : (
           <ul
-            className="flex max-w-4xl flex-col border-t border-border text-sm"
+            className="flex max-w-5xl flex-col border-t border-border text-sm"
             data-testid="model-plan-list"
           >
             {plans.map((plan) => (
