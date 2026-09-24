@@ -59,18 +59,27 @@ function check(verdict: ReturnType<typeof composeVerdict>): void {
 }
 
 describe("replay verdicts", () => {
-  it("numeric plan: names the run-out dates and the overage", () => {
+  const runOut = (
+    dates: { date: string; day: number; undecidedBefore?: number }[],
+  ): VerdictFactsV1["runOut"] => ({ limit: "credits", behaviour: "overage", dates, windows: 2 });
+  const noUndecided = {
+    total: 66_851,
+    withinAllowance: 4_167,
+    overage: 62_684,
+    blocked: 0,
+    unavailable: 0,
+    undecided: 0,
+    unrecognized: 0,
+  };
+
+  it("numeric plan with nothing undecided: exact run-out dates and overage", () => {
     const verdict = composeVerdict(
       facts({
-        runOut: {
-          limit: "credits",
-          behaviour: "overage",
-          dates: [
-            { date: "2026-08-23", day: 3 },
-            { date: "2026-09-01", day: 12 },
-          ],
-          windows: 2,
-        },
+        calls: noUndecided,
+        runOut: runOut([
+          { date: "2026-08-23", day: 3, undecidedBefore: 0 },
+          { date: "2026-09-01", day: 12, undecidedBefore: 0 },
+        ]),
       }),
     );
     check(verdict);
@@ -78,9 +87,114 @@ describe("replay verdicts", () => {
       "Copilot Pro+ credits would have run out on Aug 23 (day 3) and again on Sep 1. This workload would have generated about $9,673 in modeled overage over 34 days on top of the $39/month subscription.",
     );
     expect(verdict.figure).toMatchObject({ value: "Aug 23", kind: "date" });
-    expect(verdict.secondary?.value).toBe("$9,673");
-    expect(verdict.support.join(" ")).toMatch(/could only add to it/u);
+    expect(verdict.secondary).toEqual({ value: "$9,673", caption: "modeled overage over 34 days" });
+    expect(verdict.support.join(" ")).not.toMatch(/unresolved|undecided|recognized/u);
     expect(verdict.short).toBe("Runs out Aug 23 (day 3) · $9,673 overage");
+  });
+
+  it("undecided calls before the run-out: the date is what recognized calls establish", () => {
+    const verdict = composeVerdict(
+      facts({
+        calls: { ...noUndecided, undecided: 1, unrecognized: 1, overage: 62_683 },
+        runOut: runOut([
+          { date: "2026-08-29", day: 10, undecidedBefore: 1 },
+          { date: "2026-09-10", day: 21, undecidedBefore: 1 },
+        ]),
+        money: { planPrice: "39", overage: "178.12" },
+      }),
+    );
+    check(verdict);
+    expect(verdict.headline).toBe(
+      "Recognized calls alone would exhaust Copilot Pro+ credits by Aug 29 (day 10) and again by Sep 10. They would generate about $178 in modeled overage over 34 days on top of the $39/month subscription.",
+    );
+    expect(verdict.support[0]).toBe(
+      "1 unresolved call, recorded before Aug 29, could move the run-out earlier and add to the overage.",
+    );
+    expect(verdict.figure).toMatchObject({
+      value: "Aug 29",
+      caption: "recognized calls · credits run out by day 10",
+    });
+    expect(verdict.secondary?.caption).toBe("modeled overage from recognized calls over 34 days");
+    expect(verdict.short).toBe("Runs out by Aug 29 (day 10) · at least $178 overage");
+  });
+
+  it("undecided calls only after the run-out: the date stands, the overage is qualified", () => {
+    const verdict = composeVerdict(
+      facts({
+        runOut: runOut([
+          { date: "2026-08-23", day: 3, undecidedBefore: 0 },
+          { date: "2026-09-01", day: 12, undecidedBefore: 0 },
+        ]),
+      }),
+    );
+    check(verdict);
+    expect(verdict.headline).toBe(
+      "Copilot Pro+ credits would have run out on Aug 23 (day 3) and again on Sep 1. Recognized calls alone would have generated about $9,673 in modeled overage over 34 days on top of the $39/month subscription.",
+    );
+    expect(verdict.support[0]).toBe(
+      "83 unresolved calls, all recorded after Aug 23, could add to the overage but not move that run-out.",
+    );
+    expect(verdict.short).toBe("Runs out Aug 23 (day 3) · at least $9,673 overage");
+  });
+
+  it("undecided calls between two run-outs: only the later date is qualified", () => {
+    const verdict = composeVerdict(
+      facts({
+        runOut: runOut([
+          { date: "2026-08-23", day: 3, undecidedBefore: 0 },
+          { date: "2026-09-01", day: 12, undecidedBefore: 20 },
+        ]),
+      }),
+    );
+    expect(verdict.headline).toMatch(
+      /^Copilot Pro\+ credits would have run out on Aug 23 \(day 3\) and again by Sep 1\./u,
+    );
+  });
+
+  it("undecided calls with no recorded chronology are read as earlier", () => {
+    const verdict = composeVerdict(
+      facts({
+        runOut: runOut([
+          { date: "2026-08-23", day: 3 },
+          { date: "2026-09-01", day: 12 },
+        ]),
+      }),
+    );
+    check(verdict);
+    expect(verdict.headline).toMatch(
+      /^Recognized calls alone would exhaust Copilot Pro\+ credits by Aug 23 \(day 3\) and again by Sep 1\./u,
+    );
+    expect(verdict.support[0]).toBe(
+      "83 unresolved calls could move the run-out earlier and add to the overage.",
+    );
+  });
+
+  it("numeric limits not reached with undecided calls: only recognized calls are said to fit", () => {
+    const verdict = composeVerdict(
+      facts({
+        calls: {
+          total: 3_200,
+          withinAllowance: 3_199,
+          overage: 0,
+          blocked: 0,
+          unavailable: 0,
+          undecided: 1,
+          unrecognized: 1,
+        },
+        money: { planPrice: "39" },
+      }),
+    );
+    check(verdict);
+    expect(verdict.headline).toBe(
+      "Recognized calls stay within Copilot Pro+'s published limits: all 3,199 calls over 34 days.",
+    );
+    expect(verdict.support[0]).toBe(
+      "1 unresolved call could still use the allowance, so whether the full workload fits can't be determined.",
+    );
+    expect(verdict.support[1]).toBe(
+      "No overage from recognized calls: the $39/month price covers them.",
+    );
+    expect(verdict.support.join(" ")).not.toMatch(/covers this recorded demand/u);
   });
 
   it("poor model coverage: says the plan can't run the work, with the count", () => {

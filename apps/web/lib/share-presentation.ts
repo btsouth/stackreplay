@@ -1,4 +1,5 @@
 import {
+  composeValueScope,
   composeVerdict,
   composeWorkloadFact,
   formatUsd,
@@ -71,9 +72,11 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
   const toolTotal = workload.tools.reduce((sum, tool) => sum + tool.calls, 0);
   const support: string[] = [];
   if (value !== undefined && total !== undefined) {
+    const scope = composeValueScope(value);
     support.push(
-      `${value.pricedCalls === value.recordedCalls ? `All ${NUMBER.format(value.recordedCalls)} calls` : `${NUMBER.format(value.pricedCalls)} of ${NUMBER.format(value.recordedCalls)} calls`}, each maker's at its own rates: ${value.makers.map((maker) => `${maker.name} ${formatUsd(maker.amount)}`).join(" · ")}.`,
+      `${scope.calls}, each maker's at its own rates: ${value.makers.map((maker) => `${maker.name} ${formatUsd(maker.amount)}`).join(" · ")}.`,
     );
+    if (scope.tokens !== undefined) support.push(scope.tokens);
     const out = leftOut(value);
     if (out !== undefined) support.push(out);
   }

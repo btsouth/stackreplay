@@ -38,6 +38,8 @@ export interface VerdictInput {
   scope: VerdictScope;
   timeZone: string;
   catalog: Pick<CatalogV1, "models" | "providers">;
+  /** When each undecided call occurred (epoch ms, in order), when the replay reported it. */
+  undecidedAtMs?: readonly number[] | undefined;
 }
 
 /** "Z.AI (Zhipu)" -> "Z.AI": the name a sentence can use. */
@@ -152,10 +154,38 @@ export function verdictFactsOf(input: VerdictInput): VerdictFactsV1 | undefined 
       0,
       12,
     );
+    // For each date, the first crossing on it, and the undecided calls that
+    // could have moved it: any of them could have been demand on this plan,
+    // and demand only brings a run-out earlier. The first run-out can move for
+    // any undecided call before it (one could also exhaust an earlier window);
+    // a later run-out only for those in its own window, before it.
+    const firstOnDate = new Map<string, { instant: number; windowStart: number }>();
+    for (const crossing of same) {
+      const date = dayOf(crossing.exceededAt ?? "");
+      const instant = Date.parse(crossing.exceededAt ?? "");
+      const known = firstOnDate.get(date);
+      if (known === undefined || instant < known.instant)
+        firstOnDate.set(date, { instant, windowStart: Date.parse(crossing.startedAt) });
+    }
+    const undecidedAt = input.undecidedAtMs;
+    const before = (date: string, first: boolean) => {
+      const crossing = firstOnDate.get(date);
+      if (undecidedAt === undefined || crossing === undefined) return undefined;
+      return undecidedAt.filter(
+        (at) => at < crossing.instant && (first || at >= crossing.windowStart),
+      ).length;
+    };
     runOut = {
       limit: LIMIT_OF_UNIT[firstCrossing.unit],
       behaviour: BEHAVIOUR_OF_EXCEED[firstCrossing.exceed],
-      dates: dates.map((date) => ({ date, day: daysBetween(firstDay, date) + 1 })),
+      dates: dates.map((date, index) => {
+        const undecidedBefore = before(date, index === 0);
+        return {
+          date,
+          day: daysBetween(firstDay, date) + 1,
+          ...(undecidedBefore === undefined ? {} : { undecidedBefore }),
+        };
+      }),
       windows: same.length,
     };
   }
@@ -244,6 +274,8 @@ export interface VerdictOutcome extends ReplayedScope {
   resolvedScope?:
     | (ReplayedScope & { recordedEvents: number; excludedUnresolvedEvents: number })
     | undefined;
+  /** Subscription targets: when each undecided call occurred, epoch ms. */
+  undecidedAtMs?: readonly number[] | undefined;
 }
 
 /**
@@ -266,6 +298,9 @@ export function verdictOfOutcome(
   return verdictOf({
     projection: replayed.projection,
     result: replayed.result,
+    ...(resolvedScope === undefined && outcome.undecidedAtMs !== undefined
+      ? { undecidedAtMs: outcome.undecidedAtMs }
+      : {}),
     targetName,
     scope: {
       kind: slice !== undefined ? "source" : unrecognizedLeftOut > 0 ? "resolved" : "all",

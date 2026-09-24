@@ -141,6 +141,13 @@ export function replayWithReceipt(input: ReplayInput): {
   result: ExecutionReplayResultV1;
   receipt: PriceReceiptV1 | undefined;
   priceability: ApiPriceabilityCountsV1 | undefined;
+  /**
+   * Subscription targets: when each undecided event occurred, in replay order,
+   * from the same per-event dispositions the result counts. An interface needs
+   * it to say whether undecided demand could move a limit crossing it reports;
+   * the result itself stays aggregate-only.
+   */
+  undecidedAt: readonly string[] | undefined;
 } {
   const target = parseTarget(input.target);
   const api = isApiTargetV1(target);
@@ -156,6 +163,7 @@ export function replayWithReceipt(input: ReplayInput): {
         price_category_undocumented: 0,
       }
     : undefined;
+  const undecidedAt: string[] | undefined = api ? undefined : [];
   const result = replayWith(input, {
     receipt,
     ...(counts === undefined
@@ -165,12 +173,16 @@ export function replayWithReceipt(input: ReplayInput): {
             counts[outcome] += 1;
           },
         }),
+    ...(undecidedAt === undefined
+      ? {}
+      : { onUndecided: (occurredAt: string) => undecidedAt.push(occurredAt) }),
   });
   const built = receipt.build();
   return {
     result,
     receipt: built.pricedEvents === 0 ? undefined : built,
     priceability: counts,
+    undecidedAt,
   };
 }
 
@@ -192,6 +204,8 @@ function replayWith(
   extras: {
     receipt?: PriceReceiptBuilder;
     observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+    /** Subscription targets: told when each undecided event occurred. */
+    onUndecided?: (occurredAt: string) => void;
   },
 ): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
@@ -273,6 +287,7 @@ function replayWith(
     reset,
     translationPlan,
     translationApplication,
+    onUndecided: extras.onUndecided,
   });
 
   const pricingReferences = collectPricingReferences(planVersion);
@@ -345,6 +360,7 @@ function computeSemantics(input: {
   reset: ResetAssumptionV1;
   translationPlan: TranslationPlan | undefined;
   translationApplication: TranslationApplication;
+  onUndecided?: ((occurredAt: string) => void) | undefined;
 }): ReplaySemanticsV1 {
   const accumulator = new SemanticsAccumulator({
     target: { kind: "subscription", planVersion: input.planVersion, reset: input.reset },
@@ -391,6 +407,7 @@ function computeSemantics(input: {
       indeterminate: preparedEvent.outcome === "indeterminate",
       disposition: dispositionOf(preparedEvent),
     };
+    if (facts.disposition === "unknown") input.onUndecided?.(event.occurredAt);
     accumulator.observe(facts);
   }
   return accumulator.finish();

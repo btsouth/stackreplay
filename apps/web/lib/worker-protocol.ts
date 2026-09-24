@@ -379,6 +379,8 @@ export type WorkerResponse =
        * shows this figure.
        */
       resolvedScope?: ResolvedScopeReplay;
+      /** Subscription targets: when each undecided call occurred, epoch ms. */
+      undecidedAtMs?: number[];
     }
   | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
   | { type: "WINDOW_OK"; requestId: number; window: WindowFact }

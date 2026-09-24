@@ -160,6 +160,7 @@ export function workloadShareV2(
             rulesAsOf: value.rulesAsOf,
             recordedCalls: value.recordedCalls,
             pricedCalls: value.pricedCalls,
+            knownTokens: { total: value.knownTokens.total, priced: value.knownTokens.priced },
             ...(value.total === undefined ? {} : { total: value.total }),
             makers: value.priced.slice(0, 8).map((slice) => ({
               name: slice.makerName.slice(0, 40),

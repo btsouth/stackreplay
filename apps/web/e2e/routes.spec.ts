@@ -66,7 +66,9 @@ test("the numeric route shows where the plan would run out, on the whole workloa
   );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("verdict-headline")).toContainText(
-    /^Copilot Pro\+ credits would have run out on [A-Z][a-z]{2} \d+ \(day \d+\)/u,
+    // One of the mixed workload's five unresolved calls comes before the first
+    // run-out, so the date is what the recognized calls establish.
+    /^Recognized calls alone would exhaust Copilot Pro\+ credits by [A-Z][a-z]{2} \d+ \(day \d+\)/u,
     { timeout: 60_000 },
   );
 });

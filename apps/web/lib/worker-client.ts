@@ -40,6 +40,8 @@ export interface ReplayOutcome {
   priceability?: ApiPriceabilityCountsV1 | undefined;
   /** Direct API only: the resolved-only scope, when it completes the price. */
   resolvedScope?: ResolvedScopeReplay | undefined;
+  /** Subscription targets: when each undecided call occurred, epoch ms. */
+  undecidedAtMs?: number[] | undefined;
 }
 
 /**
@@ -471,6 +473,7 @@ export class ReplayWorkerClient {
       ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
       ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
       ...(response.resolvedScope === undefined ? {} : { resolvedScope: response.resolvedScope }),
+      ...(response.undecidedAtMs === undefined ? {} : { undecidedAtMs: response.undecidedAtMs }),
     };
   }
 

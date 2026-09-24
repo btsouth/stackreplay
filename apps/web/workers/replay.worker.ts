@@ -683,6 +683,7 @@ async function handleRunReplay(
       ...(run.receipt === undefined ? {} : { receipt: run.receipt }),
       ...(run.priceability === undefined ? {} : { priceability: run.priceability }),
       ...(run.resolvedScope === undefined ? {} : { resolvedScope: run.resolvedScope }),
+      ...(run.undecidedAtMs === undefined ? {} : { undecidedAtMs: run.undecidedAtMs }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.

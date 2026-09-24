@@ -106,6 +106,8 @@ export const shareWorkloadV2Schema = z.strictObject({
       rulesAsOf: isoDateV1Schema,
       recordedCalls: count,
       pricedCalls: count,
+      /** Known processed tokens across all calls, and in the priced calls. */
+      knownTokens: z.strictObject({ total: count, priced: count }).optional(),
       total: amount.optional(),
       makers: z
         .array(z.strictObject({ name: z.string().min(1).max(40), calls: count, amount }))

@@ -1,10 +1,10 @@
 import { bundledModelIdentity, loadBundledCatalog } from "@stackreplay/catalog/bundled";
-import { projectReplay, replay } from "@stackreplay/replay-engine";
+import { replay } from "@stackreplay/replay-engine";
 import type { ExecutionTargetV1 } from "@stackreplay/schema";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { runScopedReplay } from "./scoped-replay";
-import { verdictOf, verdictOfOutcome } from "./verdict-facts";
+import { verdictOfOutcome } from "./verdict-facts";
 
 /**
  * Phase 2 acceptance: for each scenario the first sentence of the verdict
@@ -18,18 +18,17 @@ const MEANINGFUL = /\$[\d,]+|\b[A-Z][a-z]{2} \d{1,2}\b|\d[\d,]* calls?\b|\d+(?:\
 const ENGINE_STATES =
   /full coverage ruled out|capacity not quantified|not determinable|not established|would have fit|^unknown/iu;
 
+/** The verdict the app composes: the same scoped replay and outcome derivation. */
 function verdictFor(archetype: WorkloadArchetypeId, target: ExecutionTargetV1, name: string) {
-  const events = buildArchetypeExport(archetype).events;
-  const result = replay({ events, target, catalog, context: { rulesAsOf: "2026-09-23" } });
-  const projection = projectReplay(result, catalog, { timeZone: "America/New_York" });
-  const composed = verdictOf({
-    projection,
-    result,
-    targetName: name,
-    scope: { kind: "all", recordedCalls: events.length },
-    timeZone: "America/New_York",
+  const outcome = runScopedReplay({
+    events: buildArchetypeExport(archetype).events,
+    target,
     catalog,
+    identity: bundledModelIdentity(),
+    rulesAsOf: "2026-09-23",
+    timeZone: "America/New_York",
   });
+  const composed = verdictOfOutcome(outcome, name, { timeZone: "America/New_York", catalog });
   if (composed === undefined) throw new Error("no verdict");
   return composed;
 }
@@ -93,10 +92,16 @@ describe("decision-first verdicts from real replays", () => {
       "Copilot Pro+",
     );
     expect(facts.runOut?.behaviour).toBe("overage");
+    // One of the five unresolved calls came before the first run-out, none in
+    // the second run-out's window before it.
+    expect(facts.runOut?.dates.map((date) => date.undecidedBefore)).toEqual([1, 0]);
     expect(verdict.headline).toMatch(
-      /^Copilot Pro\+ credits would have run out on [A-Z][a-z]{2} \d+ \(day \d+\)/u,
+      /^Recognized calls alone would exhaust Copilot Pro\+ credits by [A-Z][a-z]{2} \d+ \(day \d+\) and again on [A-Z][a-z]{2} \d+\./u,
     );
     expect(verdict.headline).toMatch(/about \$[\d,]+ in modeled overage over \d+ days/u);
+    expect(verdict.support[0]).toMatch(
+      /^5 unresolved calls could move the run-out earlier and add to the overage: 1 of them was recorded before [A-Z][a-z]{2} \d+\.$/u,
+    );
   });
 
   it("an unresolved subset becomes a bounded share, not UNKNOWN", () => {

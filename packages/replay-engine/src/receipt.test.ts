@@ -165,3 +165,41 @@ describe("priceability observation", () => {
     expect(seen.get("gpt-0")).toBe("priced");
   });
 });
+
+describe("undecided chronology", () => {
+  const mystery = (id: string, occurredAt: string) =>
+    makeEvent({
+      id,
+      occurredAt,
+      model: { rawName: "mystery-model-9" },
+      usage: completeUsage({ uncachedInputTokens: 10 }),
+    });
+
+  it("reports when each undecided event occurred, in order, without changing the result", () => {
+    const events = [
+      ...workload().slice(0, 10),
+      mystery("late", "2026-09-20T01:00:00Z"),
+      mystery("early", "2026-09-01T00:30:00Z"),
+    ];
+    const input = {
+      events,
+      target: { type: "subscription" as const, planId: "github-copilot-pro-plus" },
+      catalog,
+      context,
+    };
+    const { result, undecidedAt } = replayWithReceipt(input);
+    expect(undecidedAt).toEqual(["2026-09-01T00:30:00Z", "2026-09-20T01:00:00Z"]);
+    expect(undecidedAt?.length).toBe(result.semantics?.dispositions.unknown);
+    expect(result).toEqual(replay(input));
+  });
+
+  it("is not reported for a Direct API target", () => {
+    const { undecidedAt } = replayWithReceipt({
+      events: [mystery("m", "2026-09-01T00:30:00Z")],
+      target: { type: "api", providerId: "openai" },
+      catalog,
+      context,
+    });
+    expect(undecidedAt).toBeUndefined();
+  });
+});

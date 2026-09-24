@@ -60,9 +60,11 @@ export {
   shareSnapshotV2Schema,
   shareWorkloadV2Schema,
 } from "./v2.js";
+export { composeValueScope, type ValueScopeInput } from "./value-scope.js";
 export {
   boundText,
   composeVerdict,
+  partOfWhole,
   shareText,
   VERDICT_FACTS_VERSION,
   type VerdictFactsV1,

@@ -100,9 +100,17 @@ export const verdictFactsV1Schema = z.strictObject({
     .strictObject({
       limit: z.enum(["credits", "tokens", "requests"]),
       behaviour: z.enum(["overage", "refused", "held", "recorded"]),
-      /** Distinct calendar dates the allowance ran out on, with the day index. */
+      /**
+       * Distinct calendar dates the allowance ran out on, with the day index.
+       * `undecidedBefore` counts the undecided calls recorded before that
+       * run-out: when it is above zero the date is what the recognized calls
+       * establish, and the undecided calls could bring it earlier. Absent when
+       * the chronology of undecided calls is not known.
+       */
       dates: z
-        .array(z.strictObject({ date: isoDateV1Schema, day: count }))
+        .array(
+          z.strictObject({ date: isoDateV1Schema, day: count, undecidedBefore: count.optional() }),
+        )
         .min(1)
         .max(12),
       windows: count,
@@ -157,6 +165,23 @@ export function shareText(share: number): string {
   if (percent < 1) return `${percent.toFixed(2)}%`;
   if (percent > 99 && percent < 100) return `${Math.min(percent, 99.9).toFixed(1)}%`;
   return `${percent.toFixed(1)}%`;
+}
+
+/**
+ * A part of a whole as a percentage that can never round an incomplete part
+ * to 100% or a nonzero part to 0%: the precision widens until it cannot
+ * ("99.97%"). 100% and 0% are printed only when they are exact.
+ */
+export function partOfWhole(part: number, whole: number): string {
+  if (whole <= 0 || part <= 0) return "0%";
+  if (part >= whole) return "100%";
+  const percent = (part / whole) * 100;
+  for (const digits of [1, 2, 3, 4]) {
+    const text = percent.toFixed(digits);
+    const value = Number(text);
+    if (value > 0 && value < 100) return `${text}%`;
+  }
+  return percent < 50 ? "under 0.0001%" : "over 99.9999%";
 }
 
 /** "53.0–53.1%", widening the precision until the two ends differ. */
@@ -228,13 +253,62 @@ function limitNoun(limit: NonNullable<VerdictFactsV1["runOut"]>["limit"]): strin
       : "request allowance";
 }
 
-function runOutDates(runOut: NonNullable<VerdictFactsV1["runOut"]>): string {
+type RunOut = NonNullable<VerdictFactsV1["runOut"]>;
+
+/**
+ * Undecided calls recorded before a run-out. Any of them could be demand on
+ * the plan, and demand only brings a run-out earlier, so a date with some
+ * before it is the latest the recognized calls establish. When the chronology
+ * was not recorded, every undecided call counts as before.
+ */
+function undecidedBefore(facts: VerdictFactsV1, date: RunOut["dates"][number]): number {
+  return date.undecidedBefore ?? facts.calls.undecided;
+}
+
+/** "on Aug 23 (day 3) and again by Sep 1": "by" where undecided calls came first. */
+function runOutDates(facts: VerdictFactsV1, runOut: RunOut): string {
   const [first, second, ...rest] = runOut.dates;
   if (first === undefined) return "";
-  const lead = `${verdictDay(first.date)} (day ${n(first.day)})`;
+  const at = (date: RunOut["dates"][number]) => (undecidedBefore(facts, date) > 0 ? "by" : "on");
+  const lead = `${at(first)} ${verdictDay(first.date)} (day ${n(first.day)})`;
   if (second === undefined) return lead;
-  if (rest.length === 0) return `${lead} and again on ${verdictDay(second.date)}`;
-  return `${lead}, again on ${verdictDay(second.date)} and ${rest.length === 1 ? "once more" : `${n(rest.length)} more times`} after that`;
+  if (rest.length === 0) return `${lead} and again ${at(second)} ${verdictDay(second.date)}`;
+  return `${lead}, again ${at(second)} ${verdictDay(second.date)} and ${rest.length === 1 ? "once more" : `${n(rest.length)} more times`} after that`;
+}
+
+function undecidedCalls(facts: VerdictFactsV1, count: number): string {
+  const kind = facts.calls.unrecognized === facts.calls.undecided ? "unresolved" : "undecided";
+  return `${n(count)} ${kind} ${count === 1 ? "call" : "calls"}`;
+}
+
+/**
+ * What undecided calls could still change about a run-out, said right after
+ * it: nothing is guessed about them, so the sentence says only which way they
+ * could move the result.
+ */
+function openRunOutSentence(facts: VerdictFactsV1, runOut: RunOut): string | undefined {
+  const undecided = facts.calls.undecided;
+  const first = runOut.dates[0];
+  if (undecided === 0 || first === undefined) return undefined;
+  const effect =
+    runOut.behaviour === "overage"
+      ? "add to the overage"
+      : runOut.behaviour === "refused"
+        ? "leave more calls refused"
+        : runOut.behaviour === "held"
+          ? "leave more calls held"
+          : "add to what the plan records";
+  const before = undecidedBefore(facts, first);
+  const day = verdictDay(first.date);
+  const all = undecidedCalls(facts, undecided);
+  const lead = `${all.charAt(0).toUpperCase()}${all.slice(1)}`;
+  if (before === 0)
+    return `${lead}, ${undecided === 1 ? "" : "all "}recorded after ${day}, could ${effect} but not move that run-out.`;
+  if (first.undecidedBefore === undefined)
+    return `${lead} could move the run-out earlier and ${effect}.`;
+  if (before === undecided)
+    return `${lead}, recorded before ${day}, could move the run-out earlier and ${effect}.`;
+  return `${lead} could move the run-out earlier and ${effect}: ${n(before)} of them ${before === 1 ? "was" : "were"} recorded before ${day}.`;
 }
 
 /** Undecided calls, said once, with the reason when it is known. */
@@ -320,6 +394,9 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
   const workNoun = slice === undefined ? "this workload" : `your ${slice} work`;
   const ofCalls = slice === undefined ? "of recorded calls" : `of your ${slice} calls`;
   const tag = (text: string) => (slice === undefined ? text : `${slice}: ${text}`);
+  /** A sentence start after any substitution or slice lead. */
+  const start = (text: string) =>
+    under === "" ? text : `${under}${text.charAt(0).toLowerCase()}${text.slice(1)}`;
   const unavailableMakers = list(facts.unavailableMakers);
   const tail: string[] = [];
   const push = (sentence: string | undefined) => {
@@ -437,59 +514,75 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
   const runOut = facts.runOut;
   if (runOut !== undefined) {
     const noun = limitNoun(runOut.limit);
-    const when = runOutDates(runOut);
+    const when = runOutDates(facts, runOut);
     const first = runOut.dates[0];
+    // With undecided calls before the first run-out, the date is what the
+    // recognized calls alone establish, and the headline says so.
+    const firstOpen = first !== undefined && undecidedBefore(facts, first) > 0;
+    const overageOpen = c.undecided > 0;
     let headline: string;
     if (runOut.behaviour === "overage") {
       const overage = facts.money.overage;
       const overageText = overage === undefined ? undefined : formatUsdWhole(overage);
-      headline = `${under}${plan} ${noun} would have run out on ${when}.${
+      const generated =
         overageText === undefined || overageText === "$0"
           ? ""
-          : ` ${slice === undefined ? "This workload" : `Your ${slice} work`} would have generated about ${overageText} in modeled overage${over} on top of the ${price === undefined ? "plan price" : `${price} subscription`}.`
-      }`;
+          : firstOpen
+            ? ` They would generate about ${overageText} in modeled overage${over} on top of the ${price === undefined ? "plan price" : `${price} subscription`}.`
+            : ` ${overageOpen ? "Recognized calls alone" : slice === undefined ? "This workload" : `Your ${slice} work`} would have generated about ${overageText} in modeled overage${over} on top of the ${price === undefined ? "plan price" : `${price} subscription`}.`;
+      headline = firstOpen
+        ? `${start("Recognized calls alone would exhaust ")}${plan} ${noun} ${when}.${generated}`
+        : `${under}${plan} ${noun} would have run out ${when}.${generated}`;
     } else if (runOut.behaviour === "recorded") {
-      headline = `${under}${possessive(plan)} ${noun} would have been exceeded on ${when}, which the plan records without refusing or billing anything.`;
+      headline = firstOpen
+        ? `${start("Recognized calls alone would exceed ")}${possessive(plan)} ${noun} ${when}, which the plan records without refusing or billing anything.`
+        : `${under}${possessive(plan)} ${noun} would have been exceeded ${when}, which the plan records without refusing or billing anything.`;
     } else {
-      headline = `${under}${possessive(plan)} ${noun} would have run out on ${when}; ${calls(c.blocked)} would have been ${runOut.behaviour === "held" ? "held until the window reset" : "refused"}.`;
+      const stopped = runOut.behaviour === "held" ? "held until the window reset" : "refused";
+      headline = firstOpen
+        ? `${start("Recognized calls alone would use up ")}${possessive(plan)} ${noun} ${when}; ${calls(c.blocked)} of them would have been ${stopped}.`
+        : `${under}${possessive(plan)} ${noun} would have run out ${when}; ${calls(c.blocked)} would have been ${stopped}.`;
     }
+    push(openRunOutSentence(facts, runOut));
     if (c.unavailable > 0)
       push(
         `${n(c.unavailable)} ${c.unavailable === 1 ? "call uses" : "calls use"} ${notRun(facts, "the plan")}.`,
       );
     push(scopeSentence(facts));
     push(undecidedSentence(facts));
-    if (runOut.behaviour === "overage" && c.undecided > 0 && facts.money.overage !== undefined)
-      push(
-        `That overage covers the ${calls(total - c.undecided)} with recognized models; the undecided ones could only add to it.`,
-      );
     push(substitutionSentence(facts));
     const overage = facts.money.overage;
     const overageWhole = overage === undefined ? undefined : formatUsdWhole(overage);
+    const showOverage =
+      runOut.behaviour === "overage" && overageWhole !== undefined && overageWhole !== "$0";
     return {
       modeLabel,
       headline,
       support: tail,
       figure: {
         value: first === undefined ? "—" : verdictDay(first.date),
-        caption: `${noun} run out · day ${n(first?.day ?? 0)}`,
+        caption: firstOpen
+          ? `recognized calls · ${noun} run out by day ${n(first?.day ?? 0)}`
+          : `${noun} run out · day ${n(first?.day ?? 0)}`,
         kind: "date",
       },
-      secondary:
-        runOut.behaviour === "overage" && overageWhole !== undefined && overageWhole !== "$0"
-          ? { value: overageWhole, caption: `modeled overage${over}` }
-          : runOut.behaviour === "refused" || runOut.behaviour === "held"
-            ? {
-                value: n(c.blocked),
-                caption: runOut.behaviour === "held" ? "calls held" : "calls refused",
-              }
-            : undefined,
+      secondary: showOverage
+        ? {
+            value: overageWhole,
+            caption: overageOpen
+              ? `modeled overage from recognized calls${over}`
+              : `modeled overage${over}`,
+          }
+        : runOut.behaviour === "refused" || runOut.behaviour === "held"
+          ? {
+              value: n(c.blocked),
+              caption: runOut.behaviour === "held" ? "calls held" : "calls refused",
+            }
+          : undefined,
       bound,
       short: tag(
-        `Runs out ${first === undefined ? "" : `${verdictDay(first.date)} (day ${n(first.day)})`}${
-          runOut.behaviour === "overage" && overageWhole !== undefined && overageWhole !== "$0"
-            ? ` · ${overageWhole} overage`
-            : ""
+        `Runs out ${first === undefined ? "" : `${firstOpen ? "by " : ""}${verdictDay(first.date)} (day ${n(first.day)})`}${
+          showOverage ? ` · ${overageOpen ? "at least " : ""}${overageWhole} overage` : ""
         }`,
       ),
     };
@@ -497,14 +590,28 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
 
   // Numeric limits never reached.
   if (target.capacity === "numeric") {
-    const headline =
-      c.unavailable === 0
+    // Undecided calls could still use the allowance: only the recognized calls
+    // are established to fit.
+    const open = c.undecided > 0;
+    const headline = open
+      ? c.unavailable === 0
+        ? `${start("Recognized calls stay within ")}${possessive(plan)} published limits: all ${calls(runnable)}${over}.`
+        : `${start("Recognized calls stay within ")}${possessive(plan)} published limits: the ${calls(runnable)} it can run (${shareShown}). The other ${n(c.unavailable)} use ${notRun(facts, "it")}.`
+      : c.unavailable === 0
         ? `${under}${plan} would have served ${runnable === total ? "all " : ""}${calls(runnable)} within its published limits${over}.`
         : `${under}${plan} would have served the ${calls(runnable)} it can run (${shareShown}) within its published limits; the other ${n(c.unavailable)} use ${notRun(facts, "it")}.`;
+    if (open) {
+      const undecided = undecidedCalls(facts, c.undecided);
+      push(
+        `${undecided.charAt(0).toUpperCase()}${undecided.slice(1)} could still use the allowance, so whether ${slice === undefined ? "the full workload" : `your ${slice} work`} fits can't be determined.`,
+      );
+    }
     push(
       price === undefined
         ? undefined
-        : `No overage: the ${price} price covers this recorded demand.`,
+        : open
+          ? `No overage from recognized calls: the ${price} price covers them.`
+          : `No overage: the ${price} price covers this recorded demand.`,
     );
     push(scopeSentence(facts));
     push(undecidedSentence(facts));
@@ -515,11 +622,17 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       support: tail,
       figure: {
         value: shareShown,
-        caption: `${ofCalls} served within ${possessive(plan)} limits`,
+        caption: open
+          ? `${ofCalls} within ${possessive(plan)} limits on recognized calls`
+          : `${ofCalls} served within ${possessive(plan)} limits`,
         kind: "share",
       },
       bound,
-      short: tag(`Within limits · ${shareShown} of calls`),
+      short: tag(
+        open
+          ? `Recognized calls within limits · ${shareShown}`
+          : `Within limits · ${shareShown} of calls`,
+      ),
     };
   }
 

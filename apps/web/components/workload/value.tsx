@@ -1,7 +1,13 @@
 "use client";
 
 import { bundledPlansAt } from "@stackreplay/catalog/bundled";
-import { formatCents, formatUsd, isSyntheticCatalogId, prorateCents } from "@stackreplay/share";
+import {
+  composeValueScope,
+  formatCents,
+  formatUsd,
+  isSyntheticCatalogId,
+  prorateCents,
+} from "@stackreplay/share";
 import { useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
 import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
@@ -55,6 +61,7 @@ export function WorkloadValueFigure({
 }) {
   const total = value.total === undefined ? undefined : splitMoney(value.total);
   const leftOut = valueLeftOut(value);
+  const scope = composeValueScope(value);
   if (total === undefined)
     return (
       <div className="flex flex-col gap-2" data-testid="workload-value">
@@ -79,10 +86,7 @@ export function WorkloadValueFigure({
         at published API list prices · not what you paid
       </p>
       <p className="max-w-[60ch] text-sm leading-relaxed text-foreground" data-testid="value-scope">
-        {value.pricedCalls === value.recordedCalls
-          ? `All ${count(value.recordedCalls)} calls`
-          : `${count(value.pricedCalls)} of ${count(value.recordedCalls)} calls (${percent(value.pricedCalls / value.recordedCalls)})`}
-        , each maker&apos;s at its own rates
+        {scope.calls}, each maker&apos;s at its own rates
         {compact
           ? "."
           : `: ${value.priced
@@ -92,6 +96,14 @@ export function WorkloadValueFigure({
               )
               .join(" · ")}.`}
       </p>
+      {scope.tokens === undefined ? null : (
+        <p
+          className="max-w-[60ch] text-sm leading-relaxed text-foreground"
+          data-testid="value-token-scope"
+        >
+          {scope.tokens}
+        </p>
+      )}
       {leftOut === undefined ? null : (
         <p
           className="max-w-[60ch] text-xs leading-relaxed text-muted-foreground"

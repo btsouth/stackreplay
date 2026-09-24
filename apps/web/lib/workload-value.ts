@@ -1,6 +1,10 @@
 import type { CatalogV1, ModelIdentityIndex } from "@stackreplay/catalog";
 import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
-import { type PriceReceiptV1, replayWithReceipt } from "@stackreplay/replay-engine";
+import {
+  type PriceReceiptV1,
+  replayWithReceipt,
+  tokenAccountingOf,
+} from "@stackreplay/replay-engine";
 import type { UsageEventV1 } from "@stackreplay/schema";
 import { addAmounts } from "@stackreplay/share";
 import { modelIdResolver } from "./workload-scope";
@@ -49,6 +53,13 @@ export interface WorkloadValue {
   rulesAsOf: string;
   recordedCalls: number;
   pricedCalls: number;
+  /**
+   * Known processed tokens across every recorded call, and in the priced calls.
+   * Calls without complete token counts add nothing to either side. A scope
+   * and materiality measure: tokens are priced at different rates, so this is
+   * never a share of dollars.
+   */
+  knownTokens: { total: number; priced: number };
   /** Exact sum of every priced slice; absent when nothing prices. */
   total?: string | undefined;
   /**
@@ -97,6 +108,13 @@ export function workloadValue(
     byMaker.set(maker, models);
   }
 
+  const tokensOf = (event: UsageEventV1) => {
+    const accounting = tokenAccountingOf(event.usage);
+    return accounting.known ? accounting.total : 0;
+  };
+  const tokensIn = (list: readonly UsageEventV1[]) =>
+    list.reduce((sum, event) => sum + tokensOf(event), 0);
+  let pricedTokens = 0;
   const priced: PricedSlice[] = [];
   const excluded: ExcludedSlice[] = [];
   const nameOf = (modelId: string) => catalog.models[modelId]?.name ?? modelId;
@@ -113,6 +131,7 @@ export function workloadValue(
     const all = [...models.values()].flat();
     const whole = replayed(all, maker);
     if (whole.result.economics !== undefined) {
+      pricedTokens += tokensIn(all);
       priced.push({
         makerId: maker,
         makerName,
@@ -142,6 +161,7 @@ export function workloadValue(
         continue;
       }
       amounts.push(one.result.economics.targetCost.amount);
+      pricedTokens += tokensIn(slice);
       if (one.receipt !== undefined) receipts.push(one.receipt);
       calls += slice.length;
     }
@@ -175,6 +195,7 @@ export function workloadValue(
     rulesAsOf,
     recordedCalls: events.length,
     pricedCalls: priced.reduce((sum, slice) => sum + slice.calls, 0),
+    knownTokens: { total: tokensIn(events), priced: pricedTokens },
     ...(priced.length === 0 ? {} : { total: addAmounts(priced.map((slice) => slice.amount)) }),
     ...(priced.length === 0 || withCache.some((amount) => amount === undefined)
       ? {}

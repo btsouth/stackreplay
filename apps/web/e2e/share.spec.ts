@@ -40,8 +40,8 @@ const replay: ShareReplayV2 = {
       limit: "credits",
       behaviour: "overage",
       dates: [
-        { date: "2026-08-25", day: 6 },
-        { date: "2026-09-05", day: 17 },
+        { date: "2026-08-25", day: 6, undecidedBefore: 0 },
+        { date: "2026-09-05", day: 17, undecidedBefore: 0 },
       ],
       windows: 2,
     },

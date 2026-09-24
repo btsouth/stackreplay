@@ -1158,3 +1158,26 @@ the same generic image.
 - **Panel.** The preview comes first. Actions: create the link, copy it, download the PNG (drawn
   by the image route from the link's own aggregate data), copy a suggested post that quotes the
   result rather than rewriting it. The long URL waits behind "Show link".
+
+## 62. Undecided demand qualifies only what it could change (independent audit fix-forward)
+
+An independent audit replayed a workload whose one unresolved call carried a billion input tokens.
+The verdict stated the recognized calls' run-out and overage as the workload's, and the published-rate
+value read "3,199 of 3,200 calls (100.0%)" while leaving out 64% of known demand.
+
+- **Chronology from the engine.** `replayWithReceipt` also reports when each undecided event occurred
+  (`undecidedAt`), from the same per-event dispositions the result counts. The result is unchanged.
+- **Per run-out, in the facts.** `verdictFactsOf` records, for each run-out date, the undecided calls
+  that could have moved it (`undecidedBefore`): any before the first run-out, and for a later
+  run-out only those in its own window before it. Replay, Compare, a share link and its image all
+  read these facts.
+- **Words.** A run-out with undecided calls before it is what the recognized calls alone establish
+  ("Recognized calls alone would exhaust … by Aug 29"), followed at once by what the undecided calls
+  could change. Undecided calls only after a run-out leave its date exact and qualify the overage.
+  A numeric plan never reached says only the recognized calls fit. Nothing is guessed about the
+  undecided calls and no upper bound is invented; a tiny undecided subset qualifies a sentence, it
+  never turns a result into UNKNOWN.
+- **Price scope.** `workloadValue` carries known processed tokens across all calls and in the
+  priced ones. `composeValueScope` states the call scope with `partOfWhole`, which never rounds an
+  incomplete part to 100%, and, when calls are left out, the share of known processed tokens they
+  carry. The token share is a materiality measure, never a share of dollars.

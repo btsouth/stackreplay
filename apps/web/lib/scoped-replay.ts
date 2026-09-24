@@ -67,6 +67,12 @@ export interface ScopedReplay {
   /** Present when the replay ran under a scope. */
   scope?: ReplayScope | undefined;
   resolvedScope?: ResolvedScopeReplay | undefined;
+  /**
+   * Subscription targets: when each undecided call occurred (epoch ms, in
+   * order), from the engine's own dispositions, so a verdict can say whether
+   * undecided demand could move a run-out it reports.
+   */
+  undecidedAtMs?: number[] | undefined;
   /** The calls the replay ran over, for the timeline. */
   events: readonly UsageEventV1[];
 }
@@ -90,7 +96,7 @@ export function runScopedReplay(input: ScopedReplayInput): ScopedReplay {
   const split = input.excludeUnresolved === true ? splitByIdentity(sliced, identity) : undefined;
   const events = split?.resolved ?? sliced;
 
-  const { result, receipt, priceability } = replayWithReceipt({
+  const { result, receipt, priceability, undecidedAt } = replayWithReceipt({
     events,
     target,
     catalog,
@@ -143,6 +149,9 @@ export function runScopedReplay(input: ScopedReplayInput): ScopedReplay {
         }
       : {}),
     ...(resolvedScope === undefined ? {} : { resolvedScope }),
+    ...(undecidedAt === undefined
+      ? {}
+      : { undecidedAtMs: undecidedAt.map((instant) => Date.parse(instant)) }),
     events,
   };
 }
