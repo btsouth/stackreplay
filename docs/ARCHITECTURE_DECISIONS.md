@@ -1099,3 +1099,33 @@ every suggestion ended in a non-answer.
 - **Setup order.** Work to replay, then target (ordered by coverage, with the share each runs),
   then substitutions. The rules date and catalog version badges sit under Advanced, and the raw
   identity map under the workload details.
+
+## 60. The workload opens with what it is worth at each maker's own rates, and comparative facts (first-scan value)
+
+The workload page opened with counts and five shares, with no money on it; for a mixed stack the
+only money route priced everything at one provider and refused.
+
+- **Published-rate value.** `workloadValue` (`apps/web/lib/workload-value.ts`) groups resolved
+  calls by the model's maker (`developerId`) and prices each group with an Exact Direct API
+  replay at that maker's own published rates. A group that does not price completely falls back
+  to one replay per model. Only complete replays are added, exactly (`addAmounts`); the remainder
+  is named with its reason (a token category the maker's price record gives no rate for, no list
+  price in force, no recorded maker) and unresolved calls are counted. It equals the sum of
+  per-maker replays to the cent, and a single-maker workload equals its own Direct API replay.
+  Every placement shows "at published API list prices · not what you paid" beside the figure,
+  and "How $X adds up" opens one price receipt per maker.
+- **Computed with the profile.** `ANALYZE_WORKLOAD` takes the rules date and the profile carries
+  the value, so the workload page, Workload Ready and anything later read one figure.
+- **Comparative facts.** The five share-only insights are replaced by facts that state a figure
+  against a baseline from the same workload: the busiest day against the median active day, the
+  heaviest hour and five-hour window against their medians, the largest session against the
+  median session, caching's effect (the receipts' `cacheReadsAtInputRate` against the total),
+  project concentration against an even share, and late-night share. Each links to the section
+  that shows it. They are ranked by how far the figure is from its baseline; the top three come
+  from different families when there are that many. Templates only, nothing generated. The cache
+  share is stated once, in the token section.
+- **Tool split** is shown beside the value, from the summary's per-tool call counts.
+- **What you pay today** is optional and shares Compare's current-stack set. Plan prices are
+  pro-rated to the recorded days (price × days × 12 ÷ 365 for a monthly price) with the
+  arithmetic shown, and set beside the list-price value as context. No saving is computed
+  between two different products.

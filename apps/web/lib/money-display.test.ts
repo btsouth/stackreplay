@@ -1,6 +1,14 @@
 import { Decimal } from "@stackreplay/replay-engine";
 import { describe, expect, it } from "vitest";
-import { apportionCents, formatCents, formatUsd, formatUsdWhole, toCents } from "./money-display";
+import {
+  addAmounts,
+  apportionCents,
+  formatCents,
+  formatUsd,
+  formatUsdWhole,
+  prorateCents,
+  toCents,
+} from "./money-display";
 
 describe("money display", () => {
   it("formats exact decimals without float artefacts", () => {
@@ -31,5 +39,21 @@ describe("money display", () => {
       const exact = new Decimal(many[index] ?? "0").times(100);
       expect(exact.minus(value.toString()).abs().lessThan(1)).toBe(true);
     });
+  });
+});
+
+describe("exact sums and pro-rating", () => {
+  it("adds decimal amounts exactly", () => {
+    expect(addAmounts(["7733.845", "0.155"])).toBe("7734");
+    expect(addAmounts(["269.19375", "390.1612", "1.5"])).toBe("660.85495");
+    expect(addAmounts([])).toBe("0");
+  });
+
+  it("pro-rates a monthly price to days, rounding once", () => {
+    // $200/month over 35 days: 200 × 35 × 12 / 365 = 230.1369… → $230.14.
+    expect(prorateCents("200", "month", 35)).toBe(23014n);
+    expect(prorateCents("39", "month", 365)).toBe(46800n);
+    expect(prorateCents("120", "year", 73)).toBe(2400n);
+    expect(prorateCents("20", "week", 7)).toBeUndefined();
   });
 });

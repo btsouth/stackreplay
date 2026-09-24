@@ -4,10 +4,12 @@
  * module keeps the app's import path.
  */
 export {
+  addAmounts,
   apportionCents,
   formatCents,
   formatUsd,
   formatUsdWhole,
   isPositiveAmount,
+  prorateCents,
   toCents,
 } from "@stackreplay/share";

@@ -8,6 +8,7 @@ import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
+import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
@@ -22,6 +23,7 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
+import { CurrentSpend, InsightList, ToolSplit, WorkloadValueFigure } from "./value";
 
 function browserTimeZone(): string {
   try {
@@ -141,19 +143,16 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
   );
   const timeZone = useUtc ? "UTC" : localZone;
 
-  const analyze = useCallback(
-    async (importId: string, zone: string, cancelled: () => boolean) => {
-      setError(undefined);
-      try {
-        const next = await client.analyzeWorkload(importId, zone);
-        if (!cancelled()) setProfile(next);
-      } catch (failure) {
-        if (failure instanceof SupersededError || cancelled()) return;
-        setError(describeWorkerFailure(failure));
-      }
-    },
-    [client],
-  );
+  const analyze = useCallback(async (importId: string, zone: string, cancelled: () => boolean) => {
+    setError(undefined);
+    try {
+      const next = await loadWorkloadProfile(importId, zone);
+      if (!cancelled()) setProfile(next);
+    } catch (failure) {
+      if (failure instanceof SupersededError || cancelled()) return;
+      setError(describeWorkerFailure(failure));
+    }
+  }, []);
 
   useEffect(() => {
     if (record === undefined) return;
@@ -307,7 +306,7 @@ function WorkloadOpening({
         : "portable workload file";
   const overview = profile?.overview;
   const figures: { label: string; value: string; title?: string; testId: string }[] = [
-    { label: "events", value: count(summary.eventCount), testId: "opening-events" },
+    { label: "calls", value: count(summary.eventCount), testId: "opening-events" },
     {
       label: "sessions",
       value: summary.sessionCount === 0 ? "n/a" : count(summary.sessionCount),
@@ -338,25 +337,62 @@ function WorkloadOpening({
         </div>
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-6 border-y border-border py-6 sm:grid-cols-4">
-        {figures.map((figure) => (
-          <div
-            key={figure.label}
-            className="flex min-w-0 flex-col gap-1"
-            data-testid={figure.testId}
+      <div className="grid min-w-0 gap-8 border-t border-border pt-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="flex min-w-0 flex-col gap-3">
+          <MicroLabel>What this work is worth</MicroLabel>
+          {profile?.value === undefined ? (
+            <p className="text-sm text-muted-foreground" role="status" data-testid="value-pending">
+              Pricing each maker&apos;s calls at its own published API rates, in this browser…
+            </p>
+          ) : (
+            <WorkloadValueFigure value={profile.value} />
+          )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-5">
+          <ToolSplit sources={summary.usageSources} />
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-4">
+            {figures.map((figure) => (
+              <div
+                key={figure.label}
+                className="flex min-w-0 flex-col gap-0.5"
+                data-testid={figure.testId}
+              >
+                <dd
+                  className="order-1 font-sans text-2xl font-semibold leading-none tracking-tight tabular-nums"
+                  title={figure.title}
+                >
+                  {figure.value}
+                </dd>
+                <dt className="order-2 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
+                  {figure.label}
+                </dt>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+      {profile === undefined || profile.insights.length === 0 ? null : (
+        <section aria-labelledby="insights-heading" className="flex min-w-0 flex-col gap-3">
+          <h2
+            id="insights-heading"
+            className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase"
           >
-            <dd
-              className="order-1 font-sans text-4xl font-semibold leading-none tracking-tight tabular-nums sm:text-5xl"
-              title={figure.title}
-            >
-              {figure.value}
-            </dd>
-            <dt className="order-2 font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase">
-              {figure.label}
-            </dt>
-          </div>
-        ))}
-      </dl>
+            What stands out
+          </h2>
+          <InsightList insights={profile.insights} limit={3} />
+          {profile.insights.length > 3 ? (
+            <details data-testid="more-insights">
+              <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
+                {count(profile.insights.length - 3)} more{" "}
+                {profile.insights.length - 3 === 1 ? "fact" : "facts"}
+              </summary>
+              <div className="mt-3">
+                <InsightList insights={profile.insights.slice(3)} testId="workload-insights-more" />
+              </div>
+            </details>
+          ) : null}
+        </section>
+      )}
       <div className="flex min-w-0 flex-col gap-1.5 text-sm">
         <p className="text-muted-foreground [overflow-wrap:anywhere]" data-testid="opening-meta">
           <span className="text-foreground">
@@ -381,12 +417,19 @@ function WorkloadOpening({
         {overview === undefined ? null : (
           <p className="text-xs text-muted-foreground" data-testid="opening-quality">
             {overview.unresolvedEvents === 0
-              ? `All ${count(overview.events)} events resolved to catalog models`
-              : `${count(overview.resolvedEvents)} events fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "event needs" : "events need"} identity review`}
+              ? `All ${count(overview.events)} calls resolved to catalog models`
+              : `${count(overview.resolvedEvents)} calls fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "call needs" : "calls need"} identity review`}
             {overview.unknownUsageEvents === 0
-              ? " · token totals known for every event"
-              : ` · ${count(overview.unknownUsageEvents)} events with unknown usage`}
+              ? " · token totals known for every call"
+              : ` · ${count(overview.unknownUsageEvents)} calls with unknown usage`}
           </p>
+        )}
+        {profile === undefined || overview === undefined ? null : (
+          <CurrentSpend
+            periodDays={overview.spanDays}
+            rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
+            value={profile.value}
+          />
         )}
       </div>
     </header>
@@ -438,34 +481,6 @@ function WorkloadBody({
 
   return (
     <div className="flex min-w-0 flex-col gap-14">
-      {profile.insights.length > 0 ? (
-        <section
-          aria-labelledby="insights-heading"
-          className="flex flex-col gap-4"
-          data-testid="workload-insights"
-        >
-          <h2
-            id="insights-heading"
-            className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase"
-          >
-            What stands out
-          </h2>
-          <ol className="grid gap-x-10 gap-y-4 lg:grid-cols-2">
-            {profile.insights.map((insight, index) => (
-              <li
-                key={insight.id}
-                className="grid grid-cols-[2rem_minmax(0,1fr)] gap-2 border-t border-border pt-3"
-              >
-                <span className="font-mono text-xs text-accent">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="text-base leading-snug text-foreground">{insight.text}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-
       <div
         className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur"
         data-testid="measure-bar"
@@ -512,6 +527,7 @@ function WorkloadBody({
         eyebrow="Recorded demand"
         title="Your history, day by day"
         lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} events` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
+        id="chronology"
         testId="section-chronology"
       >
         <DemandChronology
@@ -533,6 +549,7 @@ function WorkloadBody({
         eyebrow="When you work"
         title="Hours and weekdays"
         lede={`Read in ${profile.timeZone}, from each event's recorded timestamp.`}
+        id="rhythm"
         testId="section-rhythm"
       >
         <WorkRhythm measure={measure} profile={profile} />
@@ -543,6 +560,7 @@ function WorkloadBody({
         eyebrow="Historical pressure"
         title="Your heaviest windows"
         lede="Monthly totals hide bursts. Rolling windows open at the first event after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
+        id="pressure"
         testId="section-pressure"
         action={
           numericRoute === undefined ? undefined : (
@@ -564,6 +582,7 @@ function WorkloadBody({
         eyebrow="Projects"
         title="Where the work came from"
         lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
+        id="projects"
         testId="section-projects"
       >
         <ProjectLedger measure={measure} profile={profile} />
@@ -574,6 +593,7 @@ function WorkloadBody({
         eyebrow="Model mix"
         title="Which models did the work"
         lede="Grouped by canonical model, so different spellings of one model are counted once."
+        id="models"
         testId="section-models"
         action={
           switchRoute === undefined ? undefined : (
@@ -594,6 +614,7 @@ function WorkloadBody({
         index="06"
         eyebrow="Token composition"
         title="Where the tokens go"
+        id="tokens"
         testId="section-tokens"
         action={
           apiRoute === undefined ? undefined : (
@@ -658,6 +679,7 @@ function WorkloadBody({
         index="07"
         eyebrow="Session shape"
         title="How the sessions break down"
+        id="sessions"
         testId="section-sessions"
       >
         <SessionShape profile={profile} />
@@ -728,6 +750,7 @@ function WorkloadBody({
         index="08"
         eyebrow="Scan quality"
         title="Evidence behind these figures"
+        id="evidence"
         testId="section-evidence"
       >
         <ScanEvidence profile={profile} record={record} />

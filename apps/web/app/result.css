@@ -134,3 +134,8 @@
   white-space: normal;
   text-align: left;
 }
+
+/* A figure that leads a left-aligned block (the workload's value). */
+.sr-figure.sr-figure--start {
+  text-align: left;
+}

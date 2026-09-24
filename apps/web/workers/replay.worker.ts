@@ -763,10 +763,10 @@ async function handleAnalyze(
     post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
     return;
   }
-  const profile = buildWorkloadProfile(
-    loaded.exported.events,
-    profileOptions(loaded.record, request.timeZone),
-  );
+  const profile = buildWorkloadProfile(loaded.exported.events, {
+    ...profileOptions(loaded.record, request.timeZone),
+    ...(request.rulesAsOf === undefined ? {} : { rulesAsOf: request.rulesAsOf }),
+  });
   post({ type: "PROFILE_OK", requestId: request.requestId, profile });
 }
 

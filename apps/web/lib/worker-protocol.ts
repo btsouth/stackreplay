@@ -288,6 +288,8 @@ export type WorkerRequest =
       importId: string;
       /** IANA timezone the clock positions are read in. */
       timeZone: string;
+      /** When given, the profile carries the workload's published-rate value at this date. */
+      rulesAsOf?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;

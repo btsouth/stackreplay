@@ -89,7 +89,10 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 async function openWorkload(page: Page): Promise<void> {
   await page.getByTestId("open-workload").click();
   await expect(page.getByRole("heading", { name: "How you actually use AI" })).toBeVisible();
-  await expect(page.getByTestId("workload-insights")).toBeVisible({ timeout: 30_000 });
+  // The value block appears once the analysis is in: a figure, or why there is none.
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 test("the workload page stands on its own after a scan, with local project names", async ({
@@ -370,7 +373,9 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("not-saved-notice")).toHaveCount(0);
   await openWorkload(page);
   await page.reload();
-  await expect(page.getByTestId("workload-insights")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
 });
 

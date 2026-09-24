@@ -18,6 +18,7 @@ import {
   PartialScanNotice,
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
+import { ReadyPreview } from "@/components/workload/value";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
@@ -990,6 +991,7 @@ function ReadyDetails({
 }) {
   return (
     <div className="mt-5 flex min-w-0 flex-col gap-5">
+      <ReadyPreview importId={record.id} sources={record.summary.usageSources} />
       <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
         {record.label} ·{" "}
         {record.savedLocally === false

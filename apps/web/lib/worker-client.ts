@@ -475,7 +475,11 @@ export class ReplayWorkerClient {
   }
 
   /** The workload profile, computed locally in the Worker from the stored events. */
-  async analyzeWorkload(importId: string, timeZone: string): Promise<WorkloadProfile> {
+  async analyzeWorkload(
+    importId: string,
+    timeZone: string,
+    rulesAsOf?: string,
+  ): Promise<WorkloadProfile> {
     const response = await this.send(
       (requestId) => ({
         protocol: WORKER_PROTOCOL_VERSION,
@@ -483,6 +487,7 @@ export class ReplayWorkerClient {
         requestId,
         importId,
         timeZone,
+        ...(rulesAsOf === undefined ? {} : { rulesAsOf }),
       }),
       undefined,
       "analyze",

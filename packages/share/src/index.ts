@@ -1,10 +1,12 @@
 export { type CanonicalValue, canonicalStringify } from "./canonical.js";
 export {
+  addAmounts,
   apportionCents,
   formatCents,
   formatUsd,
   formatUsdWhole,
   isPositiveAmount,
+  prorateCents,
   toCents,
 } from "./money.js";
 export {

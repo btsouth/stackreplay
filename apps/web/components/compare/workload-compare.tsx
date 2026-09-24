@@ -7,6 +7,7 @@ import { Button, buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { count, instantWithZone, money, percent } from "@/components/workload/format";
+import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import { isPositiveAmount } from "@/lib/money-display";
 import {
   type CompareColumn,
@@ -38,38 +39,7 @@ import { isSyntheticWorkload } from "@/lib/workload-kind";
  * shown as not established.
  */
 
-const CURRENT_STACK_KEY = "stackreplay.current-stack";
 const MAX_TARGETS = 4;
-
-function isTargetKey(value: unknown): value is TargetKey {
-  return typeof value === "string" && (value.startsWith("plan:") || value.startsWith("api:"));
-}
-
-/**
- * The stack a person uses today: several subscriptions at once is normal for a
- * heavy mixed user. Kept in this browser only. An older single value is read
- * as a stack of one.
- */
-function readCurrent(): TargetKey[] {
-  try {
-    const value = window.localStorage.getItem(CURRENT_STACK_KEY);
-    if (value === null) return [];
-    if (isTargetKey(value)) return [value];
-    const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter(isTargetKey).slice(0, MAX_TARGETS) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeCurrent(value: readonly TargetKey[]): void {
-  try {
-    if (value.length === 0) window.localStorage.removeItem(CURRENT_STACK_KEY);
-    else window.localStorage.setItem(CURRENT_STACK_KEY, JSON.stringify(value));
-  } catch {
-    // A convenience only: the comparison works without it.
-  }
-}
 
 interface Row extends CompareColumn {
   id: string;
@@ -203,7 +173,7 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
   const [rulesAsOf] = useState(() => defaultRulesDate());
 
   useEffect(() => {
-    setCurrent(readCurrent());
+    setCurrent(readCurrentStack());
     let cancelled = false;
     void client
       .listImports()
@@ -251,7 +221,9 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
   // A starting set chosen from this workload, never a recommendation.
   useEffect(() => {
     if (chosen !== undefined || slices === undefined) return;
-    setChosen(defaultColumns(readCurrent(), slices, rulesAsOf, { synthetic, max: MAX_TARGETS }));
+    setChosen(
+      defaultColumns(readCurrentStack(), slices, rulesAsOf, { synthetic, max: MAX_TARGETS }),
+    );
   }, [chosen, rulesAsOf, slices, synthetic]);
 
   const labelOf = useCallback(
@@ -341,7 +313,7 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
       ? current.filter((entry) => entry !== key)
       : [...current, key].slice(0, MAX_TARGETS);
     setCurrent(next);
-    writeCurrent(next);
+    writeCurrentStack(next);
     setRows([]);
     if (bySlice === undefined) return;
     // The stack leads the columns, each on the work it carries; the rest keep

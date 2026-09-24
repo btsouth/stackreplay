@@ -121,3 +121,39 @@ export function isPositiveAmount(amount: string | undefined): boolean {
     return false;
   }
 }
+
+/** An exact decimal string from an integer count of 10^-scale units, without trailing zeros. */
+function toDecimal(units: bigint, scale: number): string {
+  const negative = units < 0n;
+  const digits = (negative ? -units : units).toString().padStart(scale + 1, "0");
+  const whole = digits.slice(0, digits.length - scale);
+  const fraction = scale === 0 ? "" : digits.slice(digits.length - scale).replace(/0+$/u, "");
+  return `${negative ? "-" : ""}${whole}${fraction === "" ? "" : `.${fraction}`}`;
+}
+
+/** The exact sum of decimal amounts, as a decimal string. Never through a float. */
+export function addAmounts(amounts: readonly string[]): string {
+  if (amounts.length === 0) return "0";
+  const parsed = amounts.map(parseDecimal);
+  const scale = Math.max(...parsed.map((value) => value.scale));
+  return toDecimal(
+    parsed.reduce((sum, value) => sum + rescale(value, scale), 0n),
+    scale,
+  );
+}
+
+/**
+ * A plan price pro-rated to a number of days, in whole cents, rounded once:
+ * price × days × 12 / 365 for a monthly price, price × days / 365 for a yearly
+ * one. Nothing is extrapolated beyond the days given.
+ */
+export function prorateCents(amount: string, interval: string, days: number): bigint | undefined {
+  if (!Number.isInteger(days) || days < 0) return undefined;
+  const perYear = interval === "month" ? 12n : interval === "year" ? 1n : undefined;
+  if (perYear === undefined) return undefined;
+  try {
+    return divideHalfUp(toCents(amount) * BigInt(days) * perYear, 365n);
+  } catch {
+    return undefined;
+  }
+}

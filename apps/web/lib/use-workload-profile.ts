@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { defaultRulesDate } from "./rules-date";
 import { browserTimeZone } from "./time-zone";
 import { getWorkerClient } from "./worker-client";
 import type { WorkloadProfile } from "./workload-profile";
@@ -17,11 +18,15 @@ import type { WorkloadProfile } from "./workload-profile";
 const profiles = new Map<string, Promise<WorkloadProfile>>();
 const KEEP = 4;
 
-export function loadWorkloadProfile(importId: string, timeZone: string): Promise<WorkloadProfile> {
-  const key = `${importId}\u0000${timeZone}`;
+export function loadWorkloadProfile(
+  importId: string,
+  timeZone: string,
+  rulesAsOf: string = defaultRulesDate(),
+): Promise<WorkloadProfile> {
+  const key = `${importId}\u0000${timeZone}\u0000${rulesAsOf}`;
   const known = profiles.get(key);
   if (known !== undefined) return known;
-  const pending = getWorkerClient().analyzeWorkload(importId, timeZone);
+  const pending = getWorkerClient().analyzeWorkload(importId, timeZone, rulesAsOf);
   profiles.set(key, pending);
   pending.catch(() => profiles.delete(key));
   while (profiles.size > KEEP) {
