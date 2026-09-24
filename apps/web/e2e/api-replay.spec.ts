@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, openReplayDetails, setRulesAsOf } from "./helpers";
+import { decodeAnyShareToken } from "@stackreplay/share";
+import { createShareToken, importDemo, openReplayDetails, setRulesAsOf } from "./helpers";
 
 /**
  * Direct API target (M4C): the same workload priced at a provider's published
@@ -92,15 +93,18 @@ test("keeps subscription billing platforms out of Direct API targets", async ({ 
   await expect(page.getByTestId("provider-cursor")).toHaveCount(0);
 });
 
-test("refuses to share a Direct API result", async ({ page }) => {
+test("shares a Direct API result, and the link keeps its caveat", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
   await runApiReplay(page, "example-cloud");
 
-  const refused = page.getByTestId("share-refused");
-  await expect(refused).toBeVisible();
-  await expect(refused).toContainText("Direct API");
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  await expect(page.getByTestId("share-refused")).toHaveCount(0);
+  const token = await createShareToken(page);
+  const decoded = await decodeAnyShareToken(token);
+  expect(decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind).toBe("replay");
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-card-v2")).toBeVisible();
+  await expect(page.getByTestId("share-figure-caption")).toContainText("not what you paid");
 });
 
 /** Runs a Direct API replay against a provider and waits for the result. */

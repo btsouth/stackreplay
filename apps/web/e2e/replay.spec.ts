@@ -559,8 +559,11 @@ test("the share panel discloses what a link reveals before one is created", asyn
   await expect(panel).not.toContainText(/tamper-proof|authenticat|signed|verif/u);
 
   await panel.getByTestId("share-create").click();
-  const url = page.getByTestId("share-url");
-  await expect(url).toBeVisible();
-  expect(await url.textContent()).toContain("/s/");
   await expect(page.getByTestId("share-open")).toBeVisible();
+  // The long raw URL waits behind "Show link".
+  const url = page.getByTestId("share-url");
+  await expect(url).toBeHidden();
+  await page.getByTestId("share-show-link").locator(":scope > summary").click();
+  await expect(url).toBeVisible();
+  expect(await url.textContent()).toContain("/s/2.");
 });

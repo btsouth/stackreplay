@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, runReplay } from "./helpers";
+import { createShareToken, importDemo, runReplay } from "./helpers";
 
 /**
  * Deterministic screenshots for human review (M3 brief).
@@ -146,10 +146,9 @@ test.describe("M4 screenshots", () => {
       await importDemo(page, "moderate");
       await page.goto("/app/replay");
       await runReplay(page, "example-cloud-pro");
-      await page.getByTestId("share-create").click();
-      const url = (await page.getByTestId("share-url").textContent()) ?? "";
-      await page.goto(`/s/${url.split("/s/")[1]?.trim() ?? ""}`);
-      await expect(page.getByTestId("share-card")).toBeVisible();
+      const token = await createShareToken(page);
+      await page.goto(`/s/${token}`);
+      await expect(page.getByTestId("share-card-v2")).toBeVisible();
       await shoot(page, `share-desktop-${theme}`);
     });
   }

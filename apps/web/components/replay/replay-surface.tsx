@@ -41,11 +41,12 @@ import {
   translationPolicy,
   workloadModels,
 } from "@/components/replay/translation";
-import { SharePanel } from "@/components/share/share-panel";
+import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { formatUsd } from "@/lib/money-display";
 import { type TargetCoverage, targetCoverages, workloadSlice } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
+import { replayShareV2, type ShareOptions } from "@/lib/share-v2";
 import { browserTimeZone } from "@/lib/time-zone";
 import { useWorkloadProfile } from "@/lib/use-workload-profile";
 import { verdictOfOutcome } from "@/lib/verdict-facts";
@@ -1253,11 +1254,6 @@ function ReplayResult({
     apiTarget && projection.provenance.apiProvider !== undefined
       ? bundledProviderFacts(projection.provenance.apiProvider)
       : undefined;
-  // Attribution comes from the stored workload, never from the current
-  // selection: the panel describes the replay that ran (benchmark finding F026).
-  const attribution = workload?.summary.usageSources
-    .filter((source) => source.role === "usage" && source.events > 0)
-    .map((source) => ({ name: source.name, eventCount: source.events }));
   const targetName = providerFacts?.name ?? shareTarget?.planName ?? projection.target.label;
   // Models the plan leaves out of its included usage but runs with paid usage
   // credits: still unavailable to the replayed allowance, but not unusable.
@@ -1275,6 +1271,27 @@ function ReplayResult({
     timeZone: browserTimeZone(),
     catalog: loadBundledCatalog(),
   });
+  const provenanceFacts = shareTarget ?? providerFacts;
+  const shareBuild = useCallback(
+    (options: ShareOptions) =>
+      composed === undefined || provenanceFacts === undefined
+        ? undefined
+        : replayShareV2(
+            {
+              facts: composed.facts,
+              projection,
+              sourceIds: outcome.scope?.source?.ids,
+              target: {
+                verificationStatus: provenanceFacts.verificationStatus,
+                lastVerifiedAt: provenanceFacts.lastVerifiedAt,
+                sources: provenanceFacts.sources,
+              },
+              catalog: loadBundledCatalog(),
+            },
+            options,
+          ),
+    [composed, outcome.scope, projection, provenanceFacts],
+  );
   const computedLine =
     computedFor === undefined ? null : (
       <p
@@ -1593,17 +1610,17 @@ function ReplayResult({
 
       {/* The panel is always present: a result that cannot become a link says
           why (a Direct API target has no plan facts a V1 link could carry). */}
-      <SharePanel
-        scopeRefusal={
-          outcome.scope?.source !== undefined
-            ? `this replay covers only your ${outcome.scope.source.label} work, and a link cannot state that scope.`
-            : outcome.scope !== undefined && outcome.scope.excludedUnresolvedEvents > 0
-              ? "this replay left out events with unresolved model identities, and a link cannot state that scope."
-              : undefined
+      {/* Every kind of replay can become a link (share V2): it carries the
+          verdict's facts, so the public page states the same thing, scope and
+          substitution included. */}
+      <SharePanelV2
+        build={shareBuild}
+        kind="replay"
+        refusal={
+          composed === undefined
+            ? "this result carries no replay semantics a link could state."
+            : undefined
         }
-        result={result}
-        {...(shareTarget === undefined ? {} : { target: shareTarget })}
-        {...(attribution === undefined ? {} : { attribution })}
       />
     </div>
   );

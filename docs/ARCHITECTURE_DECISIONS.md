@@ -1129,3 +1129,32 @@ only money route priced everything at one provider and refused.
   pro-rated to the recorded days (price × days × 12 ÷ 365 for a monthly price) with the
   arithmetic shown, and set beside the list-price value as context. No saving is computed
   between two different products.
+
+## 61. Share links carry what a result says, for every kind of result (share V2)
+
+V1 links carried one exact subscription replay as engine state, so Direct API, translated and
+scoped replays could not be shared, the public page read like engine output, and every link had
+the same generic image.
+
+- **V2 snapshot.** `shareSnapshotV2Schema` (`packages/share/src/v2.ts`) is a union of a replay,
+  which carries its `VerdictFactsV1` plus target provenance and versions, and a workload card,
+  which carries counts, the tool split, the published-rate value and up to three comparative
+  facts. Tokens are `2.<checksum>.<payload>` through the same bounded, checksummed, forbidden-field
+  checked path as V1. `decodeAnyShareToken` reads both versions; V1 links render as before.
+- **One set of words.** The verdict composer and `composeWorkloadFact` (moved to the share
+  package) write the sentences for the application, the public page and the image, so a result
+  cannot read one way in the app and another in public. `presentShare` is the one presentation
+  the public page, the panel preview and the image render.
+- **Privacy at the builder.** `replayShareV2` and `workloadShareV2` (`apps/web/lib/share-v2.ts`)
+  are whitelists. Maker and model names are kept only when the catalog knows them; tools are an
+  enum of known recording tools, so a label from a hand-edited file becomes "Other tools"; a tool
+  slice's label is rebuilt from that enum. The date range, the session count and peak times are
+  published only when the sharer ticks them. `share-v2.test.ts` decodes real links and checks
+  that project labels, hashes, sessions and times are absent.
+- **Per-link image.** `/s/<token>/image` decodes the token and draws the presentation with
+  `ImageResponse` (satori), using subsets of Geist embedded in the code so it renders in a Worker.
+  A token is content-addressed, so the image is cached as immutable. The page's Open Graph and
+  Twitter metadata point at it.
+- **Panel.** The preview comes first. Actions: create the link, copy it, download the PNG (drawn
+  by the image route from the link's own aggregate data), copy a suggested post that quotes the
+  result rather than rewriting it. The long URL waits behind "Show link".

@@ -1,11 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { decodeAnyShareToken } from "@stackreplay/share";
 import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
 import {
   captureRequests,
+  createShareToken,
   gotoImport,
   importDemo,
   openReplayDetails,
@@ -194,7 +196,14 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
   await expect(page.getByTestId("reading-assumption")).toBeVisible();
   await expect(page.getByTestId("replay-mode")).toContainText(/translated/i);
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  // A translated replay can be shared, and the link says it is one.
+  const token = await createShareToken(page);
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-mode")).toHaveText("Translated replay");
+  await expect(page.getByTestId("share-support")).toContainText("Substitution you chose");
+  await expect(page.getByTestId("share-support")).toContainText(
+    "nothing here says they would do the same work",
+  );
 });
 
 test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
@@ -250,7 +259,11 @@ test("same models on the Direct API: an explicit scope prices what is establishe
   });
   await expect(page.getByTestId("reading-cost")).toContainText("Not what you paid");
   await expect(page.getByTestId("reading-scope")).toContainText("left out of this replay");
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  // The scope travels with the link.
+  const token = await createShareToken(page);
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-headline")).toContainText("calls with recognized models");
+  await expect(page.getByTestId("share-support")).toContainText("left out and not priced");
 });
 
 test("a numeric limit crossing states when the allowance ran out and opens its window", async ({
@@ -433,4 +446,30 @@ test.describe("rules date default", () => {
     await page.getByTestId("continue-to-replay").click();
     await expect(page.getByTestId("rules-as-of")).toHaveValue("2026-09-23");
   });
+});
+
+test("a workload share link carries aggregates only and reads as StackReplay in public", async ({
+  page,
+}) => {
+  await scanFixtures(page);
+  await openWorkload(page);
+  await page.getByTestId("share-workload-link").click();
+  const panel = page.getByTestId("share-panel");
+  await expect(panel.getByTestId("share-preview")).toBeVisible();
+  const token = await createShareToken(page);
+  const decoded = await decodeAnyShareToken(token);
+  expect(decoded.ok).toBe(true);
+  const json = decoded.ok ? JSON.stringify(decoded.snapshot) : "";
+  // Local project names, other projects, sessions and times never leave.
+  expect(json).not.toContain(PROJECT_MARKER);
+  expect(json).not.toContain("orbit-service");
+  expect(json).not.toMatch(/nativeSessionHash|projectHash|rawName|"at"|"zone"|"period"/u);
+
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-card-v2")).toHaveAttribute("data-kind", "workload");
+  await expect(page.getByTestId("share-figure-caption")).toHaveText(
+    "at published API list prices · not what you paid",
+  );
+  await expect(page.getByTestId("share-privacy")).toContainText("no times of day");
+  await expect(page.locator("main")).not.toContainText(PROJECT_MARKER);
 });

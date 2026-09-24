@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
+import { type ShareOptions, workloadShareV2 } from "@/lib/share-v2";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
@@ -347,6 +349,15 @@ function WorkloadOpening({
           ) : (
             <WorkloadValueFigure value={profile.value} />
           )}
+          {profile === undefined ? null : (
+            <a
+              className={`${ACTION_LINK} self-start`}
+              data-testid="share-workload-link"
+              href="#share"
+            >
+              Share this workload →
+            </a>
+          )}
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           <ToolSplit sources={summary.usageSources} />
@@ -463,6 +474,10 @@ function WorkloadBody({
       synthetic: isSyntheticWorkload(record),
     });
   }, [profile.sources, record]);
+  const shareBuild = useCallback(
+    (options: ShareOptions) => workloadShareV2(record, profile, options),
+    [profile, record],
+  );
   const apiRoute = routes.find((route) => route.id === "api-value");
   const numericRoute = routes.find((route) => route.id === "numeric-limits");
   const switchRoute = routes.find((route) => route.id === "switch-provider");
@@ -745,6 +760,10 @@ function WorkloadBody({
           </Link>
         </div>
       </section>
+
+      <div className="scroll-mt-20" id="share">
+        <SharePanelV2 build={shareBuild} kind="workload" />
+      </div>
 
       <WorkloadSection
         index="08"

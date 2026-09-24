@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-engine";
-import { decodeShareToken, encodeShareToken } from "@stackreplay/share";
-import { captureRequests, importDemo, runReplay } from "./helpers";
+import { decodeAnyShareToken, encodeShareToken } from "@stackreplay/share";
+import { captureRequests, createShareToken, importDemo, runReplay } from "./helpers";
 
 /**
  * Public site and sharing (M4).
@@ -493,20 +493,20 @@ test.describe("share links", () => {
     await runReplay(page, "example-cloud-pro");
 
     await expect(page.getByTestId("share-panel")).toBeVisible();
-    await page.getByTestId("share-create").click();
-    const url = await page.getByTestId("share-url").textContent();
-    expect(url).toContain("/s/1.");
+    // The preview comes before any link exists.
+    await expect(page.getByTestId("share-preview")).toBeVisible();
+    const token = await createShareToken(page);
+    expect(token.startsWith("2.")).toBe(true);
 
-    // The token decodes to a valid snapshot with no forbidden field.
-    const token = (url ?? "").split("/s/")[1]?.trim() ?? "";
-    const decoded = await decodeShareToken(token);
+    // The token decodes to a valid V2 snapshot with no forbidden field.
+    const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
-    if (decoded.ok) {
-      expect(decoded.snapshot.workload.eventCount).toBeGreaterThan(0);
+    if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "replay") {
+      expect(decoded.snapshot.verdict.calls.total).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
-        /sessionhash|projecthash|eventhash|repository|filepath|prompt/u,
+        /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );
-    }
+    } else throw new Error("expected a V2 replay snapshot");
 
     const uploads = requests.filter(
       (request) =>
@@ -515,9 +515,9 @@ test.describe("share links", () => {
     expect(uploads, "creating a share link must not send a request").toEqual([]);
 
     await page.getByTestId("share-open").click();
-    await expect(page.getByTestId("share-card")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("events replayed");
-    await expect(page.getByTestId("share-card-plan")).toBeVisible();
+    await expect(page.getByTestId("share-card-v2")).toBeVisible();
+    // The page leads with the same verdict the app led with.
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Example");
 
     // Regression (benchmark F011): the public read model filters the synthetic
     // `example-` namespace, but a share link carries its target inside the token.
@@ -528,8 +528,8 @@ test.describe("share links", () => {
     // Regression (benchmark F004): the plan terms in a link are the sharer's
     // claim, so the page says so instead of borrowing the catalog's "verified"
     // badge language.
-    await expect(page.getByTestId("share-target-claim")).toContainText(
-      /not checked them against its own catalog/u,
+    await expect(page.getByTestId("share-provenance")).toContainText(
+      /this site has not re-checked the link's claim/u,
     );
   });
 });

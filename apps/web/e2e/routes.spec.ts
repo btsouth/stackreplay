@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { gotoImport } from "./helpers";
+import { createShareToken, gotoImport } from "./helpers";
 
 /**
  * Phase 3: every suggested route answers for the work it is scoped to, tool
@@ -48,8 +48,11 @@ test("suggested routes go to targets that answer, with the tool slice stated", a
     /Scope: your Claude Code work, [\d,]+ of 5,000 calls/u,
   );
   await expect(page.getByTestId("result-computed-for")).toContainText("your Claude Code work");
-  // A V1 link cannot state a tool slice, so the share panel says so.
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  // The tool slice travels with the link, by its known name.
+  const token = await createShareToken(page);
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-headline")).toContainText("Claude Code");
+  await expect(page.getByTestId("share-support")).toContainText("Scope: your Claude Code work");
 });
 
 test("the numeric route shows where the plan would run out, on the whole workload", async ({

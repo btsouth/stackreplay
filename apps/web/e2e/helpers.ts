@@ -140,3 +140,12 @@ export async function expectNoConsoleErrors(page: Page, run: () => Promise<void>
   await run();
   expect(errors).toEqual([]);
 }
+
+/** Creates a share link from the visible share panel and returns its token. */
+export async function createShareToken(page: Page): Promise<string> {
+  const panel = page.getByTestId("share-panel");
+  await panel.getByTestId("share-create").click();
+  await expect(panel.getByTestId("share-open")).toBeVisible();
+  const url = (await panel.getByTestId("share-url").textContent()) ?? "";
+  return url.split("/s/")[1]?.trim() ?? "";
+}

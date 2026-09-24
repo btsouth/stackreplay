@@ -12,7 +12,12 @@ import {
   type WindowSlice,
 } from "@stackreplay/replay-engine";
 import type { UsageEventV1 } from "@stackreplay/schema";
-import { formatUsdWhole, verdictDay } from "@stackreplay/share";
+import {
+  composeWorkloadFact,
+  formatUsdWhole,
+  verdictDay,
+  type WorkloadFactV1,
+} from "@stackreplay/share";
 import { type WorkloadValue, workloadValue } from "./workload-value";
 
 /**
@@ -166,17 +171,12 @@ export interface RhythmFacts {
  * ranked by fixed rules; nothing is generated.
  */
 export interface Insight {
-  id:
-    | "peak-day"
-    | "peak-hour"
-    | "peak-5h"
-    | "largest-session"
-    | "cache-value"
-    | "projects"
-    | "late-night";
+  id: WorkloadFactV1["id"];
+  /** The structured fact a share link can carry; the words come from it. */
+  fact: WorkloadFactV1;
   /** Facts in one family say similar things; the top three come from different families. */
   family: "burst" | "session" | "cache" | "projects" | "time";
-  /** The finding, with its figure. */
+  /** The finding, with its figure (`composeWorkloadFact`). */
   text: string;
   /** What it is compared with ("4.8× your median active day"). */
   comparison: string;
@@ -633,8 +633,6 @@ function mondayOf(date: string): string {
   return plain.subtract({ days: plain.dayOfWeek - 1 }).toString();
 }
 
-const PERCENT = (value: number): string => `${(value * 100).toFixed(1)}%`;
-
 export function formatHour(hour: number): string {
   if (hour === 0) return "midnight";
   if (hour === 12) return "noon";
@@ -656,17 +654,6 @@ function shortDate(ms: number, timeZone: string): string {
  * figure computed above. They are chosen by fixed rules in a fixed order, not
  * written or ranked by anything that interprets the work.
  */
-const COUNT = (value: number): string => Math.round(value).toLocaleString("en-US");
-const RATIO = (value: number): string => `${value.toFixed(value < 10 ? 1 : 0)}×`;
-
-/** "18.1M" tokens: compact, for a sentence. */
-function compactTokens(value: number): string {
-  if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
-  if (value >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-  return COUNT(value);
-}
-
 /** Order among facts of equal strength. */
 const TIE_ORDER: readonly Insight["id"][] = [
   "peak-day",
@@ -688,41 +675,56 @@ const TIE_ORDER: readonly Insight["id"][] = [
 function insightsFor(profile: Omit<WorkloadProfile, "insights">): Insight[] {
   const facts: Insight[] = [];
   const { overview, timeZone, days, sessions, value } = profile;
+  const add = (fact: WorkloadFactV1, family: Insight["family"], evidence: Insight["evidence"]) =>
+    facts.push({
+      id: fact.id,
+      fact,
+      family,
+      ...composeWorkloadFact(fact),
+      evidence,
+      strength: fact.ratio,
+    });
 
   const peakDay = days.peakByEvents;
   if (peakDay !== undefined && days.activeDays >= 3 && days.medianEvents > 0) {
     const ratio = peakDay.events / days.medianEvents;
     if (ratio >= 1.5)
-      facts.push({
-        id: "peak-day",
-        family: "burst",
-        text: `Your busiest day, ${verdictDay(peakDay.date)}, carried ${COUNT(peakDay.events)} calls, ${PERCENT(peakDay.events / overview.events)} of the whole ${COUNT(overview.spanDays)}-day record.`,
-        comparison: `${RATIO(ratio)} your median active day (${COUNT(days.medianEvents)} calls)`,
-        evidence: { section: "chronology", label: "See the day" },
-        strength: ratio,
-      });
+      add(
+        {
+          id: "peak-day",
+          figure: peakDay.events,
+          baseline: days.medianEvents,
+          ratio,
+          share: peakDay.events / overview.events,
+          count: overview.spanDays,
+          at: verdictDay(peakDay.date),
+        },
+        "burst",
+        { section: "chronology", label: "See the day" },
+      );
   }
 
-  for (const [id, row, noun] of [
-    ["peak-hour", profile.pressure.events.find((entry) => entry.id === "1h"), "hour"],
-    ["peak-5h", profile.pressure.events.find((entry) => entry.id === "5h"), "five-hour window"],
+  for (const [id, row] of [
+    ["peak-hour", profile.pressure.events.find((entry) => entry.id === "1h")],
+    ["peak-5h", profile.pressure.events.find((entry) => entry.id === "5h")],
   ] as const) {
     const peak = row?.peak;
     if (row === undefined || peak === undefined || row.windowCount < 5 || row.median <= 0) continue;
     const ratio = peak.events / row.median;
     if (ratio < 1.5) continue;
     // Every figure in the sentence belongs to that one window (decision 57).
-    facts.push({
-      id,
-      family: "burst",
-      text:
-        id === "peak-hour"
-          ? `Your heaviest hour, starting ${shortDate(peak.startMs, timeZone)}, held ${COUNT(peak.events)} calls.`
-          : `Your busiest five-hour window, starting ${shortDate(peak.startMs, timeZone)}, held ${COUNT(peak.events)} calls, ${PERCENT(peak.share)} of all recorded calls.`,
-      comparison: `${RATIO(ratio)} your median active ${noun} (${COUNT(row.median)} calls)`,
-      evidence: { section: "pressure", label: "See the window" },
-      strength: ratio,
-    });
+    add(
+      {
+        id,
+        figure: peak.events,
+        baseline: row.median,
+        ratio,
+        share: peak.share,
+        at: shortDate(peak.startMs, timeZone),
+      },
+      "burst",
+      { section: "pressure", label: "See the window" },
+    );
   }
 
   const largest = sessions.top[0];
@@ -734,31 +736,35 @@ function insightsFor(profile: Omit<WorkloadProfile, "insights">): Insight[] {
   ) {
     const ratio = largest.tokens / sessions.medianTokens;
     if (ratio >= 2)
-      facts.push({
-        id: "largest-session",
-        family: "session",
-        text: `Your largest session processed ${compactTokens(largest.tokens)} tokens, ${PERCENT(largest.tokens / overview.knownTokens)} of everything processed.`,
-        comparison: `${RATIO(ratio)} your median session`,
-        evidence: { section: "sessions", label: "See the sessions" },
-        strength: ratio,
-      });
+      add(
+        {
+          id: "largest-session",
+          figure: largest.tokens,
+          baseline: sessions.medianTokens,
+          ratio,
+          share: largest.tokens / overview.knownTokens,
+        },
+        "session",
+        { section: "sessions", label: "See the sessions" },
+      );
   }
 
   if (value?.total !== undefined && value.cacheReadsAtInputRate !== undefined) {
     const total = Number(value.total);
-    const without = Number(value.cacheReadsAtInputRate);
-    const ratio = total > 0 ? without / total : 0;
-    const shownTotal = formatUsdWhole(value.total);
-    const shownWithout = formatUsdWhole(value.cacheReadsAtInputRate);
-    if (ratio >= 1.2 && shownTotal !== undefined && shownWithout !== undefined)
-      facts.push({
-        id: "cache-value",
-        family: "cache",
-        text: `Cache reads keep ${value.pricedCalls === value.recordedCalls ? "this work" : `the ${COUNT(value.pricedCalls)} priced calls`} at ${shownTotal} at published API list prices; billed as fresh input, the same tokens would be worth ${shownWithout}.`,
-        comparison: `${RATIO(ratio)} the list-price value without caching`,
-        evidence: { section: "tokens", label: "See where the tokens go" },
-        strength: ratio,
-      });
+    const ratio = total > 0 ? Number(value.cacheReadsAtInputRate) / total : 0;
+    if (ratio >= 1.2 && formatUsdWhole(value.total) !== undefined)
+      add(
+        {
+          id: "cache-value",
+          figure: value.pricedCalls,
+          baseline: total,
+          ratio,
+          count: value.recordedCalls,
+          amounts: { value: value.total, without: value.cacheReadsAtInputRate },
+        },
+        "cache",
+        { section: "tokens", label: "See where the tokens go" },
+      );
   }
 
   const named = profile.projects.filter((project) => project.labelKind !== "none");
@@ -769,27 +775,38 @@ function insightsFor(profile: Omit<WorkloadProfile, "insights">): Insight[] {
     const share = topThree / overview.knownTokens;
     const ratio = share / (3 / named.length);
     if (ratio >= 1.5)
-      facts.push({
-        id: "projects",
-        family: "projects",
-        text: `Three projects generated ${PERCENT(share)} of your processed tokens.`,
-        comparison: `${RATIO(ratio)} their even share across ${COUNT(named.length)} projects`,
-        evidence: { section: "projects", label: "See the projects" },
-        strength: ratio,
-      });
+      add(
+        {
+          id: "projects",
+          figure: topThree,
+          baseline: overview.knownTokens * (3 / named.length),
+          ratio,
+          share,
+          count: named.length,
+        },
+        "projects",
+        { section: "projects", label: "See the projects" },
+      );
   }
 
   const late = profile.lateNight;
-  if (overview.events > 0 && late.events / overview.events >= 0.1 && days.activeDays >= 3)
-    facts.push({
-      id: "late-night",
-      family: "time",
-      text: `${PERCENT(late.events / overview.events)} of your calls came between 10 PM and 4 AM (${timeZone}).`,
-      comparison: `on ${COUNT(late.days)} of ${COUNT(days.activeDays)} active days`,
-      evidence: { section: "rhythm", label: "See the hours" },
-      // Six hours are a quarter of the day: a share above that is the signal.
-      strength: late.events / overview.events / 0.25,
-    });
+  if (overview.events > 0 && late.events / overview.events >= 0.1 && days.activeDays >= 3) {
+    const share = late.events / overview.events;
+    // Six hours are a quarter of the day: a share above that is the signal.
+    add(
+      {
+        id: "late-night",
+        figure: late.days,
+        baseline: 0.25,
+        ratio: share / 0.25,
+        share,
+        count: days.activeDays,
+        zone: timeZone,
+      },
+      "time",
+      { section: "rhythm", label: "See the hours" },
+    );
+  }
 
   const ranked = [...facts].sort(
     (a, b) => b.strength - a.strength || TIE_ORDER.indexOf(a.id) - TIE_ORDER.indexOf(b.id),
