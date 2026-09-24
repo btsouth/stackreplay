@@ -1143,6 +1143,9 @@ export function ImportSummaryGrid({
           Reused context read from cache: {formatTokens(summary.tokens.buckets.cacheReadTokens)}
         </p>
         <p>Output: {formatTokens(summary.tokens.buckets.outputTokens)}</p>
+        {summary.tokens.buckets.reasoningTokens > 0 ? (
+          <p>Reasoning: {formatTokens(summary.tokens.buckets.reasoningTokens)}</p>
+        ) : null}
         <p className="tabular-nums">Exact known tokens: {exactTokens}</p>
       </div>
 

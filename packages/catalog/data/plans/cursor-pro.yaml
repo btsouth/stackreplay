@@ -1,6 +1,6 @@
 id: cursor-pro
 role: plan
-name: Pro
+name: Cursor Pro
 providerId: cursor
 versions:
   - effectiveFrom: 2026-09-21

@@ -38,10 +38,11 @@ import {
   type WorkloadScopeKindV1,
   type WorkloadSummaryV1,
 } from "@stackreplay/schema";
-import { replayApiTarget } from "./api-replay.js";
+import { type ApiEventPriceability, replayApiTarget } from "./api-replay.js";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+import { PriceReceiptBuilder, type PriceReceiptV1 } from "./receipt.js";
 import {
   buildWarnings,
   CoverageBuilder,
@@ -119,6 +120,80 @@ export interface ReplayInput {
 }
 
 export function replay(input: ReplayInput): ExecutionReplayResultV1 {
+  return replayWith(input, {});
+}
+
+/** How many events of a Direct API replay fared each way. */
+export type ApiPriceabilityCountsV1 = Record<ApiEventPriceability, number>;
+
+/**
+ * A replay together with the price receipt behind its money (see `receipt.ts`).
+ *
+ * The result is exactly what `replay` returns for the same input; the receipt
+ * is collected from the same per-event conversions inside the same pass. A
+ * Direct API replay's receipt is its list price for the served and priced
+ * events; a plan's receipt is its credit-pool demand, and is absent for a plan
+ * with no credit pool. A Direct API replay also reports how many events fared
+ * each way (`priceability`), so an interface can say what would complete a
+ * cost from the questions the replay itself asked.
+ */
+export function replayWithReceipt(input: ReplayInput): {
+  result: ExecutionReplayResultV1;
+  receipt: PriceReceiptV1 | undefined;
+  priceability: ApiPriceabilityCountsV1 | undefined;
+} {
+  const target = parseTarget(input.target);
+  const api = isApiTargetV1(target);
+  const receipt = new PriceReceiptBuilder(api ? "api_list_price" : "credit_demand");
+  const counts: ApiPriceabilityCountsV1 | undefined = api
+    ? {
+        priced: 0,
+        unresolved: 0,
+        not_offered: 0,
+        offering_unestablished: 0,
+        usage_incomplete: 0,
+        price_not_recorded: 0,
+        price_category_undocumented: 0,
+      }
+    : undefined;
+  const result = replayWith(input, {
+    receipt,
+    ...(counts === undefined
+      ? {}
+      : {
+          observe: (_event: TextUsageEventV1, outcome: ApiEventPriceability) => {
+            counts[outcome] += 1;
+          },
+        }),
+  });
+  const built = receipt.build();
+  return {
+    result,
+    receipt: built.pricedEvents === 0 ? undefined : built,
+    priceability: counts,
+  };
+}
+
+/**
+ * A Direct API replay whose observer is told how each event fared, so a caller
+ * can state an explicit scope (for example "the events this provider serves and
+ * prices") from the same questions the replay asked, instead of re-deriving
+ * them.
+ */
+export function replayObservingPriceability(
+  input: ReplayInput,
+  observe: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void,
+): ExecutionReplayResultV1 {
+  return replayWith(input, { observe });
+}
+
+function replayWith(
+  input: ReplayInput,
+  extras: {
+    receipt?: PriceReceiptBuilder;
+    observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+  },
+): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
   const context = parseContext(input.context);
   const target = parseTarget(input.target);
@@ -129,13 +204,22 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
    * model's published API list price at the pinned instant (M4C).
    */
   if (isApiTargetV1(target)) {
-    return replayApiTarget({
-      target,
-      catalog,
-      context,
-      events: validateEvents(input.events),
-    });
+    return replayApiTarget(
+      {
+        target,
+        catalog,
+        context,
+        events: validateEvents(input.events),
+      },
+      extras,
+    );
   }
+  if (extras.observe !== undefined)
+    throw new ReplayEngineError(
+      "TARGET_NOT_IMPLEMENTED",
+      "Per-event priceability is reported for Direct API targets only.",
+      [`targetType=${target.type}`],
+    );
 
   const planVersion = resolveTargetPlan(target, catalog, context.rulesAsOf);
   const events = validateEvents(input.events);
@@ -161,7 +245,7 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     translationPlan,
     translationApplication,
   );
-  const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker);
+  const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker, extras.receipt);
   const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
   const coverage = computeCoverage(timed, prepared, planVersion, tracker);
   const confidence = computeConfidence(
@@ -657,6 +741,7 @@ function prepareEvents(
   catalog: CatalogV1,
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
+  receipt: PriceReceiptBuilder | undefined,
 ): Map<string, PreparedEvent> {
   const needsMoney = planVersion.limits.some((limit) => limit.type === "credit_pool");
   const prepared = new Map<string, PreparedEvent>();
@@ -686,7 +771,26 @@ function prepareEvents(
     if (needsMoney && res.supported) {
       const pricing =
         res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
-      const outcome = moneyUnitsForUsage(event.usage, pricing, { atMs: timedEvent.atMs });
+      const outcome = moneyUnitsForUsage(
+        event.usage,
+        pricing,
+        { atMs: timedEvent.atMs },
+        { parts: receipt !== undefined },
+      );
+      if (
+        receipt !== undefined &&
+        outcome.known &&
+        outcome.parts !== undefined &&
+        pricing !== undefined &&
+        res.effectiveModelId !== undefined
+      )
+        receipt.add({
+          modelId: res.effectiveModelId,
+          pricingId: pricing.id,
+          tierId: outcome.tierId,
+          multiplier: res.multiplier,
+          parts: outcome.parts,
+        });
       if (outcome.missingPricing) {
         tracker.warn(
           "PRICING_MISSING",

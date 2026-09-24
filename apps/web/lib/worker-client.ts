@@ -1,8 +1,13 @@
 "use client";
 
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import { browserTimeZone } from "./time-zone";
 import {
   type ImportPhase,
   type ImportRecord,
@@ -27,6 +32,10 @@ export interface ReplayOutcome {
   projection: ProjectedReplayV1;
   /** Present when the replay ran under an explicit, user-chosen scope. */
   scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  /** The engine's model × category arithmetic behind the result's money. */
+  receipt?: PriceReceiptV1 | undefined;
+  /** Direct API only: how many events fared each way. */
+  priceability?: ApiPriceabilityCountsV1 | undefined;
 }
 
 /**
@@ -425,7 +434,7 @@ export class ReplayWorkerClient {
     target: ExecutionTargetV1,
     rulesAsOf: string,
     onProgress?: ProgressHandler,
-    options: { excludeUnresolved?: boolean } = {},
+    options: { excludeUnresolved?: boolean; timeZone?: string } = {},
   ): Promise<ReplayOutcome> {
     const response = await this.send(
       (requestId) => ({
@@ -435,6 +444,7 @@ export class ReplayWorkerClient {
         importId,
         target,
         rulesAsOf,
+        timeZone: options.timeZone ?? browserTimeZone(),
         ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
       }),
       onProgress,
@@ -446,6 +456,8 @@ export class ReplayWorkerClient {
       timeline: response.timeline,
       projection: response.projection,
       ...(response.scope === undefined ? {} : { scope: response.scope }),
+      ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
+      ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
     };
   }
 

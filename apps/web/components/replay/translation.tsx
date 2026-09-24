@@ -2,12 +2,20 @@
 
 import type { BundledTargetModel } from "@stackreplay/catalog/bundled";
 import { useId } from "react";
-import type { ModelMapping, SourceModel, WorkloadModels } from "./translation-model";
+import {
+  type ModelMapping,
+  type SourceModel,
+  type SubstituteChoice,
+  substituteChoices,
+  type WorkloadModels,
+} from "./translation-model";
 
 export {
   compatibility,
   type ModelMapping,
   type SourceModel,
+  type SubstituteChoice,
+  substituteChoices,
   type TargetSelection,
   targetModels,
   translationPolicy,
@@ -102,8 +110,10 @@ export function TranslationEditor({
   apiTarget: boolean;
 }) {
   const allId = useId();
-  const choices = available.filter((model) => model.available);
-  const serves = new Set(choices.map((model) => model.id));
+  // Serving is decided by every model the target runs, family aliases included;
+  // the options offered as substitutes are the concrete releases.
+  const serves = new Set(available.filter((model) => model.available).map((model) => model.id));
+  const choices = substituteChoices(available);
   const unserved = workload.sources.filter((source) => !serves.has(source.modelId));
   const mappedEvents = workload.sources.reduce((sum, source) => {
     const target = mapping[source.modelId];
@@ -113,8 +123,8 @@ export function TranslationEditor({
   }, 0);
   const unresolvedEvents = workload.unresolved.reduce((sum, model) => sum + model.events, 0);
 
-  const optionLabel = (model: BundledTargetModel) =>
-    apiTarget && model.priced !== true ? `${model.name} (no list price in force)` : model.name;
+  const optionLabel = (model: SubstituteChoice) =>
+    apiTarget && model.priced !== true ? `${model.label} (no list price in force)` : model.label;
 
   return (
     <section

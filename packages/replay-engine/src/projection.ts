@@ -68,8 +68,18 @@ export interface ProjectedModelResolutionV1 {
 export interface ProjectedWorkloadV1 {
   eventCount: number;
   sessionCount: number | undefined;
-  /** Distinct canonical models the workload resolved to, plus unresolved spellings. */
+  /**
+   * Distinct model identities: canonical models the workload resolved to, plus
+   * unresolved spellings. Not a count of models: see the two fields below.
+   */
   modelCount: number;
+  /**
+   * Distinct canonical catalog models the workload resolved to. Absent when the
+   * result carries no model mix. Unresolved identifiers are never counted here.
+   */
+  resolvedModelCount: number | undefined;
+  /** Distinct raw identifiers no catalog source resolves. */
+  unresolvedIdCount: number;
   from: string | undefined;
   to: string | undefined;
   /** Whole days between the first and last event, absent for an empty workload. */
@@ -564,12 +574,12 @@ function headlineStatement(
     // A count the engine did not establish is not a zero: "0 of 0 fit" would be
     // a claim about the workload rather than a statement about what is known.
     parts.push(
-      `Request coverage is ${dimension.status}: this result does not report how many modeled requests fit.`,
+      `Request coverage is ${dimension.status}: this result does not report how many modeled requests were served.`,
     );
   } else {
     const share = dimension.percent === undefined ? "" : ` (${formatPercent(dimension.percent)})`;
     parts.push(
-      `${dimension.covered.toLocaleString("en-US")} of ${dimension.total.toLocaleString("en-US")} modeled requests fit${share}.`,
+      `${dimension.covered.toLocaleString("en-US")} of ${dimension.total.toLocaleString("en-US")} modeled requests were served${share}.`,
     );
   }
   const blocked = countOf("blocked");
@@ -743,6 +753,9 @@ export function projectReplay(
     eventCount: result.workload.eventCount,
     sessionCount: result.workload.sessionCount,
     modelCount: result.workload.modelCount,
+    resolvedModelCount: mix === undefined ? undefined : mix.models.length,
+    unresolvedIdCount: result.unsupportedModels.filter((entry) => entry.reason === "unresolved")
+      .length,
     from: result.workload.from,
     to: result.workload.to,
     windowDays: dayCount(result.workload.from, result.workload.to),

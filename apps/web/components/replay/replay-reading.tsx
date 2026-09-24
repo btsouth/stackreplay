@@ -1,21 +1,24 @@
 "use client";
 
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
-import type { ProjectedCrossingV1, ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedCrossingV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import { useEffect, useState } from "react";
 import { formatUnit } from "@/components/instrument/format";
-import {
-  count,
-  instant,
-  instantWithZone,
-  money,
-  percent,
-  plainDay,
-} from "@/components/workload/format";
+import { count, instantWithZone, money, percent, plainDay } from "@/components/workload/format";
 import { WindowDetail } from "@/components/workload/pressure";
+import { formatUsd, isPositiveAmount } from "@/lib/money-display";
+import { apiScopeAdvice, sentence } from "@/lib/replay-advice";
+import { browserTimeZone } from "@/lib/time-zone";
 import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
 import type { SafeError } from "@/lib/worker-protocol";
+import { peakWindowSentences } from "@/lib/workload-facts";
 import type { WindowFact, WorkloadProfile } from "@/lib/workload-profile";
+import { PriceReceipt } from "./price-receipt";
 
 /**
  * The result read dimension by dimension.
@@ -26,14 +29,6 @@ import type { WindowFact, WorkloadProfile } from "@/lib/workload-profile";
  * into another. Historical pressure comes from the workload profile, the same
  * chronology the replay consumed.
  */
-
-function browserTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  } catch {
-    return "UTC";
-  }
-}
 
 /** A constraint quantity in its own unit; money gets separators. */
 function units(value: string | undefined, unit: string): string | undefined {
@@ -121,13 +116,19 @@ export function ReplayReading({
   scope,
   targetName,
   usageCredits,
+  priceability,
+  receipt,
 }: {
   projection: ProjectedReplayV1;
   importId: string | undefined;
   scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
   targetName: string;
+  /** Direct API only: how each event fared, from the same replay pass. */
+  priceability?: ApiPriceabilityCountsV1 | undefined;
   /** Unavailable events on models the plan runs only with paid usage credits. */
   usageCredits?: { events: number; modelIds: readonly string[] } | undefined;
+  /** The engine's model × category arithmetic behind the money on this result. */
+  receipt?: PriceReceiptV1 | undefined;
 }) {
   const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
   const timeZone = profile?.timeZone ?? browserTimeZone();
@@ -154,10 +155,14 @@ export function ReplayReading({
   const translated = projection.mode === "translated";
   const api = projection.target.kind === "api";
   const economics = projection.economics;
-  const peak = profile?.pressure.events.find((row) => row.id === "5h")?.peak;
-  const peakTokens = profile?.pressure.tokens.find((row) => row.id === "5h")?.peak;
+  const pressure = profile === undefined ? [] : peakWindowSentences(profile);
   const crossings = projection.crossings;
   const numeric = projection.constraints.length > 0;
+  const recorded = projection.workload.eventCount;
+  const advice =
+    api && priceability !== undefined
+      ? apiScopeAdvice(priceability, projection.target.providerName)
+      : undefined;
 
   return (
     <section
@@ -235,17 +240,27 @@ export function ReplayReading({
               are still known.
             </>
           ) : crossings.length === 0 ? (
-            "All modeled numeric constraints satisfied across your recorded chronology."
+            served === 0 ? (
+              <>
+                No limit was reached, because {targetName} runs none of the recorded models. That
+                says nothing about capacity for this workload.
+              </>
+            ) : served === recorded ? (
+              "No published limit was crossed anywhere in your recorded chronology."
+            ) : (
+              <>
+                No published limit was crossed by the {count(served)} calls {targetName} runs (
+                {percent(recorded === 0 ? 0 : served / recorded)} of recorded calls). The other{" "}
+                {count(recorded - served)} were not tested against its limits.
+              </>
+            )
           ) : (
             <CheaperPlanSummary crossings={crossings} profile={profile} timeZone={timeZone} />
           )}
         </Row>
-        {peak === undefined ? null : (
+        {pressure.length === 0 ? null : (
           <Row label="Historical pressure" testId="reading-pressure">
-            Your heaviest five-hour window held {count(peak.events)} events
-            {peakTokens === undefined ? "" : ` and ${percent(peakTokens.share)} of known tokens`} (
-            {instant(peak.startMs, timeZone)}). That peak is {percent(peak.share)} of all recorded
-            events, replayed as it happened.
+            {pressure.join(" ")} Replay sends these bursts through the target as they happened.
           </Row>
         )}
         <Row label={api ? "API cost" : "Subscription cost"} testId="reading-cost">
@@ -258,13 +273,24 @@ export function ReplayReading({
                   : ` (${count(projection.workload.windowDays)} days)`}
                 . Not what you paid: it is this workload at the provider&apos;s published list
                 prices.
+                {receipt === undefined || receipt.basis !== "api_list_price" ? null : (
+                  <span className="mt-2 block">
+                    <PriceReceipt
+                      receipt={receipt}
+                      summary={`How ${formatUsd(economics.targetCost) ?? "this"} adds up`}
+                      totalLabel="Published-rate equivalent"
+                    />
+                  </span>
+                )}
               </>
             ) : (
               <>
-                Not established: {economics.reason ?? economics.costReading}.
-                {unknown > 0
-                  ? " Leaving out the unresolved events gives a complete priced scope."
-                  : ""}
+                {sentence(`Not established: ${economics.reason ?? economics.costReading}`)}
+                {advice === undefined || advice.sentences.length === 0 ? null : (
+                  <span className="block text-xs text-muted-foreground" data-testid="cost-advice">
+                    {advice.sentences.join(" ")}
+                  </span>
+                )}
               </>
             )
           ) : economics.basePlanCost === undefined ? (
@@ -273,9 +299,19 @@ export function ReplayReading({
             <>
               {money(economics.basePlanCost)} per {projection.target.priceInterval ?? "month"},
               fixed
-              {economics.overageCost !== undefined && Number(economics.overageCost) > 0
+              {isPositiveAmount(economics.overageCost)
                 ? `, plus ${money(economics.overageCost)} of modeled overage across the recorded windows.`
                 : "."}
+              {receipt === undefined || receipt.basis !== "credit_demand" ? null : (
+                <span className="mt-2 block">
+                  <PriceReceipt
+                    receipt={receipt}
+                    summary={`How the ${formatUsd(receipt.total) ?? ""} of credit demand adds up`}
+                    testId="credit-receipt"
+                    totalLabel="Credit demand at the plan's rates, before the allowance"
+                  />
+                </span>
+              )}
             </>
           )}
         </Row>
@@ -290,9 +326,15 @@ export function ReplayReading({
           testId="reading-evidence"
           tone={unknown > 0 ? "warning" : undefined}
         >
-          {unknown === 0
-            ? "Every replayed event had an established model and complete token accounting."
-            : `${count(unknown)} events stayed undecided: their model identity or accounting is not established. They are reported, not estimated.`}
+          {unknown === 0 ? (
+            "Every replayed call had an established model and complete token data."
+          ) : (
+            <UndecidedReasons
+              incomplete={economics.indeterminateConsumptionEvents}
+              undecided={unknown}
+              unresolved={projection.workload.unresolvedEventCount}
+            />
+          )}
           {scope !== undefined && scope.excludedUnresolvedEvents > 0 ? (
             <span className="block text-xs text-muted-foreground" data-testid="reading-scope">
               Scoped at your request: {count(scope.excludedUnresolvedEvents)} of{" "}
@@ -311,6 +353,37 @@ export function ReplayReading({
         />
       ) : null}
     </section>
+  );
+}
+
+/**
+ * Why calls stayed undecided, each reason with its own count. The counts come
+ * from different engine readings and can overlap, so they are stated side by
+ * side and never added up into the undecided total.
+ */
+function UndecidedReasons({
+  undecided,
+  unresolved,
+  incomplete,
+}: {
+  undecided: number;
+  unresolved: number | undefined;
+  incomplete: number | undefined;
+}) {
+  const reasons: string[] = [];
+  if (unresolved !== undefined && unresolved > 0)
+    reasons.push(
+      `${count(unresolved)} ${unresolved === 1 ? "uses a model ID" : "use model IDs"} StackReplay doesn't recognize`,
+    );
+  if (incomplete !== undefined && incomplete > 0)
+    reasons.push(
+      `${count(incomplete)} ${incomplete === 1 ? "reports" : "report"} incomplete token data`,
+    );
+  return (
+    <>
+      {count(undecided)} {undecided === 1 ? "call stayed" : "calls stayed"} undecided
+      {reasons.length === 0 ? "" : `: ${reasons.join("; ")}`}. They are reported, not estimated.
+    </>
   );
 }
 

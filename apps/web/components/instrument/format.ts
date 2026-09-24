@@ -13,6 +13,8 @@
  *    not a claim that the engine computed two decimals.
  */
 
+import { formatUsd } from "@/lib/money-display";
+
 const NUMBER = new Intl.NumberFormat("en-US");
 
 export function formatCount(value: number | undefined): string | undefined {
@@ -72,11 +74,8 @@ export function formatUnit(
 ): string | undefined {
   if (value === undefined) return undefined;
   switch (unit) {
-    case "usd": {
-      const parsed = Number.parseFloat(String(value));
-      if (!Number.isFinite(parsed)) return undefined;
-      return `$${MONEY.format(parsed)}`;
-    }
+    case "usd":
+      return formatUsd(String(value));
     case "requests": {
       const parsed = Number.parseFloat(String(value));
       if (!Number.isFinite(parsed)) return undefined;

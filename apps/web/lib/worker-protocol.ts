@@ -1,5 +1,9 @@
 import type { CandidateOutcome } from "@stackreplay/adapters/browser";
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
@@ -200,8 +204,8 @@ export interface ImportRecord {
  * (benchmark finding F031). `partialEvents` says how many events contributed to it.
  */
 export interface TimelinePoint {
-  /** Bucket start, ISO-8601 UTC (daily buckets). */
-  at: string;
+  /** The bucket's calendar date (YYYY-MM-DD) in the viewer's timezone. */
+  day: string;
   events: number;
   /** Sum of the events whose token total is fully known. */
   tokens: number;
@@ -266,6 +270,8 @@ export type WorkerRequest =
        * The response reports how many were left out.
        */
       excludeUnresolved?: boolean;
+      /** IANA timezone the timeline's calendar days are read in. */
+      timeZone?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -347,6 +353,14 @@ export type WorkerResponse =
       projection: ProjectedReplayV1;
       /** Present when the replay ran under an explicit scope. */
       scope?: { excludedUnresolvedEvents: number; recordedEvents: number };
+      /**
+       * The model × category arithmetic behind the result's money: a Direct API
+       * list price, or a plan's credit demand. Collected in the same pass as the
+       * result, so it adds up to the engine's own figure.
+       */
+      receipt?: PriceReceiptV1;
+      /** Direct API only: how many events fared each way in that pass. */
+      priceability?: ApiPriceabilityCountsV1;
     }
   | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
   | { type: "WINDOW_OK"; requestId: number; window: WindowFact }

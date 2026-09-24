@@ -35,6 +35,15 @@ const sections = [
     ],
   },
   {
+    heading: "One definition per figure",
+    body: [
+      "A call is one recorded model request, which the scan records as one event. A day is a calendar day in your browser's timezone, on the workload page, in Replay and in Compare alike; the workload page can switch every figure to UTC at once.",
+      "The busiest five-hour window is ranked by calls. The heaviest five-hour window by tokens can be a different window, and it is always named as such. A sentence about a window never mixes figures from two windows.",
+      "Output is the output bucket only. Reasoning tokens are a separate bucket and are never added into output. Models are the catalog models a workload resolved to; identifiers StackReplay could not resolve are counted separately as unresolved IDs, never as models.",
+      "A call a target handles is served within its allowance, served as overage (billed above the allowance), not served (a model the target does not run, or refused by a limit), or undecided (the evidence cannot say, most often because its model ID is not recognized). Undecided calls are counted, never assigned to one of the other outcomes.",
+    ],
+  },
+  {
     heading: "Attempted versus accepted demand",
     body: [
       "Every event counts as attempted demand, including events a limit rejects. Only events a plan actually serves advance accepted consumption. This is what makes a hard stop visible: a workload can attempt far more than a plan accepts, and a replay reports both numbers rather than silently discarding the rejected work.",
@@ -64,6 +73,7 @@ const sections = [
     heading: "Money",
     body: [
       "Money is carried as decimal strings and computed with exact decimal arithmetic. A replay never presents a floating-point dollar figure, and every derived amount records the basis it was computed from (fixed plan price, plan price plus overage, or API list price equivalent).",
+      "Every list-price figure opens to its arithmetic: tokens by model and category, the published rate for each, the subtotal, and the source and effective date of the rate. The table is collected from the same per-call conversion that produced the figure, and its rows are rounded to the cent so the column adds up to the figure exactly.",
     ],
   },
   {

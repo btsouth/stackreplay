@@ -1,6 +1,6 @@
 id: cursor-ultra
 role: plan
-name: Ultra
+name: Cursor Ultra
 providerId: cursor
 versions:
   - effectiveFrom: 2026-09-21

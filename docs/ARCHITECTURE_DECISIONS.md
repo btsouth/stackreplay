@@ -1001,3 +1001,43 @@ Explicitly deferred. Do not implement, guess, or resolve these before their mile
 - The splitter searches each decoded chunk once. The file signature is WebCrypto SHA-256 over fixed 8 MiB blocks; it is compared only within one scan and never stored. A streamed file is signed only when another selected streamed file has its size, because identical bytes need identical sizes; any file read as text keeps every file signed, since a decoded-text signature does not follow byte size. A file no larger than the peek is parsed from the peek instead of being read again. Session and project identities are derived once per collect call with a pre-keyed HMAC clone, byte for byte the same. Progress is posted at most every 100 ms and always at the end. The next file's detection read starts while the current file is processed (read-ahead 2, chosen against 1, 4 and 8 in Chromium; 8 was slower on the real history).
 - Results are unchanged: a digest of the complete intake result (export, outcomes, warnings, duplicate and overlap counts, local project labels) is identical before and after on every benchmark case, including the real snapshot, and the new splitter is tested against the old one across chunk sizes from one byte to a whole file.
 - A transaction the browser aborts (an in-memory profile such as Incognito cannot hold about 300,000 events in one value; a full disk) no longer leaves the import waiting on a request that never answers: the scan finishes unsaved, as refused storage was always meant to. A cancelled scan now stops within a chunk of a long file instead of at its end.
+
+## 57. One definition per figure, and every dollar opens to its arithmetic (product trust pass)
+
+A product-success audit found figures that changed meaning between surfaces. Each now has one
+definition, computed in one place and presented many ways.
+
+- **Day basis.** A user-facing day is a calendar day in the viewer's IANA timezone. The workload
+  profile already read days that way; the Replay timeline bucketed by UTC day, so "busiest day"
+  named different dates on the two pages. `buildTimeline` now takes the viewer's timezone
+  (`RUN_REPLAY.timeZone`) and crossing bands are placed on the same local days. A plan's calendar
+  window keeps its own zone ("calendar month (UTC)") where its boundary is shown.
+- **Peak window.** The busiest five-hour window is ranked by calls (events). The heaviest five-hour
+  window by tokens is a different window when the rankings disagree, and it is named as such. A
+  sentence never takes its start time from one window and its share from another
+  (`apps/web/lib/workload-facts.ts`).
+- **Output.** Output is the disjoint output bucket. Reasoning is its own bucket and is shown beside
+  output, never added into it under the same word.
+- **Models.** "Models" are canonical catalog models. Unresolved identifiers are counted separately.
+  `ProjectedWorkloadV1` gains `resolvedModelCount` and `unresolvedIdCount`; `modelCount`, which adds
+  both, is labelled "model identities" wherever it is shown (a V1 share link carries only that
+  sum).
+- **Service outcomes.** Served within allowance, served as overage, not served, undecided. "Would
+  have fit" is gone: it described calls that were billed as overage. A plan whose numeric limits
+  were never reached because it runs none of the recorded models says exactly that, never that its
+  constraints were satisfied.
+- **Scope advice is computed, not assumed.** A Direct API replay reports how each event fared
+  (`replayWithReceipt(...).priceability`, from the same pass). "Leaving out the unresolved events
+  gives a complete priced scope" is shown only when unresolved identity is the one remaining gap.
+- **Price receipts.** `replayWithReceipt` returns, beside the unchanged result, the model × category
+  arithmetic behind its money: tokens × published rate (× a plan's model multiplier for credit
+  demand), collected from the per-event conversion the engine already performs
+  (`moneyUnitsForUsage` with `parts`) and only for events the engine counted. It is not a second
+  pricing pass over aggregated buckets (decision 45 stands): its exact total equals the engine's
+  figure digit for digit, which `receipt.test.ts` holds it to. Rows are shown to the cent by
+  largest-remainder apportionment so the column adds to the headline exactly. Money is formatted
+  from exact decimal strings everywhere, never through a float.
+- **Catalog hygiene.** Synthetic `example-` targets are offered only for synthetic demo workloads.
+  Cursor plan names carry the provider ("Cursor Pro"). The translation picker offers concrete
+  releases, hides a family alias ("Opus") when a release of that family is available, and marks
+  legacy releases.

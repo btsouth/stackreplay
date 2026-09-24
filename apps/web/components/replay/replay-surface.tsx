@@ -8,7 +8,7 @@ import {
   bundledUsageCreditModels,
 } from "@stackreplay/catalog/bundled";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
-import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
+import type { ExecutionTargetV1 } from "@stackreplay/schema";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import { Badge, Button, Card, CardContent, Metric } from "@stackreplay/ui";
 import dynamic from "next/dynamic";
@@ -40,10 +40,18 @@ import {
   workloadModels,
 } from "@/components/replay/translation";
 import { SharePanel } from "@/components/share/share-panel";
+import { formatUsd } from "@/lib/money-display";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
-import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
-import type { ImportRecord, ModelSummary, SafeError, TimelinePoint } from "@/lib/worker-protocol";
+import { browserTimeZone } from "@/lib/time-zone";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
+import {
+  type ReplayOutcome as ClientReplayOutcome,
+  describeWorkerFailure,
+  getWorkerClient,
+  SupersededError,
+} from "@/lib/worker-client";
+import type { ImportRecord, ModelSummary, SafeError } from "@/lib/worker-protocol";
 
 /** Styling for the execution-target switch (M4C). */
 function segmentedClass(active: boolean): string {
@@ -86,14 +94,7 @@ function humanizeWarningMessage(message: string): string {
   return message.replaceAll("_", " ");
 }
 
-interface ReplayOutcome {
-  result: ExecutionReplayResultV1;
-  timeline: TimelinePoint[];
-  /** The display contract for the same result (M4D). */
-  projection: ProjectedReplayV1;
-  /** Present when the replay ran under an explicit, user-chosen scope. */
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
-}
+type ReplayOutcome = ClientReplayOutcome;
 
 function formatCount(value: number): string {
   return value.toLocaleString("en-US");
@@ -102,13 +103,10 @@ function formatCount(value: number): string {
 /**
  * Plan and economic amounts are money and always render with cents, so $50 and
  * $50.00 can never appear in the same column. Amounts are rounded for display
- * only; the exported result keeps the exact decimal string.
+ * only, exactly and half-up; the exported result keeps the exact decimal string.
  */
 function formatMoney(amount: string): string {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) return `$${amount}`;
-  const [whole = "0", cents = "00"] = value.toFixed(2).split(".");
-  return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/gu, ",")}.${cents}`;
+  return formatUsd(amount) ?? `$${amount}`;
 }
 
 export function ReplaySurface({
@@ -193,11 +191,16 @@ export function ReplaySurface({
     [imports, selectedId],
   );
   const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
-  const selectedWorkloadIsDemo = useMemo(() => {
-    const models = workload?.summary.models ?? [];
-    return models.length > 0 && models.every((model) => model.rawName.startsWith("example-"));
-  }, [workload]);
+  const selectedWorkloadIsDemo = useMemo(
+    () => (workload === undefined ? false : isSyntheticWorkload(workload)),
+    [workload],
+  );
 
+  /**
+   * Synthetic `example-` targets exist for the synthetic demo workloads only. A
+   * real workload never sees them: they would read as real plans beside real
+   * ones, and a replay against them says nothing about the person's own stack.
+   */
   const plans = useMemo(() => {
     const available = bundledPlansAt(rulesAsOf);
     return selectedWorkloadIsDemo
@@ -205,7 +208,7 @@ export function ReplaySurface({
           ...available.filter((plan) => isSyntheticCatalogId(plan.id)),
           ...available.filter((plan) => !isSyntheticCatalogId(plan.id)),
         ]
-      : available;
+      : available.filter((plan) => !isSyntheticCatalogId(plan.id));
   }, [rulesAsOf, selectedWorkloadIsDemo]);
   const filteredPlans = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -238,7 +241,7 @@ export function ReplaySurface({
           ...available.filter((provider) => isSyntheticCatalogId(provider.id)),
           ...available.filter((provider) => !isSyntheticCatalogId(provider.id)),
         ]
-      : available;
+      : available.filter((provider) => !isSyntheticCatalogId(provider.id));
   }, [rulesAsOf, selectedWorkloadIsDemo]);
   const filteredProviders = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -919,7 +922,7 @@ function WorkloadStrip({
           />
           <Metric label="Sessions" value={formatCount(summary.sessionCount)} size="lg" />
           <Metric
-            label="Unknown usage"
+            label="Incomplete token data"
             value={formatCount(summary.tokens.unknownEvents)}
             unit="events"
             size="lg"
@@ -933,6 +936,9 @@ function WorkloadStrip({
             Reused context read from cache: {formatTokens(summary.tokens.buckets.cacheReadTokens)}
           </p>
           <p>Output: {formatTokens(summary.tokens.buckets.outputTokens)}</p>
+          {summary.tokens.buckets.reasoningTokens > 0 ? (
+            <p>Reasoning: {formatTokens(summary.tokens.buckets.reasoningTokens)}</p>
+          ) : null}
           <p className="tabular-nums">
             Exact known tokens in this workload: {formatCount(summary.tokens.known)}
           </p>
@@ -1139,6 +1145,8 @@ function ReplayResult({
           importId={computedFor?.workloadId}
           projection={projection}
           scope={outcome.scope}
+          priceability={outcome.priceability}
+          receipt={outcome.receipt}
           targetName={targetName}
           usageCredits={
             usageCreditEntries.length === 0
@@ -1229,6 +1237,7 @@ function ReplayResult({
               <ReplayTimeline
                 behaviours={constraintBehaviours}
                 points={timeline}
+                timeZone={browserTimeZone()}
                 violations={result.violations}
               />
             </CardContent>

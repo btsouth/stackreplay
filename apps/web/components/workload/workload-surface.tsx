@@ -281,7 +281,9 @@ function WorkloadOpening({
     <header className="flex min-w-0 flex-col gap-7" data-testid="workload-opening">
       <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-2">
-          <MicroLabel className="text-accent">Your workload</MicroLabel>
+          <MicroLabel className="text-accent">
+            {origin === "synthetic demo" ? "Synthetic demo workload" : "Your workload"}
+          </MicroLabel>
           <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
             How you actually use AI
           </h1>
@@ -569,8 +571,17 @@ function WorkloadBody({
               </span>{" "}
               and output{" "}
               <span className="font-mono text-foreground">
-                {formatTokens(profile.tokens.output + profile.tokens.reasoning) ?? "0"}
+                {formatTokens(profile.tokens.output) ?? "0"}
               </span>
+              {profile.tokens.reasoning > 0 ? (
+                <>
+                  , with{" "}
+                  <span className="font-mono text-foreground">
+                    {formatTokens(profile.tokens.reasoning) ?? "0"}
+                  </span>{" "}
+                  reasoning counted separately
+                </>
+              ) : null}
               .
             </p>
             {profile.overview.unknownUsageEvents > 0 ? (

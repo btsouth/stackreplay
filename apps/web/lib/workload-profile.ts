@@ -617,13 +617,13 @@ function insightsFor(profile: Omit<WorkloadProfile, "insights">): Insight[] {
       id: "cache-share",
       text: `${PERCENT(tokens.cacheRead / knownTokens)} of known processed tokens were cache reads: context reused from earlier turns, not fresh input.`,
     });
-  const peak5h = profile.pressure.tokens.find((row) => row.id === "5h")?.peak;
-  const peak5hEvents = profile.pressure.events.find((row) => row.id === "5h")?.peak;
-  const peak = knownTokens > 0 ? peak5h : peak5hEvents;
+  // The busiest five-hour window is ranked by calls everywhere it is named
+  // (decision 57); every figure in this sentence belongs to that one window.
+  const peak = profile.pressure.events.find((row) => row.id === "5h")?.peak;
   if (peak !== undefined && overview.spanDays > 1)
     insights.push({
       id: "peak-5h",
-      text: `Your heaviest five-hour window, starting ${shortDate(peak.startMs, timeZone)}, held ${PERCENT(peak.share)} of all recorded ${knownTokens > 0 ? "known tokens" : "events"}.`,
+      text: `Your busiest five-hour window, starting ${shortDate(peak.startMs, timeZone)}, held ${PERCENT(peak.share)} of all recorded calls.`,
     });
   const named = profile.projects.filter((project) => project.labelKind !== "none");
   if (named.length >= 4 && knownTokens > 0) {

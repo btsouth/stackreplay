@@ -7,6 +7,7 @@ import { Button, buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { count, instantWithZone, money, percent } from "@/components/workload/format";
+import { isPositiveAmount } from "@/lib/money-display";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
@@ -117,7 +118,7 @@ function Findings({ projection }: { projection: ProjectedReplayV1 }) {
           <span>
             {money(economics.basePlanCost) ?? "unknown"}/
             {projection.target.priceInterval ?? "month"}
-            {economics.overageCost !== undefined && Number(economics.overageCost) > 0 ? (
+            {isPositiveAmount(economics.overageCost) ? (
               <> + {money(economics.overageCost)} modeled overage</>
             ) : null}
           </span>

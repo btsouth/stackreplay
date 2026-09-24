@@ -16,7 +16,7 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { projectReplay, replay } from "@stackreplay/replay-engine";
+import { projectReplay, replayWithReceipt } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -653,7 +653,7 @@ async function handleImportDemo(
 async function handleRunReplay(
   request: Extract<WorkerRequest, { type: "RUN_REPLAY" }>,
 ): Promise<void> {
-  const { requestId, importId, target, rulesAsOf, excludeUnresolved } = request;
+  const { requestId, importId, target, rulesAsOf, excludeUnresolved, timeZone } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
   const workload = await loadWorkloadEvents(importId);
   if (!workload.ok) {
@@ -669,7 +669,7 @@ async function handleRunReplay(
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
     const catalog = loadBundledCatalog();
-    const result = replay({
+    const { result, receipt, priceability } = replayWithReceipt({
       events,
       target,
       catalog,
@@ -679,7 +679,9 @@ async function handleRunReplay(
       type: "REPLAY_OK",
       requestId,
       result,
-      timeline: buildTimeline(events),
+      timeline: buildTimeline(events, timeZone),
+      ...(receipt === undefined ? {} : { receipt }),
+      ...(priceability === undefined ? {} : { priceability }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.

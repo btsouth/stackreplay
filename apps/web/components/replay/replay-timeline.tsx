@@ -18,6 +18,7 @@ import {
   type ExceedBehaviour,
   groupByBehaviour,
 } from "@/components/instrument/constraint-behaviour";
+import { localDayOf } from "@/lib/timeline";
 import type { TimelinePoint } from "@/lib/worker-protocol";
 
 /**
@@ -58,15 +59,26 @@ interface ReplayTimelineProps {
   behaviours: ReadonlyMap<string, ExceedBehaviour>;
   /** ISO day to centre the view on, when a violation is focused. */
   focusAt?: string | undefined;
+  /**
+   * The zone the points' calendar days are in. Crossing windows are instants,
+   * so they are placed on the same local days rather than on UTC dates.
+   */
+  timeZone?: string | undefined;
 }
 
-export function ReplayTimeline({ points, violations, behaviours, focusAt }: ReplayTimelineProps) {
+export function ReplayTimeline({
+  points,
+  violations,
+  behaviours,
+  focusAt,
+  timeZone = "UTC",
+}: ReplayTimelineProps) {
+  const dayOf = useMemo(() => localDayOf(timeZone), [timeZone]);
   const data = useMemo(
     () =>
       points.map((point) => ({
         ...point,
-        day: point.at.slice(0, 10),
-        label: new Date(point.at).toLocaleDateString("en-US", {
+        label: new Date(`${point.day}T00:00:00Z`).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           timeZone: "UTC",
@@ -99,7 +111,7 @@ export function ReplayTimeline({ points, violations, behaviours, focusAt }: Repl
       firstDay,
     );
     const days = (entries: readonly ReplayViolationV1[]): string =>
-      entries.map((violation) => violation.startedAt.slice(0, 10)).join(", ");
+      entries.map((violation) => dayOf(violation.startedAt)).join(", ");
     return [
       `${data.length} day(s) of activity.`,
       `Busiest day ${busiest.label} with ${busiest.events.toLocaleString("en-US")} events.`,
@@ -125,7 +137,7 @@ export function ReplayTimeline({ points, violations, behaviours, focusAt }: Repl
     ]
       .filter((part) => part.length > 0)
       .join(" ");
-  }, [data, groups, partialDays, violations.length]);
+  }, [data, dayOf, groups, partialDays, violations.length]);
 
   if (data.length === 0) {
     return (
@@ -227,8 +239,8 @@ export function ReplayTimeline({ points, violations, behaviours, focusAt }: Repl
               isAnimationActive={false}
             />
             {violations.map((violation) => {
-              const start = violation.startedAt.slice(0, 10);
-              const end = violation.endedAt.slice(0, 10);
+              const start = dayOf(violation.startedAt);
+              const end = dayOf(Date.parse(violation.endedAt) - 1);
               const from = data.find((entry) => entry.day >= start)?.label ?? data[0]?.label;
               const to =
                 [...data].reverse().find((entry) => entry.day <= end)?.label ?? data.at(-1)?.label;

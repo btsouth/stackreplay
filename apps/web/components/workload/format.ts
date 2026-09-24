@@ -1,4 +1,5 @@
 import { formatTokens } from "@/components/instrument/format";
+import { formatUsd } from "@/lib/money-display";
 import type { Demand, Measure } from "@/lib/workload-profile";
 
 /**
@@ -100,10 +101,7 @@ export function ratio(value: number, base: number): string | undefined {
 
 /** Money from an engine decimal string, with separators: `$1,852.79`. Display only. */
 export function money(amount: string | undefined): string | undefined {
-  if (amount === undefined) return undefined;
-  const value = Number.parseFloat(amount);
-  if (!Number.isFinite(value)) return undefined;
-  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  return formatUsd(amount);
 }
 
 /** An instant with its zone abbreviation, so a reader knows which clock it is. */

@@ -693,7 +693,7 @@ describe("projectReplay", () => {
 
     const statement = projection.headline.statement;
     expect(statement).not.toMatch(/0 of 0|undefined|NaN/u);
-    expect(statement).toMatch(/does not report how many modeled requests fit/iu);
+    expect(statement).toMatch(/does not report how many modeled requests were served/iu);
     expect(projection.headline.percent).toBeUndefined();
   });
 });

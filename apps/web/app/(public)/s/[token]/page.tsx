@@ -2,6 +2,7 @@ import { decodeShareToken } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { formatUnit } from "@/components/instrument/format";
 import { ShareCard } from "@/components/share/share-card";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 import { describeShareTruncation } from "@/lib/share-truncation";
@@ -165,7 +166,8 @@ export default async function SharePage({ params }: SharePageProps) {
                       <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
                         Allowance
                       </span>
-                      {constraint.limitUnits} {constraint.unit}
+                      {formatUnit(constraint.limitUnits, constraint.unit)}
+                      {constraint.unit === "usd" ? "" : ` ${constraint.unit}`}
                     </td>
                     <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
                       <span className="mb-1 block text-xs lg:hidden">Window</span>
@@ -173,7 +175,8 @@ export default async function SharePage({ params }: SharePageProps) {
                     </td>
                     <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
                       <span className="mb-1 block text-xs lg:hidden">Attempted</span>
-                      {constraint.attemptedUnits}
+                      {formatUnit(constraint.attemptedUnits, constraint.unit)}
+                      {constraint.unit === "usd" ? "" : ` ${constraint.unit}`}
                     </td>
                     <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
                       <span className="mb-1 block text-xs lg:hidden">Outcome</span>
