@@ -68,20 +68,26 @@ function replayRoute(
 }
 
 describe("target coverage", () => {
-  it.each(WORKLOAD_ARCHETYPE_IDS)("%s: every count is the engine's own", (archetype) => {
-    const { events, names, slices } = workload(archetype);
-    for (const slice of slices)
-      for (const coverage of targetCoverages(slice, RULES, { synthetic: false })) {
-        const { outcome } = replayRoute(events, names, targetOf(coverage), slice.sources);
-        const count = (key: string) =>
-          outcome.projection.outcomes.find((entry) => entry.key === key)?.count ?? 0;
-        expect(
-          count("included") + count("overage") + count("blocked"),
-          `${archetype} / ${slice.label} / ${coverage.name}`,
-        ).toBe(coverage.runnable);
-        expect(outcome.projection.workload.eventCount).toBe(coverage.events);
-      }
-  });
+  // Each case replays every public target over every tool slice: well under a
+  // second locally, several on a shared CI runner, so it declares its budget.
+  it.each(WORKLOAD_ARCHETYPE_IDS)(
+    "%s: every count is the engine's own",
+    { timeout: 60_000 },
+    (archetype) => {
+      const { events, names, slices } = workload(archetype);
+      for (const slice of slices)
+        for (const coverage of targetCoverages(slice, RULES, { synthetic: false })) {
+          const { outcome } = replayRoute(events, names, targetOf(coverage), slice.sources);
+          const count = (key: string) =>
+            outcome.projection.outcomes.find((entry) => entry.key === key)?.count ?? 0;
+          expect(
+            count("included") + count("overage") + count("blocked"),
+            `${archetype} / ${slice.label} / ${coverage.name}`,
+          ).toBe(coverage.runnable);
+          expect(outcome.projection.workload.eventCount).toBe(coverage.events);
+        }
+    },
+  );
 
   it("orders targets by how much of the work they run, and never offers demo targets", () => {
     const { slices } = workload("mixed");
