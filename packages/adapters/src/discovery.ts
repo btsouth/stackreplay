@@ -4,21 +4,37 @@ import { COMMAND_CODE_DISCOVERY } from "./adapters/command-code.discovery.js";
 import { HERMES_DISCOVERY } from "./adapters/hermes.discovery.js";
 import { OPENCODE_DISCOVERY } from "./adapters/opencode.discovery.js";
 import { BROWSER_SOURCE_FORMATS } from "./browser-formats.js";
-import type { DiscoveryPlatform, KnownLocation, SourceDiscovery } from "./discovery-types.js";
+import type {
+  DiscoveryPlatform,
+  HistoryNames,
+  KnownLocation,
+  SourceDiscovery,
+} from "./discovery-types.js";
 import type { AdapterId } from "./types.js";
 
-export type { DiscoveryPlatform, KnownLocation, SourceDiscovery } from "./discovery-types.js";
+export type {
+  ChildMarker,
+  DiscoveryPlatform,
+  HistoryNames,
+  KnownLocation,
+  RootSignature,
+  SourceDiscovery,
+} from "./discovery-types.js";
 
 /**
  * Local AI history discovery.
  *
- * The user grants one folder (normally their home or profile folder).
- * Discovery then asks that folder for the registered locations by name, one
- * component at a time. It never lists the granted folder or any folder on the
- * way to a location; the only listing happens inside a history folder that was
- * found, bounded by the adapter's declared depth, and it collects file sizes
- * without reading any content. Parsing waits until the user chooses what to
- * import.
+ * The user grants one folder: normally their home or profile folder, but it
+ * may be a tool folder (`.claude`), a history folder (`projects`), a data
+ * folder holding a database, or a custom root. Discovery works out which by
+ * asking the folder for registered names, one component at a time: the full
+ * home-relative location, the rest of that location when the folder is part of
+ * it, and the exact children a tool's root is known to hold. It never lists the
+ * granted folder or any folder on the way to a location. The only listing
+ * happens inside a history folder: to tell two tools' same-named folders apart
+ * by file names (bounded to a few subfolders), and to count its files, bounded
+ * by the adapter's declared depth. File sizes come without reading content.
+ * Parsing waits until the user chooses what to import.
  */
 
 /** Every source with a known local history, in the order discovery reports them. */
@@ -32,6 +48,9 @@ export const DISCOVERY_REGISTRY: readonly SourceDiscovery[] = [
 
 /** Inventory stops here: the browser import refuses more candidates than this. */
 export const DISCOVERY_MAX_FILES = 20_000;
+
+/** How many subfolders of a candidate history folder the file-name check may look into. */
+export const NAME_CHECK_FOLDERS = 4;
 
 export interface DiscoveryFile {
   readonly name: string;
@@ -129,23 +148,26 @@ function sameName(a: string, b: string): boolean {
  *
  * The full path assumes the folder is a home or profile folder. When the folder
  * is itself part of the path (someone chose `.claude` or `.codex`), the rest of
- * the path is tried from there. A folder that *is* a history folder is accepted
- * only when exactly one registered location ends with its name, so a folder
- * called `projects` is never guessed to be Claude Code rather than Command Code.
- * Every returned path is the tail of a registered location.
+ * the path is tried from there. A folder that *is* a history folder is tried
+ * when the source can confirm it by file names (`historyNames`), or when exactly
+ * one registered location ends with its name; a folder called `projects` is
+ * never guessed to be Claude Code rather than Command Code. Every returned path
+ * is the tail of a registered location.
  */
 export function anchoredPaths(
   location: KnownLocation,
   rootName: string,
   registry: readonly SourceDiscovery[] = DISCOVERY_REGISTRY,
   role: "history" | "installed" = "history",
+  /** The source can confirm a same-named history folder by its file names. */
+  verifiable = false,
 ): (readonly string[])[] {
   const paths: (readonly string[])[] = [location.path];
   location.path.forEach((component, index) => {
     if (!sameName(component, rootName)) return;
     const rest = location.path.slice(index + 1);
     // A chosen folder that is itself an installation marker proves the tool is here.
-    if (rest.length === 0 && role === "history") {
+    if (rest.length === 0 && role === "history" && !verifiable) {
       const endingHere = registry
         .flatMap((source) => source.history)
         .filter((candidate) => sameName(candidate.path.at(-1) ?? "", rootName));
@@ -201,21 +223,58 @@ class Prober<F extends DiscoveryFile> {
     return lookup;
   }
 
-  async exists(location: KnownLocation, path: readonly string[]): Promise<boolean> {
-    if (path.length === 0) return location.kind === "directory";
-    return location.kind === "directory"
+  async exists(kind: "directory" | "file", path: readonly string[]): Promise<boolean> {
+    if (path.length === 0) return kind === "directory";
+    return kind === "directory"
       ? (await this.directory(path)) !== null
       : (await this.file(path)) !== null;
   }
 
+  private readonly listed = new Map<
+    DiscoveryDirectory<F>,
+    ReturnType<DiscoveryDirectory<F>["list"]>
+  >();
+
+  /** Lists a folder once, however many sources look into it. */
   list(directory: DiscoveryDirectory<F>): ReturnType<DiscoveryDirectory<F>["list"]> {
+    const cached = this.listed.get(directory);
+    if (cached !== undefined) return cached;
     this.listings += 1;
-    return directory.list();
+    const listing = directory.list();
+    this.listed.set(directory, listing);
+    return listing;
   }
 }
 
 function aborted(signal: AbortSignal | undefined): boolean {
   return signal?.aborted === true;
+}
+
+/**
+ * Whether a candidate history folder holds this source's kind of files, judged
+ * by names in the folder and its first few subfolders. Nothing is read.
+ */
+async function namesFit<F extends DiscoveryFile>(
+  prober: Prober<F>,
+  directory: DiscoveryDirectory<F>,
+  names: HistoryNames,
+): Promise<boolean> {
+  const anyOf = names.anyOf.map((pattern) => new RegExp(pattern, "u"));
+  const noneOf = (names.noneOf ?? []).map((pattern) => new RegExp(pattern, "u"));
+  const seen: string[] = [];
+  const top = await prober.list(directory);
+  const collect = (listing: Awaited<typeof top>) => {
+    for (const file of listing.files) seen.push(file.name);
+    for (const folder of listing.directories) seen.push(folder.name);
+  };
+  collect(top);
+  for (const folder of [...top.directories].sort(byName).slice(0, NAME_CHECK_FOLDERS)) {
+    collect(await prober.list(folder));
+  }
+  return (
+    seen.some((name) => anyOf.some((pattern) => pattern.test(name))) &&
+    !seen.some((name) => noneOf.some((pattern) => pattern.test(name)))
+  );
 }
 
 /** Lists a found history folder, bounded by the adapter's depth, extension and file limit. */
@@ -277,6 +336,50 @@ async function totalSize<F extends DiscoveryFile>(
 }
 
 /**
+ * Where this source's history is under the chosen folder, if anywhere: the
+ * registered location or the rest of it (tried by name), then a root the
+ * source recognizes by its exact children. A history folder reached without its
+ * tool's own parent folder must also fit the source's file names.
+ */
+async function locateHistory<F extends DiscoveryFile>(
+  prober: Prober<F>,
+  root: DiscoveryDirectory<F>,
+  source: SourceDiscovery,
+  registry: readonly SourceDiscovery[],
+  platform: DiscoveryPlatform | undefined,
+): Promise<{ path: readonly string[]; kind: "directory" | "file" } | undefined> {
+  const confirmed = async (path: readonly string[], kind: "directory" | "file", named: boolean) => {
+    if (kind === "file" || named || source.historyNames === undefined) return true;
+    const directory = path.length === 0 ? root : await prober.directory(path);
+    return directory !== null && namesFit(prober, directory, source.historyNames);
+  };
+  const verifiable = source.historyNames !== undefined;
+  for (const location of ordered(source.history, platform)) {
+    for (const path of anchoredPaths(location, root.name, registry, "history", verifiable)) {
+      if (!(await prober.exists(location.kind, path))) continue;
+      // The folder itself is the history folder: its name alone may be shared.
+      if (await confirmed(path, location.kind, path.length > 0))
+        return { path, kind: location.kind };
+    }
+  }
+  for (const signature of source.roots ?? []) {
+    let present = true;
+    for (const marker of signature.requires) {
+      if (!(await prober.exists(marker.kind, [marker.name]))) {
+        present = false;
+        break;
+      }
+    }
+    if (!present) continue;
+    if (!(await prober.exists(signature.kind, signature.history))) continue;
+    // Two tools can share a root signature; the history's file names decide.
+    if (await confirmed(signature.history, signature.kind, false))
+      return { path: signature.history, kind: signature.kind };
+  }
+  return undefined;
+}
+
+/**
  * Checks one chosen folder for every registered history.
  *
  * Findings are reported as they become real: `checking` when a source's probe
@@ -311,16 +414,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
     };
     options.onFinding?.({ ...base, status: "checking" });
 
-    let match: { location: KnownLocation; path: readonly string[] } | undefined;
-    for (const location of ordered(source.history, options.platform)) {
-      for (const path of anchoredPaths(location, root.name, registry)) {
-        if (await prober.exists(location, path)) {
-          match = { location, path };
-          break;
-        }
-      }
-      if (match !== undefined) break;
-    }
+    const match = await locateHistory(prober, root, source, registry, options.platform);
 
     let finding: SourceFinding<F>;
     if (match === undefined) {
@@ -328,7 +422,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
       if (base.importable) {
         for (const marker of ordered(source.installed, options.platform)) {
           for (const path of anchoredPaths(marker, root.name, registry, "installed")) {
-            if (await prober.exists(marker, path)) installed = true;
+            if (await prober.exists(marker.kind, path)) installed = true;
             if (installed) break;
           }
           if (installed) break;
@@ -337,7 +431,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
       finding = { ...base, status: installed ? "access-needed" : "not-found" };
     } else if (!base.importable) {
       finding = { ...base, status: "unsupported", location: match.path };
-    } else if (source.inventory === undefined || match.location.kind === "file") {
+    } else if (source.inventory === undefined || match.kind === "file") {
       finding = { ...base, status: "unsupported", location: match.path };
     } else {
       const directory = match.path.length === 0 ? root : await prober.directory(match.path);
@@ -386,18 +480,21 @@ export function discoveryPlatformFromHint(hint: string | undefined): DiscoveryPl
 
 /**
  * Every path discovery may ask for by name, as joined component strings: each
- * registered location and every prefix of it. The privacy contract tests
- * compare every real probe against this set.
+ * registered location and every prefix of it, and each root signature's child
+ * names. The privacy contract tests compare every real probe against this set.
  */
 export function registeredProbePaths(
   registry: readonly SourceDiscovery[] = DISCOVERY_REGISTRY,
 ): Set<string> {
   const paths = new Set<string>();
+  const add = (path: readonly string[]) => {
+    for (let end = 1; end <= path.length; end += 1) paths.add(path.slice(0, end).join("/"));
+  };
   for (const source of registry) {
-    for (const location of [...source.history, ...source.installed]) {
-      for (let end = 1; end <= location.path.length; end += 1) {
-        paths.add(location.path.slice(0, end).join("/"));
-      }
+    for (const location of [...source.history, ...source.installed]) add(location.path);
+    for (const signature of source.roots ?? []) {
+      for (const marker of signature.requires) add([marker.name]);
+      add(signature.history);
     }
   }
   return paths;

@@ -17,5 +17,13 @@ export const OPENCODE_DISCOVERY: SourceDiscovery = {
     },
   ],
   installed: [],
+  // The data folder under any name: it holds the documented database.
+  roots: [
+    {
+      requires: [{ name: "opencode.db", kind: "file" }],
+      history: ["opencode.db"],
+      kind: "file",
+    },
+  ],
   evidence: ["https://opencode.ai/docs/troubleshooting/"],
 };

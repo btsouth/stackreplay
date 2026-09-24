@@ -1,6 +1,7 @@
-import type { SourceFinding } from "@stackreplay/adapters/discovery";
+import { discoverHistories, type SourceFinding } from "@stackreplay/adapters/discovery";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  applyChosenFolder,
   chosenFiles,
   type HistoryRow,
   mergeFinding,
@@ -9,6 +10,7 @@ import {
   waitingRows,
 } from "./discovery-list";
 import {
+  chosenFolder,
   forgetConnections,
   readConnections,
   rememberConnections,
@@ -111,6 +113,83 @@ describe("discovered history list", () => {
       "a.prompts.jsonl",
       "a.meta.json",
     ]);
+  });
+});
+
+/** Files as the folder chooser hands them over: each with its path below the chosen folder. */
+function chosen(paths: string[]): File[] {
+  return paths.map((path) => {
+    const file = new File(["{}"], path.split("/").at(-1) ?? path);
+    Object.defineProperty(file, "webkitRelativePath", { value: path });
+    return file;
+  });
+}
+
+async function recognize(files: File[]) {
+  const tree = chosenFolder(files);
+  if (tree === undefined) throw new Error("no folder");
+  return (await discoverHistories(tree)).findings;
+}
+
+describe("a folder from the folder chooser", () => {
+  const uuid = "0b1c0000-0000-4000-8000-000000000001";
+
+  it("upgrades OpenCode to found-but-not-readable when its data folder is added", async () => {
+    const files = chosen(["opencode/opencode.db", "opencode/auth.json", "opencode/log/a.log"]);
+    const findings = await recognize(files);
+    let rows: HistoryRow[] = waitingRows().map((row) => ({ ...row, status: "not-found" }));
+    rows = applyChosenFolder(rows, findings, files, "opencode", undefined);
+    expect(rows.find((row) => row.key === "opencode")).toMatchObject({
+      status: "unsupported",
+      via: "chooser",
+    });
+    // Recognized, so no anonymous added location appears as well.
+    expect(rows.some((row) => row.key.startsWith("location-"))).toBe(false);
+  });
+
+  it("recognizes a renamed OpenCode data folder by its database", async () => {
+    const files = chosen(["backup-2026/opencode.db", "backup-2026/snapshot/x.bin"]);
+    const opencode = (await recognize(files)).find((finding) => finding.adapterId === "opencode");
+    expect(opencode?.status).toBe("unsupported");
+  });
+
+  it("gives Connect Claude Code the projects history from a chosen .claude folder", async () => {
+    const files = chosen([
+      `.claude/projects/-home-dev-app/${uuid}.jsonl`,
+      ".claude/history.jsonl",
+      ".claude/settings.json",
+    ]);
+    const findings = await recognize(files);
+    let rows: HistoryRow[] = waitingRows().map((row) =>
+      row.key === "claude-code" ? { ...row, status: "access-needed" } : row,
+    );
+    rows = applyChosenFolder(rows, findings, files, ".claude", "claude-code");
+    const claude = rows.find((row) => row.key === "claude-code");
+    expect(claude).toMatchObject({ status: "found", fileCount: 1, via: "chooser" });
+    // The prompt history beside it is never taken.
+    expect(claude?.files?.map((file) => file.path)).toEqual([
+      `projects/-home-dev-app/${uuid}.jsonl`,
+    ]);
+  });
+
+  it("trusts Connect when the folder is not recognized, and keeps only session files", async () => {
+    const files = chosen(["claude-archive/a/old-session.jsonl", "claude-archive/a/notes.md"]);
+    const findings = await recognize(files);
+    let rows: HistoryRow[] = waitingRows().map((row) =>
+      row.key === "claude-code" ? { ...row, status: "access-needed" } : row,
+    );
+    rows = applyChosenFolder(rows, findings, files, "claude-archive", "claude-code");
+    expect(rows.find((row) => row.key === "claude-code")).toMatchObject({
+      status: "connected",
+      fileCount: 1,
+    });
+  });
+
+  it("adds an unrecognized folder as a location identified at import", async () => {
+    const files = chosen(["exports/usage.json", "exports/readme.txt"]);
+    const findings = await recognize(files);
+    const rows = applyChosenFolder(waitingRows(), findings, files, "exports", undefined);
+    expect(rows.at(-1)).toMatchObject({ key: "location-1", status: "connected", fileCount: 1 });
   });
 });
 

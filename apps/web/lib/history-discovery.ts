@@ -97,6 +97,75 @@ export function entryDirectory(entry: FileSystemDirectoryEntry): DiscoveryDirect
   };
 }
 
+/** A file from the folder chooser: the browser already holds it, so nothing is read here. */
+export class ChosenFile implements DiscoveryFile {
+  constructor(private readonly handle: File) {}
+
+  get name(): string {
+    return this.handle.name;
+  }
+
+  file(): Promise<File> {
+    return Promise.resolve(this.handle);
+  }
+
+  async size(): Promise<number> {
+    return this.handle.size;
+  }
+}
+
+interface ChosenNode {
+  name: string;
+  folders: Map<string, ChosenNode>;
+  files: Map<string, File>;
+}
+
+function chosenDirectory(node: ChosenNode): DiscoveryDirectory<ChosenFile> {
+  return {
+    name: node.name,
+    async directory(name) {
+      const child = node.folders.get(name);
+      return child === undefined ? null : chosenDirectory(child);
+    },
+    async file(name) {
+      const child = node.files.get(name);
+      return child === undefined ? null : new ChosenFile(child);
+    },
+    async list() {
+      return {
+        directories: [...node.folders.values()].map(chosenDirectory),
+        files: [...node.files.values()].map((file) => new ChosenFile(file)),
+      };
+    },
+  };
+}
+
+/**
+ * A folder picked with the folder chooser, as the same discovery interface a
+ * drop gives: the chooser has already handed the page this folder's files, so
+ * recognizing what the folder is follows exactly the same rules as a drop.
+ */
+export function chosenFolder(files: readonly File[]): DiscoveryDirectory<ChosenFile> | undefined {
+  const root: ChosenNode = { name: "", folders: new Map(), files: new Map() };
+  for (const file of files) {
+    const parts = (file.webkitRelativePath ?? "").split("/").filter((part) => part.length > 0);
+    const name = parts.at(-1);
+    if (parts.length < 2 || name === undefined) continue;
+    root.name ||= parts[0] ?? "";
+    let node = root;
+    for (const part of parts.slice(1, -1)) {
+      let next = node.folders.get(part);
+      if (next === undefined) {
+        next = { name: part, folders: new Map(), files: new Map() };
+        node.folders.set(part, next);
+      }
+      node = next;
+    }
+    node.files.set(name, file);
+  }
+  return root.name === "" ? undefined : chosenDirectory(root);
+}
+
 /**
  * The folders in a drop. Must run inside the drop handler: browsers empty the
  * data transfer when the event ends. Dropped files are counted, not kept.

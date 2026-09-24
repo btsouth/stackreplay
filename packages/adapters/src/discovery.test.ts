@@ -101,11 +101,11 @@ const PERSONAL: Tree = {
 
 const claudeProjects: Tree = {
   "-home-dev-synthetic-app": {
-    "0b1c.jsonl": 1000,
-    "0b1c": { subagents: { "agent-1.jsonl": 250 } },
+    "0b1c0000-0000-4000-8000-000000000001.jsonl": 1000,
+    "0b1c0000-0000-4000-8000-000000000001": { subagents: { "agent-1.jsonl": 250 } },
     "notes.md": 40,
   },
-  "-home-dev-synthetic-lib": { "9f2e.jsonl": 500 },
+  "-home-dev-synthetic-lib": { "9f2e0000-0000-4000-8000-000000000002.jsonl": 500 },
 };
 const codexSessions: Tree = {
   "2026": {
@@ -127,6 +127,26 @@ describe("Linux home", () => {
     const { status } = await discover(home, { platform: "linux" });
     expect(status["Claude Code"]).toMatchObject({ status: "found", fileCount: 3, bytes: 1750 });
     expect(status.Codex).toMatchObject({ status: "found", fileCount: 2, bytes: 3700 });
+  });
+
+  it("counts workflow subagent transcripts nested deep inside a session", async () => {
+    const nested: Tree = {
+      ".claude": {
+        projects: {
+          "-home-dev-synthetic-app": {
+            "0b1c0000-0000-4000-8000-000000000001.jsonl": 10,
+            "0b1c0000-0000-4000-8000-000000000001": {
+              subagents: {
+                "agent-1.jsonl": 5,
+                workflows: { wf_1: { "journal.jsonl": 1, "agent-2.jsonl": 7 } },
+              },
+            },
+          },
+        },
+      },
+    };
+    const { status } = await discover(nested, { platform: "linux" });
+    expect(status["Claude Code"]).toMatchObject({ status: "found", fileCount: 4, bytes: 23 });
   });
 
   it("reports a missing source quietly and a found database it cannot parse as unsupported", async () => {
@@ -287,8 +307,8 @@ describe("WSL and custom locations", () => {
     expect(status.Codex).toMatchObject({ status: "found", location: [], fileCount: 2 });
   });
 
-  it("does not guess which tool an ambiguous history folder belongs to", async () => {
-    const { status } = await discover(claudeProjects, { root: "projects" });
+  it("does not guess which tool an empty same-named history folder belongs to", async () => {
+    const { status } = await discover({ "-home-dev-empty": {} }, { root: "projects" });
     expect(status["Claude Code"]?.status).toBe("not-found");
     expect(status["Command Code"]?.status).toBe("not-found");
   });
@@ -296,6 +316,149 @@ describe("WSL and custom locations", () => {
   it("marks a chosen tool folder with a linked history as needing access", async () => {
     const { status } = await discover({ projects: LINK }, { root: ".claude" });
     expect(status["Claude Code"]?.status).toBe("access-needed");
+  });
+});
+
+/**
+ * A supplied folder can be a home folder, a tool folder, the history folder
+ * itself, a data folder holding a database, or a custom root. A recognized
+ * source must never read as not found because the folder was deeper than the
+ * home-relative location.
+ */
+describe("direct roots", () => {
+  const commandCodeProjects: Tree = {
+    "synthetic-app": { "c1.jsonl": 400, "c1.meta.json": 5, "c1.checkpoints.jsonl": 9 },
+  };
+  const openCodeData: Tree = {
+    "opencode.db": 8192,
+    "auth.json": 1,
+    log: { "2026-09-01.log": 1 },
+    snapshot: { deep: { "x.bin": 1 } },
+  };
+
+  it("recognizes Claude Code's projects folder dropped on its own", async () => {
+    const { status } = await discover(claudeProjects, { root: "projects" });
+    expect(status["Claude Code"]).toMatchObject({ status: "found", location: [], fileCount: 3 });
+    expect(status["Command Code"]?.status).toBe("not-found");
+  });
+
+  it("recognizes Command Code's projects folder dropped on its own", async () => {
+    const { status } = await discover(commandCodeProjects, { root: "projects" });
+    expect(status["Command Code"]).toMatchObject({ status: "found", fileCount: 1 });
+    expect(status["Claude Code"]?.status).toBe("not-found");
+  });
+
+  it("recognizes a Command Code root", async () => {
+    const { status } = await discover(
+      { projects: commandCodeProjects, "history.jsonl": 1, "settings.json": 1 },
+      { root: ".commandcode" },
+    );
+    expect(status["Command Code"]).toMatchObject({ status: "found", location: ["projects"] });
+    expect(status["Claude Code"]?.status).toBe("not-found");
+  });
+
+  it("recognizes a custom CLAUDE_CONFIG_DIR by its children, not its name", async () => {
+    const { status } = await discover(
+      { projects: claudeProjects, "history.jsonl": 10, "settings.json": 1 },
+      { root: "claude-work" },
+    );
+    expect(status["Claude Code"]).toMatchObject({ status: "found", location: ["projects"] });
+    expect(status["Command Code"]?.status).toBe("not-found");
+  });
+
+  it("recognizes Codex's sessions folder and a custom CODEX_HOME", async () => {
+    const direct = await discover(codexSessions, { root: "sessions" });
+    expect(direct.status.Codex).toMatchObject({ status: "found", location: [], fileCount: 2 });
+    const custom = await discover(
+      { sessions: codexSessions, "config.toml": 1 },
+      { root: "codex-work" },
+    );
+    expect(custom.status.Codex).toMatchObject({ status: "found", location: ["sessions"] });
+  });
+
+  it("does not take another tool's sessions folder for Codex", async () => {
+    const claudeSessions = await discover(
+      { "674351.json": 1, "674351.abc.key": 1 },
+      { root: "sessions" },
+    );
+    expect(claudeSessions.status.Codex?.status).toBe("not-found");
+    const hermesSessions = await discover(
+      { "request_dump_1_2.json": 1, "request_dump_3_4.json": 1 },
+      { root: "sessions" },
+    );
+    expect(hermesSessions.status.Codex?.status).toBe("not-found");
+  });
+
+  it("recognizes the OpenCode data folder as found but not readable in the browser", async () => {
+    const { status } = await discover(openCodeData, { root: "opencode" });
+    expect(status.OpenCode).toMatchObject({
+      status: "unsupported",
+      importable: false,
+      location: ["opencode.db"],
+    });
+  });
+
+  it("recognizes the OpenCode database's folder under any name", async () => {
+    const { status } = await discover(openCodeData, { root: "opencode-backup" });
+    expect(status.OpenCode).toMatchObject({ status: "unsupported", location: ["opencode.db"] });
+    expect(status.Hermes?.status).toBe("not-found");
+  });
+
+  it("recognizes the parents above the OpenCode data folder", async () => {
+    const share = await discover({ opencode: openCodeData }, { root: "share" });
+    expect(share.status.OpenCode?.status).toBe("unsupported");
+    const local = await discover({ share: { opencode: openCodeData } }, { root: ".local" });
+    expect(local.status.OpenCode?.status).toBe("unsupported");
+  });
+
+  it("recognizes a custom HERMES_HOME as found but not readable in the browser", async () => {
+    const { status } = await discover(
+      { "state.db": 1, "config.yaml": 1, sessions: {} },
+      { root: "hermes-agent-data" },
+    );
+    expect(status.Hermes).toMatchObject({ status: "unsupported", location: ["state.db"] });
+    expect(status.Codex?.status).toBe("not-found");
+  });
+
+  it("finds nothing in an unrelated folder and lists nothing in it", async () => {
+    const { status, log, run } = await discover(PERSONAL, { root: "Documents" });
+    for (const finding of Object.values(status)) {
+      expect((finding as SourceFinding).status).toBe("not-found");
+    }
+    expect(run.listings).toBe(0);
+    expect(log.filter((entry) => entry.op === "size" || entry.op === "read")).toEqual([]);
+  });
+
+  it("looks only a few folders deep into an unrelated folder that shares a history name", async () => {
+    const repos: Tree = {};
+    for (let index = 0; index < 12; index += 1) {
+      repos[`repo-${index}`] = { "main.go": 1, src: { "lib.go": 1 } };
+    }
+    const { status, log } = await discover(repos, { root: "projects" });
+    expect(status["Claude Code"]?.status).toBe("not-found");
+    expect(status["Command Code"]?.status).toBe("not-found");
+    const listings = log.filter((entry) => entry.op === "list").map((entry) => entry.path);
+    // The folder itself and its first few subfolders, once, whichever tool asked.
+    expect(listings).toEqual(["", "repo-0", "repo-1", "repo-10", "repo-11"]);
+    expect(log.filter((entry) => entry.op === "size" || entry.op === "read")).toEqual([]);
+  });
+
+  it("still reaches every registered path from a home folder", async () => {
+    const home: Tree = {
+      ".claude": { projects: claudeProjects },
+      ".codex": { sessions: codexSessions },
+      ".commandcode": { projects: commandCodeProjects },
+      ".local": { share: { opencode: openCodeData } },
+      ".hermes": { "state.db": 1 },
+    };
+    const { status } = await discover(home, { root: "dev" });
+    expect(Object.values(status).map((finding) => (finding as SourceFinding).status)).toEqual([
+      "found",
+      "found",
+      "found",
+      "unsupported",
+      "unsupported",
+    ]);
   });
 });
 
@@ -355,15 +518,16 @@ describe("privacy contract", () => {
 
   it("probes from a tool folder only along the tails of registered locations", async () => {
     const { log } = await discover({ projects: claudeProjects }, { root: ".claude" });
-    const tails = new Set(
-      DISCOVERY_REGISTRY.flatMap((source) =>
+    const tails = new Set<string>([
+      ...registeredProbePaths(),
+      ...DISCOVERY_REGISTRY.flatMap((source) =>
         [...source.history, ...source.installed].flatMap((location) =>
           anchoredPaths(location, ".claude").flatMap((path) =>
             path.map((_, end) => path.slice(0, end + 1).join("/")),
           ),
         ),
       ),
-    );
+    ]);
     for (const probe of log.filter((entry) => entry.op === "directory" || entry.op === "file")) {
       expect(tails.has(probe.path), probe.path).toBe(true);
     }

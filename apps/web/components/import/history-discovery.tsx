@@ -22,17 +22,17 @@ import {
   LargeHistoryNote,
 } from "@/components/import/large-history-note";
 import {
-  chosenFiles,
+  applyChosenFolder,
   FOUND,
   type HistoryRow,
   type HistorySelection,
   mergeFinding,
   type RowStatus,
   SETTLED,
-  sourceFor,
   waitingRows,
 } from "@/lib/discovery-list";
 import {
+  chosenFolder,
   droppedFolders,
   entryDirectory,
   forgetConnections,
@@ -273,40 +273,30 @@ export function HistoryDiscovery({
     chooserRef.current?.click();
   }, []);
 
-  const onChosen = useCallback((list: File[]) => {
-    const target = chooserTarget.current;
-    chooserTarget.current = undefined;
-    if (target === undefined || list.length === 0) return;
-    const folder = list[0]?.webkitRelativePath.split("/")[0] || "chosen folder";
-    setRows((current) => {
-      const index =
-        target.key === undefined ? -1 : current.findIndex((row) => row.key === target.key);
-      const base = index === -1 ? undefined : current[index];
-      const files = chosenFiles(list, sourceFor(base));
-      const locations = current.filter((row) => row.key.startsWith("location-")).length;
-      const row: HistoryRow = {
-        key: base?.key ?? `location-${locations + 1}`,
-        ...(base?.adapterId === undefined ? {} : { adapterId: base.adapterId }),
-        name: base?.name ?? "Added location",
-        status: files.length === 0 ? "empty" : "connected",
-        where: folder,
-        via: "chooser",
-        fileCount: files.length,
-        bytes: files.reduce((total, file) => total + file.size, 0),
-        files: files.map((file) => ({
-          get: () => Promise.resolve(file),
-          path: file.webkitRelativePath || file.name,
-        })),
-        selected: files.length > 0,
-      };
-      if (index === -1) return [...current, row];
-      const next = [...current];
-      next[index] = row;
-      return next;
-    });
-    setAnnouncement(`${folder} connected. Review the list, then build the workload.`);
-    setPhase("selecting");
-  }, []);
+  /**
+   * A folder from the folder chooser is recognized by the same rules as a drop,
+   * over the files the chooser already handed the page, then joins the list.
+   */
+  const onChosen = useCallback(
+    async (list: File[]) => {
+      const target = chooserTarget.current;
+      chooserTarget.current = undefined;
+      if (target === undefined || list.length === 0) return;
+      const folder = list[0]?.webkitRelativePath.split("/")[0] || "chosen folder";
+      const tree = chosenFolder(list);
+      const run = tree === undefined ? undefined : await discoverHistories(tree, { platform });
+      const findings = run?.findings ?? [];
+      setRows((current) => applyChosenFolder(current, findings, list, folder, target.key));
+      const named = findings
+        .filter((finding) => finding.status !== "not-found")
+        .map((finding) => `${finding.name}: ${describe(finding)}`);
+      setAnnouncement(
+        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then build the workload.`,
+      );
+      setPhase("selecting");
+    },
+    [platform],
+  );
 
   const toggle = useCallback((key: string, value: boolean) => {
     setRows((current) =>
@@ -714,7 +704,7 @@ export function HistoryDiscovery({
         className="sr-only"
         data-testid="discovery-folder-input"
         onChange={(event) => {
-          onChosen(Array.from(event.target.files ?? []));
+          void onChosen(Array.from(event.target.files ?? []));
           event.target.value = "";
         }}
       />

@@ -86,6 +86,7 @@ export function rowFromFinding(
   key: string,
   where: string,
   extra: boolean,
+  via: "discovery" | "chooser" = "discovery",
 ): HistoryRow {
   return {
     key,
@@ -93,7 +94,7 @@ export function rowFromFinding(
     name: finding.name,
     status: finding.status,
     where,
-    via: "discovery",
+    via,
     ...(extra ? { extra: true } : {}),
     ...(finding.fileCount === undefined ? {} : { fileCount: finding.fileCount }),
     ...(finding.bytes === undefined ? {} : { bytes: finding.bytes }),
@@ -122,13 +123,14 @@ export function mergeFinding(
   finding: SourceFinding<ResolvableFile>,
   where: string,
   first: boolean,
+  via: "discovery" | "chooser" = "discovery",
 ): HistoryRow[] {
   const index = rows.findIndex((row) => row.key === finding.adapterId);
   if (index === -1) return rows;
   const existing = rows[index] as HistoryRow;
   const next = [...rows];
   if (first) {
-    next[index] = rowFromFinding(finding, finding.adapterId, where, false);
+    next[index] = rowFromFinding(finding, finding.adapterId, where, false, via);
     return next;
   }
   if (finding.status === "checking") return rows;
@@ -138,12 +140,12 @@ export function mergeFinding(
     next.splice(
       index + siblings,
       0,
-      rowFromFinding(finding, `${finding.adapterId}-${siblings + 1}`, where, true),
+      rowFromFinding(finding, `${finding.adapterId}-${siblings + 1}`, where, true, via),
     );
     return next;
   }
   if (STRENGTH.indexOf(finding.status) <= STRENGTH.indexOf(existing.status)) return rows;
-  next[index] = rowFromFinding(finding, finding.adapterId, where, false);
+  next[index] = rowFromFinding(finding, finding.adapterId, where, false, via);
   return next;
 }
 
@@ -160,4 +162,74 @@ export function chosenFiles(files: File[], source: SourceDiscovery | undefined):
     if (!name.endsWith(spec.extension)) return false;
     return !spec.excludeSuffixes?.some((suffix) => name.endsWith(suffix));
   });
+}
+
+/**
+ * Folds what a folder picked with the folder chooser turned out to be into the
+ * list. Recognized histories join like a later drop. A tool's own Connect
+ * button trusts the person when the folder is not recognized: the row takes
+ * the folder's session files and the scan confirms them. A folder recognized
+ * as nothing becomes an added location, identified by content at import.
+ */
+export function applyChosenFolder(
+  rows: HistoryRow[],
+  findings: readonly SourceFinding<ResolvableFile>[],
+  files: readonly File[],
+  folder: string,
+  targetKey: string | undefined,
+): HistoryRow[] {
+  const target = targetKey === undefined ? undefined : rows.find((row) => row.key === targetKey);
+  const own = findings.find(
+    (finding) =>
+      finding.adapterId === target?.adapterId &&
+      (finding.status === "found" || finding.status === "empty"),
+  );
+  const recognized = findings.filter(
+    (finding) =>
+      finding !== own &&
+      (finding.status === "found" ||
+        finding.status === "empty" ||
+        finding.status === "unsupported"),
+  );
+  let next = rows;
+  for (const finding of recognized) next = mergeFinding(next, finding, folder, false, "chooser");
+  if (target !== undefined) {
+    const row =
+      own === undefined
+        ? connectedRow(target, chosenFiles([...files], sourceFor(target)), folder)
+        : rowFromFinding(own, target.key, folder, false, "chooser");
+    return next.map((existing) => (existing.key === target.key ? row : existing));
+  }
+  if (recognized.length > 0) return next;
+  const locations = next.filter((row) => row.key.startsWith("location-")).length;
+  return [
+    ...next,
+    connectedRow(
+      { key: `location-${locations + 1}`, name: "Added location" },
+      chosenFiles([...files], undefined),
+      folder,
+    ),
+  ];
+}
+
+function connectedRow(
+  base: { key: string; name: string; adapterId?: string },
+  files: File[],
+  folder: string,
+): HistoryRow {
+  return {
+    key: base.key,
+    ...(base.adapterId === undefined ? {} : { adapterId: base.adapterId }),
+    name: base.name,
+    status: files.length === 0 ? "empty" : "connected",
+    where: folder,
+    via: "chooser",
+    fileCount: files.length,
+    bytes: files.reduce((total, file) => total + file.size, 0),
+    files: files.map((file) => ({
+      get: () => Promise.resolve(file),
+      path: file.webkitRelativePath || file.name,
+    })),
+    selected: files.length > 0,
+  };
 }

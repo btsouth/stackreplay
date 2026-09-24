@@ -14,9 +14,22 @@ export const COMMAND_CODE_DISCOVERY: SourceDiscovery = {
   ],
   installed: [{ path: [".commandcode"], kind: "directory", platforms: ["linux", "macos"] }],
   inventory: {
-    maxDepth: 1,
+    // Sessions sit one level down; the margin keeps a nested transcript in.
+    maxDepth: 3,
     extension: ".jsonl",
     excludeSuffixes: [".checkpoints.jsonl", ".prompts.jsonl"],
   },
+  roots: [
+    {
+      requires: [
+        { name: "projects", kind: "directory" },
+        { name: "history.jsonl", kind: "file" },
+      ],
+      history: ["projects"],
+      kind: "directory",
+    },
+  ],
+  // The documented `.meta.json` and `.checkpoints.jsonl` sidecars tell it apart from Claude Code.
+  historyNames: { anyOf: ["\\.meta\\.json$", "\\.checkpoints\\.jsonl$"] },
   evidence: ["https://commandcode.ai/docs/sessions"],
 };

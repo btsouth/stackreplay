@@ -13,6 +13,17 @@ export const HERMES_DISCOVERY: SourceDiscovery = {
     { path: ["AppData", "Local", "hermes"], kind: "directory", platforms: ["windows"] },
   ],
   installed: [],
+  // HERMES_HOME under any name: its state database beside its documented config.
+  roots: [
+    {
+      requires: [
+        { name: "state.db", kind: "file" },
+        { name: "config.yaml", kind: "file" },
+      ],
+      history: ["state.db"],
+      kind: "file",
+    },
+  ],
   relocatedBy: "HERMES_HOME",
   evidence: [
     "https://hermes-agent.nousresearch.com/docs/getting-started/installation",

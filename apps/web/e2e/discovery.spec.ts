@@ -164,7 +164,8 @@ test("a linked history needs additional access and connects without disturbing t
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("connect-row-claude-code").click();
   await (await chooser).setFiles(`${home}/.claude/projects`);
-  await expect(claude).toHaveAttribute("data-status", "connected");
+  // The chosen folder is recognized as Claude Code's history, not taken on trust.
+  await expect(claude).toHaveAttribute("data-status", "found");
   await expect(claude).toContainText("2 files");
   await expect(page.getByTestId("history-codex")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("selection-count")).toContainText("2 selected");
@@ -178,6 +179,8 @@ test("a linked history needs additional access and connects without disturbing t
 });
 
 test("another location joins the same list", async ({ page }, testInfo) => {
+  // An unrecognized folder would join as an added location; a recognized one
+  // joins as its tool's history.
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 1, codexRollouts: 1 });
   const wsl = testInfo.outputPath("wsl-home/.claude/projects");
@@ -186,7 +189,9 @@ test("another location joins the same list", async ({ page }, testInfo) => {
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("add-location").click();
   await (await chooser).setFiles(wsl);
-  await expect(page.getByTestId("history-location-1")).toHaveAttribute("data-status", "connected");
+  // Recognized as a second Claude Code history, beside the one already found.
+  await expect(page.getByTestId("history-claude-code-2")).toHaveAttribute("data-status", "found");
+  await expect(page.locator('[data-testid^="history-location-"]')).toHaveCount(0);
   await expect(page.getByTestId("selection-count")).toContainText("3 selected");
 });
 
@@ -196,6 +201,36 @@ test("a dropped tool folder works as well as a home folder", async ({ page }, te
   await discover(page, `${home}/.codex`);
   await expect(page.getByTestId("history-codex")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("history-claude-code")).toContainText("Not found");
+});
+
+test("an OpenCode data folder reads as found but not readable, dropped or chosen", async ({
+  page,
+}, testInfo) => {
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home);
+  const data = `${home}/.local/share/opencode`;
+  await discover(page, data);
+  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "unsupported");
+  await expect(page.getByTestId("history-opencode")).toContainText("Not readable in browser");
+
+  // The same folder through Add another location, after a drop that missed it.
+  await discover(page, `${home}/.codex`);
+  await expect(page.getByTestId("history-opencode")).toContainText("Not found");
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByTestId("add-location").click();
+  await (await chooser).setFiles(data);
+  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "unsupported");
+  await expect(page.locator('[data-testid^="history-location-"]')).toHaveCount(0);
+});
+
+test("a dropped Claude Code projects folder is recognized as Claude Code", async ({
+  page,
+}, testInfo) => {
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home, { claudeSessions: 2 });
+  await discover(page, `${home}/.claude/projects`);
+  await expect(page.getByTestId("history-claude-code")).toHaveAttribute("data-status", "found");
+  await expect(page.getByTestId("history-command-code")).toContainText("Not found");
 });
 
 test("a dropped file is explained instead of scanned", async ({ page }, testInfo) => {
