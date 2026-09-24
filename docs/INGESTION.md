@@ -58,7 +58,22 @@ The operation-wide `BROWSER_INTAKE_BUDGET` lives in `packages/adapters/src/brows
 
 These limits extend the earlier 512 MiB single-archive and 20,000-entry bounds to a complete batch. The 5 GiB selected/read allowance admits a large multi-year history folder, and a scan above 1 GiB starts with a warning that it can use several gigabytes of browser memory; the 512 MiB expanded cap avoids multiplying decompressed memory across archives. Obvious unsupported extensions are skipped before reading or hashing. A budget breach stops the whole import with the exact aggregate bound named; it never commits a partial workload. The Worker also gives each import a request generation. Starting a new import invalidates the previous generation before any IndexedDB or temporary-session commit, while Replay keeps its separate run guard.
 
-A local Node 24 measurement of the shared intake parser processed a synthetic 50,000-event Codex JSONL file (12.0 MB) in 1.14 seconds, with RSS rising by about 208 MB. This is a parser observation on this machine, not a browser throughput guarantee. The browser runs parsing in a Worker and its memory budget depends on the device.
+### Import performance
+
+Decision 56 records the changes; the measurements below are from one Linux machine (28 cores, Chromium via Playwright, persistent profile), not a guarantee for other devices. Each file is detected from an 8 MiB peek, and a file no larger than that is parsed from the peek, so most files are read once. Larger JSONL files are streamed once more for parsing, split into lines in linear time. A file is fully read a further time for its exact-content signature only when another selected file has the same size. Signatures and identity hashes use native or pre-keyed hashing. Progress is posted at most every 100 ms, and the next file's detection read overlaps the current file (read-ahead 2). A cancelled scan stops within a chunk.
+
+| Build to Workload ready (browser) | Before | After |
+| --- | ---: | ---: |
+| 50 files, 6 MB | 0.82 s | 0.21 s |
+| 450 files, 53 MB (Claude Code and Codex) | 3.31 s | 1.32 s |
+| 5,000 files, 606 MB (300,180 events) | 32.9 s | 12.3 s |
+| One 236 MB Codex rollout | 3.32 s | 0.80 s |
+| 24 Claude Code files with multi-megabyte lines, 506 MB | 7.83 s | 1.82 s |
+| Real Claude Code, Codex and Command Code history, 3.5 GB (snapshot) | 67.5 s | 15.3 s |
+
+The shared intake in Node on the same 3.46 GB snapshot (all 640 files) went from 94.7 s to 13.0 s with an identical result digest, and peak RSS from 971 MB to 562 MB. The main thread had no long tasks in any run; on the 450-file case its busy time fell from 1.14 s to 0.15 s. What remains is JSON parsing of every line (malformed-line warnings depend on it), UTF-8 decoding, and waiting on the browser's file reads.
+
+Chromium aborts an IndexedDB transaction whose single value holds about 300,000 events in an in-memory profile (Incognito, Guest); a normal profile committed 500,000. Such a scan now finishes unsaved, with the existing notice, instead of waiting forever.
 
 ## Planned boundaries
 

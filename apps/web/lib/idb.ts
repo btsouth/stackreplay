@@ -125,6 +125,18 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
 }
 
 /**
+ * The work inside a transaction, stopped as soon as the transaction aborts.
+ *
+ * When Chromium aborts a transaction (a value too large for an in-memory
+ * profile, a full disk), the pending request may never fire its own error
+ * event: only the transaction reports. Waiting on the request alone left an
+ * import waiting forever instead of finishing unsaved.
+ */
+export function untilTransactionEnds<T>(work: Promise<T>, finished: Promise<void>): Promise<T> {
+  return Promise.race([work, finished.then(() => work)]);
+}
+
+/**
  * Runs `run` inside ONE transaction spanning every listed store, and resolves
  * only once that transaction has committed.
  *
@@ -152,7 +164,7 @@ async function withStores<T>(
     });
     let result: T;
     try {
-      result = await run(transaction);
+      result = await untilTransactionEnds(run(transaction), finished);
     } catch (error) {
       // A request that fails aborts the whole transaction; wait for the abort so
       // the caller's rejection cannot race a later open.

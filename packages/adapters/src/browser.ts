@@ -1,6 +1,5 @@
 /** Browser collection uses the same tested source adapters as the CLI. */
 
-import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import type { CatalogV1 } from "@stackreplay/catalog";
 import {
@@ -363,11 +362,27 @@ function* nonEmptyLines(content: string): Generator<string> {
 }
 
 /** Decode JSONL a chunk at a time. The source adapters already consume async
- * lines, so this keeps even a large session file out of a single JS string. */
-async function* streamedLines(stream: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+ * lines, so this keeps even a large session file out of a single JS string.
+ *
+ * Each chunk is searched for line breaks once, from its own start: a line
+ * longer than a chunk (real sessions carry multi-megabyte tool output) is
+ * gathered piece by piece instead of the whole pending text being searched and
+ * sliced again for every chunk, which made long lines cost quadratic time. */
+export async function* streamedLines(
+  stream: ReadableStream<Uint8Array>,
+  onBytes?: (bytes: number) => void,
+  signal?: AbortSignal,
+): AsyncGenerator<string> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let pending = "";
+  // The same rules as before (a trailing carriage return dropped, blank lines
+  // skipped), checked at the line's ends instead of scanned across a line that
+  // can be megabytes long. `\S` uses the whitespace set `trim` uses.
+  const complete = (line: string): string | undefined => {
+    const text = line.charCodeAt(line.length - 1) === 13 ? line.slice(0, -1) : line;
+    return /\S/u.test(text) ? text : undefined;
+  };
   try {
     while (true) {
       let chunk: Awaited<ReturnType<typeof reader.read>>;
@@ -378,14 +393,27 @@ async function* streamedLines(stream: ReadableStream<Uint8Array>): AsyncGenerato
       }
       const { value, done } = chunk;
       if (done) break;
-      pending += decoder.decode(value, { stream: true });
-      let end = pending.indexOf("\n");
-      while (end !== -1) {
-        const line = pending.slice(0, end).replace(/\r$/u, "");
-        if (line.trim().length > 0) yield line;
-        pending = pending.slice(end + 1);
-        end = pending.indexOf("\n");
+      // A cancelled scan stops inside a long file, not only between files.
+      if (signal?.aborted === true) throw new BrowserIntakeCancelledError();
+      onBytes?.(value.byteLength);
+      const text = decoder.decode(value, { stream: true });
+      let end = text.indexOf("\n");
+      if (end === -1) {
+        pending += text;
+        continue;
       }
+      const first = complete(pending + text.slice(0, end));
+      pending = "";
+      if (first !== undefined) yield first;
+      let start = end + 1;
+      end = text.indexOf("\n", start);
+      while (end !== -1) {
+        const line = complete(text.slice(start, end));
+        if (line !== undefined) yield line;
+        start = end + 1;
+        end = text.indexOf("\n", start);
+      }
+      pending = text.slice(start);
     }
     pending += decoder.decode();
     if (pending.trim().length > 0) yield pending.replace(/\r$/u, "");
@@ -394,23 +422,96 @@ async function* streamedLines(stream: ReadableStream<Uint8Array>): AsyncGenerato
   }
 }
 
+/** WebCrypto digests whole buffers, so a file signature is taken block by block. */
+const SIGNATURE_BLOCK_BYTES = 8 * MiB;
+
+/**
+ * An exact-content signature for one selected file, used only to recognize the
+ * same bytes selected twice within one scan; it is never stored or exported.
+ *
+ * The bytes are hashed natively (WebCrypto SHA-256) in fixed 8 MiB blocks, and
+ * the signature is the SHA-256 of the block digests and the byte length. Equal
+ * bytes always give an equal signature however the stream delivered them. A
+ * pure-JavaScript SHA-256 over every byte took most of a large scan's time.
+ */
+export class FileSignature {
+  private block: Uint8Array;
+  private filled = 0;
+  private length = 0;
+  private readonly digests: Uint8Array[] = [];
+
+  /** `sizeHint` sizes the first buffer, so a small file never allocates a whole block. */
+  constructor(sizeHint = SIGNATURE_BLOCK_BYTES) {
+    this.block = new Uint8Array(Math.max(1, Math.min(SIGNATURE_BLOCK_BYTES, sizeHint)));
+  }
+
+  async update(bytes: Uint8Array): Promise<void> {
+    this.length += bytes.byteLength;
+    let offset = 0;
+    while (offset < bytes.byteLength) {
+      const take = Math.min(bytes.byteLength - offset, SIGNATURE_BLOCK_BYTES - this.filled);
+      if (this.filled + take > this.block.byteLength) {
+        // Block boundaries stay at 8 MiB whatever the buffer size, so the
+        // signature does not depend on the size hint.
+        const grown = new Uint8Array(
+          Math.min(SIGNATURE_BLOCK_BYTES, Math.max(this.filled + take, this.block.byteLength * 2)),
+        );
+        grown.set(this.block.subarray(0, this.filled));
+        this.block = grown;
+      }
+      this.block.set(bytes.subarray(offset, offset + take), this.filled);
+      this.filled += take;
+      offset += take;
+      if (this.filled === SIGNATURE_BLOCK_BYTES) await this.flush();
+    }
+  }
+
+  private async flush(): Promise<void> {
+    const digest = await crypto.subtle.digest("SHA-256", this.block.subarray(0, this.filled));
+    this.digests.push(new Uint8Array(digest));
+    this.filled = 0;
+  }
+
+  async digest(): Promise<string> {
+    if (this.filled > 0 || this.digests.length === 0) await this.flush();
+    const summary = new Uint8Array(this.digests.length * 32 + 8);
+    this.digests.forEach((digest, index) => {
+      summary.set(digest, index * 32);
+    });
+    new DataView(summary.buffer).setBigUint64(this.digests.length * 32, BigInt(this.length));
+    this.block = new Uint8Array(0);
+    return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", summary)));
+  }
+}
+
 async function streamedSignature(
   stream: ReadableStream<Uint8Array>,
+  size: number,
   onChunk?: (bytes: number) => void,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const hash = sha256.create();
+  const signature = new FileSignature(size);
   const reader = stream.getReader();
   try {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      hash.update(value);
+      if (signal?.aborted === true) throw new BrowserIntakeCancelledError();
+      await signature.update(value);
       onChunk?.(value.byteLength);
     }
   } finally {
     reader.releaseLock();
   }
-  return bytesToHex(hash.digest());
+  return signature.digest();
+}
+
+/** The same signature for a file already read as text: its UTF-8 bytes. */
+async function textSignature(content: string): Promise<string> {
+  const bytes = utf8ToBytes(content);
+  const signature = new FileSignature(bytes.byteLength);
+  await signature.update(bytes);
+  return signature.digest();
 }
 
 /** Recognition requires a supported record structure. Filenames only select a parser family. */
@@ -496,6 +597,8 @@ function singleFileSystem(
   modified: number,
   size: number,
   stream?: (() => ReadableStream<Uint8Array>) | undefined,
+  onBytes?: (bytes: number) => void,
+  signal?: AbortSignal,
 ): FileSystem {
   const root = "/selected";
   return {
@@ -521,7 +624,7 @@ function singleFileSystem(
       if (maxBytes !== undefined && size > maxBytes)
         throw new Error("selected file exceeds adapter limit");
       if (stream !== undefined) {
-        yield* streamedLines(stream());
+        yield* streamedLines(stream(), onBytes, signal);
       } else {
         for (const line of nonEmptyLines(content)) yield line;
       }
@@ -538,6 +641,17 @@ export async function intakeBrowserCandidates(
     salt?: string;
     budget?: BrowserIntakeBudget;
     onProgress?: (done: number, total: number, progress: BrowserIntakeProgress) => void;
+    /**
+     * At most one progress report per this many milliseconds; the last file's
+     * report is always sent. Reports carry real running totals either way.
+     */
+    progressIntervalMs?: number;
+    /**
+     * How many files' opening reads may be in flight at once. Files are still
+     * processed one at a time in selection order; only the detection read of
+     * the next few starts early, so a browser's per-read latency overlaps.
+     */
+    readAhead?: number;
     /** Stops the intake between files; nothing partial is returned. */
     signal?: AbortSignal;
   },
@@ -590,15 +704,60 @@ export async function intakeBrowserCandidates(
       ...(groups.size > 0 ? { groups: [...groups.values()].map((entry) => ({ ...entry })) } : {}),
     };
   };
+  const interval = options.progressIntervalMs ?? 0;
+  let reportedAt = Number.NEGATIVE_INFINITY;
+  /** A report, unless one went out within the interval; the final one always goes. */
+  const emit = (done: number, final: boolean): void => {
+    if (options.onProgress === undefined) return;
+    const now = performance.now();
+    if (!final && now - reportedAt < interval) return;
+    reportedAt = now;
+    options.onProgress(done, candidates.length, snapshot());
+  };
   const report = (done: number, skipped: boolean): void => {
     if (skipped) scanProgress.skippedFiles += 1;
     const group = candidates[done - 1]?.group;
     const entry = group === undefined ? undefined : groups.get(group);
     if (entry !== undefined) entry.done += 1;
-    if (options.onProgress !== undefined) options.onProgress(done, candidates.length, snapshot());
+    emit(done, done === candidates.length);
+  };
+  const PEEK_BYTES = 8 * MiB;
+  const streams = (candidate: BrowserCandidate): boolean =>
+    /\.jsonl$/iu.test(candidate.path) &&
+    candidate.stream !== undefined &&
+    candidate.peekText !== undefined;
+  const readable = (candidate: BrowserCandidate): boolean =>
+    isBrowserSourceCandidate(candidate.path) && candidate.size <= MAX_SOURCE_FILE_BYTES;
+  // The exact-file signature only has to tell identical selected files apart,
+  // and identical bytes have identical sizes: a streamed file whose size no
+  // other streamed file shares cannot be a duplicate and is not hashed. A file
+  // read as text is signed by its decoded text, whose size is not its byte
+  // size, so any such file in the selection keeps every file signed.
+  const signEverything = candidates.some((candidate) => readable(candidate) && !streams(candidate));
+  const streamedSizes = new Map<number, number>();
+  for (const candidate of candidates) {
+    if (readable(candidate) && streams(candidate))
+      streamedSizes.set(candidate.size, (streamedSizes.get(candidate.size) ?? 0) + 1);
+  }
+  const readAhead = Math.max(1, Math.floor(options.readAhead ?? 1));
+  const peeks = new Map<number, Promise<string>>();
+  /** The detection read for one file, started at most `readAhead - 1` files early. */
+  const peekOf = (index: number): Promise<string> | undefined => {
+    const candidate = candidates[index];
+    if (candidate === undefined || !readable(candidate) || !streams(candidate)) return undefined;
+    let peek = peeks.get(index);
+    if (peek === undefined) {
+      peek = candidate.peekText?.(PEEK_BYTES) ?? Promise.resolve("");
+      // A read that fails is reported when its file's turn comes, never before.
+      peek.catch(() => undefined);
+      peeks.set(index, peek);
+    }
+    return peek;
   };
   for (const [index, candidate] of candidates.entries()) {
     if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
+    // This file's read first, then the next few behind it.
+    for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
     if (!isBrowserSourceCandidate(candidate.path)) {
       outcomes.push({
@@ -620,40 +779,50 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    const streaming =
-      /\.jsonl$/iu.test(candidate.path) &&
-      candidate.stream !== undefined &&
-      candidate.peekText !== undefined;
+    const streaming = streams(candidate);
+    // The peek already holds all of a file this small, so it is parsed from
+    // there instead of being read and decoded a second time.
+    const whole = streaming && candidate.size <= PEEK_BYTES;
+    const signed = signEverything || !streaming || (streamedSizes.get(candidate.size) ?? 0) > 1;
+    let lastReported = 0;
+    const examined = (bytes: number): void => {
+      scanProgress.examinedBytes += bytes;
+      if (scanProgress.examinedBytes - lastReported >= 8 * MiB) {
+        lastReported = scanProgress.examinedBytes;
+        emit(index, false);
+      }
+    };
     let content = "";
-    let signature: string;
+    let signature: string | undefined;
     try {
       budget.add("readBytes", candidate.readCost ?? candidate.size);
       if (streaming) {
-        content = (await candidate.peekText?.(8 * MiB)) ?? "";
-        let lastReported = 0;
-        signature = await streamedSignature(
-          candidate.stream?.() as ReadableStream<Uint8Array>,
-          (bytes) => {
-            scanProgress.examinedBytes += bytes;
-            if (scanProgress.examinedBytes - lastReported >= 8 * MiB) {
-              lastReported = scanProgress.examinedBytes;
-              if (options.onProgress !== undefined)
-                options.onProgress(index, candidates.length, snapshot());
-            }
-          },
-        );
+        const peek = peekOf(index);
+        peeks.delete(index);
+        content = (await peek) ?? "";
+        if (signed) {
+          signature = await streamedSignature(
+            candidate.stream?.() as ReadableStream<Uint8Array>,
+            candidate.size,
+            examined,
+            options.signal,
+          );
+        } else if (whole) {
+          examined(candidate.size);
+        }
       } else {
         content = await candidate.text();
-        signature = bytesToHex(sha256(utf8ToBytes(content)));
+        signature = await textSignature(content);
         scanProgress.examinedBytes += candidate.size;
       }
     } catch (error) {
       if (error instanceof BrowserIntakeBudgetError) throw error;
+      if (error instanceof BrowserIntakeCancelledError) throw error;
       outcomes.push(unreadableOutcome(display, error));
       report(index + 1, true);
       continue;
     }
-    if (seen.has(signature)) {
+    if (signature !== undefined && seen.has(signature)) {
       outcomes.push({
         path: display,
         status: "duplicate",
@@ -663,7 +832,7 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    seen.add(signature);
+    if (signature !== undefined) seen.add(signature);
     const detection = detectBrowserSource(content);
     if (detection.id === undefined) {
       const plainText = /\.txt$/iu.test(candidate.path);
@@ -694,7 +863,10 @@ export async function intakeBrowserCandidates(
         content,
         candidate.lastModified,
         candidate.size,
-        streaming ? candidate.stream : undefined,
+        streaming && !whole ? candidate.stream : undefined,
+        // A file that was not signed is read in full for the first time here.
+        streaming && !whole && !signed ? examined : undefined,
+        options.signal,
       ),
       ...(id === "ccusage" ? { inputFile: path } : {}),
     };
@@ -713,7 +885,9 @@ export async function intakeBrowserCandidates(
       // A streamed file can fail after its first pass succeeded. Its partial
       // events are discarded, so the file is either wholly in or reported out.
       if (!(error instanceof SourceReadError)) throw error;
-      outcomes.push(unreadableOutcome(display, error, adapter.name));
+      // Only a signed file had already been read to the end once; a failure on
+      // a file's first full read is reported as one, as it always was.
+      outcomes.push(unreadableOutcome(display, error, signed ? adapter.name : undefined));
       report(index + 1, true);
       continue;
     }

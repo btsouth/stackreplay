@@ -15,6 +15,14 @@ per-source cards as the manual, keyboard and touch path. Cancel scan stops a sca
 saved workloads. The page remembers connected tool names only and asks for the folder again to
 refresh. StackReplay's own copy no longer says "upload".
 
+A follow-up from physical testing: a folder supplied directly (a tool folder, a history folder, a
+data folder such as OpenCode's, a custom root) is identified by name and registered children, by
+drop or by folder chooser, so OpenCode's store reads as found but not readable in the browser
+instead of not found. Claude Code workflow subagent transcripts nested five levels down are
+counted. Import of a real 3.5 GB history went from 67.5 s to 15.3 s in Chromium with identical
+results (decision 56), and a scan whose storage write is aborted by the browser now finishes
+unsaved instead of hanging.
+
 ### RC1: shipped to production
 
 RC1 consolidates Milestone 4I, the launch polish pass, the final launch audit and the folder-intake

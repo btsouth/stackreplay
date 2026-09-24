@@ -359,6 +359,14 @@ async function handleImportFile(
   });
 }
 
+/**
+ * Files whose opening read may be in flight together. Measured in Chromium on
+ * synthetic and real histories: 2 overlapped most of the per-read latency
+ * (up to 29% faster); 4 and 8 added nothing on real histories, and 8 was 20%
+ * slower on a 3.5 GB one, where early reads compete with large streamed files.
+ */
+const READ_AHEAD = 2;
+
 /** A history group is an identifier the page chose, never a path or free text. */
 function safeGroup(group: unknown): string | undefined {
   return typeof group === "string" && /^[a-z0-9][a-z0-9-]{0,39}$/u.test(group) ? group : undefined;
@@ -482,6 +490,10 @@ async function handleImportSources(
       now,
       budget,
       signal,
+      // Real totals, at most ten times a second: a report per small file cost
+      // more in messages and renders than the scan itself.
+      progressIntervalMs: 100,
+      readAhead: READ_AHEAD,
       onProgress: (done, total, metrics) =>
         progress(
           requestId,

@@ -7,8 +7,10 @@ import {
   BrowserIntakeCancelledError,
   detectBrowserSource,
   expandZipCandidate,
+  FileSignature,
   intakeBrowserCandidates,
   safeIntakeMessage,
+  streamedLines,
 } from "./browser.js";
 import {
   CCUSAGE_DAILY_JSON,
@@ -166,6 +168,77 @@ describe("browser intake using shared adapters", () => {
       ),
     ).rejects.toBeInstanceOf(BrowserIntakeCancelledError);
     expect(reads).toBe(1);
+  });
+
+  it("stops inside a long file when cancelled, without reading it to the end", async () => {
+    const controller = new AbortController();
+    const line = new TextEncoder().encode(`${CODEX_ROLLOUT.split("\n")[3]}\n`);
+    let chunks = 0;
+    const long: BrowserCandidate = {
+      path: "rollout-long.jsonl",
+      size: 300 * 1024 * 1024,
+      lastModified: Date.parse(NOW),
+      text: async () => {
+        throw new Error("whole-file read attempted");
+      },
+      peekText: async () => CODEX_ROLLOUT,
+      stream: () =>
+        new ReadableStream<Uint8Array>({
+          pull(controller_) {
+            chunks += 1;
+            if (chunks === 3) controller.abort();
+            if (chunks > 10_000) return controller_.close();
+            controller_.enqueue(line);
+          },
+        }),
+    };
+    await expect(
+      intakeBrowserCandidates([long], syntheticCatalog(), {
+        now: NOW,
+        salt: FIXTURE_SALT,
+        signal: controller.signal,
+      }),
+    ).rejects.toBeInstanceOf(BrowserIntakeCancelledError);
+    // A few chunks past the abort at most, never the rest of the file.
+    expect(chunks).toBeLessThan(10);
+  });
+
+  it("reads ahead without changing what the scan produces", async () => {
+    const log: string[] = [];
+    const files = (label: string): BrowserCandidate[] =>
+      Array.from({ length: 6 }, (_, index) => {
+        const content = CODEX_ROLLOUT.replaceAll("22222222", `2222222${index}`);
+        const bytes = new TextEncoder().encode(content);
+        return {
+          path: `rollout-${index}.jsonl`,
+          size: bytes.length + index,
+          lastModified: Date.parse(NOW),
+          text: async () => content,
+          peekText: async () => {
+            log.push(`${label}:peek:${index}`);
+            await new Promise((resolve) => setTimeout(resolve, 2));
+            return content;
+          },
+          stream: () => new Blob([bytes]).stream(),
+        };
+      });
+    const serial = await intakeBrowserCandidates(files("serial"), syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    const ahead = await intakeBrowserCandidates(files("ahead"), syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+      readAhead: 4,
+    });
+    expect(JSON.stringify(ahead)).toBe(JSON.stringify(serial));
+    // With read-ahead, the next files' reads start before the first file is done.
+    expect(log.filter((entry) => entry.startsWith("ahead")).slice(0, 4)).toEqual([
+      "ahead:peek:0",
+      "ahead:peek:1",
+      "ahead:peek:2",
+      "ahead:peek:3",
+    ]);
   });
 
   it("accepts a raw source file above the former 256 MB per-file cap", async () => {
@@ -424,18 +497,22 @@ describe("browser intake using shared adapters", () => {
     expect(result.exported?.events.length).toBeGreaterThan(0);
   });
 
-  it("drops a streamed file whole when it stops being readable after the first pass", async () => {
+  /**
+   * A large streamed file (declared above the 8 MiB detection peek) whose
+   * reads are scripted: `failOn` is the stream call that fails halfway.
+   */
+  function flaky(path: string, failOn: number): BrowserCandidate {
     const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
     let streams = 0;
-    const live: BrowserCandidate = {
-      path: "rollout-active.jsonl",
-      size: bytes.length,
+    return {
+      path,
+      size: 9 * 1024 * 1024,
       lastModified: Date.parse(NOW),
       text: async () => CODEX_ROLLOUT,
       peekText: async () => CODEX_ROLLOUT,
       stream: () => {
         streams += 1;
-        if (streams === 1)
+        if (streams !== failOn)
           return new ReadableStream<Uint8Array>({
             start(controller) {
               controller.enqueue(bytes);
@@ -455,8 +532,32 @@ describe("browser intake using shared adapters", () => {
         });
       },
     };
+  }
+
+  it("drops a streamed file whole when its only full read fails partway", async () => {
     const result = await intakeBrowserCandidates(
-      [live, candidate("session.jsonl", CLAUDE_CODE_SESSION)],
+      [flaky("rollout-active.jsonl", 1), candidate("session.jsonl", CLAUDE_CODE_SESSION)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    const outcome = result.outcomes.find((item) => item.path === "rollout-active.jsonl");
+    expect(outcome).toMatchObject({ status: "unreadable", events: 0 });
+    expect(outcome?.source).toBeUndefined();
+    // The scan continues, and no partial events from the unreadable file remain.
+    expect(result.exported?.events.every((event) => event.source.adapterId === "claude-code")).toBe(
+      true,
+    );
+  });
+
+  it("drops a signed file whole when it stops being readable after the first pass", async () => {
+    // Two streamed files of one size might be identical, so both are signed
+    // (read once) before parsing (read again); the second read fails.
+    const result = await intakeBrowserCandidates(
+      [
+        flaky("rollout-active.jsonl", 2),
+        { ...flaky("rollout-other.jsonl", 0), text: async () => "{}", peekText: async () => "{}" },
+        candidate("session.jsonl", CLAUDE_CODE_SESSION),
+      ],
       syntheticCatalog(),
       { now: NOW, salt: FIXTURE_SALT },
     );
@@ -465,10 +566,60 @@ describe("browser intake using shared adapters", () => {
       source: "Codex",
       events: 0,
     });
-    // The scan continues, and no partial events from the unreadable file remain.
     expect(result.exported?.events.every((event) => event.source.adapterId === "claude-code")).toBe(
       true,
     );
+  });
+
+  it("reads a small streamed file once and signs files only when two share a size", async () => {
+    const reads: string[] = [];
+    const tracked = (path: string, content: string, size?: number): BrowserCandidate => {
+      const bytes = new TextEncoder().encode(content);
+      return {
+        path,
+        size: size ?? bytes.length,
+        lastModified: Date.parse(NOW),
+        text: async () => content,
+        peekText: async () => {
+          reads.push(`peek:${path}`);
+          return content;
+        },
+        stream: () => {
+          reads.push(`stream:${path}`);
+          return new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(bytes);
+              controller.close();
+            },
+          });
+        },
+      };
+    };
+    const copy = CODEX_ROLLOUT.replaceAll("22222222", "33333333");
+    const result = await intakeBrowserCandidates(
+      [
+        tracked("a.jsonl", CODEX_ROLLOUT),
+        tracked("b.jsonl", CODEX_ROLLOUT),
+        tracked("c.jsonl", copy, 12 * 1024 * 1024),
+      ],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    // a and b share a size: both are signed, and b is recognized as a's copy.
+    // c has a size of its own and is above the peek, so it is streamed once.
+    expect(reads).toEqual([
+      "peek:a.jsonl",
+      "stream:a.jsonl",
+      "peek:b.jsonl",
+      "stream:b.jsonl",
+      "peek:c.jsonl",
+      "stream:c.jsonl",
+    ]);
+    expect(result.outcomes.map((item) => item.status)).toEqual([
+      "imported",
+      "duplicate",
+      "imported",
+    ]);
   });
 
   it("labels projects for local display while the portable workload keeps only hashes", async () => {
@@ -533,5 +684,113 @@ describe("browser intake using shared adapters", () => {
       arrayBuffer: async () => bytes.buffer,
     };
     await expect(expandZipCandidate(zip)).rejects.toThrow(/Archive/u);
+  });
+});
+
+/**
+ * The line splitter was rewritten to run in linear time. The algorithm it
+ * replaced is kept here as the reference: both must yield identical lines for
+ * the same bytes, however the stream happens to chunk them.
+ */
+describe("streamed line splitting", () => {
+  async function* referenceLines(stream: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let pending = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      pending += decoder.decode(value, { stream: true });
+      let end = pending.indexOf("\n");
+      while (end !== -1) {
+        const line = pending.slice(0, end).replace(/\r$/u, "");
+        if (line.trim().length > 0) yield line;
+        pending = pending.slice(end + 1);
+        end = pending.indexOf("\n");
+      }
+    }
+    pending += decoder.decode();
+    if (pending.trim().length > 0) yield pending.replace(/\r$/u, "");
+  }
+
+  function chunked(bytes: Uint8Array, size: number): ReadableStream<Uint8Array> {
+    let offset = 0;
+    return new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (offset >= bytes.length) return controller.close();
+        controller.enqueue(bytes.slice(offset, offset + size));
+        offset += size;
+      },
+    });
+  }
+
+  async function collect(lines: AsyncGenerator<string>): Promise<string[]> {
+    const out: string[] = [];
+    for await (const line of lines) out.push(line);
+    return out;
+  }
+
+  // The reference is quadratic in line length, so byte-sized chunks get shorter
+  // long lines; the shapes are the same.
+  const sample = (scale: number) =>
+    new TextEncoder().encode(
+      [
+        '\uFEFF{"a":1}',
+        `{"long":"${"x".repeat(300 * scale)}"}`,
+        '{"crlf":true}\r',
+        "   ",
+        "\t\u00a0\u3000",
+        "",
+        `{"emoji":"${"😀".repeat(5 * scale)}"}`,
+        '{"trailing":"\\r"}\r\r',
+        "\r",
+        `{"last":"${"é".repeat(70 * scale)}"}`,
+      ].join("\n"),
+    );
+
+  for (const size of [1, 3, 7, 64, 4096, 65_536, Number.POSITIVE_INFINITY]) {
+    it(`matches the reference with ${size}-byte chunks`, async () => {
+      const bytes = sample(size < 64 ? 10 : 1_000);
+      const chunk = Math.min(size, bytes.length);
+      const expected = await collect(referenceLines(chunked(bytes, chunk)));
+      const counted: number[] = [];
+      const actual = await collect(streamedLines(chunked(bytes, chunk), (n) => counted.push(n)));
+      expect(actual).toEqual(expected);
+      expect(counted.reduce((total, n) => total + n, 0)).toBe(bytes.length);
+    });
+  }
+
+  it("keeps a missing final newline and a blank final line out of the result the same way", async () => {
+    for (const tail of ['{"x":1}', '{"x":1}\n', '{"x":1}\n  ', '{"x":1}\r\n\r\n']) {
+      const data = new TextEncoder().encode(tail);
+      expect(await collect(streamedLines(chunked(data, 2)))).toEqual(
+        await collect(referenceLines(chunked(data, 2))),
+      );
+    }
+  });
+});
+
+describe("file signature", () => {
+  async function sign(bytes: Uint8Array, chunk: number, hint?: number): Promise<string> {
+    const signature = new FileSignature(hint);
+    for (let offset = 0; offset < bytes.length; offset += chunk) {
+      await signature.update(bytes.subarray(offset, offset + chunk));
+    }
+    return signature.digest();
+  }
+
+  it("depends only on the bytes, not on chunking or the size hint", async () => {
+    const bytes = new Uint8Array(9 * 1024 * 1024 + 123).map((_, index) => (index * 31) % 251);
+    const reference = await sign(bytes, bytes.length);
+    expect(await sign(bytes, 65_536)).toBe(reference);
+    expect(await sign(bytes, 1_000_003, 10)).toBe(reference);
+    expect(await sign(bytes, 7 * 1024 * 1024, 1)).toBe(reference);
+  });
+
+  it("tells different bytes and different lengths apart", async () => {
+    const a = new TextEncoder().encode("{}\n");
+    expect(await sign(a, 1)).not.toBe(await sign(new TextEncoder().encode("{}\n\n"), 1));
+    expect(await sign(a, 1)).not.toBe(await sign(new TextEncoder().encode("[]\n"), 1));
+    expect(await sign(new Uint8Array(0), 1)).not.toBe(await sign(new Uint8Array(1), 1));
   });
 });
