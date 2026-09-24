@@ -67,6 +67,7 @@ export {
   type ProjectedTargetV1,
   type ProjectedWorkloadV1,
   type ProjectionCatalogV1,
+  type ProjectReplayOptionsV1,
   projectReplay,
 } from "./projection.js";
 export { PriceReceiptBuilder, type PriceReceiptLineV1, type PriceReceiptV1 } from "./receipt.js";

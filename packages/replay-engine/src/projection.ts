@@ -31,6 +31,7 @@ import type {
   SubscriptionReplayTargetStackV1,
 } from "@stackreplay/schema";
 import { isSyntheticCatalogId } from "@stackreplay/schema";
+import { Temporal } from "./time.js";
 
 export type { CoverageDimensionV1, ReplayabilityClassV1, ReplayDispositionsV1, ReplayModeV1 };
 
@@ -82,7 +83,11 @@ export interface ProjectedWorkloadV1 {
   unresolvedIdCount: number;
   from: string | undefined;
   to: string | undefined;
-  /** Whole days between the first and last event, absent for an empty workload. */
+  /**
+   * Calendar days from the first event to the last, inclusive: the viewer's
+   * days when the projection was given a time zone (decision 57), otherwise
+   * UTC days. Absent for an empty workload.
+   */
   windowDays: number | undefined;
   /** Disjoint bucket totals. Absent quantities are unknown, never zero. */
   tokens: {
@@ -526,10 +531,27 @@ function isApiTargetStack(stack: {
   return stack.planId === undefined && stack.planVersionId === undefined;
 }
 
-function dayCount(from: string | undefined, to: string | undefined): number | undefined {
+/** The calendar date of an instant: in `timeZone` when given, otherwise UTC. */
+function calendarDate(instant: string, timeZone: string | undefined): string | undefined {
+  if (timeZone === undefined) return instant.slice(0, 10);
+  try {
+    return Temporal.Instant.from(instant).toZonedDateTimeISO(timeZone).toPlainDate().toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function dayCount(
+  from: string | undefined,
+  to: string | undefined,
+  timeZone: string | undefined,
+): number | undefined {
   if (from === undefined || to === undefined) return undefined;
-  const start = Date.parse(`${from.slice(0, 10)}T00:00:00.000Z`);
-  const end = Date.parse(`${to.slice(0, 10)}T00:00:00.000Z`);
+  const first = calendarDate(from, timeZone);
+  const last = calendarDate(to, timeZone);
+  if (first === undefined || last === undefined) return undefined;
+  const start = Date.parse(`${first}T00:00:00.000Z`);
+  const end = Date.parse(`${last}T00:00:00.000Z`);
   if (Number.isNaN(start) || Number.isNaN(end)) return undefined;
   return Math.max(1, Math.round((end - start) / 86_400_000) + 1);
 }
@@ -693,9 +715,18 @@ function consumptionReading(accounting: {
  * here comes from the result or from the engine's own semantics block, and where
  * the result carries no answer the field is absent rather than convenient.
  */
+export interface ProjectReplayOptionsV1 {
+  /**
+   * The viewer's IANA time zone. A user-facing day is a calendar day there
+   * (decision 57); without one, the projection counts UTC days.
+   */
+  timeZone?: string | undefined;
+}
+
 export function projectReplay(
   result: ExecutionReplayResultV1,
   catalog: ProjectionCatalogV1,
+  options: ProjectReplayOptionsV1 = {},
 ): ProjectedReplayV1 {
   const semantics = result.semantics;
   const stack = semantics?.targetStack;
@@ -758,7 +789,7 @@ export function projectReplay(
       .length,
     from: result.workload.from,
     to: result.workload.to,
-    windowDays: dayCount(result.workload.from, result.workload.to),
+    windowDays: dayCount(result.workload.from, result.workload.to, options.timeZone),
     tokens: {
       uncachedInput: totals.inputTokens,
       cacheRead: totals.cacheReadTokens,

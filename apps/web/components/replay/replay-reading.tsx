@@ -15,7 +15,7 @@ import { formatUsd, isPositiveAmount } from "@/lib/money-display";
 import { apiScopeAdvice, sentence } from "@/lib/replay-advice";
 import { browserTimeZone } from "@/lib/time-zone";
 import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
-import type { SafeError } from "@/lib/worker-protocol";
+import type { ResolvedScopeReplay, SafeError } from "@/lib/worker-protocol";
 import { peakWindowSentences } from "@/lib/workload-facts";
 import type { WindowFact, WorkloadProfile } from "@/lib/workload-profile";
 import { PriceReceipt } from "./price-receipt";
@@ -118,6 +118,7 @@ export function ReplayReading({
   usageCredits,
   priceability,
   receipt,
+  resolvedScope,
 }: {
   projection: ProjectedReplayV1;
   importId: string | undefined;
@@ -129,6 +130,8 @@ export function ReplayReading({
   usageCredits?: { events: number; modelIds: readonly string[] } | undefined;
   /** The engine's model × category arithmetic behind the money on this result. */
   receipt?: PriceReceiptV1 | undefined;
+  /** Direct API: the resolved-only scope, when it completes the price. */
+  resolvedScope?: ResolvedScopeReplay | undefined;
 }) {
   const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
   const timeZone = profile?.timeZone ?? browserTimeZone();
@@ -174,9 +177,12 @@ export function ReplayReading({
         <h3
           id="replay-reading-heading"
           className={`font-mono text-xs tracking-[0.14em] uppercase ${translated ? "text-accent" : "text-muted-foreground"}`}
-          data-testid="reading-mode"
         >
-          {translated ? "Translated replay" : "Exact replay"}
+          Why
+          <span className="sr-only"> · </span>
+          <span className="ml-2" data-testid="reading-mode">
+            {translated ? "Translated replay" : "Exact replay"}
+          </span>
         </h3>
         {translated ? (
           <p className="text-xs text-muted-foreground">
@@ -189,23 +195,27 @@ export function ReplayReading({
         <Row label="Model routing" testId="reading-routing">
           {translated && projection.translation !== undefined ? (
             <>
-              {count(projection.translation.substitutedEvents)} events substituted onto {targetName}{" "}
+              {count(projection.translation.substitutedEvents)} calls substituted onto {targetName}{" "}
               models
               <ul className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
                 {projection.translation.applied.map((rule) => (
                   <li key={rule.sourceModelId}>
                     {MODEL_NAME(rule.sourceModelId)} → {MODEL_NAME(rule.targetModelId)} ·{" "}
-                    {count(rule.eventCount)} events
+                    {count(rule.eventCount)} calls
                   </li>
                 ))}
               </ul>
             </>
           ) : unavailable === 0 ? (
-            `${count(served + blocked)} events on models ${targetName} runs.`
+            unknown === 0 ? (
+              `All ${count(served + blocked)} calls use models ${targetName} runs.`
+            ) : (
+              `${count(served + blocked)} calls use models ${targetName} runs; the other ${count(unknown)} are undecided.`
+            )
           ) : (
             <>
-              {count(unavailable)} events on models {targetName} does not run
-              {served + blocked > 0 ? `; ${count(served + blocked)} on models it does` : ""}.
+              {count(unavailable)} calls use models {targetName} does not run
+              {served + blocked > 0 ? `; ${count(served + blocked)} use models it does` : ""}.
             </>
           )}
           {usageCredits !== undefined && usageCredits.events > 0 ? (
@@ -221,7 +231,7 @@ export function ReplayReading({
           ) : null}
           {translated && unavailable > 0 ? (
             <span className="block text-xs text-warning">
-              {count(unavailable)} events stay unavailable: their model was left unmapped or the
+              {count(unavailable)} calls stay unavailable: their model was left unmapped or the
               chosen substitute is not run by this target.
             </span>
           ) : null}
@@ -285,8 +295,30 @@ export function ReplayReading({
               </>
             ) : (
               <>
-                {sentence(`Not established: ${economics.reason ?? economics.costReading}`)}
-                {advice === undefined || advice.sentences.length === 0 ? null : (
+                {sentence(
+                  `Not established for all ${count(recorded)} recorded calls. ${economics.reason ?? economics.costReading}`,
+                )}
+                {resolvedScope?.projection.economics.targetCost === undefined ? null : (
+                  <span className="mt-2 block" data-testid="cost-resolved-scope">
+                    For the {count(resolvedScope.projection.workload.eventCount)} calls with
+                    recognized models, the published-rate equivalent is{" "}
+                    {money(resolvedScope.projection.economics.targetCost)}. The{" "}
+                    {count(resolvedScope.excludedUnresolvedEvents)} with unrecognized model IDs are
+                    left out and not priced. Not what you paid.
+                    {resolvedScope.receipt === undefined ? null : (
+                      <span className="mt-2 block">
+                        <PriceReceipt
+                          receipt={resolvedScope.receipt}
+                          summary={`How ${formatUsd(resolvedScope.projection.economics.targetCost) ?? "this"} adds up`}
+                          totalLabel="Published-rate equivalent, calls with recognized models"
+                        />
+                      </span>
+                    )}
+                  </span>
+                )}
+                {resolvedScope !== undefined ||
+                advice === undefined ||
+                advice.sentences.length === 0 ? null : (
                   <span className="block text-xs text-muted-foreground" data-testid="cost-advice">
                     {advice.sentences.join(" ")}
                   </span>

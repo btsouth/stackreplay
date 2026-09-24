@@ -6,6 +6,7 @@ import {
   bundledProviderFacts,
   bundledPublicApiProviders,
   bundledUsageCreditModels,
+  loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionTargetV1 } from "@stackreplay/schema";
@@ -30,6 +31,7 @@ import { ResultSettlement } from "@/components/instrument/result-settlement";
 import { useReplayChoreography } from "@/components/instrument/use-replay-choreography";
 import { WorkloadSpecimen } from "@/components/instrument/workload-specimen";
 import { ReplayReading } from "@/components/replay/replay-reading";
+import { ReplayVerdict } from "@/components/replay/replay-verdict";
 import {
   compatibility,
   type ModelMapping,
@@ -44,7 +46,7 @@ import { formatUsd } from "@/lib/money-display";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
 import { browserTimeZone } from "@/lib/time-zone";
-import { isSyntheticWorkload } from "@/lib/workload-kind";
+import { verdictOfOutcome } from "@/lib/verdict-facts";
 import {
   type ReplayOutcome as ClientReplayOutcome,
   describeWorkerFailure,
@@ -52,6 +54,7 @@ import {
   SupersededError,
 } from "@/lib/worker-client";
 import type { ImportRecord, ModelSummary, SafeError } from "@/lib/worker-protocol";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 
 /** Styling for the execution-target switch (M4C). */
 function segmentedClass(active: boolean): string {
@@ -1086,96 +1089,121 @@ function ReplayResult({
     usageCreditModels.has(entry.canonicalId);
   const usageCreditEntries = result.unsupportedModels.filter(creditOnly);
 
+  const verdictTarget = apiTarget ? `${targetName} API` : targetName;
+  const composed = verdictOfOutcome(outcome, verdictTarget, {
+    timeZone: browserTimeZone(),
+    catalog: loadBundledCatalog(),
+  });
+  const computedLine =
+    computedFor === undefined ? null : (
+      <p
+        className="text-xs text-muted-foreground [overflow-wrap:anywhere]"
+        data-testid="result-computed-for"
+      >
+        Computed from &ldquo;{computedFor.workloadLabel}&rdquo; ·{" "}
+        {formatCount(result.workload.eventCount)} calls · target{" "}
+        <span className="font-mono">{computedFor.target}</span> · rules as of{" "}
+        <span className="font-mono">{computedFor.rulesAsOf}</span>
+      </p>
+    );
+
   return (
     <div className="flex min-w-0 flex-col gap-7" data-testid="replay-result">
-      <section className="flex flex-col gap-5" data-testid="replay-headline">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">Replay result</p>
-            <h2 className="mt-1 text-2xl font-medium" data-testid="headline-status">
-              {projection.headline.statusLabel}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground [overflow-wrap:anywhere]">
-              {targetName} · {projection.target.referenceLabel}{" "}
-              <span className="font-mono">{projection.target.reference}</span> · rules as of{" "}
-              <span className="font-mono tabular-nums">{projection.provenance.rulesAsOf}</span>
-            </p>
-            {computedFor === undefined ? null : (
-              <p
-                className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]"
-                data-testid="result-computed-for"
-              >
-                Computed from &ldquo;{computedFor.workloadLabel}&rdquo; ·{" "}
-                {formatCount(result.workload.eventCount)} events · target{" "}
-                <span className="font-mono">{computedFor.target}</span> · rules as of{" "}
-                <span className="font-mono">{computedFor.rulesAsOf}</span>
-              </p>
-            )}
-          </div>
+      {composed === undefined ? (
+        <section className="flex flex-col gap-2" data-testid="replay-headline">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">Replay result</p>
           <span
-            className="border border-border px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase"
+            className="self-start border border-border px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase"
             data-testid="replay-mode"
           >
-            {/* The badge states the result's own mode, so a result carrying none
-                is not labelled with the mode it certainly did not apply. */}
+            {/* A result carrying no mode is not labelled with the mode it
+                certainly did not apply. */}
             {modeLabel(projection.mode)}
           </span>
-        </div>
-
-        <div
-          className="grid gap-5 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]"
-          data-testid="app-replay-instrument"
-          data-phase={choreography.phase}
-        >
-          <div>
-            <ReplayPath
-              phase={choreography.phase}
-              translated={translated}
-              crossingCount={projection.crossings.length}
-            />
-            <p className="sr-only" role="status">
-              {choreography.phase === "settled"
-                ? "Replay result settled"
-                : `Replay ${choreography.phase}`}
-            </p>
-          </div>
-          <ResultSettlement projection={projection} settled={choreography.effects.settled} />
-        </div>
-        <ReplayReading
-          importId={computedFor?.workloadId}
-          projection={projection}
-          scope={outcome.scope}
-          priceability={outcome.priceability}
-          receipt={outcome.receipt}
-          targetName={targetName}
-          usageCredits={
-            usageCreditEntries.length === 0
-              ? undefined
-              : {
-                  events: usageCreditEntries.reduce((total, entry) => total + entry.eventCount, 0),
-                  modelIds: [
-                    ...new Set(usageCreditEntries.flatMap((entry) => entry.canonicalId ?? [])),
-                  ],
-                }
+          <p className="text-sm text-muted-foreground">{targetName}</p>
+          {computedLine}
+        </section>
+      ) : (
+        <ReplayVerdict
+          context={
+            <>
+              {verdictTarget} · rules as of {projection.provenance.rulesAsOf}
+            </>
           }
-        />
-        <CoverageDimensions index="01" projection={projection} />
-        <p
-          className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
-          data-testid="replay-mode-note"
+          verdict={composed.verdict}
         >
-          {projection.modeNote}
-        </p>
-      </section>
+          {computedLine}
+        </ReplayVerdict>
+      )}
+      <ReplayReading
+        importId={computedFor?.workloadId}
+        projection={projection}
+        scope={outcome.scope}
+        priceability={outcome.priceability}
+        receipt={outcome.receipt}
+        resolvedScope={outcome.resolvedScope}
+        targetName={targetName}
+        usageCredits={
+          usageCreditEntries.length === 0
+            ? undefined
+            : {
+                events: usageCreditEntries.reduce((total, entry) => total + entry.eventCount, 0),
+                modelIds: [
+                  ...new Set(usageCreditEntries.flatMap((entry) => entry.canonicalId ?? [])),
+                ],
+              }
+        }
+      />
 
       <details
         className="max-w-[80rem] min-w-0 border-t border-border pt-4"
         data-testid="replay-evidence-details"
       >
         <summary className="min-h-11 cursor-pointer text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-          Inspect execution, constraints, cost, and evidence
+          Inspect the mechanics: outcomes, coverage, constraints, cost and evidence
         </summary>
         <div className="mt-5 flex min-w-0 flex-col gap-6">
+          <section className="flex flex-col gap-3" data-testid="engine-reading">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <MicroLabel>Engine reading</MicroLabel>
+              <span className="text-sm text-foreground" data-testid="headline-status">
+                {projection.headline.statusLabel}
+              </span>
+            </div>
+            {outcome.resolvedScope === undefined ? null : (
+              <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
+                The price above covers the calls with recognized models. Everything below is the
+                replay of all {formatCount(result.workload.eventCount)} recorded calls, including
+                why no price is established for all of them.
+              </p>
+            )}
+            <div
+              className="grid gap-5 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]"
+              data-testid="app-replay-instrument"
+              data-phase={choreography.phase}
+            >
+              <div>
+                <ReplayPath
+                  phase={choreography.phase}
+                  translated={translated}
+                  crossingCount={projection.crossings.length}
+                />
+                <p className="sr-only" role="status">
+                  {choreography.phase === "settled"
+                    ? "Replay result settled"
+                    : `Replay ${choreography.phase}`}
+                </p>
+              </div>
+              <ResultSettlement projection={projection} settled={choreography.effects.settled} />
+            </div>
+            <CoverageDimensions index="01" projection={projection} />
+            <p
+              className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+              data-testid="replay-mode-note"
+            >
+              {projection.modeNote}
+            </p>
+          </section>
           <WorkloadSpecimen
             active={choreography.effects.workloadActive}
             index="02"

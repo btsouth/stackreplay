@@ -215,6 +215,15 @@ export interface TimelinePoint {
   partialEvents: number;
 }
 
+/** A replay of the resolved-only scope, run beside the full replay. */
+export interface ResolvedScopeReplay {
+  result: ExecutionReplayResultV1;
+  projection: ProjectedReplayV1;
+  receipt?: PriceReceiptV1;
+  excludedUnresolvedEvents: number;
+  recordedEvents: number;
+}
+
 export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -361,6 +370,14 @@ export type WorkerResponse =
       receipt?: PriceReceiptV1;
       /** Direct API only: how many events fared each way in that pass. */
       priceability?: ApiPriceabilityCountsV1;
+      /**
+       * Direct API only, and only when unrecognized model IDs are the one thing
+       * standing between the workload and a complete price: the same replay
+       * over the calls whose identity resolves (decision 49's explicit scope),
+       * complete on its own terms. The interface states that scope wherever it
+       * shows this figure.
+       */
+      resolvedScope?: ResolvedScopeReplay;
     }
   | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
   | { type: "WINDOW_OK"; requestId: number; window: WindowFact }

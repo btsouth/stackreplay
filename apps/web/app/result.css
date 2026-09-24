@@ -1,0 +1,136 @@
+/*
+ * Decision-first results: the verdict a Replay, Compare column, workload value
+ * or public share page leads with.
+ *
+ * The figure uses the homepage instrument's figure metrics (`.sr-figure`), so a
+ * result in the application reads as the same measurement as the hero. Signal
+ * Blue marks the computation (the top rule, a translated mode) and never the
+ * figure itself: the answer is foreground ink, the uncertainty is quiet.
+ */
+
+.sr-verdict {
+  --sr-signal: var(--accent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.sr-verdict::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: min(9rem, 30%);
+  height: 1px;
+  background: var(--sr-signal);
+}
+
+.dark .sr-verdict {
+  --sr-signal: oklch(0.67 0.17 256);
+}
+
+.sr-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border-strong);
+  padding: 0.15rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.sr-mode--translated {
+  border-color: color-mix(in oklab, var(--sr-signal) 65%, var(--border));
+  color: var(--sr-signal);
+}
+
+.sr-verdict-body {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .sr-verdict-body {
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+    align-items: end;
+    column-gap: 3rem;
+  }
+  .sr-verdict-figures {
+    text-align: right;
+  }
+}
+
+.sr-verdict-headline {
+  max-width: 44ch;
+  font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.9rem);
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  font-weight: 500;
+  color: var(--foreground);
+  text-wrap: pretty;
+}
+
+.sr-verdict-rest {
+  display: block;
+  margin-top: 0.6rem;
+  max-width: 60ch;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--foreground);
+}
+
+.sr-verdict-figures .sr-figure {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.sr-verdict-figures .sr-figure[data-kind="share"] {
+  font-size: clamp(2.25rem, 1.8rem + 1.6vw, 3.25rem);
+}
+
+.sr-verdict-secondary {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 1024px) {
+  .sr-verdict-secondary {
+    justify-content: flex-end;
+  }
+}
+
+.sr-verdict-secondary strong {
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.sr-verdict-support {
+  display: flex;
+  max-width: 72ch;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* A figure in a narrow column (Compare) or a card: the same face, smaller. */
+.sr-figure.sr-figure--compact {
+  font-size: clamp(1.75rem, 1.5rem + 0.8vw, 2.25rem);
+  white-space: normal;
+  text-align: left;
+}

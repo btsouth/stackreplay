@@ -29,6 +29,7 @@ import { buildTimeline } from "../lib/timeline";
 import {
   type ImportRecord,
   isSafeErrorCode,
+  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
   WORKER_PROTOCOL_VERSION,
@@ -675,6 +676,35 @@ async function handleRunReplay(
       catalog,
       context: { rulesAsOf },
     });
+    // A Direct API price blocked only by unrecognized model IDs: replay the
+    // resolved-only scope too, so the result can state a complete price for a
+    // stated scope instead of no price at all (decision 49).
+    const onlyUnresolvedBlocks =
+      target.type === "api" &&
+      scoped === undefined &&
+      result.economics === undefined &&
+      priceability !== undefined &&
+      priceability.unresolved > 0 &&
+      priceability.priced > 0 &&
+      priceability.priced + priceability.unresolved === events.length;
+    let resolvedScope: ResolvedScopeReplay | undefined;
+    if (onlyUnresolvedBlocks) {
+      const split = splitByIdentity(events, bundledModelIdentity());
+      const scopedRun = replayWithReceipt({
+        events: split.resolved,
+        target,
+        catalog,
+        context: { rulesAsOf },
+      });
+      if (scopedRun.result.economics !== undefined)
+        resolvedScope = {
+          result: scopedRun.result,
+          projection: projectReplay(scopedRun.result, catalog, { timeZone }),
+          ...(scopedRun.receipt === undefined ? {} : { receipt: scopedRun.receipt }),
+          excludedUnresolvedEvents: split.unresolved,
+          recordedEvents: events.length,
+        };
+    }
     post({
       type: "REPLAY_OK",
       requestId,
@@ -682,10 +712,11 @@ async function handleRunReplay(
       timeline: buildTimeline(events, timeZone),
       ...(receipt === undefined ? {} : { receipt }),
       ...(priceability === undefined ? {} : { priceability }),
+      ...(resolvedScope === undefined ? {} : { resolvedScope }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.
-      projection: projectReplay(result, catalog),
+      projection: projectReplay(result, catalog, { timeZone }),
       ...(scoped === undefined
         ? {}
         : {

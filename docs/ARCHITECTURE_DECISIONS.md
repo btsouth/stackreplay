@@ -1041,3 +1041,34 @@ definition, computed in one place and presented many ways.
   Cursor plan names carry the provider ("Cursor Pro"). The translation picker offers concrete
   releases, hides a family alias ("Opus") when a release of that family is available, and marks
   legacy releases.
+
+## 58. A result leads with a verdict composed from the engine's facts (decision-first replay)
+
+A replay result used to open with the engine's state word ("full coverage ruled out", "capacity
+not quantified"), so the largest thing on screen was what StackReplay could not say. It now opens
+with a verdict: one or two sentences carrying a date, a dollar amount, a count of the person's calls
+or a bounded share, then what stays open, each in one sentence.
+
+- **Facts, then words.** `verdictFactsOf` (`apps/web/lib/verdict-facts.ts`) reduces a projection to
+  `VerdictFactsV1` (`@stackreplay/share`): outcome counts, crossings, economics, the target's
+  capacity kind, the substitution and the scope. `composeVerdict` turns facts into words with fixed
+  templates. Nothing is ranked or generated, a count the facts do not carry is never stated, and an
+  undecided call is never assigned to an outcome.
+- **One derivation.** Replay and Compare both call `verdictOfOutcome` with the worker's outcome, so
+  which replay a verdict reads and which scope it states is decided in one place. The period is the
+  projection's `windowDays`, which `projectReplay` now counts in the viewer's calendar days when
+  given a time zone (decision 57); without one it still counts UTC days.
+- **Bounds, not UNKNOWN.** When undecided calls leave a share open, the verdict states both ends
+  ("53.0–53.1%") and says how many calls are undecided and why.
+- **Resolved-only Direct API price.** When unrecognized model IDs are the only gap in a Direct API
+  price, the worker also replays the resolved-only scope (decision 49's `splitByIdentity`) and
+  returns it as `resolvedScope` beside the unchanged full result. The verdict then leads with that
+  price and names its scope in its first words ("Your 3,168 calls with recognized models are worth
+  …"); the figure's caption carries the same scope. The person's own scope choice is not changed,
+  the full replay stays the engine reading under Inspect, and no total for the whole workload is
+  implied.
+- **Exact and Translated stay unmistakable.** A translated verdict opens "Under your model
+  substitution", names each substitution, says recorded token amounts carry over unchanged, and
+  says nothing here claims the substitute models would do the same work.
+- **The engine reading is kept, one step down.** The status word, dispositions, coverage
+  dimensions, replayability and evidence moved under Inspect. Nothing was removed.

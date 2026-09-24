@@ -1,6 +1,10 @@
 "use client";
 
-import { bundledPlansAt, bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
+import {
+  bundledPlansAt,
+  bundledPublicApiProviders,
+  loadBundledCatalog,
+} from "@stackreplay/catalog/bundled";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import { Button, buttonVariants } from "@stackreplay/ui";
@@ -9,7 +13,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { count, instantWithZone, money, percent } from "@/components/workload/format";
 import { isPositiveAmount } from "@/lib/money-display";
 import { defaultRulesDate } from "@/lib/rules-date";
-import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
+import { browserTimeZone } from "@/lib/time-zone";
+import { verdictOfOutcome } from "@/lib/verdict-facts";
+import { describeWorkerFailure, getWorkerClient, type ReplayOutcome } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
 
 /**
@@ -53,6 +59,7 @@ interface Row {
   key: TargetKey;
   name: string;
   projection?: ProjectedReplayV1;
+  outcome?: ReplayOutcome;
   error?: SafeError;
 }
 
@@ -61,6 +68,41 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
     <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-t border-border py-2.5 text-sm">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="min-w-0 leading-relaxed">{children}</dd>
+    </div>
+  );
+}
+
+/**
+ * A column leads with the same verdict the full Replay result leads with, so a
+ * target is introduced by what it would have done with this workload, not by
+ * the engine's state word.
+ */
+function ColumnVerdict({ outcome, name }: { outcome: ReplayOutcome | undefined; name: string }) {
+  if (outcome === undefined) return null;
+  const composed = verdictOfOutcome(outcome, name, {
+    timeZone: browserTimeZone(),
+    catalog: loadBundledCatalog(),
+  });
+  if (composed === undefined) return null;
+  const { verdict } = composed;
+  return (
+    <div className="mt-2 flex flex-col gap-2" data-testid="compare-verdict">
+      <p className="sr-figure sr-figure--compact" data-testid="compare-figure">
+        {verdict.figure.value}
+        {verdict.figure.minor === undefined ? null : (
+          <small className="sr-figure-minor">{verdict.figure.minor}</small>
+        )}
+      </p>
+      <p className="sr-micro text-muted-foreground">{verdict.figure.caption}</p>
+      <p className="text-sm leading-snug text-foreground" data-testid="compare-verdict-headline">
+        {verdict.headline}
+      </p>
+      {verdict.support[0] === undefined ? null : (
+        <p className="text-xs leading-relaxed text-muted-foreground">{verdict.support[0]}</p>
+      )}
+      <span className="sr-mode self-start" data-testid="compare-mode">
+        {verdict.modeLabel}
+      </span>
     </div>
   );
 }
@@ -81,8 +123,8 @@ function Findings({ projection }: { projection: ProjectedReplayV1 }) {
           <span>Exact replay available: every resolved model is run by this target.</span>
         ) : (
           <span className="text-warning">
-            Translation required: {percent(total === 0 ? 0 : unavailable / total)} of events (
-            {count(unavailable)}) are on models it does not run.
+            Translation required: {percent(total === 0 ? 0 : unavailable / total)} of calls (
+            {count(unavailable)}) use models it does not run.
           </span>
         )}
       </Fact>
@@ -125,7 +167,7 @@ function Findings({ projection }: { projection: ProjectedReplayV1 }) {
         )}
       </Fact>
       <Fact label="Open evidence">
-        {unknown === 0 ? "None" : `${count(unknown)} events undecided (identity or accounting)`}
+        {unknown === 0 ? "None" : `${count(unknown)} calls undecided (identity or accounting)`}
       </Fact>
     </dl>
   );
@@ -215,7 +257,7 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
         });
         setRows((existing) =>
           existing.map((row) =>
-            row.key === key ? { ...row, projection: outcome.projection } : row,
+            row.key === key ? { ...row, projection: outcome.projection, outcome } : row,
           ),
         );
       } catch (failure) {
@@ -377,6 +419,7 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
             <section
               key={row.key}
               className="min-w-0 border-t-2 border-border-strong pt-3"
+              data-target={row.key}
               data-testid="compare-column"
             >
               <p className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
@@ -399,9 +442,9 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
                 )
               ) : (
                 <>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {row.projection.headline.statusLabel} ·{" "}
-                    {count(row.projection.workload.eventCount)} events replayed
+                  <ColumnVerdict name={row.name} outcome={row.outcome} />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {count(row.projection.workload.eventCount)} calls replayed
                     {row.projection.workload.eventCount < record.summary.eventCount
                       ? ` · ${count(record.summary.eventCount - row.projection.workload.eventCount)} unresolved left out`
                       : ""}

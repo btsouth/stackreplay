@@ -27,8 +27,11 @@ test("keeps forensic result detail closed until requested", async ({ page }) => 
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("replay-evidence-details")).not.toHaveAttribute("open");
   await expect(page.getByTestId("replay-detail")).not.toHaveAttribute("open");
-  await expect(page.getByTestId("result-settlement")).toBeVisible();
+  // The answer leads; the engine's own reading waits under Inspect.
+  await expect(page.getByTestId("verdict-headline")).toBeVisible();
+  await expect(page.getByTestId("result-settlement")).toBeHidden();
   await page.getByTestId("replay-evidence-details").locator(":scope > summary").click();
+  await expect(page.getByTestId("result-settlement")).toBeVisible();
   await expect(page.getByTestId("evidence-ledger")).toBeVisible();
   await page.getByTestId("replay-detail").locator(":scope > summary").click();
   await page.getByTestId("replay-model-distribution").locator(":scope > summary").click();

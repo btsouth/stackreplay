@@ -1,5 +1,13 @@
 export { type CanonicalValue, canonicalStringify } from "./canonical.js";
 export {
+  apportionCents,
+  formatCents,
+  formatUsd,
+  formatUsdWhole,
+  isPositiveAmount,
+  toCents,
+} from "./money.js";
+export {
   assertNoForbiddenFields,
   FORBIDDEN_SHARE_KEYS,
   type ForbiddenShareKey,
@@ -32,3 +40,13 @@ export {
   type ShareTokenResult,
   sharePath,
 } from "./token.js";
+export {
+  boundText,
+  composeVerdict,
+  shareText,
+  VERDICT_FACTS_VERSION,
+  type VerdictFactsV1,
+  type VerdictV1,
+  verdictDay,
+  verdictFactsV1Schema,
+} from "./verdict.js";

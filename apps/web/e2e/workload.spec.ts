@@ -181,7 +181,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
 
   await expect(page.getByTestId("reading-mode")).toHaveText("Translated replay");
-  await expect(page.getByTestId("reading-routing")).toContainText("6 events substituted");
+  await expect(page.getByTestId("reading-routing")).toContainText("6 calls substituted");
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
   await expect(page.getByTestId("reading-assumption")).toBeVisible();
   await expect(page.getByTestId("replay-mode")).toContainText(/translated/i);
@@ -221,6 +221,18 @@ test("same models on the Direct API: an explicit scope prices what is establishe
   await expect(page.getByTestId("reading-cost")).toContainText("Not established", {
     timeout: 60_000,
   });
+  // Unrecognized IDs are the only gap, so the verdict already leads with the
+  // price of the calls that resolve and states what it leaves out. The replay
+  // below it is still the whole workload's.
+  await expect(page.getByTestId("verdict-headline")).toContainText(
+    /^Your \d+ calls with recognized models are worth \$[\d,]+\.\d\d at OpenAI's published API rates/u,
+  );
+  await expect(page.getByTestId("verdict-support")).toContainText("not what you paid");
+  await expect(page.getByTestId("verdict-support")).toContainText(
+    /\d+ calls? with unrecognized model IDs (is|are) left out and not priced/u,
+  );
+  await expect(page.getByTestId("cost-resolved-scope")).toContainText("Not what you paid");
+  await expect(page.getByTestId("exclude-unresolved").getByRole("checkbox")).not.toBeChecked();
 
   await page.getByTestId("exclude-unresolved").getByRole("checkbox").check();
   await page.getByTestId("run-replay").click();
@@ -259,7 +271,7 @@ test("qualitative plans keep capacity unknown while model support is established
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Exact replay", { timeout: 60_000 });
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
-  await expect(page.getByTestId("reading-routing")).toContainText("events on models");
+  await expect(page.getByTestId("reading-routing")).toContainText("calls use models");
   await expect(page.getByTestId("reading-cost")).toContainText("per month");
 });
 
@@ -273,6 +285,22 @@ test("compare against my workload replays each target without ranking them", asy
   await expect(page.getByTestId("compare-results")).toContainText("Exact replay available");
   await expect(page.getByTestId("compare-results")).toContainText("Translation required");
   await expect(page.getByTestId("compare-results")).not.toContainText(/best|score|winner/i);
+
+  // A column leads with the same verdict the full Replay leads with: one
+  // derivation, two presentations.
+  const column = page.locator(
+    '[data-testid="compare-column"][data-target="plan:openai-chatgpt-pro"]',
+  );
+  const fromCompare = await column.getByTestId("compare-verdict-headline").textContent();
+  expect(fromCompare).toMatch(/ChatGPT Pro/u);
+  const importId = new URL(page.url()).searchParams.get("import") ?? "";
+  await page.goto(
+    `/app/replay?${new URLSearchParams({ import: importId, target: "openai-chatgpt-pro" })}`,
+  );
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("verdict-headline")).toHaveText(fromCompare ?? "", {
+    timeout: 60_000,
+  });
 });
 
 async function expectNoSeriousViolations(page: Page) {

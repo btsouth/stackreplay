@@ -15,6 +15,7 @@ import {
   isWorkerResponse,
   protocolMismatch,
   type ReplayPhase,
+  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
   type TimelinePoint,
@@ -36,6 +37,8 @@ export interface ReplayOutcome {
   receipt?: PriceReceiptV1 | undefined;
   /** Direct API only: how many events fared each way. */
   priceability?: ApiPriceabilityCountsV1 | undefined;
+  /** Direct API only: the resolved-only scope, when it completes the price. */
+  resolvedScope?: ResolvedScopeReplay | undefined;
 }
 
 /**
@@ -458,6 +461,7 @@ export class ReplayWorkerClient {
       ...(response.scope === undefined ? {} : { scope: response.scope }),
       ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
       ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
+      ...(response.resolvedScope === undefined ? {} : { resolvedScope: response.resolvedScope }),
     };
   }
 
