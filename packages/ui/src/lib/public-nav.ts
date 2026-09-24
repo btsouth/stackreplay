@@ -32,7 +32,7 @@ export const repositoryNavItem = {
 
 /** Primary call to action: the local-first first-use path, with no signup gate. */
 export const primaryCta = {
-  label: "Try Replay",
+  label: "Scan your AI history",
   href: "/app/import",
 } as const;
 
@@ -50,7 +50,7 @@ export const publicFooterGroups = [
   {
     title: "Product",
     items: [
-      { label: "Try Replay", href: "/app/import" },
+      { label: "Scan your AI history", href: "/app/import" },
       { label: "Plans", href: "/plans" },
       { label: "Models", href: "/models" },
       { label: "Compare", href: "/compare" },

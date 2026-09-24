@@ -2,6 +2,7 @@ import { buttonVariants } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
+import { StoredWorkload } from "@/components/workload/stored-workload";
 
 export const metadata: Metadata = { title: "Workspace" };
 
@@ -40,6 +41,7 @@ export default function OverviewPage() {
         description="Scan your history, understand how you use AI, then replay what would happen if you changed the stack."
       />
       <div className="flex max-w-5xl flex-col gap-10">
+        <StoredWorkload />
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step) => (
             <div

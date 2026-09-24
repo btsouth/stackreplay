@@ -133,6 +133,8 @@ export interface ModelShare extends Demand {
    * offering fact only: the catalog does not record who built a model.
    */
   apiProviders: { id: string; name: string }[];
+  /** Who made the model, from the catalog's developer record, when it is recorded. */
+  maker?: string | undefined;
   /** Observed spellings that resolved to this canonical model. */
   observedNames: string[];
 }
@@ -654,6 +656,13 @@ function shortDate(ms: number, timeZone: string): string {
  * figure computed above. They are chosen by fixed rules in a fixed order, not
  * written or ranked by anything that interprets the work.
  */
+/** "Z.AI (Zhipu)" -> "Z.AI": the maker's name for a label. */
+function makerOf(catalog: CatalogV1, modelId: string): string | undefined {
+  const developer = catalog.models[modelId]?.developerId;
+  const name = developer === undefined ? undefined : catalog.providers[developer]?.name;
+  return name?.replace(/\s*\([^)]*\)\s*$/u, "").trim();
+}
+
 /** Order among facts of equal strength. */
 const TIE_ORDER: readonly Insight["id"][] = [
   "peak-day",
@@ -895,6 +904,7 @@ export function buildWorkloadProfile(
           id,
           name: options.catalog.providers[id]?.name ?? id,
         })),
+        maker: makerOf(options.catalog, item.modelKey),
         events: 0,
         tokens: 0,
         observedNames: [],

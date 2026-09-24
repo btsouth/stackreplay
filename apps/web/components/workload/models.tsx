@@ -30,9 +30,9 @@ export function ModelMix({ profile, measure }: { profile: WorkloadProfile; measu
               <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm">{model.name}</span>
                 <span className="truncate text-[11px] text-muted-foreground">
-                  {model.apiProviders.length === 0
-                    ? "no public Direct API offer recorded"
-                    : `${model.apiProviders.map((provider) => provider.name).join(", ")} API`}
+                  {/* Who made the model, not where it was bought: the history does
+                      not say whether it came through a plan or an API. */}
+                  {model.maker === undefined ? "maker not recorded" : `by ${model.maker}`}
                   {model.observedNames.length > 1
                     ? ` · ${count(model.observedNames.length)} observed spellings`
                     : ""}

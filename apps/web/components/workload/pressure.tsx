@@ -140,7 +140,7 @@ export function HistoricalPressure({
               Share of all
             </th>
             <th className="hidden py-2 pr-3 text-right font-normal lg:table-cell" scope="col">
-              vs. median window
+              Peak vs. median active window
             </th>
             <th className="py-2 text-right font-normal" scope="col">
               Detail
@@ -170,11 +170,12 @@ export function HistoricalPressure({
                       {when}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      {count(row.windowCount)} occupied
+                      {count(row.windowCount)} {row.windowCount === 1 ? "window" : "windows"} with
+                      activity
                       {multiple === undefined ? (
                         ""
                       ) : (
-                        <span className="lg:hidden"> · {multiple} median</span>
+                        <span className="lg:hidden"> · peak {multiple} the median</span>
                       )}
                     </span>
                   </span>

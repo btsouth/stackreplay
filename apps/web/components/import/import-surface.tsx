@@ -588,7 +588,7 @@ export function ImportSurface({
           </Card>
         ) : null}
       </div>
-      <div className="flex min-w-0 flex-col gap-5" hidden={scanActive}>
+      <DiscoveryPanel collapsed={scanStage === "ready"} hidden={scanActive}>
         <HistoryDiscovery
           busy={busy}
           ready={ready}
@@ -845,7 +845,7 @@ export function ImportSurface({
             <p className="text-xs text-muted-foreground">{demoWorkloadPresets.heavy.description}</p>
           </CardContent>
         </Card>
-      </div>
+      </DiscoveryPanel>
 
       {!scanActive ? (
         <div className="flex min-w-0 flex-col gap-5">
@@ -964,6 +964,40 @@ export function ImportSurface({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Discovery and the other ways in. Once a workload is ready it folds away:
+ * the result's own next steps lead, and a live Build button under "Workload
+ * ready" read as unfinished work.
+ */
+function DiscoveryPanel({
+  collapsed,
+  hidden,
+  children,
+}: {
+  collapsed: boolean;
+  hidden: boolean;
+  children: React.ReactNode;
+}) {
+  if (!collapsed)
+    return (
+      <div className="flex min-w-0 flex-col gap-5" hidden={hidden}>
+        {children}
+      </div>
+    );
+  return (
+    <details
+      className="min-w-0 border-t border-border pt-4"
+      data-testid="discovery-after-ready"
+      hidden={hidden}
+    >
+      <summary className="min-h-11 cursor-pointer content-center text-sm text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
+        Scan another history or add a folder
+      </summary>
+      <div className="mt-4 flex min-w-0 flex-col gap-5">{children}</div>
+    </details>
   );
 }
 

@@ -248,10 +248,20 @@ export function ReplaySurface({
     () => new Map((coverages ?? []).map((coverage, index) => [coverage.key, { coverage, index }])),
     [coverages],
   );
+  /**
+   * Once a person starts using a list, its order holds still: coverage that
+   * arrives afterwards fills in the figures without moving a row under their
+   * pointer or keyboard. A new slice of work or a new workload orders afresh.
+   */
+  const [heldOrder, setHeldOrder] = useState<ReadonlyMap<string, number> | undefined>(undefined);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new scope or workload releases the held order.
+  useEffect(() => setHeldOrder(undefined), [scope, workload?.id]);
   const rankOf = useCallback(
     (key: string) =>
-      coverageByKey.get(key as TargetCoverage["key"])?.index ?? Number.MAX_SAFE_INTEGER,
-    [coverageByKey],
+      heldOrder?.get(key) ??
+      coverageByKey.get(key as TargetCoverage["key"])?.index ??
+      Number.MAX_SAFE_INTEGER,
+    [coverageByKey, heldOrder],
   );
 
   /**
@@ -304,6 +314,16 @@ export function ReplaySurface({
       : available.filter((provider) => !isSyntheticCatalogId(provider.id));
     return [...listed].sort((a, b) => rankOf(`api:${a.id}`) - rankOf(`api:${b.id}`));
   }, [rankOf, rulesAsOf, selectedWorkloadIsDemo]);
+  const holdOrder = useCallback(() => {
+    setHeldOrder(
+      (current) =>
+        current ??
+        new Map([
+          ...plans.map((plan, index) => [`plan:${plan.id}`, index] as const),
+          ...providers.map((provider, index) => [`api:${provider.id}`, index] as const),
+        ]),
+    );
+  }, [plans, providers]);
   const filteredProviders = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length === 0) return providers;
@@ -690,6 +710,8 @@ export function ReplaySurface({
               <ul
                 aria-label="Direct API providers"
                 data-testid="provider-list"
+                onFocusCapture={holdOrder}
+                onPointerDown={holdOrder}
                 className="flex max-h-72 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border"
               >
                 {filteredProviders.length === 0 ? (
@@ -740,7 +762,9 @@ export function ReplaySurface({
                 ref={listRef}
                 aria-label="Target plans"
                 data-testid="plan-list"
+                onFocusCapture={holdOrder}
                 onKeyDown={onPlanKeyDown}
+                onPointerDown={holdOrder}
                 className="flex max-h-72 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border"
               >
                 {filteredPlans.length === 0 ? (

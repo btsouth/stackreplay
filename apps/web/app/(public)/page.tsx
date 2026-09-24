@@ -34,7 +34,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link className={buttonVariants({ size: "lg" })} href="/app/import">
-              Scan your history
+              Scan your AI history
             </Link>
             <Link
               className="min-h-11 content-center text-sm text-accent underline underline-offset-4"

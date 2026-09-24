@@ -390,6 +390,12 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
     timeout: 30_000,
   });
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
+  // The workspace starts from the stored workload and its value.
+  await page.goto("/app");
+  await expect(page.getByTestId("stored-workload")).toContainText("calls", { timeout: 30_000 });
+  await expect(page.getByTestId("stored-workload")).toContainText("not what you paid", {
+    timeout: 30_000,
+  });
 });
 
 test("a partial scan says so beside the totals and offers a rescan", async ({ page }) => {

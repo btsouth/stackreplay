@@ -236,6 +236,11 @@ test("a dropped bare projects folder asks for access and is never listed", async
   await expect(claude).toHaveAttribute("data-status", "access-needed");
   await expect(claude).toContainText("did not look inside");
   await expect(page.getByTestId("connect-row-claude-code")).toBeVisible();
+  // Beside Connect: which hidden folder to pick, and why the browser says "upload".
+  await expect(page.getByTestId("connect-hint-claude-code")).toContainText("~/.claude/projects");
+  await expect(page.getByTestId("connect-hint-claude-code")).toContainText(
+    "none are sent anywhere",
+  );
   const access = await folderAccess(page, root);
   expect(access.filter((entry) => entry.op === "list")).toEqual([]);
   expect(access.filter((entry) => entry.op === "read")).toEqual([]);
@@ -277,6 +282,10 @@ test("a file that disappears before Build is reported, and the workload says it 
   await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
     timeout: 60_000,
   });
+  // Once the workload is ready, discovery folds away: no live Build button
+  // under "Workload ready".
+  await expect(page.getByTestId("discovery-after-ready")).not.toHaveAttribute("open");
+  await expect(page.getByTestId("build-workload")).toBeHidden();
   const partial = page.getByTestId("partial-scan");
   await expect(partial).toContainText("1 source file could not be read");
   await page.getByTestId("intake-review").locator("summary").click();

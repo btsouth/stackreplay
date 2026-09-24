@@ -30,7 +30,7 @@ test.describe("public site", () => {
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1, name: route.heading })).toBeVisible();
       // The public shell always offers the local application and the repository.
-      await expect(page.getByRole("link", { name: "Try Replay" }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: "Scan your AI history" }).first()).toBeVisible();
     });
   }
 

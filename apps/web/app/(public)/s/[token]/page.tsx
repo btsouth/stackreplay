@@ -322,7 +322,7 @@ export default async function SharePage({ params }: SharePageProps) {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link className={buttonVariants()} href="/app/import">
-            Try Replay
+            Scan your AI history
           </Link>
           {catalogued === undefined ? null : (
             <Link
@@ -448,7 +448,7 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link className={buttonVariants()} href="/app/import" data-testid="share-cta">
-            Replay your workload
+            Scan your AI history
           </Link>
           <Link className={buttonVariants({ variant: "secondary" })} href="/methodology">
             How it works

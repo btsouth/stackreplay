@@ -184,7 +184,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
           browser; nothing in your history leaves it.
         </p>
         <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
-          Scan your history
+          Scan your AI history
         </Link>
       </div>
     );

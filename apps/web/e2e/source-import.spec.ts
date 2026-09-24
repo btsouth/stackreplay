@@ -477,6 +477,8 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   expect(stackReplayExportV1Schema.safeParse(JSON.parse(portable.toString("utf8"))).success).toBe(
     true,
   );
+  // The ways in fold away under Workload ready; a second import opens them.
+  await page.getByTestId("discovery-after-ready").locator(":scope > summary").click();
   await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page
     .getByTestId("source-file-input")

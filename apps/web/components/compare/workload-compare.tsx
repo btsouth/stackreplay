@@ -288,7 +288,7 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
         </p>
         <div className="flex flex-wrap gap-2">
           <Link className={buttonVariants({ size: "sm" })} href="/app/import">
-            Scan your history
+            Scan your AI history
           </Link>
           <Link className={buttonVariants({ size: "sm", variant: "secondary" })} href="/compare">
             Compare documented plan facts
