@@ -128,6 +128,12 @@ test("a stack of two current plans replays each on the work it carries", async (
     /^For your Codex work, ChatGPT Pro/u,
     { timeout: 60_000 },
   );
+  // The scoped Direct API column states the same price in its verdict and its
+  // findings, never "not established" beside a dollar figure.
+  const api = page.locator('[data-testid="compare-column"][data-target="api:anthropic"]');
+  await expect(api.getByTestId("compare-figure")).toContainText("$", { timeout: 60_000 });
+  await expect(api).not.toContainText("Not established for this workload");
+  await expect(api).toContainText("published-rate equivalent for the");
   // Kept in this browser: a reload remembers both plans.
   await page.reload();
   await expect(page.getByTestId("current-stack")).toContainText("Claude Max 20x + ChatGPT Pro");

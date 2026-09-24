@@ -78,7 +78,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
     if (out !== undefined) support.push(out);
   }
   support.push(
-    `${NUMBER.format(workload.activeDays)} active days across ${NUMBER.format(workload.spanDays)}${workload.period === undefined ? "" : `, ${workload.period.from} to ${workload.period.to}`}.`,
+    `Active on ${NUMBER.format(workload.activeDays)} of ${NUMBER.format(workload.spanDays)} days${workload.period === undefined ? "" : `, ${workload.period.from} to ${workload.period.to}`}.`,
   );
   return {
     kind: "workload",

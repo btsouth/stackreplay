@@ -95,7 +95,14 @@ function ColumnVerdict({ outcome, name }: { outcome: ReplayOutcome | undefined; 
   );
 }
 
-function Findings({ projection }: { projection: ProjectedReplayV1 }) {
+function Findings({
+  projection,
+  resolvedScope,
+}: {
+  projection: ProjectedReplayV1;
+  /** Direct API: the resolved-only replay whose price the column's verdict states. */
+  resolvedScope?: ReplayOutcome["resolvedScope"];
+}) {
   const outcome = (key: string) =>
     projection.outcomes.find((entry) => entry.key === key)?.count ?? 0;
   const unavailable = outcome("unavailable");
@@ -140,7 +147,16 @@ function Findings({ projection }: { projection: ProjectedReplayV1 }) {
       <Fact label={api ? "API cost" : "Price"}>
         {api ? (
           economics.targetCost === undefined ? (
-            <span className="text-muted-foreground">Not established for this workload</span>
+            resolvedScope?.projection.economics.targetCost === undefined ? (
+              <span className="text-muted-foreground">Not established for this workload</span>
+            ) : (
+              <span>
+                {money(resolvedScope.projection.economics.targetCost)} published-rate equivalent for
+                the {count(resolvedScope.projection.workload.eventCount)} calls with recognized
+                models; {count(resolvedScope.excludedUnresolvedEvents)} with unrecognized IDs left
+                out
+              </span>
+            )
           ) : (
             <span>{money(economics.targetCost)} published-rate equivalent</span>
           )
@@ -503,7 +519,10 @@ export function WorkloadCompare({ initialImportId }: { initialImportId?: string 
                       : ""}
                   </p>
                   <div className="mt-3">
-                    <Findings projection={row.projection} />
+                    <Findings
+                      projection={row.projection}
+                      resolvedScope={row.outcome?.resolvedScope}
+                    />
                   </div>
                   <Link
                     className="mt-2 inline-flex min-h-11 items-center text-sm text-accent underline-offset-4 hover:underline"
