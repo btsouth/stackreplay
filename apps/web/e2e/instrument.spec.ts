@@ -100,6 +100,35 @@ test.describe("the homepage replay instrument", () => {
     await expect(hero.getByTestId("hero-target-name")).toHaveText("OpenAI API");
   });
 
+  test("settles even when animation frames arrive after the run has ended", async ({ page }) => {
+    const hero = await openHero(page);
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    // A hidden or occluded tab pauses animation frames while timers still fire,
+    // so a rerun's frames can land after its resolve timer. Delay every frame
+    // past the run and count the late ones.
+    await page.evaluate(() => {
+      const late = window as unknown as { lateFrames: number };
+      late.lateFrames = 0;
+      window.requestAnimationFrame = (callback) =>
+        window.setTimeout(() => {
+          late.lateFrames += 1;
+          callback(performance.now());
+        }, 2_500);
+      window.cancelAnimationFrame = (handle) => window.clearTimeout(handle);
+    });
+    await hero.getByTestId("hero-target-openai-api").click();
+    await expect(hero).toHaveAttribute("data-target", "openai-api");
+    await page.waitForFunction(
+      () => (window as unknown as { lateFrames: number }).lateFrames >= 2,
+      undefined,
+      { timeout: 15_000 },
+    );
+    await expect(hero).toHaveAttribute("data-run", "resolved");
+    await expect(hero.getByTestId("hero-rerun")).toBeEnabled();
+    await expect(hero.getByTestId("hero-rerun")).toHaveText("Replay again");
+    await expect(hero.getByTestId("hero-status")).not.toContainText("Replaying");
+  });
+
   test("runs once and stops, and the rows below load the same instrument", async ({ page }) => {
     const hero = await openHero(page);
     await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
