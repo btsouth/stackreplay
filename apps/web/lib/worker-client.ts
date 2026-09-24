@@ -15,6 +15,7 @@ import {
   isWorkerResponse,
   protocolMismatch,
   type ReplayPhase,
+  type ReplayScope,
   type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
@@ -32,7 +33,7 @@ export interface ReplayOutcome {
   /** The display contract for the same result (M4D). */
   projection: ProjectedReplayV1;
   /** Present when the replay ran under an explicit, user-chosen scope. */
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  scope?: ReplayScope | undefined;
   /** The engine's model × category arithmetic behind the result's money. */
   receipt?: PriceReceiptV1 | undefined;
   /** Direct API only: how many events fared each way. */
@@ -437,7 +438,12 @@ export class ReplayWorkerClient {
     target: ExecutionTargetV1,
     rulesAsOf: string,
     onProgress?: ProgressHandler,
-    options: { excludeUnresolved?: boolean; timeZone?: string } = {},
+    options: {
+      excludeUnresolved?: boolean;
+      timeZone?: string;
+      /** Recording tools to keep, by adapter id. */
+      sources?: readonly string[] | undefined;
+    } = {},
   ): Promise<ReplayOutcome> {
     const response = await this.send(
       (requestId) => ({
@@ -449,6 +455,9 @@ export class ReplayWorkerClient {
         rulesAsOf,
         timeZone: options.timeZone ?? browserTimeZone(),
         ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
+        ...(options.sources === undefined || options.sources.length === 0
+          ? {}
+          : { sources: [...options.sources] }),
       }),
       onProgress,
       "replay",

@@ -1,13 +1,16 @@
 "use client";
 
-import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
+import { shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
+import { defaultRulesDate } from "@/lib/rules-date";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { Measure, WorkloadProfile } from "@/lib/workload-profile";
 import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
@@ -37,15 +40,60 @@ function segmented(active: boolean): string {
   ].join(" ");
 }
 
-/** Replay links carry an opaque local id and catalog ids only, never workload content. */
+/**
+ * Replay links carry an opaque local id, catalog ids and recording-tool ids
+ * only, never workload content.
+ */
 export function replayLink(
   importId: string,
-  options: { plan?: string | undefined; api?: string | undefined } = {},
+  options: {
+    plan?: string | undefined;
+    api?: string | undefined;
+    scope?: readonly string[] | undefined;
+  } = {},
 ): string {
   const params = new URLSearchParams({ import: importId });
   if (options.plan !== undefined) params.set("target", options.plan);
   if (options.api !== undefined) params.set("api", options.api);
+  if (options.scope !== undefined && options.scope.length > 0)
+    params.set("scope", options.scope.join(","));
   return `/app/replay?${params.toString()}`;
+}
+
+/** The replay a suggested route opens. */
+function routeLink(importId: string, route: SuggestedRoute): string {
+  return replayLink(importId, {
+    ...(route.target.kind === "api" ? { api: route.target.id } : { plan: route.target.id }),
+    scope: route.slice.sources,
+  });
+}
+
+/** Words for a suggested route: what it runs against, and what it can answer. */
+function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: string } {
+  const whole = route.slice.sources.length === 0;
+  const name = route.target.name;
+  const share = shareText(coverageShare(route.target));
+  const yourCalls = whole ? "your calls" : `your ${route.slice.label} calls`;
+  if (route.id === "api-value")
+    return {
+      kind: "Published API rates",
+      title: whole ? `Same models, ${name}` : `Your ${route.slice.label} work, ${name}`,
+      body: `What ${whole ? "this workload" : `your ${count(route.slice.events)} ${route.slice.label} calls`} would cost at the provider's published list prices. Not what you paid.`,
+    };
+  if (route.id === "numeric-limits")
+    return {
+      kind: "Numeric limits",
+      title: whole ? `Where ${name} would run out` : `Your ${route.slice.label} work on ${name}`,
+      body: `It runs ${share} of ${yourCalls} and publishes its allowance, so Replay can show whether and when it would have run out.`,
+    };
+  return {
+    kind: "Translated replay",
+    title: route.target.runnable > 0 ? `Put everything on ${name}` : `Move to ${name}`,
+    body:
+      route.target.runnable > 0
+        ? `It runs ${share} of your calls as they are; you choose which of its models take the rest.`
+        : "It runs none of these models as they are; you choose which of its models take your calls.",
+  };
 }
 
 /**
@@ -362,11 +410,19 @@ function WorkloadBody({
   onUtc: (value: boolean) => void;
   localZone: string;
 }) {
-  const topProvider = profile.models.canonical[0]?.apiProviders[0]?.id;
-  const apiProvider = useMemo(() => {
-    const providers = bundledPublicApiProviders();
-    return providers.find((provider) => provider.id === topProvider);
-  }, [topProvider]);
+  // Every suggestion is chosen from how much of this workload the target runs
+  // (lib/routes.ts), never from a fixed list.
+  const routes = useMemo(() => {
+    const names = new Map(
+      record.summary.usageSources.map((source) => [source.adapterId, source.name]),
+    );
+    return suggestRoutes(workloadSlices(profile.sources, names), defaultRulesDate(), {
+      synthetic: isSyntheticWorkload(record),
+    });
+  }, [profile.sources, record]);
+  const apiRoute = routes.find((route) => route.id === "api-value");
+  const numericRoute = routes.find((route) => route.id === "numeric-limits");
+  const switchRoute = routes.find((route) => route.id === "switch-provider");
   const peakDates = new Set<string>();
   for (const window of profile.topWindows[measure]) {
     peakDates.add(
@@ -379,10 +435,6 @@ function WorkloadBody({
   const cacheShare = known === 0 ? 0 : profile.tokens.cacheRead / known;
   const median = measure === "events" ? profile.days.medianEvents : profile.days.medianTokens;
   const peakDay = measure === "events" ? profile.days.peakByEvents : profile.days.peakByTokens;
-  const crossProvider =
-    topProvider === "anthropic"
-      ? { plan: "openai-chatgpt-pro", name: "ChatGPT Pro" }
-      : { plan: "anthropic-claude-max-20x", name: "Claude Max 20x" };
 
   return (
     <div className="flex min-w-0 flex-col gap-14">
@@ -493,13 +545,15 @@ function WorkloadBody({
         lede="Monthly totals hide bursts. Rolling windows open at the first event after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
         testId="section-pressure"
         action={
-          <Link
-            className={ACTION_LINK}
-            href={replayLink(record.id, { plan: "github-copilot-pro" })}
-            data-testid="pressure-replay-link"
-          >
-            See how a plan handles these peaks →
-          </Link>
+          numericRoute === undefined ? undefined : (
+            <Link
+              className={ACTION_LINK}
+              href={routeLink(record.id, numericRoute)}
+              data-testid="pressure-replay-link"
+            >
+              See how {numericRoute.target.name} handles these peaks →
+            </Link>
+          )
         }
       >
         <HistoricalPressure measure={measure} profile={profile} />
@@ -522,13 +576,15 @@ function WorkloadBody({
         lede="Grouped by canonical model, so different spellings of one model are counted once."
         testId="section-models"
         action={
-          <Link
-            className={ACTION_LINK}
-            href={replayLink(record.id, { plan: crossProvider.plan })}
-            data-testid="models-translate-link"
-          >
-            Try these models' demand on {crossProvider.name} →
-          </Link>
+          switchRoute === undefined ? undefined : (
+            <Link
+              className={ACTION_LINK}
+              href={routeLink(record.id, switchRoute)}
+              data-testid="models-translate-link"
+            >
+              Try these models' demand on {switchRoute.target.name} →
+            </Link>
+          )
         }
       >
         <ModelMix measure={measure} profile={profile} />
@@ -540,13 +596,15 @@ function WorkloadBody({
         title="Where the tokens go"
         testId="section-tokens"
         action={
-          apiProvider === undefined ? undefined : (
+          apiRoute === undefined ? undefined : (
             <Link
               className={ACTION_LINK}
-              href={replayLink(record.id, { api: apiProvider.id })}
+              href={routeLink(record.id, apiRoute)}
               data-testid="tokens-api-link"
             >
-              Estimate at {apiProvider.name} API rates →
+              {apiRoute.slice.sources.length === 0
+                ? `Estimate at ${apiRoute.target.name} rates →`
+                : `Price your ${apiRoute.slice.label} work at ${apiRoute.target.name} rates →`}
             </Link>
           )
         }
@@ -622,33 +680,32 @@ function WorkloadBody({
             to it.
           </p>
         </div>
-        <ul
-          className={`grid gap-px border border-border bg-border ${apiProvider === undefined ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
-        >
-          {apiProvider === undefined ? null : (
-            <NextStep
-              href={replayLink(record.id, { api: apiProvider.id })}
-              kind="Exact replay"
-              title={`Same models, ${apiProvider.name} API`}
-              body="Your recorded tokens at published list prices, category by category."
-              testId="next-api"
-            />
-          )}
-          <NextStep
-            href={replayLink(record.id, { plan: crossProvider.plan })}
-            kind="Translated replay"
-            title={`Move to ${crossProvider.name}`}
-            body="Where the target lacks your models, you choose which of its models take the demand."
-            testId="next-cross-provider"
-          />
-          <NextStep
-            href={replayLink(record.id, { plan: "github-copilot-pro" })}
-            kind="Numeric limits"
-            title="A plan with a published allowance"
-            body="GitHub Copilot plans publish monthly credit pools, so Replay can show when yours would have run out."
-            testId="next-numeric"
-          />
-        </ul>
+        {routes.length === 0 ? null : (
+          <ul
+            className={`grid gap-px border border-border bg-border ${routes.length === 1 ? "" : routes.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
+            data-testid="suggested-routes"
+          >
+            {routes.map((route) => {
+              const copy = routeCopy(route);
+              return (
+                <NextStep
+                  key={route.id}
+                  body={copy.body}
+                  href={routeLink(record.id, route)}
+                  kind={copy.kind}
+                  testId={
+                    route.id === "api-value"
+                      ? "next-api"
+                      : route.id === "numeric-limits"
+                        ? "next-numeric"
+                        : "next-cross-provider"
+                  }
+                  title={copy.title}
+                />
+              );
+            })}
+          </ul>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={replayLink(record.id)}

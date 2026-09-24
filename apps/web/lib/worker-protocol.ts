@@ -6,7 +6,10 @@ import type {
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
+
+export type { ReplayScope, ResolvedScopeReplay };
 
 /**
  * Internal Worker protocol (spec point 12, M3 brief).
@@ -215,15 +218,6 @@ export interface TimelinePoint {
   partialEvents: number;
 }
 
-/** A replay of the resolved-only scope, run beside the full replay. */
-export interface ResolvedScopeReplay {
-  result: ExecutionReplayResultV1;
-  projection: ProjectedReplayV1;
-  receipt?: PriceReceiptV1;
-  excludedUnresolvedEvents: number;
-  recordedEvents: number;
-}
-
 export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -279,6 +273,11 @@ export type WorkerRequest =
        * The response reports how many were left out.
        */
       excludeUnresolved?: boolean;
+      /**
+       * Explicit user scope: replay only the calls these recording tools made,
+       * by adapter id. The response states the slice.
+       */
+      sources?: string[];
       /** IANA timezone the timeline's calendar days are read in. */
       timeZone?: string;
     }
@@ -361,7 +360,7 @@ export type WorkerResponse =
        */
       projection: ProjectedReplayV1;
       /** Present when the replay ran under an explicit scope. */
-      scope?: { excludedUnresolvedEvents: number; recordedEvents: number };
+      scope?: ReplayScope;
       /**
        * The model × category arithmetic behind the result's money: a Direct API
        * list price, or a plan's credit demand. Collected in the same pass as the

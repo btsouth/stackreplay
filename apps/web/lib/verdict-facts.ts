@@ -8,6 +8,7 @@ import {
   type VerdictV1,
   verdictFactsV1Schema,
 } from "@stackreplay/share";
+import type { ReplayScope } from "./scoped-replay";
 import { localDayOf } from "./timeline";
 
 /**
@@ -23,6 +24,10 @@ export interface VerdictScope {
   label?: string | undefined;
   /** Calls in the whole recorded workload, before any scope. */
   recordedCalls: number;
+  /** Calls in the tool slice, before any are left out. */
+  sourceCalls?: number | undefined;
+  /** Calls left out because their model IDs are unrecognized. */
+  unrecognizedLeftOut?: number | undefined;
 }
 
 export interface VerdictInput {
@@ -186,8 +191,12 @@ export function verdictFactsOf(input: VerdictInput): VerdictFactsV1 | undefined 
     })),
     scope: {
       kind: scope.kind,
-      ...(scope.label === undefined ? {} : { label: scope.label }),
+      ...(scope.label === undefined ? {} : { label: scope.label.slice(0, 60) }),
       recordedCalls: scope.recordedCalls,
+      ...(scope.sourceCalls === undefined ? {} : { sourceCalls: scope.sourceCalls }),
+      ...(scope.unrecognizedLeftOut === undefined || scope.unrecognizedLeftOut === 0
+        ? {}
+        : { unrecognizedLeftOut: scope.unrecognizedLeftOut }),
     },
     calls: {
       total: projection.workload.eventCount,
@@ -229,10 +238,12 @@ type ReplayedScope = Pick<VerdictInput, "projection" | "result">;
 
 /** A completed replay as the worker returns it, reduced to what a verdict reads. */
 export interface VerdictOutcome extends ReplayedScope {
-  /** A scope the person chose: unresolved model IDs left out. */
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  /** A scope the person chose: a tool slice, unresolved model IDs left out, or both. */
+  scope?: ReplayScope | undefined;
   /** Direct API: the resolved-only replay the worker ran beside the full one. */
-  resolvedScope?: (ReplayedScope & { recordedEvents: number }) | undefined;
+  resolvedScope?:
+    | (ReplayedScope & { recordedEvents: number; excludedUnresolvedEvents: number })
+    | undefined;
 }
 
 /**
@@ -248,18 +259,22 @@ export function verdictOfOutcome(
   options: { timeZone: string; catalog: VerdictInput["catalog"] },
 ): { facts: VerdictFactsV1; verdict: VerdictV1 } | undefined {
   const { resolvedScope, scope } = outcome;
-  const source = resolvedScope ?? outcome;
-  const resolved = resolvedScope !== undefined || (scope?.excludedUnresolvedEvents ?? 0) > 0;
+  const replayed = resolvedScope ?? outcome;
+  const unrecognizedLeftOut =
+    resolvedScope?.excludedUnresolvedEvents ?? scope?.excludedUnresolvedEvents ?? 0;
+  const slice = scope?.source;
   return verdictOf({
-    projection: source.projection,
-    result: source.result,
+    projection: replayed.projection,
+    result: replayed.result,
     targetName,
     scope: {
-      kind: resolved ? "resolved" : "all",
+      kind: slice !== undefined ? "source" : unrecognizedLeftOut > 0 ? "resolved" : "all",
+      ...(slice === undefined ? {} : { label: slice.label, sourceCalls: slice.events }),
       recordedCalls:
-        resolvedScope?.recordedEvents ??
         scope?.recordedEvents ??
+        resolvedScope?.recordedEvents ??
         outcome.projection.workload.eventCount,
+      unrecognizedLeftOut,
     },
     ...options,
   });

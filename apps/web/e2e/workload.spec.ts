@@ -4,7 +4,13 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, gotoImport, importDemo, openReplayDetails } from "./helpers";
+import {
+  captureRequests,
+  gotoImport,
+  importDemo,
+  openReplayDetails,
+  setRulesAsOf,
+} from "./helpers";
 
 /**
  * SCAN → UNDERSTAND → REPLAY → COMPARE, end to end in a real browser.
@@ -249,7 +255,7 @@ test("a numeric limit crossing states when the allowance ran out and opens its w
 }) => {
   await importDemo(page, "heavy");
   await page.getByTestId("continue-to-replay").click();
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });

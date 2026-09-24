@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay } from "./helpers";
+import { gotoImport, importDemo, runReplay, setRulesAsOf } from "./helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -21,7 +21,7 @@ test("direct navigation without an import shows an intentional empty state", asy
 test("keeps forensic result detail closed until requested", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
@@ -200,7 +200,7 @@ test("a target change during a replay never displays the earlier result", async 
   await page.goto("/app/replay");
 
   // Select target A, hold its replay at the Worker boundary, and start it.
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.evaluate(() => {
     (window as unknown as { __armReplayGate: () => void }).__armReplayGate();
@@ -345,6 +345,10 @@ test("explains how observed model names map onto the catalog", async ({ page }) 
   await page.goto("/app/replay");
 
   const identities = page.getByTestId("model-identities");
+  // Every name resolved, so the raw identity map waits under the workload
+  // details instead of standing between the person and the target choice.
+  await expect(page.getByTestId("workload-details")).not.toHaveAttribute("open");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   await expect(identities).toBeVisible();
   await expect(identities.getByRole("heading", { name: "Models in this workload" })).toBeVisible();
   // The demo workloads use the catalog's synthetic namespace, which the bundled
@@ -374,6 +378,9 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
   await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
   await page.goto("/app/replay");
 
+  // The strip says unmapped IDs exist; the raw map is one step down.
+  await expect(page.getByTestId("workload-strip-summary")).toContainText("1 unmapped model ID");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   const identities = page.getByTestId("model-identities");
   await expect(identities).toBeVisible();
   await expect(identities).toContainText(unknown);

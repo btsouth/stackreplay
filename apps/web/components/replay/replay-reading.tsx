@@ -7,15 +7,16 @@ import type {
   ProjectedCrossingV1,
   ProjectedReplayV1,
 } from "@stackreplay/replay-engine";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { formatUnit } from "@/components/instrument/format";
 import { count, instantWithZone, money, percent, plainDay } from "@/components/workload/format";
 import { WindowDetail } from "@/components/workload/pressure";
 import { formatUsd, isPositiveAmount } from "@/lib/money-display";
 import { apiScopeAdvice, sentence } from "@/lib/replay-advice";
 import { browserTimeZone } from "@/lib/time-zone";
+import { useWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient } from "@/lib/worker-client";
-import type { ResolvedScopeReplay, SafeError } from "@/lib/worker-protocol";
+import type { ReplayScope, ResolvedScopeReplay, SafeError } from "@/lib/worker-protocol";
 import { peakWindowSentences } from "@/lib/workload-facts";
 import type { WindowFact, WorkloadProfile } from "@/lib/workload-profile";
 import { PriceReceipt } from "./price-receipt";
@@ -122,7 +123,7 @@ export function ReplayReading({
 }: {
   projection: ProjectedReplayV1;
   importId: string | undefined;
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  scope?: ReplayScope | undefined;
   targetName: string;
   /** Direct API only: how each event fared, from the same replay pass. */
   priceability?: ApiPriceabilityCountsV1 | undefined;
@@ -133,21 +134,8 @@ export function ReplayReading({
   /** Direct API: the resolved-only scope, when it completes the price. */
   resolvedScope?: ResolvedScopeReplay | undefined;
 }) {
-  const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
+  const profile = useWorkloadProfile(importId);
   const timeZone = profile?.timeZone ?? browserTimeZone();
-  useEffect(() => {
-    if (importId === undefined) return;
-    let cancelled = false;
-    getWorkerClient()
-      .analyzeWorkload(importId, browserTimeZone())
-      .then((next) => {
-        if (!cancelled) setProfile(next);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [importId]);
 
   const outcome = (key: string) =>
     projection.outcomes.find((entry) => entry.key === key)?.count ?? 0;
@@ -158,7 +146,10 @@ export function ReplayReading({
   const translated = projection.mode === "translated";
   const api = projection.target.kind === "api";
   const economics = projection.economics;
-  const pressure = profile === undefined ? [] : peakWindowSentences(profile);
+  // The profile's peaks are the whole workload's: a replay scoped to one tool's
+  // work did not send them through the target, so it does not quote them.
+  const pressure =
+    profile === undefined || scope?.source !== undefined ? [] : peakWindowSentences(profile);
   const crossings = projection.crossings;
   const numeric = projection.constraints.length > 0;
   const recorded = projection.workload.eventCount;
@@ -296,7 +287,7 @@ export function ReplayReading({
             ) : (
               <>
                 {sentence(
-                  `Not established for all ${count(recorded)} recorded calls. ${economics.reason ?? economics.costReading}`,
+                  `Not established for all ${count(recorded)} ${scope?.source === undefined ? "recorded" : scope.source.label} calls. ${economics.reason ?? economics.costReading}`,
                 )}
                 {resolvedScope?.projection.economics.targetCost === undefined ? null : (
                   <span className="mt-2 block" data-testid="cost-resolved-scope">
@@ -370,10 +361,21 @@ export function ReplayReading({
           {scope !== undefined && scope.excludedUnresolvedEvents > 0 ? (
             <span className="block text-xs text-muted-foreground" data-testid="reading-scope">
               Scoped at your request: {count(scope.excludedUnresolvedEvents)} of{" "}
-              {count(scope.recordedEvents)} recorded events had unresolved model identities and were
-              left out of this replay.
+              {count(scope.source?.events ?? scope.recordedEvents)}{" "}
+              {scope.source === undefined ? "recorded calls" : `${scope.source.label} calls`} had
+              unresolved model identities and were left out of this replay.
             </span>
           ) : null}
+          {scope?.source === undefined ? null : (
+            <span
+              className="block text-xs text-muted-foreground"
+              data-testid="reading-source-scope"
+            >
+              Scoped at your request to your {scope.source.label} work: {count(scope.source.events)}{" "}
+              of {count(scope.recordedEvents)} recorded calls. The other{" "}
+              {count(scope.recordedEvents - scope.source.events)} are not part of this replay.
+            </span>
+          )}
         </Row>
       </dl>
       {crossings.length > 0 ? (

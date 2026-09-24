@@ -16,7 +16,6 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { projectReplay, replayWithReceipt } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -25,11 +24,11 @@ import {
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
   type ImportRecord,
   isSafeErrorCode,
-  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
   WORKER_PROTOCOL_VERSION,
@@ -37,7 +36,6 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
-import { splitByIdentity } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
 /**
@@ -654,77 +652,42 @@ async function handleImportDemo(
 async function handleRunReplay(
   request: Extract<WorkerRequest, { type: "RUN_REPLAY" }>,
 ): Promise<void> {
-  const { requestId, importId, target, rulesAsOf, excludeUnresolved, timeZone } = request;
+  const { requestId, importId, target, rulesAsOf, excludeUnresolved, sources, timeZone } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
   const workload = await loadWorkloadEvents(importId);
   if (!workload.ok) {
     post({ type: "ERROR", requestId, error: workload.error });
     return;
   }
-  const scoped =
-    excludeUnresolved === true
-      ? splitByIdentity(workload.exported.events, bundledModelIdentity())
-      : undefined;
-  const events = scoped?.resolved ?? workload.exported.events;
 
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
-    const catalog = loadBundledCatalog();
-    const { result, receipt, priceability } = replayWithReceipt({
-      events,
+    const run = runScopedReplay({
+      events: workload.exported.events,
       target,
-      catalog,
-      context: { rulesAsOf },
+      catalog: loadBundledCatalog(),
+      identity: bundledModelIdentity(),
+      rulesAsOf,
+      timeZone,
+      sources,
+      sourceNames: new Map(
+        workload.exported.detectedSources.map((source) => [source.adapterId, source.name]),
+      ),
+      excludeUnresolved,
     });
-    // A Direct API price blocked only by unrecognized model IDs: replay the
-    // resolved-only scope too, so the result can state a complete price for a
-    // stated scope instead of no price at all (decision 49).
-    const onlyUnresolvedBlocks =
-      target.type === "api" &&
-      scoped === undefined &&
-      result.economics === undefined &&
-      priceability !== undefined &&
-      priceability.unresolved > 0 &&
-      priceability.priced > 0 &&
-      priceability.priced + priceability.unresolved === events.length;
-    let resolvedScope: ResolvedScopeReplay | undefined;
-    if (onlyUnresolvedBlocks) {
-      const split = splitByIdentity(events, bundledModelIdentity());
-      const scopedRun = replayWithReceipt({
-        events: split.resolved,
-        target,
-        catalog,
-        context: { rulesAsOf },
-      });
-      if (scopedRun.result.economics !== undefined)
-        resolvedScope = {
-          result: scopedRun.result,
-          projection: projectReplay(scopedRun.result, catalog, { timeZone }),
-          ...(scopedRun.receipt === undefined ? {} : { receipt: scopedRun.receipt }),
-          excludedUnresolvedEvents: split.unresolved,
-          recordedEvents: events.length,
-        };
-    }
     post({
       type: "REPLAY_OK",
       requestId,
-      result,
-      timeline: buildTimeline(events, timeZone),
-      ...(receipt === undefined ? {} : { receipt }),
-      ...(priceability === undefined ? {} : { priceability }),
-      ...(resolvedScope === undefined ? {} : { resolvedScope }),
+      result: run.result,
+      timeline: buildTimeline(run.events, timeZone),
+      ...(run.receipt === undefined ? {} : { receipt: run.receipt }),
+      ...(run.priceability === undefined ? {} : { priceability: run.priceability }),
+      ...(run.resolvedScope === undefined ? {} : { resolvedScope: run.resolvedScope }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.
-      projection: projectReplay(result, catalog, { timeZone }),
-      ...(scoped === undefined
-        ? {}
-        : {
-            scope: {
-              excludedUnresolvedEvents: scoped.unresolved,
-              recordedEvents: workload.exported.events.length,
-            },
-          }),
+      projection: run.projection,
+      ...(run.scope === undefined ? {} : { scope: run.scope }),
     });
   } catch (error) {
     post({

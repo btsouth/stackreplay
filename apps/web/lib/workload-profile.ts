@@ -134,6 +134,21 @@ export interface UnresolvedModel extends Demand {
   rawName: string;
 }
 
+/**
+ * One recording tool's share of the workload: the calls it recorded, on which
+ * models. The slice a Replay scope names ("your Claude Code work"), and what a
+ * target's coverage of that slice is read from. The tool's display name is the
+ * workload summary's (`usageSources`), joined by `id`.
+ */
+export interface SourceDemand extends Demand {
+  /** The adapter that recorded the calls, e.g. "claude-code". */
+  id: string;
+  /** Calls per resolved canonical model, most first. */
+  models: { modelId: string; events: number }[];
+  /** Calls whose model identity does not resolve. */
+  unresolvedEvents: number;
+}
+
 export interface RhythmFacts {
   busiestHour: number | undefined;
   /** Smallest run of consecutive hours holding at least 80% of demand. */
@@ -197,6 +212,8 @@ export interface WorkloadProfile {
   topWindows: { events: WindowFact[]; tokens: WindowFact[] };
   projects: ProjectProfile[];
   models: { canonical: ModelShare[]; unresolved: UnresolvedModel[] };
+  /** Per recording tool, most calls first. */
+  sources: SourceDemand[];
   sessions: {
     count: number;
     perActiveDay: number;
@@ -309,6 +326,7 @@ interface PreparedEvent {
   modelKey: string;
   modelLabel: string;
   resolved: boolean;
+  sourceId: string;
   session: string | undefined;
   project: string;
   local: LocalParts;
@@ -364,6 +382,7 @@ function prepare(
           ? event.model.rawName
           : (catalog.models[canonicalId]?.name ?? canonicalId),
       resolved: canonicalId !== undefined,
+      sourceId: event.source.adapterId,
       session: event.source.nativeSessionHash,
       project: event.projectHash ?? NO_PROJECT,
       local: clock(item.atMs),
@@ -955,6 +974,35 @@ export function buildWorkloadProfile(
     };
   });
 
+  const sourceDemand = new Map<
+    string,
+    { events: number; tokens: number; models: Map<string, number>; unresolvedEvents: number }
+  >();
+  for (const item of prepared) {
+    const entry = sourceDemand.get(item.sourceId) ?? {
+      events: 0,
+      tokens: 0,
+      models: new Map<string, number>(),
+      unresolvedEvents: 0,
+    };
+    entry.events += 1;
+    entry.tokens += item.tokens;
+    if (item.resolved) entry.models.set(item.modelKey, (entry.models.get(item.modelKey) ?? 0) + 1);
+    else entry.unresolvedEvents += 1;
+    sourceDemand.set(item.sourceId, entry);
+  }
+  const sources: SourceDemand[] = [...sourceDemand.entries()]
+    .map(([id, entry]) => ({
+      id,
+      events: entry.events,
+      tokens: entry.tokens,
+      models: [...entry.models.entries()]
+        .map(([modelId, events]) => ({ modelId, events }))
+        .sort((a, b) => b.events - a.events || (a.modelId < b.modelId ? -1 : 1)),
+      unresolvedEvents: entry.unresolvedEvents,
+    }))
+    .sort((a, b) => b.events - a.events || (a.id < b.id ? -1 : 1));
+
   const activeDays = daily.size;
   const base: Omit<WorkloadProfile, "insights"> = {
     version: PROFILE_VERSION,
@@ -1004,6 +1052,7 @@ export function buildWorkloadProfile(
       canonical: rank([...models.values()], "events"),
       unresolved: rank([...unresolved.values()], "events"),
     },
+    sources,
     sessions: {
       count: sessions.size,
       perActiveDay: activeDays === 0 ? 0 : sessions.size / activeDays,

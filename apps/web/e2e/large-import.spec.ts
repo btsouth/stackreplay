@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ensureLargeExport } from "./fixtures/large-export";
+import { setRulesAsOf } from "./helpers";
 
 /**
  * Large import measurement (M3 brief).
@@ -123,7 +124,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   await page.getByTestId("continue-to-replay").click();
   await expect(page.getByTestId("workload-strip")).toBeVisible({ timeout: 60_000 });
   await page.getByTestId("plan-example-cloud-pro").click();
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   const replayStart = Date.now();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 240_000 });

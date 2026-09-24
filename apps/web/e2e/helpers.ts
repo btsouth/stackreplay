@@ -62,11 +62,19 @@ export async function runReplay(
   planId: string,
   rulesAsOf = "2026-09-15",
 ): Promise<void> {
-  await page.getByTestId("rules-as-of").fill(rulesAsOf);
+  await setRulesAsOf(page, rulesAsOf);
   await page.getByTestId(`plan-${planId}`).click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
   await openReplayDetails(page);
+}
+
+/** The rules date lives under Advanced: a sensible default, overridden on purpose. */
+export async function setRulesAsOf(page: Page, rulesAsOf: string): Promise<void> {
+  await page.getByTestId("replay-advanced").evaluate((element: HTMLDetailsElement) => {
+    element.open = true;
+  });
+  await page.getByTestId("rules-as-of").fill(rulesAsOf);
 }
 
 /** Opens the native evidence disclosures for tests that inspect forensic rows. */

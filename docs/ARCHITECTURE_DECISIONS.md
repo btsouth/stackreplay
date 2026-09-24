@@ -1072,3 +1072,30 @@ or a bounded share, then what stays open, each in one sentence.
   says nothing here claims the substitute models would do the same work.
 - **The engine reading is kept, one step down.** The status word, dispositions, coverage
   dimensions, replayability and evidence moved under Inspect. Nothing was removed.
+
+## 59. Suggestions come from the workload's own coverage, and tool slices are explicit scopes (workload-aware routing)
+
+The suggested routes were fixed: "a plan with a published allowance" was always Copilot Pro, and
+the API route was the top model's provider whatever else the workload held. On a mixed history
+every suggestion ended in a non-answer.
+
+- **One coverage measure.** `targetCoverages` (`apps/web/lib/routes.ts`) counts, per target, the
+  calls on models it runs, with the catalog rule the engine applies (`bundledPlanModelsAt`,
+  `bundledApiProviderModels`). `routes.test.ts` holds every count, for every archetype, tool
+  slice and public target, to the engine's own served count. Unresolved calls are never assigned.
+- **Suggested routes.** `suggestRoutes` offers up to three, each able to answer: a Direct API
+  provider that runs and prices every resolved call (of the whole workload, or of the largest
+  tool slice one provider covers); the numeric-limit plan that runs the most of the workload, at
+  least half of it; and a provider switch framed as a translated scenario. Plans sold per seat to
+  organizations are never suggested and sort after individual plans on a tie.
+- **Tool slices.** A replay can be scoped to the calls one or more recording tools made
+  (`runScopedReplay`, `apps/web/lib/scoped-replay.ts`, the one place scopes are applied). The
+  verdict names the slice in its first words, its figure caption and its short form; the reading
+  states the scope and omits whole-workload peaks the slice did not send. A share link refuses a
+  sliced result until share V2 can state the scope.
+- **Current stack.** "What you use today" is a set. Each current target is replayed on the tools
+  whose calls it runs at least half of (`stackCoverage`), and tools no current target carries are
+  named.
+- **Setup order.** Work to replay, then target (ordered by coverage, with the share each runs),
+  then substitutions. The rules date and catalog version badges sit under Advanced, and the raw
+  identity map under the workload details.

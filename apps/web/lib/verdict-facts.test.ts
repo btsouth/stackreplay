@@ -3,8 +3,8 @@ import { projectReplay, replay } from "@stackreplay/replay-engine";
 import type { ExecutionTargetV1 } from "@stackreplay/schema";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
+import { runScopedReplay } from "./scoped-replay";
 import { verdictOf, verdictOfOutcome } from "./verdict-facts";
-import { splitByIdentity } from "./workload-scope";
 
 /**
  * Phase 2 acceptance: for each scenario the first sentence of the verdict
@@ -150,33 +150,34 @@ describe("the verdict for a worker outcome", () => {
       : event,
   );
   const target: ExecutionTargetV1 = { type: "api", providerId: "anthropic" };
-  const context = { rulesAsOf: "2026-09-23" };
-  const options = { timeZone: "America/New_York", catalog };
-  const full = replay({ events, target, catalog, context });
-  const split = splitByIdentity(events, bundledModelIdentity());
-  const scoped = replay({ events: split.resolved, target, catalog, context });
+  const timeZone = "America/New_York";
+  const options = { timeZone, catalog };
+  const run = (extra: { excludeUnresolved?: boolean } = {}) =>
+    runScopedReplay({
+      events,
+      target,
+      catalog,
+      identity: bundledModelIdentity(),
+      rulesAsOf: "2026-09-23",
+      timeZone,
+      ...extra,
+    });
 
   it("leads with the resolved-only price and states what it leaves out", () => {
-    expect(full.economics).toBeUndefined();
-    expect(split.unresolved).toBe(32);
-    const composed = verdictOfOutcome(
-      {
-        projection: projectReplay(full, catalog, { timeZone: options.timeZone }),
-        result: full,
-        resolvedScope: {
-          projection: projectReplay(scoped, catalog, { timeZone: options.timeZone }),
-          result: scoped,
-          recordedEvents: events.length,
-        },
-      },
-      "Anthropic API",
-      options,
-    );
+    const outcome = run();
+    expect(outcome.result.economics).toBeUndefined();
+    expect(outcome.scope).toBeUndefined();
+    expect(outcome.resolvedScope?.excludedUnresolvedEvents).toBe(32);
+    const composed = verdictOfOutcome(outcome, "Anthropic API", options);
     if (composed === undefined) throw new Error("no verdict");
     const { facts, verdict } = composed;
-    expect(facts.scope).toEqual({ kind: "resolved", recordedCalls: 3_200 });
+    expect(facts.scope).toEqual({
+      kind: "resolved",
+      recordedCalls: 3_200,
+      unrecognizedLeftOut: 32,
+    });
     expect(facts.calls.total).toBe(3_168);
-    expect(facts.money.apiCost).toBe(scoped.economics?.targetCost.amount);
+    expect(facts.money.apiCost).toBe(outcome.resolvedScope?.result.economics?.targetCost.amount);
     expect(verdict.headline).toMatch(
       /^Your 3,168 calls with recognized models are worth \$[\d,]+\.\d\d at Anthropic's published API rates/u,
     );
@@ -187,11 +188,8 @@ describe("the verdict for a worker outcome", () => {
   });
 
   it("without the resolved-only replay, states the served share and no price", () => {
-    const composed = verdictOfOutcome(
-      { projection: projectReplay(full, catalog, { timeZone: options.timeZone }), result: full },
-      "Anthropic API",
-      options,
-    );
+    const { resolvedScope: _, ...fullOnly } = run();
+    const composed = verdictOfOutcome(fullOnly, "Anthropic API", options);
     if (composed === undefined) throw new Error("no verdict");
     expect(composed.facts.scope.kind).toBe("all");
     expect(composed.facts.money.apiCost).toBeUndefined();
@@ -200,16 +198,15 @@ describe("the verdict for a worker outcome", () => {
   });
 
   it("a scope the person chose is stated the same way", () => {
-    const composed = verdictOfOutcome(
-      {
-        projection: projectReplay(scoped, catalog, { timeZone: options.timeZone }),
-        result: scoped,
-        scope: { excludedUnresolvedEvents: 32, recordedEvents: 3_200 },
-      },
-      "Anthropic API",
-      options,
-    );
-    expect(composed?.facts.scope).toEqual({ kind: "resolved", recordedCalls: 3_200 });
+    const outcome = run({ excludeUnresolved: true });
+    expect(outcome.scope).toEqual({ recordedEvents: 3_200, excludedUnresolvedEvents: 32 });
+    expect(outcome.resolvedScope).toBeUndefined();
+    const composed = verdictOfOutcome(outcome, "Anthropic API", options);
+    expect(composed?.facts.scope).toEqual({
+      kind: "resolved",
+      recordedCalls: 3_200,
+      unrecognizedLeftOut: 32,
+    });
     expect(composed?.verdict.headline).toMatch(/^Your 3,168 calls with recognized models/u);
   });
 });

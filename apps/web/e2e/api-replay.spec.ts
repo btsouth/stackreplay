@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, openReplayDetails } from "./helpers";
+import { importDemo, openReplayDetails, setRulesAsOf } from "./helpers";
 
 /**
  * Direct API target (M4C): the same workload priced at a provider's published
@@ -67,7 +67,7 @@ test("explains an unpriced provider instead of inventing a cost", async ({ page 
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
   // anthropic offers catalogued models but no API list prices for them.
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("target-kind-api").click();
   await page.getByTestId("provider-anthropic").click();
   // The picker says up front that this provider's models have no list prices,
@@ -105,7 +105,7 @@ test("refuses to share a Direct API result", async ({ page }) => {
 
 /** Runs a Direct API replay against a provider and waits for the result. */
 async function runApiReplay(page: Page, providerId: string, rulesAsOf = "2026-09-15") {
-  await page.getByTestId("rules-as-of").fill(rulesAsOf);
+  await setRulesAsOf(page, rulesAsOf);
   await page.getByTestId("target-kind-api").click();
   await page.getByTestId(`provider-${providerId}`).click();
   await page.getByTestId("run-replay").click();

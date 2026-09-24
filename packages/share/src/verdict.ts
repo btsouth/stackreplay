@@ -61,13 +61,18 @@ export const verdictFactsV1Schema = z.strictObject({
   scope: z.strictObject({
     /**
      * `all`: every recorded call. `resolved`: the calls whose model identity
-     * resolves. `source`: one tool's calls. `target-models`: the calls on
-     * models the target runs.
+     * resolves. `source`: the calls one or more recording tools made ("your
+     * Claude Code work"), possibly without their unrecognized calls.
      */
-    kind: z.enum(["all", "resolved", "source", "target-models"]),
-    /** A short noun phrase for a source slice, e.g. "Claude Code". */
+    kind: z.enum(["all", "resolved", "source"]),
+    /** The tool slice, e.g. "Claude Code". */
     label: z.string().min(1).max(60).optional(),
+    /** Every recorded call in the workload. */
     recordedCalls: count,
+    /** Calls in the tool slice, before any are left out. */
+    sourceCalls: count.optional(),
+    /** Calls left out because their model IDs are unrecognized. */
+    unrecognizedLeftOut: count.optional(),
   }),
   calls: z.strictObject({
     /** Calls replayed, the denominator of every other count here. */
@@ -242,15 +247,37 @@ function undecidedSentence(facts: VerdictFactsV1): string | undefined {
   return `${n(undecided)} of ${calls(total)} (${share}) stayed undecided${unrecognized > 0 ? `, ${n(unrecognized)} of them on model IDs StackReplay couldn't resolve` : ""}. They are counted, not guessed.`;
 }
 
+/** The tool slice's name, when the replay is scoped to one. */
+function sliceOf(facts: VerdictFactsV1): string | undefined {
+  return facts.scope.kind === "source" ? facts.scope.label : undefined;
+}
+
+/** Calls left out of the replay because their model IDs are unrecognized. */
+function leftOut(facts: VerdictFactsV1): number {
+  const { scope } = facts;
+  if (scope.unrecognizedLeftOut !== undefined) return scope.unrecognizedLeftOut;
+  return scope.kind === "resolved" ? Math.max(0, scope.recordedCalls - facts.calls.total) : 0;
+}
+
 function scopeSentence(facts: VerdictFactsV1): string | undefined {
   const { scope, calls: counts } = facts;
-  const left = scope.recordedCalls - counts.total;
-  if (scope.kind === "all" || left <= 0) return undefined;
-  if (scope.kind === "resolved")
-    return `Scope: the ${calls(counts.total)} with recognized models. ${n(left)} ${left === 1 ? "call" : "calls"} with unrecognized model IDs ${left === 1 ? "is" : "are"} left out and not priced.`;
-  if (scope.kind === "source")
-    return `Scope: your ${scope.label ?? "selected"} work, ${n(counts.total)} of ${calls(scope.recordedCalls)}. The other ${n(left)} are not part of this result.`;
-  return `Scope: the ${calls(counts.total)} on models this target runs. The other ${n(left)} are not part of this result.`;
+  const unrecognized = leftOut(facts);
+  const slice = sliceOf(facts);
+  if (slice !== undefined) {
+    const inSlice = scope.sourceCalls ?? counts.total + unrecognized;
+    const others = scope.recordedCalls - inSlice;
+    return [
+      `Scope: your ${slice} work, ${n(inSlice)} of ${calls(scope.recordedCalls)}.`,
+      unrecognized === 0
+        ? undefined
+        : `${n(unrecognized)} of them ${unrecognized === 1 ? "uses a model ID" : "use model IDs"} StackReplay couldn't resolve and ${unrecognized === 1 ? "is" : "are"} left out.`,
+      others <= 0 ? undefined : `The other ${n(others)} are not part of this result.`,
+    ]
+      .filter((part) => part !== undefined)
+      .join(" ");
+  }
+  if (unrecognized === 0) return undefined;
+  return `Scope: the ${calls(counts.total)} with recognized models. ${n(unrecognized)} ${unrecognized === 1 ? "call" : "calls"} with unrecognized model IDs ${unrecognized === 1 ? "is" : "are"} left out${facts.target.kind === "api" ? " and not priced" : ""}.`;
 }
 
 function substitutionSentence(facts: VerdictFactsV1): string | undefined {
@@ -281,7 +308,18 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
   const shareShown = bound === undefined ? shareText(low) : boundText(low, high);
   const days = facts.periodDays;
   const over = days === undefined ? "" : ` over ${n(days)} ${days === 1 ? "day" : "days"}`;
-  const under = translated ? "Under your model substitution, " : "";
+  const slice = sliceOf(facts);
+  // A tool slice is named in the first words of the verdict, like a
+  // substitution is: the answer is about that work, not the whole workload.
+  const translatedLead = translated ? "Under your model substitution, " : "";
+  const under =
+    slice === undefined
+      ? translatedLead
+      : `For your ${slice} work${translated ? " under your model substitution" : ""}, `;
+  const the = under === "" ? "The" : "the";
+  const workNoun = slice === undefined ? "this workload" : `your ${slice} work`;
+  const ofCalls = slice === undefined ? "of recorded calls" : `of your ${slice} calls`;
+  const tag = (text: string) => (slice === undefined ? text : `${slice}: ${text}`);
   const unavailableMakers = list(facts.unavailableMakers);
   const tail: string[] = [];
   const push = (sentence: string | undefined) => {
@@ -293,14 +331,16 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
     const provider = target.providerName;
     if (facts.money.apiCost !== undefined) {
       const cost = formatUsd(facts.money.apiCost) ?? `$${facts.money.apiCost}`;
-      const resolved = facts.scope.kind === "resolved";
+      const resolved = leftOut(facts) > 0;
+      const noun = resolved
+        ? `your ${n(total)} ${slice === undefined ? "" : `${slice} `}${total === 1 ? "call" : "calls"} with recognized models`
+        : slice === undefined
+          ? "this recorded demand"
+          : `your ${slice} work`;
+      const verb = translated ? "would be worth" : resolved ? "are worth" : "is worth";
       const subject = translated
-        ? resolved
-          ? `Under your model substitution, your ${calls(total)} with recognized models would be worth`
-          : "Under your model substitution, this recorded demand would be worth"
-        : resolved
-          ? `Your ${calls(total)} with recognized models are worth`
-          : "This recorded demand is worth";
+        ? `${translatedLead}${noun} ${verb}`
+        : `${noun.charAt(0).toUpperCase()}${noun.slice(1)} ${verb}`;
       const headline = `${subject} ${cost} at ${possessive(provider)} published API rates${over}.`;
       push("That's a list-price equivalent, not what you paid.");
       push(scopeSentence(facts));
@@ -308,10 +348,13 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       push(substitutionSentence(facts));
       const [whole, cents] = cost.split(".");
       // A scoped price names its scope wherever the figure travels alone.
-      const scoped =
-        facts.scope.kind === "all" || facts.scope.recordedCalls <= total
-          ? ""
-          : `${n(total)} of ${calls(facts.scope.recordedCalls)} · `;
+      const recorded = facts.scope.recordedCalls;
+      const scopeTag =
+        slice !== undefined
+          ? `${slice}, ${n(total)} of ${calls(recorded)}`
+          : resolved && recorded > total
+            ? `${n(total)} of ${calls(recorded)}`
+            : undefined;
       return {
         modeLabel,
         headline,
@@ -319,17 +362,17 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
         figure: {
           value: whole ?? cost,
           ...(cents === undefined ? {} : { minor: `.${cents}` }),
-          caption: `${scoped}at ${possessive(provider)} published API rates · not what you paid`,
+          caption: `${scopeTag === undefined ? "" : `${scopeTag} · `}at ${possessive(provider)} published API rates · not what you paid`,
           kind: "money",
         },
         bound: undefined,
-        short: `${cost} at list prices${scoped === "" ? "" : ` · ${n(total)} of ${calls(facts.scope.recordedCalls)}`}`,
+        short: `${cost} at list prices${scopeTag === undefined ? "" : ` · ${scopeTag}`}`,
       };
     }
     const headline =
       runnable === 0
-        ? `${under}The ${provider} API doesn't offer the models behind any of your ${calls(total)}${c.undecided > 0 ? " with recognized models" : ""}.`
-        : `${under}The ${provider} API offers the models behind ${n(runnable)} of your ${calls(total)} (${shareShown}).`;
+        ? `${under}${the} ${provider} API doesn't offer the models behind any of your ${calls(total)}${c.undecided > 0 ? " with recognized models" : ""}.`
+        : `${under}${the} ${provider} API offers the models behind ${n(runnable)} of your ${calls(total)} (${shareShown}).`;
     if (c.unavailable > 0 && runnable > 0)
       push(
         `The other ${n(c.unavailable)} use ${notRun(facts, "it")}, so there's no single API price for the whole workload.`,
@@ -343,12 +386,13 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       support: tail,
       figure: {
         value: shareShown,
-        caption: `of recorded calls on models ${provider} offers`,
+        caption: `${ofCalls} on models ${provider} offers`,
         kind: "share",
       },
       bound,
-      short:
+      short: tag(
         runnable === 0 ? "Offers none of these models" : `Offers ${shareShown} of calls' models`,
+      ),
     };
   }
 
@@ -363,11 +407,11 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
     push(substitutionSentence(facts));
     return {
       modeLabel,
-      headline: `${under}${plan} can't run this workload: none of your ${calls(total)}${c.undecided > 0 ? " with recognized models" : ""} use models it offers.`,
+      headline: `${translatedLead}${plan} can't run ${workNoun}: none of your ${calls(total)}${c.undecided > 0 ? " with recognized models" : ""} use models it offers.`,
       support: tail,
-      figure: { value: shareShown, caption: `of recorded calls run on ${plan}`, kind: "share" },
+      figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
       bound,
-      short: "Can't run this workload",
+      short: tag("Can't run this workload"),
     };
   }
   if (high < 0.5) {
@@ -381,11 +425,11 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
     push(substitutionSentence(facts));
     return {
       modeLabel,
-      headline: `${under}${plan} can't run most of this workload: only ${n(runnable)} of ${calls(total)} use models available on the plan.`,
+      headline: `${translatedLead}${plan} can't run most of ${workNoun}: only ${n(runnable)} of ${calls(total)} use models available on the plan.`,
       support: tail,
-      figure: { value: shareShown, caption: `of recorded calls run on ${plan}`, kind: "share" },
+      figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
       bound,
-      short: `Runs only ${shareShown} of calls`,
+      short: tag(`Runs only ${shareShown} of calls`),
     };
   }
 
@@ -402,7 +446,7 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       headline = `${under}${plan} ${noun} would have run out on ${when}.${
         overageText === undefined || overageText === "$0"
           ? ""
-          : ` This workload would have generated about ${overageText} in modeled overage${over} on top of the ${price === undefined ? "plan price" : `${price} subscription`}.`
+          : ` ${slice === undefined ? "This workload" : `Your ${slice} work`} would have generated about ${overageText} in modeled overage${over} on top of the ${price === undefined ? "plan price" : `${price} subscription`}.`
       }`;
     } else if (runOut.behaviour === "recorded") {
       headline = `${under}${possessive(plan)} ${noun} would have been exceeded on ${when}, which the plan records without refusing or billing anything.`;
@@ -441,11 +485,13 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
               }
             : undefined,
       bound,
-      short: `Runs out ${first === undefined ? "" : `${verdictDay(first.date)} (day ${n(first.day)})`}${
-        runOut.behaviour === "overage" && overageWhole !== undefined && overageWhole !== "$0"
-          ? ` · ${overageWhole} overage`
-          : ""
-      }`,
+      short: tag(
+        `Runs out ${first === undefined ? "" : `${verdictDay(first.date)} (day ${n(first.day)})`}${
+          runOut.behaviour === "overage" && overageWhole !== undefined && overageWhole !== "$0"
+            ? ` · ${overageWhole} overage`
+            : ""
+        }`,
+      ),
     };
   }
 
@@ -469,11 +515,11 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       support: tail,
       figure: {
         value: shareShown,
-        caption: `of recorded calls served within ${possessive(plan)} limits`,
+        caption: `${ofCalls} served within ${possessive(plan)} limits`,
         kind: "share",
       },
       bound,
-      short: `Within limits · ${shareShown} of calls`,
+      short: tag(`Within limits · ${shareShown} of calls`),
     };
   }
 
@@ -491,8 +537,8 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
     modeLabel,
     headline,
     support: tail,
-    figure: { value: shareShown, caption: `of recorded calls run on ${plan}`, kind: "share" },
+    figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
     bound,
-    short: `Runs ${shareShown} of calls · limits unpublished`,
+    short: tag(`Runs ${shareShown} of calls · limits unpublished`),
   };
 }
