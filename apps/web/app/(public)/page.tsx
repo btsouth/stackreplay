@@ -60,8 +60,8 @@ export default function HomePage() {
           <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
             Select a Claude Code or Codex folder. A browser-local Worker extracts usage and
             chronology and shows you how you work: your hours, your heaviest windows, which projects
-            and models carry the demand, and where the tokens go. The raw sessions are never
-            uploaded. Prompts, responses, code, and paths are excluded from saved workloads.
+            and models carry the demand, and where the tokens go. The raw sessions stay on your
+            device. Prompts, responses, code, and paths are excluded from saved workloads.
           </p>
           <Link
             className="mt-3 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"

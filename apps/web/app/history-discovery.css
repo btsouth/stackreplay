@@ -1,0 +1,572 @@
+/*
+ * Find my AI histories: the step before the scan instrument, in the same
+ * language. The local machine sits at the top of a rail with one knot per
+ * registered history location. The rail is lit only as far as the probe has
+ * really gone; found histories fill their knot. The only motion is the knot
+ * being checked, and it stops when the check settles.
+ */
+
+.sr-find {
+  --sr-signal: var(--accent);
+  --sr-rule: var(--border);
+  --sr-rule-soft: color-mix(in oklab, var(--border) 62%, transparent);
+  --sr-knot-col: 22px;
+  position: relative;
+  border-top: 1px solid var(--sr-rule);
+  border-bottom: 1px solid var(--sr-rule);
+  padding: 16px 0 20px;
+}
+
+.dark .sr-find {
+  --sr-signal: oklch(0.67 0.17 256);
+}
+
+.sr-find-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.sr-find-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+.sr-find-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sr-signal);
+}
+
+.sr-find[data-phase="discovering"] .sr-find-dot {
+  animation: sr-scan-pulse 1.6s ease-in-out infinite;
+}
+
+.sr-find-head {
+  margin-top: 14px;
+}
+
+.sr-find-title {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.sr-find-title:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+.sr-find-title:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.sr-find-rule {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.sr-find-lede {
+  margin-top: 6px;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.sr-find-fine {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.sr-find-note {
+  margin-top: 10px;
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+/* ---------- the instrument ---------- */
+
+.sr-find-instrument {
+  position: relative;
+  margin-top: 18px;
+}
+
+.sr-find-rail {
+  position: absolute;
+  z-index: 0;
+  left: calc(var(--sr-knot-col) / 2 - 0.75px);
+  top: var(--rail-top);
+  width: 1.5px;
+  height: var(--rail-height);
+  background: var(--sr-rule);
+}
+
+.sr-find-rail-lit {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--rail-lit);
+  background: var(--sr-signal);
+  transition: height 0.3s ease-out;
+}
+
+.sr-find-knot {
+  position: relative;
+  z-index: 1;
+  display: block;
+  justify-self: center;
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--background);
+}
+
+.sr-find-knot[data-state="checking"] {
+  border-color: var(--sr-signal);
+  animation: sr-scan-knot 1.6s ease-in-out infinite;
+}
+
+.sr-find-knot[data-state="found"],
+.sr-find-knot[data-state="connected"] {
+  border-color: var(--sr-signal);
+  background: var(--sr-signal);
+}
+
+.sr-find-knot[data-state="access-needed"] {
+  border-color: var(--foreground);
+  border-style: dashed;
+}
+
+.sr-find-knot[data-state="not-found"],
+.sr-find-knot[data-state="empty"],
+.sr-find-knot[data-state="unsupported"] {
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-color: var(--border-strong);
+}
+
+/* The machine: the one place a folder can be dropped. */
+.sr-find-machine {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sr-knot-col) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+}
+
+.sr-find-knot-machine {
+  width: 15px;
+  height: 15px;
+  margin-top: 16px;
+  border: 1.5px solid var(--sr-signal);
+  box-shadow: inset 0 0 0 3px var(--background);
+  background: var(--sr-signal);
+}
+
+.sr-find-machine-body {
+  min-width: 0;
+  border: 1px dashed color-mix(in oklab, var(--sr-signal) 55%, var(--border));
+  background: color-mix(in oklab, var(--sr-signal) 4%, transparent);
+  padding: 12px 14px;
+  transition:
+    border-color 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.sr-find-machine-body .sr-micro {
+  color: var(--accent);
+}
+
+.sr-find-machine-drop {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sr-find-machine-drop + .sr-find-fine {
+  margin-top: 2px;
+}
+
+.sr-find-machine-root {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.sr-find[data-drag="over"] .sr-find-machine-body {
+  border-style: solid;
+  border-color: var(--sr-signal);
+  background: color-mix(in oklab, var(--sr-signal) 11%, transparent);
+}
+
+.sr-find[data-drag="over"] .sr-find-knot-machine {
+  box-shadow:
+    inset 0 0 0 3px var(--background),
+    0 0 0 5px color-mix(in oklab, var(--sr-signal) 24%, transparent);
+}
+
+/* Once a folder is in, the machine is a reading, not a target. */
+.sr-find[data-phase="discovering"] .sr-find-machine-body,
+.sr-find[data-phase="selecting"] .sr-find-machine-body {
+  border-color: transparent;
+  background: transparent;
+  padding: 10px 0 6px;
+}
+
+.sr-find[data-phase="discovering"] .sr-find-knot-machine,
+.sr-find[data-phase="selecting"] .sr-find-knot-machine {
+  margin-top: 13px;
+}
+
+.sr-find[data-drag="over"][data-phase="selecting"] .sr-find-machine-body {
+  border-color: var(--sr-signal);
+  background: color-mix(in oklab, var(--sr-signal) 11%, transparent);
+  padding: 10px 14px 6px;
+}
+
+/* ---------- history rows ---------- */
+
+.sr-find-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sr-find-row {
+  display: grid;
+  grid-template-columns: var(--sr-knot-col) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 9px 0;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+.sr-find-row:first-child {
+  margin-top: 10px;
+}
+
+.sr-find-row-body {
+  min-width: 0;
+}
+
+.sr-find-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-height: 24px;
+}
+
+label.sr-find-choice {
+  cursor: pointer;
+}
+
+.sr-find-choice input[type="checkbox"] {
+  align-self: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent-solid);
+}
+
+.sr-find-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sr-find-row[data-status="waiting"] .sr-find-name,
+.sr-find-row[data-status="not-found"] .sr-find-name,
+.sr-find-row[data-status="empty"] .sr-find-name,
+.sr-find-row[data-status="unsupported"] .sr-find-name {
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+.sr-find-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.sr-find-tag[data-status="found"],
+.sr-find-tag[data-status="connected"],
+.sr-find-tag[data-status="checking"] {
+  color: var(--accent);
+}
+
+.sr-find-tag[data-status="access-needed"] {
+  color: var(--foreground);
+}
+
+.sr-find-detail {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-find-row[data-status="found"] .sr-find-detail,
+.sr-find-row[data-status="connected"] .sr-find-detail {
+  font-family: var(--font-mono);
+  color: var(--foreground);
+}
+
+.sr-find-row[data-status="found"] label .sr-find-name,
+.sr-find-row[data-status="connected"] label .sr-find-name {
+  /* keep the name aligned with the detail line under the checkbox */
+  margin-left: 0;
+}
+
+.sr-find-summary {
+  display: grid;
+  grid-template-columns: var(--sr-knot-col) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+.sr-find-summary[hidden] {
+  display: none;
+}
+
+.sr-find-knot-summary {
+  margin-top: 0;
+  width: 11px;
+  height: 9px;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: var(--border-strong);
+}
+
+.sr-find-knot-summary[data-state="found"] {
+  background: var(--sr-signal);
+}
+
+.sr-find-summary .sr-micro {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* ---------- at rest: the fixed list reads as one line ---------- */
+
+.sr-find[data-phase="intro"] .sr-find-machine {
+  display: none;
+}
+
+.sr-find[data-phase="intro"] .sr-find-instrument {
+  margin-top: 16px;
+}
+
+.sr-find[data-phase="intro"] .sr-find-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.sr-find[data-phase="intro"] .sr-find-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.sr-find[data-phase="intro"] .sr-find-row .sr-find-knot {
+  width: 7px;
+  height: 7px;
+  margin: 0;
+}
+
+.sr-find[data-phase="intro"] .sr-find-row .sr-find-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- actions ---------- */
+
+.sr-find-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 18px;
+}
+
+.sr-find-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-size: 14px;
+  color: var(--accent);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.sr-find-link:hover {
+  text-decoration: underline;
+}
+
+.sr-find-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.sr-find-link:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.sr-find-link-quiet {
+  color: var(--muted-foreground);
+}
+
+.sr-find-row .sr-find-link {
+  margin-top: 4px;
+}
+
+.sr-find-remembered {
+  margin-top: 14px;
+  border-left: 2px solid var(--sr-signal);
+  padding-left: 14px;
+}
+
+.sr-find-remembered-names {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sr-find-remembered .sr-find-fine {
+  margin-top: 2px;
+}
+
+.sr-find-footer {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sr-rule);
+}
+
+.sr-find-footer > * + * {
+  margin-top: 12px;
+}
+
+.sr-find-build {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.sr-find-build .sr-micro {
+  color: var(--foreground);
+}
+
+.sr-find-build .sr-find-fine {
+  margin-top: 4px;
+}
+
+.sr-find-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+}
+
+.sr-find-connect {
+  margin-top: 16px;
+}
+
+.sr-find-connect[hidden] {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .sr-find-build > .min-w-0 {
+    flex-basis: 100%;
+  }
+  .sr-find-build button {
+    width: 100%;
+  }
+}
+
+/* ---------- the large-history note (discovery and scan) ---------- */
+
+.sr-large {
+  margin-top: 6px;
+}
+
+.sr-large .sr-micro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground);
+}
+
+.sr-large-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.sr-large-text {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.sr-large-details {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.sr-large-details summary {
+  width: fit-content;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sr-large-details summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.sr-large-details p {
+  margin-top: 4px;
+  max-width: 62ch;
+}

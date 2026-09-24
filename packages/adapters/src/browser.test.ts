@@ -4,6 +4,7 @@ import {
   BROWSER_INTAKE_BUDGET,
   type BrowserCandidate,
   BrowserIntakeBudget,
+  BrowserIntakeCancelledError,
   detectBrowserSource,
   expandZipCandidate,
   intakeBrowserCandidates,
@@ -93,6 +94,78 @@ describe("browser intake using shared adapters", () => {
     expect(JSON.stringify(reports)).not.toContain("/home/example");
     // Each report is a snapshot, not a shared mutable object.
     expect(reports[0]?.modelEvents).not.toBe(last?.modelEvents);
+  });
+
+  it("reports files read and events per selected history, in selection order", async () => {
+    const reports: { done: number; groups: unknown }[] = [];
+    await intakeBrowserCandidates(
+      [
+        { ...candidate("claude.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+        { ...candidate("rollout-a.jsonl", CODEX_ROLLOUT), group: "codex" },
+        { ...candidate("notes.md", "not a session"), group: "codex" },
+      ],
+      syntheticCatalog(),
+      {
+        now: NOW,
+        salt: FIXTURE_SALT,
+        onProgress: (done, _total, progress) => reports.push({ done, groups: progress.groups }),
+      },
+    );
+    const first = reports.find((report) => report.done === 1)?.groups as {
+      group: string;
+      done: number;
+      total: number;
+      events: number;
+    }[];
+    expect(first.map((entry) => [entry.group, entry.done, entry.total])).toEqual([
+      ["claude-code", 1, 1],
+      ["codex", 0, 2],
+    ]);
+    expect(first[0]?.events).toBeGreaterThan(0);
+    expect(first[1]?.events).toBe(0);
+    const last = reports.at(-1)?.groups as { group: string; done: number; events: number }[];
+    expect(last.map((entry) => [entry.group, entry.done])).toEqual([
+      ["claude-code", 1],
+      ["codex", 2],
+    ]);
+    expect(last[1]?.events).toBeGreaterThan(0);
+  });
+
+  it("omits per-history progress when no candidate names a history", async () => {
+    let groups: unknown = "unset";
+    await intakeBrowserCandidates([candidate("a.jsonl", CODEX_ROLLOUT)], syntheticCatalog(), {
+      now: NOW,
+      onProgress: (_done, _total, progress) => {
+        groups = progress.groups;
+      },
+    });
+    expect(groups).toBeUndefined();
+  });
+
+  it("stops between files when its signal is aborted and returns nothing partial", async () => {
+    const controller = new AbortController();
+    let reads = 0;
+    const counted = (path: string): BrowserCandidate => ({
+      ...candidate(path, CODEX_ROLLOUT.replaceAll("rollout", path)),
+      text: async () => {
+        reads += 1;
+        return CODEX_ROLLOUT;
+      },
+    });
+    await expect(
+      intakeBrowserCandidates(
+        [counted("a.jsonl"), counted("b.jsonl"), counted("c.jsonl")],
+        syntheticCatalog(),
+        {
+          now: NOW,
+          signal: controller.signal,
+          onProgress: (done) => {
+            if (done === 1) controller.abort();
+          },
+        },
+      ),
+    ).rejects.toBeInstanceOf(BrowserIntakeCancelledError);
+    expect(reads).toBe(1);
   });
 
   it("accepts a raw source file above the former 256 MB per-file cap", async () => {

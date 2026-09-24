@@ -132,7 +132,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
           No workload in this browser yet. Scan your Claude Code or Codex history, or load a demo
           workload, to see how you actually use AI: when you work, your heaviest windows, which
           projects and models carry the demand, and where the tokens go. Everything is read in this
-          browser; nothing in your history is uploaded.
+          browser; nothing in your history leaves it.
         </p>
         <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
           Scan your history

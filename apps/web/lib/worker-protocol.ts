@@ -217,9 +217,16 @@ export type WorkerRequest =
       type: "IMPORT_SOURCES";
       requestId: number;
       importId: string;
-      files: { file: File; path: string }[];
+      /**
+       * `group` names the history a file was selected for (a source id such as
+       * `claude-code`, or a connected location), so the scan can report
+       * progress per history. It is an identifier, never a path.
+       */
+      files: { file: File; path: string; group?: string }[];
       now: string;
       saveLocal: boolean;
+      /** The workload's name in this browser, e.g. "Claude Code + Codex". */
+      label?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -304,6 +311,8 @@ export interface ScanProgress {
   models: { name: string; events: number }[];
   /** The busiest projects so far, by local label. */
   topProjects: { label: string; events: number }[];
+  /** Files read of files selected and events found, per selected history. */
+  histories?: { id: string; filesDone: number; filesTotal: number; events: number }[];
 }
 
 export type WorkerResponse =

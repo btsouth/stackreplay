@@ -17,6 +17,10 @@
     "./browser-formats": {
       "types": "./dist/browser-formats.d.ts",
       "default": "./dist/browser-formats.js"
+    },
+    "./discovery": {
+      "types": "./dist/discovery.d.ts",
+      "default": "./dist/discovery.js"
     }
   },
   "files": [

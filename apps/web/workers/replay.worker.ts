@@ -3,6 +3,7 @@ import {
   type BrowserCandidate,
   BrowserIntakeBudget,
   BrowserIntakeBudgetError,
+  BrowserIntakeCancelledError,
   type CandidateOutcome,
   expandZipCandidate,
   intakeBrowserCandidates,
@@ -118,10 +119,21 @@ function scanProgressOf(
     modelEvents: Record<string, number>;
     projectCount: number;
     topProjects: { label: string; events: number }[];
+    groups?: { group: string; done: number; total: number; events: number }[];
   },
 ): ScanProgress {
   const catalog = loadBundledCatalog();
   return {
+    ...(metrics.groups === undefined
+      ? {}
+      : {
+          histories: metrics.groups.map((entry) => ({
+            id: entry.group,
+            filesDone: entry.done,
+            filesTotal: entry.total,
+            events: entry.events,
+          })),
+        }),
     filesDone: done,
     filesTotal: total,
     sessions: metrics.identifiedSessions,
@@ -347,6 +359,22 @@ async function handleImportFile(
   });
 }
 
+/** A history group is an identifier the page chose, never a path or free text. */
+function safeGroup(group: unknown): string | undefined {
+  return typeof group === "string" && /^[a-z0-9][a-z0-9-]{0,39}$/u.test(group) ? group : undefined;
+}
+
+/** A workload name from the page: bounded, single-line, and never path-shaped. */
+function safeLabel(label: unknown): string | undefined {
+  if (typeof label !== "string") return undefined;
+  const singleLine = Array.from(label, (character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code < 32 || code === 127 ? " " : character;
+  }).join("");
+  const cleaned = safeIntakeMessage(singleLine.trim()).slice(0, 120);
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
 async function handleImportSources(
   request: Extract<WorkerRequest, { type: "IMPORT_SOURCES" }>,
   signal: AbortSignal,
@@ -417,10 +445,12 @@ async function handleImportSources(
   );
   const candidates: BrowserCandidate[] = [];
   const archiveOutcomes: CandidateOutcome[] = [];
-  for (const { file, path } of files) {
+  for (const { file, path, group } of files) {
     if (!importIsCurrent(requestId, signal)) return;
+    const history = safeGroup(group);
     const selected = {
       path,
+      ...(history === undefined ? {} : { group: history }),
       size: file.size,
       lastModified: file.lastModified,
       text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
@@ -446,18 +476,26 @@ async function handleImportSources(
       }
     } else candidates.push(selected);
   }
-  const result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
-    now,
-    budget,
-    onProgress: (done, total, metrics) =>
-      progress(
-        requestId,
-        "import",
-        "validating",
-        `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
-        scanProgressOf(done, total, metrics),
-      ),
-  });
+  let result: Awaited<ReturnType<typeof intakeBrowserCandidates>>;
+  try {
+    result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
+      now,
+      budget,
+      signal,
+      onProgress: (done, total, metrics) =>
+        progress(
+          requestId,
+          "import",
+          "validating",
+          `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
+          scanProgressOf(done, total, metrics),
+        ),
+    });
+  } catch (failure) {
+    // A cancelled scan already told the page; it stops here and saves nothing.
+    if (failure instanceof BrowserIntakeCancelledError) return;
+    throw failure;
+  }
   if (!importIsCurrent(requestId, signal)) return;
   result.outcomes.unshift(...archiveOutcomes);
   if (result.exported === undefined) {
@@ -478,9 +516,10 @@ async function handleImportSources(
   const record: ImportRecord = {
     id: importId,
     label:
-      files.length === 1
+      safeLabel(request.label) ??
+      (files.length === 1
         ? safeCandidateName(files[0]?.file.name ?? "Selected workload")
-        : `Selected workload (${files.length} files)`,
+        : `Selected workload (${files.length} files)`),
     createdAt: now,
     eventCount: summary.eventCount,
     summary,

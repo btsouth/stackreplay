@@ -19,6 +19,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { OPENCODE_DISCOVERY } from "./opencode.discovery.js";
 
 /**
  * OpenCode adapter.
@@ -105,7 +106,7 @@ function openCodeUsage(row: SqliteRow): { usage: TextUsageV1 | undefined; reconc
 export function createOpenCodeAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "OpenCode",
+    name: OPENCODE_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: openCodeRoots,

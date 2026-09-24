@@ -27,6 +27,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { CLAUDE_CODE_DISCOVERY } from "./claude-code.discovery.js";
 
 /**
  * Claude Code adapter (spec point 15).
@@ -65,7 +66,9 @@ function preferResponse(candidate: ResponseCandidate, previous: ResponseCandidat
 }
 
 export function claudeCodeRoots(env: SourceEnvironment): string[] {
-  return [joinPath(env.platform, env.homeDir, ".claude", "projects")];
+  return CLAUDE_CODE_DISCOVERY.history.map((location) =>
+    joinPath(env.platform, env.homeDir, ...location.path),
+  );
 }
 
 export function claudeUsage(usage: Record<string, unknown>): {
@@ -113,7 +116,7 @@ export function claudeUsage(usage: Record<string, unknown>): {
 export function createClaudeCodeAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "Claude Code",
+    name: CLAUDE_CODE_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: claudeCodeRoots,

@@ -4,6 +4,7 @@
 /* The homepage Replay Instrument and the local scan instrument. */
 @import "./replay-hero.css";
 @import "./scan-instrument.css";
+@import "./history-discovery.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));

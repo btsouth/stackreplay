@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { LargeHistoryNote } from "@/components/import/large-history-note";
 import type { ImportRecord, ScanProgress } from "@/lib/worker-protocol";
 
 export type ScanStage = "idle" | "discover" | "resolve" | "reconstruct" | "ready";
@@ -62,7 +63,11 @@ function shortDate(iso: string | undefined): string | undefined {
  * percentage; the only fraction drawn is files read over files selected.
  *
  * The privacy state is an instrument status, not a banner: the scan runs on
- * this device and the raw history is never uploaded.
+ * this device and the raw history stays there.
+ *
+ * A scan of several histories (from discovery) also shows each history's own
+ * files read of files selected and events found, in the order they were
+ * chosen, so the rows the user selected carry straight into the scan.
  */
 export function ScanInstrument({
   stage,
@@ -71,6 +76,9 @@ export function ScanInstrument({
   detail,
   record,
   ready,
+  histories,
+  largeHistoryBytes,
+  onCancel,
 }: {
   stage: ScanStage;
   sourceName: string | undefined;
@@ -79,6 +87,12 @@ export function ScanInstrument({
   record?: ImportRecord | undefined;
   /** The completed scan's actions and evidence, shown under the resolved facts. */
   ready?: ReactNode;
+  /** The histories chosen for this scan, in order, with their discovered file counts. */
+  histories?: readonly { id: string; name: string; files: number }[] | undefined;
+  /** A selection above the large-history threshold, noted while the scan runs. */
+  largeHistoryBytes?: number | undefined;
+  /** Stops the scan in progress; saved workloads are not touched. */
+  onCancel?: (() => void) | undefined;
 }) {
   const activeIndex =
     stage === "idle" ? -1 : SCAN_STAGES.findIndex((entry) => entry.stage === stage);
@@ -108,7 +122,7 @@ export function ScanInstrument({
       <div className="sr-scan-status">
         <p className="sr-micro" data-testid="scan-privacy-status">
           <span aria-hidden="true" className="sr-scan-dot" />
-          Local scan · raw history never uploaded
+          Local scan · raw history stays on this device
         </p>
         <p className="sr-micro text-muted-foreground">
           {stage === "ready"
@@ -219,6 +233,9 @@ export function ScanInstrument({
               />
             </dl>
           ) : null}
+          {histories !== undefined && histories.length > 1 ? (
+            <HistoryLedger histories={histories} scan={scan} />
+          ) : null}
           {scan !== undefined && (scan.models.length > 0 || scan.topProjects.length > 0) ? (
             <div className="sr-scan-ledger" data-testid="scan-emerging">
               <Emerging
@@ -232,11 +249,26 @@ export function ScanInstrument({
               />
             </div>
           ) : null}
+          {running && largeHistoryBytes !== undefined ? (
+            <LargeHistoryNote bytes={largeHistoryBytes} />
+          ) : null}
           {running ? (
-            <p className="sr-scan-detail" data-testid="import-working">
-              {scan === undefined && detail !== undefined ? `${detail}. ` : ""}A background Worker
-              does this work on this device; this page stays responsive.
-            </p>
+            <div className="sr-scan-foot">
+              <p className="sr-scan-detail" data-testid="import-working">
+                {scan === undefined && detail !== undefined ? `${detail}. ` : ""}A background Worker
+                does this work on this device; this page stays responsive.
+              </p>
+              {onCancel === undefined ? null : (
+                <button
+                  type="button"
+                  className="sr-scan-cancel"
+                  onClick={onCancel}
+                  data-testid="cancel-scan"
+                >
+                  Cancel scan
+                </button>
+              )}
+            </div>
           ) : null}
           {stage === "idle" ? (
             <p className="sr-scan-detail">
@@ -308,6 +340,54 @@ function Emerging({
         ))}
       </ul>
       {note === undefined ? null : <p className="sr-scan-note">{note}</p>}
+    </div>
+  );
+}
+
+/**
+ * Each chosen history's own progress: files read of the files discovery found
+ * for it, and the events its files produced. A history whose files the Worker
+ * has not reached yet is waiting; nothing here is estimated.
+ */
+function HistoryLedger({
+  histories,
+  scan,
+}: {
+  histories: readonly { id: string; name: string; files: number }[];
+  scan: ScanProgress | undefined;
+}) {
+  const progress = new Map((scan?.histories ?? []).map((entry) => [entry.id, entry]));
+  return (
+    <div className="sr-scan-histories" data-testid="scan-histories">
+      <p className="sr-micro text-muted-foreground">Histories</p>
+      <ul>
+        {histories.map((history) => {
+          const entry = progress.get(history.id);
+          const total = entry?.filesTotal ?? history.files;
+          const done = entry?.filesDone ?? 0;
+          const state = done === 0 ? "waiting" : done >= total ? "done" : "reading";
+          return (
+            <li key={history.id} data-state={state} data-testid={`scan-history-${history.id}`}>
+              <span className="sr-scan-history-name" title={history.name}>
+                {history.name}
+              </span>
+              <i aria-hidden="true">
+                <b style={{ width: `${total === 0 ? 0 : (done / total) * 100}%` }} />
+              </i>
+              <span className="sr-scan-history-files">
+                {state === "waiting"
+                  ? `waiting · ${count.format(total)} files`
+                  : `${count.format(done)} / ${count.format(total)} files`}
+              </span>
+              <strong>
+                {entry === undefined || entry.events === 0
+                  ? ""
+                  : `${count.format(entry.events)} events`}
+              </strong>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

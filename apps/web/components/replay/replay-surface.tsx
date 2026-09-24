@@ -804,7 +804,7 @@ export function ReplaySurface({
             </Button>
             <span className="text-xs text-muted-foreground" aria-live="polite">
               {phase === "idle"
-                ? "Nothing is uploaded; replay runs in this browser."
+                ? "Replay runs in this browser; nothing is sent to a server."
                 : phase === "done"
                   ? "Replay completed in this browser."
                   : (detail ?? "Working in a background Worker.")}

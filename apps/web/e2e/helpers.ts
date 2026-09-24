@@ -11,6 +11,38 @@ export async function gotoImport(page: Page): Promise<void> {
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
 
+/**
+ * Opens the per-source folder chooser cards. On a device that cannot drag a
+ * folder they are already the primary intake; elsewhere they sit behind
+ * Connect individually.
+ */
+export async function openConnectIndividually(page: Page): Promise<void> {
+  const card = page.getByTestId("connect-claude-code");
+  if (await card.isVisible()) return;
+  await page.getByTestId("connect-individually").first().click();
+  await expect(card).toBeVisible();
+}
+
+/**
+ * Drops real folders on the discovery machine through Chromium's own drag
+ * path, so the page receives the same directory entries a person's drag gives
+ * it. Playwright has no folder drag of its own; the DevTools protocol does.
+ */
+export async function dropFolders(page: Page, paths: string[]): Promise<void> {
+  const target = page.getByTestId("discovery-machine");
+  await target.scrollIntoViewIfNeeded();
+  const box = await target.boundingBox();
+  if (box === null) throw new Error("discovery machine is not visible");
+  const x = Math.round(box.x + box.width / 2);
+  const y = Math.round(box.y + Math.min(box.height / 2, 24));
+  const cdp = await page.context().newCDPSession(page);
+  const data = { items: [], files: paths, dragOperationsMask: 1 };
+  await cdp.send("Input.dispatchDragEvent", { type: "dragEnter", x, y, data });
+  await cdp.send("Input.dispatchDragEvent", { type: "dragOver", x, y, data });
+  await cdp.send("Input.dispatchDragEvent", { type: "drop", x, y, data });
+  await cdp.detach();
+}
+
 /** Waits until the Replay route's embedded intake can accept the first action. */
 export async function gotoReplayImport(page: Page): Promise<void> {
   await page.goto("/app/replay");

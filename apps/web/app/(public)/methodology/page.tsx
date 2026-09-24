@@ -22,7 +22,7 @@ const sections = [
   {
     heading: "Local scan and workload analysis",
     body: [
-      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files are not uploaded. Saving the normalized workload in this browser is optional.",
+      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files stay on the device. Saving the normalized workload in this browser is optional.",
       "Project folder names label projects in this browser only. A portable workload export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
     ],
   },

@@ -11,7 +11,10 @@ import { gotoImport, importDemo, runReplay } from "./helpers";
 test("direct navigation without an import shows an intentional empty state", async ({ page }) => {
   await page.goto("/app/replay");
   await expect(page.getByTestId("replay-empty")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Scan your AI history" })).toBeVisible();
+  await expect(page.getByTestId("history-discovery")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Find my AI histories|Connect your AI history/u }),
+  ).toBeVisible();
   await expect(page.getByTestId("source-file-input")).toBeVisible();
 });
 

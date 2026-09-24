@@ -26,6 +26,11 @@ export { type LocalProjectLabel, localProjectLabels };
 export interface BrowserCandidate {
   /** Display-only relative path from an explicit file or folder selection. */
   path: string;
+  /**
+   * The history this file was selected for (a source id or a connected
+   * location), so a multi-history scan can report progress per history.
+   */
+  group?: string;
   size: number;
   lastModified: number;
   /** Zero only when the Worker has already charged/read this exact text. */
@@ -80,6 +85,19 @@ export interface BrowserIntakeProgress {
    * browser's own scan display only: the label never enters the export.
    */
   topProjects: { label: string; events: number }[];
+  /**
+   * Files read of files selected and events found, per selected history, in
+   * selection order. Present only when candidates carry a group.
+   */
+  groups?: { group: string; done: number; total: number; events: number }[];
+}
+
+/** Thrown when the caller's signal stops an intake between files. */
+export class BrowserIntakeCancelledError extends Error {
+  constructor() {
+    super("Browser intake was cancelled");
+    this.name = "BrowserIntakeCancelledError";
+  }
 }
 
 const ADAPTERS = {
@@ -520,6 +538,8 @@ export async function intakeBrowserCandidates(
     salt?: string;
     budget?: BrowserIntakeBudget;
     onProgress?: (done: number, total: number, progress: BrowserIntakeProgress) => void;
+    /** Stops the intake between files; nothing partial is returned. */
+    signal?: AbortSignal;
   },
 ): Promise<BrowserIntakeResult> {
   const budget = options.budget ?? new BrowserIntakeBudget();
@@ -541,6 +561,15 @@ export async function intakeBrowserCandidates(
   };
   const modelEvents: Record<string, number> = {};
   const projectEvents = new Map<string, number>();
+  /** Per-history progress, in the order the histories were selected. */
+  const groups = new Map<string, { group: string; done: number; total: number; events: number }>();
+  for (const candidate of candidates) {
+    if (candidate.group === undefined) continue;
+    const entry = groups.get(candidate.group);
+    if (entry === undefined)
+      groups.set(candidate.group, { group: candidate.group, done: 0, total: 1, events: 0 });
+    else entry.total += 1;
+  }
   /** A copy of the running totals: counts and local labels only, never content. */
   const snapshot = (): BrowserIntakeProgress => {
     const labels = new Map(
@@ -558,13 +587,18 @@ export async function intakeBrowserCandidates(
       modelEvents: { ...modelEvents },
       projectCount: projectEvents.size,
       topProjects,
+      ...(groups.size > 0 ? { groups: [...groups.values()].map((entry) => ({ ...entry })) } : {}),
     };
   };
   const report = (done: number, skipped: boolean): void => {
     if (skipped) scanProgress.skippedFiles += 1;
+    const group = candidates[done - 1]?.group;
+    const entry = group === undefined ? undefined : groups.get(group);
+    if (entry !== undefined) entry.done += 1;
     if (options.onProgress !== undefined) options.onProgress(done, candidates.length, snapshot());
   };
   for (const [index, candidate] of candidates.entries()) {
+    if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
     if (!isBrowserSourceCandidate(candidate.path)) {
       outcomes.push({
@@ -698,6 +732,8 @@ export async function intakeBrowserCandidates(
       sources.add(id);
       events.push(...result.events);
       scanProgress.reconstructedEvents += result.events.length;
+      const group = candidate.group === undefined ? undefined : groups.get(candidate.group);
+      if (group !== undefined) group.events += result.events.length;
       scanProgress.identifiedSessions += result.stats.sessionsScanned;
       for (const event of result.events) {
         const model = event.model.canonicalId;
@@ -716,6 +752,7 @@ export async function intakeBrowserCandidates(
     }
     report(index + 1, result.events.length === 0);
   }
+  if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
   const deduped = dedupeEvents(events);
   warnings.push(...deduped.warnings);
   const safeWarnings = warnings.map((warning) => ({

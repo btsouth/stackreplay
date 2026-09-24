@@ -362,8 +362,14 @@ export class ReplayWorkerClient {
   }
 
   async importSources(
-    files: { file: File; path: string }[],
-    options: { importId: string; now: string; saveLocal: boolean; onProgress?: ProgressHandler },
+    files: { file: File; path: string; group?: string }[],
+    options: {
+      importId: string;
+      now: string;
+      saveLocal: boolean;
+      label?: string;
+      onProgress?: ProgressHandler;
+    },
   ): Promise<ImportRecord> {
     const response = await this.send(
       (requestId) => ({
@@ -374,6 +380,7 @@ export class ReplayWorkerClient {
         files,
         now: options.now,
         saveLocal: options.saveLocal,
+        ...(options.label === undefined ? {} : { label: options.label }),
       }),
       options.onProgress,
       "import",

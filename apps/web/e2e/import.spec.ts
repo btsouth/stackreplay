@@ -12,7 +12,7 @@ test("empty import surface states the privacy contract up front", async ({ page 
   await gotoImport(page);
   const boundary = page.getByTestId("privacy-boundary");
   await expect(
-    boundary.getByText("Scanned locally. Nothing in your AI history is uploaded."),
+    boundary.getByText("Scanned locally. Raw AI history stays on this device."),
   ).toBeVisible();
   await expect(boundary).toContainText("It discards prompts, responses, code, command output");
   await expect(boundary).toContainText("Site assets and public catalog facts only.");

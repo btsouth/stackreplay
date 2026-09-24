@@ -51,6 +51,14 @@ Windows roots use `%APPDATA%` / `%LOCALAPPDATA%` and the user profile directory;
 `~/Library/Application Support`. Path resolution is a pure function of the platform and environment,
 so all three layouts are covered by tests without a real machine.
 
+Each adapter also owns a discovery entry in `src/adapters/<id>.discovery.ts` (decision 55): the
+history location as path components below the home or profile folder, the platforms whose
+documentation establishes it, installation markers, an inventory bound and evidence links. The
+browser's Find my AI histories probes exactly these entries, and the Claude Code, Codex and Command
+Code CLI roots are derived from them. OpenCode's own documentation places its data at
+`~/.local/share/opencode` on macOS as well; the CLI already falls back to that path. Hermes on native
+Windows defaults to `%LOCALAPPDATA%\hermes`, which the CLI adapter does not probe yet.
+
 ## Command Code
 
 **Source.** `~/.commandcode/projects/<project>/<session>.jsonl`, one JSON object per line, plus a
