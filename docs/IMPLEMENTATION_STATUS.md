@@ -2,10 +2,11 @@
 
 ## Current milestone
 
-### RC1 — release candidate
+### RC1: shipped to production
 
 RC1 consolidates Milestone 4I, the launch polish pass, the final launch audit and the folder-intake
-fix into one release candidate. Beyond 4I (below):
+fix into one release. It shipped on 2026-09-24: PR #1 merged as `56a212d`, and Workers Builds
+deployed it to stackreplay.com as Worker version `ca3bd3f7`. Beyond 4I (below):
 
 - The homepage Replay Instrument replays an anonymized real workload against real catalog targets
   (decision 51). The synthetic `example-` namespace no longer appears on public pages.

@@ -7,7 +7,7 @@
 StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
 answer: **would another AI coding subscription actually handle the way I work?**
 
-> **Status: release candidate (RC1).** The browser app scans local Claude Code and Codex history,
+> **Status: RC1, live at [stackreplay.com](https://stackreplay.com).** The browser app scans local Claude Code and Codex history,
 > analyzes the workload, and replays it against a sourced catalog of real plans and Direct API
 > providers, in Exact or user-built Translated mode. There are no accounts and no cloud sync. What
 > exists, what is verified and what is still open is tracked in

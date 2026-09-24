@@ -5,8 +5,9 @@ Worker serves the app; the **browser Web Worker** at `/stackreplay-worker.js`
 continues to parse imports and run Replay locally. Raw workloads stay in the
 browser. This deployment has no database, upload route, or production secret.
 
-The source of truth is this repository. M4F prepares deployment but does not
-attach a domain or claim that `stackreplay.com` is live.
+The source of truth is this repository. Production runs at `stackreplay.com`,
+and Workers Builds deploys it on every push to `main`. Any other branch gets a
+preview from the non-production command instead.
 
 ## Why this path
 
