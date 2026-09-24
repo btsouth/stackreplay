@@ -21,20 +21,26 @@ export interface ValueScopeInput {
 }
 
 export function composeValueScope(scope: ValueScopeInput): {
+  complete: boolean;
   /** "3,199 of 3,200 calls (99.97%)", or "All 3,200 calls". */
   calls: string;
   /** Present when calls are left out and known tokens exist. */
   tokens?: string | undefined;
+  /** The same priced-token percentage used in `tokens`, for compact share images. */
+  pricedTokenPercent?: string | undefined;
 } {
   const { recordedCalls, pricedCalls, knownTokens } = scope;
   const complete = pricedCalls >= recordedCalls;
   const calls = complete
     ? `All ${NUMBER.format(recordedCalls)} calls`
     : `${NUMBER.format(pricedCalls)} of ${NUMBER.format(recordedCalls)} calls (${partOfWhole(pricedCalls, recordedCalls)})`;
-  if (complete || knownTokens === undefined || knownTokens.total <= 0) return { calls };
+  if (complete || knownTokens === undefined || knownTokens.total <= 0) return { complete, calls };
   const excluded = recordedCalls - pricedCalls;
+  const pricedTokenPercent = partOfWhole(knownTokens.priced, knownTokens.total);
   return {
+    complete,
     calls,
-    tokens: `The priced calls carry ${partOfWhole(knownTokens.priced, knownTokens.total)} of known processed tokens; the ${NUMBER.format(excluded)} left out ${excluded === 1 ? "carries" : "carry"} ${partOfWhole(knownTokens.total - knownTokens.priced, knownTokens.total)}.`,
+    tokens: `The priced calls carry ${pricedTokenPercent} of known processed tokens; the ${NUMBER.format(excluded)} left out ${excluded === 1 ? "carries" : "carry"} ${partOfWhole(knownTokens.total - knownTokens.priced, knownTokens.total)}.`,
+    pricedTokenPercent,
   };
 }

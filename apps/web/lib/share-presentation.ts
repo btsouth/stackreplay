@@ -20,6 +20,7 @@ export interface SharePresentation {
   /** What the figure is about: a target and rules date, or the tools. */
   context: string;
   figure?: { value: string; minor?: string | undefined; caption: string } | undefined;
+  valueScope?: ReturnType<typeof composeValueScope> | undefined;
   secondary?: { value: string; caption: string } | undefined;
   headline: string;
   support: string[];
@@ -71,12 +72,13 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
   const [whole, cents] = total?.split(".") ?? [];
   const toolTotal = workload.tools.reduce((sum, tool) => sum + tool.calls, 0);
   const support: string[] = [];
-  if (value !== undefined && total !== undefined) {
-    const scope = composeValueScope(value);
+  const valueScope =
+    value === undefined || total === undefined ? undefined : composeValueScope(value);
+  if (value !== undefined && valueScope !== undefined) {
     support.push(
-      `${scope.calls}, each maker's at its own rates: ${value.makers.map((maker) => `${maker.name} ${formatUsd(maker.amount)}`).join(" · ")}.`,
+      `${valueScope.calls}, each maker's at its own rates: ${value.makers.map((maker) => `${maker.name} ${formatUsd(maker.amount)}`).join(" · ")}.`,
     );
-    if (scope.tokens !== undefined) support.push(scope.tokens);
+    if (valueScope.tokens !== undefined) support.push(valueScope.tokens);
     const out = leftOut(value);
     if (out !== undefined) support.push(out);
   }
@@ -99,6 +101,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
             caption: "at published API list prices · not what you paid",
           },
         }),
+    valueScope,
     // The figure beside it states the money, so the headline gives the scale.
     headline: `${NUMBER.format(workload.calls)} recorded AI coding calls${workload.tools.length === 0 ? "" : ` across ${list(workload.tools.map((tool) => SHAREABLE_TOOLS[tool.id]))}`}, over ${NUMBER.format(workload.spanDays)} ${workload.spanDays === 1 ? "day" : "days"}.`,
     support,

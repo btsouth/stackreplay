@@ -144,7 +144,7 @@ describe("Case B: the same call, resolved", () => {
 
   it("prices the whole workload", () => {
     const value = workloadValue(events, { catalog, identity, rulesAsOf: RULES });
-    expect(composeValueScope(value)).toEqual({ calls: "All 3,200 calls" });
+    expect(composeValueScope(value)).toEqual({ complete: true, calls: "All 3,200 calls" });
     expect(value.knownTokens.priced).toBe(value.knownTokens.total);
     expect(Number(value.total)).toBeGreaterThan(5_000);
   });

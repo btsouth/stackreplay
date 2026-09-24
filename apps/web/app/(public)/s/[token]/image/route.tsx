@@ -50,6 +50,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
   const long = headline.length > 110;
   // A workload image carries its strongest comparative fact under the headline.
   const fact = presentation?.facts[0];
+  const valueScope = presentation?.kind === "workload" ? presentation.valueScope : undefined;
   return (
     <div
       style={{
@@ -129,10 +130,30 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
             </div>
           </div>
         )}
+        {valueScope === undefined ? null : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              marginTop: 20,
+              fontFamily: "Geist Mono",
+              fontSize: 21,
+              lineHeight: 1.35,
+              color: valueScope.complete ? MUTED : INK,
+            }}
+          >
+            <div style={{ display: "flex" }}>{`${valueScope.calls} priced`}</div>
+            {valueScope.pricedTokenPercent === undefined ? null : (
+              <div style={{ display: "flex", color: MUTED }}>
+                {`${valueScope.pricedTokenPercent} of known processed tokens priced`}
+              </div>
+            )}
+          </div>
+        )}
         <div
           style={{
             display: "flex",
-            marginTop: 30,
+            marginTop: valueScope === undefined ? 30 : 22,
             fontSize: long ? 30 : 36,
             lineHeight: 1.25,
             letterSpacing: "-0.01em",
@@ -141,7 +162,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
         >
           {headline}
         </div>
-        {fact === undefined ? null : (
+        {fact === undefined || valueScope?.complete === false ? null : (
           <div
             style={{
               display: "flex",

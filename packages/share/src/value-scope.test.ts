@@ -20,11 +20,14 @@ describe("price scope words", () => {
         knownTokens: { total: 1_560_000_000, priced: 560_000_000 },
       }),
     ).toEqual({
+      complete: false,
       calls: "3,199 of 3,200 calls (99.97%)",
       tokens:
         "The priced calls carry 35.9% of known processed tokens; the 1 left out carries 64.1%.",
+      pricedTokenPercent: "35.9%",
     });
     expect(composeValueScope({ recordedCalls: 3_200, pricedCalls: 3_200 })).toEqual({
+      complete: true,
       calls: "All 3,200 calls",
     });
   });
