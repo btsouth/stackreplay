@@ -9,6 +9,8 @@ import {
 import { Button, buttonVariants, Card, CardContent, Metric } from "@stackreplay/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { HistoryDiscovery } from "@/components/import/history-discovery";
+import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
 import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
 import { formatTokens } from "@/components/instrument/format";
 import {
@@ -16,6 +18,8 @@ import {
   PartialScanNotice,
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
+import type { HistorySelection } from "@/lib/discovery-list";
+import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
 import { importSizeAdvice } from "@/lib/import-validation";
 import { forgetSources } from "@/lib/remembered-sources";
@@ -25,10 +29,12 @@ import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protoco
 /**
  * Import surface (M3 brief).
  *
- * Three entry paths: drag/drop, file picker and deterministic demo data. No
- * account, no API key, no upload. The file is handed to the Worker as a File,
- * read and validated there, and the main thread only ever receives progress,
- * a summary and errors that are safe to display.
+ * Entry paths: history discovery (drop the user folder, choose what to
+ * import), the per-source folder chooser, files or a ZIP, a portable workload
+ * and deterministic demo data. No account, no API key, and nothing sent to a
+ * server. Files are handed to the Worker as File objects, read and validated
+ * there, and the main thread only ever receives progress, a summary and errors
+ * that are safe to display.
  *
  * Privacy is stated as product value at the point of action, not as footer
  * legalese, because it is the reason the file never leaves the browser.
@@ -40,7 +46,9 @@ type Phase = "idle" | "reading" | "validating" | "preparing" | "ready";
  * Every source card opens the same `webkitdirectory` chooser. Chromium's
  * directory-access picker treats a symlink as nonexistent even after the user
  * selects it, so a linked `~/.claude/projects` failed with NotFoundError; the
- * chooser follows links and works in every browser.
+ * chooser follows links and works in every browser. The cards are the manual
+ * path beside discovery, and the primary path on devices that cannot drag a
+ * folder.
  */
 const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string }[] = [
   {
@@ -80,8 +88,8 @@ export function ImportSurface({
   const sourceInputRef = useRef<HTMLInputElement>(null);
   /** The source card that opened the folder chooser, so the scan names the tool. */
   const folderSourceRef = useRef<string | undefined>(undefined);
-  /** Which chooser started the last scan, so Rescan can reopen it. */
-  const [lastScan, setLastScan] = useState<"folder" | "files" | undefined>(undefined);
+  /** Which path started the last scan, so Rescan can repeat it. */
+  const [lastScan, setLastScan] = useState<"folder" | "files" | "histories" | undefined>(undefined);
   const [folderSupported, setFolderSupported] = useState(true);
   /**
    * Saving is the default: a scan can take a minute, and losing it to a reload
@@ -107,6 +115,14 @@ export function ImportSurface({
   const [scan, setScan] = useState<ScanProgress | undefined>(undefined);
   /** What is being scanned, in the reader's words: a tool, a folder, files. */
   const [scanSource, setScanSource] = useState<string | undefined>(undefined);
+  /** The discovered histories this scan reads, in the order they were chosen. */
+  const [scanHistories, setScanHistories] = useState<HistorySelection["histories"] | undefined>(
+    undefined,
+  );
+  /** A selection above the large-history threshold, noted inside the instrument. */
+  const [largeBytes, setLargeBytes] = useState<number | undefined>(undefined);
+  /** The last scan was cancelled; saved workloads were left alone. */
+  const [canceled, setCanceled] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const progressAnchorRef = useRef<HTMLDivElement>(null);
   const feedbackAnchorRef = useRef<HTMLDivElement>(null);
@@ -161,6 +177,7 @@ export function ImportSurface({
     ) => {
       setRequestedSave(saveLocal);
       setBusy(true);
+      setCanceled(false);
       setError(undefined);
       setRecord(undefined);
       setPhase("reading");
@@ -217,6 +234,8 @@ export function ImportSurface({
         return;
       }
       setNotice(advice.level === "large" ? advice.message : undefined);
+      setLargeBytes(undefined);
+      setScanHistories(undefined);
       setScanSource("your workload file");
       return runImport((onProgress) =>
         client.importFile(file, {
@@ -235,6 +254,9 @@ export function ImportSurface({
   const importDemo = useCallback(
     (preset: DemoWorkloadPresetId) => {
       setScanSource("a synthetic demo workload");
+      setScanHistories(undefined);
+      setLargeBytes(undefined);
+      setNotice(undefined);
       return runImport((onProgress) =>
         client.importDemo(preset, {
           importId: createLocalImportId(),
@@ -259,11 +281,9 @@ export function ImportSurface({
         return;
       }
       const selectedBytes = files.reduce((total, candidate) => total + candidate.file.size, 0);
-      setNotice(
-        selectedBytes > 1024 * 1024 * 1024
-          ? `This local scan is ${(selectedBytes / (1024 * 1024 * 1024)).toFixed(1)} GB. It is within the 5 GB aggregate limit, but processing a large history can use several gigabytes of browser memory.`
-          : undefined,
-      );
+      setNotice(undefined);
+      setScanHistories(undefined);
+      setLargeBytes(selectedBytes > LARGE_HISTORY_BYTES ? selectedBytes : undefined);
       return runImport((onProgress) =>
         client.importSources(files, {
           importId: createLocalImportId(),
@@ -283,6 +303,58 @@ export function ImportSurface({
     [importCandidates],
   );
 
+  /**
+   * Builds one workload from the histories chosen after discovery. Each file
+   * carries its history's id so the instrument can show per-history progress,
+   * and the connections are remembered (tool names only) once the build lands.
+   */
+  const importHistories = useCallback(
+    async (selection: HistorySelection) => {
+      if (selection.files.length === 0) {
+        setError({
+          code: "EMPTY_WORKLOAD",
+          title: "No session files to read.",
+          message: "The selected histories had no readable session files.",
+          hint: "Drop the folder again, or connect the history with the folder chooser.",
+        });
+        return;
+      }
+      setLastScan("histories");
+      setScanSource(selection.label);
+      setScanHistories(selection.histories);
+      setLargeBytes(selection.bytes > LARGE_HISTORY_BYTES ? selection.bytes : undefined);
+      setNotice(undefined);
+      const imported = await runImport((onProgress) =>
+        client.importSources(selection.files, {
+          importId: createLocalImportId(),
+          now: new Date().toISOString(),
+          saveLocal,
+          label: selection.label,
+          onProgress: (next, nextDetail, nextScan) =>
+            onProgress(next as Phase, nextDetail, nextScan),
+        }),
+      );
+      if (imported !== undefined && selection.remembered.length > 0)
+        rememberConnections(selection.remembered, new Date().toISOString());
+    },
+    [client, runImport, saveLocal],
+  );
+
+  /**
+   * Stops the scan in progress. Only this scan: saved workloads are untouched,
+   * nothing from it is kept, and the page returns to the sources it came from.
+   */
+  const cancelScan = useCallback(() => {
+    void client.cancelImport().catch(() => undefined);
+    setBusy(false);
+    setPhase("idle");
+    setScan(undefined);
+    setDetail(undefined);
+    setRecord(undefined);
+    setLargeBytes(undefined);
+    setCanceled(true);
+  }, [client]);
+
   /** Opens the folder chooser; a source card passes the tool name the scan shows. */
   const chooseFolder = useCallback((sourceName?: string) => {
     folderSourceRef.current = sourceName;
@@ -294,7 +366,13 @@ export function ImportSurface({
    * earlier file snapshot cannot be read again.
    */
   const rescan = useCallback(() => {
-    if (lastScan === "folder") folderInputRef.current?.click();
+    if (lastScan === "histories") {
+      // Dropped folders stay readable while this page is open, so the same
+      // list is one Build away.
+      const discovery = document.querySelector<HTMLElement>('[data-testid="history-discovery"]');
+      discovery?.scrollIntoView({ block: "start" });
+      discovery?.querySelector<HTMLElement>('[data-testid="build-workload"]')?.focus();
+    } else if (lastScan === "folder") folderInputRef.current?.click();
     else sourceInputRef.current?.click();
   }, [lastScan]);
 
@@ -345,6 +423,7 @@ export function ImportSurface({
     }
     setRecord(undefined);
     setPhase("idle");
+    forgetConnections();
     try {
       await forgetSources();
     } catch {
@@ -398,48 +477,10 @@ export function ImportSurface({
       data-testid="intake-surface"
       data-ready={ready}
     >
-      {showIntro ? (
-        <section
-          className="border-y border-border-strong py-4 lg:col-span-2"
-          data-testid="privacy-boundary"
-          aria-label="Local scan privacy boundary"
-        >
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">
-                Before you connect
-              </p>
-              <h2 className="mt-2 max-w-[32ch] text-xl font-medium leading-snug text-foreground">
-                Scanned locally. Nothing in your AI history is uploaded.
-              </h2>
-              <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
-                A local Worker keeps models, tokens, chronology, session boundaries, and salted
-                project grouping. It discards prompts, responses, code, command output, full paths,
-                and credentials. Project folder names label your projects in this browser only;
-                exports and share links never carry them. Filenames remain in local scan details.
-              </p>
-            </div>
-            <div className="min-w-0 border-l-2 border-accent pl-4 sm:pl-6">
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">
-                Your machine
-              </p>
-              <p className="mt-1 text-sm text-foreground">Sessions → local scanner → Replay</p>
-              <div className="my-2 border-t border-dashed border-border-strong" />
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                Network boundary
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Site assets and public catalog facts only. A share link is created only when you
-                choose to share a result.
-              </p>
-            </div>
-          </div>
-        </section>
-      ) : null}
       <div
         className="flex min-w-0 flex-col gap-4 lg:col-span-2"
         data-testid="scan-area"
-        hidden={!scanShown && notice === undefined && error === undefined}
+        hidden={!scanShown && notice === undefined && error === undefined && !canceled}
       >
         <div ref={progressAnchorRef} className="scroll-mt-20" />
         {scanShown ? (
@@ -463,31 +504,52 @@ export function ImportSurface({
               scan={scan}
               sourceName={scanSource}
               stage={scanStage}
+              histories={scanHistories}
+              largeHistoryBytes={largeBytes}
+              onCancel={scanActive ? cancelScan : undefined}
             />
           </div>
         ) : null}
-        {scanActive && imports.length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="self-start"
-            data-testid="clear-local-data"
-            onClick={() => void clearAll()}
+        {canceled && !scanActive ? (
+          <p
+            className="border-l-2 border-border-strong py-1 pl-3 text-sm text-muted-foreground"
+            role="status"
+            data-testid="scan-canceled"
           >
-            Clear all local data and cancel scan
-          </Button>
+            <span className="font-mono text-[11px] tracking-[0.12em] text-foreground uppercase">
+              Scan canceled
+            </span>{" "}
+            Nothing from it was saved, and your saved workloads are unchanged. Your sources are
+            below.
+          </p>
+        ) : null}
+        {scanActive && imports.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span>To stop this scan, use Cancel scan above.</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-negative"
+              data-testid="clear-local-data"
+              onClick={() => void clearAll()}
+            >
+              Clear all local data
+            </Button>
+          </div>
         ) : null}
         <div ref={feedbackAnchorRef} className="scroll-mt-20" />
         {notice === undefined ? null : (
-          <Card data-testid="import-size-notice" className="border-warning/40">
-            <CardContent className="flex flex-col gap-1 pt-6">
-              <h2 className="text-sm font-medium text-warning">
-                {notice.startsWith("Workload ready") ? "Browser note" : "Large import"}
-              </h2>
-              <p className="text-sm text-muted-foreground">{notice}</p>
-            </CardContent>
-          </Card>
+          <div
+            data-testid="import-size-notice"
+            className="border-l-2 border-warning py-1 pl-3"
+            role="status"
+          >
+            <p className="font-mono text-[11px] tracking-[0.12em] text-foreground uppercase">
+              {notice.startsWith("Workloads were cleared") ? "Browser note" : "Large file"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{notice}</p>
+          </div>
         )}
 
         {error !== undefined ? (
@@ -509,8 +571,8 @@ export function ImportSurface({
                     Choose a local folder
                   </Button>
                   <p className="max-w-prose text-xs text-muted-foreground">
-                    Your browser may call this an upload. StackReplay reads the folder locally; the
-                    session files are not sent to StackReplay.
+                    Your browser's confirmation may describe sending files to this site. StackReplay
+                    reads the folder locally; the session files are not sent to StackReplay.
                   </p>
                 </div>
               ) : null}
@@ -526,107 +588,101 @@ export function ImportSurface({
         ) : null}
       </div>
       <div className="flex min-w-0 flex-col gap-5" hidden={scanActive}>
-        <section aria-labelledby="bring-workload-title" className="border-y border-border py-5">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="font-mono text-[11px] tracking-[0.16em] text-accent uppercase">
-                01 / source
-              </p>
-              <h2 id="bring-workload-title" className="mt-2 text-xl font-medium">
-                {record === undefined ? "Scan your AI history" : "Scan another source"}
-              </h2>
-              <p className="mt-1 max-w-prose text-sm text-muted-foreground">
-                Choose the tool you use. StackReplay reads only the folder you select, on this
-                device.
-              </p>
-            </div>
-            <span className="hidden border border-border px-2 py-1 font-mono text-[10px] tracking-wide text-muted-foreground uppercase sm:inline-flex">
-              Local scan
-            </span>
-          </div>
-          <div
-            className="mt-3 grid gap-px border border-border bg-border sm:grid-cols-3"
-            data-testid="source-choices"
-          >
-            {SOURCE_CHOICES.map((choice, index) => (
-              <button
-                key={choice.kind}
-                type="button"
-                disabled={busy || !ready}
-                onClick={() => chooseFolder(choice.kind === "folder" ? undefined : choice.name)}
-                data-testid={`connect-${choice.kind}`}
-                className="group flex min-h-32 min-w-0 flex-col items-start justify-between bg-background p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:opacity-50 sm:min-h-40"
+        <HistoryDiscovery
+          busy={busy}
+          ready={ready}
+          saveLocal={saveLocal}
+          onBuild={(selection) => void importHistories(selection)}
+          connectIndividually={
+            <div data-testid="connect-sources">
+              <div
+                className="grid gap-px border border-border bg-border sm:grid-cols-3"
+                data-testid="source-choices"
               >
-                <span className="flex w-full justify-between font-mono text-[11px] text-muted-foreground">
-                  <span>0{index + 1}</span>
-                  <span aria-hidden="true" className="text-accent">
-                    ↗
-                  </span>
-                </span>
-                <span className="block w-full">
-                  <span className="block text-base font-medium">{choice.name}</span>
-                  <span className="mt-1 block text-xs text-muted-foreground">{choice.action}</span>
-                  <span className="mt-3 block font-mono text-[11px] text-accent">
-                    {choice.path}
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-          <input
-            ref={folderInputRef}
-            type="file"
-            disabled={busy || !ready}
-            multiple
-            {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
-            aria-hidden="true"
-            tabIndex={-1}
-            className="sr-only"
-            data-testid="source-folder-input"
-            onChange={(event) => {
-              const files = Array.from(event.target.files ?? []);
-              setLastScan("folder");
-              setScanSource(
-                folderSourceRef.current ??
-                  (files[0]?.webkitRelativePath.split("/")[0] || "the selected folder"),
-              );
-              void importSources(files);
-              event.target.value = "";
-            }}
-          />
-          <p
-            className="mt-3 text-xs leading-relaxed text-muted-foreground"
-            data-testid="picker-note"
-          >
-            {folderSupported
-              ? "Your browser may call this an upload. StackReplay reads the folder locally; the session files are not sent to StackReplay."
-              : "Folder selection is unavailable in this browser. Choose the folder's files below instead."}
-          </p>
-          <details className="mt-2 text-xs text-muted-foreground">
-            <summary className="w-fit cursor-pointer underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
-              Folder locations and browser access
-            </summary>
-            <div className="mt-2 flex max-w-prose flex-col gap-2 leading-relaxed">
-              <p>
-                Claude Code uses <code>~/.claude/projects</code>; Codex uses{" "}
-                <code>~/.codex/sessions</code>. On Windows, look under your user profile. If you set{" "}
-                <code>CLAUDE_CONFIG_DIR</code> or <code>CODEX_HOME</code>, choose that location. A
-                folder that is a link (symlink) works the same way.
+                {SOURCE_CHOICES.map((choice, index) => (
+                  <button
+                    key={choice.kind}
+                    type="button"
+                    disabled={busy || !ready}
+                    onClick={() => chooseFolder(choice.kind === "folder" ? undefined : choice.name)}
+                    data-testid={`connect-${choice.kind}`}
+                    className="group flex min-h-28 min-w-0 flex-col items-start justify-between bg-background p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:opacity-50 sm:min-h-36"
+                  >
+                    <span className="flex w-full justify-between font-mono text-[11px] text-muted-foreground">
+                      <span>0{index + 1}</span>
+                      <span aria-hidden="true" className="text-accent">
+                        ↗
+                      </span>
+                    </span>
+                    <span className="block w-full">
+                      <span className="block text-base font-medium">{choice.name}</span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {choice.action}
+                      </span>
+                      <span className="mt-3 block font-mono text-[11px] text-accent">
+                        {choice.path}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p
+                className="mt-3 text-xs leading-relaxed text-muted-foreground"
+                data-testid="picker-note"
+              >
+                {folderSupported
+                  ? "Choose the tool's history folder itself: the browser gives this page the list of files in the folder you pick. Its confirmation may describe sending files to this site. They stay on this device: StackReplay reads them locally and sends none of them to a server."
+                  : "Folder selection is unavailable in this browser. Choose the folder's files below instead."}
               </p>
-              <p>
-                The browser cannot keep access to the folder, so choose it again to scan newer
-                sessions.
-              </p>
-              <p>
-                A local scan accepts up to 5 GB of selected files, with a 512 MB limit for each raw
-                source file. Large scans need substantial browser memory. If a full history exceeds
-                the limit, choose a smaller date folder, such as a Codex year or month. ChatGPT web
-                conversations do not have a local sessions folder; a ChatGPT data export is not
-                replay-grade usage evidence.
-              </p>
+              <details className="mt-2 text-xs text-muted-foreground">
+                <summary className="w-fit cursor-pointer underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+                  Folder locations and browser access
+                </summary>
+                <div className="mt-2 flex max-w-prose flex-col gap-2 leading-relaxed">
+                  <p>
+                    Claude Code uses <code>~/.claude/projects</code>; Codex uses{" "}
+                    <code>~/.codex/sessions</code>. On Windows, look under your user profile. If you
+                    set <code>CLAUDE_CONFIG_DIR</code> or <code>CODEX_HOME</code>, choose that
+                    location. A folder that is a link (symlink) works the same way. For WSL, choose
+                    the folder under <code>\\wsl.localhost\&lt;distro&gt;\home</code>.
+                  </p>
+                  <p>
+                    The browser cannot keep access to the folder, so choose it again to scan newer
+                    sessions.
+                  </p>
+                  <p>
+                    A local scan accepts up to 5 GB of selected files, with a 512 MB limit for each
+                    raw source file. Large scans need substantial browser memory. If a full history
+                    exceeds the limit, choose a smaller date folder, such as a Codex year or month.
+                    ChatGPT web conversations do not have a local sessions folder; a ChatGPT data
+                    export is not replay-grade usage evidence.
+                  </p>
+                </div>
+              </details>
             </div>
-          </details>
-        </section>
+          }
+        />
+        <input
+          ref={folderInputRef}
+          type="file"
+          disabled={busy || !ready}
+          multiple
+          {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
+          aria-hidden="true"
+          tabIndex={-1}
+          className="sr-only"
+          data-testid="source-folder-input"
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            setLastScan("folder");
+            setScanSource(
+              folderSourceRef.current ??
+                (files[0]?.webkitRelativePath.split("/")[0] || "the selected folder"),
+            );
+            void importSources(files);
+            event.target.value = "";
+          }}
+        />
         {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
             target, not a control. The file input inside it is the keyboard and
             screen-reader path; dragging is an additional convenience. */}
@@ -792,6 +848,40 @@ export function ImportSurface({
 
       {!scanActive ? (
         <div className="flex min-w-0 flex-col gap-5">
+          {showIntro ? (
+            <section
+              className="border-y border-border-strong py-4"
+              data-testid="privacy-boundary"
+              aria-label="Local scan privacy boundary"
+            >
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">
+                Before you connect
+              </p>
+              <h2 className="mt-2 max-w-[32ch] text-lg font-medium leading-snug text-foreground">
+                Scanned locally. Raw AI history stays on this device.
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                A local Worker keeps models, tokens, chronology, session boundaries, and salted
+                project grouping. It discards prompts, responses, code, command output, full paths,
+                and credentials. Project folder names label your projects in this browser only;
+                exports and share links never carry them. Filenames remain in local scan details.
+              </p>
+              <div className="mt-3 min-w-0 border-l-2 border-accent pl-4">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">
+                  Your machine
+                </p>
+                <p className="mt-1 text-sm text-foreground">Sessions → local scanner → Replay</p>
+                <div className="my-2 border-t border-dashed border-border-strong" />
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                  Network boundary
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Site assets and public catalog facts only. A share link is created only when you
+                  choose to share a result.
+                </p>
+              </div>
+            </section>
+          ) : null}
           <Card>
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-3">

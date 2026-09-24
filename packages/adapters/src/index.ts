@@ -33,6 +33,23 @@ export {
 } from "./collect.js";
 export { type DedupResult, dedupeEvents } from "./dedup.js";
 export {
+  anchoredPaths,
+  DISCOVERY_MAX_FILES,
+  DISCOVERY_REGISTRY,
+  type DiscoveredFile,
+  type DiscoveryDirectory,
+  type DiscoveryFile,
+  type DiscoveryPlatform,
+  type DiscoveryRun,
+  type DiscoveryStatus,
+  discoverHistories,
+  discoveryPlatformFromHint,
+  type KnownLocation,
+  registeredProbePaths,
+  type SourceDiscovery,
+  type SourceFinding,
+} from "./discovery.js";
+export {
   buildEvent,
   type EventContext,
   type EventDraft,

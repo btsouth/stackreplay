@@ -320,6 +320,131 @@
   color: var(--muted-foreground);
 }
 
+/* ---------- per-history progress (multi-history scans) ---------- */
+
+.sr-scan-histories {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+.sr-scan-body > .sr-scan-histories:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sr-scan-histories ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sr-scan-histories li {
+  display: grid;
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name bar files"
+    "name bar events";
+  column-gap: 12px;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+@media (min-width: 768px) {
+  .sr-scan-histories li {
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 9rem 8rem;
+    grid-template-areas: "name bar files events";
+  }
+}
+
+.sr-scan-history-name {
+  grid-area: name;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.sr-scan-histories i {
+  grid-area: bar;
+  position: relative;
+  display: block;
+  height: 2px;
+  background: var(--sr-rule-soft);
+}
+
+/* No width transition: progress arrives many times a second, and a transition
+   restarted on every update trails far behind the real count. */
+.sr-scan-histories b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--sr-signal);
+}
+
+.sr-scan-history-files {
+  grid-area: files;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.sr-scan-histories li[data-state="waiting"] .sr-scan-history-files,
+.sr-scan-histories li[data-state="waiting"] .sr-scan-history-name {
+  color: var(--muted-foreground);
+}
+
+.sr-scan-histories strong {
+  grid-area: events;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-align: right;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-scan-body > .sr-large {
+  margin-top: 16px;
+}
+
+.sr-scan-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  margin-top: 10px;
+}
+
+.sr-scan-foot .sr-scan-detail {
+  margin-top: 0;
+}
+
+.sr-scan-cancel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--control-border);
+  font-size: 13px;
+  color: var(--foreground);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sr-scan-cancel:hover {
+  background: var(--surface-2);
+}
+
+.sr-scan-cancel:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 @keyframes sr-scan-pulse {
   0%,
   100% {

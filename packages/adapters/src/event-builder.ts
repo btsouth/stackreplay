@@ -67,10 +67,45 @@ export interface EventContext {
   env: SourceEnvironment;
   salt: string;
   mapper: ModelMapper;
+  /**
+   * Session and project hashes already computed in this collect call. A
+   * session's events share one session hash and usually one project hash, so
+   * each is derived once instead of once per event.
+   */
+  identities?: Map<string, string>;
   /** Harness attribution from an attribution adapter; overrides the source default. */
   attribution?: AttributionIndex;
   /** Local-only project observer (see `CollectOptions.onProjectKey`). */
   onProjectKey?: (projectHash: string, normalizedKey: string) => void;
+}
+
+/** Identity caches live exactly as long as the collect call's options object. */
+const identityCaches = new WeakMap<CollectOptions, Map<string, string>>();
+
+function identityCache(options: CollectOptions): Map<string, string> {
+  let cache = identityCaches.get(options);
+  if (cache === undefined) {
+    cache = new Map();
+    identityCaches.set(options, cache);
+  }
+  return cache;
+}
+
+function remembered(
+  context: EventContext,
+  kind: string,
+  value: string,
+  derive: () => string,
+): string {
+  const cache = context.identities;
+  if (cache === undefined) return derive();
+  const key = `${kind}\u0000${context.salt}\u0000${value}`;
+  let hash = cache.get(key);
+  if (hash === undefined) {
+    hash = derive();
+    cache.set(key, hash);
+  }
+  return hash;
 }
 
 /** Builds the per-call context every adapter passes to buildEvent. */
@@ -79,6 +114,7 @@ export function eventContext(env: SourceEnvironment, options: CollectOptions): E
     env,
     salt: options.salt,
     mapper: options.mapper,
+    identities: identityCache(options),
     ...(options.attribution !== undefined ? { attribution: options.attribution } : {}),
     ...(options.onProjectKey !== undefined ? { onProjectKey: options.onProjectKey } : {}),
   };
@@ -143,7 +179,11 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
       adapterId: draft.adapterId,
       nativeEventHash: nativeHash,
       ...(draft.sessionId !== undefined
-        ? { nativeSessionHash: nativeSessionHash(salt, draft.sessionId) }
+        ? {
+            nativeSessionHash: remembered(context, "session", draft.sessionId, () =>
+              nativeSessionHash(salt, draft.sessionId as string),
+            ),
+          }
         : {}),
     },
     model,
@@ -171,7 +211,9 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     // (Windows separators and case, trailing separators), so `~/code/app` and
     // `~/code/app/` hash identically in an export.
     const normalizedKey = normalizeProjectKey(draft.projectKey, context.env.platform);
-    event.projectHash = projectHash(salt, normalizedKey);
+    event.projectHash = remembered(context, "project", normalizedKey, () =>
+      projectHash(salt, normalizedKey),
+    );
     context.onProjectKey?.(event.projectHash, normalizedKey);
   }
   if (draft.workloadCategory !== undefined) event.workloadCategory = draft.workloadCategory;

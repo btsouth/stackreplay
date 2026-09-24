@@ -21,6 +21,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { COMMAND_CODE_DISCOVERY } from "./command-code.discovery.js";
 
 /**
  * Command Code adapter.
@@ -42,7 +43,9 @@ import { WarningCollector } from "../warnings.js";
 const ADAPTER_ID = "command-code" as const;
 
 export function commandCodeRoots(env: SourceEnvironment): string[] {
-  return [joinPath(env.platform, env.homeDir, ".commandcode", "projects")];
+  return COMMAND_CODE_DISCOVERY.history.map((location) =>
+    joinPath(env.platform, env.homeDir, ...location.path),
+  );
 }
 
 function commandCodeUsage(usage: Record<string, unknown>): {
@@ -90,7 +93,7 @@ function commandCodeUsage(usage: Record<string, unknown>): {
 export function createCommandCodeAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "Command Code",
+    name: COMMAND_CODE_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: commandCodeRoots,
@@ -123,7 +126,7 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
       const detected = probes.some((probe) => probe.exists);
       return {
         adapterId: ADAPTER_ID,
-        name: "Command Code",
+        name: COMMAND_CODE_DISCOVERY.name,
         kind: "usage" as const,
         detected,
         supported,

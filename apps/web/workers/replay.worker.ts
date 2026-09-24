@@ -3,11 +3,13 @@ import {
   type BrowserCandidate,
   BrowserIntakeBudget,
   BrowserIntakeBudgetError,
+  BrowserIntakeCancelledError,
   type CandidateOutcome,
   expandZipCandidate,
   intakeBrowserCandidates,
   safeCandidateName,
   safeIntakeMessage,
+  unavailableCandidate,
 } from "@stackreplay/adapters/browser";
 import {
   BUNDLED_CATALOG_VERSION,
@@ -118,10 +120,21 @@ function scanProgressOf(
     modelEvents: Record<string, number>;
     projectCount: number;
     topProjects: { label: string; events: number }[];
+    groups?: { group: string; done: number; total: number; events: number }[];
   },
 ): ScanProgress {
   const catalog = loadBundledCatalog();
   return {
+    ...(metrics.groups === undefined
+      ? {}
+      : {
+          histories: metrics.groups.map((entry) => ({
+            id: entry.group,
+            filesDone: entry.done,
+            filesTotal: entry.total,
+            events: entry.events,
+          })),
+        }),
     filesDone: done,
     filesTotal: total,
     sessions: metrics.identifiedSessions,
@@ -347,6 +360,30 @@ async function handleImportFile(
   });
 }
 
+/**
+ * Files whose opening read may be in flight together. Measured in Chromium on
+ * synthetic and real histories: 2 overlapped most of the per-read latency
+ * (up to 29% faster); 4 and 8 added nothing on real histories, and 8 was 20%
+ * slower on a 3.5 GB one, where early reads compete with large streamed files.
+ */
+const READ_AHEAD = 2;
+
+/** A history group is an identifier the page chose, never a path or free text. */
+function safeGroup(group: unknown): string | undefined {
+  return typeof group === "string" && /^[a-z0-9][a-z0-9-]{0,39}$/u.test(group) ? group : undefined;
+}
+
+/** A workload name from the page: bounded, single-line, and never path-shaped. */
+function safeLabel(label: unknown): string | undefined {
+  if (typeof label !== "string") return undefined;
+  const singleLine = Array.from(label, (character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code < 32 || code === 127 ? " " : character;
+  }).join("");
+  const cleaned = safeIntakeMessage(singleLine.trim()).slice(0, 120);
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
 async function handleImportSources(
   request: Extract<WorkerRequest, { type: "IMPORT_SOURCES" }>,
   signal: AbortSignal,
@@ -417,10 +454,18 @@ async function handleImportSources(
   );
   const candidates: BrowserCandidate[] = [];
   const archiveOutcomes: CandidateOutcome[] = [];
-  for (const { file, path } of files) {
+  for (const { file, path, group, unavailable } of files) {
     if (!importIsCurrent(requestId, signal)) return;
+    const history = safeGroup(group);
+    if (unavailable !== undefined) {
+      // Discovered, but the browser would not hand it over: read as a failure.
+      const name = /^[A-Za-z]{1,40}$/u.test(unavailable) ? unavailable : undefined;
+      candidates.push(unavailableCandidate(path, history, name));
+      continue;
+    }
     const selected = {
       path,
+      ...(history === undefined ? {} : { group: history }),
       size: file.size,
       lastModified: file.lastModified,
       text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
@@ -446,18 +491,30 @@ async function handleImportSources(
       }
     } else candidates.push(selected);
   }
-  const result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
-    now,
-    budget,
-    onProgress: (done, total, metrics) =>
-      progress(
-        requestId,
-        "import",
-        "validating",
-        `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
-        scanProgressOf(done, total, metrics),
-      ),
-  });
+  let result: Awaited<ReturnType<typeof intakeBrowserCandidates>>;
+  try {
+    result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
+      now,
+      budget,
+      signal,
+      // Real totals, at most ten times a second: a report per small file cost
+      // more in messages and renders than the scan itself.
+      progressIntervalMs: 100,
+      readAhead: READ_AHEAD,
+      onProgress: (done, total, metrics) =>
+        progress(
+          requestId,
+          "import",
+          "validating",
+          `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
+          scanProgressOf(done, total, metrics),
+        ),
+    });
+  } catch (failure) {
+    // A cancelled scan already told the page; it stops here and saves nothing.
+    if (failure instanceof BrowserIntakeCancelledError) return;
+    throw failure;
+  }
   if (!importIsCurrent(requestId, signal)) return;
   result.outcomes.unshift(...archiveOutcomes);
   if (result.exported === undefined) {
@@ -478,9 +535,10 @@ async function handleImportSources(
   const record: ImportRecord = {
     id: importId,
     label:
-      files.length === 1
+      safeLabel(request.label) ??
+      (files.length === 1
         ? safeCandidateName(files[0]?.file.name ?? "Selected workload")
-        : `Selected workload (${files.length} files)`,
+        : `Selected workload (${files.length} files)`),
     createdAt: now,
     eventCount: summary.eventCount,
     summary,

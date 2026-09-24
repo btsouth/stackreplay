@@ -20,6 +20,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { HERMES_DISCOVERY } from "./hermes.discovery.js";
 
 /**
  * Hermes adapter.
@@ -72,7 +73,7 @@ export function hermesEpochMs(value: unknown): number | undefined {
 export function createHermesAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "Hermes",
+    name: HERMES_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: hermesRoots,

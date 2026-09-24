@@ -7,7 +7,7 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, gotoReplayImport } from "./helpers";
+import { captureRequests, gotoReplayImport, openConnectIndividually } from "./helpers";
 
 const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   type: "response_item",
@@ -20,6 +20,7 @@ const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
 
 /** Clicks a source card and answers the folder chooser it opens. */
 async function chooseFromCard(page: Page, kind: string, folder: string): Promise<void> {
+  await openConnectIndividually(page);
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId(`connect-${kind}`).click();
   await (await chooser).setFiles(folder);
