@@ -37,13 +37,20 @@ export interface HistoryRow {
   via?: "discovery" | "chooser";
   /** A second location for a history already found in another folder. */
   extra?: boolean;
+  /** Access needed because the folder was only named like this history, so not examined. */
+  unconfirmed?: boolean;
   relocatedBy?: string;
   files?: RowFile[];
   selected: boolean;
 }
 
 export interface HistorySelection {
-  files: { file: File; path: string; group: string }[];
+  /**
+   * Every discovered file of the selected histories. One the browser would not
+   * hand over carries `unavailable` (the browser's error name) and an empty
+   * placeholder, so the scan reports it instead of silently leaving it out.
+   */
+  files: { file: File; path: string; group: string; unavailable?: string }[];
   label: string;
   histories: { id: string; name: string; files: number; bytes?: number }[];
   bytes: number;
@@ -100,6 +107,7 @@ export function rowFromFinding(
     ...(finding.bytes === undefined ? {} : { bytes: finding.bytes }),
     ...(finding.truncated === true ? { truncated: true } : {}),
     ...(finding.relocatedBy === undefined ? {} : { relocatedBy: finding.relocatedBy }),
+    ...(finding.unconfirmed === true ? { unconfirmed: true } : {}),
     ...(finding.files === undefined
       ? {}
       : {
@@ -231,5 +239,55 @@ function connectedRow(
       path: file.webkitRelativePath || file.name,
     })),
     selected: files.length > 0,
+  };
+}
+
+function browserErrorName(error: unknown): string {
+  const name =
+    typeof error === "object" && error !== null && "name" in error
+      ? (error as { name: unknown }).name
+      : undefined;
+  return typeof name === "string" && /^[A-Za-z]{1,40}$/u.test(name) && name !== "Error"
+    ? name
+    : "NotReadableError";
+}
+
+/**
+ * Hands the selected histories' files to a build. A discovered file the
+ * browser no longer hands over is kept as an unavailable entry, so the scan
+ * counts and reports it as unreadable; the workload then says it is partial.
+ */
+export async function collectSelection(selected: readonly HistoryRow[]): Promise<HistorySelection> {
+  const files: HistorySelection["files"] = [];
+  for (const row of selected) {
+    for (const entry of row.files ?? []) {
+      try {
+        files.push({ file: await entry.get(), path: entry.path, group: row.key });
+      } catch (error) {
+        const name = entry.path.split("/").at(-1) ?? entry.path;
+        files.push({
+          file: new File([], name),
+          path: entry.path,
+          group: row.key,
+          unavailable: browserErrorName(error),
+        });
+      }
+    }
+  }
+  return {
+    files,
+    label: [...new Set(selected.map((row) => row.name))].join(" + "),
+    histories: selected.map((row) => ({
+      id: row.key,
+      name: row.extra === true ? `${row.name} · ${row.where}` : row.name,
+      files: row.fileCount ?? 0,
+      ...(row.bytes === undefined ? {} : { bytes: row.bytes }),
+    })),
+    bytes: selected.reduce((total, row) => total + (row.bytes ?? 0), 0),
+    remembered: selected.flatMap((row) =>
+      row.adapterId === undefined || row.extra === true
+        ? []
+        : [{ id: row.adapterId, name: row.name, via: row.via ?? "discovery" }],
+    ),
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  DISCOVERY_REGISTRY,
   type DiscoveryPlatform,
   discoverHistories,
   type SourceFinding,
@@ -23,6 +24,7 @@ import {
 } from "@/components/import/large-history-note";
 import {
   applyChosenFolder,
+  collectSelection,
   FOUND,
   type HistoryRow,
   type HistorySelection,
@@ -61,6 +63,13 @@ import {
 type Phase = "intro" | "armed" | "discovering" | "selecting";
 
 const count = new Intl.NumberFormat("en-US");
+
+/** The folder that holds a source's history folder, such as `.claude`. */
+function parentOf(row: HistoryRow): string | undefined {
+  return DISCOVERY_REGISTRY.find(
+    (source) => source.adapterId === row.adapterId,
+  )?.history[0]?.path.at(-2);
+}
 
 function duration(ms: number): string {
   return ms < 1000 ? `${Math.max(1, Math.round(ms))} ms` : `${(ms / 1000).toFixed(1)} s`;
@@ -308,36 +317,11 @@ export function HistoryDiscovery({
     if (selected.length === 0 || building) return;
     setBuilding(true);
     try {
-      const files: HistorySelection["files"] = [];
-      for (const row of selected) {
-        for (const entry of row.files ?? []) {
-          try {
-            files.push({ file: await entry.get(), path: entry.path, group: row.key });
-          } catch {
-            /* A file removed since discovery is left out; the scan reports what it read. */
-          }
-        }
-      }
-      onBuild({
-        files,
-        label: [...new Set(selected.map((row) => row.name))].join(" + "),
-        histories: selected.map((row) => ({
-          id: row.key,
-          name: row.extra === true ? `${row.name} · ${row.where}` : row.name,
-          files: row.fileCount ?? 0,
-          ...(row.bytes === undefined ? {} : { bytes: row.bytes }),
-        })),
-        bytes: selectedBytes,
-        remembered: selected.flatMap((row) =>
-          row.adapterId === undefined || row.extra === true
-            ? []
-            : [{ id: row.adapterId, name: row.name, via: row.via ?? "discovery" }],
-        ),
-      });
+      onBuild(await collectSelection(selected));
     } finally {
       setBuilding(false);
     }
-  }, [building, onBuild, selected, selectedBytes]);
+  }, [building, onBuild, selected]);
 
   const reset = useCallback(() => {
     setRows(waitingRows());
@@ -443,7 +427,7 @@ export function HistoryDiscovery({
         <p className="sr-micro text-muted-foreground" data-testid="discovery-boundary">
           {metrics === undefined
             ? "Raw history stays on this device"
-            : `Checked ${count.format(metrics.probes)} known paths in ${duration(metrics.durationMs)} · nothing else opened`}
+            : `Checked ${count.format(metrics.probes)} known paths in ${duration(metrics.durationMs)} · only found histories listed`}
         </p>
       </div>
 
@@ -674,8 +658,10 @@ export function HistoryDiscovery({
           </div>
           <p className="sr-find-fine" data-testid="chooser-note">
             You can also drop another folder on the machine. Connect and Add another location open
-            your browser's folder chooser; its confirmation may describe sending files to this site,
-            but StackReplay reads them on this device.
+            your browser's folder chooser: choose the AI history folder itself, because the browser
+            gives this page the list of files in the folder you pick. Its confirmation may describe
+            sending files to this site; StackReplay reads them on this device and sends none of
+            them.
           </p>
         </div>
       ) : null}
@@ -769,7 +755,9 @@ function HistoryRowView({
             .filter(Boolean)
             .join(" · ")
         : row.status === "access-needed"
-          ? "Installed here, but its history folder isn't visible. It may be a link or a custom location."
+          ? row.unconfirmed === true
+            ? `This folder has the name of its history folder, but nothing shows it is ${row.name}'s, so StackReplay did not look inside. Drop the folder that holds it${parentOf(row) === undefined ? "" : ` (${parentOf(row)})`}, or connect it to choose it yourself.`
+            : "Installed here, but its history folder isn't visible. It may be a link or a custom location."
           : row.status === "unsupported"
             ? "Found. The browser can't read this tool's database yet."
             : row.status === "empty"

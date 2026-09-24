@@ -302,17 +302,6 @@ describe("WSL and custom locations", () => {
     expect(status.Codex?.status).toBe("not-found");
   });
 
-  it("accepts a history folder whose name only one source uses", async () => {
-    const { status } = await discover(codexSessions, { root: "sessions" });
-    expect(status.Codex).toMatchObject({ status: "found", location: [], fileCount: 2 });
-  });
-
-  it("does not guess which tool an empty same-named history folder belongs to", async () => {
-    const { status } = await discover({ "-home-dev-empty": {} }, { root: "projects" });
-    expect(status["Claude Code"]?.status).toBe("not-found");
-    expect(status["Command Code"]?.status).toBe("not-found");
-  });
-
   it("marks a chosen tool folder with a linked history as needing access", async () => {
     const { status } = await discover({ projects: LINK }, { root: ".claude" });
     expect(status["Claude Code"]?.status).toBe("access-needed");
@@ -320,12 +309,14 @@ describe("WSL and custom locations", () => {
 });
 
 /**
- * A supplied folder can be a home folder, a tool folder, the history folder
- * itself, a data folder holding a database, or a custom root. A recognized
- * source must never read as not found because the folder was deeper than the
- * home-relative location.
+ * A supplied folder can be a home folder, a tool folder, a data folder holding
+ * a database, a custom root, or a bare history folder. Identification uses the
+ * folder's own name and exact child names only. A folder is listed only after
+ * it has been identified as a supported history; a bare `projects` or
+ * `sessions` folder is never listed to find out whose it is.
  */
 describe("direct roots", () => {
+  const uuidSession = "0b1c0000-0000-4000-8000-00000000000a.jsonl";
   const commandCodeProjects: Tree = {
     "synthetic-app": { "c1.jsonl": 400, "c1.meta.json": 5, "c1.checkpoints.jsonl": 9 },
   };
@@ -335,73 +326,142 @@ describe("direct roots", () => {
     log: { "2026-09-01.log": 1 },
     snapshot: { deep: { "x.bin": 1 } },
   };
+  const listings = (log: Access[]) => log.filter((entry) => entry.op === "list");
+  const touched = (log: Access[]) =>
+    log.filter((entry) => entry.op === "list" || entry.op === "size" || entry.op === "read");
 
-  it("recognizes Claude Code's projects folder dropped on its own", async () => {
-    const { status } = await discover(claudeProjects, { root: "projects" });
-    expect(status["Claude Code"]).toMatchObject({ status: "found", location: [], fileCount: 3 });
-    expect(status["Command Code"]?.status).toBe("not-found");
-  });
-
-  it("recognizes Command Code's projects folder dropped on its own", async () => {
-    const { status } = await discover(commandCodeProjects, { root: "projects" });
-    expect(status["Command Code"]).toMatchObject({ status: "found", fileCount: 1 });
-    expect(status["Claude Code"]?.status).toBe("not-found");
-  });
-
-  it("recognizes a Command Code root", async () => {
-    const { status } = await discover(
-      { projects: commandCodeProjects, "history.jsonl": 1, "settings.json": 1 },
-      { root: ".commandcode" },
+  it("recognizes a dropped .claude folder and lists its projects history", async () => {
+    const { status, log } = await discover(
+      { projects: claudeProjects, "settings.json": 1 },
+      { root: ".claude" },
     );
-    expect(status["Command Code"]).toMatchObject({ status: "found", location: ["projects"] });
-    expect(status["Claude Code"]?.status).toBe("not-found");
+    expect(status["Claude Code"]).toMatchObject({ status: "found", location: ["projects"] });
+    for (const entry of listings(log)) expect(entry.path.startsWith("projects")).toBe(true);
   });
 
-  it("recognizes a custom CLAUDE_CONFIG_DIR by its children, not its name", async () => {
+  it("keeps nested workflow transcripts once a .claude folder is identified", async () => {
     const { status } = await discover(
-      { projects: claudeProjects, "history.jsonl": 10, "settings.json": 1 },
+      {
+        projects: {
+          "-home-dev-app": {
+            [uuidSession]: 10,
+            "0b1c0000-0000-4000-8000-00000000000a": {
+              subagents: { "agent-1.jsonl": 5, workflows: { wf_1: { "agent-2.jsonl": 7 } } },
+            },
+          },
+        },
+      },
+      { root: ".claude" },
+    );
+    expect(status["Claude Code"]).toMatchObject({ status: "found", fileCount: 3, bytes: 22 });
+  });
+
+  it("recognizes a custom CLAUDE_CONFIG_DIR by a name only Claude Code writes", async () => {
+    const { status } = await discover(
+      { projects: claudeProjects, "history.jsonl": 10, "shell-snapshots": {} },
       { root: "claude-work" },
     );
     expect(status["Claude Code"]).toMatchObject({ status: "found", location: ["projects"] });
     expect(status["Command Code"]?.status).toBe("not-found");
   });
 
-  it("recognizes Codex's sessions folder and a custom CODEX_HOME", async () => {
-    const direct = await discover(codexSessions, { root: "sessions" });
-    expect(direct.status.Codex).toMatchObject({ status: "found", location: [], fileCount: 2 });
-    const custom = await discover(
-      { sessions: codexSessions, "config.toml": 1 },
-      { root: "codex-work" },
+  it("does not take a folder with only shared names for Claude Code", async () => {
+    // A renamed Command Code root has `projects` and `history.jsonl` as well.
+    const { status, log } = await discover(
+      { projects: commandCodeProjects, "history.jsonl": 1, "settings.json": 1 },
+      { root: "agent-data" },
     );
-    expect(custom.status.Codex).toMatchObject({ status: "found", location: ["sessions"] });
+    expect(status["Claude Code"]?.status).toBe("not-found");
+    expect(status["Command Code"]?.status).toBe("not-found");
+    expect(touched(log)).toEqual([]);
+  });
+
+  it("recognizes a .commandcode folder by its name", async () => {
+    const { status } = await discover(
+      { projects: commandCodeProjects, "history.jsonl": 1 },
+      { root: ".commandcode" },
+    );
+    expect(status["Command Code"]).toMatchObject({ status: "found", location: ["projects"] });
+    expect(status["Claude Code"]?.status).toBe("not-found");
+  });
+
+  it("asks for access instead of listing a bare projects folder", async () => {
+    const { status, log } = await discover(claudeProjects, { root: "projects" });
+    expect(status["Claude Code"]).toMatchObject({ status: "access-needed", unconfirmed: true });
+    expect(status["Command Code"]).toMatchObject({ status: "access-needed", unconfirmed: true });
+    expect(touched(log)).toEqual([]);
+  });
+
+  it("never lists an unrelated projects folder full of repositories", async () => {
+    const repos: Tree = {};
+    for (let index = 0; index < 12; index += 1) {
+      repos[`repo-${index}`] = { "main.go": 1, "notes.jsonl": 1, src: { "lib.go": 1 } };
+    }
+    const { status, log, run } = await discover(repos, { root: "projects" });
+    expect(run.listings).toBe(0);
+    expect(touched(log)).toEqual([]);
+    expect(status["Claude Code"]?.status).toBe("access-needed");
+    // Only exact registered names were asked for; no repository was opened.
+    expect(log.some((entry) => entry.path.startsWith("repo-"))).toBe(false);
+  });
+
+  it("asks for access instead of listing a bare sessions folder", async () => {
+    const { status, log } = await discover(codexSessions, { root: "sessions" });
+    expect(status.Codex).toMatchObject({ status: "access-needed", unconfirmed: true });
+    expect(touched(log)).toEqual([]);
+  });
+
+  it("never takes a year-sorted archive for Codex", async () => {
+    const archive: Tree = { "2026": { notes: { "personal.jsonl": 10 } }, "2025": {} };
+    const bare = await discover(archive, { root: "sessions" });
+    expect(bare.status.Codex?.status).not.toBe("found");
+    expect(touched(bare.log)).toEqual([]);
+    // The same archive with a TOML config beside it is still not a Codex home.
+    const withConfig = await discover(
+      { sessions: archive, "config.toml": 1, "history.jsonl": 1 },
+      { root: "journal" },
+    );
+    expect(withConfig.status.Codex?.status).toBe("not-found");
+    expect(touched(withConfig.log)).toEqual([]);
+  });
+
+  it("recognizes a dropped .codex folder and a custom CODEX_HOME with Codex's own names", async () => {
+    const named = await discover({ sessions: codexSessions }, { root: ".codex" });
+    expect(named.status.Codex).toMatchObject({ status: "found", location: ["sessions"] });
+    for (const marker of [
+      { "session_index.jsonl": 1 },
+      { archived_sessions: {} },
+      { "models_cache.json": 1 },
+    ] as Tree[]) {
+      const custom = await discover(
+        { sessions: codexSessions, "config.toml": 1, ...marker },
+        { root: "codex-work" },
+      );
+      expect(custom.status.Codex).toMatchObject({ status: "found", fileCount: 2 });
+    }
   });
 
   it("does not take another tool's sessions folder for Codex", async () => {
-    const claudeSessions = await discover(
+    for (const sessions of [
       { "674351.json": 1, "674351.abc.key": 1 },
-      { root: "sessions" },
-    );
-    expect(claudeSessions.status.Codex?.status).toBe("not-found");
-    const hermesSessions = await discover(
-      { "request_dump_1_2.json": 1, "request_dump_3_4.json": 1 },
-      { root: "sessions" },
-    );
-    expect(hermesSessions.status.Codex?.status).toBe("not-found");
+      { "request_dump_1_2.json": 1 },
+    ] as Tree[]) {
+      const { status, log } = await discover(sessions, { root: "sessions" });
+      expect(status.Codex?.status).not.toBe("found");
+      expect(touched(log)).toEqual([]);
+    }
   });
 
-  it("recognizes the OpenCode data folder as found but not readable in the browser", async () => {
-    const { status } = await discover(openCodeData, { root: "opencode" });
-    expect(status.OpenCode).toMatchObject({
-      status: "unsupported",
-      importable: false,
-      location: ["opencode.db"],
-    });
-  });
-
-  it("recognizes the OpenCode database's folder under any name", async () => {
-    const { status } = await discover(openCodeData, { root: "opencode-backup" });
-    expect(status.OpenCode).toMatchObject({ status: "unsupported", location: ["opencode.db"] });
-    expect(status.Hermes?.status).toBe("not-found");
+  it("recognizes the OpenCode data folder, under its name or any name, without listing it", async () => {
+    for (const root of ["opencode", "opencode-backup"]) {
+      const { status, log } = await discover(openCodeData, { root });
+      expect(status.OpenCode).toMatchObject({
+        status: "unsupported",
+        importable: false,
+        location: ["opencode.db"],
+      });
+      expect(touched(log)).toEqual([]);
+    }
   });
 
   it("recognizes the parents above the OpenCode data folder", async () => {
@@ -426,21 +486,7 @@ describe("direct roots", () => {
       expect((finding as SourceFinding).status).toBe("not-found");
     }
     expect(run.listings).toBe(0);
-    expect(log.filter((entry) => entry.op === "size" || entry.op === "read")).toEqual([]);
-  });
-
-  it("looks only a few folders deep into an unrelated folder that shares a history name", async () => {
-    const repos: Tree = {};
-    for (let index = 0; index < 12; index += 1) {
-      repos[`repo-${index}`] = { "main.go": 1, src: { "lib.go": 1 } };
-    }
-    const { status, log } = await discover(repos, { root: "projects" });
-    expect(status["Claude Code"]?.status).toBe("not-found");
-    expect(status["Command Code"]?.status).toBe("not-found");
-    const listings = log.filter((entry) => entry.op === "list").map((entry) => entry.path);
-    // The folder itself and its first few subfolders, once, whichever tool asked.
-    expect(listings).toEqual(["", "repo-0", "repo-1", "repo-10", "repo-11"]);
-    expect(log.filter((entry) => entry.op === "size" || entry.op === "read")).toEqual([]);
+    expect(touched(log)).toEqual([]);
   });
 
   it("still reaches every registered path from a home folder", async () => {

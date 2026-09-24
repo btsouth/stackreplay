@@ -4,7 +4,9 @@ import type { SourceDiscovery } from "../discovery-types.js";
  * Command Code documents `~/.commandcode/projects/<project-slug>/<session-id>.jsonl`
  * with `.checkpoints.jsonl` and `.prompts.jsonl` sidecars that carry no usage.
  * It documents no separate Windows location, so none is claimed here; the
- * probe still runs under whatever folder the user chooses.
+ * probe still runs under whatever folder the user chooses. It documents no way
+ * to move the folder and no name only its root holds, so a renamed root is not
+ * recognized: `.commandcode` itself, or the folder chooser, is the way in.
  */
 export const COMMAND_CODE_DISCOVERY: SourceDiscovery = {
   adapterId: "command-code",
@@ -19,17 +21,5 @@ export const COMMAND_CODE_DISCOVERY: SourceDiscovery = {
     extension: ".jsonl",
     excludeSuffixes: [".checkpoints.jsonl", ".prompts.jsonl"],
   },
-  roots: [
-    {
-      requires: [
-        { name: "projects", kind: "directory" },
-        { name: "history.jsonl", kind: "file" },
-      ],
-      history: ["projects"],
-      kind: "directory",
-    },
-  ],
-  // The documented `.meta.json` and `.checkpoints.jsonl` sidecars tell it apart from Claude Code.
-  historyNames: { anyOf: ["\\.meta\\.json$", "\\.checkpoints\\.jsonl$"] },
   evidence: ["https://commandcode.ai/docs/sessions"],
 };

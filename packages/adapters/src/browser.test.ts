@@ -11,6 +11,7 @@ import {
   intakeBrowserCandidates,
   safeIntakeMessage,
   streamedLines,
+  unavailableCandidate,
 } from "./browser.js";
 import {
   CCUSAGE_DAILY_JSON,
@@ -239,6 +240,40 @@ describe("browser intake using shared adapters", () => {
       "ahead:peek:2",
       "ahead:peek:3",
     ]);
+  });
+
+  it("reports a file that could not be handed over as unreadable, counted in its history", async () => {
+    const reports: { done: number; total: number; groups: unknown }[] = [];
+    const result = await intakeBrowserCandidates(
+      [
+        { ...candidate("found.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+        unavailableCandidate("gone.jsonl", "claude-code", "NotFoundError"),
+      ],
+      syntheticCatalog(),
+      {
+        now: NOW,
+        salt: FIXTURE_SALT,
+        onProgress: (done, total, progress) =>
+          reports.push({ done, total, groups: progress.groups }),
+      },
+    );
+    const gone = result.outcomes.find((item) => item.path === "gone.jsonl");
+    expect(gone).toMatchObject({ status: "unreadable", events: 0 });
+    expect(gone?.reason).toContain("NotFoundError");
+    expect(result.outcomes.find((item) => item.path === "found.jsonl")?.status).toBe("imported");
+    // The history's count includes the file it tried to read, and the workload
+    // carries only what was read.
+    const last = reports.at(-1);
+    expect(last?.total).toBe(2);
+    expect(last?.groups).toEqual([
+      expect.objectContaining({ group: "claude-code", done: 2, total: 2 }),
+    ]);
+    const alone = await intakeBrowserCandidates(
+      [candidate("found.jsonl", CLAUDE_CODE_SESSION)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    expect(result.exported?.events).toEqual(alone.exported?.events);
   });
 
   it("accepts a raw source file above the former 256 MB per-file cap", async () => {

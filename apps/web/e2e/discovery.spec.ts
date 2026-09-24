@@ -1,3 +1,5 @@
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { registeredProbePaths } from "@stackreplay/adapters/discovery";
@@ -164,8 +166,9 @@ test("a linked history needs additional access and connects without disturbing t
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("connect-row-claude-code").click();
   await (await chooser).setFiles(`${home}/.claude/projects`);
-  // The chosen folder is recognized as Claude Code's history, not taken on trust.
-  await expect(claude).toHaveAttribute("data-status", "found");
+  // A bare `projects` folder is not identified by looking inside it; the
+  // person's own Connect choice decides, and the scan confirms the content.
+  await expect(claude).toHaveAttribute("data-status", "connected");
   await expect(claude).toContainText("2 files");
   await expect(page.getByTestId("history-codex")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("selection-count")).toContainText("2 selected");
@@ -179,8 +182,6 @@ test("a linked history needs additional access and connects without disturbing t
 });
 
 test("another location joins the same list", async ({ page }, testInfo) => {
-  // An unrecognized folder would join as an added location; a recognized one
-  // joins as its tool's history.
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 1, codexRollouts: 1 });
   const wsl = testInfo.outputPath("wsl-home/.claude/projects");
@@ -189,9 +190,9 @@ test("another location joins the same list", async ({ page }, testInfo) => {
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("add-location").click();
   await (await chooser).setFiles(wsl);
-  // Recognized as a second Claude Code history, beside the one already found.
-  await expect(page.getByTestId("history-claude-code-2")).toHaveAttribute("data-status", "found");
-  await expect(page.locator('[data-testid^="history-location-"]')).toHaveCount(0);
+  // A bare `projects` folder is not identified by its contents, so it joins as
+  // an added location whose files are identified by content when it is built.
+  await expect(page.getByTestId("history-location-1")).toHaveAttribute("data-status", "connected");
   await expect(page.getByTestId("selection-count")).toContainText("3 selected");
 });
 
@@ -223,14 +224,71 @@ test("an OpenCode data folder reads as found but not readable, dropped or chosen
   await expect(page.locator('[data-testid^="history-location-"]')).toHaveCount(0);
 });
 
-test("a dropped Claude Code projects folder is recognized as Claude Code", async ({
+test("a dropped bare projects folder asks for access and is never listed", async ({
+  page,
+}, testInfo) => {
+  const root = "projects";
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home, { claudeSessions: 2 });
+  await recordFolderAccess(page);
+  await discover(page, `${home}/.claude/${root}`);
+  const claude = page.getByTestId("history-claude-code");
+  await expect(claude).toHaveAttribute("data-status", "access-needed");
+  await expect(claude).toContainText("did not look inside");
+  await expect(page.getByTestId("connect-row-claude-code")).toBeVisible();
+  const access = await folderAccess(page, root);
+  expect(access.filter((entry) => entry.op === "list")).toEqual([]);
+  expect(access.filter((entry) => entry.op === "read")).toEqual([]);
+});
+
+test("an unrelated projects folder and a year-sorted archive are not listed or taken for a tool", async ({
+  page,
+}, testInfo) => {
+  const repos = testInfo.outputPath("work/projects");
+  for (const repo of ["alpha", "beta", "gamma"]) {
+    await mkdir(join(repos, repo, "src"), { recursive: true });
+    await writeFile(join(repos, repo, "notes.jsonl"), "{}\n");
+  }
+  const archive = testInfo.outputPath("journal/sessions");
+  await mkdir(join(archive, "2026", "notes"), { recursive: true });
+  await writeFile(join(archive, "2026", "notes", "personal.jsonl"), "{}\n");
+  await recordFolderAccess(page);
+  await discover(page, repos);
+  expect((await folderAccess(page, "projects")).filter((entry) => entry.op === "list")).toEqual([]);
+  await discover(page, archive);
+  await expect(page.getByTestId("history-codex")).not.toHaveAttribute("data-status", "found");
+  expect((await folderAccess(page, "sessions")).filter((entry) => entry.op === "list")).toEqual([]);
+});
+
+test("a file that disappears before Build is reported, and the workload says it is partial", async ({
   page,
 }, testInfo) => {
   const home = testInfo.outputPath("dev-home");
-  await buildHome(home, { claudeSessions: 2 });
-  await discover(page, `${home}/.claude/projects`);
-  await expect(page.getByTestId("history-claude-code")).toHaveAttribute("data-status", "found");
-  await expect(page.getByTestId("history-command-code")).toContainText("Not found");
+  await buildHome(home, { claudeSessions: 3, codexRollouts: 1 });
+  const full = testInfo.outputPath("full-home");
+  await buildHome(full, { claudeSessions: 2, codexRollouts: 1 });
+  await discover(page, home);
+  await expect(page.getByTestId("history-claude-code")).toContainText("3 files");
+  // One of the discovered sessions is deleted between discovery and Build.
+  const [project] = await readdir(join(home, ".claude", "projects"));
+  const [session] = await readdir(join(home, ".claude", "projects", project as string));
+  await rm(join(home, ".claude", "projects", project as string, session as string));
+  await page.getByTestId("build-workload").click();
+  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
+    timeout: 60_000,
+  });
+  const partial = page.getByTestId("partial-scan");
+  await expect(partial).toContainText("1 source file could not be read");
+  await page.getByTestId("intake-review").locator("summary").click();
+  await expect(page.getByTestId("intake-review")).toContainText(session as string);
+  // The totals are what was read: the same as a home that only ever had two sessions.
+  const facts = await page.getByTestId("scan-ready-facts").innerText();
+  await discover(page, full);
+  await page.getByTestId("build-workload").click();
+  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
+    timeout: 60_000,
+  });
+  expect(await page.getByTestId("scan-ready-facts").innerText()).toBe(facts);
 });
 
 test("a dropped file is explained instead of scanned", async ({ page }, testInfo) => {

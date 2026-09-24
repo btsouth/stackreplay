@@ -362,7 +362,7 @@ export class ReplayWorkerClient {
   }
 
   async importSources(
-    files: { file: File; path: string; group?: string }[],
+    files: { file: File; path: string; group?: string; unavailable?: string }[],
     options: {
       importId: string;
       now: string;

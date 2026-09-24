@@ -34,24 +34,17 @@ export interface ChildMarker {
  * A folder recognized by its own children when it is supplied directly under a
  * name the registry does not know, such as a custom `CODEX_HOME` or a copied
  * OpenCode data folder. Every marker is checked by exact name; nothing is listed.
+ * The markers must establish the tool positively: names another tool also
+ * writes (`projects`, `sessions`, `history.jsonl`) need a tool-only name in
+ * `anyOf` beside them.
  */
 export interface RootSignature {
   requires: readonly ChildMarker[];
+  /** At least one of these must exist too: names only this tool writes. */
+  anyOf?: readonly ChildMarker[];
   /** Where the history is below the recognized folder; empty when it is the folder itself. */
   history: readonly string[];
   kind: "directory" | "file";
-}
-
-/**
- * Name evidence for a history folder reached without its tool's own parent
- * folder (someone dropped `projects` or `sessions` itself, or a root matched a
- * signature that another tool shares). The names in the folder and in its first
- * few subfolders must include one matching `anyOf` and none matching `noneOf`.
- * Only names are read, never file content.
- */
-export interface HistoryNames {
-  anyOf: readonly string[];
-  noneOf?: readonly string[];
 }
 
 export interface SourceDiscovery {
@@ -78,8 +71,6 @@ export interface SourceDiscovery {
   };
   /** Folders recognized by their children when supplied under another name. */
   roots?: readonly RootSignature[];
-  /** How the history folder is told apart from another tool's folder of the same name. */
-  historyNames?: HistoryNames;
   /** Environment variable that moves the history elsewhere. */
   relocatedBy?: string;
   /** Documentation or source code that establishes these locations. */

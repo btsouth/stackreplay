@@ -631,7 +631,7 @@ export function ImportSurface({
                 data-testid="picker-note"
               >
                 {folderSupported
-                  ? "Your browser's confirmation may describe sending files to this site. They stay on this device: StackReplay reads the folder locally and sends none of it to a server."
+                  ? "Choose the tool's history folder itself: the browser gives this page the list of files in the folder you pick. Its confirmation may describe sending files to this site. They stay on this device: StackReplay reads them locally and sends none of them to a server."
                   : "Folder selection is unavailable in this browser. Choose the folder's files below instead."}
               </p>
               <details className="mt-2 text-xs text-muted-foreground">

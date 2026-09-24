@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   applyChosenFolder,
   chosenFiles,
+  collectSelection,
   type HistoryRow,
   mergeFinding,
   type ResolvableFile,
@@ -190,6 +191,58 @@ describe("a folder from the folder chooser", () => {
     const findings = await recognize(files);
     const rows = applyChosenFolder(waitingRows(), findings, files, "exports", undefined);
     expect(rows.at(-1)).toMatchObject({ key: "location-1", status: "connected", fileCount: 1 });
+  });
+});
+
+describe("building from the selected histories", () => {
+  it("keeps a file that fails at Build as an unavailable entry instead of dropping it", async () => {
+    const row: HistoryRow = {
+      key: "claude-code",
+      adapterId: "claude-code",
+      name: "Claude Code",
+      status: "found",
+      fileCount: 2,
+      bytes: 20,
+      selected: true,
+      files: [
+        { path: ".claude/projects/app/a.jsonl", get: async () => new File(["{}"], "a.jsonl") },
+        {
+          path: ".claude/projects/app/b.jsonl",
+          get: async () => {
+            throw new DOMException("gone", "NotFoundError");
+          },
+        },
+      ],
+    };
+    const selection = await collectSelection([row]);
+    expect(selection.files.map((file) => [file.path, file.unavailable])).toEqual([
+      [".claude/projects/app/a.jsonl", undefined],
+      [".claude/projects/app/b.jsonl", "NotFoundError"],
+    ]);
+    // The placeholder carries no bytes; the scan reports it as unreadable.
+    expect(selection.files[1]?.file.size).toBe(0);
+    expect(selection.histories).toEqual([
+      { id: "claude-code", name: "Claude Code", files: 2, bytes: 20 },
+    ]);
+  });
+
+  it("never passes an error name that is not a plain browser name", async () => {
+    const row: HistoryRow = {
+      key: "codex",
+      name: "Codex",
+      status: "found",
+      selected: true,
+      files: [
+        {
+          path: "sessions/x.jsonl",
+          get: async () => {
+            throw new Error("/home/someone/secret path");
+          },
+        },
+      ],
+    };
+    const selection = await collectSelection([row]);
+    expect(selection.files[0]?.unavailable).toBe("NotReadableError");
   });
 });
 

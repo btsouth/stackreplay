@@ -328,6 +328,34 @@ export class SourceReadError extends Error {
   }
 }
 
+/**
+ * A file that discovery found but the browser would not hand over when the
+ * scan started (moved, deleted or no longer readable). It goes through the scan
+ * like any file whose read fails, so it is counted and reported as unreadable,
+ * never silently left out of a workload that looks complete.
+ */
+export function unavailableCandidate(
+  path: string,
+  group: string | undefined,
+  errorName: string | undefined,
+): BrowserCandidate {
+  const fail = () => Promise.reject(new SourceReadError(errorName));
+  return {
+    path,
+    ...(group === undefined ? {} : { group }),
+    size: 0,
+    lastModified: 0,
+    text: fail,
+    peekText: fail,
+    stream: () =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.error(new SourceReadError(errorName));
+        },
+      }),
+  };
+}
+
 function errorNameOf(error: unknown): string | undefined {
   if (error instanceof SourceReadError) return error.errorName;
   if (typeof error === "object" && error !== null && "name" in error) {

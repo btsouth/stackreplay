@@ -221,8 +221,10 @@ export type WorkerRequest =
        * `group` names the history a file was selected for (a source id such as
        * `claude-code`, or a connected location), so the scan can report
        * progress per history. It is an identifier, never a path.
+       * `unavailable` marks a discovered file the browser would not hand over
+       * (the browser's error name); the scan reports it as unreadable.
        */
-      files: { file: File; path: string; group?: string }[];
+      files: { file: File; path: string; group?: string; unavailable?: string }[];
       now: string;
       saveLocal: boolean;
       /** The workload's name in this browser, e.g. "Claude Code + Codex". */

@@ -9,6 +9,7 @@ import {
   intakeBrowserCandidates,
   safeCandidateName,
   safeIntakeMessage,
+  unavailableCandidate,
 } from "@stackreplay/adapters/browser";
 import {
   BUNDLED_CATALOG_VERSION,
@@ -453,9 +454,15 @@ async function handleImportSources(
   );
   const candidates: BrowserCandidate[] = [];
   const archiveOutcomes: CandidateOutcome[] = [];
-  for (const { file, path, group } of files) {
+  for (const { file, path, group, unavailable } of files) {
     if (!importIsCurrent(requestId, signal)) return;
     const history = safeGroup(group);
+    if (unavailable !== undefined) {
+      // Discovered, but the browser would not hand it over: read as a failure.
+      const name = /^[A-Za-z]{1,40}$/u.test(unavailable) ? unavailable : undefined;
+      candidates.push(unavailableCandidate(path, history, name));
+      continue;
+    }
     const selected = {
       path,
       ...(history === undefined ? {} : { group: history }),
