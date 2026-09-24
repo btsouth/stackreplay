@@ -885,6 +885,9 @@ export async function intakeBrowserCandidates(
       // A streamed file can fail after its first pass succeeded. Its partial
       // events are discarded, so the file is either wholly in or reported out.
       if (!(error instanceof SourceReadError)) throw error;
+      // A later selected copy may still be readable. The signature was added
+      // before parsing, but this file contributed no events to the workload.
+      if (signature !== undefined) seen.delete(signature);
       // Only a signed file had already been read to the end once; a failure on
       // a file's first full read is reported as one, as it always was.
       outcomes.push(unreadableOutcome(display, error, signed ? adapter.name : undefined));

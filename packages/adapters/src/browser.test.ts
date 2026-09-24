@@ -571,6 +571,17 @@ describe("browser intake using shared adapters", () => {
     );
   });
 
+  it("imports a readable copy when a signed file fails during parsing", async () => {
+    const result = await intakeBrowserCandidates(
+      [flaky("rollout-active.jsonl", 2), flaky("rollout-copy.jsonl", 0)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    expect(result.outcomes.map((outcome) => outcome.status)).toEqual(["unreadable", "imported"]);
+    expect(result.exported?.events.length).toBeGreaterThan(0);
+    expect(result.exported?.events.every((event) => event.source.adapterId === "codex")).toBe(true);
+  });
+
   it("reads a small streamed file once and signs files only when two share a size", async () => {
     const reads: string[] = [];
     const tracked = (path: string, content: string, size?: number): BrowserCandidate => {
