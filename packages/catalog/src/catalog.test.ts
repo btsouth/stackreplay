@@ -176,6 +176,28 @@ describe("validateCatalogData", () => {
     expect(issues.some((issue) => issue.code === "MODEL_REF_MISSING")).toBe(true);
   });
 
+  it("rejects paid access on a model the plan does not exclude", () => {
+    const plan = validPlan();
+    const versions = plan.versions as Array<Record<string, unknown>>;
+    const rules = versions[0]?.modelRules as Array<Record<string, unknown>>;
+    const issues = validateCatalogData(
+      raw({
+        plans: [
+          rawEntry("plans/example.yaml", {
+            ...plan,
+            versions: [
+              {
+                ...versions[0],
+                modelRules: rules.map((rule) => ({ ...rule, access: "usage_credits" })),
+              },
+            ],
+          }),
+        ],
+      }),
+    );
+    expect(issues.some((issue) => issue.code === "ACCESS_WITHOUT_EXCLUSION")).toBe(true);
+  });
+
   it("requires whole numbers for token and request limits", () => {
     const plan = validPlan();
     const versions = plan.versions as Array<Record<string, unknown>>;
@@ -463,19 +485,62 @@ describe("launch catalog: model identity", () => {
     const deepseek = Object.values(catalog.pricing).find(
       (entry) => entry.modelId === "deepseek-v4-1-flash",
     );
+    expect(deepseek?.effectiveFrom).toBe("2026-09-10");
+    expect(deepseek?.effectiveFromInstant).toBe("2026-09-10T04:00:00Z");
+    expect(catalog.pricing["deepseek-v4-pro-pricing"]?.effectiveFromInstant).toBe(
+      "2026-08-16T16:00:00Z",
+    );
     expect(deepseek?.rates.cacheWrite).toBeUndefined();
     expect(deepseek?.rates.reasoning).toBeUndefined();
     // DeepSeek's peak window is the documented schedule, not a fabricated
     // flattened rate: it lives on a tier with the published UTC windows.
     const peak = deepseek?.tiers?.find((tier) => tier.id === "peak-hours");
     expect(peak && "utcWindows" in peak.when ? peak.when.utcWindows.length : 0).toBe(2);
+    for (const id of ["deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]) {
+      const record = Object.values(catalog.pricing).find((entry) => entry.modelId === id);
+      const tier = record?.tiers?.find((item) => item.id === "peak-hours");
+      expect(tier && "utcWindows" in tier.when ? tier.when.utcWindows.length : 0, id).toBe(2);
+    }
     expect(peak?.rates.input).toBe("0.3");
     expect(peak?.rates.output).toBe("1.2");
     expect(peak?.rates.cacheRead).toBe("0.006");
   });
 });
 
+it("does not offer a deterministic named-model route on Copilot Free", () => {
+  const catalog = loadDefaultCatalog();
+  const free = catalog.plans["github-copilot-free"]?.versions.at(-1);
+  expect(free?.modelRules.length).toBeGreaterThan(0);
+  for (const rule of free?.modelRules ?? []) {
+    expect(rule.excluded, rule.model).toBe(true);
+    expect(rule.pricingRef, rule.model).toBeUndefined();
+  }
+});
+
 describe("launch catalog: Anthropic usage-credit semantics", () => {
+  it("lists current Claude Code model IDs explicitly on both Max tiers", () => {
+    const catalog = loadDefaultCatalog();
+    const supported = [
+      "claude-fable-5",
+      "claude-fable-5-1",
+      "claude-haiku-4-5",
+      "claude-opus-4-7",
+      "claude-opus-4-8",
+      "claude-opus-5",
+      "claude-opus-5-5",
+      "claude-sonnet-4-6",
+      "claude-sonnet-5",
+    ];
+    for (const planId of ["anthropic-claude-max-5x", "anthropic-claude-max-20x"]) {
+      const current = required(catalog.plans[planId]).versions.at(-1);
+      for (const model of supported) {
+        const rule = current?.modelRules.find((entry) => entry.model === model);
+        expect(rule, `${planId}: ${model}`).toBeDefined();
+        expect(rule?.excluded, `${planId}: ${model}`).not.toBe(true);
+      }
+    }
+  });
+
   /**
    * Anthropic's $2000 daily figure is a usage-credit *funding* rule: it belongs to the
    * prepaid Add Funds / auto-reload flow, not to how much workload the plan will admit
@@ -493,6 +558,16 @@ describe("launch catalog: Anthropic usage-credit semantics", () => {
       expect(version?.limits).toEqual([]);
       expect(version?.limits.some((limit) => limit.id === "daily-credit-redemption")).toBe(false);
     }
+  });
+
+  it("runs current Claude releases on Pro and leaves Fable to usage credits", () => {
+    const catalog = loadDefaultCatalog();
+    const rules = required(getPlanVersion(catalog, "anthropic-claude-pro@2026-09-22")).modelRules;
+    const rule = (model: string) => rules.find((entry) => entry.model === model);
+    for (const model of ["claude-opus-5-5", "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"])
+      expect(rule(model)?.excluded).toBeUndefined();
+    for (const model of ["claude-fable-5", "claude-fable-5-1", "claude-fable"])
+      expect(rule(model)).toMatchObject({ excluded: true, access: "usage_credits" });
   });
 
   it("records both documented usage-credit facts qualitatively, with sources", () => {
@@ -524,15 +599,18 @@ describe("launch catalog: Anthropic usage-credit semantics", () => {
       // The synthetic `example-` development plans are fixtures, not launch claims.
       .filter((plan) => !plan.id.startsWith("example-"))
       .flatMap((plan) =>
-        plan.versions.flatMap((version) =>
-          version.limits.map((limit) => ({ planId: plan.id, providerId: plan.providerId, limit })),
-        ),
+        (plan.versions.at(-1)?.limits ?? []).map((limit) => ({
+          planId: plan.id,
+          providerId: plan.providerId,
+          limit,
+        })),
       );
-    // Five limits across five plans, all GitHub Copilot. A new numeric limit means a
+    // Six current limits across six plans, all GitHub Copilot. Historical
+    // versions should not count as extra current allowances. A new limit means a
     // provider documented a consumable allowance with a simulatable window, so this
     // count is expected to change deliberately, never incidentally.
-    expect(numeric).toHaveLength(5);
-    expect(new Set(numeric.map((entry) => entry.planId)).size).toBe(5);
+    expect(numeric).toHaveLength(6);
+    expect(new Set(numeric.map((entry) => entry.planId)).size).toBe(6);
     expect(new Set(numeric.map((entry) => entry.providerId))).toEqual(new Set(["github"]));
   });
 });

@@ -248,6 +248,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
     preset === "heavy" ? 0x51a3 : preset === "moderate" ? 0x2b71 : 0x77c1,
   );
   const days = preset === "heavy" ? 30 : 7;
+  const projectCount = preset === "heavy" ? 8 : preset === "moderate" ? 3 : 5;
   const events: TextUsageEventV1[] = [];
   const sessionIdsBySource = new Map<string, string[]>();
   const orchestratedSessions = new Set<string>();
@@ -305,7 +306,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
           usage: "exact",
           model: includeUnmapped ? "unknown" : "exact",
         },
-        projectHash: `ph_demo_${hex(random, 16)}`,
+        projectHash: `ph_demo_${(sessions.indexOf(sessionId) % projectCount).toString(16).padStart(16, "0")}`,
       };
       events.push(event);
     }

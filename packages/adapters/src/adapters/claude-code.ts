@@ -1,5 +1,11 @@
 import type { TextUsageV1 } from "@stackreplay/schema";
-import { buildEvent, eventContext, HARNESS_IDS, providerIdForModel } from "../event-builder.js";
+import {
+  buildEvent,
+  type EventDraft,
+  eventContext,
+  HARNESS_IDS,
+  providerIdForModel,
+} from "../event-builder.js";
 import {
   baseName,
   dirName,
@@ -26,7 +32,9 @@ import { WarningCollector } from "../warnings.js";
  * Claude Code adapter (spec point 15).
  *
  * Source: `~/.claude/projects/<project>/<session>.jsonl`. One JSON object per
- * line; assistant lines carry `message.usage` for a single API response.
+ * line; assistant lines carry `message.usage`. One API response can be written
+ * as several assistant lines with different row UUIDs but the same message ID
+ * and usage, so rows are grouped by response before events are emitted.
  *
  * Accounting (docs/ADAPTERS.md; verified against Anthropic's documented usage
  * semantics, against the local format and against 48,000+ local assistant records):
@@ -44,6 +52,17 @@ import { WarningCollector } from "../warnings.js";
  */
 
 const ADAPTER_ID = "claude-code" as const;
+
+interface ResponseCandidate {
+  draft: EventDraft;
+  final: boolean;
+}
+
+/** Prefer the completed response and its final output count over streaming rows. */
+function preferResponse(candidate: ResponseCandidate, previous: ResponseCandidate): boolean {
+  if (candidate.final !== previous.final) return candidate.final;
+  return (candidate.draft.usage.outputTokens ?? 0) > (previous.draft.usage.outputTokens ?? 0);
+}
 
 export function claudeCodeRoots(env: SourceEnvironment): string[] {
   return [joinPath(env.platform, env.homeDir, ".claude", "projects")];
@@ -141,7 +160,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
     async collect(env: SourceEnvironment, options: CollectOptions): Promise<CollectResult> {
       const warnings = new WarningCollector();
       const stats = emptyStats();
-      const events: CollectResult["events"] = [];
+      const responses = new Map<string, ResponseCandidate>();
       const roots = options.roots ?? claudeCodeRoots(env);
       const maxFiles = effectiveMaxFiles(options);
       const maxBytes = effectiveMaxFileBytes(options);
@@ -164,7 +183,6 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
           const projectSlug = baseName(env, dirName(env, file));
           let sessionId = baseName(env, file).replace(/\.jsonl$/u, "");
           let lineIndex = 0;
-          let fileEvents = 0;
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -210,40 +228,51 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             }
             if (!inWindow(occurredAtMs, options)) continue;
             sessionId = readString(record, "sessionId") ?? sessionId;
-            const identity = readString(record, "uuid") ?? `${occurredAtMs}#${lineIndex}`;
+            const messageId = readString(message, "id");
+            const requestId = readString(record, "requestId");
+            const identity =
+              messageId !== undefined
+                ? `${messageId}\u0000${requestId ?? ""}`
+                : (requestId ?? readString(record, "uuid") ?? `${occurredAtMs}#${lineIndex}`);
             // Browser-selected single files have no established project folder.
             // The synthetic collection root must never become a project identity.
             const projectKey =
               readString(record, "cwd") ?? (env.selectedFiles ? undefined : projectSlug);
-            events.push(
-              buildEvent(
-                {
-                  adapterId: ADAPTER_ID,
-                  sessionId,
-                  identity,
-                  occurredAtMs,
-                  rawModel,
-                  usage,
-                  ...(projectKey !== undefined ? { projectKey } : {}),
-                  harnessId: HARNESS_IDS["claude-code"],
-                  ...(providerIdForModel(options.mapper, rawModel, {
-                    harness: HARNESS_IDS["claude-code"],
-                  }) !== undefined
-                    ? {
-                        providerId: providerIdForModel(options.mapper, rawModel, {
-                          harness: HARNESS_IDS["claude-code"],
-                        }) as string,
-                      }
-                    : {}),
-                  workloadCategory: "coding",
-                },
-                eventContext(env, options),
-              ),
-            );
-            fileEvents += 1;
+            const draft: EventDraft = {
+              adapterId: ADAPTER_ID,
+              sessionId,
+              identity,
+              ...(messageId !== undefined || requestId !== undefined
+                ? { identityScope: "global" as const }
+                : {}),
+              occurredAtMs,
+              rawModel,
+              usage,
+              ...(projectKey !== undefined ? { projectKey } : {}),
+              harnessId: HARNESS_IDS["claude-code"],
+              ...(providerIdForModel(options.mapper, rawModel, {
+                harness: HARNESS_IDS["claude-code"],
+              }) !== undefined
+                ? {
+                    providerId: providerIdForModel(options.mapper, rawModel, {
+                      harness: HARNESS_IDS["claude-code"],
+                    }) as string,
+                  }
+                : {}),
+              workloadCategory: "coding",
+            };
+            const candidate = { draft, final: message.stop_reason != null };
+            const previous = responses.get(identity);
+            if (previous === undefined) responses.set(identity, candidate);
+            else {
+              warnings.add(
+                "RECORD_DUPLICATE",
+                "Claude Code wrote more than one assistant row for an API response; usage was counted once",
+              );
+              if (preferResponse(candidate, previous)) responses.set(identity, candidate);
+            }
           }
           stats.sessionsScanned += 1;
-          stats.eventsEmitted += fileEvents;
         }
         if (truncated) break;
       }
@@ -251,6 +280,9 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
         warnings.add("SOURCE_TRUNCATED", `stopped after ${maxFiles} session files`);
       }
 
+      const context = eventContext(env, options);
+      const events = [...responses.values()].map(({ draft }) => buildEvent(draft, context));
+      stats.eventsEmitted = events.length;
       return { adapterId: ADAPTER_ID, events, warnings: warnings.toArray(), stats };
     },
   };

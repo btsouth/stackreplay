@@ -82,6 +82,7 @@ describe("golden fixture: rolling 5-hour window (reject_request)", () => {
         requiredUnits: "22",
         availableUnits: "20",
         acceptedUnits: "15",
+        exceededAt: "2026-09-01T02:00:00Z",
       },
     ]);
     expect(result.constraints[0]).toMatchObject({
@@ -168,6 +169,7 @@ describe("golden fixture: rolling weekly window (latch_until_reset)", () => {
         requiredUnits: "12",
         availableUnits: "10",
         acceptedUnits: "6",
+        exceededAt: "2026-09-03T00:00:00Z",
       },
     ]);
     expect(result.constraints[0]).toMatchObject({
@@ -223,6 +225,7 @@ describe("golden fixture: calendar month", () => {
         requiredUnits: "12000000",
         availableUnits: "10000000",
         acceptedUnits: "6000000",
+        exceededAt: "2026-09-02T00:00:00Z",
       },
     ]);
     expect(result.constraints[0]).toMatchObject({
@@ -661,6 +664,7 @@ describe("golden fixture: timezone reset", () => {
         requiredUnits: "3",
         availableUnits: "2",
         acceptedUnits: "2",
+        exceededAt: "2026-09-02T06:00:00Z",
       },
     ]);
     expect(result.constraints[0]?.consumedUnits).toBe("4");
@@ -716,6 +720,7 @@ describe("golden fixture: DST boundary", () => {
         requiredUnits: "3",
         availableUnits: "2",
         acceptedUnits: "2",
+        exceededAt: "2027-03-14T12:00:00Z",
       },
     ]);
     expect(result.coverage.requests).toEqual({
@@ -1120,5 +1125,41 @@ describe("golden fixture: empty workload versus unknown denominator", () => {
     expect(result.coverage.usage.percent).toBeUndefined();
     expect(result.coverage.usage.status).toBe("unknown");
     expect(result.feasibility.coveragePercent).toBeUndefined();
+  });
+});
+
+describe("limit crossing instant", () => {
+  it("records when attempted demand first passed included capacity, per window", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [calendarLimit({ id: "monthly-tokens", type: "token_limit", amount: "10000000" })],
+    });
+    const events = [
+      makeEvent({
+        id: "e1",
+        occurredAt: "2026-08-05T10:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 9_000_000 }),
+      }),
+      makeEvent({
+        id: "e2",
+        occurredAt: "2026-08-20T10:00:00.250Z",
+        usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      }),
+      makeEvent({
+        id: "e3",
+        occurredAt: "2026-08-25T10:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 2_000_000 }),
+      }),
+      makeEvent({
+        id: "e4",
+        occurredAt: "2026-09-03T10:00:00Z",
+        usage: completeUsage({ uncachedInputTokens: 1_000_000 }),
+      }),
+    ];
+    const result = run(catalog, events);
+    expect(result.violations.map((violation) => violation.exceededAt)).toEqual([
+      "2026-08-20T10:00:00.250Z",
+    ]);
+    // A window that never crossed carries no violation and no instant.
+    expect(result.violations).toHaveLength(1);
   });
 });

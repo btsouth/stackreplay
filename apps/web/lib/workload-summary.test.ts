@@ -83,4 +83,16 @@ describe("workload summary", () => {
     const second = summarizeExport(buildDemoExport("heavy"), CATALOG, identity());
     expect(second).toEqual(first);
   });
+
+  it("keeps demo project counts plausible across events in the same session", () => {
+    for (const [preset, expectedProjects] of [
+      ["moderate", 3],
+      ["heavy", 8],
+      ["multistack", 5],
+    ] as const) {
+      const summary = summarizeExport(buildDemoExport(preset), CATALOG, identity());
+      expect(summary.projectCount).toBe(expectedProjects);
+      expect(summary.projectCount).toBeLessThan(summary.sessionCount);
+    }
+  });
 });

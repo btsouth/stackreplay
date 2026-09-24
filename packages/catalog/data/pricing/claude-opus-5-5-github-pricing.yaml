@@ -1,0 +1,21 @@
+id: claude-opus-5-5-github-pricing
+role: pricing
+modelId: claude-opus-5-5
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+rates:
+  input: '4.00'
+  output: '20.00'
+  cacheRead: '0.20'
+  cacheWrite: '5.00'
+  reasoning:
+    billedAs: output
+effectiveFrom: '2026-09-23'
+sources:
+- url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+  title: GitHub Copilot current per-model AI-credit token rates, including any long-context
+    tier
+  checkedAt: '2026-09-23'
+lastVerifiedAt: '2026-09-23'
+verificationStatus: verified

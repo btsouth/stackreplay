@@ -1,0 +1,28 @@
+id: deepseek-v4-pro
+role: model
+name: DeepSeek-V4-Pro-0813
+developerId: deepseek
+providerIds:
+  - deepseek
+aliases:
+  - id: deepseek-v4-pro-api-id
+    alias: deepseek-v4-pro
+    kind: provider_id
+    sources:
+      - url: https://api-docs.deepseek.com/quick_start/pricing
+        title: DeepSeek current API model ID and served version
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
+    verificationStatus: verified
+sources:
+  - url: https://api-docs.deepseek.com/quick_start/pricing
+    title: DeepSeek current model, context, and availability
+    checkedAt: 2026-09-23
+  - url: https://api-docs.deepseek.com/updates/
+    title: DeepSeek continues V4 Pro API service after September 14
+    checkedAt: 2026-09-23
+  - url: https://api-docs.deepseek.com/quick_start/pricing/
+    title: "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
+verificationStatus: verified

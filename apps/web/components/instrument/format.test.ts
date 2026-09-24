@@ -37,6 +37,7 @@ describe("instrument formatting", () => {
   it("keeps a rounded figure recognisably rounded", () => {
     expect(formatMoney("48.75538175")).toBe("$48.76");
     expect(formatMoney("20")).toBe("$20.00");
+    expect(formatMoney("1891.79")).toBe("$1,891.79");
     expect(formatPercent(76.28054510090165)).toBe("76.3%");
     expect(formatTokens(1_045_821)).toBe("1.0M");
     expect(formatTokens(9_450)).toBe("9.4K");

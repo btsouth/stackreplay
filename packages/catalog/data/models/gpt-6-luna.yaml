@@ -1,0 +1,22 @@
+id: gpt-6-luna
+role: model
+name: "GPT-6 Luna"
+developerId: openai
+providerIds:
+  - openai
+aliases:
+  - id: gpt-6-luna-api-id
+    alias: "gpt-6-luna"
+    kind: provider_id
+    sources:
+      - url: https://developers.openai.com/api/docs/models/gpt-6-luna
+        title: "GPT-6 Luna canonical API ID"
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
+    verificationStatus: verified
+sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-6-luna
+    title: "GPT-6 Luna model specifications and API availability"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
+verificationStatus: verified

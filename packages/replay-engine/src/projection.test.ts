@@ -193,6 +193,7 @@ describe("projectReplay", () => {
       0,
     );
     expect(projection.dimensions.some((dimension) => dimension.status === "unknown")).toBe(true);
+    expect(projection.headline.statusLabel).toBe("Unknown");
     // One event was never evaluated, so anything that depends on consumption is
     // open. The plan's own price is a different fact, and it is established.
     expect(projection.economics.consumptionEstablished).toBe(false);
@@ -206,6 +207,33 @@ describe("projectReplay", () => {
     expect(projection.economics.costDifference).toBeUndefined();
     expect(projection.headline.percent).toBeUndefined();
     expect(projection.headline.statement.length).toBeGreaterThan(0);
+  });
+
+  it("states model compatibility when only the target's capacity is qualitative", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [],
+      qualitativeLimits: [
+        {
+          id: "usage-allowance",
+          label: "Usage allowance",
+          statement: "The provider publishes no numeric allowance.",
+          sourceUrl: "https://example.invalid/limits",
+        },
+      ],
+    });
+    const projection = projectReplay(
+      replay({
+        events: eventsInOneWindow(3),
+        target: fixtureTarget,
+        catalog,
+        context: fixtureContext,
+      }),
+      catalog,
+    );
+    expect(projection.headline.status).toBe("unknown");
+    expect(projection.headline.statusLabel).toBe("Models supported; capacity unknown");
+    expect(projection.headline.statement).toMatch(/All observed models are supported/iu);
+    expect(projection.headline.percent).toBeUndefined();
   });
 
   it("never infers consumption completeness from the constraint list", () => {
@@ -414,6 +442,10 @@ describe("projectReplay", () => {
       "unpricedEvents",
     ]);
     expect(projection.outcomes.find((outcome) => outcome.key === "unavailable")?.count).toBe(2);
+    expect(projection.headline.status).toBe("unknown");
+    expect(projection.headline.statusLabel).toBe("Not fully served");
+    expect(projection.headline.statement).toMatch(/Full request coverage is ruled out/iu);
+    expect(projection.headline.statement).toMatch(/left undecided/iu);
 
     // With part of the workload unpriced the engine reports no cost at all, and
     // the projection repeats that rather than a subtotal.

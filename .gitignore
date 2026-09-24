@@ -47,3 +47,8 @@ stackreplay-export-*.json
 
 # Brand reference material dropped for design review; the approved kit lives in brand/.
 docs/brand/
+
+# Launch review material (reports, screenshots, gate logs, review scripts) stays
+# local. Some of it records real usage statistics or private project names, so
+# none of it is published with the repository.
+/review/

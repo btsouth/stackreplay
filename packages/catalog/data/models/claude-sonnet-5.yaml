@@ -1,7 +1,11 @@
 id: claude-sonnet-5
 role: model
 name: "Claude Sonnet 5"
+familyId: claude-sonnet
+lifecycle: current
+developerId: anthropic
 providerIds:
+  - anthropic
   - cursor
   - github
 aliases:
@@ -15,11 +19,23 @@ aliases:
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
 sources:
+  - url: https://platform.claude.com/docs/en/models/sonnet-5/overview
+    title: "Claude Sonnet 5 model page: Claude API model ID `claude-sonnet-5`; platforms list the Claude API"
+    checkedAt: 2026-09-23
+  - url: https://platform.claude.com/docs/en/models/overview
+    title: "Anthropic models overview: Claude Sonnet 5 in the current lineup, Claude API ID `claude-sonnet-5`"
+    checkedAt: 2026-09-24
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"
-    checkedAt: 2026-09-21
+    checkedAt: 2026-09-23
   - url: https://cursor.com/pricing
     title: "Cursor pricing (official)"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://cursor.com/docs/models-and-pricing
+    title: "Cursor current model and rate tables; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-24
 verificationStatus: verified

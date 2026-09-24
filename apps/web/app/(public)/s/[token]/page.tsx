@@ -103,8 +103,8 @@ export default async function SharePage({ params }: SharePageProps) {
         </h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
           This result was computed on the sharer&apos;s device and encoded into this link. It
-          carries aggregate numbers only: no events, sessions, projects, prompts, responses or file
-          names.
+          carries aggregate numbers only, with no individual event or session records, project
+          names, prompts, responses or file names.
         </p>
       </header>
 
@@ -135,54 +135,60 @@ export default async function SharePage({ params }: SharePageProps) {
 
       <section className="flex flex-col gap-3" data-testid="share-constraints">
         <h2 className="text-lg font-medium text-foreground">Documented limits checked</h2>
-        <section className="w-full min-w-0" aria-label="Replayed limits">
-          <table className="block w-full border-collapse text-sm lg:table">
-            <caption className="sr-only">Limits checked in this replay</caption>
-            <thead className="sr-only lg:not-sr-only lg:table-header-group">
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-4 font-medium">Limit</th>
-                <th className="py-2 pr-4 font-medium">Allowance</th>
-                <th className="py-2 pr-4 font-medium">Window</th>
-                <th className="py-2 pr-4 font-medium">Attempted</th>
-                <th className="py-2 font-medium">Outcome</th>
-              </tr>
-            </thead>
-            <tbody className="block lg:table-row-group">
-              {snapshot.constraints.map((constraint) => (
-                <tr
-                  key={constraint.id}
-                  className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/60 py-5 align-top lg:table-row lg:py-0"
-                >
-                  <td className="col-span-2 block min-w-0 text-base font-medium text-foreground lg:table-cell lg:py-2 lg:pr-4 lg:text-sm lg:font-normal">
-                    {constraint.label}
-                  </td>
-                  <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
-                      Allowance
-                    </span>
-                    {constraint.limitUnits} {constraint.unit}
-                  </td>
-                  <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs lg:hidden">Window</span>
-                    {constraint.window.description}
-                  </td>
-                  <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs lg:hidden">Attempted</span>
-                    {constraint.attemptedUnits}
-                  </td>
-                  <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
-                    <span className="mb-1 block text-xs lg:hidden">Outcome</span>
-                    {constraint.status === "exceeded"
-                      ? `${constraint.violationCount} window(s) exceeded · ${constraint.rejectedEvents} events not served`
-                      : constraint.status === "unknown"
-                        ? "not determinable from the workload"
-                        : "within the allowance"}
-                  </td>
+        {snapshot.constraints.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No published numeric limit applies to this workload on the shared target.
+          </p>
+        ) : (
+          <section className="w-full min-w-0" aria-label="Replayed limits">
+            <table className="block w-full border-collapse text-sm lg:table">
+              <caption className="sr-only">Limits checked in this replay</caption>
+              <thead className="sr-only lg:not-sr-only lg:table-header-group">
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="py-2 pr-4 font-medium">Limit</th>
+                  <th className="py-2 pr-4 font-medium">Allowance</th>
+                  <th className="py-2 pr-4 font-medium">Window</th>
+                  <th className="py-2 pr-4 font-medium">Attempted</th>
+                  <th className="py-2 font-medium">Outcome</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody className="block lg:table-row-group">
+                {snapshot.constraints.map((constraint) => (
+                  <tr
+                    key={constraint.id}
+                    className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/60 py-5 align-top lg:table-row lg:py-0"
+                  >
+                    <td className="col-span-2 block min-w-0 text-base font-medium text-foreground lg:table-cell lg:py-2 lg:pr-4 lg:text-sm lg:font-normal">
+                      {constraint.label}
+                    </td>
+                    <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
+                      <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
+                        Allowance
+                      </span>
+                      {constraint.limitUnits} {constraint.unit}
+                    </td>
+                    <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                      <span className="mb-1 block text-xs lg:hidden">Window</span>
+                      {constraint.window.description}
+                    </td>
+                    <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
+                      <span className="mb-1 block text-xs lg:hidden">Attempted</span>
+                      {constraint.attemptedUnits}
+                    </td>
+                    <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
+                      <span className="mb-1 block text-xs lg:hidden">Outcome</span>
+                      {constraint.status === "exceeded"
+                        ? `${constraint.violationCount} window(s) exceeded · ${constraint.rejectedEvents} events not served`
+                        : constraint.status === "unknown"
+                          ? "not determinable from the workload"
+                          : "within the allowance"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
         {unknown.length > 0 ? (
           <p className="max-w-3xl text-sm text-warning">
             {unknown.length} limit(s) could not be determined from this workload. The result says so

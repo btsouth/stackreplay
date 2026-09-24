@@ -4,6 +4,7 @@ name: ChatGPT Business (Standard seat)
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-21
+    effectiveTo: 2026-09-21
     price:
       currency: USD
       amount: "25"
@@ -19,6 +20,7 @@ versions:
         label: "Workspace credits for usage beyond included rate limits"
         statement: "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls."
         sourceUrl: https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business
+        topic: after_limit
       - id: monthly-credit-usage-limits-per-seat-type-spend-
         label: "Monthly credit usage limits per seat type (spend controls)"
         statement: "Workspace owners and admins can manage monthly credit usage limits by seat type and per-user overrides. ... Set monthly credit usage limits for Standard and Premium seats to manage additional usage beyond each member's included allowance. ... By default, all seats and users have no limits specified."
@@ -64,4 +66,77 @@ versions:
         title: "OpenAI pricing (official)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - effectiveFrom: 2026-09-22
+    price:
+      currency: USD
+      amount: "25"
+      interval: month
+    billingMechanics: "Price is per seat."
+    limits: []
+    qualitativeLimits:
+      - id: standard-seat-included-usage-unquantified-5-hour
+        label: "Standard seat included usage (unquantified) + 5-hour usage limit"
+        statement: "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace."
+        sourceUrl: https://help.openai.com/en/articles/8792828-chatgpt-business
+      - id: workspace-credits-for-usage-beyond-included-rate
+        label: "Workspace credits for usage beyond included rate limits"
+        statement: "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls."
+        sourceUrl: https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business
+        topic: after_limit
+      - id: monthly-credit-usage-limits-per-seat-type-spend-
+        label: "Monthly credit usage limits per seat type (spend controls)"
+        statement: "Workspace owners and admins can manage monthly credit usage limits by seat type and per-user overrides. ... Set monthly credit usage limits for Standard and Premium seats to manage additional usage beyond each member's included allowance. ... By default, all seats and users have no limits specified."
+        sourceUrl: https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business
+      - id: maximum-paid-seats-per-business-subscription
+        label: "Maximum paid seats per Business subscription"
+        statement: "Starting on Aug 24, 2026, the maximum is 200 paid Standard and Premium seats total per ChatGPT Business subscription. Our support team is unable to change your maximum seat limit. If you need a larger number of seats, consider ChatGPT Enterprise."
+        sourceUrl: https://help.openai.com/en/articles/8801848
+      - id: minimum-paid-seats
+        label: "Minimum paid seats"
+        statement: "A workspace requires at least two paid seats, which can be any combination of Standard and Premium seats."
+        sourceUrl: https://help.openai.com/en/articles/8801848
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "OpenAI does not quantify the 'included usage' or 'included rate limits' for Business seats, and states there is 'no single credit or dollar equivalent for Premium's included usage'. The Premium seat is a second price point on the same plan; the Standard-seat price is recorded here as priceAmount and the Premium price is documented in notes/limits."
+        sourceUrl: https://help.openai.com/en/articles/8792828-chatgpt-business
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://help.openai.com/en/articles/8792828-chatgpt-business
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://help.openai.com/en/articles/8801848
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://openai.com/chatgpt/pricing/
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-23
+      - url: https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925
+        title: "OpenAI model launch and paid plan availability"
+        checkedAt: 2026-09-23
+      - url: https://chatgpt.com/pricing/
+        title: "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit"
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

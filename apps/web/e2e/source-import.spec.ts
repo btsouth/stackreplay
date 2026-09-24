@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { expect, test } from "@playwright/test";
+import { mkdir, symlink, writeFile } from "node:fs/promises";
+import { expect, type Page, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { strToU8, zipSync } from "fflate";
@@ -18,11 +18,171 @@ const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   },
 })}`;
 
+/** Clicks a source card and answers the folder chooser it opens. */
+async function chooseFromCard(page: Page, kind: string, folder: string): Promise<void> {
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByTestId(`connect-${kind}`).click();
+  await (await chooser).setFiles(folder);
+}
+
+test("Connect Claude Code scans a chosen history tree and reports unrelated files", async ({
+  page,
+}, testInfo) => {
+  const projects = testInfo.outputPath("projects");
+  await mkdir(`${projects}/project-a`, { recursive: true });
+  await writeFile(`${projects}/project-a/session.jsonl`, CLAUDE_CODE_SESSION);
+  await writeFile(`${projects}/project-a/README.md`, "not a session");
+  await gotoReplayImport(page);
+  await chooseFromCard(page, "claude-code", projects);
+  await expect(page.getByTestId("import-summary")).toContainText("Workload ready");
+  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
+  await expect(page.getByTestId("intake-review")).toContainText("README.md");
+  await expect(page.getByTestId("continue-to-replay")).toBeVisible();
+  await expect(page.getByTestId("import-summary")).toBeInViewport({ ratio: 0.1 });
+});
+
+test("Claude Code card reads a symlinked history folder without the directory-access picker", async ({
+  page,
+}, testInfo) => {
+  // Chromium's directory-access picker treats a symlink as missing. The card
+  // must not depend on it, so it fails loudly here if anything calls it.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "showDirectoryPicker", {
+      configurable: true,
+      value: async () => {
+        throw new DOMException("Symlinked directory treated as missing", "NotFoundError");
+      },
+    });
+  });
+  const target = testInfo.outputPath("claude-data/projects");
+  const link = testInfo.outputPath("linked-projects");
+  await mkdir(`${target}/project-a`, { recursive: true });
+  await writeFile(`${target}/project-a/session.jsonl`, CLAUDE_CODE_SESSION);
+  await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
+  const requests = captureRequests(page);
+  await gotoReplayImport(page);
+  await chooseFromCard(page, "claude-code", link);
+  await expect(page.getByTestId("import-summary")).toContainText("Workload ready");
+  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
+  await expect(page.getByTestId("import-error")).toHaveCount(0);
+  expect(requests.filter((request) => request.body !== null && request.body.length > 0)).toEqual(
+    [],
+  );
+});
+
+test("Claude assistant content blocks count usage once in the browser import", async ({ page }) => {
+  const base = {
+    type: "assistant",
+    sessionId: "11111111-1111-4111-8111-111111111111",
+    timestamp: "2026-09-19T10:05:00.000Z",
+    requestId: "req-one",
+  };
+  const row = (uuid: string, output: number, stop: string | null) =>
+    JSON.stringify({
+      ...base,
+      uuid,
+      message: {
+        id: "msg-one",
+        model: "claude-sonnet-4-6",
+        stop_reason: stop,
+        usage: {
+          input_tokens: 2,
+          output_tokens: output,
+          cache_read_input_tokens: 100,
+          cache_creation_input_tokens: 3,
+        },
+      },
+    });
+  await gotoReplayImport(page);
+  await page.getByTestId("source-file-input").setInputFiles([
+    {
+      name: "claude-session.jsonl",
+      mimeType: "application/x-ndjson",
+      buffer: Buffer.from([row("row-a", 1, null), row("row-b", 5, "end_turn")].join("\n")),
+    },
+    {
+      name: "copied-session.jsonl",
+      mimeType: "application/x-ndjson",
+      buffer: Buffer.from(
+        row("row-c", 5, "end_turn").replace(
+          "11111111-1111-4111-8111-111111111111",
+          "22222222-2222-4222-8222-222222222222",
+        ),
+      ),
+    },
+  ]);
+  await expect(page.getByTestId("import-summary")).toContainText("1 event");
+  await expect(page.getByTestId("import-summary")).toContainText("Exact known tokens: 110");
+  await expect(page.getByTestId("import-summary")).toContainText(
+    "Reused context read from cache: 100",
+  );
+  await expect(page.getByTestId("intake-review")).toContainText("RECORD_DUPLICATE");
+});
+
+test("repeated filenames from separate projects stay readable without duplicate React keys", async ({
+  page,
+}, testInfo) => {
+  const projects = testInfo.outputPath("projects");
+  for (const name of ["one", "two"]) {
+    await mkdir(`${projects}/${name}`, { recursive: true });
+    await writeFile(`${projects}/${name}/session.jsonl`, CLAUDE_CODE_SESSION);
+    await writeFile(`${projects}/${name}/custom-title.json`, JSON.stringify({ project: name }));
+  }
+  const keyErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" && message.text().includes("same key"))
+      keyErrors.push(message.text());
+  });
+  await gotoReplayImport(page);
+  await chooseFromCard(page, "claude-code", projects);
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await expect(page.getByTestId("intake-review")).toContainText("2 matching files");
+  expect(keyErrors).toEqual([]);
+});
+
+test("Connect Codex scans dated rollout folders and keeps a malformed sibling visible", async ({
+  page,
+}, testInfo) => {
+  const sessions = testInfo.outputPath("sessions");
+  await mkdir(`${sessions}/2026/09/23`, { recursive: true });
+  await mkdir(`${sessions}/2026/09/22`, { recursive: true });
+  await writeFile(`${sessions}/2026/09/23/rollout-valid.jsonl`, CODEX_ROLLOUT);
+  await writeFile(`${sessions}/2026/09/22/rollout-bad.jsonl`, "{broken jsonl");
+  await gotoReplayImport(page);
+  await chooseFromCard(page, "codex", sessions);
+  await expect(page.getByTestId("detected-sources")).toContainText("Codex");
+  await expect(page.getByTestId("intake-review")).toContainText("rollout-bad.jsonl");
+  await expect(page.getByTestId("continue-to-replay")).toBeVisible();
+});
+
+test("folder intake sends no raw session content to application endpoints", async ({
+  page,
+}, testInfo) => {
+  const marker = "PRIVATE_FOLDER_PROMPT_MUST_STAY_LOCAL_987";
+  const sessions = testInfo.outputPath("sessions");
+  await mkdir(sessions, { recursive: true });
+  await writeFile(
+    `${sessions}/rollout-private.jsonl`,
+    `${CODEX_ROLLOUT}\n${JSON.stringify({ type: "response_item", payload: { role: "user", content: marker } })}`,
+  );
+  const requests = captureRequests(page);
+  await gotoReplayImport(page);
+  await chooseFromCard(page, "codex", sessions);
+  await expect(page.getByTestId("intake-review")).toBeVisible();
+  expect(requests.filter((request) => request.body !== null && request.body.length > 0)).toEqual(
+    [],
+  );
+  expect(JSON.stringify(requests)).not.toContain(marker);
+  expect(
+    requests.filter((request) => /\/api\/(import|upload|events|usage)/u.test(request.url)),
+  ).toEqual([]);
+});
+
 test("selected source stays local, can be saved, exported and replayed", async ({ page }) => {
   const requests = captureRequests(page);
   await gotoReplayImport(page);
   await expect(page.getByTestId("source-file-input")).toBeVisible();
-  await page.getByText("Save normalized workload on this browser").click();
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "rollout-fixture.jsonl",
     mimeType: "application/x-ndjson",
@@ -81,7 +241,6 @@ test("custom file controls retain native labels and mobile saved actions reflow"
   await gotoReplayImport(page);
   for (const [name, testId] of [
     ["Source files or ZIP", "source-file-input"],
-    ["Selected folder", "source-folder-input"],
     ["StackReplay workload", "import-file-input"],
   ] as const) {
     const input = page.getByTestId(testId);
@@ -91,7 +250,7 @@ test("custom file controls retain native labels and mobile saved actions reflow"
     const box = await input.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }
-  await page.getByText("Save normalized workload on this browser").click();
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
     mimeType: "application/x-ndjson",
@@ -165,7 +324,7 @@ test("selected folder is scanned without implying a whole computer scan", async 
   await writeFile(`${directory}/rollout.jsonl`, CODEX_ROLLOUT);
   await writeFile(`${directory}/other.json`, '{"messages":[]}');
   await gotoReplayImport(page);
-  await page.getByTestId("source-folder-input").setInputFiles(directory);
+  await chooseFromCard(page, "folder", directory);
   await expect(page.getByTestId("intake-review")).toContainText("Codex");
   await expect(page.getByTestId("intake-review")).toContainText(
     "No supported source structure found",
@@ -177,12 +336,17 @@ test("an unsaved source can replay in this session without IndexedDB persistence
   page,
 }) => {
   await gotoReplayImport(page);
+  // Saving is the default; this case opts out explicitly.
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "rollout-unsaved.jsonl",
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(CODEX_ROLLOUT),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("temporary until reload");
+  await expect(page.getByTestId("import-summary")).toContainText(
+    "scan results available until reload",
+  );
+  await expect(page.getByTestId("not-saved-notice")).toContainText("You chose not to save");
   const payloadCount = await page.evaluate(async () => {
     const request = indexedDB.open("stackreplay");
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -257,7 +421,7 @@ test("archive hierarchy is absent from both stores and portable export", async (
     "Users/alice/private-repo/notes.txt": strToU8("private"),
   });
   await gotoReplayImport(page);
-  await page.getByText("Save normalized workload on this browser").click();
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "history.zip", mimeType: "application/zip", buffer: Buffer.from(zip) });
@@ -295,6 +459,8 @@ test("archive hierarchy is absent from both stores and portable export", async (
 
 test("CLI compatible V1 named usage.json imports and replays", async ({ page }) => {
   await gotoReplayImport(page);
+  // Only the portable import is stored in this case; the source scan opts out.
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "source.jsonl",
     mimeType: "application/x-ndjson",
@@ -310,7 +476,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   expect(stackReplayExportV1Schema.safeParse(JSON.parse(portable.toString("utf8"))).success).toBe(
     true,
   );
-  await page.getByText("Save normalized workload on this browser").click();
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "usage.json", mimeType: "application/json", buffer: portable });

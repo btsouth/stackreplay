@@ -214,6 +214,12 @@ export const replayViolationV1Schema = z.strictObject({
   /** Units above included capacity, when the rule allows them. */
   overageUnits: computedDecimalV1Schema.optional(),
   modelIds: z.array(z.string().min(1)).optional(),
+  /**
+   * Instant of the first recorded event whose attempted demand took this window
+   * past its included capacity: when, inside the window, the allowance would
+   * have run out. Optional so results written before it existed stay valid.
+   */
+  exceededAt: isoUtcTimestampV1Schema.optional(),
 });
 export type ReplayViolationV1 = z.infer<typeof replayViolationV1Schema>;
 

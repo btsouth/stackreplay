@@ -1,9 +1,14 @@
 import {
   type CatalogSourceV1,
   type CatalogV1,
+  familyReleaseIds,
   type LimitWindowV1,
   type LoadedPlanVersionV1,
+  type ModelAliasV1,
+  type ModelKindV1,
+  type ModelLifecycleV1,
   type ModelRuleV1,
+  modelKindOf,
   type PlanLimitV1,
   type PlanPriceV1,
   type PromotionV1,
@@ -11,7 +16,11 @@ import {
   type QualitativeLimitV1,
   selectPlanVersionAt,
 } from "@stackreplay/catalog";
-import { BUNDLED_CATALOG_VERSION, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import {
+  BUNDLED_CATALOG_VERSION,
+  directApiProviderIdsFor,
+  loadBundledCatalog,
+} from "@stackreplay/catalog/bundled";
 
 /**
  * Public catalog read model (M4).
@@ -86,15 +95,66 @@ export interface PublicPlanSummary {
   versionCount: number;
 }
 
+/**
+ * One place a person can use a model: a Direct API a provider runs, or a
+ * subscription plan whose rules include the model. Built from catalog offering
+ * and plan facts only.
+ */
+export interface PublicModelPlace {
+  kind: "api" | "plan";
+  /** Human name, e.g. "Anthropic API" or "GitHub Copilot Pro". */
+  label: string;
+  providerId: string;
+  providerName: string;
+  /** Plans only. */
+  planId?: string;
+  price?: PlanPriceV1;
+}
+
 export interface PublicModelSummary {
   id: string;
   name: string;
+  /** A concrete release, or a family identity record (launch taxonomy). */
+  kind: ModelKindV1;
+  /** Only what the record states; absent is never read as current. */
+  lifecycle: ModelLifecycleV1 | undefined;
+  developerId: string | undefined;
+  developerName: string | undefined;
+  /** For a release: the family identity record it belongs to. */
+  familyId: string | undefined;
+  familyName: string | undefined;
+  /** For a family record: the releases that name it, current first. */
+  releaseIds: readonly string[];
+  /** Offering routes (providers), which are not the developer. */
   providerIds: readonly string[];
   providerNames: readonly string[];
   planIds: readonly string[];
+  /** Where the model can be used, Direct API first, then plans. */
+  places: readonly PublicModelPlace[];
+  aliases: readonly ModelAliasV1[];
   verificationStatus: CatalogV1["models"][string]["verificationStatus"];
   lastVerifiedAt: string;
   sources: readonly CatalogSourceV1[];
+}
+
+/**
+ * A plan's name as a person would say it. Catalog plan names are the
+ * provider's own labels. Most already carry the product ("Claude Max 5x",
+ * "Copilot Pro"); a bare tier name ("Pro", "Hobby") gets the provider in front
+ * so it is not ambiguous out of context.
+ */
+export function planDisplayName(plan: { name: string; providerName: string }): string {
+  const bareTier = !/\s/u.test(plan.name.trim());
+  return bareTier && !plan.name.toLowerCase().startsWith(plan.providerName.toLowerCase())
+    ? `${plan.providerName} ${plan.name}`
+    : plan.name;
+}
+
+const LIFECYCLE_ORDER: Record<string, number> = { current: 0, unrecorded: 1, legacy: 2 };
+
+/** Sort key that puts current releases first, then unrecorded, then legacy. */
+export function lifecycleRank(lifecycle: ModelLifecycleV1 | undefined): number {
+  return LIFECYCLE_ORDER[lifecycle ?? "unrecorded"] ?? 1;
 }
 
 export interface PublicProviderSummary {
@@ -187,19 +247,66 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     if (version !== undefined) plans.push(toPlanSummary(catalog, planId, version));
   }
 
+  const providerName = (id: string) => catalog.providers[id]?.name ?? id;
   const models: PublicModelSummary[] = realModelIds.map((modelId) => {
     const model = catalog.models[modelId];
     const providerIds = model?.providerIds ?? [];
+    const developerId = model?.developerId;
+    const planIds = plans
+      .filter((plan) =>
+        plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
+      )
+      .map((plan) => plan.id);
+    // Places: a Direct API route first (an offering fact, not authorship), then
+    // plans, the developer's own plans first so the row leads with the obvious
+    // place to use the model.
+    const apiPlaces: PublicModelPlace[] = directApiProviderIdsFor(catalog, modelId).map((id) => ({
+      kind: "api",
+      label: `${providerName(id)} API`,
+      providerId: id,
+      providerName: providerName(id),
+    }));
+    const planPlaces: PublicModelPlace[] = plans
+      .filter((plan) => planIds.includes(plan.id))
+      .sort(
+        (left, right) =>
+          Number(right.providerId === developerId) - Number(left.providerId === developerId) ||
+          left.providerName.localeCompare(right.providerName) ||
+          Number(left.price.amount) - Number(right.price.amount),
+      )
+      .map((plan) => ({
+        kind: "plan",
+        label: planDisplayName(plan),
+        providerId: plan.providerId,
+        providerName: plan.providerName,
+        planId: plan.id,
+        price: plan.price,
+      }));
+    const familyId = model?.familyId;
     return {
       id: modelId,
       name: model?.name ?? modelId,
+      kind: model === undefined ? "release" : modelKindOf(model),
+      lifecycle: model?.lifecycle,
+      developerId,
+      developerName: developerId === undefined ? undefined : providerName(developerId),
+      familyId,
+      familyName: familyId === undefined ? undefined : catalog.models[familyId]?.name,
+      releaseIds: familyReleaseIds(catalog, modelId)
+        .filter((id) => !isSyntheticCatalogId(id))
+        .sort(
+          (left, right) =>
+            lifecycleRank(catalog.models[left]?.lifecycle) -
+              lifecycleRank(catalog.models[right]?.lifecycle) ||
+            (catalog.models[left]?.name ?? left).localeCompare(
+              catalog.models[right]?.name ?? right,
+            ),
+        ),
       providerIds,
-      providerNames: providerIds.map((id) => catalog.providers[id]?.name ?? id),
-      planIds: plans
-        .filter((plan) =>
-          plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
-        )
-        .map((plan) => plan.id),
+      providerNames: providerIds.map(providerName),
+      planIds,
+      places: [...apiPlaces, ...planPlaces],
+      aliases: model?.aliases ?? [],
       verificationStatus: model?.verificationStatus ?? "unknown",
       lastVerifiedAt: model?.lastVerifiedAt ?? date,
       sources: model?.sources ?? [],
@@ -242,6 +349,7 @@ export interface CatalogChange {
   effectiveFrom: string;
   kind: "plan_added" | "price_changed" | "limit_changed" | "model_access_changed" | "rule_changed";
   summary: string;
+  modelDetails?: string;
   verificationStatus: LoadedPlanVersionV1["verificationStatus"];
   lastVerifiedAt: string;
   sources: readonly CatalogSourceV1[];
@@ -259,12 +367,25 @@ function describeLimits(limits: readonly PlanLimitV1[]): string {
     .join("; ");
 }
 
-function describeModels(rules: readonly ModelRuleV1[]): string {
-  const included = rules.filter((rule) => rule.excluded !== true).map((rule) => rule.model);
-  const excluded = rules.filter((rule) => rule.excluded === true).map((rule) => rule.model);
+function describeModels(rules: readonly ModelRuleV1[], catalog: CatalogV1): string {
+  const name = (id: string) => catalog.models[id]?.name ?? id;
+  const included = rules.filter((rule) => rule.excluded !== true).map((rule) => name(rule.model));
+  const credits = rules
+    .filter((rule) => rule.excluded === true && rule.access === "usage_credits")
+    .map((rule) => name(rule.model));
+  const excluded = rules
+    .filter((rule) => rule.excluded === true && rule.access === undefined)
+    .map((rule) => name(rule.model));
   const parts = [`includes ${included.join(", ") || "nothing"}`];
+  if (credits.length > 0) parts.push(`${credits.join(", ")} with usage credits only`);
   if (excluded.length > 0) parts.push(`excludes ${excluded.join(", ")}`);
   return parts.join("; ");
+}
+
+function modelCountSummary(rules: readonly ModelRuleV1[]): string {
+  const included = rules.filter((rule) => rule.excluded !== true).length;
+  const excluded = rules.length - included;
+  return `${included} included ${included === 1 ? "name" : "names"}${excluded === 0 ? "" : `, ${excluded} excluded`}`;
 }
 
 /**
@@ -300,7 +421,8 @@ export function deriveCatalogChanges(catalog: CatalogV1 = loadCatalog()): Catalo
         changes.push({
           ...base,
           kind: "plan_added",
-          summary: `Plan catalogued at $${version.price.amount} per ${version.price.interval}. ${describeModels(version.modelRules)}.`,
+          summary: `Plan added at $${version.price.amount} per ${version.price.interval}; ${modelCountSummary(version.modelRules)} in its model access list.`,
+          modelDetails: describeModels(version.modelRules, catalog),
         });
         continue;
       }
@@ -321,11 +443,12 @@ export function deriveCatalogChanges(catalog: CatalogV1 = loadCatalog()): Catalo
           summary: `Limits changed: ${describeLimits(version.limits)}.`,
         });
       }
-      if (describeModels(previous.modelRules) !== describeModels(version.modelRules)) {
+      if (JSON.stringify(previous.modelRules) !== JSON.stringify(version.modelRules)) {
         changes.push({
           ...base,
           kind: "model_access_changed",
-          summary: `Model access changed: ${describeModels(version.modelRules)}.`,
+          summary: `Model access list updated: ${modelCountSummary(version.modelRules)}.`,
+          modelDetails: describeModels(version.modelRules, catalog),
         });
       }
       if (

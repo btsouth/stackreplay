@@ -1,0 +1,133 @@
+id: github-copilot-max
+role: plan
+name: Copilot Max
+providerId: github
+versions:
+- effectiveFrom: '2026-09-22'
+  price:
+    currency: USD
+    amount: '100'
+    interval: month
+  billingMechanics: Copilot Max costs $100 USD per month and includes 20,000 monthly
+    AI credits (10,000 base and 10,000 flex).
+  limits:
+  - id: monthly-ai-credits
+    label: Monthly AI credits (20,000 credits = $200.00 at the documented $0.01 per
+      credit)
+    type: credit_pool
+    amount: '200.00'
+    exceed: allow_overage
+    window:
+      type: calendar
+      unit: month
+      timezone: UTC
+  qualitativeLimits:
+  - id: code-completions-and-next-edit-suggestions-unlim
+    label: Code completions and next edit suggestions (unlimited)
+    statement: Code completions and next edit suggestions are not billed in AI credits
+      and remain unlimited for all paid plans.
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+  - id: credit-reset-behaviour-no-carryover
+    label: Credit reset behaviour (no carryover)
+    statement: Included AI credits do not carry over between months. Unused credits
+      are forfeited, and your allowance resets to the full monthly amount at 00:00:00
+      UTC on the first day of each calendar month.
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+  - id: what-happens-when-included-credits-are-exhausted
+    label: What happens when included credits are exhausted
+    statement: If your included credits are exhausted, you can continue working by
+      setting a budget for additional usage . Note that additional usage may be capped
+      , so to keep working, you'll need to pay off any additional usage you've already
+      consumed in order to continue.
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+    topic: after_limit
+  - id: model-availability-scope
+    label: Model availability by plan
+    statement: Model access follows the published per-plan model table. Availability
+      can also depend on organization policy and client support.
+    sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+  - id: priority-premium-models
+    label: Priority premium model access
+    statement: GitHub describes Copilot Max as providing priority access to premium
+      models; no numeric priority guarantee is published.
+    sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+  modelRules:
+  - model: claude-fable-5
+    pricingRef: claude-fable-5-github-pricing
+  - model: claude-fable-5-1
+    pricingRef: claude-fable-5-1-github-pricing
+  - model: claude-haiku-4-5
+    pricingRef: claude-haiku-4-5-github-pricing
+  - model: claude-opus-4-7
+    pricingRef: claude-opus-4-7-github-pricing
+  - model: claude-opus-4-8
+    pricingRef: claude-opus-4-8-github-pricing
+  - model: claude-opus-4-8-fast-mode
+    pricingRef: claude-opus-4-8-fast-mode-github-pricing
+  - model: claude-opus-5
+    pricingRef: claude-opus-5-github-pricing
+  - model: claude-sonnet-4-6
+    excluded: true
+  - model: claude-sonnet-5
+    pricingRef: claude-sonnet-5-github-pricing
+  - model: gemini-3-5-flash
+    pricingRef: gemini-3-5-flash-github-pricing
+  - model: gemini-3-6-flash
+    pricingRef: gemini-3-6-flash-github-pricing
+  - model: gemini-3-7-flash
+    pricingRef: gemini-3-7-flash-github-pricing
+  - model: gemini-3-8-flash
+    pricingRef: gemini-3-8-flash-github-pricing
+  - model: gpt-5-3-codex
+    pricingRef: gpt-5-3-codex-github-pricing
+  - model: gpt-5-4
+    pricingRef: gpt-5-4-github-pricing
+  - model: gpt-5-4-mini
+    pricingRef: gpt-5-4-mini-github-pricing
+  - model: gpt-5-4-nano
+    pricingRef: gpt-5-4-nano-github-pricing
+  - model: gpt-5-5
+    pricingRef: gpt-5-5-github-pricing
+  - model: gpt-5-6-luna
+    pricingRef: gpt-5-6-luna-github-pricing
+  - model: gpt-5-6-sol
+    pricingRef: gpt-5-6-sol-github-pricing
+  - model: gpt-5-6-terra
+    pricingRef: gpt-5-6-terra-github-pricing
+  - model: gpt-5-mini
+    pricingRef: gpt-5-mini-github-pricing
+  - model: gpt-6-astra
+    pricingRef: gpt-6-astra-github-pricing
+  - model: grok-4-5
+    pricingRef: grok-4-5-github-pricing
+  - model: grok-4-6
+    pricingRef: grok-4-6-github-pricing
+  - model: grok-4-7
+    pricingRef: grok-4-7-github-pricing
+  - model: kimi-k2-7-code
+    pricingRef: kimi-k2-7-code-github-pricing
+  - model: kimi-k3
+    pricingRef: kimi-k3-github-pricing
+  - model: mai-code-1-1-flash
+    pricingRef: mai-code-1-1-flash-github-pricing
+  - model: claude-opus-5-5
+    pricingRef: claude-opus-5-5-github-pricing
+  - model: gpt-6-luna
+    pricingRef: gpt-6-luna-github-pricing
+  - model: gpt-6-sol
+    pricingRef: gpt-6-sol-github-pricing
+  sources:
+  - url: https://docs.github.com/en/copilot/get-started/plans
+    title: GitHub pricing (official)
+    checkedAt: '2026-09-23'
+  - url: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+    title: GitHub plan documentation (official)
+    checkedAt: '2026-09-23'
+  - url: https://github.com/features/copilot/plans
+    title: GitHub pricing (official)
+    checkedAt: '2026-09-23'
+  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+    title: GitHub model availability (official)
+    checkedAt: '2026-09-23'
+  lastVerifiedAt: '2026-09-23'
+  verificationStatus: verified

@@ -15,8 +15,10 @@ export const appBrand = {
 
 export const appNavItems = [
   { label: "Workspace", href: "/app" },
-  { label: "Replay", href: "/app/replay" },
   { label: "Import", href: "/app/import" },
+  { label: "Workload", href: "/app/workload" },
+  { label: "Replay", href: "/app/replay" },
+  { label: "Compare", href: "/app/compare" },
   { label: "Settings", href: "/app/settings" },
 ] as const satisfies readonly AppNavItem[];
 

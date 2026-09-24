@@ -141,10 +141,14 @@ test.describe("M4 screenshots", () => {
     test(`share page desktop ${theme}`, async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop", "desktop capture");
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      await page.goto("/");
-      const link = page.getByRole("link", { name: "See a replayed result" });
-      test.skip((await link.count()) === 0, "no catalogued plan to build an example from");
-      await link.click();
+      // A share link is created in the app from a real replay; the capture
+      // starts there instead of from a homepage example.
+      await importDemo(page, "moderate");
+      await page.goto("/app/replay");
+      await runReplay(page, "example-cloud-pro");
+      await page.getByTestId("share-create").click();
+      const url = (await page.getByTestId("share-url").textContent()) ?? "";
+      await page.goto(`/s/${url.split("/s/")[1]?.trim() ?? ""}`);
       await expect(page.getByTestId("share-card")).toBeVisible();
       await shoot(page, `share-desktop-${theme}`);
     });

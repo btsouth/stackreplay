@@ -26,13 +26,21 @@ const read = (path: string) => readFileSync(join(root, path), "utf8");
 const registry = sourceRegistryV1Schema.parse(JSON.parse(read("sources.json")));
 const manifest = historicalManifestV1Schema.parse(JSON.parse(read("manifest.json")));
 const catalog = loadDefaultCatalog();
+// M4H-C1 stays bound to its accepted snapshot. A later public catalog refresh
+// correctly reports version drift; it does not change the historical findings.
+const historicalFindings = (artifact: CandidateChangeV1) =>
+  validateCandidate(artifact, registry, catalog).filter(
+    (finding) => finding.code !== "accepted_version_changed",
+  );
 const candidate = (slug: string): CandidateChangeV1 =>
   candidateChangeV1Schema.parse(JSON.parse(read(`candidates/${slug}.json`)));
 
 describe("M4H-C1 historical research artifacts", () => {
   it("serializes every candidate canonically and records exact deterministic findings", () => {
     expect(manifest.entries).toHaveLength(11);
-    expect(manifest.acceptedCatalogVersion).toBe(catalog.catalogVersion);
+    expect(manifest.acceptedCatalogVersion).toBe(
+      "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+    );
     expect(manifest.entries.map((entry) => entry.slug)).toEqual(
       [...manifest.entries.map((entry) => entry.slug)].sort(),
     );
@@ -46,7 +54,7 @@ describe("M4H-C1 historical research artifacts", () => {
       expect(entry.sourceId).toBe(artifact.sourceId);
       expect(entry.evidenceClass).toBe(artifact.evidenceClass);
       expect(
-        validateCandidate(artifact, registry, catalog).map(({ severity, code }) => ({
+        historicalFindings(artifact).map(({ severity, code }) => ({
           severity,
           code,
         })),
@@ -147,7 +155,7 @@ describe("M4H-C1 historical research artifacts", () => {
     });
     expect(pro.proposedEffectiveDate).toBe("2025-05-20");
     expect(pro.effectiveDateEvidence).toContain("starting today");
-    expect(validateCandidate(pro, registry, catalog)).toEqual([]);
+    expect(historicalFindings(pro)).toEqual([]);
   });
 
   it("traces OpenAI price to the plan entry and Codex allowance to limit zero", () => {
@@ -174,7 +182,7 @@ describe("M4H-C1 historical research artifacts", () => {
     const entry = manifest.entries.find((item) => item.slug === "google-ai-pro-launch-price");
     expect(pro.review.status).toBe("needs_review");
     expect(entry?.recommendation).toBe("READY_FOR_CATALOG_REVIEW");
-    expect(validateCandidate(pro, registry, catalog)).toEqual([]);
+    expect(historicalFindings(pro)).toEqual([]);
     const changedReview = structuredClone(manifest);
     const changedEntry = changedReview.entries.find((item) => item.slug === entry?.slug);
     if (!changedEntry) throw new Error("Missing Google AI Pro manifest entry");
@@ -182,7 +190,7 @@ describe("M4H-C1 historical research artifacts", () => {
     changedEntry.collision = "NEW_HISTORICAL_INFORMATION";
     expect(historicalManifestV1Schema.parse(changedReview)).toBeDefined();
     expect(candidate("google-ai-pro-launch-price").review.status).toBe("needs_review");
-    expect(validateCandidate(pro, registry, catalog)).toEqual([]);
+    expect(historicalFindings(pro)).toEqual([]);
   });
 
   it("keeps relative claims qualitative and archive claims observed", () => {
@@ -212,7 +220,7 @@ describe("M4H-C1 historical research artifacts", () => {
       kind: "subscription_price",
       proposed: { amount: "100", currency: "USD", interval: "month" },
     });
-    expect(validateCandidate(price, registry, catalog)).toEqual([]);
+    expect(historicalFindings(price)).toEqual([]);
   });
 
   it("cannot promote the excluded Anthropic 900-message estimate into a published constraint", () => {

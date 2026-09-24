@@ -92,6 +92,14 @@ export const modelRuleV1Schema = z.strictObject({
   multiplier: multiplierV1Schema.optional(),
   /** Excluded models are not available on the plan (spec point 23). */
   excluded: z.boolean().optional(),
+  /**
+   * Set only on an excluded rule: the model is outside the plan's included
+   * usage, but the provider lets subscribers run it by paying with usage
+   * credits. Replay still treats it as excluded from the plan's capacity; the
+   * field records the paid route so a surface can say "usage credits only"
+   * instead of implying the model cannot be used at all.
+   */
+  access: z.literal("usage_credits").optional(),
 });
 export type ModelRuleV1 = z.infer<typeof modelRuleV1Schema>;
 
@@ -126,6 +134,13 @@ export const qualitativeLimitV1Schema = z.strictObject({
   statement: z.string().min(1),
   /** Where the wording comes from, when it is not the plan page itself. */
   sourceUrl: z.string().min(1).optional(),
+  /**
+   * `after_limit` marks a statement that describes what happens once the
+   * included usage runs out (overage billing, a pause until reset). It lets a
+   * public surface answer that question from the quoted statement instead of
+   * guessing from wording. Absent means the statement is about something else.
+   */
+  topic: z.enum(["after_limit"]).optional(),
 });
 export type QualitativeLimitV1 = z.infer<typeof qualitativeLimitV1Schema>;
 
@@ -204,10 +219,46 @@ export const modelAliasV1Schema = z.strictObject({
 });
 export type ModelAliasV1 = z.infer<typeof modelAliasV1Schema>;
 
+/**
+ * What a model record identifies (launch taxonomy).
+ *
+ * `release` is one concrete model shipped under its own pinned identifier.
+ * `family` is an identity record for a family name (for example the `opus`
+ * alias a harness accepts) that resolves to different releases depending on
+ * the surface and the date. A family record stays fully resolvable so plans
+ * and workloads that name it keep replaying the same way; it is simply not a
+ * model release in its own right. Absent means `release`, so records written
+ * before this field existed keep their meaning.
+ */
+export const modelKindV1Schema = z.enum(["release", "family"]);
+export type ModelKindV1 = z.infer<typeof modelKindV1Schema>;
+
+/**
+ * Where a release sits in its developer's own lineup: `current`, or `legacy`
+ * (still documented but superseded, or historical). Absent means the catalog
+ * does not record it, which is never read as current.
+ */
+export const modelLifecycleV1Schema = z.enum(["current", "legacy"]);
+export type ModelLifecycleV1 = z.infer<typeof modelLifecycleV1Schema>;
+
 export const modelV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("model"),
   name: z.string().min(1),
+  /** Absent means `release`. */
+  kind: modelKindV1Schema.optional(),
+  /** For a release: the family identity record it belongs to. */
+  familyId: catalogIdV1Schema.optional(),
+  /** For a release: current or legacy, per the developer's own documentation. */
+  lifecycle: modelLifecycleV1Schema.optional(),
+  /**
+   * The provider record of who develops the model, set only where the record's
+   * own sources establish it. This is a different fact from `providerIds`,
+   * which lists the routes the model is offered through; neither is ever
+   * inferred from the other.
+   */
+  developerId: catalogIdV1Schema.optional(),
+  /** Routes that offer this model (a Direct API, a subscription platform). */
   providerIds: z.array(catalogIdV1Schema).optional(),
   aliases: z.array(modelAliasV1Schema).optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
@@ -333,6 +384,8 @@ export const pricingV1Schema = z.strictObject({
   tiers: z.array(pricingTierV1Schema).optional(),
   effectiveFrom: isoDateV1Schema,
   effectiveTo: isoDateV1Schema.optional(),
+  /** Exact activation instant when the provider publishes one. */
+  effectiveFromInstant: z.string().datetime({ offset: true }).optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
   lastVerifiedAt: isoDateV1Schema,
   verificationStatus: verificationStatusV1Schema,

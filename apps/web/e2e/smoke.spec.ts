@@ -9,7 +9,7 @@ test("shell renders the workspace with working navigation", async ({ page }, tes
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(4);
+    await expect(nav.getByRole("link")).toHaveCount(6);
     await expect(nav.getByRole("link", { name: "Workspace" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -158,7 +158,7 @@ test("invalid stored theme falls back to system", async ({ page }) => {
 test("all workspace routes have a matching heading and navigation state", async ({
   page,
 }, info) => {
-  for (const label of ["Workspace", "Replay", "Import", "Settings"]) {
+  for (const label of ["Workspace", "Import", "Workload", "Replay", "Settings"]) {
     await page.goto(label === "Workspace" ? "/app" : `/app/${label.toLowerCase()}`);
     await expect(
       page.getByRole("heading", {
@@ -186,7 +186,7 @@ test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ pag
   await expect(
     dialog.getByRole("link", { name: "StackReplay home" }).locator("img").first(),
   ).toHaveAttribute("src", /\/brand\/navbar-64-/);
-  for (const route of ["Workspace", "Replay", "Import", "Settings"]) {
+  for (const route of ["Workspace", "Import", "Workload", "Replay", "Settings"]) {
     await expect(dialog.getByRole("link", { name: route, exact: true })).toBeVisible();
   }
   // Base UI transfers focus through an offscreen guard asynchronously.

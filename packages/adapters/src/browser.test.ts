@@ -70,6 +70,68 @@ describe("browser intake using shared adapters", () => {
     ).rejects.toMatchObject({ bound: "readBytes" });
   });
 
+  it("reports running model and project totals, with local labels only", async () => {
+    const reports: import("./browser.js").BrowserIntakeProgress[] = [];
+    await intakeBrowserCandidates(
+      [candidate("session.jsonl", CLAUDE_CODE_SESSION), candidate("notes.md", "not a session")],
+      syntheticCatalog(),
+      {
+        now: NOW,
+        salt: FIXTURE_SALT,
+        onProgress: (_done, _total, progress) => reports.push(progress),
+      },
+    );
+    const last = reports.at(-1);
+    expect(last?.reconstructedEvents).toBeGreaterThan(0);
+    // Counts per catalog model id, and the project seen so far.
+    expect(Object.values(last?.modelEvents ?? {}).reduce((sum, value) => sum + value, 0)).toBe(
+      last?.reconstructedEvents,
+    );
+    expect(last?.projectCount).toBe(1);
+    // The label is the folder's basename: never a path, never the raw key.
+    expect(last?.topProjects).toEqual([{ label: "demo-app", events: last?.reconstructedEvents }]);
+    expect(JSON.stringify(reports)).not.toContain("/home/example");
+    // Each report is a snapshot, not a shared mutable object.
+    expect(reports[0]?.modelEvents).not.toBe(last?.modelEvents);
+  });
+
+  it("accepts a raw source file above the former 256 MB per-file cap", async () => {
+    const large = { ...candidate("large.jsonl", CODEX_ROLLOUT), size: 288 * 1024 * 1024 };
+    const result = await intakeBrowserCandidates([large], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    expect(result.exported?.events.length).toBeGreaterThan(0);
+    expect(result.outcomes[0]?.status).toBe("imported");
+  });
+
+  it("streams JSONL without asking for the whole file as text", async () => {
+    const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
+    const streamed: BrowserCandidate = {
+      path: "large.jsonl",
+      size: 288 * 1024 * 1024,
+      lastModified: Date.parse(NOW),
+      text: async () => {
+        throw new Error("whole-file read attempted");
+      },
+      peekText: async () => CODEX_ROLLOUT,
+      stream: () => new Blob([bytes]).stream(),
+    };
+    const result = await intakeBrowserCandidates([streamed], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    expect(result.outcomes[0]?.status).toBe("imported");
+    expect(result.exported?.events.length).toBeGreaterThan(0);
+  });
+
+  it("accepts a multi-gigabyte selection without allocating its contents", () => {
+    const budget = new BrowserIntakeBudget();
+    expect(() =>
+      budget.select([{ path: "sessions/large.jsonl", size: 2 * 1024 * 1024 * 1024 }]),
+    ).not.toThrow();
+  });
+
   it("bounds multiple individually valid archives by combined expanded bytes and member count", async () => {
     const zipA = archive("a.zip", zipSync({ "a.jsonl": strToU8(CODEX_ROLLOUT) }));
     const zipB = archive("b.zip", zipSync({ "b.jsonl": strToU8(CLAUDE_CODE_SESSION) }));
@@ -176,6 +238,19 @@ describe("browser intake using shared adapters", () => {
     expect(reads).toBe(0);
     expect(result.outcomes[0]?.status).toBe("unsupported");
   });
+
+  it("explains an unrelated text file without calling it malformed JSON", async () => {
+    const result = await intakeBrowserCandidates(
+      [candidate("readme.txt", "ordinary notes")],
+      syntheticCatalog(),
+      { now: NOW },
+    );
+    expect(result.exported).toBeUndefined();
+    expect(result.outcomes[0]).toMatchObject({
+      status: "unsupported",
+      reason: "Text file does not contain supported session or usage records",
+    });
+  });
   it("recognizes only verified source structures", () => {
     expect(detectBrowserSource(CODEX_ROLLOUT).id).toBe("codex");
     expect(detectBrowserSource(CLAUDE_CODE_SESSION).id).toBe("claude-code");
@@ -242,6 +317,103 @@ describe("browser intake using shared adapters", () => {
     expect(serialized).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
     expect(serialized).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
     expect(serialized).not.toContain("/home/example/projects/demo-app");
+  });
+
+  it("reports a file the browser cannot read as unreadable, not malformed", async () => {
+    const failing: BrowserCandidate = {
+      path: "rollout-live.jsonl",
+      size: 1024,
+      lastModified: Date.parse(NOW),
+      text: async () => {
+        throw new DOMException("The file could not be read.", "NotReadableError");
+      },
+      peekText: async () => {
+        throw new DOMException("The file could not be read.", "NotReadableError");
+      },
+      stream: () =>
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            controller.error(new DOMException("The file could not be read.", "NotReadableError"));
+          },
+        }),
+    };
+    const result = await intakeBrowserCandidates(
+      [failing, candidate("rollout.jsonl", CODEX_ROLLOUT)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    const outcome = result.outcomes.find((item) => item.path === "rollout-live.jsonl");
+    expect(outcome).toMatchObject({ status: "unreadable", events: 0 });
+    expect(outcome?.reason).toContain("NotReadableError");
+    expect(outcome?.reason).toContain("None of its usage is included");
+    // The browser does not say why a read failed, so the outcome does not either.
+    expect(outcome?.reason).not.toMatch(/changed|modified|malformed/iu);
+    expect(result.exported?.events.length).toBeGreaterThan(0);
+  });
+
+  it("drops a streamed file whole when it stops being readable after the first pass", async () => {
+    const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
+    let streams = 0;
+    const live: BrowserCandidate = {
+      path: "rollout-active.jsonl",
+      size: bytes.length,
+      lastModified: Date.parse(NOW),
+      text: async () => CODEX_ROLLOUT,
+      peekText: async () => CODEX_ROLLOUT,
+      stream: () => {
+        streams += 1;
+        if (streams === 1)
+          return new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(bytes);
+              controller.close();
+            },
+          });
+        let sent = false;
+        return new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (!sent) {
+              sent = true;
+              controller.enqueue(bytes.slice(0, Math.floor(bytes.length / 2)));
+              return;
+            }
+            controller.error(new DOMException("The file could not be read.", "NotReadableError"));
+          },
+        });
+      },
+    };
+    const result = await intakeBrowserCandidates(
+      [live, candidate("session.jsonl", CLAUDE_CODE_SESSION)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    expect(result.outcomes.find((item) => item.path === "rollout-active.jsonl")).toMatchObject({
+      status: "unreadable",
+      source: "Codex",
+      events: 0,
+    });
+    // The scan continues, and no partial events from the unreadable file remain.
+    expect(result.exported?.events.every((event) => event.source.adapterId === "claude-code")).toBe(
+      true,
+    );
+  });
+
+  it("labels projects for local display while the portable workload keeps only hashes", async () => {
+    const result = await intakeBrowserCandidates(
+      [candidate("session.jsonl", CLAUDE_CODE_SESSION), candidate("rollout.jsonl", CODEX_ROLLOUT)],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT },
+    );
+    const hashes = new Set(result.exported?.events.map((event) => event.projectHash));
+    expect(result.localProjects.length).toBeGreaterThan(0);
+    for (const project of result.localProjects) {
+      expect(hashes.has(project.hash)).toBe(true);
+      expect(project.label).toBe("demo-app");
+      expect(project.label).not.toMatch(/[\\/]/u);
+    }
+    const portable = JSON.stringify(result.exported);
+    expect(portable).not.toContain("demo-app");
+    expect(JSON.stringify(result)).not.toContain("/home/example/projects");
   });
 
   it("reuses exact event identity when different files contain the same recorded turns", async () => {

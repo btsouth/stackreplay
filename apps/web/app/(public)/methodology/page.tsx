@@ -15,8 +15,23 @@ const sections = [
   {
     heading: "What a replay is",
     body: [
-      "A replay takes a workload of usage events, already normalized into one canonical stream, and simulates it against a plan's documented mechanics: rolling and calendar windows, token and request limits, credit pools, model rules, promotions, overage behaviour and hard stops.",
+      "A replay takes recorded usage events and simulates them against a target's documented mechanics: model access, rolling and calendar windows, token and request limits, credit pools, promotions, overage behaviour and hard stops.",
       "It is a simulation of rules, not a bill and not a prediction of what a provider would charge you. Providers change rules, apply unpublished limits and make mistakes. A replay tells you what the documented mechanics would have done with your workload, and how confident it is in that answer.",
+    ],
+  },
+  {
+    heading: "Local scan and workload analysis",
+    body: [
+      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files are not uploaded. Saving the normalized workload in this browser is optional.",
+      "Project folder names label projects in this browser only. A portable workload export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
+    ],
+  },
+  {
+    heading: "Exact and Translated Replay",
+    body: [
+      "Exact Replay uses the recorded model identities and chronology. If a target does not serve a recorded model, StackReplay shows that gap instead of silently choosing another model.",
+      "Translated Replay runs only after you choose model substitutions. It keeps the recorded usage magnitude and chronology as a scenario assumption. It does not claim the substituted models would use the same tokens, behave the same way or produce equivalent work. Results name the substitutions and remain distinct from Exact Replay.",
+      "Events whose model identity cannot be resolved remain unknown. You can explicitly leave them out to inspect the resolved part of a workload; the result states that narrower scope.",
     ],
   },
   {
@@ -67,7 +82,7 @@ const sections = [
   {
     heading: "What a replay does not do",
     body: [
-      "StackReplay reads the workload files you select and processes them locally in a browser worker. Raw workload files are not uploaded. Saving the normalized workload in this browser is optional; temporary imports can be replayed without saving.",
+      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action and currently supports only compatible, full-scope Exact Replay results.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
       "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
     ],

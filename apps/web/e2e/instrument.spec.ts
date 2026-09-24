@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { importDemo, runReplay } from "./helpers";
 
 /**
@@ -9,20 +9,36 @@ import { importDemo, runReplay } from "./helpers";
  * page does not scroll sideways on a phone.
  */
 
-const INSTRUMENT = '[data-testid="replay-instrument"]';
-const SELECTED_TARGET = "exact-subscription";
+const HERO = '[data-testid="replay-hero"]';
 
-test.describe("the replay instrument", () => {
-  test("keeps every numbered section in narrative DOM order", async ({ page }) => {
+/**
+ * Opens the homepage and brings the execution object on screen. The first run
+ * starts when the object is visible, so on a phone it waits for the scroll.
+ */
+async function openHero(page: Page) {
+  await page.goto("/");
+  const hero = page.locator(HERO);
+  await hero.locator(".sr-canvas").scrollIntoViewIfNeeded();
+  return hero;
+}
+
+test.describe("the homepage replay instrument", () => {
+  test("keeps the replay narrative in DOM order", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    await expect(page.getByTestId("replay-instrument")).toHaveAttribute("data-phase", "settled");
-    expect(
-      await page
-        .getByTestId("replay-instrument")
-        .locator("[data-section-index]")
-        .evaluateAll((items) => items.map((item) => item.getAttribute("data-section-index"))),
-    ).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    const hero = await openHero(page);
+    await expect(hero).toHaveAttribute("data-run", "resolved");
+    const ids = await hero
+      .locator(".sr-section-id, .sr-micro")
+      .evaluateAll((items) =>
+        items.map((item) => item.textContent ?? "").filter((text) => /^0\d \//u.test(text)),
+      );
+    expect(ids).toEqual([
+      "01 / Observed workload",
+      "02 / Target execution",
+      "03 / Counterfactual result",
+      "04 / Recorded demand",
+      "05 / Replay readout",
+    ]);
 
     await importDemo(page, "moderate");
     await page.goto("/app/replay");
@@ -34,92 +50,111 @@ test.describe("the replay instrument", () => {
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-section-index"))),
     ).toEqual(["01", "02", "03", "04", "05", "06", "07", "08"]);
   });
-  test("settles on a result for the selected target", async ({ page }) => {
-    await page.goto("/");
-    const instrument = page.locator(INSTRUMENT);
-    await expect(instrument).toHaveAttribute("data-phase", "settled", { timeout: 15_000 });
 
-    // The headline figure is the engine's own coverage for this target.
-    const figure = instrument.getByTestId("result-figure");
-    await expect(figure).toContainText("%");
-    await expect(instrument.getByTestId("result-statement")).toBeVisible();
-    await expect(instrument.getByTestId("constraint-trace")).toBeVisible();
-    await expect(instrument.getByTestId("cost-counterfactual")).toBeVisible();
+  test("replays an anonymized real workload against a real target and resolves last", async ({
+    page,
+  }) => {
+    const hero = await openHero(page);
+    await expect(hero.getByTestId("hero-sample-label")).toHaveText("Anonymized real workload");
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    await expect(hero.getByTestId("hero-result-status")).toHaveText("Allowance exhausted");
+    await expect(hero.getByTestId("hero-result-figure")).toContainText("$");
+    await expect(hero.getByTestId("hero-result-sentence")).toContainText("First crossing");
+    await expect(page.getByTestId("hero-status")).toContainText("allowance exhausted");
+    // Nothing on the public hero is a synthetic provider.
+    await expect(page.locator("main")).not.toContainText(/Example Cloud|synthetic example/iu);
   });
 
-  test("is operable with the keyboard alone", async ({ page }) => {
-    await page.goto("/");
-    const trigger = page.locator(`${INSTRUMENT} [data-testid="target-selector"]`);
-    await trigger.focus();
-    await expect(trigger).toBeFocused();
-
-    const list = page.locator('[data-testid="target-selector-list"]');
-    // The server renders the control before its client handler is attached.
-    // Retry the real key action until hydration makes it operable.
+  test("is operable with the keyboard alone and reruns on target change", async ({ page }) => {
+    const hero = await openHero(page);
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    const first = hero.getByTestId("hero-target-copilot-pro-plus");
     await expect
       .poll(async () => {
-        await trigger.focus();
-        await page.keyboard.press("ArrowDown");
-        return list.isVisible();
+        await first.focus();
+        await page.keyboard.press("ArrowRight");
+        return hero.getAttribute("data-target");
       })
-      .toBe(true);
-    const option = list.locator('[role="option"][aria-selected="true"]');
-    await expect(option).toBeFocused();
-
-    await page.keyboard.press("Escape");
-    await expect(list).toBeHidden();
-    await expect(trigger).toBeFocused();
-    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      .toBe("chatgpt-pro");
+    await expect(hero.getByTestId("hero-target-chatgpt-pro")).toBeFocused();
+    await expect(hero.getByTestId("hero-target-chatgpt-pro")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    await expect(hero.getByTestId("hero-result-status")).toContainText("Models mapped");
+    await expect(hero.getByTestId("hero-result-status")).toContainText("Capacity not published");
   });
 
   test("always shows the result of the target selected last", async ({ page }) => {
-    await page.goto("/");
-    const instrument = page.locator(INSTRUMENT);
-    await expect(instrument).toHaveAttribute("data-phase", "settled", { timeout: 15_000 });
+    const hero = await openHero(page);
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    // Change the target several times without waiting for a run to finish.
+    await hero.getByTestId("hero-target-claude-max").click();
+    await hero.getByTestId("hero-target-openai-api").click();
+    await hero.getByTestId("hero-target-chatgpt-pro").click();
+    await hero.getByTestId("hero-target-openai-api").click();
+    await expect(hero).toHaveAttribute("data-target", "openai-api");
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    await expect(hero.getByTestId("hero-result-status")).toHaveText("Published-rate equivalent");
+    await expect(hero.getByTestId("hero-target-name")).toHaveText("OpenAI API");
+  });
 
-    // Change the target several times without waiting for a run to finish: the
-    // settling state must belong to the newest selection, never to an earlier one.
-    await page.getByTestId("load-target-translated-subscription").click();
-    await page.getByTestId("load-target-direct-api").click();
-    await page.getByTestId("load-target-exact-subscription").click();
-
-    await expect(instrument).toHaveAttribute("data-phase", "settled", { timeout: 15_000 });
-    const selected = await instrument
-      .locator('[data-testid="target-selector"]')
-      .getAttribute("data-value");
-    expect(selected).toBe(SELECTED_TARGET);
-    await expect(instrument.getByTestId("execution-stack")).toContainText("subscription");
-    // The stack belongs to that target: a subscription target shows its plan row.
-    await expect(instrument.getByTestId("stack-plan")).toBeVisible();
+  test("runs once and stops, and the rows below load the same instrument", async ({ page }) => {
+    const hero = await openHero(page);
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    // No ambient animation remains once the run has settled.
+    const running = await hero.evaluate(
+      (node) =>
+        node
+          .getAnimations({ subtree: true })
+          .filter((animation) => animation.playState === "running").length,
+    );
+    expect(running).toBe(0);
+    await page.getByTestId("load-target-claude-max").click();
+    await expect(hero).toHaveAttribute("data-target", "claude-max");
+    await expect(page.getByTestId("load-target-claude-max")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+    await expect(hero.getByTestId("hero-mapping")).toContainText("Translated replay");
   });
 
   test("reaches the settled state immediately under reduced motion", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    const instrument = page.locator(INSTRUMENT);
+    const hero = await openHero(page);
     // No waiting and no timing tolerance: the state is correct on first paint.
-    await expect(instrument).toHaveAttribute("data-phase", "settled");
+    await expect(hero).toHaveAttribute("data-run", "resolved");
+    await hero.getByTestId("hero-target-openai-api").click();
+    await expect(hero).toHaveAttribute("data-run", "resolved");
+    await expect(hero.getByTestId("hero-result-status")).toHaveText("Published-rate equivalent");
   });
 
-  test("distinguishes a metered target from an allowance target", async ({ page }) => {
+  test("draws the counterfactual result rule as one straight element", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    const instrument = page.locator(INSTRUMENT);
-    await expect(instrument).toHaveAttribute("data-phase", "settled", { timeout: 15_000 });
-    await expect(instrument.getByTestId("violations")).toBeVisible();
-
-    await page.getByTestId("load-target-direct-api").click();
-    await expect(instrument).toHaveAttribute("data-phase", "settled", { timeout: 15_000 });
-    // A Direct API target has no allowance to exceed, so it shows no crossings
-    // and no subscription vocabulary.
-    await expect(instrument.getByTestId("crossings")).toHaveCount(0);
-    await expect(instrument.getByTestId("api-total")).toBeVisible();
+    const rule = page.getByTestId("hero-result-rule");
+    await expect(rule).toHaveCount(1);
+    const shape = await rule.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const before = getComputedStyle(node, "::before").content;
+      const after = getComputedStyle(node, "::after").content;
+      const column = node.closest(".sr-result")?.getBoundingClientRect();
+      const box = node.getBoundingClientRect();
+      return {
+        height: style.height,
+        pseudo: [before, after].filter((value) => value !== "none" && value !== "normal"),
+        transform: style.transform,
+        spansColumn: column !== undefined && Math.abs(box.width - column.width) < 1,
+      };
+    });
+    expect(shape).toEqual({ height: "1px", pseudo: [], transform: "none", spansColumn: true });
   });
 
   test("does not scroll sideways", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(INSTRUMENT)).toHaveAttribute("data-phase", "settled", {
-      timeout: 15_000,
-    });
+    await expect(page.locator(HERO)).toBeVisible();
     const overflow = await page.evaluate(() => {
       const root = document.documentElement;
       return root.scrollWidth - root.clientWidth;

@@ -10,11 +10,12 @@ import { gotoImport, importDemo } from "./helpers";
 
 test("empty import surface states the privacy contract up front", async ({ page }) => {
   await gotoImport(page);
-  await expect(page.getByText("Processed locally in your browser")).toBeVisible();
-  await expect(page.getByText("No prompts.")).toBeVisible();
+  const boundary = page.getByTestId("privacy-boundary");
   await expect(
-    page.getByText("Selected raw workload files are never uploaded to StackReplay."),
+    boundary.getByText("Scanned locally. Nothing in your AI history is uploaded."),
   ).toBeVisible();
+  await expect(boundary).toContainText("It discards prompts, responses, code, command output");
+  await expect(boundary).toContainText("Site assets and public catalog facts only.");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await expect(page.getByTestId("demo-presets")).toBeVisible();
 });

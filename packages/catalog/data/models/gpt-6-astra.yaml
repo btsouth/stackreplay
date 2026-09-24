@@ -1,6 +1,7 @@
 id: gpt-6-astra
 role: model
 name: "GPT-6 Astra"
+developerId: openai
 providerIds:
   - github
   - openai
@@ -17,9 +18,15 @@ aliases:
 sources:
   - url: https://openai.com/chatgpt/pricing/
     title: "OpenAI pricing (official)"
-    checkedAt: 2026-09-21
+    checkedAt: 2026-09-23
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+  - url: https://developers.openai.com/api/docs/models
+    title: "OpenAI API model catalog; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

@@ -1,16 +1,18 @@
 "use client";
 
 import {
-  bundledApiProviders,
   bundledPlanFacts,
   bundledPlansAt,
   bundledProviderFacts,
+  bundledPublicApiProviders,
+  bundledUsageCreditModels,
 } from "@stackreplay/catalog/bundled";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import { Badge, Button, Card, CardContent, Metric } from "@stackreplay/ui";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImportSurface } from "@/components/import/import-surface";
 import { ConstraintTrace } from "@/components/instrument/constraint-trace";
@@ -18,13 +20,27 @@ import { CostCounterfactual } from "@/components/instrument/cost-counterfactual"
 import { CoverageDimensions } from "@/components/instrument/coverage-dimensions";
 import { EvidenceLedger } from "@/components/instrument/evidence-ledger";
 import { ExecutionStack } from "@/components/instrument/execution-stack";
+import { formatTokens } from "@/components/instrument/format";
 import { modeLabel } from "@/components/instrument/mode-label";
 import { ModelLanes } from "@/components/instrument/model-lanes";
 import { OutcomeLedger } from "@/components/instrument/outcome-ledger";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { ReplayPath } from "@/components/instrument/replay-path";
 import { ResultSettlement } from "@/components/instrument/result-settlement";
+import { useReplayChoreography } from "@/components/instrument/use-replay-choreography";
 import { WorkloadSpecimen } from "@/components/instrument/workload-specimen";
+import { ReplayReading } from "@/components/replay/replay-reading";
+import {
+  compatibility,
+  type ModelMapping,
+  TranslationEditor,
+  TranslationEntry,
+  targetModels,
+  translationPolicy,
+  workloadModels,
+} from "@/components/replay/translation";
 import { SharePanel } from "@/components/share/share-panel";
+import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, ModelSummary, SafeError, TimelinePoint } from "@/lib/worker-protocol";
@@ -53,9 +69,9 @@ function segmentedClass(active: boolean): string {
 const ReplayTimeline = dynamic(() => import("./replay-timeline"), {
   ssr: false,
   loading: () => (
-    <p className="text-xs text-muted-foreground" data-testid="timeline-loading">
+    <div className="text-xs text-muted-foreground" data-testid="timeline-loading">
       <div className="h-40 animate-pulse rounded-md border border-border bg-surface-2" />
-    </p>
+    </div>
   ),
 });
 
@@ -75,10 +91,8 @@ interface ReplayOutcome {
   timeline: TimelinePoint[];
   /** The display contract for the same result (M4D). */
   projection: ProjectedReplayV1;
-}
-
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
+  /** Present when the replay ran under an explicit, user-chosen scope. */
+  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
 }
 
 function formatCount(value: number): string {
@@ -100,15 +114,18 @@ function formatMoney(amount: string): string {
 export function ReplaySurface({
   initialImportId,
   initialTarget,
+  initialApi,
 }: {
   initialImportId?: string | undefined;
   /** Plan id preselected from a public plan page, never a workload detail. */
   initialTarget?: string | undefined;
+  /** Direct API provider id preselected from the workload page. */
+  initialApi?: string | undefined;
 }) {
   const client = getWorkerClient();
   const [imports, setImports] = useState<ImportRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
-  const [rulesAsOf, setRulesAsOf] = useState<string>(todayUtc());
+  const [rulesAsOf, setRulesAsOf] = useState<string>(() => defaultRulesDate());
   const [query, setQuery] = useState("");
   const [planId, setPlanId] = useState<string | undefined>(initialTarget);
   /**
@@ -117,10 +134,31 @@ export function ReplaySurface({
    * workload at the selected provider's published list prices instead, with no
    * plan, allowance or admission involved.
    */
-  const [targetKind, setTargetKind] = useState<"subscription" | "api">("subscription");
-  const [providerId, setProviderId] = useState<string | undefined>(undefined);
+  const [targetKind, setTargetKind] = useState<"subscription" | "api">(
+    initialApi !== undefined && initialTarget === undefined ? "api" : "subscription",
+  );
+  const [providerId, setProviderId] = useState<string | undefined>(initialApi);
+  /**
+   * Model substitutions the person chose, kept per target so switching back to a
+   * target restores its scenario. Never pre-filled: an empty mapping is exact.
+   */
+  const [mappings, setMappings] = useState<Record<string, ModelMapping>>({});
+  const [translationOpen, setTranslationOpen] = useState(false);
+  /** Explicit scope: leave out events whose model identity is unresolved. */
+  const [excludeUnresolved, setExcludeUnresolved] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
+  const resultAnchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (phase === "idle") return;
+    resultAnchorRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+  }, [phase]);
   const [outcome, setOutcome] = useState<ReplayOutcome | undefined>(undefined);
   /**
    * What the displayed result was computed from. The panel reads its labels from
@@ -150,7 +188,25 @@ export function ReplaySurface({
     setPhase("idle");
   }, [guard]);
 
-  const plans = useMemo(() => bundledPlansAt(rulesAsOf), [rulesAsOf]);
+  const workload = useMemo(
+    () => imports.find((entry) => entry.id === selectedId),
+    [imports, selectedId],
+  );
+  const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
+  const selectedWorkloadIsDemo = useMemo(() => {
+    const models = workload?.summary.models ?? [];
+    return models.length > 0 && models.every((model) => model.rawName.startsWith("example-"));
+  }, [workload]);
+
+  const plans = useMemo(() => {
+    const available = bundledPlansAt(rulesAsOf);
+    return selectedWorkloadIsDemo
+      ? [
+          ...available.filter((plan) => isSyntheticCatalogId(plan.id)),
+          ...available.filter((plan) => !isSyntheticCatalogId(plan.id)),
+        ]
+      : available;
+  }, [rulesAsOf, selectedWorkloadIsDemo]);
   const filteredPlans = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length === 0) return plans;
@@ -175,7 +231,15 @@ export function ReplaySurface({
    * offering, and how many of those have API list prices, so a replay that can
    * only price part of the demand says so before it runs.
    */
-  const providers = useMemo(() => bundledApiProviders(rulesAsOf), [rulesAsOf]);
+  const providers = useMemo(() => {
+    const available = bundledPublicApiProviders(rulesAsOf);
+    return selectedWorkloadIsDemo
+      ? [
+          ...available.filter((provider) => isSyntheticCatalogId(provider.id)),
+          ...available.filter((provider) => !isSyntheticCatalogId(provider.id)),
+        ]
+      : available;
+  }, [rulesAsOf, selectedWorkloadIsDemo]);
   const filteredProviders = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length === 0) return providers;
@@ -192,6 +256,38 @@ export function ReplaySurface({
   );
   const targetReady =
     targetKind === "api" ? selectedProvider !== undefined : selectedPlan !== undefined;
+  const targetKey =
+    targetKind === "api"
+      ? selectedProvider === undefined
+        ? undefined
+        : `api:${selectedProvider.id}`
+      : selectedPlan === undefined
+        ? undefined
+        : `plan:${selectedPlan.id}`;
+  const targetName =
+    targetKind === "api" ? `the ${selectedProvider?.name ?? ""} API` : (selectedPlan?.name ?? "");
+  const models = useMemo(
+    () => (workload === undefined ? undefined : workloadModels(workload.summary.models)),
+    [workload],
+  );
+  const available = useMemo(
+    () =>
+      targetKind === "api"
+        ? selectedProvider === undefined
+          ? []
+          : targetModels({ kind: "api", providerId: selectedProvider.id }, rulesAsOf)
+        : selectedPlan === undefined
+          ? []
+          : targetModels({ kind: "subscription", planId: selectedPlan.id }, rulesAsOf),
+    [rulesAsOf, selectedPlan, selectedProvider, targetKind],
+  );
+  const compat = useMemo(
+    () => (models === undefined ? undefined : compatibility(models, available)),
+    [available, models],
+  );
+  const mapping = targetKey === undefined ? {} : (mappings[targetKey] ?? {});
+  const policy = translationPolicy(mapping);
+  const unresolvedEvents = models?.unresolved.reduce((sum, model) => sum + model.events, 0) ?? 0;
   /**
    * The workload the surface is working on, and only that one.
    *
@@ -200,12 +296,6 @@ export function ReplaySurface({
    * (benchmark finding F027). The surface now says the named workload is gone and
    * waits to be told which one to use.
    */
-  const workload = useMemo(
-    () => imports.find((entry) => entry.id === selectedId),
-    [imports, selectedId],
-  );
-  const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
-
   // The first-run intake changes only this route's query string. React keeps
   // the Replay surface mounted, so the selected id must follow the new prop.
   useEffect(() => {
@@ -218,11 +308,6 @@ export function ReplaySurface({
    * result that reads as a failure when a visitor replays a demo against a
    * catalogued plan.
    */
-  const selectedWorkloadIsDemo = useMemo(() => {
-    const models = workload?.summary.models ?? [];
-    return models.length > 0 && models.every((model) => model.rawName.startsWith("example-"));
-  }, [workload]);
-
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -241,14 +326,15 @@ export function ReplaySurface({
   }, [client, initialImportId]);
 
   const runReplay = useCallback(async () => {
+    const translation = policy === undefined ? {} : { modelTranslation: policy };
     const target: ExecutionTargetV1 | undefined =
       targetKind === "api"
         ? selectedProvider === undefined
           ? undefined
-          : { type: "api", providerId: selectedProvider.id }
+          : { type: "api", providerId: selectedProvider.id, ...translation }
         : selectedPlan === undefined
           ? undefined
-          : { type: "subscription", planId: selectedPlan.id };
+          : { type: "subscription", planId: selectedPlan.id, ...translation };
     if (workload === undefined || target === undefined) return;
     const token = guard.begin();
     setPhase("loading");
@@ -265,6 +351,7 @@ export function ReplaySurface({
           setPhase(next === "loading" ? "loading" : "replaying");
           setDetail(nextDetail);
         },
+        { excludeUnresolved: excludeUnresolved && unresolvedEvents > 0 },
       );
       // The target, workload or rules date may have changed while this ran: the
       // result belongs to a selection the surface no longer shows.
@@ -276,6 +363,7 @@ export function ReplaySurface({
         target: target.type === "api" ? target.providerId : (selectedPlan?.id ?? ""),
         rulesAsOf,
       });
+      setDetail(undefined);
       setPhase("done");
     } catch (failure) {
       if (!guard.isCurrent(token)) return;
@@ -284,7 +372,18 @@ export function ReplaySurface({
       setError(describeWorkerFailure(failure));
       setPhase("idle");
     }
-  }, [client, guard, rulesAsOf, selectedPlan, selectedProvider, targetKind, workload]);
+  }, [
+    client,
+    excludeUnresolved,
+    guard,
+    policy,
+    rulesAsOf,
+    selectedPlan,
+    selectedProvider,
+    targetKind,
+    unresolvedEvents,
+    workload,
+  ]);
 
   /**
    * Choosing a different target or rules date drops the displayed result: it was
@@ -294,6 +393,7 @@ export function ReplaySurface({
   const selectPlan = useCallback(
     (id: string) => {
       setPlanId(id);
+      setTranslationOpen(false);
       dropResult();
     },
     [dropResult],
@@ -302,6 +402,7 @@ export function ReplaySurface({
   const selectProvider = useCallback(
     (id: string) => {
       setProviderId(id);
+      setTranslationOpen(false);
       dropResult();
     },
     [dropResult],
@@ -380,7 +481,12 @@ export function ReplaySurface({
             <div>
               <h2 className="text-sm font-medium">Execution target</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                {targetKind === "api" ? (
+                {selectedWorkloadIsDemo ? (
+                  <>
+                    This synthetic workload uses example models. Demo targets appear first; their
+                    prices and limits are illustrative. Other targets can show unavailable demand.
+                  </>
+                ) : targetKind === "api" ? (
                   <>
                     A Direct API target applies the selected provider&apos;s published API list
                     prices to every recorded event. No plan, allowance, admission or reset is
@@ -389,10 +495,8 @@ export function ReplaySurface({
                   </>
                 ) : (
                   <>
-                    Catalogued plans are the real, sourced entries the public pages describe. The
-                    synthetic <span className="font-mono text-xs">example-</span> plans are demos
-                    kept for trying the replay mechanics; each one is labelled and none of them is a
-                    real-world claim.
+                    Choose a catalogued plan to replay this workload against its sourced rules.
+                    Results depend on the usage your source files establish.
                   </>
                 )}
               </p>
@@ -463,9 +567,7 @@ export function ReplaySurface({
                 className="max-w-xl text-xs text-muted-foreground"
                 data-testid="demo-workload-note"
               >
-                {targetKind === "api"
-                  ? "This workload is one of the bundled synthetic demos, so its models belong to the demo catalog. Its models are offered by the demo providers (example-cloud, example-open); a catalogued provider will report them as unavailable rather than price them."
-                  : "This workload is one of the bundled synthetic demos, so its models belong to the demo catalog. It replays against a demo plan; import your own export to replay against a catalogued plan."}
+                Import your own workload to compare catalogued plans and providers.
               </p>
             ) : null}
             {targetKind === "api" ? (
@@ -614,6 +716,74 @@ export function ReplaySurface({
             </div>
           ) : null}
 
+          {compat !== undefined &&
+          models !== undefined &&
+          targetReady &&
+          compat.unserved.length > 0 ? (
+            <TranslationEntry
+              onOpen={() => setTranslationOpen(true)}
+              open={translationOpen || policy !== undefined}
+              targetName={targetName}
+              totalEvents={workload?.summary.eventCount ?? 0}
+              unserved={compat.unserved}
+              unservedEvents={compat.unservedEvents}
+              workload={models}
+            />
+          ) : null}
+          {models !== undefined &&
+          targetReady &&
+          targetKey !== undefined &&
+          (translationOpen || policy !== undefined) ? (
+            <TranslationEditor
+              apiTarget={targetKind === "api"}
+              available={available}
+              mapping={mapping}
+              onChange={(next) => {
+                setMappings((current) => ({ ...current, [targetKey]: next }));
+                dropResult();
+              }}
+              targetName={targetName}
+              workload={models}
+            />
+          ) : null}
+          {models !== undefined &&
+          targetReady &&
+          (compat?.unserved.length ?? 0) === 0 &&
+          !translationOpen &&
+          models.sources.length > 0 ? (
+            <button
+              type="button"
+              className="min-h-11 self-start text-xs text-muted-foreground underline-offset-4 hover:text-accent hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
+              onClick={() => setTranslationOpen(true)}
+              data-testid="open-translation"
+            >
+              This target runs every observed model. Substitute models anyway…
+            </button>
+          ) : null}
+          {unresolvedEvents > 0 && targetReady ? (
+            <label
+              className="flex max-w-prose items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+              data-testid="exclude-unresolved"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0"
+                checked={excludeUnresolved}
+                onChange={(event) => {
+                  setExcludeUnresolved(event.target.checked);
+                  dropResult();
+                }}
+              />
+              <span>
+                Leave out the {formatCount(unresolvedEvents)} events whose model identity is
+                unresolved. With them in, the engine cannot establish a coverage total or an API
+                cost; without them, the result covers{" "}
+                {formatCount((workload?.summary.eventCount ?? 0) - unresolvedEvents)} of{" "}
+                {formatCount(workload?.summary.eventCount ?? 0)} recorded events and says so.
+              </span>
+            </label>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
@@ -626,12 +796,18 @@ export function ReplaySurface({
               }
               onClick={() => void runReplay()}
             >
-              {phase === "loading" || phase === "replaying" ? "Replaying…" : "Replay this workload"}
+              {phase === "loading" || phase === "replaying"
+                ? "Replaying…"
+                : policy !== undefined
+                  ? "Run translated replay"
+                  : "Replay this workload"}
             </Button>
             <span className="text-xs text-muted-foreground" aria-live="polite">
               {phase === "idle"
                 ? "Nothing is uploaded; replay runs in this browser."
-                : (detail ?? "Working in a background Worker.")}
+                : phase === "done"
+                  ? "Replay completed in this browser."
+                  : (detail ?? "Working in a background Worker.")}
             </span>
           </div>
         </CardContent>
@@ -647,6 +823,26 @@ export function ReplaySurface({
             ) : null}
           </CardContent>
         </Card>
+      ) : null}
+
+      <div ref={resultAnchorRef} className="scroll-mt-40" />
+      {phase === "loading" || phase === "replaying" ? (
+        <section
+          className="grid gap-5 border-y border-accent/50 bg-surface-2 p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]"
+          data-testid="replay-in-progress"
+          aria-label="Replay in progress"
+        >
+          <div>
+            <p className="font-mono text-[11px] tracking-[0.16em] text-accent uppercase">
+              Replay / executing
+            </p>
+            <h2 className="mt-2 text-xl font-medium">Following your workload through the target</h2>
+            <p className="mt-2 text-sm text-muted-foreground" role="status">
+              {detail ?? "Preparing the local replay."}
+            </p>
+          </div>
+          <ReplayPath phase="observed" translated={false} crossingCount={0} />
+        </section>
       ) : null}
 
       {outcome !== undefined ? (
@@ -685,7 +881,14 @@ function WorkloadStrip({
           <div className="min-w-0 max-w-full">
             <h2 className="text-sm font-medium">Your actual workload</h2>
             <p className="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">
-              {workload.label} · {range}
+              {workload.label} · {range} ·{" "}
+              <Link
+                className="text-accent underline underline-offset-4"
+                href={`/app/workload?import=${workload.id}`}
+                data-testid="strip-workload-link"
+              >
+                See how you use AI
+              </Link>
             </p>
           </div>
           {imports.length > 1 ? (
@@ -706,16 +909,33 @@ function WorkloadStrip({
             </label>
           ) : null}
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-6 border-y border-border py-5 sm:grid-cols-4">
           <Metric label="Events" value={formatCount(summary.eventCount)} size="lg" />
-          <Metric label="Known tokens" value={formatCount(summary.tokens.known)} />
-          <Metric label="Sessions" value={formatCount(summary.sessionCount)} />
+          <Metric
+            label="Tokens processed"
+            value={formatTokens(summary.tokens.known) ?? "0"}
+            size="lg"
+            title={`${formatCount(summary.tokens.known)} reported tokens processed, including reused context read from cache`}
+          />
+          <Metric label="Sessions" value={formatCount(summary.sessionCount)} size="lg" />
           <Metric
             label="Unknown usage"
             value={formatCount(summary.tokens.unknownEvents)}
             unit="events"
+            size="lg"
             tone={summary.tokens.unknownEvents > 0 ? "warning" : "default"}
           />
+        </div>
+        <div className="flex flex-wrap justify-between gap-x-5 gap-y-1 text-xs text-muted-foreground">
+          <p>Uncached input: {formatTokens(summary.tokens.buckets.uncachedInputTokens)}</p>
+          <p>Cache writes: {formatTokens(summary.tokens.buckets.cacheWriteTokens)}</p>
+          <p>
+            Reused context read from cache: {formatTokens(summary.tokens.buckets.cacheReadTokens)}
+          </p>
+          <p>Output: {formatTokens(summary.tokens.buckets.outputTokens)}</p>
+          <p className="tabular-nums">
+            Exact known tokens in this workload: {formatCount(summary.tokens.known)}
+          </p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           {summary.usageSources.map((source) => (
@@ -811,12 +1031,18 @@ function ReplayResult({
 }: {
   outcome: ReplayOutcome;
   /** What this result was computed from; may be absent for older callers. */
-  computedFor: { workloadLabel: string; target: string; rulesAsOf: string } | undefined;
+  computedFor:
+    | { workloadLabel: string; workloadId?: string; target: string; rulesAsOf: string }
+    | undefined;
   workload: ImportRecord | undefined;
 }) {
   const { result, timeline, projection } = outcome;
   const apiTarget = projection.target.kind === "api";
   const translated = projection.mode === "translated";
+  const choreography = useReplayChoreography({
+    runKey: `${computedFor?.target ?? projection.target.label}:${computedFor?.rulesAsOf ?? projection.provenance.rulesAsOf}`,
+    translated,
+  });
   /**
    * Each rule's declared behaviour, by constraint id. The timeline classifies a
    * crossing by what its rule declared it does, never by which quantities the
@@ -843,6 +1069,16 @@ function ReplayResult({
     .filter((source) => source.role === "usage" && source.events > 0)
     .map((source) => ({ name: source.name, eventCount: source.events }));
   const targetName = providerFacts?.name ?? shareTarget?.planName ?? projection.target.label;
+  // Models the plan leaves out of its included usage but runs with paid usage
+  // credits: still unavailable to the replayed allowance, but not unusable.
+  const usageCreditModels = new Set(
+    apiTarget || planVersionId === undefined ? [] : bundledUsageCreditModels(planVersionId),
+  );
+  const creditOnly = (entry: { reason: string; canonicalId?: string | undefined }) =>
+    entry.reason === "excluded" &&
+    entry.canonicalId !== undefined &&
+    usageCreditModels.has(entry.canonicalId);
+  const usageCreditEntries = result.unsupportedModels.filter(creditOnly);
 
   return (
     <div className="flex min-w-0 flex-col gap-7" data-testid="replay-result">
@@ -880,7 +1116,41 @@ function ReplayResult({
           </span>
         </div>
 
-        <ResultSettlement projection={projection} settled />
+        <div
+          className="grid gap-5 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]"
+          data-testid="app-replay-instrument"
+          data-phase={choreography.phase}
+        >
+          <div>
+            <ReplayPath
+              phase={choreography.phase}
+              translated={translated}
+              crossingCount={projection.crossings.length}
+            />
+            <p className="sr-only" role="status">
+              {choreography.phase === "settled"
+                ? "Replay result settled"
+                : `Replay ${choreography.phase}`}
+            </p>
+          </div>
+          <ResultSettlement projection={projection} settled={choreography.effects.settled} />
+        </div>
+        <ReplayReading
+          importId={computedFor?.workloadId}
+          projection={projection}
+          scope={outcome.scope}
+          targetName={targetName}
+          usageCredits={
+            usageCreditEntries.length === 0
+              ? undefined
+              : {
+                  events: usageCreditEntries.reduce((total, entry) => total + entry.eventCount, 0),
+                  modelIds: [
+                    ...new Set(usageCreditEntries.flatMap((entry) => entry.canonicalId ?? [])),
+                  ],
+                }
+          }
+        />
         <CoverageDimensions index="01" projection={projection} />
         <p
           className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
@@ -890,129 +1160,226 @@ function ReplayResult({
         </p>
       </section>
 
-      <div className="flex max-w-[80rem] min-w-0 flex-col gap-6">
-        <WorkloadSpecimen active index="02" projection={projection} />
-        <ModelLanes
-          identityActive
-          index="03"
-          projection={projection}
-          translationActive={translated}
-        />
-        <ExecutionStack index="04" projection={projection} targetActive />
-        <ConstraintTrace chronologyActive index="05" projection={projection} />
-        <OutcomeLedger index="06" projection={projection} settled />
-        <EvidenceLedger index="07" projection={projection} />
-        <section className="flex flex-col gap-3 border-t border-border pt-4">
-          <h2 className="text-sm text-foreground" data-testid="cost-heading">
-            Cost on this target
-          </h2>
-          <CostCounterfactual index="08" projection={projection} settled />
-        </section>
-      </div>
-
-      <section
-        className="flex flex-col gap-6 border-t border-border pt-6"
-        data-testid="replay-detail"
+      <details
+        className="max-w-[80rem] min-w-0 border-t border-border pt-4"
+        data-testid="replay-evidence-details"
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-medium">Detail and provenance</h2>
-          <MicroLabel>the same recorded crossings, day by day</MicroLabel>
+        <summary className="min-h-11 cursor-pointer text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+          Inspect execution, constraints, cost, and evidence
+        </summary>
+        <div className="mt-5 flex min-w-0 flex-col gap-6">
+          <WorkloadSpecimen
+            active={choreography.effects.workloadActive}
+            index="02"
+            projection={projection}
+          />
+          <ModelLanes
+            identityActive={choreography.effects.identityActive}
+            index="03"
+            projection={projection}
+            translationActive={choreography.effects.translationActive}
+          />
+          <ExecutionStack
+            index="04"
+            projection={projection}
+            targetActive={choreography.effects.targetActive}
+          />
+          <ConstraintTrace
+            chronologyActive={choreography.effects.chronologyActive}
+            index="05"
+            projection={projection}
+          />
+          <OutcomeLedger
+            index="06"
+            projection={projection}
+            settled={choreography.effects.settled}
+          />
+          <EvidenceLedger index="07" projection={projection} />
+          <section className="flex flex-col gap-3 border-t border-border pt-4">
+            <h2 className="text-sm text-foreground" data-testid="cost-heading">
+              Cost on this target
+            </h2>
+            <CostCounterfactual index="08" projection={projection} settled />
+          </section>
         </div>
+      </details>
 
-        <Card>
-          <CardContent className="flex flex-col gap-5 p-5">
-            <h3 className="text-sm font-medium">
-              {apiTarget ? "Activity over the workload window" : "When this plan would have failed"}
-            </h3>
-            <p className="text-xs text-muted-foreground" data-testid="timeline-note">
-              {apiTarget
-                ? "A Direct API target rejects nothing, so there are no failure windows to shade. The bars show the recorded activity the list prices were applied to."
-                : "Shaded bands are the windows where the target's own rules would have pushed back on this workload."}
-            </p>
-            <ReplayTimeline
-              behaviours={constraintBehaviours}
-              points={timeline}
-              violations={result.violations}
-            />
-          </CardContent>
-        </Card>
+      <details className="border-t border-border pt-4" data-testid="replay-detail">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+          Timeline and provenance
+        </summary>
+        <div className="mt-4 flex flex-col gap-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-medium">Detail and provenance</h2>
+            <MicroLabel>the same recorded crossings, day by day</MicroLabel>
+          </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-medium">Calculation details</h3>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-              <Detail label="Engine" value={projection.provenance.engineVersion} />
-              <Detail label="Methodology" value={projection.provenance.methodologyVersion} />
-              <Detail label="Catalog" value={projection.provenance.catalogVersion.slice(0, 22)} />
-              <Detail label="Rules as of" value={projection.provenance.rulesAsOf} />
-              <Detail
-                label={apiTarget ? "Direct API provider" : "Plan version"}
-                value={projection.target.reference}
-              />
-              <Detail label="Events replayed" value={formatCount(result.workload.eventCount)} />
-            </dl>
-            {result.warnings.length > 0 ? (
-              <div data-testid="replay-warnings">
-                <h3 className="text-xs font-medium text-muted-foreground">Warnings</h3>
-                <ul className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
-                  {result.warnings.map((warning) => (
-                    <li key={warning.code}>
-                      {humanizeWarningMessage(warning.message)}
-                      {warning.eventCount === undefined
-                        ? ""
-                        : ` (${formatCount(warning.eventCount)} events)`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {result.unsupportedModels.length > 0 ? (
-              <div data-testid="unserved-models">
-                <h3 className="text-xs font-medium text-muted-foreground">
-                  Models this target does not serve
-                </h3>
-                <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
-                  {result.unsupportedModels.slice(0, 8).map((model) => (
-                    <li key={model.rawName} className="[overflow-wrap:anywhere]">
-                      {model.rawName} · {formatCount(model.eventCount)} events · {model.reason}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Consumption for these identifiers is left unknown rather than estimated. A name
-                  StackReplay cannot map to the catalog is never guessed at.
-                </p>
-              </div>
-            ) : null}
-            {workload === undefined ? null : (
-              <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
-                Workload stored locally in this browser: {workload.label}. No workload data has left
-                this browser.
+          <Card>
+            <CardContent className="flex flex-col gap-5 p-5">
+              <h3 className="text-sm font-medium">
+                {apiTarget
+                  ? "Activity over the workload window"
+                  : "When this plan would have failed"}
+              </h3>
+              <p className="text-xs text-muted-foreground" data-testid="timeline-note">
+                {apiTarget
+                  ? "A Direct API target rejects nothing, so there are no failure windows to shade. The bars show the recorded activity the list prices were applied to."
+                  : "Shaded bands are the windows where the target's own rules would have pushed back on this workload."}
               </p>
-            )}
-          </div>
+              <ReplayTimeline
+                behaviours={constraintBehaviours}
+                points={timeline}
+                violations={result.violations}
+              />
+            </CardContent>
+          </Card>
 
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-medium">What this result is not</h3>
-            <p
-              className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
-              data-testid="replay-scope"
-            >
-              {projection.provenance.workloadScope}
-            </p>
-            <p
-              className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
-              data-testid="replay-reset-phase"
-            >
-              {projection.provenance.resetPhase}
-            </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium">Calculation details</h3>
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                <Detail label="Engine" value={projection.provenance.engineVersion} />
+                <Detail label="Methodology" value={projection.provenance.methodologyVersion} />
+                <Detail label="Catalog" value={projection.provenance.catalogVersion.slice(0, 22)} />
+                <Detail label="Rules as of" value={projection.provenance.rulesAsOf} />
+                <Detail
+                  label={apiTarget ? "Direct API provider" : "Plan version"}
+                  value={projection.target.reference}
+                />
+                <Detail label="Events replayed" value={formatCount(result.workload.eventCount)} />
+              </dl>
+              {result.warnings.length > 0 ? (
+                <div data-testid="replay-warnings">
+                  <h3 className="text-xs font-medium text-muted-foreground">Warnings</h3>
+                  <ul className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
+                    {result.warnings.map((warning) => (
+                      <li key={warning.code}>
+                        {humanizeWarningMessage(warning.message)}
+                        {warning.eventCount === undefined
+                          ? ""
+                          : ` (${formatCount(warning.eventCount)} events)`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {result.unsupportedModels.length > 0 ? (
+                <div data-testid="unserved-models">
+                  <h3 className="text-xs font-medium text-muted-foreground">
+                    Models this target does not serve
+                  </h3>
+                  <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
+                    {result.unsupportedModels.slice(0, 8).map((model) => (
+                      <li key={model.rawName} className="[overflow-wrap:anywhere]">
+                        {model.rawName} · {formatCount(model.eventCount)} events ·{" "}
+                        {creditOnly(model) ? "usage credits only" : model.reason}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Consumption for these identifiers is left unknown rather than estimated. A name
+                    StackReplay cannot map to the catalog is never guessed at.
+                  </p>
+                </div>
+              ) : null}
+              {workload === undefined ? null : (
+                <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+                  Workload stored locally in this browser: {workload.label}. No workload data has
+                  left this browser.
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium">What this result is not</h3>
+              <p
+                className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+                data-testid="replay-scope"
+              >
+                {projection.provenance.workloadScope}
+              </p>
+              <p
+                className="max-w-prose text-[11px] leading-relaxed text-muted-foreground"
+                data-testid="replay-reset-phase"
+              >
+                {projection.provenance.resetPhase}
+              </p>
+            </div>
           </div>
+          {workload?.summary.models.length ? (
+            <details
+              className="border-t border-border pt-4"
+              data-testid="replay-model-distribution"
+            >
+              <summary className="min-h-11 cursor-pointer text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring">
+                Observed models · {workload.summary.models.length} identities
+              </summary>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Local identifiers and counts are kept with this workload. Unresolved names are never
+                matched by similarity. A model with no rejection here may still encounter a capacity
+                constraint.
+              </p>
+              <div className="mt-4 grid gap-2">
+                {[...workload.summary.models]
+                  .sort((a, b) => b.events - a.events)
+                  .map((model) => {
+                    const unsupported = result.unsupportedModels.find(
+                      (entry) => entry.rawName === model.rawName,
+                    );
+                    const reason = unsupported?.reason;
+                    const availability =
+                      unsupported !== undefined && creditOnly(unsupported)
+                        ? "Usage credits only"
+                        : reason === "unresolved" || reason === "offering_unestablished"
+                          ? "Unknown"
+                          : reason === "not_supported" ||
+                              reason === "not_offered" ||
+                              reason === "excluded"
+                            ? "Unavailable"
+                            : "No model rejection recorded";
+                    const method =
+                      model.basis === "canonical_id"
+                        ? "Exact catalog ID"
+                        : model.basis === "canonical_name"
+                          ? "Catalog name"
+                          : model.basis === "alias"
+                            ? "Documented alias"
+                            : "Unresolved";
+                    return (
+                      <div
+                        key={model.rawName}
+                        className="grid gap-1 border-b border-border py-2 text-xs sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.5fr)] sm:gap-4"
+                      >
+                        <div className="min-w-0 [overflow-wrap:anywhere]">
+                          <span className="font-mono text-foreground">{model.rawName}</span>
+                          <span className="ml-2 tabular-nums text-muted-foreground">
+                            {formatCount(model.events)} events
+                          </span>
+                        </div>
+                        <div className="min-w-0 [overflow-wrap:anywhere] text-muted-foreground">
+                          {model.canonicalId ?? "No canonical identity"} · {method}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {availability}
+                          {reason === undefined ? "" : ` · ${reason.replaceAll("_", " ")}`}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </details>
+          ) : null}
         </div>
-      </section>
+      </details>
 
       {/* The panel is always present: a result that cannot become a link says
           why (a Direct API target has no plan facts a V1 link could carry). */}
       <SharePanel
+        scopeRefusal={
+          outcome.scope !== undefined && outcome.scope.excludedUnresolvedEvents > 0
+            ? "this replay left out events with unresolved model identities, and a link cannot state that scope."
+            : undefined
+        }
         result={result}
         {...(shareTarget === undefined ? {} : { target: shareTarget })}
         {...(attribution === undefined ? {} : { attribution })}

@@ -8,7 +8,7 @@ versions:
       currency: USD
       amount: "99.99"
       interval: month
-    billingMechanics: "The page presents Google AI Ultra with two price points: 'Starting at: $99.99 / month - $99.99 / month: 5x higher usage limits vs."
+    billingMechanics: "Google AI Ultra has a $99.99 per month tier with 5x the AI Pro usage limits. Google also offers a separate $199.99 tier."
     limits: []
     qualitativeLimits:
       - id: gemini-apps-usage-limit-relative-to-google-ai-pr
@@ -35,6 +35,7 @@ versions:
         label: "AI credits for extra usage (Flow, Antigravity, other products)"
         statement: "You can also purchase AI credits with the Google AI Ultra plan, which can be used to extend your usage in Google Flow, Google Antigravity, and other products where AI credits are supported."
         sourceUrl: https://support.google.com/googleone/answer/16286513
+        topic: after_limit
       - id: jules-and-antigravity-limits-relative-unquantifi
         label: "Jules and Antigravity limits (relative, unquantified)"
         statement: "Jules 9 - Highest limits to our asynchronous coding agent for software developers ... Google Antigravity - Ultra 5x: Higher rate limits to agent model in Google Antigravity, our agentic development platform."
@@ -53,17 +54,21 @@ versions:
       - model: gemini-3-flash
         pricingRef: gemini-3-flash-pricing
       - model: gemini-3-flash-lite
+      - model: gemini-3-6-flash
       - model: gemini-3-pro
       - model: nano-banana-pro
     sources:
       - url: https://gemini.google/subscriptions/
         title: "Google official page"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://support.google.com/gemini/answer/16275805
         title: "Google plan documentation (official)"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://support.google.com/googleone/answer/16286513
         title: "Google plan documentation (official)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+      - url: https://gemini.google/us/subscriptions/
+        title: "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)"
+        checkedAt: 2026-09-24
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

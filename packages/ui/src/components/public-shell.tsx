@@ -13,8 +13,6 @@ export interface PublicShellProps {
   logoHeight: number;
   footerLogoWidth: number;
   footerLogoHeight: number;
-  /** Canonical origin, used for the footer's absolute links. */
-  siteUrl: string;
   className?: string;
 }
 
@@ -32,7 +30,6 @@ export function PublicShell({
   logoHeight,
   footerLogoWidth,
   footerLogoHeight,
-  siteUrl,
   className,
 }: PublicShellProps) {
   return (
@@ -98,9 +95,6 @@ export function PublicShell({
                 Local-first workload replay for AI coding subscriptions. Your workload, any stack,
                 replay the difference.
               </p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Cloud history and account features are planned, not available yet.
-              </p>
             </div>
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
               {publicFooterGroups.map((group) => (
@@ -151,12 +145,12 @@ export function PublicShell({
                 Source on GitHub
               </a>
               <span aria-hidden="true"> · </span>
-              <a
-                href={`${siteUrl}/methodology`}
+              <Link
+                href="/methodology"
                 className="underline decoration-border underline-offset-4 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Methodology
-              </a>
+              </Link>
             </p>
           </div>
         </div>

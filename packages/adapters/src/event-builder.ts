@@ -42,6 +42,8 @@ export interface EventDraft {
   sessionId?: string;
   /** Stable native identity of this record inside its session. */
   identity: string;
+  /** Set when the provider's response ID is unique across sessions. */
+  identityScope?: "global";
   occurredAtMs: number;
   rawModel: string;
   usage: TextUsageEventV1["usage"];
@@ -67,6 +69,8 @@ export interface EventContext {
   mapper: ModelMapper;
   /** Harness attribution from an attribution adapter; overrides the source default. */
   attribution?: AttributionIndex;
+  /** Local-only project observer (see `CollectOptions.onProjectKey`). */
+  onProjectKey?: (projectHash: string, normalizedKey: string) => void;
 }
 
 /** Builds the per-call context every adapter passes to buildEvent. */
@@ -76,6 +80,7 @@ export function eventContext(env: SourceEnvironment, options: CollectOptions): E
     salt: options.salt,
     mapper: options.mapper,
     ...(options.attribution !== undefined ? { attribution: options.attribution } : {}),
+    ...(options.onProjectKey !== undefined ? { onProjectKey: options.onProjectKey } : {}),
   };
 }
 
@@ -106,6 +111,7 @@ function encodeIdentityTuple(parts: readonly string[]): string {
  * the tokens of the second vanished from the accounting with no warning.
  */
 function nativeEventIdentity(draft: EventDraft): string {
+  if (draft.identityScope === "global") return encodeIdentityTuple(["global", draft.identity]);
   return draft.sessionId === undefined
     ? encodeIdentityTuple(["nosession", draft.identity])
     : encodeIdentityTuple(["session", draft.sessionId, draft.identity]);
@@ -164,10 +170,9 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     // Normalized through the same function the project-identity tests cover
     // (Windows separators and case, trailing separators), so `~/code/app` and
     // `~/code/app/` hash identically in an export.
-    event.projectHash = projectHash(
-      salt,
-      normalizeProjectKey(draft.projectKey, context.env.platform),
-    );
+    const normalizedKey = normalizeProjectKey(draft.projectKey, context.env.platform);
+    event.projectHash = projectHash(salt, normalizedKey);
+    context.onProjectKey?.(event.projectHash, normalizedKey);
   }
   if (draft.workloadCategory !== undefined) event.workloadCategory = draft.workloadCategory;
   if (draft.requestStartedAtMs !== undefined && Number.isFinite(draft.requestStartedAtMs)) {

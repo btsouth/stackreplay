@@ -137,6 +137,11 @@ export interface ProjectedCrossingV1 {
   excessUnits: string | undefined;
   affectedEvents: number;
   acceptedUnits: string;
+  /**
+   * When, inside the window, attempted demand first passed included capacity:
+   * the engine's own instant, absent for results that did not record it.
+   */
+  exceededAt: string | undefined;
 }
 
 export interface ProjectedConstraintV1 {
@@ -541,12 +546,20 @@ function headlineStatement(
   dimension: ProjectedDimensionV1 | undefined,
   outcomes: readonly ProjectedOutcomeV1[],
   crossings: number,
+  modelMatchQualitative: boolean,
 ): string {
   const countOf = (key: ProjectedOutcomeV1["key"]): number | undefined =>
     outcomes.find((outcome) => outcome.key === key)?.count;
   const parts: string[] = [];
   if (dimension === undefined || dimension.status === "unknown") {
-    parts.push("Request coverage is unknown: the replay could not decide every event.");
+    const knownUnserved = (countOf("blocked") ?? 0) + (countOf("unavailable") ?? 0);
+    parts.push(
+      knownUnserved > 0
+        ? "Full request coverage is ruled out by known unserved demand; the exact share remains unknown."
+        : modelMatchQualitative
+          ? "All observed models are supported. Request capacity remains unknown because the target publishes no numeric allowance to simulate."
+          : "Request coverage is unknown: the replay could not decide every event.",
+    );
   } else if (dimension.covered === undefined || dimension.total === undefined) {
     // A count the engine did not establish is not a zero: "0 of 0 fit" would be
     // a claim about the workload rather than a statement about what is known.
@@ -780,6 +793,7 @@ export function projectReplay(
       excessUnits: violation.overageUnits,
       affectedEvents: violation.affectedEvents,
       acceptedUnits: violation.acceptedUnits,
+      exceededAt: violation.exceededAt,
     };
   });
 
@@ -870,6 +884,17 @@ export function projectReplay(
           "The engine reported a cost that does not cover this workload, so no total is established for it."),
   };
 
+  const knownUnserved = outcomes.some(
+    (outcome) =>
+      (outcome.key === "blocked" || outcome.key === "unavailable") && (outcome.count ?? 0) > 0,
+  );
+  const modelMatchQualitative =
+    result.feasibility.status === "unknown" &&
+    !knownUnserved &&
+    result.coverage.models.status === "known" &&
+    result.coverage.models.percent === 100 &&
+    semantics?.replayability.class === "qualitative";
+
   return {
     target,
     workload,
@@ -893,9 +918,14 @@ export function projectReplay(
     headline: {
       dimension: "requests",
       percent: requests.percent,
-      statement: headlineStatement(requests, outcomes, crossings.length),
+      statement: headlineStatement(requests, outcomes, crossings.length, modelMatchQualitative),
       status: result.feasibility.status,
-      statusLabel: FEASIBILITY_LABELS[result.feasibility.status],
+      statusLabel:
+        result.feasibility.status === "unknown" && knownUnserved
+          ? "Not fully served"
+          : modelMatchQualitative
+            ? "Models supported; capacity unknown"
+            : FEASIBILITY_LABELS[result.feasibility.status],
     },
     dimensions,
     outcomes,

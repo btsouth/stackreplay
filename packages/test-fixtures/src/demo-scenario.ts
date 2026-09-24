@@ -534,7 +534,7 @@ export function buildDemoScenarioExport(options: DemoScenarioOptions = {}): Stac
         workloadCategory: "coding",
         usage,
         confidence: { usage: "exact", model: unmapped ? "unknown" : "exact" },
-        projectHash: `ph_m4d_${PROJECTS > 0 ? (session.projectIndex % PROJECTS).toString(16) : "0"}${hex(random, 14)}`,
+        projectHash: `ph_m4d_${(session.projectIndex % PROJECTS).toString(16).padStart(15, "0")}`,
       });
     }
   }

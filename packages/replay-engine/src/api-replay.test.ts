@@ -33,7 +33,12 @@ const apiTarget = (providerId = "fixture-provider") => ({ type: "api" as const, 
 
 const apiReplay = (
   events: readonly ReturnType<typeof makeEvent>[],
-  options: { catalog?: CatalogV1; providerId?: string; rulesAsOf?: string } = {},
+  options: {
+    catalog?: CatalogV1;
+    providerId?: string;
+    rulesAsOf?: string;
+    rulesAsOfInstant?: string;
+  } = {},
 ): ExecutionReplayResultV1 =>
   replay({
     events,
@@ -42,7 +47,13 @@ const apiReplay = (
     context:
       options.rulesAsOf === undefined
         ? fixtureContext
-        : { ...fixtureContext, rulesAsOf: options.rulesAsOf },
+        : {
+            ...fixtureContext,
+            rulesAsOf: options.rulesAsOf,
+            ...(options.rulesAsOfInstant === undefined
+              ? {}
+              : { rulesAsOfInstant: options.rulesAsOfInstant }),
+          },
   });
 
 /** An event against one API fixture model, with a complete usage record. */
@@ -370,6 +381,33 @@ describe("M4C: the workload determines whether a cost exists at all", () => {
 });
 
 describe("M4C: pricing selection is per model and per pinned instant", () => {
+  it("does not apply an exact price activation before its published UTC instant", () => {
+    const base = apiPricingRecord("fixture-api-small-pricing");
+    const catalog = makeApiFixtureCatalog({
+      pricing: {
+        "fixture-api-small-pricing": {
+          ...base,
+          effectiveFrom: "2026-08-16",
+          effectiveFromInstant: "2026-08-16T16:00:00Z",
+        },
+      },
+    });
+    const event = apiEvent("e1", "fixture-api-small", { uncachedInputTokens: 1_000_000 });
+    for (const [instant, priced] of [
+      ["2026-08-16T15:59:59.999Z", false],
+      ["2026-08-16T16:00:00.000Z", true],
+      ["2026-08-16T16:00:00.001Z", true],
+      ["2026-09-23T12:00:00.000Z", true],
+    ] as const) {
+      const result = apiReplay([event], {
+        catalog,
+        rulesAsOf: instant.slice(0, 10),
+        rulesAsOfInstant: instant,
+      });
+      expect(result.economics?.targetCost.amount !== undefined, instant).toBe(priced);
+    }
+  });
+
   it("uses the model's own record, never another model's and never the first in the catalog", () => {
     // Deliberately declared in an order where the pricing record that must not
     // be used comes first for the model that is priced second.

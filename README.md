@@ -7,14 +7,10 @@
 StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
 answer: **would another AI coding subscription actually handle the way I work?**
 
-> **Status: pre-release.** This project is under active development. Nothing here is a shipped
-> product yet: there are no accounts and no cloud sync; the browser import and replay experience
-> passed an independent M3 audit after the corrections recorded in the implementation status. The
-> versioned schemas, synthetic catalog and subscription replay engine passed an independent M1
-> re-audit after additional corrections; the read-only adapters and CLI passed an independent M2
-> audit after the corrections recorded in the implementation status. The engine is accepted within
-> its documented semantics; the bundled catalog is synthetic and cannot substantiate real-provider
-> comparisons. Exactly what exists, what is verified and what comes next is tracked in
+> **Status: release candidate (RC1).** The browser app scans local Claude Code and Codex history,
+> analyzes the workload, and replays it against a sourced catalog of real plans and Direct API
+> providers, in Exact or user-built Translated mode. There are no accounts and no cloud sync. What
+> exists, what is verified and what is still open is tracked in
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
 ## Why plan comparisons are not enough
@@ -63,16 +59,16 @@ Privacy is a design constraint here, not footer copy. The intended architecture:
 - **Prompts, responses, source code and repository contents are never needed.** The data model is
   built around execution facts: timestamps, models, token categories and costs. It has no field
   for conversation content, and adapters are designed to be read-only.
-- **Local by default.** The planned browser experience parses imported data in the browser and runs
-  replay in a Web Worker; the raw import file never leaves the browser.
+- **Local by default.** The browser app parses imported history in a Web Worker and runs replay
+  there; raw session files never leave the browser. Only the normalized workload is saved, in the
+  browser's own storage.
 - **Cloud sync will be explicit opt-in** (a later milestone) and will store sanitized normalized
   events only, never raw imports.
 - **Project identity is hashed** with a locally generated salt before anything could leave a
   machine.
 
-Current reality: this repository contains the versioned schemas, the synthetic catalog, the
-deterministic replay engine, the design system, the application shell, the local adapters and the
-working CLI. The statements above are architecture intentions;
+Current reality: the local scan, workload analysis, Replay, Compare and stateless share links are
+implemented in the browser, and the CLI detects, scans, exports and replays. Cloud sync is not.
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) tracks exactly what exists today.
 
 ## Project status
@@ -94,13 +90,18 @@ working CLI. The statements above are architecture intentions;
   timeline) is **implemented, and passed an independent M3 audit after the corrections recorded in
   the implementation status**. Imported data never leaves the browser: a browser test records every
   request during import and replay and fails if any body, URL or header carries workload content.
-- Milestone 4E browser intake is implemented locally and pending independent review. The website
-  accepts selected Codex, Claude Code and Command Code JSONL, ccusage JSON, ZIP archives, folders,
-  and existing StackReplay exports. See [workload intake](docs/INGESTION.md) for exact format and
-  privacy boundaries.
-- The bundled catalog includes sourced public facts and separate synthetic demo data. A real
-  workload with an unresolved model identifier remains unmapped. Accounts and cloud sync are not
-  implemented.
+- Milestone 4 (public site, sourced launch catalog, stateless sharing, Direct API Replay, browser
+  intake, Cloudflare Workers deployment) and the RC1 product pass are implemented. The website scans
+  a Claude Code or Codex history folder, or accepts selected Codex, Claude Code and Command Code JSONL,
+  ccusage JSON, ZIP archives and StackReplay exports. See [workload intake](docs/INGESTION.md) for exact format and privacy
+  boundaries.
+- RC1 adds workload analysis (projects, chronology, time of day, pressure windows, models, token and
+  cache composition, sessions and scan evidence), Translated Replay as an explicit user-built
+  scenario, workload-aware Compare, and a homepage that replays an anonymized real workload against
+  real catalog targets.
+- The bundled catalog carries sourced public facts; synthetic `example-` data is kept for tests and
+  demos only. A real workload with an unresolved model identifier stays unmapped. Accounts and
+  cloud sync are not implemented.
 
 `docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
 and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and
@@ -118,8 +119,8 @@ pnpm --filter @stackreplay/cli build
 node apps/cli/dist/bin.js detect                       # what exists locally
 node apps/cli/dist/bin.js scan                         # what the workload looks like
 node apps/cli/dist/bin.js export --out usage.json      # sanitized, versioned export
-node apps/cli/dist/bin.js replay example-cloud-starter --input usage.json --as-of 2026-09-15
-node apps/cli/dist/bin.js replay --target api --provider example-cloud --input usage.json
+node apps/cli/dist/bin.js replay github-copilot-pro-plus --input usage.json
+node apps/cli/dist/bin.js replay --target api --provider openai --input usage.json
 node apps/cli/dist/bin.js plans                        # bundled catalog
 node apps/cli/dist/bin.js plans --providers            # Direct API providers and their list prices
 node apps/cli/dist/bin.js doctor                       # diagnose a missing source

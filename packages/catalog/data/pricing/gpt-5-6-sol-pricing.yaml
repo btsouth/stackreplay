@@ -27,12 +27,12 @@ effectiveFrom: 2026-09-21
 sources:
       - url: https://developers.openai.com/api/docs/pricing
         title: 'GPT-5.6 Sol API list pricing (short-context row). Promotional pricing note: "GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026."'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://developers.openai.com/api/docs/guides/reasoning
         title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://developers.openai.com/api/docs/pricing
         title: 'Long-context rates row: "gpt-5.6-sol | $4.00 | $0.40 | $5.00 | $20.00 | $8.00 | $0.80 | $10.00 | $30.00" (short input | cached input | cache writes | output | long input | long cached | long writes | long output).'
-        checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

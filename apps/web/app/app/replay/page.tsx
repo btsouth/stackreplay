@@ -8,24 +8,26 @@ export const metadata: Metadata = {
 };
 
 /**
- * The replay route accepts an opaque local import id only. Workload content,
- * project hashes, session hashes and file names never appear in a URL.
+ * The replay route accepts an opaque local import id and catalog ids only.
+ * Workload content, project names, session hashes and file names never appear
+ * in a URL.
  */
 export default async function ReplayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string; target?: string }>;
+  searchParams: Promise<{ import?: string; target?: string; api?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
   const target = typeof params.target === "string" ? params.target : undefined;
+  const api = typeof params.api === "string" ? params.api : undefined;
   return (
     <>
       <PageHeader
         title="Replay"
-        description="Your workload, a target plan, and exactly what would have happened."
+        description="Your recorded workload, a target stack, and what would have happened: same models, a cheaper plan, another provider, or the API."
       />
-      <ReplaySurface initialImportId={importId} initialTarget={target} />
+      <ReplaySurface initialApi={api} initialImportId={importId} initialTarget={target} />
     </>
   );
 }

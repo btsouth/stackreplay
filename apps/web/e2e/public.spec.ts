@@ -15,8 +15,8 @@ import { captureRequests, importDemo, runReplay } from "./helpers";
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Your workload. Any stack. Replay the difference." },
-  { path: "/plans", heading: "Catalogued plans" },
+  { path: "/", heading: "Replay before you switch." },
+  { path: "/plans", heading: "Plans" },
   { path: "/models", heading: "Models" },
   { path: "/compare", heading: "Compare plans" },
   { path: "/methodology", heading: "Methodology" },
@@ -87,6 +87,7 @@ test.describe("public site", () => {
     // Either way the card shows its sources and its verification state.
     for (let index = 0; index < count; index += 1) {
       const card = cards.nth(index);
+      await card.getByText("Inspect limits and sources").click();
       await expect(card.getByTestId("source-list")).toBeVisible();
       await expect(card.getByText(/verified|estimated|measured|unknown/u).first()).toBeVisible();
       const numeric = await card.getByTestId("limit-table").count();
@@ -101,6 +102,7 @@ test.describe("public site", () => {
     const count = await page.getByTestId("plan-card").count();
     test.skip(count === 0, "no sourced plan is catalogued in this build");
     await firstPlan.click();
+    await expect(page).toHaveURL(/\/plans\/[^/]+$/u);
     const replayLink = page.getByRole("link", { name: /^Replay against/u });
     await expect(replayLink).toBeVisible();
     const href = await replayLink.getAttribute("href");
@@ -124,8 +126,11 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 390, height: 900 });
     for (const route of ["/models", "/compare", "/plans/github-copilot-business"]) {
       await page.goto(route);
-      await expect(page.getByRole("table").first()).toBeVisible();
-      const outside = await page.locator("table td").evaluateAll((cells) => {
+      const facts = page.locator(
+        "main article, main table td, main [data-testid='compare-target']",
+      );
+      await expect(facts.first()).toBeVisible();
+      const outside = await facts.evaluateAll((cells) => {
         const main = document.querySelector("main");
         if (main === null) return ["missing content rail"];
         const rail = main.getBoundingClientRect();
@@ -149,7 +154,9 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     for (const route of ["/plans", "/compare"]) {
       await page.goto(route);
-      const action = page.getByRole("link", { name: /Load into Replay/u }).first();
+      const action = page
+        .getByRole("link", { name: /Replay (this target|your workload here)/u })
+        .first();
       await expect(action).toBeVisible();
       expect(await action.getAttribute("href")).toMatch(/^\/app\/import\?target=/u);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -157,12 +164,65 @@ test.describe("public site", () => {
       );
     }
     await page.goto("/compare");
-    await expect(page.locator('th[scope="rowgroup"]').first()).toBeVisible();
+    await expect(page.getByTestId("compare-target")).toHaveCount(2);
     await page.goto("/models");
     await expect(page.getByTestId("model-table").getByRole("link").first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+  });
+
+  test("the public compare page speaks plan questions, not catalog vocabulary", async ({
+    page,
+  }) => {
+    await page.goto("/compare");
+    await expect(page.getByTestId("compare-target")).toHaveCount(2);
+    await expect(page.getByTestId("compare-price").first()).toContainText("/ month");
+    await expect(page.getByTestId("compare-row-models")).toContainText("Claude Opus 5.5");
+    await expect(page.getByTestId("compare-row-usage")).toContainText(
+      "Provider does not publish a numeric allowance.",
+    );
+    // The primary rows speak plan questions; catalog vocabulary stays under inspect.
+    for (const row of [
+      "models",
+      "coding-tools",
+      "usage",
+      "simulation",
+      "after-limit",
+      "evidence",
+    ]) {
+      await expect(page.getByTestId(`compare-row-${row}`)).not.toContainText(
+        /documented routes|qualitative/iu,
+      );
+    }
+    await expect(page.getByTestId("compare-with-workload")).toHaveText(
+      "Compare against my workload →",
+    );
+    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/compare");
+    await page.getByText("Inspect constraints and sources").first().click();
+    await expect(
+      page.getByTestId("compare-inspect").first().getByTestId("source-list"),
+    ).toBeVisible();
+  });
+
+  test("the model library leads with releases and keeps family names as identity records", async ({
+    page,
+  }) => {
+    await page.goto("/models");
+    const rows = page.getByTestId("model-row");
+    await expect(rows.first()).toBeVisible();
+    await expect(page.locator("[data-testid='model-row'][data-model-kind='family']")).toHaveCount(
+      0,
+    );
+    await expect(page.getByTestId("model-table")).not.toContainText(/catalogued target plans/u);
+    await page.getByTestId("model-view-identity").click();
+    await expect(page.getByTestId("model-table")).toContainText("Opus");
+    await page.getByLabel("Find a model, family name or exact alias").fill("claude-opus");
+    await expect(page.getByTestId("model-table")).toContainText("Family name");
+    await page.goto("/models/claude-opus");
+    await expect(page.getByTestId("family-explainer")).toBeVisible();
+    await expect(page.getByTestId("family-releases")).toContainText("Claude Opus 5.5");
+    await expect(page.getByRole("heading", { name: "Aliases, routes and identity" })).toBeVisible();
   });
 
   test("public navigation identifies the current section on desktop and mobile", async ({
@@ -205,6 +265,7 @@ test.describe("public site", () => {
     const catalog = page.getByRole("link", { name: "Catalog sources" });
     await expect(catalog).toHaveAttribute("href", "/plans");
     await catalog.click();
+    await page.getByTestId("plan-card").first().getByText("Inspect limits and sources").click();
     await expect(page.getByTestId("plan-card").first().getByTestId("source-list")).toBeVisible();
   });
 });

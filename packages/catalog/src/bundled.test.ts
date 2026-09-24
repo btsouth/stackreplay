@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { BUNDLED_CATALOG_VERSION, bundledPlansAt, loadBundledCatalog } from "./bundled.js";
+import {
+  BUNDLED_CATALOG_VERSION,
+  bundledApiProviderModels,
+  bundledPlansAt,
+  bundledPublicApiProviders,
+  directApiProviderIdsFor,
+  loadBundledCatalog,
+} from "./bundled.js";
 import { defaultCatalogDataDirectory, loadCatalogFromDirectory } from "./load.js";
 
 /**
@@ -27,5 +34,30 @@ describe("bundled catalog snapshot", () => {
 
   it("is deterministic and cached", () => {
     expect(loadBundledCatalog()).toBe(loadBundledCatalog());
+  });
+
+  it("offers only audited Direct API providers as public API targets", () => {
+    expect(bundledPublicApiProviders("2026-09-23").map((provider) => provider.id)).toEqual([
+      "anthropic",
+      "deepseek",
+      "example-cloud",
+      "example-open",
+      "google",
+      "openai",
+      "z-ai",
+      "x-ai",
+    ]);
+  });
+});
+
+describe("Direct API offering", () => {
+  it("offers and prices Claude Sonnet 5 on the Anthropic API", () => {
+    const models = bundledApiProviderModels("anthropic", "2026-09-23");
+    expect(models.find((model) => model.id === "claude-sonnet-5")).toMatchObject({
+      name: "Claude Sonnet 5",
+      available: true,
+      priced: true,
+    });
+    expect(directApiProviderIdsFor(loadBundledCatalog(), "claude-sonnet-5")).toEqual(["anthropic"]);
   });
 });

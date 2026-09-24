@@ -11,11 +11,13 @@ import {
   protocolMismatch,
   type ReplayPhase,
   type SafeError,
+  type ScanProgress,
   type TimelinePoint,
   WORKER_PROTOCOL_VERSION,
   type WorkerRequest,
   type WorkerResponse,
 } from "./worker-protocol";
+import type { WindowFact, WorkloadProfile } from "./workload-profile";
 
 /** What a completed replay returns: the result plus aggregate timeline buckets. */
 export interface ReplayOutcome {
@@ -23,6 +25,8 @@ export interface ReplayOutcome {
   timeline: TimelinePoint[];
   /** The display contract for the same result (M4D). */
   projection: ProjectedReplayV1;
+  /** Present when the replay ran under an explicit, user-chosen scope. */
+  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
 }
 
 /**
@@ -53,7 +57,11 @@ export class WorkerFailure extends Error {
   }
 }
 
-type ProgressHandler = (phase: ImportPhase | ReplayPhase, detail?: string) => void;
+type ProgressHandler = (
+  phase: ImportPhase | ReplayPhase,
+  detail?: string,
+  scan?: ScanProgress,
+) => void;
 
 /**
  * A request's channel. Supersession is decided per channel: a newer import must
@@ -62,7 +70,7 @@ type ProgressHandler = (phase: ImportPhase | ReplayPhase, detail?: string) => vo
  * start with IMPORT", which is true of the list response `IMPORTS` as well, so a
  * perfectly valid listing was dropped whenever an import was running.
  */
-type Channel = "import" | "replay" | "list" | "mutation";
+type Channel = "import" | "replay" | "list" | "mutation" | "analyze" | "inspect";
 
 interface Pending {
   resolve: (response: WorkerResponse) => void;
@@ -87,6 +95,8 @@ const IDLE_TIMEOUT_MS: Record<Channel, number> = {
   replay: 300_000,
   list: 60_000,
   mutation: 900_000,
+  analyze: 300_000,
+  inspect: 120_000,
 };
 
 export class ReplayWorkerClient {
@@ -221,7 +231,7 @@ export class ReplayWorkerClient {
     if (response.type === "PROGRESS") {
       if (stale) return;
       this.armIdleTimer(response.requestId, entry);
-      entry.onProgress?.(response.phase, response.detail);
+      entry.onProgress?.(response.phase, response.detail, response.scan);
       return;
     }
 
@@ -278,7 +288,13 @@ export class ReplayWorkerClient {
     const worker = this.ensureWorker();
     const requestId = this.nextRequestId;
     this.nextRequestId += 1;
-    if (channel === "import" || channel === "replay" || channel === "list") {
+    if (
+      channel === "import" ||
+      channel === "replay" ||
+      channel === "list" ||
+      channel === "analyze" ||
+      channel === "inspect"
+    ) {
       this.latestByChannel[channel] = requestId;
     }
     const request = build(requestId);
@@ -402,6 +418,7 @@ export class ReplayWorkerClient {
     target: ExecutionTargetV1,
     rulesAsOf: string,
     onProgress?: ProgressHandler,
+    options: { excludeUnresolved?: boolean } = {},
   ): Promise<ReplayOutcome> {
     const response = await this.send(
       (requestId) => ({
@@ -411,6 +428,7 @@ export class ReplayWorkerClient {
         importId,
         target,
         rulesAsOf,
+        ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
       }),
       onProgress,
       "replay",
@@ -420,7 +438,49 @@ export class ReplayWorkerClient {
       result: response.result,
       timeline: response.timeline,
       projection: response.projection,
+      ...(response.scope === undefined ? {} : { scope: response.scope }),
     };
+  }
+
+  /** The workload profile, computed locally in the Worker from the stored events. */
+  async analyzeWorkload(importId: string, timeZone: string): Promise<WorkloadProfile> {
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "ANALYZE_WORKLOAD",
+        requestId,
+        importId,
+        timeZone,
+      }),
+      undefined,
+      "analyze",
+    );
+    if (response.type !== "PROFILE_OK") throw new Error("unexpected worker response");
+    return response.profile;
+  }
+
+  /** What recorded demand fell inside one window, [startMs, endMs). */
+  async inspectWindow(
+    importId: string,
+    startMs: number,
+    endMs: number,
+    timeZone: string,
+  ): Promise<WindowFact> {
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "INSPECT_WINDOW",
+        requestId,
+        importId,
+        startMs,
+        endMs,
+        timeZone,
+      }),
+      undefined,
+      "inspect",
+    );
+    if (response.type !== "WINDOW_OK") throw new Error("unexpected worker response");
+    return response.window;
   }
 
   async listImports(): Promise<ImportRecord[]> {

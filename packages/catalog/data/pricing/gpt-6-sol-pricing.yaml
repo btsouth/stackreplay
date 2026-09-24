@@ -1,0 +1,35 @@
+id: gpt-6-sol-pricing
+role: pricing
+modelId: gpt-6-sol
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: "2.00"
+  output: "10.00"
+  cacheRead: "0.20"
+  cacheWrite: "2.50"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens; higher rates apply to the full request"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "4.00"
+      output: "15.00"
+      cacheRead: "0.40"
+      cacheWrite: "5.00"
+      reasoning:
+        billedAs: output
+effectiveFrom: 2026-09-22
+sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: "GPT-6 Sol standard short and long context API list prices"
+    checkedAt: 2026-09-23
+  - url: https://developers.openai.com/api/docs/models/gpt-6-sol
+    title: "Long context threshold and reasoning behavior"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
+verificationStatus: verified

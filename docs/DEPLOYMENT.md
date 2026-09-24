@@ -93,8 +93,10 @@ two build variables keep the hosted toolchain aligned with this repository.
 Running `pnpm install --frozen-lockfile` from `apps/web` locally resolves all
 12 workspace projects and the root lockfile.
 The repository's Wrangler config is checked in; it adds only the Workers static
-asset binding and Node compatibility flag. The vinext build generates
-`dist/server/wrangler.json`, which the preview and deploy commands consume.
+asset binding, the Node compatibility flag, and an empty `previews` block, which
+`wrangler preview` requires before it will build a non-production branch. The
+vinext build generates `dist/server/wrangler.json`, which the preview and deploy
+commands consume.
 No output directory needs to be entered in the dashboard.
 
 Keep build watch paths at their default until the first deployment succeeds:

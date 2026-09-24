@@ -8,7 +8,7 @@ versions:
       currency: USD
       amount: "199.99"
       interval: month
-    billingMechanics: "Second official price point for Google AI Ultra: '$199.99 / month: 20x higher usage limits vs."
+    billingMechanics: "Google AI Ultra has a $199.99 per month tier with 20x the AI Pro usage limits."
     limits: []
     qualitativeLimits:
       - id: gemini-apps-usage-limit-relative-to-google-ai-pr
@@ -35,6 +35,7 @@ versions:
         label: "AI credits for extra usage"
         statement: "If you reach your plan's limit, Google AI Pro and Google AI Ultra members can purchase AI credits to get extra usage in Google Flow and Google Antigravity."
         sourceUrl: https://support.google.com/googleone/answer/16286513
+        topic: after_limit
       - id: what-the-provider-does-not-publish
         label: "What the provider does not publish"
         statement: "Google does not publish absolute quotas for either Ultra tier; the tiers differ only by the relative multiple (5x vs 20x of AI Pro). Google does not label these tiers with distinct product names on the pricing page beyond the price and multiple."
@@ -49,17 +50,21 @@ versions:
       - model: gemini-3-flash
         pricingRef: gemini-3-flash-pricing
       - model: gemini-3-flash-lite
+      - model: gemini-3-6-flash
       - model: gemini-3-pro
       - model: nano-banana-pro
     sources:
       - url: https://gemini.google/subscriptions/
         title: "Google official page"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://support.google.com/googleone/answer/16286513
         title: "Google plan documentation (official)"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://support.google.com/gemini/answer/16275805
         title: "Google plan documentation (official)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+      - url: https://gemini.google/us/subscriptions/
+        title: "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)"
+        checkedAt: 2026-09-24
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

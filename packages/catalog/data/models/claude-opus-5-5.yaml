@@ -1,0 +1,27 @@
+id: claude-opus-5-5
+role: model
+name: "Claude Opus 5.5"
+familyId: claude-opus
+lifecycle: current
+developerId: anthropic
+providerIds:
+  - anthropic
+aliases:
+  - id: claude-opus-5-5-api-id
+    alias: "claude-opus-5-5"
+    kind: provider_id
+    sources:
+      - url: https://platform.claude.com/docs/en/models/opus-5-5/overview
+        title: "Claude Opus 5.5 model ID, 1M context, and API availability"
+        checkedAt: 2026-09-24
+    lastVerifiedAt: 2026-09-24
+    verificationStatus: verified
+sources:
+  - url: https://platform.claude.com/docs/en/models/opus-5-5/overview
+    title: "Claude Opus 5.5 model specifications and availability"
+    checkedAt: 2026-09-24
+  - url: https://platform.claude.com/docs/en/models/overview
+    title: "Anthropic models overview: Claude Opus 5.5 in the current lineup, Claude API ID `claude-opus-5-5`"
+    checkedAt: 2026-09-24
+lastVerifiedAt: 2026-09-24
+verificationStatus: verified

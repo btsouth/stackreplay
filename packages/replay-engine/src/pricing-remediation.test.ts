@@ -1,4 +1,5 @@
 import type { PricingRateSetV1, PricingV1 } from "@stackreplay/catalog";
+import { loadDefaultCatalog } from "@stackreplay/catalog/load";
 import { describe, expect, it } from "vitest";
 import { replay } from "./engine.js";
 import {
@@ -310,6 +311,64 @@ describe("pricing remediation: conditional rate tiers", () => {
       inputTokens: 1_000,
     });
     expect(selection.tierId).toBe("weekday-peak");
+  });
+
+  it("keeps the published weekday schedule on holidays; no holiday discount is documented", () => {
+    const cases: Array<[string, boolean]> = [
+      ["2026-09-24T00:59:59.999Z", false],
+      ["2026-09-24T01:00:00.000Z", true],
+      ["2026-09-24T09:59:59.999Z", true],
+      ["2026-09-24T10:00:00.000Z", false],
+      ["2026-09-25T00:59:59.999Z", false],
+      ["2026-09-25T01:00:00.000Z", true],
+      ["2026-09-25T09:59:59.999Z", true],
+      ["2026-09-28T00:59:59.999Z", false],
+      ["2026-09-28T01:00:00.000Z", true],
+      ["2026-09-30T07:00:00.000Z", true],
+      ["2026-10-01T07:00:00.000Z", true],
+      ["2026-10-07T07:00:00.000Z", true],
+      ["2026-10-08T07:00:00.000Z", true],
+      ["2026-09-23T07:00:00.000Z", true],
+    ];
+    for (const [instant, peak] of cases) {
+      const selected = selectRateSet(scheduled, {
+        atMs: epochMsFromIso(instant),
+        inputTokens: 1_000,
+      });
+      expect(selected.tierId, instant).toBe(peak ? "weekday-peak" : undefined);
+    }
+    // Beijing's local calendar date is Sep 25 at this instant. UTC is still
+    // Sep 24, but outside both peak windows; no machine-local timezone applies.
+    expect(
+      selectRateSet(scheduled, {
+        atMs: epochMsFromIso("2026-09-24T16:00:00.000Z"),
+        inputTokens: 1_000,
+      }).tierId,
+    ).toBeUndefined();
+  });
+
+  it("charges the current DeepSeek catalog weekday rate on a holiday date", () => {
+    const catalog = loadDefaultCatalog();
+    for (const [modelId, peakCost, offPeakCost] of [
+      ["deepseek-v4-1-flash", "0.3", "0.15"],
+      ["deepseek-v4-pro", "1.32", "0.66"],
+    ] as const) {
+      const pricing = Object.values(catalog.pricing).find((row) => row.modelId === modelId);
+      expect(pricing, modelId).toBeDefined();
+      const usage = completeUsage({ uncachedInputTokens: 1_000_000 });
+      expect(
+        moneyUnitsForUsage(usage, pricing, {
+          atMs: epochMsFromIso("2026-09-25T07:00:00Z"),
+        }).units.toString(),
+        modelId,
+      ).toBe(peakCost);
+      expect(
+        moneyUnitsForUsage(usage, pricing, {
+          atMs: epochMsFromIso("2026-09-25T10:00:00Z"),
+        }).units.toString(),
+        modelId,
+      ).toBe(offPeakCost);
+    }
   });
 
   it("8. an engine replay consumes credits at the scheduled rates", () => {

@@ -12,6 +12,6 @@ effectiveFrom: 2026-09-21
 sources:
       - url: https://docs.z.ai/guides/overview/pricing
         title: 'Z.ai API list pricing (Model row for glm-5-3-flash); no cache-write rate and no reasoning-token billing relationship is published.'
-        checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

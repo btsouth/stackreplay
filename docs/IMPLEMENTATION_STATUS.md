@@ -2,7 +2,63 @@
 
 ## Current milestone
 
-### Milestone 4H-C1 — selective historical LimitWatch review (working tree)
+### RC1 — release candidate
+
+RC1 consolidates Milestone 4I, the launch polish pass, the final launch audit and the folder-intake
+fix into one release candidate. Beyond 4I (below):
+
+- The homepage Replay Instrument replays an anonymized real workload against real catalog targets
+  (decision 51). The synthetic `example-` namespace no longer appears on public pages.
+- Model records state their kind, lifecycle and developer (decision 52). The public model library
+  leads with current releases; family names and legacy releases have their own views.
+- A local scan is drawn as an instrument over real running totals (decision 53). Every source card
+  opens the `webkitdirectory` folder chooser, which follows a symlinked `~/.claude/projects`; the
+  cost is that a folder is chosen again for each scan.
+- Claude Pro lists the current Opus, Sonnet and Haiku releases its plan page names, and Fable 5 and
+  5.1 as usage credits only (decision 54). Google AI Pro and Ultra list Gemini 3.6 Flash.
+- The final audit added Compare to app navigation, gave the 404 the public shell, rewrote stale
+  Methodology passages, relabelled the $100 ChatGPT Pro tier as Pro 5x, and fixed truncated plan
+  billing text.
+
+RC1 verification on the final tree (2026-09-24, local):
+
+| Gate | Result |
+| --- | --- |
+| Unit tests | 871 passed: schema 71, share 37, UI 15, catalog 112, adapters 173, Replay engine 272, web 155, CLI 36 |
+| Typecheck, Biome, contrast | Passed (Biome reports 8 existing informational suggestions) |
+| Catalog bundle and demo artifact | Regenerated from the final catalog; the demo artifact test matches |
+| Next production build and Workers/Vinext build | Passed |
+| Playwright desktop and mobile | 296 passed, 32 skipped by design (project-specific and opt-in cases), 0 failed |
+| Opt-in 100k-event import | Passed: 69.6 MB, import 1.9 s, replay 2.8 s, every event replayed |
+
+Still open: the owner's physical acceptance in a desktop Chromium browser (real Claude Code and
+Codex folders, a large history, permission denial and recovery, and a keyboard and screen-reader
+pass). Browser automation does not stand in for those checks.
+
+### Milestone 4I — workload intelligence and translated Replay
+
+The product loop is now SCAN → UNDERSTAND → REPLAY → COMPARE. `/app/workload` shows a scanned
+workload on its own terms: opening totals with identity and usage quality, deterministic insights,
+a daily demand chronology, a weekday × hour rhythm in the viewer's timezone, peak 1h/3h/5h/day/week
+windows (the engine's own anchored rolling and calendar slicers) with inspectable contents, projects
+with a local drilldown, canonical model mix with unresolved identities kept apart, token composition,
+session shape, and demoted scan evidence. Project names are local labels captured during the scan
+(decision 47) and never enter an export, share link, URL or request.
+
+Replay detects when a target does not run the recorded models and offers a user-built translated
+scenario (decision 48). An explicit resolved-only scope prices or bounds what the engine can
+establish without inventing a partial subtotal (decision 49), and every crossing now records when
+the allowance ran out (decision 50). Results are read dimension by dimension: routing, capacity,
+historical pressure, cost, usage assumption, and evidence. `/app/compare` replays the stored
+workload against up to four targets side by side with no ranking. The local-record warning
+allowlist now covers `RECORD_DUPLICATE`; before this, Claude scans with repeated response rows could
+not be saved and the error reported full storage. Pre-launch remediation: a file the browser cannot read to the
+end is reported as `unreadable` (never "malformed"), with a partial-scan notice and Rescan beside the
+totals; scans are saved in this browser by default, and a refused save keeps the scan for the session
+with a visible notice; `claude-sonnet-5` is offered on the Anthropic API per Anthropic's model pages;
+"Rules as of" starts on the viewer's calendar date.
+
+### Milestone 4H-C1 — selective historical LimitWatch review
 
 Eleven historical research candidates and seven real, narrowly scoped source entries now sit under
 `data/catalog-intelligence/m4h-c1`, with a deterministic manifest and [review dossier](M4H_C1_REVIEW.md).
@@ -11,7 +67,7 @@ date, identity, or archival-authority findings. No accepted provider, plan, mode
 constraint, alias, availability, Replay target, public page, or changelog was changed. Real-candidate
 tests exercise serialization, traceability, validation, source authority, dates, accepted-loader
 isolation, and unchanged Replay output. The independent historical audit's source and traceability
-corrections are applied; one targeted closure review remains. M4H-C1 remains uncommitted.
+corrections are applied. M4H-C1 was committed in `f1a0dde`.
 
 ### Milestone 4H-B — catalog intelligence evidence contract (locked baseline)
 

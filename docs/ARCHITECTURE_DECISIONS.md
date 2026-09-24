@@ -939,3 +939,47 @@ Explicitly deferred. Do not implement, guess, or resolve these before their mile
 - `@stackreplay/catalog/intelligence` is a separate export. Accepted catalog loaders enumerate only provider, model, plan, and pricing YAML, and the bundled snapshot contains only accepted catalog data. Candidate status, including `accepted`, is review metadata and has no automatic path into those loaders, Replay, public pages, target selection, or the changelog.
 - A registered source names which claim kinds and evidence classes it may support. Provider-owned published statements, empirical observations, archives, and community material are distinct. Extractor provenance never upgrades evidence authority. Missing normalized fields and effective dates stay missing, with specific deterministic findings.
 - Candidate identity hashes the versioned semantic artifact: source ID and URL, publication date, snapshots, typed claim/value, previous accepted reference, proposed effective date and evidence, evidence class, short evidence, and extraction method. Review decisions and repeated observation time do not change identity. Candidate calendar windows preserve an unknown timezone rather than inheriting the accepted catalog's UTC default. Snapshot storage, watching, historical evidence review, and explicit reviewed catalog edits are later work.
+
+## 47. The workload is understood before it is replayed (M4I product correction)
+
+- The imported workload has standalone value. `apps/web/lib/workload-profile.ts` derives a profile from the normalized events only, never by rescanning source files: chronology, weekday × hour rhythm, peak windows, projects, canonical model mix, token composition, sessions and a few deterministic insights. There is no score. Every figure is a count, sum, median or maximum, and every insight is a direct reading of one of them.
+- Token magnitude is the engine's disjoint-bucket total (`tokenAccountingOf`). An event with incomplete categories counts as an event and as unknown usage, never toward a token total.
+- Peak rolling windows use the engine's own `sliceRollingWindows` (anchored at first use), exported for this purpose, so a "peak five hours" is the window a five-hour limit would have seen. Days and weeks use `sliceCalendarWindows` in the viewer's IANA timezone, which the profile names. Clock positions are read in that timezone, not in UTC.
+- Project labels are local display data. The browser intake observes each salted project hash together with its raw key (`CollectOptions.onProjectKey`), keeps only a path-free basename label (parent folder appended with ` · ` on a collision), and stores it on the local import record. The label never enters the portable export, a share link, a URL or a request. A workload loaded from a portable file has numbered projects and says why.
+
+## 48. Translated Replay is a user-built scenario, reached from the exact dead end (M4I)
+
+- When a target does not run the recorded models, the Replay surface says so before running and offers to configure a translated replay. Rows are canonical source models (aliases grouped). Options are only the models the selected target runs: a plan's non-excluded model rules, or the models a Direct API provider is recorded as offering, with unpriced ones marked. Nothing is pre-mapped, ranked or called equivalent. "Send every unavailable model to" is a user-chosen convenience, not a default.
+- The resulting `ModelTranslationPolicyV1` has provenance `user` and the `token-preserving` transform. Every surface states that target models are scenario substitutions and that recorded usage magnitude is preserved while actual target-model token use could differ. Chronology, sessions and bursts are replayed as recorded. A translated result still cannot become a V1 share link.
+- Unresolved identifiers cannot be mapped, because a policy names canonical models only. They stay unknown.
+
+## 49. An explicit resolved-only scope, never a partial subtotal (M4I)
+
+- Decision 44's rule stands: the engine publishes no Direct API total for a workload with events it cannot price, and no coverage total with undecidable events. The person may instead choose to leave out the events whose model identity is unresolved (`splitByIdentity`, the engine's own identity rule). The engine then replays a smaller workload that is complete on its own terms. The result states the scope and the excluded count, and the share panel refuses a link because V1 cannot state that scope.
+
+## 50. A crossing records when the allowance ran out (M4I)
+
+- `ReplayViolationV1.exceededAt` (optional, additive) is the instant of the first event whose attempted demand took the window past its included capacity. It is evaluated with the same comparison that later records the violation. It turns "this month crossed" into the day and time the included allowance ran out, which is the timing answer a monthly total cannot give. Share snapshots continue to copy violation fields explicitly with date-only precision, so the instant does not enter a link.
+
+## 51. The homepage replays an anonymized real workload against real targets (launch polish)
+
+- The public hero no longer uses the synthetic `example-` namespace. `apps/web/scripts/build-hero-fixture.mjs` replays a portable export of a real local history (the owner's Codex sessions, Aug 21 to Sep 23 UTC) with the production engine against real catalog targets and writes `apps/web/lib/generated/hero-workload.json`. The export itself never enters the repository.
+- The fixture keeps aggregates only: counts, UTC calendar-day totals, canonical model names and the engine's own result figures. Session, project and event hashes, raw model spellings, paths and anything finer than a day are dropped; the generator refuses to write a file that still carries one, and `hero-workload.test.ts` checks the committed file the same way. It is labelled "Anonymized real workload" and never presented as the visitor's own history.
+- Every target uses the explicit resolved-only scope (decision 49), so each result is complete on its own terms, and the page states how many events with unrecognized model IDs were left out. The Claude target is a translated replay with a built-in, stated scenario policy. The test checks each target's plan version, price and allowance against the catalog at the fixture's rules date, so a catalog change that makes the fixture stale fails the build.
+- The hero draws; it never computes. Its choreography is finite (about 1.9 s), reruns on every target change, waits until the execution object is on screen, and renders the settled state at once under reduced motion.
+
+## 52. Model records say what kind of record they are (launch polish)
+
+- `modelV1Schema` gains optional `kind` (`release` or `family`; absent means release), `familyId`, `lifecycle` (`current` or `legacy`; absent means not recorded, never shown as current) and `developerId`. The developer is a separate fact from `providerIds`, which remain the routes where a model is available; the developer is never inferred from the first route.
+- Family records (the Claude Code aliases `opus`, `sonnet`, `haiku`, `fable`) stay resolvable and stay referenced by plan rules exactly as before. Identity resolution and replay results are unchanged. The public model library leads with current releases; legacy releases and family names have their own views and remain searchable.
+
+## 53. A local scan is drawn as an instrument over real running totals (launch polish)
+
+- `BrowserIntakeProgress` adds content-free running totals: events per catalog model id, the project count, and the three busiest projects by local label. The Worker forwards them in `PROGRESS.scan`, with catalog display names. Labels are the same path-free local labels as decision 47 and never leave the browser.
+- The scan instrument shows only these totals and files read over files selected, the one real fraction a scan has. There is no invented percentage. Portable-file and demo imports report stages only and show no readings.
+- Every source card opens the `webkitdirectory` folder chooser, and the page says before it opens that the browser may call it an upload although the files are read locally. An earlier build used Chromium's directory-access picker for its "view files" wording and remembered handles, but Chromium treats a symlink as nonexistent even after the user selects it, so a linked `~/.claude/projects` failed with `NotFoundError` every time. The chooser follows links and works in every browser. The cost is that a folder cannot stay connected: a newer scan means choosing the folder again. Clearing local data still deletes the handle database an earlier build may have written.
+
+## 54. Paid access outside the included usage is recorded, not inferred (RC1)
+
+- `modelRuleV1Schema` gains optional `access: "usage_credits"`, valid only on an excluded rule. It records that the provider lets subscribers run the model by paying with usage credits even though the plan's included usage does not cover it. Claude Pro's Fable 5 and 5.1 are the case: Anthropic's plan help says they are outside Pro's usage limits and available with usage credits.
+- Replay is unchanged. The model is still excluded from the replayed allowance, so its events stay unavailable and are never priced as overage. Plan facts, public Compare and the Replay reading say "usage credits only" and name the paid route instead of implying the model cannot be used.

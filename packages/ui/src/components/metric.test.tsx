@@ -11,10 +11,10 @@ describe("Metric", () => {
     expect(screen.getByText("Last 30 days")).toBeInTheDocument();
   });
 
-  it("uses tabular monospace figures for the value", () => {
+  it("uses legible tabular figures for the value", () => {
     render(<Metric label="Coverage" value="98.7%" />);
     const value = screen.getByText("98.7%");
-    expect(value.className).toContain("font-mono");
+    expect(value.className).toContain("font-sans");
     expect(value.className).toContain("tabular-nums");
   });
 

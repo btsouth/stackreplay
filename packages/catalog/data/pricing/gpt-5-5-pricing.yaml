@@ -29,15 +29,15 @@ effectiveFrom: 2026-09-21
 sources:
       - url: https://developers.openai.com/api/docs/pricing
         title: 'GPT-5.5 API list pricing (row "gpt-5.5 (<272K context length)").'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://developers.openai.com/api/docs/models/gpt-5.5
         title: 'Long-context relationship: "For GPT-5.5, prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex."'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://developers.openai.com/api/docs/guides/reasoning
         title: 'Thinking-token billing relationship: "While reasoning tokens are not visible via the API, they still occupy space in the model''s context window and are billed as output tokens."'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://developers.openai.com/api/docs/guides/prompt-caching
         title: 'Cache-write billing relationship: "Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate." Earlier models: "No additional cache-write charge".'
-        checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

@@ -28,7 +28,7 @@
     "data"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

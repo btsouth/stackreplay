@@ -112,6 +112,39 @@ describe("event builder: native event identity", () => {
     expect(otherAdapter.id).not.toBe(first.id);
   });
 
+  it("recognizes a provider response copied into another session", () => {
+    const first = buildEvent(
+      draft({
+        adapterId: "claude-code",
+        sessionId: "s1",
+        identity: "msg-1\u0000req-1",
+        identityScope: "global",
+      }),
+      context,
+    );
+    const copied = buildEvent(
+      draft({
+        adapterId: "claude-code",
+        sessionId: "s2",
+        identity: "msg-1\u0000req-1",
+        identityScope: "global",
+      }),
+      context,
+    );
+    const nextRequest = buildEvent(
+      draft({
+        adapterId: "claude-code",
+        sessionId: "s2",
+        identity: "msg-1\u0000req-2",
+        identityScope: "global",
+      }),
+      context,
+    );
+    expect(copied.id).toBe(first.id);
+    expect(copied.source.nativeSessionHash).not.toBe(first.source.nativeSessionHash);
+    expect(nextRequest.id).not.toBe(first.id);
+  });
+
   it("carries harness and model attribution without inventing either", () => {
     const event = buildEvent(
       draft({ adapterId: "hermes", sessionId: "s1", harnessId: HARNESS_IDS.hermes }),

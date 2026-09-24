@@ -8,5 +8,8 @@
     "directory": "dist/client",
     "not_found_handling": "none",
     "binding": "ASSETS"
-  }
+  },
+  // Required by `wrangler preview`, which Workers Builds runs for non-production
+  // branches. Empty: a preview needs no settings beyond the top level.
+  "previews": {}
 }

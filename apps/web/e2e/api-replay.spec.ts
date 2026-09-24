@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { importDemo, openReplayDetails } from "./helpers";
 
 /**
  * Direct API target (M4C): the same workload priced at a provider's published
@@ -75,10 +75,21 @@ test("explains an unpriced provider instead of inventing a cost", async ({ page 
   await expect(page.getByTestId("provider-unpriced-note")).toBeVisible();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await openReplayDetails(page);
   await expect(page.getByTestId("api-no-constraints")).toBeVisible();
   // An unpriced provider produces an explicit indeterminacy, never a zero.
   await expect(page.getByTestId("api-total")).toHaveText(/not determinable/);
   await expect(page.getByTestId("cost-counterfactual")).not.toContainText(/\$\d/u);
+});
+
+test("keeps subscription billing platforms out of Direct API targets", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+  await page.getByTestId("target-kind-api").click();
+  await expect(page.getByTestId("provider-deepseek")).toBeVisible();
+  await expect(page.getByTestId("provider-example-cloud")).toBeVisible();
+  await expect(page.getByTestId("provider-github")).toHaveCount(0);
+  await expect(page.getByTestId("provider-cursor")).toHaveCount(0);
 });
 
 test("refuses to share a Direct API result", async ({ page }) => {
@@ -99,4 +110,5 @@ async function runApiReplay(page: Page, providerId: string, rulesAsOf = "2026-09
   await page.getByTestId(`provider-${providerId}`).click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await openReplayDetails(page);
 }
