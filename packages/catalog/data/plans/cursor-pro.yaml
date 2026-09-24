@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Monthly price $20/mo; yearly view shows $16/mo with the banner 'Save 20% with yearly billing' (read from the live Monthly/Yearly toggle on 2026-09-21)."
     limits: []
     qualitativeLimits:
+      - id: grok-route-pricing-unknown
+        label: "Grok 4.7 route pricing depends on speed and context"
+        statement: "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate."
+        sourceUrl: https://cursor.com/docs/models/grok-4-7
       - id: cursor-models-pool-included-usage-unquantified
         label: "Cursor Models pool (included usage, unquantified)"
         statement: "Cursor Models : Significantly more included usage for Grok 4.7, Grok 4.6, Grok 4.5, and Composer 2.5."
@@ -23,6 +27,7 @@ versions:
         label: "What happens when included monthly usage is exceeded"
         statement: "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage. On-demand usage is billed monthly at the same rates. Requests are never downgraded in quality or speed."
         sourceUrl: https://cursor.com/docs/account/pricing
+        topic: after_limit
       - id: agent-limits-extended-vs-hobby-unquantified
         label: "Agent limits (extended vs Hobby, unquantified)"
         statement: "Everything in Hobby, plus: Extended limits on Agent / Generous limits for Grok"
@@ -41,13 +46,15 @@ versions:
         sourceUrl: https://cursor.com/pricing
       - id: model-availability-scope
         label: "Model availability scope"
-        statement: "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        statement: "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls."
         sourceUrl: https://cursor.com/pricing
     modelRules:
       - model: claude-fable-5-1
         pricingRef: claude-fable-5-1-pricing
       - model: claude-opus-5
         pricingRef: claude-opus-5-pricing
+      - model: claude-opus-5-5
+        pricingRef: claude-opus-5-5-pricing
       - model: claude-sonnet-5
         pricingRef: claude-sonnet-5-pricing
       - model: composer-2-5
@@ -66,11 +73,14 @@ versions:
       - model: grok-4-7
       - model: muse-spark-1-3
     sources:
+      - url: https://cursor.com/docs/models-and-pricing
+        title: "Cursor paid-plan pools and current model prices"
+        checkedAt: 2026-09-23
       - url: https://cursor.com/pricing
         title: "Cursor pricing (official)"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://cursor.com/docs/account/pricing
         title: "Cursor pricing (official)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

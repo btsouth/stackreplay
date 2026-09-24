@@ -28,10 +28,13 @@ import {
   type ImportRecord,
   isSafeErrorCode,
   type SafeError,
+  type ScanProgress,
   WORKER_PROTOCOL_VERSION,
   type WorkerRequest,
   type WorkerResponse,
 } from "../lib/worker-protocol";
+import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
+import { splitByIdentity } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
 /**
@@ -91,6 +94,7 @@ function progress(
   operation: "import" | "replay",
   phase: "reading" | "validating" | "preparing" | "loading" | "replaying",
   detail?: string,
+  scan?: ScanProgress,
 ): void {
   post({
     type: "PROGRESS",
@@ -98,7 +102,39 @@ function progress(
     operation,
     phase,
     ...(detail !== undefined ? { detail } : {}),
+    ...(scan !== undefined ? { scan } : {}),
   });
+}
+
+/** The scan instrument's reading of the intake's running totals. */
+function scanProgressOf(
+  done: number,
+  total: number,
+  metrics: {
+    identifiedSessions: number;
+    reconstructedEvents: number;
+    skippedFiles: number;
+    examinedBytes: number;
+    modelEvents: Record<string, number>;
+    projectCount: number;
+    topProjects: { label: string; events: number }[];
+  },
+): ScanProgress {
+  const catalog = loadBundledCatalog();
+  return {
+    filesDone: done,
+    filesTotal: total,
+    sessions: metrics.identifiedSessions,
+    events: metrics.reconstructedEvents,
+    skipped: metrics.skippedFiles,
+    examinedBytes: metrics.examinedBytes,
+    projects: metrics.projectCount,
+    models: Object.entries(metrics.modelEvents)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id, events]) => ({ name: catalog.models[id]?.name ?? id, events })),
+    topProjects: metrics.topProjects,
+  };
 }
 
 /**
@@ -113,11 +149,19 @@ function progress(
  */
 function toSafeError(error: unknown): SafeError {
   if (error instanceof BrowserIntakeBudgetError) {
+    const isSizeLimit =
+      error.bound === "selectedBytes" ||
+      error.bound === "readBytes" ||
+      error.bound === "expandedBytes";
     return {
       code: "INTAKE_BUDGET_EXCEEDED",
-      title: "This selection exceeds the browser intake budget.",
-      message: `${error.bound} exceeds the aggregate limit of ${error.limit}.`,
-      hint: "Select a smaller batch or a narrower history.",
+      title: isSizeLimit
+        ? "This folder is too large to scan at once."
+        : "Too many files to scan at once.",
+      message: isSizeLimit
+        ? `The browser limit for this selection is ${error.limit >= 1024 * 1024 * 1024 ? `${error.limit / (1024 * 1024 * 1024)} GB` : `${error.limit / (1024 * 1024)} MB`}.`
+        : "The selected history contains more files than this browser scan can process at once.",
+      hint: "Choose a smaller date folder or select a smaller batch of files. Codex sessions are organized by year and month.",
     };
   }
   if (typeof error === "object" && error !== null) {
@@ -330,7 +374,7 @@ async function handleImportSources(
   const onlySelection = files.length === 1 ? files[0] : undefined;
   if (onlySelection !== undefined && !/\.zip$/iu.test(onlySelection.file.name)) {
     const file = onlySelection.file;
-    if (/\.(json|jsonl|stackreplay)$/iu.test(file.name) && file.size <= 512 * 1024 * 1024) {
+    if (/\.(json|stackreplay)$/iu.test(file.name) && file.size <= 512 * 1024 * 1024) {
       budget.add("readBytes", file.size);
       const text = await file.text();
       let envelope: unknown;
@@ -380,6 +424,8 @@ async function handleImportSources(
       size: file.size,
       lastModified: file.lastModified,
       text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
+      stream: () => file.stream(),
+      peekText: (bytes: number) => file.slice(0, bytes).text(),
       readCost: file === preReadFile ? 0 : file.size,
       arrayBuffer: () => file.arrayBuffer(),
     };
@@ -403,8 +449,14 @@ async function handleImportSources(
   const result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
     now,
     budget,
-    onProgress: (done, total) =>
-      progress(requestId, "import", "validating", `Scanned ${done} of ${total} selected files`),
+    onProgress: (done, total, metrics) =>
+      progress(
+        requestId,
+        "import",
+        "validating",
+        `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
+        scanProgressOf(done, total, metrics),
+      ),
   });
   if (!importIsCurrent(requestId, signal)) return;
   result.outcomes.unshift(...archiveOutcomes);
@@ -433,6 +485,9 @@ async function handleImportSources(
     eventCount: summary.eventCount,
     summary,
     savedLocally: saveLocal,
+    // Local display labels for this browser's own scan. The export beside this
+    // record keeps salted hashes only.
+    ...(result.localProjects.length > 0 ? { localProjects: result.localProjects } : {}),
     intake: {
       outcomes: result.outcomes.map((item) => ({
         path: safeCandidateName(item.path),
@@ -456,21 +511,24 @@ async function handleImportSources(
       signal,
     });
     if (!importIsCurrent(requestId, signal)) return;
-    if (!saved.ok) {
+    if (!saved.ok && saved.code === "IMPORT_CANCELLED") {
       post({
         type: "ERROR",
         requestId,
         error: {
-          code: saved.code === "IMPORT_CANCELLED" ? "IMPORT_CANCELLED" : "STORAGE_UNAVAILABLE",
-          title: "This workload could not be saved on this browser.",
-          message:
-            saved.code === "IMPORT_CANCELLED"
-              ? "Local data was cleared during import."
-              : "Browser storage is unavailable or full.",
-          hint: "Try again without saving locally, then export a portable workload if needed.",
+          code: "IMPORT_CANCELLED",
+          title: "This workload was not saved.",
+          message: "Local data was cleared during the scan, so nothing was stored.",
+          hint: "Scan again if you still want it.",
         },
       });
       return;
+    }
+    if (!saved.ok) {
+      // A finished scan is never thrown away because storage refused it: it is
+      // kept for this session and marked unsaved, and the interface says so.
+      record.savedLocally = false;
+      sessionWorkloads.set(importId, { record, exported: result.exported });
     }
   } else {
     sessionWorkloads.set(importId, { record, exported: result.exported });
@@ -537,41 +595,24 @@ async function handleImportDemo(
 async function handleRunReplay(
   request: Extract<WorkerRequest, { type: "RUN_REPLAY" }>,
 ): Promise<void> {
-  const { requestId, importId, target, rulesAsOf } = request;
+  const { requestId, importId, target, rulesAsOf, excludeUnresolved } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
-  const sessionWorkload = sessionWorkloads.get(importId);
-  const loaded =
-    sessionWorkload !== undefined
-      ? { ok: true as const, value: sessionWorkload.exported }
-      : await storage.loadImport(importId);
-  if (!loaded.ok) {
-    post({
-      type: "ERROR",
-      requestId,
-      error:
-        loaded.code === "IMPORT_NOT_FOUND"
-          ? {
-              code: "IMPORT_NOT_FOUND",
-              title: "That workload is no longer stored in this browser.",
-              message: "It may have been deleted or cleared.",
-              hint: "Import a file again, or start from a demo workload.",
-            }
-          : {
-              code: "STORAGE_CORRUPT",
-              title: "The stored workload cannot be read.",
-              message:
-                "The locally stored copy is incomplete or was written by an incompatible version.",
-              hint: "Delete it and import the file again.",
-            },
-    });
+  const workload = await loadWorkloadEvents(importId);
+  if (!workload.ok) {
+    post({ type: "ERROR", requestId, error: workload.error });
     return;
   }
+  const scoped =
+    excludeUnresolved === true
+      ? splitByIdentity(workload.exported.events, bundledModelIdentity())
+      : undefined;
+  const events = scoped?.resolved ?? workload.exported.events;
 
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
     const catalog = loadBundledCatalog();
     const result = replay({
-      events: loaded.value.events,
+      events,
       target,
       catalog,
       context: { rulesAsOf },
@@ -580,11 +621,19 @@ async function handleRunReplay(
       type: "REPLAY_OK",
       requestId,
       result,
-      timeline: buildTimeline(loaded.value.events),
+      timeline: buildTimeline(events),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.
       projection: projectReplay(result, catalog),
+      ...(scoped === undefined
+        ? {}
+        : {
+            scope: {
+              excludedUnresolvedEvents: scoped.unresolved,
+              recordedEvents: workload.exported.events.length,
+            },
+          }),
     });
   } catch (error) {
     post({
@@ -598,6 +647,90 @@ async function handleRunReplay(
       },
     });
   }
+}
+
+/**
+ * The most recently loaded workload, kept so a profile followed by window
+ * inspections does not read the same events out of IndexedDB each time. Any
+ * import, delete or clear drops it.
+ */
+let loadedWorkload: { importId: string; exported: StackReplayExportV1 } | undefined;
+
+async function loadWorkloadEvents(
+  importId: string,
+): Promise<
+  | { ok: true; exported: StackReplayExportV1; record: ImportRecord | undefined }
+  | { ok: false; error: SafeError }
+> {
+  const session = sessionWorkloads.get(importId);
+  if (session !== undefined)
+    return { ok: true, exported: session.exported, record: session.record };
+  const record = (await storage.listImports()).find((entry) => entry.id === importId);
+  if (loadedWorkload?.importId === importId)
+    return { ok: true, exported: loadedWorkload.exported, record };
+  const loaded = await storage.loadImport(importId);
+  if (!loaded.ok)
+    return {
+      ok: false,
+      error:
+        loaded.code === "IMPORT_NOT_FOUND"
+          ? {
+              code: "IMPORT_NOT_FOUND",
+              title: "That workload is no longer stored in this browser.",
+              message: "It may have been deleted or cleared.",
+              hint: "Scan your history again, or start from a demo workload.",
+            }
+          : {
+              code: "STORAGE_CORRUPT",
+              title: "The stored workload cannot be read.",
+              message:
+                "The locally stored copy is incomplete or was written by an incompatible version.",
+              hint: "Delete it and scan again.",
+            },
+    };
+  loadedWorkload = { importId, exported: loaded.value };
+  return { ok: true, exported: loaded.value, record };
+}
+
+function profileOptions(record: ImportRecord | undefined, timeZone: string) {
+  return {
+    identity: bundledModelIdentity(),
+    catalog: loadBundledCatalog(),
+    timeZone,
+    projectLabels: new Map((record?.localProjects ?? []).map((entry) => [entry.hash, entry.label])),
+  };
+}
+
+async function handleAnalyze(
+  request: Extract<WorkerRequest, { type: "ANALYZE_WORKLOAD" }>,
+): Promise<void> {
+  const loaded = await loadWorkloadEvents(request.importId);
+  if (!loaded.ok) {
+    post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
+    return;
+  }
+  const profile = buildWorkloadProfile(
+    loaded.exported.events,
+    profileOptions(loaded.record, request.timeZone),
+  );
+  post({ type: "PROFILE_OK", requestId: request.requestId, profile });
+}
+
+async function handleInspect(
+  request: Extract<WorkerRequest, { type: "INSPECT_WINDOW" }>,
+): Promise<void> {
+  const loaded = await loadWorkloadEvents(request.importId);
+  if (!loaded.ok) {
+    post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
+    return;
+  }
+  const window = inspectWindow(
+    loaded.exported.events,
+    request.startMs,
+    request.endMs,
+    profileOptions(loaded.record, request.timeZone),
+  );
+  post({ type: "WINDOW_OK", requestId: request.requestId, window });
 }
 
 /**
@@ -649,12 +782,14 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       case "IMPORT_FILE":
         {
+          loadedWorkload = undefined;
           const signal = beginImport(request.requestId);
           await queueMutation(() => handleImportFile(request, signal));
         }
         return;
       case "IMPORT_SOURCES":
         {
+          loadedWorkload = undefined;
           const signal = beginImport(request.requestId);
           await queueMutation(() => handleImportSources(request, signal));
         }
@@ -697,6 +832,12 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
       case "RUN_REPLAY":
         await handleRunReplay(request);
         return;
+      case "ANALYZE_WORKLOAD":
+        await handleAnalyze(request);
+        return;
+      case "INSPECT_WINDOW":
+        await handleInspect(request);
+        return;
       case "LIST_LOCAL_IMPORTS":
         post({
           type: "IMPORTS",
@@ -708,6 +849,7 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       case "DELETE_LOCAL_IMPORT": {
         sessionWorkloads.delete(request.importId);
+        loadedWorkload = undefined;
         // Registered first: an import running right now must not be able to write
         // this record back after the queue reaches the deletion.
         storage.invalidateInFlightWrites(request.importId);
@@ -730,6 +872,7 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
       case "CLEAR_LOCAL_DATA": {
         invalidateCurrentImport(request.requestId, "Clearing local data cancelled this import.");
         sessionWorkloads.clear();
+        loadedWorkload = undefined;
         // Same rule as a delete: clearing invalidates imports that are running now,
         // so nothing lands after the clear.
         storage.invalidateInFlightWrites();

@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Pricing page card: 'Hobby / For the tinkerer / Free / Includes: No credit card required / Limited Agent requests / Access to Composer'."
     limits: []
     qualitativeLimits:
+      - id: hobby-auto-only
+        label: "Auto model only"
+        statement: "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model."
+        sourceUrl: https://cursor.com/help/account-and-billing/pricing
       - id: agent-requests-on-hobby-unquantified
         label: "Agent requests on Hobby (unquantified)"
         statement: "Hobby ... Free ... Includes: No credit card required / Limited Agent requests / Access to Composer"
@@ -21,40 +25,44 @@ versions:
         sourceUrl: https://cursor.com/docs/account/pricing
       - id: what-the-provider-does-not-publish
         label: "What the provider does not publish"
-        statement: "Hobby's usage limits are not published anywhere official that I could find: the pricing page says only 'Limited Agent requests' and the docs do not list Hobby in the plan table. No number, window or exceed behaviour is documented. Note that some cursor.com locale/legacy variants of the same page describe Hobby as 'Limited Tab completions' rather than 'Access to Composer'; the live cursor.com/pricing page I read on 2026-09-21 said 'Access to Composer'."
-        sourceUrl: https://cursor.com/pricing
-      - id: model-availability-scope
-        label: "Model availability scope"
-        statement: "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        statement: "Cursor describes limited Hobby usage but does not publish a numeric Agent allowance, reset window, or exact Auto routing. Those values remain unknown for Replay."
         sourceUrl: https://cursor.com/pricing
     modelRules:
       - model: claude-fable-5-1
-        pricingRef: claude-fable-5-1-pricing
+        excluded: true
       - model: claude-opus-5
-        pricingRef: claude-opus-5-pricing
+        excluded: true
       - model: claude-sonnet-5
-        pricingRef: claude-sonnet-5-pricing
+        excluded: true
       - model: composer-2-5
+        excluded: true
       - model: gemini-3-1-pro
-        pricingRef: gemini-3-1-pro-pricing
+        excluded: true
       - model: gemini-3-8-flash
-        pricingRef: gemini-3-8-flash-pricing
+        excluded: true
       - model: gpt-5-6-luna
-        pricingRef: gpt-5-6-luna-pricing
+        excluded: true
       - model: gpt-5-6-sol
-        pricingRef: gpt-5-6-sol-pricing
+        excluded: true
       - model: gpt-5-6-terra
-        pricingRef: gpt-5-6-terra-pricing
+        excluded: true
       - model: grok-4-5
+        excluded: true
       - model: grok-4-6
+        excluded: true
       - model: grok-4-7
+        excluded: true
       - model: muse-spark-1-3
+        excluded: true
     sources:
+      - url: https://cursor.com/help/account-and-billing/pricing
+        title: "Cursor Hobby Auto-only model selection"
+        checkedAt: 2026-09-23
       - url: https://cursor.com/pricing
         title: "Cursor pricing (official)"
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://cursor.com/docs/account/pricing
         title: "Cursor pricing (official)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
+    verificationStatus: unknown

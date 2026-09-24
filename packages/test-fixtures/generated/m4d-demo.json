@@ -3,7 +3,7 @@
   "generatedBy": "apps/web/scripts/build-demo-artifact.mjs",
   "engineVersion": "0.0.4",
   "methodologyVersion": "1.4.0",
-  "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+  "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
   "rulesAsOf": "2026-09-20",
   "scenario": {
     "id": "m4d-demo",
@@ -25,7 +25,7 @@
     "eventCount": 10723,
     "range": {
       "from": "2026-08-21T05:27:50.059Z",
-      "to": "2026-09-20T13:10:56.642Z"
+      "to": "2026-09-20T12:09:58.756Z"
     },
     "sources": [
       {
@@ -87,32 +87,32 @@
           "sessionCount": 335,
           "modelCount": 3,
           "from": "2026-08-21T05:27:50.059Z",
-          "to": "2026-09-20T13:10:56.642Z",
+          "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
           "tokens": {
-            "uncachedInput": 16271506,
-            "cacheRead": 185558978,
-            "cacheWrite": 3936917,
-            "output": 7329066,
-            "reasoning": 1076761
+            "uncachedInput": 16388641,
+            "cacheRead": 184779597,
+            "cacheWrite": 3947785,
+            "output": 7324842,
+            "reasoning": 1067072
           },
-          "knownTokens": 214173228,
+          "knownTokens": 213507937,
           "complete": true,
           "modelShare": [
             {
               "modelId": "example-large",
-              "eventCount": 2370,
-              "tokenCount": 47002657
+              "eventCount": 2255,
+              "tokenCount": 45147531
             },
             {
               "modelId": "example-medium",
-              "eventCount": 5677,
-              "tokenCount": 113827055
+              "eventCount": 5705,
+              "tokenCount": 114010575
             },
             {
               "modelId": "example-small",
-              "eventCount": 2676,
-              "tokenCount": 53343516
+              "eventCount": 2763,
+              "tokenCount": 54349831
             }
           ],
           "unresolvedEventCount": 0,
@@ -152,9 +152,9 @@
             "label": "Usage coverage",
             "note": "Token-weighted over disjoint, known quantities",
             "status": "known",
-            "percent": 75.9602,
-            "covered": 162686328,
-            "total": 214173228
+            "percent": 76.5662,
+            "covered": 163474919,
+            "total": 213507937
           },
           {
             "id": "models",
@@ -224,8 +224,8 @@
             "unit": "tokens",
             "window": "calendar month (UTC)",
             "limitUnits": "200000000",
-            "consumedUnits": "101641637",
-            "attemptedUnits": "133758372",
+            "consumedUnits": "102415968.5",
+            "attemptedUnits": "133928884",
             "violationCount": 0,
             "rejectedEvents": 0,
             "indeterminateEvents": 0,
@@ -254,17 +254,17 @@
             "unit": "usd",
             "window": "calendar month (UTC)",
             "limitUnits": "100",
-            "consumedUnits": "11.6154496",
-            "attemptedUnits": "14.8054621",
+            "consumedUnits": "11.5224427",
+            "attemptedUnits": "14.2945724",
             "violationCount": 0,
             "rejectedEvents": 0,
             "indeterminateEvents": 0,
-            "eligibleEvents": 2370
+            "eligibleEvents": 2255
           }
         ],
         "crossings": [
           {
-            "id": "rolling-5h-requests-2026-09-06T02:02:06.709Z",
+            "id": "rolling-5h-requests-2026-09-06T02:03:35.479Z",
             "index": 1,
             "constraintId": "rolling-5h-requests",
             "constraintLabel": "5-hour request window",
@@ -272,15 +272,16 @@
             "unit": "requests",
             "window": "rolling window of PT5H anchored at first use",
             "kind": "rolling_window_exceeded",
-            "startedAt": "2026-09-06T02:02:06.709Z",
-            "endedAt": "2026-09-06T07:02:06.709Z",
+            "startedAt": "2026-09-06T02:03:35.479Z",
+            "endedAt": "2026-09-06T07:03:35.479Z",
             "observedUnits": "1630",
             "includedUnits": "600",
             "affectedEvents": 1030,
-            "acceptedUnits": "600"
+            "acceptedUnits": "600",
+            "exceededAt": "2026-09-06T03:01:49.937Z"
           },
           {
-            "id": "rolling-5h-requests-2026-09-06T08:02:44.792Z",
+            "id": "rolling-5h-requests-2026-09-06T08:00:53.745Z",
             "index": 2,
             "constraintId": "rolling-5h-requests",
             "constraintLabel": "5-hour request window",
@@ -288,15 +289,16 @@
             "unit": "requests",
             "window": "rolling window of PT5H anchored at first use",
             "kind": "rolling_window_exceeded",
-            "startedAt": "2026-09-06T08:02:44.792Z",
-            "endedAt": "2026-09-06T13:02:44.792Z",
+            "startedAt": "2026-09-06T08:00:53.745Z",
+            "endedAt": "2026-09-06T13:00:53.745Z",
             "observedUnits": "1345",
             "includedUnits": "600",
             "affectedEvents": 745,
-            "acceptedUnits": "600"
+            "acceptedUnits": "600",
+            "exceededAt": "2026-09-06T08:58:58.765Z"
           },
           {
-            "id": "rolling-5h-requests-2026-09-06T14:02:30.199Z",
+            "id": "rolling-5h-requests-2026-09-06T14:04:12.716Z",
             "index": 3,
             "constraintId": "rolling-5h-requests",
             "constraintLabel": "5-hour request window",
@@ -304,12 +306,13 @@
             "unit": "requests",
             "window": "rolling window of PT5H anchored at first use",
             "kind": "rolling_window_exceeded",
-            "startedAt": "2026-09-06T14:02:30.199Z",
-            "endedAt": "2026-09-06T19:02:30.199Z",
+            "startedAt": "2026-09-06T14:04:12.716Z",
+            "endedAt": "2026-09-06T19:04:12.716Z",
             "observedUnits": "1368",
             "includedUnits": "600",
             "affectedEvents": 768,
-            "acceptedUnits": "600"
+            "acceptedUnits": "600",
+            "exceededAt": "2026-09-06T14:44:49.791Z"
           }
         ],
         "evidence": [
@@ -318,14 +321,14 @@
             "label": "Model identity",
             "note": "How much of the workload's model identity is established",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "usageCategories",
             "label": "Usage categories",
             "note": "How much of the workload establishes every canonical token category",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "pricing",
@@ -339,14 +342,14 @@
             "label": "Target rules",
             "note": "How much of the workload the target's rule set describes at all",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "temporal",
             "label": "Temporal coverage",
             "note": "How much of the workload lies inside the pinned rule set",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "translationMethod",
@@ -380,7 +383,7 @@
         "provenance": {
           "planVersion": "example-cloud-pro@2026-08-01",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "Not established: the target's allowance windows mix rolling and calendar behaviour, so no single reset phase is established, and reset-phase sensitivity is not analysed in this milestone",
@@ -436,32 +439,32 @@
           "sessionCount": 335,
           "modelCount": 3,
           "from": "2026-08-21T05:27:50.059Z",
-          "to": "2026-09-20T13:10:56.642Z",
+          "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
           "tokens": {
-            "uncachedInput": 16271506,
-            "cacheRead": 185558978,
-            "cacheWrite": 3936917,
-            "output": 7329066,
-            "reasoning": 1076761
+            "uncachedInput": 16388641,
+            "cacheRead": 184779597,
+            "cacheWrite": 3947785,
+            "output": 7324842,
+            "reasoning": 1067072
           },
-          "knownTokens": 214173228,
+          "knownTokens": 213507937,
           "complete": true,
           "modelShare": [
             {
               "modelId": "example-large",
-              "eventCount": 2370,
-              "tokenCount": 47002657
+              "eventCount": 2255,
+              "tokenCount": 45147531
             },
             {
               "modelId": "example-medium",
-              "eventCount": 5677,
-              "tokenCount": 113827055
+              "eventCount": 5705,
+              "tokenCount": 114010575
             },
             {
               "modelId": "example-small",
-              "eventCount": 2676,
-              "tokenCount": 53343516
+              "eventCount": 2763,
+              "tokenCount": 54349831
             }
           ],
           "unresolvedEventCount": 0,
@@ -473,12 +476,12 @@
           "policyId": "demo-scenario-translation",
           "policyVersion": "1.0.0",
           "method": "token-preserving",
-          "substitutedEvents": 2370,
+          "substitutedEvents": 2255,
           "applied": [
             {
               "sourceModelId": "example-large",
               "targetModelId": "example-medium",
-              "eventCount": 2370
+              "eventCount": 2255
             }
           ]
         },
@@ -515,8 +518,8 @@
             "note": "Token-weighted over disjoint, known quantities",
             "status": "known",
             "percent": 100,
-            "covered": 214173228,
-            "total": 214173228
+            "covered": 213507937,
+            "total": 213507937
           },
           {
             "id": "models",
@@ -586,8 +589,8 @@
             "unit": "usd",
             "window": "rolling window of PT5H anchored at first use",
             "limitUnits": "25",
-            "consumedUnits": "26.5471886",
-            "attemptedUnits": "26.5471886",
+            "consumedUnits": "26.39507389",
+            "attemptedUnits": "26.39507389",
             "violationCount": 0,
             "rejectedEvents": 0,
             "indeterminateEvents": 0,
@@ -601,8 +604,8 @@
             "unit": "usd",
             "window": "rolling window of P7D anchored at first use",
             "limitUnits": "75",
-            "consumedUnits": "26.5471886",
-            "attemptedUnits": "26.5471886",
+            "consumedUnits": "26.39507389",
+            "attemptedUnits": "26.39507389",
             "violationCount": 0,
             "rejectedEvents": 0,
             "indeterminateEvents": 0,
@@ -616,14 +619,14 @@
             "label": "Model identity",
             "note": "How much of the workload's model identity is established",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "usageCategories",
             "label": "Usage categories",
             "note": "How much of the workload establishes every canonical token category",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "pricing",
@@ -637,14 +640,14 @@
             "label": "Target rules",
             "note": "How much of the workload the target's rule set describes at all",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "temporal",
             "label": "Temporal coverage",
             "note": "How much of the workload lies inside the pinned rule set",
             "status": "partial",
-            "reading": "1,473 of 10,723 events · 28,946,093 of 214,173,228 tokens",
+            "reading": "1,473 of 10,723 events · 29,913,785 of 213,507,937 tokens",
             "reason": "9250 event(s) fall outside the pinned plan version's effective window (2026-09-15 to open)"
           },
           {
@@ -677,7 +680,7 @@
         "provenance": {
           "planVersion": "example-cloud-starter@2026-09-15",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "translationPolicy": {
@@ -725,32 +728,32 @@
           "sessionCount": 335,
           "modelCount": 3,
           "from": "2026-08-21T05:27:50.059Z",
-          "to": "2026-09-20T13:10:56.642Z",
+          "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
           "tokens": {
-            "uncachedInput": 16271506,
-            "cacheRead": 185558978,
-            "cacheWrite": 3936917,
-            "output": 7329066,
-            "reasoning": 1076761
+            "uncachedInput": 16388641,
+            "cacheRead": 184779597,
+            "cacheWrite": 3947785,
+            "output": 7324842,
+            "reasoning": 1067072
           },
-          "knownTokens": 214173228,
+          "knownTokens": 213507937,
           "complete": true,
           "modelShare": [
             {
               "modelId": "example-large",
-              "eventCount": 2370,
-              "tokenCount": 47002657
+              "eventCount": 2255,
+              "tokenCount": 45147531
             },
             {
               "modelId": "example-medium",
-              "eventCount": 5677,
-              "tokenCount": 113827055
+              "eventCount": 5705,
+              "tokenCount": 114010575
             },
             {
               "modelId": "example-small",
-              "eventCount": 2676,
-              "tokenCount": 53343516
+              "eventCount": 2763,
+              "tokenCount": 54349831
             }
           ],
           "unresolvedEventCount": 0,
@@ -791,8 +794,8 @@
             "note": "Token-weighted over disjoint, known quantities",
             "status": "known",
             "percent": 100,
-            "covered": 214173228,
-            "total": 214173228
+            "covered": 213507937,
+            "total": 213507937
           },
           {
             "id": "models",
@@ -861,14 +864,14 @@
             "label": "Model identity",
             "note": "How much of the workload's model identity is established",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "usageCategories",
             "label": "Usage categories",
             "note": "How much of the workload establishes every canonical token category",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "pricing",
@@ -890,7 +893,7 @@
             "label": "Temporal coverage",
             "note": "How much of the workload lies inside the pinned rule set",
             "status": "complete",
-            "reading": "10,723 of 10,723 events · 214,173,228 of 214,173,228 tokens"
+            "reading": "10,723 of 10,723 events · 213,507,937 of 213,507,937 tokens"
           },
           {
             "id": "translationMethod",
@@ -910,7 +913,7 @@
         ],
         "evidenceEstablished": true,
         "economics": {
-          "targetCost": "48.75538175",
+          "targetCost": "47.83693249",
           "targetCostEstablished": true,
           "consumptionEstablished": true,
           "costReading": "established for this workload",
@@ -928,34 +931,34 @@
             {
               "key": "uncachedInput",
               "label": "Uncached input",
-              "tokens": 16271506
+              "tokens": 16388641
             },
             {
               "key": "cacheRead",
               "label": "Cache read",
-              "tokens": 185558978
+              "tokens": 184779597
             },
             {
               "key": "cacheWrite",
               "label": "Cache write",
-              "tokens": 3936917
+              "tokens": 3947785
             },
             {
               "key": "output",
               "label": "Output",
-              "tokens": 7329066
+              "tokens": 7324842
             },
             {
               "key": "reasoning",
               "label": "Reasoning",
-              "tokens": 1076761
+              "tokens": 1067072
             }
           ]
         },
         "provenance": {
           "apiProvider": "example-cloud",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "a Direct API target has no subscription allowance window, so no reset phase can apply to it",
@@ -998,25 +1001,25 @@
         "sessionCount": 208,
         "modelCount": 4,
         "from": "2026-08-21T04:01:11.462Z",
-        "to": "2026-09-20T09:42:49.081Z",
+        "to": "2026-09-20T06:56:00.300Z",
         "windowDays": 31,
         "tokens": {},
         "complete": false,
         "modelShare": [
           {
             "modelId": "example-large",
-            "eventCount": 106
+            "eventCount": 97
           },
           {
             "modelId": "example-medium",
-            "eventCount": 237
+            "eventCount": 243
           },
           {
             "modelId": "example-small",
-            "eventCount": 106
+            "eventCount": 113
           }
         ],
-        "unresolvedEventCount": 39,
+        "unresolvedEventCount": 35,
         "observedModels": ["gpt-6-astra-omen"]
       },
       "mode": "translated",
@@ -1025,12 +1028,12 @@
         "policyId": "demo-scenario-translation",
         "policyVersion": "1.0.0",
         "method": "token-preserving",
-        "substitutedEvents": 106,
+        "substitutedEvents": 97,
         "applied": [
           {
             "sourceModelId": "example-large",
             "targetModelId": "example-medium",
-            "eventCount": 106
+            "eventCount": 97
           }
         ]
       },
@@ -1040,11 +1043,11 @@
         "reasons": [
           {
             "id": "unknown_consumption",
-            "description": "70 event(s) do not establish the quantities their constraints require, so the result supports a bounded reading rather than a single exact number."
+            "description": "52 event(s) do not establish the quantities their constraints require, so the result supports a bounded reading rather than a single exact number."
           },
           {
             "id": "unresolved_demand",
-            "description": "39 event(s) use model identifiers no catalog source establishes, so part of the recorded demand could not be evaluated against the target's rules and the outcome is bounded rather than deterministic."
+            "description": "35 event(s) use model identifiers no catalog source establishes, so part of the recorded demand could not be evaluated against the target's rules and the outcome is bounded rather than deterministic."
           },
           {
             "id": "pricing_coverage",
@@ -1054,7 +1057,7 @@
       },
       "headline": {
         "dimension": "requests",
-        "statement": "Request coverage is unknown: the replay could not decide every event. 109 left undecided by the evidence.",
+        "statement": "Request coverage is unknown: the replay could not decide every event. 87 left undecided by the evidence.",
         "status": "unknown",
         "statusLabel": "Unknown"
       },
@@ -1064,19 +1067,19 @@
           "label": "Request coverage",
           "note": "Events the target would have served",
           "status": "unknown",
-          "covered": 379,
+          "covered": 401,
           "total": 488,
-          "unknownCount": 70,
-          "reason": "70 event(s) could not be evaluated because their consumption is unknown"
+          "unknownCount": 52,
+          "reason": "52 event(s) could not be evaluated because their consumption is unknown"
         },
         {
           "id": "usage",
           "label": "Usage coverage",
           "note": "Token-weighted over disjoint, known quantities",
           "status": "unknown",
-          "covered": 7629564,
-          "total": 8251839,
-          "reason": "74 event(s) do not report every canonical token category, so no non-overlapping token denominator exists"
+          "covered": 8009583,
+          "total": 8770658,
+          "reason": "54 event(s) do not report every canonical token category, so no non-overlapping token denominator exists"
         },
         {
           "id": "models",
@@ -1086,7 +1089,7 @@
           "covered": 2,
           "total": 3,
           "unknownCount": 1,
-          "reason": "39 event(s) use 1 model(s) that could not be resolved against the catalog"
+          "reason": "35 event(s) use 1 model(s) that could not be resolved against the catalog"
         }
       ],
       "outcomes": [
@@ -1094,7 +1097,7 @@
           "key": "included",
           "label": "Included",
           "note": "within the target's allowance",
-          "count": 379
+          "count": 401
         },
         {
           "key": "overage",
@@ -1118,7 +1121,7 @@
           "key": "unknown",
           "label": "Unknown",
           "note": "evidence insufficient to decide",
-          "count": 109
+          "count": 87
         }
       ],
       "models": [
@@ -1152,12 +1155,12 @@
           "unit": "usd",
           "window": "rolling window of PT5H anchored at first use",
           "limitUnits": "25",
-          "consumedUnits": "0.93555458",
-          "attemptedUnits": "0.93555458",
+          "consumedUnits": "0.97100336",
+          "attemptedUnits": "0.97100336",
           "violationCount": 0,
           "rejectedEvents": 0,
-          "indeterminateEvents": 70,
-          "eligibleEvents": 449
+          "indeterminateEvents": 52,
+          "eligibleEvents": 453
         },
         {
           "id": "rolling-7d-credits",
@@ -1167,12 +1170,12 @@
           "unit": "usd",
           "window": "rolling window of P7D anchored at first use",
           "limitUnits": "75",
-          "consumedUnits": "0.93555458",
-          "attemptedUnits": "0.93555458",
+          "consumedUnits": "0.97100336",
+          "attemptedUnits": "0.97100336",
           "violationCount": 0,
           "rejectedEvents": 0,
-          "indeterminateEvents": 70,
-          "eligibleEvents": 449
+          "indeterminateEvents": 52,
+          "eligibleEvents": 453
         }
       ],
       "crossings": [],
@@ -1182,23 +1185,23 @@
           "label": "Model identity",
           "note": "How much of the workload's model identity is established",
           "status": "partial",
-          "reading": "449 of 488 events",
-          "reason": "39 event(s) use identifiers no catalog source establishes; 74 event(s) report no complete token accounting, so the usage-weighted fraction is limited to the remaining events"
+          "reading": "453 of 488 events",
+          "reason": "35 event(s) use identifiers no catalog source establishes; 54 event(s) report no complete token accounting, so the usage-weighted fraction is limited to the remaining events"
         },
         {
           "id": "usageCategories",
           "label": "Usage categories",
           "note": "How much of the workload establishes every canonical token category",
           "status": "partial",
-          "reading": "414 of 488 events",
-          "reason": "74 event(s) do not report every canonical token category, so no non-overlapping token denominator exists for the whole workload"
+          "reading": "434 of 488 events",
+          "reason": "54 event(s) do not report every canonical token category, so no non-overlapping token denominator exists for the whole workload"
         },
         {
           "id": "pricing",
           "label": "Pricing records",
           "note": "How much of the demanded price could be converted to money",
           "status": "partial",
-          "reading": "379 of 449 events",
+          "reading": "401 of 453 events",
           "reason": "part of the priced demand could not be converted to money"
         },
         {
@@ -1206,8 +1209,8 @@
           "label": "Target rules",
           "note": "How much of the workload the target's rule set describes at all",
           "status": "partial",
-          "reading": "449 of 488 events",
-          "reason": "39 event(s) use models or identifiers the target's rules do not mention"
+          "reading": "453 of 488 events",
+          "reason": "35 event(s) use models or identifiers the target's rules do not mention"
         },
         {
           "id": "temporal",
@@ -1241,13 +1244,13 @@
         "costReading": "the plan price is fixed, so it holds however much of the demand stayed undecided",
         "costBasis": "fixed_plan_price",
         "ratios": [],
-        "indeterminateConsumptionEvents": 74,
-        "consumptionReading": "74 event(s) report no complete token accounting, so any part of this cost that depends on consumption is not established"
+        "indeterminateConsumptionEvents": 54,
+        "consumptionReading": "54 event(s) report no complete token accounting, so any part of this cost that depends on consumption is not established"
       },
       "provenance": {
         "planVersion": "example-cloud-starter@2026-09-15",
         "rulesAsOf": "2026-09-20",
-        "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+        "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
         "engineVersion": "0.0.4",
         "methodologyVersion": "1.4.0",
         "translationPolicy": {
@@ -1263,12 +1266,12 @@
         {
           "code": "EVENT_TOKEN_ACCOUNTING_UNKNOWN",
           "message": "One or more events do not report every canonical token category, so their consumption cannot be established.",
-          "count": 70
+          "count": 52
         },
         {
           "code": "MODEL_UNRESOLVED",
           "message": "One or more events use models that could not be mapped to the catalog.",
-          "count": 39
+          "count": 35
         }
       ],
       "assumptions": [

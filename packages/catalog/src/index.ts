@@ -30,9 +30,13 @@ export {
   type LimitWindowV1,
   limitWindowV1Schema,
   type ModelAliasV1,
+  type ModelKindV1,
+  type ModelLifecycleV1,
   type ModelRuleV1,
   type ModelV1,
   modelAliasV1Schema,
+  modelKindV1Schema,
+  modelLifecycleV1Schema,
   modelRuleV1Schema,
   modelV1Schema,
   type OverageRateV1,
@@ -72,6 +76,7 @@ export {
   type UtcTimeWindowV1,
   utcTimeWindowV1Schema,
 } from "./schema.js";
+export { familyReleaseIds, modelKindOf } from "./taxonomy.js";
 export {
   type CatalogValidationIssue,
   type CatalogValidationSeverity,

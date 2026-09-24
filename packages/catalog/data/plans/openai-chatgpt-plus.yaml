@@ -4,11 +4,12 @@ name: ChatGPT Plus
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-21
+    effectiveTo: 2026-09-21
     price:
       currency: USD
       amount: "20"
       interval: month
-    billingMechanics: "Official help center: 'ChatGPT Plus is a subscription plan that provides enhanced access to the ChatGPT web app for $20/month.' and 'Price: $20/month (billed monthly).' No annual billing: 'Currently, we do not support annual billing or the option to pay for..."
+    billingMechanics: "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan."
     limits: []
     qualitativeLimits:
       - id: message-caps-on-plus-unquantified
@@ -27,6 +28,7 @@ versions:
         label: "Usage credits (pay-as-you-go overage for Codex/Work)"
         statement: "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance."
         sourceUrl: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
+        topic: after_limit
       - id: support-cannot-reset-limits
         label: "Support cannot reset limits"
         statement: "No. OpenAI Support does not reset ChatGPT or Codex usage limits. If you reach a limit, wait until it resets or use another available option shown in your account."
@@ -67,4 +69,80 @@ versions:
         title: "OpenAI pricing (official)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - effectiveFrom: 2026-09-22
+    price:
+      currency: USD
+      amount: "20"
+      interval: month
+    billingMechanics: "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan."
+    limits: []
+    qualitativeLimits:
+      - id: message-caps-on-plus-unquantified
+        label: "Message caps on Plus (unquantified)"
+        statement: "To ensure a smooth experience for all users, Plus subscriptions may include usage limits such as message caps, especially during high demand. These limits may vary based on system conditions."
+        sourceUrl: https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus
+      - id: higher-model-limits-than-free
+        label: "Higher model limits than Free"
+        statement: "Higher model limits: Use more messages and broader model options than on the Free plan. Model availability changes during rollouts; use the model picker for current access."
+        sourceUrl: https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus
+      - id: shared-work-codex-5-hour-and-weekly-allowances
+        label: "Shared Work/Codex 5-hour and weekly allowances"
+        statement: "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage."
+        sourceUrl: https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets
+      - id: usage-credits-pay-as-you-go-overage-for-codex-wo
+        label: "Usage credits (pay-as-you-go overage for Codex/Work)"
+        statement: "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance."
+        sourceUrl: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
+        topic: after_limit
+      - id: support-cannot-reset-limits
+        label: "Support cannot reset limits"
+        statement: "No. OpenAI Support does not reset ChatGPT or Codex usage limits. If you reach a limit, wait until it resets or use another available option shown in your account."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "OpenAI does not publish numeric message caps for Plus. The help center says only that limits 'may vary based on system conditions'. The Codex/Work allowance is described as shared across features but is not quantified on any official page I could read; the pricing page's price and limit widgets did not render values in my browser session (client-side gated), so all OpenAI prices here come from help.openai.com articles."
+        sourceUrl: https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-23
+      - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://openai.com/chatgpt/pricing/
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-23
+      - url: https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925
+        title: "OpenAI model launch and paid plan availability"
+        checkedAt: 2026-09-23
+      - url: https://chatgpt.com/pricing/
+        title: "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit"
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

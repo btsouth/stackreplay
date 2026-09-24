@@ -1,6 +1,7 @@
 id: deepseek-v4-1-flash
 role: model
 name: "DeepSeek-V4.1-Flash"
+developerId: deepseek
 providerIds:
   - deepseek
 aliases:
@@ -55,6 +56,9 @@ aliases:
 sources:
   - url: https://api-docs.deepseek.com/quick_start/pricing
     title: "DeepSeek-V4.1-Flash model documentation"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://api-docs.deepseek.com/quick_start/pricing/
+    title: "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

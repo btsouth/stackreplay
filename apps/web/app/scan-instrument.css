@@ -1,0 +1,341 @@
+/*
+ * The local scan instrument: the scan drawn in the Replay visual language.
+ * A Signal Blue path advances through real stages; readings are the Worker's
+ * running totals. The only motion is the path advancing and the active knot's
+ * pulse while the Worker is actually reading; both stop when the scan ends.
+ */
+
+.sr-scan {
+  --sr-signal: var(--accent);
+  --sr-rule: var(--border);
+  --sr-rule-soft: color-mix(in oklab, var(--border) 62%, transparent);
+  border-top: 1px solid var(--sr-rule);
+  border-bottom: 1px solid var(--sr-rule);
+  padding: 16px 0 20px;
+}
+
+.dark .sr-scan {
+  --sr-signal: oklch(0.67 0.17 256);
+}
+
+.sr-scan-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.sr-scan-status p:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+
+.sr-scan-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sr-signal);
+}
+
+.sr-scan[data-stage="discover"] .sr-scan-dot,
+.sr-scan[data-stage="resolve"] .sr-scan-dot,
+.sr-scan[data-stage="reconstruct"] .sr-scan-dot {
+  animation: sr-scan-pulse 1.6s ease-in-out infinite;
+}
+
+/* ---------- stage rail ---------- */
+
+.sr-scan-rail {
+  --sr-row: 52px;
+  position: relative;
+  margin-top: 18px;
+}
+
+.sr-scan-rail ol {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sr-scan-node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  height: var(--sr-row);
+  align-content: start;
+  color: var(--muted-foreground);
+}
+
+.sr-scan-node .sr-micro {
+  grid-column: 2;
+  color: var(--muted-foreground);
+}
+
+.sr-scan-node small {
+  grid-column: 2;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-scan-knot {
+  grid-row: 1 / span 2;
+  position: relative;
+  z-index: 2;
+  width: 11px;
+  height: 11px;
+  margin: 1px 0 0 5px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--background);
+}
+
+.sr-scan-node[data-state="done"] .sr-scan-knot {
+  border-color: var(--sr-signal);
+  background: var(--sr-signal);
+}
+
+.sr-scan-node[data-state="done"] .sr-micro {
+  color: var(--foreground);
+}
+
+.sr-scan-node[data-state="active"] .sr-scan-knot {
+  border-color: var(--sr-signal);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--sr-signal) 22%, transparent);
+  animation: sr-scan-knot 1.6s ease-in-out infinite;
+}
+
+.sr-scan-node[data-state="active"] .sr-micro {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sr-scan-node[data-state="active"] small {
+  color: var(--foreground);
+}
+
+/* The track runs knot to knot; the lit part is the path the scan has made. */
+.sr-scan-track {
+  position: absolute;
+  z-index: 1;
+  left: 10.25px;
+  top: 7px;
+  width: 1.5px;
+  height: calc(var(--sr-row) * 4);
+  background: var(--sr-rule);
+}
+
+.sr-scan-lit {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--lit, 0) * 100%);
+  background: var(--sr-signal);
+  transition: height 0.4s ease-out;
+}
+
+@media (min-width: 768px) {
+  .sr-scan-rail ol {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .sr-scan-node {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    height: auto;
+    padding-right: 12px;
+  }
+  .sr-scan-knot {
+    grid-row: 1;
+    margin: 0 0 10px;
+  }
+  .sr-scan-node .sr-micro,
+  .sr-scan-node small {
+    grid-column: 1;
+  }
+  .sr-scan-node small {
+    white-space: normal;
+  }
+  .sr-scan-track {
+    left: 5.5px;
+    top: 5.5px;
+    width: 80%;
+    height: 1.5px;
+  }
+  .sr-scan-lit {
+    inset: 0 auto 0 0;
+    width: calc(var(--lit, 0) * 100%);
+    height: auto;
+    transition: width 0.4s ease-out;
+  }
+}
+
+/* ---------- readings ---------- */
+
+.sr-scan-body {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+.sr-scan-readings,
+.sr-scan-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .sr-scan-readings {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .sr-scan-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.sr-scan-readings dt,
+.sr-scan-facts dt {
+  color: var(--muted-foreground);
+}
+
+.sr-scan-readings dd {
+  margin: 6px 0 0;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.sr-scan-sub {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  font-weight: 400;
+  line-height: 1.4;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.sr-scan-title {
+  margin-bottom: 14px;
+  font-size: 22px;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.sr-scan-facts dd {
+  margin: 6px 0 0;
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--foreground);
+}
+
+.sr-scan-range {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.sr-scan-ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px 32px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+@media (min-width: 768px) {
+  .sr-scan-ledger {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sr-scan-ledger ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sr-scan-ledger li {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 4.5rem;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--foreground);
+}
+
+.sr-scan-ledger li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-scan-ledger i {
+  position: relative;
+  display: block;
+  height: 2px;
+  background: var(--sr-rule-soft);
+}
+
+.sr-scan-ledger b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--sr-signal);
+  transition: width 0.3s ease-out;
+}
+
+.sr-scan-ledger strong {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  text-align: right;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-scan-note,
+.sr-scan-detail {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+@keyframes sr-scan-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes sr-scan-knot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--sr-signal) 26%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--sr-signal) 8%, transparent);
+  }
+}

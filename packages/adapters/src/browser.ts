@@ -18,7 +18,10 @@ import type { BrowserSourceId } from "./browser-formats.js";
 import { dedupeEvents } from "./dedup.js";
 import { generateSalt } from "./identity.js";
 import { createModelMapper } from "./models.js";
+import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
 import type { AdapterWarning, FileSystem, SourceEnvironment } from "./types.js";
+
+export { type LocalProjectLabel, localProjectLabels };
 
 export interface BrowserCandidate {
   /** Display-only relative path from an explicit file or folder selection. */
@@ -28,12 +31,20 @@ export interface BrowserCandidate {
   /** Zero only when the Worker has already charged/read this exact text. */
   readCost?: number;
   text(): Promise<string>;
+  /** Raw JSONL can be read a chunk at a time without materializing a file. */
+  stream?(): ReadableStream<Uint8Array>;
+  peekText?(bytes: number): Promise<string>;
   arrayBuffer?(): Promise<ArrayBuffer>;
 }
 
 export type CandidateOutcome = {
   path: string;
-  status: "imported" | "unrecognized" | "malformed" | "unsupported" | "duplicate";
+  /**
+   * `unreadable` means the browser could not read the file to the end, so none
+   * of its usage is included. It is a read failure, not a statement about the
+   * file's content: the browser does not say why, and nothing here guesses.
+   */
+  status: "imported" | "unrecognized" | "malformed" | "unsupported" | "duplicate" | "unreadable";
   source?: string;
   reason: string;
   events: number;
@@ -45,6 +56,30 @@ export interface BrowserIntakeResult {
   warnings: AdapterWarning[];
   exactDuplicates: number;
   overlaps: number;
+  /**
+   * Friendly labels for the projects in `exported`, for local display only.
+   * Never part of the export: the portable workload keeps salted hashes.
+   */
+  localProjects: LocalProjectLabel[];
+}
+
+export interface BrowserIntakeProgress {
+  examinedBytes: number;
+  reconstructedEvents: number;
+  identifiedSessions: number;
+  skippedFiles: number;
+  /**
+   * Events read so far per catalog model id, before duplicate removal. An
+   * unresolved spelling is not listed: it has no catalog identity to count.
+   */
+  modelEvents: Record<string, number>;
+  /** Distinct project groups seen so far. */
+  projectCount: number;
+  /**
+   * The busiest projects so far, by local label and event count. For this
+   * browser's own scan display only: the label never enters the export.
+   */
+  topProjects: { label: string; events: number }[];
 }
 
 const ADAPTERS = {
@@ -55,14 +90,14 @@ const ADAPTERS = {
 } as const satisfies Record<BrowserSourceId, ReturnType<typeof createCodexAdapter>>;
 
 const MiB = 1024 * 1024;
-/** One operation-wide memory envelope. The 512 MiB expanded cap matches the
- * existing single-archive cap; 1 GiB of selected/read input allows two maximal
- * compressed inputs while bounding a folder of individually valid files. The
- * 20k entry/member cap extends the former per-archive ceiling to the batch. */
+const MAX_SOURCE_FILE_BYTES = 512 * MiB;
+/** One operation-wide browser intake envelope. Raw history can span many
+ * small files, so its aggregate cap is higher than the single-archive and
+ * expanded-archive caps. Files are still read sequentially in the Worker. */
 export const BROWSER_INTAKE_BUDGET = {
   selectedCandidates: 20_000,
-  selectedBytes: 1024 * MiB,
-  readBytes: 1024 * MiB,
+  selectedBytes: 5 * 1024 * MiB,
+  readBytes: 5 * 1024 * MiB,
   archives: 16,
   archiveEntries: 20_000,
   expandedMembers: 20_000,
@@ -264,6 +299,39 @@ export async function expandZipCandidate(
   return { candidates, outcomes };
 }
 
+/**
+ * A failure to read a selected file's bytes, as opposed to a failure to parse
+ * them. Carries the browser's own error name (for example `NotReadableError`)
+ * and nothing else: no path, no content.
+ */
+export class SourceReadError extends Error {
+  constructor(readonly errorName: string | undefined) {
+    super(`Selected file could not be read${errorName === undefined ? "" : ` (${errorName})`}`);
+    this.name = "SourceReadError";
+  }
+}
+
+function errorNameOf(error: unknown): string | undefined {
+  if (error instanceof SourceReadError) return error.errorName;
+  if (typeof error === "object" && error !== null && "name" in error) {
+    const name = (error as { name: unknown }).name;
+    if (typeof name === "string" && /^[A-Za-z]+$/u.test(name) && name !== "Error") return name;
+  }
+  return undefined;
+}
+
+/** The outcome for a file the browser could not read to the end. */
+function unreadableOutcome(path: string, error: unknown, source?: string): CandidateOutcome {
+  const name = errorNameOf(error);
+  return {
+    path,
+    status: "unreadable",
+    ...(source === undefined ? {} : { source }),
+    reason: `The browser could not read this file to the end${name === undefined ? "" : ` (${name})`}. None of its usage is included in this scan.`,
+    events: 0,
+  };
+}
+
 /** Iterate without allocating an array of every line in a large history. */
 function* nonEmptyLines(content: string): Generator<string> {
   let start = 0;
@@ -274,6 +342,57 @@ function* nonEmptyLines(content: string): Generator<string> {
     if (line.trim().length > 0) yield line;
     start = next + 1;
   }
+}
+
+/** Decode JSONL a chunk at a time. The source adapters already consume async
+ * lines, so this keeps even a large session file out of a single JS string. */
+async function* streamedLines(stream: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let pending = "";
+  try {
+    while (true) {
+      let chunk: Awaited<ReturnType<typeof reader.read>>;
+      try {
+        chunk = await reader.read();
+      } catch (error) {
+        throw new SourceReadError(errorNameOf(error));
+      }
+      const { value, done } = chunk;
+      if (done) break;
+      pending += decoder.decode(value, { stream: true });
+      let end = pending.indexOf("\n");
+      while (end !== -1) {
+        const line = pending.slice(0, end).replace(/\r$/u, "");
+        if (line.trim().length > 0) yield line;
+        pending = pending.slice(end + 1);
+        end = pending.indexOf("\n");
+      }
+    }
+    pending += decoder.decode();
+    if (pending.trim().length > 0) yield pending.replace(/\r$/u, "");
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function streamedSignature(
+  stream: ReadableStream<Uint8Array>,
+  onChunk?: (bytes: number) => void,
+): Promise<string> {
+  const hash = sha256.create();
+  const reader = stream.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      hash.update(value);
+      onChunk?.(value.byteLength);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return bytesToHex(hash.digest());
 }
 
 /** Recognition requires a supported record structure. Filenames only select a parser family. */
@@ -358,6 +477,7 @@ function singleFileSystem(
   content: string,
   modified: number,
   size: number,
+  stream?: (() => ReadableStream<Uint8Array>) | undefined,
 ): FileSystem {
   const root = "/selected";
   return {
@@ -382,7 +502,11 @@ function singleFileSystem(
       if (candidate !== path) throw new Error("selected file unavailable");
       if (maxBytes !== undefined && size > maxBytes)
         throw new Error("selected file exceeds adapter limit");
-      for (const line of nonEmptyLines(content)) yield line;
+      if (stream !== undefined) {
+        yield* streamedLines(stream());
+      } else {
+        for (const line of nonEmptyLines(content)) yield line;
+      }
     },
   };
 }
@@ -395,7 +519,7 @@ export async function intakeBrowserCandidates(
     now: string;
     salt?: string;
     budget?: BrowserIntakeBudget;
-    onProgress?: (done: number, total: number) => void;
+    onProgress?: (done: number, total: number, progress: BrowserIntakeProgress) => void;
   },
 ): Promise<BrowserIntakeResult> {
   const budget = options.budget ?? new BrowserIntakeBudget();
@@ -407,6 +531,39 @@ export async function intakeBrowserCandidates(
   const outcomes: CandidateOutcome[] = [];
   const seen = new Set<string>();
   const sources = new Set<keyof typeof ADAPTERS>();
+  /** Raw project keys stay inside this function; only derived labels leave it. */
+  const projectKeys = new Map<string, string>();
+  const scanProgress = {
+    examinedBytes: 0,
+    reconstructedEvents: 0,
+    identifiedSessions: 0,
+    skippedFiles: 0,
+  };
+  const modelEvents: Record<string, number> = {};
+  const projectEvents = new Map<string, number>();
+  /** A copy of the running totals: counts and local labels only, never content. */
+  const snapshot = (): BrowserIntakeProgress => {
+    const labels = new Map(
+      localProjectLabels(projectKeys).map((entry) => [entry.hash, entry.label] as const),
+    );
+    const topProjects = [...projectEvents]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .flatMap(([hash, events]) => {
+        const label = labels.get(hash);
+        return label === undefined ? [] : [{ label, events }];
+      });
+    return {
+      ...scanProgress,
+      modelEvents: { ...modelEvents },
+      projectCount: projectEvents.size,
+      topProjects,
+    };
+  };
+  const report = (done: number, skipped: boolean): void => {
+    if (skipped) scanProgress.skippedFiles += 1;
+    if (options.onProgress !== undefined) options.onProgress(done, candidates.length, snapshot());
+  };
   for (const [index, candidate] of candidates.entries()) {
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
     if (!isBrowserSourceCandidate(candidate.path)) {
@@ -416,35 +573,52 @@ export async function intakeBrowserCandidates(
         reason: "File extension is not a supported source candidate",
         events: 0,
       });
-      options.onProgress?.(index + 1, candidates.length);
+      report(index + 1, true);
       continue;
     }
-    if (candidate.size > 256 * 1024 * 1024) {
+    if (candidate.size > MAX_SOURCE_FILE_BYTES) {
       outcomes.push({
         path: display,
         status: "unsupported",
-        reason: "File exceeds the 256 MB source parser limit",
+        reason: "File exceeds the 512 MB source parser limit",
         events: 0,
       });
-      options.onProgress?.(index + 1, candidates.length);
+      report(index + 1, true);
       continue;
     }
-    let content: string;
+    const streaming =
+      /\.jsonl$/iu.test(candidate.path) &&
+      candidate.stream !== undefined &&
+      candidate.peekText !== undefined;
+    let content = "";
+    let signature: string;
     try {
       budget.add("readBytes", candidate.readCost ?? candidate.size);
-      content = await candidate.text();
+      if (streaming) {
+        content = (await candidate.peekText?.(8 * MiB)) ?? "";
+        let lastReported = 0;
+        signature = await streamedSignature(
+          candidate.stream?.() as ReadableStream<Uint8Array>,
+          (bytes) => {
+            scanProgress.examinedBytes += bytes;
+            if (scanProgress.examinedBytes - lastReported >= 8 * MiB) {
+              lastReported = scanProgress.examinedBytes;
+              if (options.onProgress !== undefined)
+                options.onProgress(index, candidates.length, snapshot());
+            }
+          },
+        );
+      } else {
+        content = await candidate.text();
+        signature = bytesToHex(sha256(utf8ToBytes(content)));
+        scanProgress.examinedBytes += candidate.size;
+      }
     } catch (error) {
       if (error instanceof BrowserIntakeBudgetError) throw error;
-      outcomes.push({
-        path: display,
-        status: "malformed",
-        reason: "Browser could not read this selected file",
-        events: 0,
-      });
-      options.onProgress?.(index + 1, candidates.length);
+      outcomes.push(unreadableOutcome(display, error));
+      report(index + 1, true);
       continue;
     }
-    const signature = bytesToHex(sha256(utf8ToBytes(content)));
     if (seen.has(signature)) {
       outcomes.push({
         path: display,
@@ -452,19 +626,22 @@ export async function intakeBrowserCandidates(
         reason: "Exact selected file already scanned",
         events: 0,
       });
-      options.onProgress?.(index + 1, candidates.length);
+      report(index + 1, true);
       continue;
     }
     seen.add(signature);
     const detection = detectBrowserSource(content);
     if (detection.id === undefined) {
+      const plainText = /\.txt$/iu.test(candidate.path);
       outcomes.push({
         path: display,
-        status: detection.malformed ? "malformed" : "unrecognized",
-        reason: detection.reason,
+        status: plainText ? "unsupported" : detection.malformed ? "malformed" : "unrecognized",
+        reason: plainText
+          ? "Text file does not contain supported session or usage records"
+          : detection.reason,
         events: 0,
       });
-      options.onProgress?.(index + 1, candidates.length);
+      report(index + 1, true);
       continue;
     }
     const id = detection.id;
@@ -478,16 +655,34 @@ export async function intakeBrowserCandidates(
       homeDir: "/selected",
       env: {},
       selectedFiles: true,
-      fs: singleFileSystem(path, content, candidate.lastModified, candidate.size),
+      fs: singleFileSystem(
+        path,
+        content,
+        candidate.lastModified,
+        candidate.size,
+        streaming ? candidate.stream : undefined,
+      ),
       ...(id === "ccusage" ? { inputFile: path } : {}),
     };
-    const result = await adapter.collect(env, {
-      now: new Date(options.now),
-      salt,
-      mapper,
-      roots: ["/selected"],
-      ...(id === "ccusage" ? { inputFile: path } : {}),
-    });
+    let result: Awaited<ReturnType<typeof adapter.collect>>;
+    try {
+      result = await adapter.collect(env, {
+        now: new Date(options.now),
+        salt,
+        mapper,
+        roots: ["/selected"],
+        maxFileBytes: MAX_SOURCE_FILE_BYTES,
+        onProjectKey: (hash, key) => projectKeys.set(hash, key),
+        ...(id === "ccusage" ? { inputFile: path } : {}),
+      });
+    } catch (error) {
+      // A streamed file can fail after its first pass succeeded. Its partial
+      // events are discarded, so the file is either wholly in or reported out.
+      if (!(error instanceof SourceReadError)) throw error;
+      outcomes.push(unreadableOutcome(display, error, adapter.name));
+      report(index + 1, true);
+      continue;
+    }
     warnings.push(
       ...result.warnings.map((warning) => ({ code: warning.code, message: warning.message })),
     );
@@ -502,6 +697,15 @@ export async function intakeBrowserCandidates(
     } else {
       sources.add(id);
       events.push(...result.events);
+      scanProgress.reconstructedEvents += result.events.length;
+      scanProgress.identifiedSessions += result.stats.sessionsScanned;
+      for (const event of result.events) {
+        const model = event.model.canonicalId;
+        if (model !== undefined) modelEvents[model] = (modelEvents[model] ?? 0) + 1;
+        const project = event.projectHash;
+        if (project !== undefined)
+          projectEvents.set(project, (projectEvents.get(project) ?? 0) + 1);
+      }
       outcomes.push({
         path: display,
         status: "imported",
@@ -510,7 +714,7 @@ export async function intakeBrowserCandidates(
         events: result.events.length,
       });
     }
-    options.onProgress?.(index + 1, candidates.length);
+    report(index + 1, result.events.length === 0);
   }
   const deduped = dedupeEvents(events);
   warnings.push(...deduped.warnings);
@@ -524,7 +728,15 @@ export async function intakeBrowserCandidates(
       warnings: safeWarnings,
       exactDuplicates: deduped.exactDuplicates,
       overlaps: deduped.overlaps,
+      localProjects: [],
     };
+  const presentProjects = new Map<string, string>();
+  for (const event of deduped.events) {
+    const hash = event.projectHash;
+    if (hash === undefined || presentProjects.has(hash)) continue;
+    const key = projectKeys.get(hash);
+    if (key !== undefined) presentProjects.set(hash, key);
+  }
   const detectedSources: DetectedSourceV1[] = [...sources].map((id) => ({
     adapterId: id,
     name: ADAPTERS[id].name,
@@ -555,5 +767,6 @@ export async function intakeBrowserCandidates(
     warnings: safeWarnings,
     exactDuplicates: deduped.exactDuplicates,
     overlaps: deduped.overlaps,
+    localProjects: localProjectLabels(presentProjects),
   };
 }

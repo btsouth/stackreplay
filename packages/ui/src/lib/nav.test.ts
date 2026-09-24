@@ -22,8 +22,10 @@ describe("appNavItems", () => {
   it("only advertises working local workspace surfaces", () => {
     expect(appNavItems.map((item) => item.label)).toEqual([
       "Workspace",
-      "Replay",
       "Import",
+      "Workload",
+      "Replay",
+      "Compare",
       "Settings",
     ]);
   });

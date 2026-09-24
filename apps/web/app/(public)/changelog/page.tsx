@@ -63,8 +63,25 @@ export default function ChangelogPage() {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">{change.summary}</p>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <SourceList sources={change.sources} />
+              {change.modelDetails === undefined ? null : (
+                <details>
+                  <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+                    Inspect model names
+                  </summary>
+                  <p className="max-w-[75ch] pb-2 text-sm text-muted-foreground">
+                    {change.modelDetails}
+                  </p>
+                </details>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <details>
+                  <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+                    Sources
+                  </summary>
+                  <div className="pb-2">
+                    <SourceList sources={change.sources} />
+                  </div>
+                </details>
                 <VerificationBadge
                   status={change.verificationStatus}
                   lastVerifiedAt={change.lastVerifiedAt}

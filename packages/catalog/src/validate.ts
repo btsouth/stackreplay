@@ -546,6 +546,43 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
     }
   }
 
+  // Taxonomy (launch): a developer is a provider record, a family reference
+  // points at a record that declares itself a family, and a family record is
+  // an identity, not a release, so it has neither a family nor a lifecycle.
+  const modelKinds = new Map(
+    models.map((entry) => [entry.value.id, entry.value.kind ?? "release"]),
+  );
+  for (const entry of models) {
+    const model = entry.value;
+    if (model.developerId !== undefined && !providerIds.has(model.developerId)) {
+      issues.push({
+        severity: "error",
+        code: "DEVELOPER_REF_MISSING",
+        message: `model "${model.id}" names unknown developer "${model.developerId}"`,
+        file: entry.file,
+      });
+    }
+    if (model.kind === "family") {
+      if (model.familyId !== undefined || model.lifecycle !== undefined) {
+        issues.push({
+          severity: "error",
+          code: "FAMILY_RECORD_INVALID",
+          message: `family record "${model.id}" cannot declare a family or a lifecycle; those describe releases`,
+          file: entry.file,
+        });
+      }
+      continue;
+    }
+    if (model.familyId !== undefined && modelKinds.get(model.familyId) !== "family") {
+      issues.push({
+        severity: "error",
+        code: "FAMILY_REF_INVALID",
+        message: `model "${model.id}" names "${model.familyId}" as its family, which is not a family record`,
+        file: entry.file,
+      });
+    }
+  }
+
   // Alias declarations must be unambiguous: an alias is the only thing that can
   // map an outside identifier onto a model, so two models claiming the same
   // spelling in the same scope, a duplicate alias id, or an alias that shadows
@@ -620,6 +657,13 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
         },
       });
       for (const rule of version.modelRules) {
+        if (rule.access !== undefined && rule.excluded !== true)
+          issues.push({
+            severity: "error",
+            code: "ACCESS_WITHOUT_EXCLUSION",
+            message: `${plan.id}@${version.effectiveFrom}: ${rule.model} records paid access but is not excluded from included usage`,
+            file: entry.file,
+          });
         const price = pricing.find((entry) => entry.value.id === rule.pricingRef)?.value;
         if (price !== undefined && price.modelId !== rule.model)
           issues.push({

@@ -4,6 +4,7 @@ name: ChatGPT Pro $200 (Pro 20x tier)
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-21
+    effectiveTo: 2026-09-21
     price:
       currency: USD
       amount: "200"
@@ -19,6 +20,7 @@ versions:
         label: "Per-model usage allowances (temporary model unavailability)"
         statement: "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available."
         sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        topic: after_limit
       - id: new-sign-ups-and-upgrades-paused
         label: "New sign-ups and upgrades paused"
         statement: "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual."
@@ -50,4 +52,63 @@ versions:
         title: "OpenAI pricing (official)"
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
+    verificationStatus: verified
+  - effectiveFrom: 2026-09-22
+    price:
+      currency: USD
+      amount: "200"
+      interval: month
+    billingMechanics: "Included as a separate entry because ChatGPT Pro has two official price points and usage allowances under one plan name."
+    limits: []
+    qualitativeLimits:
+      - id: pro-200-usage-relative-to-plus
+        label: "Pro $200 usage relative to Plus"
+        statement: "Pro $200 unlocks 20x usage than Plus."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: per-model-usage-allowances-temporary-model-unava
+        label: "Per-model usage allowances (temporary model unavailability)"
+        statement: "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        topic: after_limit
+      - id: new-sign-ups-and-upgrades-paused
+        label: "New sign-ups and upgrades paused"
+        statement: "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://openai.com/chatgpt/pricing/
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-23
+      - url: https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925
+        title: "OpenAI model launch and paid plan availability"
+        checkedAt: 2026-09-23
+      - url: https://chatgpt.com/pricing/
+        title: "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit"
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-23
     verificationStatus: verified

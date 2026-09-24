@@ -85,8 +85,9 @@ describe("collection pipeline", () => {
       const result = await runCollect(directory);
       // 2 Claude Code records + 2 Codex records + 3 Command Code records + 2 Hermes rows
       expect(result.stats.totalEvents).toBe(9);
-      // The harness-managed copy of the Claude Code session is an exact duplicate.
-      expect(result.stats.exactDuplicates).toBe(2);
+      // Claude responses are grouped by their API identity before generic dedupe.
+      expect(result.stats.exactDuplicates).toBe(0);
+      expect(result.warnings.map((warning) => warning.code)).toContain("RECORD_DUPLICATE");
       expect(
         result.events.filter((event) => event.source.adapterId === "claude-code"),
       ).toHaveLength(2);

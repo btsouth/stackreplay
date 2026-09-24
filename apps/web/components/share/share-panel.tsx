@@ -31,6 +31,11 @@ export interface SharePanelProps {
   attribution?: readonly ShareAttributionFacts[];
   /** Canonical origin for the displayed link; falls back to the page origin. */
   siteUrl?: string;
+  /**
+   * Why this particular replay cannot become a link even though its result
+   * could: for example a scope the V1 link format cannot state.
+   */
+  scopeRefusal?: string | undefined;
 }
 
 interface ShareState {
@@ -38,7 +43,13 @@ interface ShareState {
   url: string;
 }
 
-export function SharePanel({ result, target, attribution, siteUrl }: SharePanelProps) {
+export function SharePanel({
+  result,
+  target,
+  attribution,
+  siteUrl,
+  scopeRefusal,
+}: SharePanelProps) {
   const [includeRange, setIncludeRange] = useState(false);
   const [includeSessions, setIncludeSessions] = useState(false);
   const [includeAttribution, setIncludeAttribution] = useState(false);
@@ -50,7 +61,7 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
   const origin = siteUrl ?? (typeof window === "undefined" ? "" : window.location.origin);
   // A translated replay has no safe reading in a V1 link, so the panel says so
   // instead of offering a link that would be read as an exact replay (M4B).
-  const refusal = shareSnapshotRefusal(result);
+  const refusal = scopeRefusal ?? shareSnapshotRefusal(result);
 
   async function createLink() {
     setError(undefined);
@@ -102,8 +113,8 @@ export function SharePanel({ result, target, attribution, siteUrl }: SharePanelP
         <p className="text-xs text-muted-foreground">
           A share link carries the whole result in the URL, so it needs no account and no server
           copy. It contains aggregates only: counts, token totals, the plan, coverage, limits and
-          versions. It never contains events, sessions, projects, prompts, responses, file names or
-          paths.
+          versions. It never contains individual event or session records, project names, prompts,
+          responses, file names or paths.
         </p>
         <p className="text-xs text-muted-foreground" data-testid="share-disclosure">
           Anyone with this link can read the aggregate numbers it contains. The link is not

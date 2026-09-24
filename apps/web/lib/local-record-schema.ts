@@ -1,3 +1,4 @@
+import type { WarningCode } from "@stackreplay/adapters";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { z } from "zod";
 import type { ImportRecord } from "./worker-protocol";
@@ -73,10 +74,17 @@ const safeExplanation = z
   .string()
   .max(240)
   .refine((value) => !value.includes("/") && !value.includes("\\"));
-const warningCode = z.enum([
+/**
+ * Every warning code an adapter can raise. The type assertion below fails the
+ * build when the adapters gain a code this list does not carry: a missing code
+ * made every Claude scan with repeated response rows (RECORD_DUPLICATE)
+ * impossible to save, reported as storage being full.
+ */
+const WARNING_CODES = [
   "SOURCE_UNREADABLE",
   "SOURCE_LAYOUT_UNSUPPORTED",
   "RECORD_MALFORMED",
+  "RECORD_DUPLICATE",
   "RECORD_UNSUPPORTED",
   "RECORD_INCOMPLETE",
   "SESSION_PARTIAL",
@@ -92,10 +100,22 @@ const warningCode = z.enum([
   "ACCOUNTING_UNRECONCILED",
   "AGGREGATE_NO_SESSION",
   "DOUBLE_COUNT_RISK",
-]);
+] as const satisfies readonly WarningCode[];
+type Exhaustive<T extends true> = T;
+export type WarningCodesCovered = Exhaustive<
+  WarningCode extends (typeof WARNING_CODES)[number] ? true : false
+>;
+const warningCode = z.enum(WARNING_CODES);
 const outcome = z.strictObject({
   path: safeName,
-  status: z.enum(["imported", "unrecognized", "malformed", "unsupported", "duplicate"]),
+  status: z.enum([
+    "imported",
+    "unrecognized",
+    "malformed",
+    "unsupported",
+    "duplicate",
+    "unreadable",
+  ]),
   source: safeName.optional(),
   reason: safeExplanation,
   events: count,
@@ -115,6 +135,9 @@ export const importRecordSchema = z.strictObject({
     })
     .optional(),
   savedLocally: z.boolean().optional(),
+  localProjects: z
+    .array(z.strictObject({ hash: z.string().regex(/^ph_[0-9a-f]{32}$/u), label: safeName }))
+    .optional(),
 });
 
 /** Both stores are one contract. Reject malformed metadata and event envelopes. */

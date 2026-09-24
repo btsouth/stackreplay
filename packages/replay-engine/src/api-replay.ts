@@ -224,7 +224,13 @@ export function replayApiTarget(input: ApiReplayInput): ExecutionReplayResultV1 
 
     if (identityEstablished) {
       if (availability === "offered") {
-        pricing = pricingAt(pricingHistory, effectiveModelId, rulesAsOf, pricingCache);
+        pricing = pricingAt(
+          pricingHistory,
+          effectiveModelId,
+          rulesAsOf,
+          context.rulesAsOfInstant,
+          pricingCache,
+        );
         const outcome = moneyUnitsForUsage(
           event.usage,
           pricing.kind === "selected" ? pricing.pricing : undefined,
@@ -590,6 +596,7 @@ function pricingAt(
   history: { byModel: ReadonlyMap<string, PricingV1[]>; otherBasisModels: ReadonlySet<string> },
   modelId: string,
   rulesAsOf: string,
+  rulesAsOfInstant: string | undefined,
   cache: Map<string, ApiPricingOutcome>,
 ): ApiPricingOutcome {
   const cached = cache.get(modelId);
@@ -601,7 +608,15 @@ function pricingAt(
         ? { kind: "other-basis" }
         : { kind: "not-recorded" }
       : (() => {
-          const selected = selectPlanVersionAt(records, rulesAsOf);
+          const atMs = Date.parse(rulesAsOfInstant ?? rulesAsOf);
+          const selected = selectPlanVersionAt(
+            records.filter(
+              (record) =>
+                record.effectiveFromInstant === undefined ||
+                atMs >= Date.parse(record.effectiveFromInstant),
+            ),
+            rulesAsOf,
+          );
           return selected === undefined
             ? { kind: "not-in-force" as const }
             : { kind: "selected" as const, pricing: selected };

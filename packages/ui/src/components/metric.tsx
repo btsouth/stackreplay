@@ -13,7 +13,7 @@ export type MetricTone = keyof typeof TONE_CLASS;
 export interface MetricProps extends ComponentProps<"div"> {
   /** Small caps label, e.g. "Tokens". */
   label: string;
-  /** The value itself. Numbers are monospaced with tabular figures. */
+  /** The value itself. Numbers use tabular figures without a slashed zero. */
   value: string;
   /** Optional unit rendered next to the value, e.g. "tokens". */
   unit?: string;
@@ -25,7 +25,8 @@ export interface MetricProps extends ComponentProps<"div"> {
 
 /**
  * Metric: a single number as a first-class visual element (spec point 33).
- * Values use Geist Mono with tabular figures so large numbers align.
+ * Values use tabular figures so large numbers align without the visual noise of
+ * slashed zeros at display sizes.
  */
 export function Metric({
   label,
@@ -38,13 +39,13 @@ export function Metric({
   ...props
 }: MetricProps) {
   return (
-    <div className={cn("flex flex-col gap-1", className)} {...props}>
+    <div className={cn("flex min-w-0 flex-col gap-1.5", className)} {...props}>
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <span className="flex items-baseline gap-1.5">
+      <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
         <span
           className={cn(
-            "font-mono tabular-nums tracking-tight",
-            size === "lg" ? "text-3xl" : "text-xl",
+            "min-w-0 font-sans font-semibold leading-none tabular-nums tracking-tight [overflow-wrap:anywhere]",
+            size === "lg" ? "text-3xl" : "text-2xl",
             TONE_CLASS[tone],
           )}
         >
@@ -52,7 +53,11 @@ export function Metric({
         </span>
         {unit ? <span className="text-xs text-muted-foreground">{unit}</span> : null}
       </span>
-      {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
+      {hint ? (
+        <span className="text-xs leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+          {hint}
+        </span>
+      ) : null}
     </div>
   );
 }

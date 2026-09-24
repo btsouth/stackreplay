@@ -52,12 +52,18 @@ export function listPriceWindowLabel(windowDays: number | undefined): string {
  * precision; an interface shows two decimals and keeps the full value in the
  * title so nobody has to guess which one is rounded.
  */
+/** Two decimals with thousands separators: "$1,891.79", never "$1891.79". */
+const MONEY = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 export function formatMoney(amount: string | undefined, currency = "USD"): string | undefined {
   if (amount === undefined) return undefined;
   const parsed = Number.parseFloat(amount);
   if (!Number.isFinite(parsed)) return undefined;
   const symbol = currency === "USD" ? "$" : `${currency} `;
-  return `${symbol}${parsed.toFixed(2)}`;
+  return `${symbol}${MONEY.format(parsed)}`;
 }
 
 export function formatUnit(
@@ -69,7 +75,7 @@ export function formatUnit(
     case "usd": {
       const parsed = Number.parseFloat(String(value));
       if (!Number.isFinite(parsed)) return undefined;
-      return `$${parsed.toFixed(2)}`;
+      return `$${MONEY.format(parsed)}`;
     }
     case "requests": {
       const parsed = Number.parseFloat(String(value));

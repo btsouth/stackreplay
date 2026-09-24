@@ -1,11 +1,19 @@
 id: claude-sonnet
 role: model
 name: "Sonnet"
+kind: family
+developerId: anthropic
 providerIds:
   - anthropic
 sources:
   - url: https://claude.com/pricing
     title: "Anthropic pricing (official)"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://platform.claude.com/docs/en/models/overview
+    title: "Anthropic models overview: Claude models are developed by Anthropic; each release has its own pinned model ID"
+    checkedAt: 2026-09-24
+  - url: https://code.claude.com/docs/en/model-config
+    title: "Claude Code model configuration: the `sonnet` alias resolves to a Sonnet release that depends on the provider and date"
+    checkedAt: 2026-09-24
+lastVerifiedAt: 2026-09-24
 verificationStatus: verified

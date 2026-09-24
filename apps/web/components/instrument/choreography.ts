@@ -26,11 +26,11 @@ export interface ReplayStep {
 }
 
 const STEP_MS = {
-  observed: 300,
-  identity: 360,
-  translation: 280,
-  target: 300,
-  pressure: 400,
+  observed: 350,
+  identity: 400,
+  translation: 300,
+  target: 400,
+  pressure: 500,
 } as const;
 
 /** What each phase is saying, in the interface's own words. */
@@ -65,7 +65,7 @@ export function sequenceFor(translated: boolean): readonly ReplayStep[] {
   return steps;
 }
 
-/** Total run length: ~1.4s for an exact replay, ~1.7s when a substitution is shown. */
+/** Total run length: ~1.65s exact, ~1.95s with an explicit substitution. */
 export function totalDurationMs(translated: boolean): number {
   const steps = sequenceFor(translated);
   return steps.at(-1)?.at ?? 0;

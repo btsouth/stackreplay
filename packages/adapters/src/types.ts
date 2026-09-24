@@ -59,6 +59,7 @@ export type WarningCode =
   | "SOURCE_UNREADABLE"
   | "SOURCE_LAYOUT_UNSUPPORTED"
   | "RECORD_MALFORMED"
+  | "RECORD_DUPLICATE"
   | "RECORD_UNSUPPORTED"
   | "RECORD_INCOMPLETE"
   | "SESSION_PARTIAL"
@@ -110,6 +111,13 @@ export interface CollectOptions {
   mapper: ModelMapper;
   /** Harness attribution discovered from attribution adapters (for example T3 Code). */
   attribution?: AttributionIndex;
+  /**
+   * Local-only observer for project identity. Called with each salted project
+   * hash and the normalized key it was derived from, so a local surface can
+   * derive a friendly label for the user's own screen. The key itself never
+   * enters an event or an export; a caller must not persist or transmit it.
+   */
+  onProjectKey?: (projectHash: string, normalizedKey: string) => void;
   /** Explicit input file for import adapters (ccusage). */
   inputFile?: string;
   /** Safety bound on files read per adapter. */

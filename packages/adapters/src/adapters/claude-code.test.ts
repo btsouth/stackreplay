@@ -50,6 +50,53 @@ describe("claude-code adapter", () => {
     expect(result.events[1]?.occurredAt).toBe("2026-09-19T10:01:00.000Z");
   });
 
+  it("counts one API response once when Claude writes several assistant rows", async () => {
+    const result = await withTempDir(async (directory) => {
+      const base = {
+        type: "assistant",
+        sessionId: "11111111-1111-4111-8111-111111111111",
+        timestamp: "2026-09-19T10:05:00.000Z",
+        cwd: "/home/example/projects/demo-app",
+      };
+      const row = (uuid: string, requestId: string, output: number, stop: string | null) =>
+        JSON.stringify({
+          ...base,
+          uuid,
+          requestId,
+          message: {
+            id: "msg_shared",
+            model: "example-medium",
+            stop_reason: stop,
+            usage: {
+              input_tokens: 2,
+              output_tokens: output,
+              cache_read_input_tokens: 100,
+              cache_creation_input_tokens: 3,
+            },
+          },
+        });
+      await writeFixture(
+        `${directory}/.claude/projects/demo/a.jsonl`,
+        [row("row-1", "req-1", 1, null), row("row-2", "req-1", 5, "tool_use")].join("\n"),
+      );
+      await writeFixture(
+        `${directory}/.claude/projects/demo/b.jsonl`,
+        [row("row-3", "req-1", 5, "tool_use"), row("row-4", "req-2", 7, "end_turn")].join("\n"),
+      );
+      const env = createFixtureEnvironment({ homeDir: directory });
+      return adapter.collect(env, { ...options(), roots: [`${directory}/.claude/projects`] });
+    });
+    expect(result.events).toHaveLength(2);
+    expect(result.events.map((event) => event.usage.outputTokens).sort()).toEqual([5, 7]);
+    expect(result.stats.eventsEmitted).toBe(2);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "RECORD_DUPLICATE",
+        message: expect.stringContaining("2 records affected"),
+      }),
+    );
+  });
+
   it("reports cache categories as additional and reasoning as included in output", async () => {
     const result = await collectFrom("$DIR/.claude/projects");
     const [first] = result.events;

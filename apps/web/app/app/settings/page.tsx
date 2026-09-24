@@ -14,8 +14,7 @@ export default function SettingsPage() {
           <h2 className="text-base font-medium">Appearance</h2>
           <div className="flex items-center justify-between gap-4">
             <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Switch between the precision dark theme and warm paper theme. Your choice stays in
-              this browser.
+              Switch between dark and light themes. Your choice stays in this browser.
             </p>
             <ThemeToggle />
           </div>
@@ -24,8 +23,8 @@ export default function SettingsPage() {
           <h2 className="text-base font-medium">Local workspace</h2>
           <div className="flex flex-col gap-4">
             <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Saved workloads live in this browser. Replay shows what is available here; Import lets
-              you load another workload.
+              Saved workloads stay in this browser. Use Import to scan a folder again, remove a
+              saved workload, or clear local data.
             </p>
             <div className="flex flex-wrap gap-5 text-sm">
               <Link
@@ -38,7 +37,7 @@ export default function SettingsPage() {
                 href="/app/import"
                 className="min-h-11 content-center text-accent underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
               >
-                Load workload
+                Manage local data
               </Link>
             </div>
           </div>

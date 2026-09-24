@@ -2,6 +2,7 @@ import type { CandidateOutcome } from "@stackreplay/adapters/browser";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { WindowFact, WorkloadProfile } from "./workload-profile";
 
 /**
  * Internal Worker protocol (spec point 12, M3 brief).
@@ -181,6 +182,13 @@ export interface ImportRecord {
     warnings: { code: string; message: string }[];
   };
   savedLocally?: boolean;
+  /**
+   * Friendly project labels from this browser's own scan, keyed by the salted
+   * project hash the events carry. Local display only: they live in this
+   * record in this browser, and never enter the portable export, a share link
+   * or any request.
+   */
+  localProjects?: { hash: string; label: string }[];
 }
 
 /**
@@ -244,6 +252,28 @@ export type WorkerRequest =
       importId: string;
       target: ExecutionTargetV1;
       rulesAsOf: string;
+      /**
+       * Explicit user scope: replay only events whose model identity resolves.
+       * The response reports how many were left out.
+       */
+      excludeUnresolved?: boolean;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "ANALYZE_WORKLOAD";
+      requestId: number;
+      importId: string;
+      /** IANA timezone the clock positions are read in. */
+      timeZone: string;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "INSPECT_WINDOW";
+      requestId: number;
+      importId: string;
+      startMs: number;
+      endMs: number;
+      timeZone: string;
     }
   | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "LIST_LOCAL_IMPORTS"; requestId: number }
   | {
@@ -256,6 +286,26 @@ export type WorkerRequest =
   | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "PING"; requestId: number }
   | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CANCEL_IMPORT"; requestId: number };
 
+/**
+ * Running totals of a local source scan, as the scan instrument shows them.
+ * Counts, catalog model names and this browser's own project labels only: no
+ * file content, no path, and nothing here ever leaves the browser.
+ */
+export interface ScanProgress {
+  filesDone: number;
+  filesTotal: number;
+  sessions: number;
+  /** Events reconstructed so far, before duplicates across files are removed. */
+  events: number;
+  skipped: number;
+  examinedBytes: number;
+  projects: number;
+  /** The most frequent catalog models so far, by display name. */
+  models: { name: string; events: number }[];
+  /** The busiest projects so far, by local label. */
+  topProjects: { label: string; events: number }[];
+}
+
 export type WorkerResponse =
   | { type: "READY"; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "PONG"; requestId: number; protocol: typeof WORKER_PROTOCOL_VERSION }
@@ -267,6 +317,8 @@ export type WorkerResponse =
       phase: ImportPhase | ReplayPhase;
       /** Bounded, human-readable and content-free. */
       detail?: string;
+      /** Running totals of a local source scan, when the operation is one. */
+      scan?: ScanProgress;
     }
   | { type: "IMPORT_OK"; requestId: number; record: ImportRecord; replacedExisting: boolean }
   | { type: "EXPORTED"; requestId: number; bytes: Uint8Array }
@@ -282,7 +334,11 @@ export type WorkerResponse =
        * about the facts of one replay.
        */
       projection: ProjectedReplayV1;
+      /** Present when the replay ran under an explicit scope. */
+      scope?: { excludedUnresolvedEvents: number; recordedEvents: number };
     }
+  | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
+  | { type: "WINDOW_OK"; requestId: number; window: WindowFact }
   | { type: "IMPORTS"; requestId: number; imports: ImportRecord[] }
   | { type: "DELETED"; requestId: number; importId: string }
   | { type: "CLEARED"; requestId: number }

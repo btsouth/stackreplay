@@ -1,9 +1,13 @@
 id: claude-fable-5-1
 role: model
 name: "Claude Fable 5.1"
+familyId: claude-fable
+lifecycle: current
+developerId: anthropic
 providerIds:
   - cursor
   - github
+  - anthropic
 aliases:
   - id: claude-fable-5-1-router-anthropic-claude-fable-5-1
     alias: "anthropic/claude-fable-5.1"
@@ -17,9 +21,18 @@ aliases:
 sources:
   - url: https://github.com/features/copilot/plans
     title: "GitHub pricing (official)"
-    checkedAt: 2026-09-21
+    checkedAt: 2026-09-23
   - url: https://cursor.com/pricing
     title: "Cursor pricing (official)"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://cursor.com/docs/models-and-pricing
+    title: "Cursor current model and rate tables; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+  - url: https://platform.claude.com/docs/en/models/overview
+    title: "Anthropic models overview: Claude Fable 5.1 in the current lineup, Claude API ID `claude-fable-5-1`"
+    checkedAt: 2026-09-24
+lastVerifiedAt: 2026-09-24
 verificationStatus: verified

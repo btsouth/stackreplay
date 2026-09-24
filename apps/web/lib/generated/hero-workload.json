@@ -1,0 +1,330 @@
+{
+  "fixtureVersion": 1,
+  "generatedBy": "apps/web/scripts/build-hero-fixture.mjs",
+  "label": "Anonymized real workload",
+  "source": "Codex",
+  "engineVersion": "0.0.4",
+  "methodologyVersion": "1.4.0",
+  "catalogVersion": "sha256:3aa952af6ce993dec888c161ec7683e9c13a0a54c9a21e26ea6261998f75abc3",
+  "rulesAsOf": "2026-09-23",
+  "workload": {
+    "recordedEvents": 25788,
+    "replayedEvents": 25712,
+    "unresolvedEvents": 76,
+    "sessions": 146,
+    "projects": 34,
+    "activeDays": 27,
+    "from": "2026-08-21",
+    "to": "2026-09-23",
+    "rangeDays": 34,
+    "knownTokens": 3121910968,
+    "cacheReadTokens": 3050552922,
+    "modelMix": [
+      {
+        "name": "GPT-5.6 Sol",
+        "events": 16434
+      },
+      {
+        "name": "GPT-6 Sol",
+        "events": 4687
+      },
+      {
+        "name": "GPT-6 Astra",
+        "events": 4572
+      },
+      {
+        "name": "GPT-5.6 Luna",
+        "events": 18
+      },
+      {
+        "name": "GPT-5.6 Terra",
+        "events": 1
+      }
+    ],
+    "days": [
+      {
+        "date": "2026-08-21",
+        "events": 3
+      },
+      {
+        "date": "2026-08-22",
+        "events": 308
+      },
+      {
+        "date": "2026-08-23",
+        "events": 3988
+      },
+      {
+        "date": "2026-08-24",
+        "events": 1031
+      },
+      {
+        "date": "2026-08-25",
+        "events": 1534
+      },
+      {
+        "date": "2026-08-26",
+        "events": 707
+      },
+      {
+        "date": "2026-08-27",
+        "events": 0
+      },
+      {
+        "date": "2026-08-28",
+        "events": 0
+      },
+      {
+        "date": "2026-08-29",
+        "events": 612
+      },
+      {
+        "date": "2026-08-30",
+        "events": 1622
+      },
+      {
+        "date": "2026-08-31",
+        "events": 472
+      },
+      {
+        "date": "2026-09-01",
+        "events": 2935
+      },
+      {
+        "date": "2026-09-02",
+        "events": 1191
+      },
+      {
+        "date": "2026-09-03",
+        "events": 1468
+      },
+      {
+        "date": "2026-09-04",
+        "events": 273
+      },
+      {
+        "date": "2026-09-05",
+        "events": 818
+      },
+      {
+        "date": "2026-09-06",
+        "events": 51
+      },
+      {
+        "date": "2026-09-07",
+        "events": 44
+      },
+      {
+        "date": "2026-09-08",
+        "events": 66
+      },
+      {
+        "date": "2026-09-09",
+        "events": 95
+      },
+      {
+        "date": "2026-09-10",
+        "events": 171
+      },
+      {
+        "date": "2026-09-11",
+        "events": 38
+      },
+      {
+        "date": "2026-09-12",
+        "events": 11
+      },
+      {
+        "date": "2026-09-13",
+        "events": 18
+      },
+      {
+        "date": "2026-09-14",
+        "events": 0
+      },
+      {
+        "date": "2026-09-15",
+        "events": 53
+      },
+      {
+        "date": "2026-09-16",
+        "events": 0
+      },
+      {
+        "date": "2026-09-17",
+        "events": 0
+      },
+      {
+        "date": "2026-09-18",
+        "events": 0
+      },
+      {
+        "date": "2026-09-19",
+        "events": 2920
+      },
+      {
+        "date": "2026-09-20",
+        "events": 275
+      },
+      {
+        "date": "2026-09-21",
+        "events": 0
+      },
+      {
+        "date": "2026-09-22",
+        "events": 303
+      },
+      {
+        "date": "2026-09-23",
+        "events": 4705
+      }
+    ]
+  },
+  "targets": [
+    {
+      "id": "copilot-pro-plus",
+      "label": "Copilot Pro+",
+      "catalogName": "Copilot Pro+",
+      "provider": "GitHub",
+      "kind": "subscription",
+      "mode": "exact",
+      "price": {
+        "amount": "39.00",
+        "interval": "month"
+      },
+      "reference": "github-copilot-pro-plus@2026-09-22",
+      "served": 25712,
+      "unavailable": 0,
+      "undecided": 0,
+      "models": {
+        "recorded": 5,
+        "translated": []
+      },
+      "result": {
+        "class": "allowance-exhausted",
+        "allowance": {
+          "label": "Monthly AI credits (7,000 credits = $70.00 at the documented $0.01 per credit)",
+          "amount": "70.00",
+          "unit": "usd",
+          "window": "calendar month (UTC)"
+        },
+        "included": 2135,
+        "above": 23577,
+        "blocked": 0,
+        "overageCost": "1793.32",
+        "totalCost": "1832.32",
+        "crossings": [
+          {
+            "date": "2026-08-23",
+            "demand": "663.47",
+            "included": "70.00"
+          },
+          {
+            "date": "2026-09-01",
+            "demand": "1269.85",
+            "included": "70.00"
+          }
+        ]
+      },
+      "overPerDay": [
+        0, 0, 3196, 1031, 1534, 707, 0, 0, 612, 1622, 472, 1901, 1191, 1468, 273, 818, 51, 44, 66,
+        95, 171, 38, 11, 18, 0, 53, 0, 0, 0, 2920, 275, 0, 303, 4705
+      ]
+    },
+    {
+      "id": "chatgpt-pro",
+      "label": "ChatGPT Pro",
+      "catalogName": "ChatGPT Pro ($100 / Pro 10x tier)",
+      "provider": "OpenAI",
+      "kind": "subscription",
+      "mode": "exact",
+      "price": {
+        "amount": "100.00",
+        "interval": "month"
+      },
+      "reference": "openai-chatgpt-pro@2026-09-22",
+      "served": 25712,
+      "unavailable": 0,
+      "undecided": 0,
+      "models": {
+        "recorded": 5,
+        "translated": []
+      },
+      "result": {
+        "class": "capacity-unpublished",
+        "established": false
+      }
+    },
+    {
+      "id": "claude-max",
+      "label": "Claude Max 20x",
+      "catalogName": "Claude Max 20x",
+      "provider": "Anthropic",
+      "kind": "subscription",
+      "mode": "translated",
+      "price": {
+        "amount": "200.00",
+        "interval": "month"
+      },
+      "reference": "anthropic-claude-max-20x@2026-09-22",
+      "served": 25712,
+      "unavailable": 0,
+      "undecided": 0,
+      "models": {
+        "recorded": 5,
+        "translated": [
+          {
+            "from": "GPT-5.6 Luna",
+            "to": "Claude Sonnet 5",
+            "events": 18
+          },
+          {
+            "from": "GPT-5.6 Sol",
+            "to": "Claude Sonnet 5",
+            "events": 16434
+          },
+          {
+            "from": "GPT-5.6 Terra",
+            "to": "Claude Sonnet 5",
+            "events": 1
+          },
+          {
+            "from": "GPT-6 Astra",
+            "to": "Claude Opus 5.5",
+            "events": 4572
+          },
+          {
+            "from": "GPT-6 Sol",
+            "to": "Claude Opus 5.5",
+            "events": 4687
+          }
+        ]
+      },
+      "result": {
+        "class": "capacity-unpublished",
+        "established": false
+      }
+    },
+    {
+      "id": "openai-api",
+      "label": "OpenAI API",
+      "catalogName": "OpenAI Direct API",
+      "provider": "OpenAI",
+      "kind": "api",
+      "mode": "exact",
+      "reference": "openai",
+      "served": 25712,
+      "unavailable": 0,
+      "undecided": 0,
+      "models": {
+        "recorded": 5,
+        "translated": []
+      },
+      "result": {
+        "class": "published-rate",
+        "cost": "1933.32",
+        "established": true
+      }
+    }
+  ]
+}

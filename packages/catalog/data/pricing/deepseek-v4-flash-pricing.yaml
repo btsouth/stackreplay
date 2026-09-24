@@ -10,7 +10,7 @@ rates:
   cacheRead: "0.003"
 tiers:
   - id: peak-hours
-    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)"
+    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday"
     when:
       utcWindows:
         - days: [mon, tue, wed, thu, fri]
@@ -27,12 +27,15 @@ effectiveFrom: 2026-09-21
 sources:
       - url: https://api-docs.deepseek.com/quick_start/pricing
         title: 'Legacy name: "Use deepseek-flash as the model name. The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash model and billed at the Flash price."'
-        checkedAt: 2026-09-21
+        checkedAt: 2026-09-23
       - url: https://api-docs.deepseek.com/quick_start/pricing
-        title: 'DeepSeek-V4.1-Flash peak/off-peak schedule: "Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full." Base rates are the documented off-peak rates; the tier is the documented peak window.'
-        checkedAt: 2026-09-21
+        title: 'DeepSeek-V4.1-Flash peak/off-peak schedule: "Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak)." Base rates are the documented off-peak rates; the tier is the documented peak window.'
+        checkedAt: 2026-09-23
       - url: https://api-docs.deepseek.com/quick_start/pricing
         title: 'Rate rows: cache hit "OFF-PEAK | $0.003" / "PEAK | $0.006"; cache miss "OFF-PEAK | $0.15" / "PEAK | $0.3"; output "OFF-PEAK | $0.6" / "PEAK | $1.2" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.'
-        checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+        checkedAt: 2026-09-23
+      - url: https://api-docs.deepseek.com/news/news260910/
+        title: Legacy V4 Flash name currently routes to V4.1 Flash; exact historical switch instant not published
+        checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified

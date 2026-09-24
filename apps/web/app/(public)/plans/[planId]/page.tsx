@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
 import { SourceList, VerificationBadge } from "@/components/public/provenance";
+import { formatCatalogDate } from "@/lib/catalog-copy";
+import { buildCompareFacts, NO_NUMERIC_ALLOWANCE } from "@/lib/compare-facts";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
 interface PlanPageProps {
@@ -19,7 +21,7 @@ export async function generateMetadata({ params }: PlanPageProps): Promise<Metad
   if (plan === undefined) return { title: "Plan not found" };
   return {
     title: `${plan.name} (${plan.providerName})`,
-    description: `${plan.name} from ${plan.providerName}: $${plan.price.amount} per ${plan.price.interval}, documented limits, windows, exceed behaviour and model access, with sources and a verification state.`,
+    description: `${plan.name} from ${plan.providerName}: $${plan.price.amount} per ${plan.price.interval}, included models, usage limits and what happens after the limit, with sources.`,
     alternates: { canonical: `/plans/${plan.id}` },
   };
 }
@@ -30,6 +32,7 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
   const plan = catalog.planById(planId);
   if (plan === undefined) notFound();
   const versions = catalog.planVersions(plan.id);
+  const facts = buildCompareFacts(plan, catalog.modelById);
 
   return (
     <div className="flex flex-col gap-8 pb-8">
@@ -43,8 +46,8 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">{plan.name}</h1>
-            <p className="mt-2 text-sm tabular-nums text-muted-foreground">
-              Rule version {plan.versionId} · effective {plan.effectiveFrom}
+            <p className="mt-2 text-sm text-muted-foreground">
+              Prices and rules in effect since {formatCatalogDate(plan.effectiveFrom)}
             </p>
           </div>
           <p className="text-3xl font-medium tabular-nums tracking-tight text-foreground">
@@ -57,9 +60,39 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
         <VerificationBadge status={plan.verificationStatus} lastVerifiedAt={plan.lastVerifiedAt} />
       </header>
 
+      <section className="grid gap-4 border-b border-border pb-6 sm:grid-cols-[repeat(3,minmax(0,1fr))] sm:items-end">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+            Models
+          </p>
+          <p className="mt-1 text-sm text-foreground" data-testid="plan-models-summary">
+            {facts.models.total === 0
+              ? "No named model is listed for this plan."
+              : `${facts.models.featured.map((model) => model.name).join(", ")}${facts.models.more.length === 0 ? "" : ` and ${facts.models.more.length} more`}`}
+          </p>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+            Usage limits
+          </p>
+          <p className="mt-1 text-sm text-foreground">
+            {facts.usage.numeric
+              ? facts.usage.lines.map((line) => line.text).join("; ")
+              : NO_NUMERIC_ALLOWANCE}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{facts.simulation}</p>
+        </div>
+        <Link
+          className="inline-flex min-h-11 items-center justify-center border border-accent px-4 text-sm text-accent hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring"
+          href={`/app/import?target=${encodeURIComponent(plan.id)}`}
+        >
+          Replay against {plan.name} ↗
+        </Link>
+      </section>
+
       {plan.billingMechanics === undefined ? null : (
         <section className="flex flex-col gap-2">
-          <h2 className="text-xl font-medium tracking-tight text-foreground">Billing mechanics</h2>
+          <h2 className="text-xl font-medium tracking-tight text-foreground">How billing works</h2>
           <p className="max-w-[68ch] text-base leading-relaxed text-muted-foreground">
             {plan.billingMechanics}
           </p>
@@ -67,15 +100,16 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">
-          Documented constraints
-        </h2>
+        <h2 className="text-xl font-medium tracking-tight text-foreground">Usage limits</h2>
         <LimitTable limits={plan.limits} />
         {plan.qualitativeLimits.length === 0 ? null : (
-          <div className="flex flex-col gap-4">
+          <details className="border-t border-border pt-4">
+            <summary className="min-h-11 cursor-pointer text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+              What {plan.providerName} says about limits
+            </summary>
             <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
-              {plan.providerName} states the following without a number. They are recorded as
-              qualitative statements rather than converted into amounts this catalog cannot source.
+              {plan.providerName} describes these without numbers. They are quoted here as written,
+              not turned into amounts.
             </p>
             <ul
               className="flex max-w-6xl flex-col border-t border-border text-sm text-muted-foreground"
@@ -105,14 +139,18 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">Model access</h2>
-        <ModelRuleList rules={plan.modelRules} />
-      </section>
+      <details className="border-t border-border pt-4">
+        <summary className="min-h-11 cursor-pointer text-xl font-medium tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+          Models on this plan
+        </summary>
+        <div className="mt-4">
+          <ModelRuleList rules={plan.modelRules} modelById={catalog.modelById} />
+        </div>
+      </details>
 
       {plan.promotions.length === 0 ? null : (
         <section className="flex flex-col gap-3">
@@ -129,8 +167,10 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
         </section>
       )}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">Version history</h2>
+      <details className="border-t border-border pt-4">
+        <summary className="min-h-11 cursor-pointer text-xl font-medium tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+          Version history · {versions.length} {versions.length === 1 ? "version" : "versions"}
+        </summary>
         <section className="w-full min-w-0" aria-label="Plan version history">
           <table
             className="block w-full border-collapse text-sm lg:table"
@@ -186,7 +226,7 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
             </tbody>
           </table>
         </section>
-      </section>
+      </details>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-xl font-medium tracking-tight text-foreground">Source evidence</h2>
@@ -195,25 +235,6 @@ export default async function PlanDetailPage({ params }: PlanPageProps) {
           Rule version {plan.versionId}. A replay against this plan uses the version in force on the
           date you choose, never today&apos;s rules by accident.
         </p>
-      </section>
-
-      <section className="flex flex-col gap-3 border-t border-border-strong pt-6">
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-accent">
-          From catalog to Replay
-        </p>
-        <h2 className="text-xl font-medium tracking-tight text-foreground">
-          See what this plan would do with your workload
-        </h2>
-        <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
-          Import a sanitized usage export and replay it against {plan.name}. The replay runs in your
-          browser; nothing is uploaded.
-        </p>
-        <Link
-          className="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent underline underline-offset-4"
-          href={`/app/import?target=${encodeURIComponent(plan.id)}`}
-        >
-          Replay against {plan.name}
-        </Link>
       </section>
     </div>
   );

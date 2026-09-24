@@ -1,0 +1,1129 @@
+/*
+ * The homepage Replay Instrument (locked homepage v1.1 composition).
+ *
+ * Observed workload -> Signal Blue replay path -> stacked target execution
+ * object -> chronology -> counterfactual result. The path geometry, the three
+ * slabs and the timing come from the locked study; colors come from the site's
+ * semantic tokens so the dark instrument and the warm-paper publication stay
+ * peers.
+ *
+ * One run is finite (about 1.9s) and then stops. `data-run="running"` plays it;
+ * `data-run="resolved"` is the settled state and is also what reduced motion
+ * renders, because the global reduced-motion rule collapses every animation to
+ * its end state.
+ */
+
+.sr-hero {
+  --sr-signal: var(--accent);
+  --sr-signal-ink: var(--accent);
+  --sr-rule: var(--border);
+  --sr-rule-soft: color-mix(in oklab, var(--border) 62%, transparent);
+  --sr-dim: color-mix(in oklab, var(--muted-foreground) 55%, var(--background));
+  --sr-slab-top: #c9ccca;
+  --sr-slab-mid: #efede7;
+  --sr-slab-bottom: #d9d8d1;
+  --sr-slab-stroke: rgb(11 13 16 / 0.24);
+  --sr-bar: color-mix(in oklab, var(--foreground) 16%, transparent);
+  --sr-bar-peak: color-mix(in oklab, var(--foreground) 34%, transparent);
+}
+
+.dark .sr-hero {
+  --sr-signal: oklch(0.67 0.17 256);
+  --sr-slab-top: #1c222b;
+  --sr-slab-mid: #8f9bad;
+  --sr-slab-bottom: #141920;
+  --sr-slab-stroke: rgb(255 255 255 / 0.16);
+  --sr-bar: color-mix(in oklab, var(--foreground) 17%, transparent);
+  --sr-bar-peak: color-mix(in oklab, var(--foreground) 40%, transparent);
+}
+
+.sr-micro {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ---------- stage: three columns on desktop, stacked below ---------- */
+
+.sr-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--sr-rule);
+  border-bottom: 1px solid var(--sr-rule);
+}
+
+.sr-col {
+  position: relative;
+  min-width: 0;
+  padding: 20px 0;
+}
+
+.sr-col + .sr-col {
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+@media (min-width: 1024px) {
+  .sr-stage {
+    grid-template-columns: 13.5rem minmax(0, 1fr) 19.5rem;
+  }
+  .sr-col {
+    padding: 20px 20px 24px;
+  }
+  .sr-col:first-child {
+    padding-left: 0;
+  }
+  .sr-col:last-child {
+    padding-right: 0;
+  }
+  .sr-col + .sr-col {
+    border-top: 0;
+    border-left: 1px solid var(--sr-rule-soft);
+  }
+}
+
+@media (min-width: 1280px) {
+  .sr-stage {
+    grid-template-columns: 14.5rem minmax(0, 1fr) 21rem;
+  }
+}
+
+.sr-section-id {
+  color: var(--muted-foreground);
+  margin-bottom: 20px;
+}
+
+.sr-section-id--signal {
+  color: var(--sr-signal-ink);
+}
+
+@media (min-width: 1024px) {
+  .sr-col--execution > .sr-section-id {
+    text-align: center;
+  }
+  .sr-col--result > .sr-section-id {
+    text-align: right;
+  }
+}
+
+/* ---------- 01 observed workload ---------- */
+
+.sr-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  margin: 0;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .sr-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sr-metrics {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .sr-metric {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--sr-rule-soft);
+  }
+  .sr-metric:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.sr-metric dt {
+  color: var(--muted-foreground);
+}
+
+.sr-metric dd {
+  margin: 6px 0 0;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--foreground);
+}
+
+.sr-metric dd small {
+  display: block;
+  margin-top: 5px;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sr-mix {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sr-rule-soft);
+}
+
+.sr-mix-row {
+  display: grid;
+  grid-template-columns: minmax(0, 6.5rem) minmax(0, 1fr) 2.6rem;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.sr-mix-row > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-mix-row i {
+  display: block;
+  position: relative;
+  height: 2px;
+  background: var(--sr-rule-soft);
+}
+
+.sr-mix-row i b {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--sr-signal);
+}
+
+.sr-mix-row strong {
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-observed-note {
+  margin-top: 18px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.sr-observed-note strong {
+  color: var(--foreground);
+  font-weight: 560;
+}
+
+/* ---------- 02 target execution ---------- */
+
+.sr-targets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--sr-rule);
+  border-bottom: 1px solid var(--sr-rule);
+}
+
+@media (min-width: 640px) {
+  .sr-targets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.sr-target {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.sr-target + .sr-target {
+  border-left: 1px solid var(--sr-rule-soft);
+}
+
+@media (max-width: 639px) {
+  .sr-target:nth-child(3) {
+    border-left: 0;
+  }
+  .sr-target:nth-child(n + 3) {
+    border-top: 1px solid var(--sr-rule-soft);
+  }
+}
+
+.sr-target strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sr-target span {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.sr-target[aria-checked="true"] strong {
+  font-weight: 600;
+}
+
+.sr-target[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--sr-signal);
+}
+
+.sr-target:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.sr-target-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin-top: 16px;
+}
+
+.sr-target-name {
+  font-size: 18px;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.sr-target-meta {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.sr-mapping {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-height: 26px;
+  margin-top: 10px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.sr-class {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border: 1px solid var(--sr-rule);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+.sr-class--translated {
+  border-color: color-mix(in oklab, var(--sr-signal) 60%, var(--sr-rule));
+  color: var(--sr-signal-ink);
+}
+
+.sr-mapping-to {
+  font-weight: 560;
+  color: var(--foreground);
+}
+
+.sr-canvas {
+  position: relative;
+  margin-top: 8px;
+  aspect-ratio: 760 / 300;
+  width: 100%;
+}
+
+.sr-canvas::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 68%;
+  height: 1px;
+  background: var(--sr-rule-soft);
+}
+
+.sr-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sr-guide {
+  fill: none;
+  stroke: var(--muted-foreground);
+  stroke-opacity: 0.22;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sr-trace {
+  fill: none;
+  stroke: var(--sr-signal);
+  stroke-width: 2.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.sr-trace--over {
+  stroke-width: 2.65;
+}
+
+.sr-slab {
+  stroke: var(--sr-slab-stroke);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sr-slab--top {
+  fill: var(--sr-slab-top);
+}
+.sr-slab--mid {
+  fill: var(--sr-slab-mid);
+}
+.sr-slab--bottom {
+  fill: var(--sr-slab-bottom);
+}
+
+.sr-slab-edge {
+  fill: none;
+  stroke: var(--sr-rule);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.sr-endpoint {
+  fill: var(--sr-signal);
+}
+
+.sr-breach-ring {
+  fill: var(--background);
+  stroke: var(--sr-signal);
+  stroke-width: 2;
+}
+
+.sr-breach-halo {
+  fill: none;
+  stroke: var(--sr-signal);
+  stroke-width: 8;
+  stroke-opacity: 0.16;
+}
+
+.sr-leader {
+  stroke: var(--sr-rule);
+  stroke-width: 1;
+}
+
+.sr-leader--hit {
+  stroke: color-mix(in oklab, var(--sr-signal) 70%, var(--sr-rule));
+}
+
+.sr-state-label {
+  fill: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+.sr-state-value {
+  fill: var(--sr-signal-ink);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.sr-state-value--open {
+  fill: var(--warning);
+}
+
+.sr-flow-note {
+  position: absolute;
+  left: 2%;
+  bottom: 9%;
+  color: var(--muted-foreground);
+}
+
+/* On narrow screens the SVG labels would render below legible size, so the
+   layer readings move into an HTML list under the object. */
+.sr-layers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+  border-top: 1px solid var(--sr-rule-soft);
+  padding-top: 10px;
+}
+
+.sr-layers dt {
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.sr-layers dd {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--sr-signal-ink);
+}
+
+.sr-layers dd[data-open="true"] {
+  color: var(--warning);
+}
+
+@media (min-width: 768px) {
+  .sr-layers {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .sr-stack-state {
+    display: none;
+  }
+  .sr-flow-note {
+    display: none;
+  }
+}
+
+/* ---------- 03 counterfactual result ---------- */
+
+.sr-result {
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+@media (min-width: 1024px) {
+  .sr-status {
+    justify-content: flex-end;
+  }
+}
+
+.sr-status span {
+  color: var(--sr-signal-ink);
+}
+
+.sr-status span[data-tone="open"] {
+  color: var(--warning);
+}
+
+.sr-figure {
+  margin-top: 14px;
+  font-size: clamp(3rem, 2.2rem + 2.4vw, 4.25rem);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.sr-figure-minor {
+  margin-left: 0.04em;
+  font-size: 0.42em;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.sr-figure-minor.sr-figure-unit {
+  margin-left: 0.28em;
+  letter-spacing: 0;
+}
+
+.sr-caption {
+  margin-top: 10px;
+  color: var(--muted-foreground);
+}
+
+.sr-sentence {
+  margin-top: 16px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (min-width: 1024px) {
+  .sr-figure,
+  .sr-caption,
+  .sr-sentence {
+    text-align: right;
+  }
+  .sr-sentence {
+    margin-left: auto;
+    max-width: 19rem;
+  }
+}
+
+/* The result rule: one element, one pixel, full column width. It used to be
+   two independently positioned primitives that met near the same y. */
+.sr-result-rule {
+  display: block;
+  height: 1px;
+  width: 100%;
+  margin: 18px 0 0;
+  border: 0;
+  background: var(--sr-rule);
+}
+
+.sr-ledger-row {
+  padding: 12px 0 11px;
+  border-bottom: 1px solid var(--sr-rule-soft);
+}
+
+.sr-ledger-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sr-ledger-row dt {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.sr-ledger-row dd {
+  margin: 5px 0 0;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+.sr-ledger-row dd small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
+/* ---------- 04 chronology tape ---------- */
+
+.sr-tape {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-bottom: 1px solid var(--sr-rule);
+}
+
+@media (min-width: 1024px) {
+  .sr-tape {
+    grid-template-columns: 13.5rem minmax(0, 1fr) 19.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sr-tape {
+    grid-template-columns: 14.5rem minmax(0, 1fr) 21rem;
+  }
+}
+
+.sr-tape-title {
+  margin-top: 8px;
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 560;
+  color: var(--foreground);
+}
+
+.sr-tape-text {
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.sr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 12px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.sr-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sr-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--sr-bar);
+}
+
+.sr-swatch[data-key="above"],
+.sr-swatch[data-key="priced"] {
+  background: var(--sr-signal);
+}
+
+.sr-swatch[data-key="peak"] {
+  background: var(--sr-bar-peak);
+  outline: 1px solid var(--foreground);
+  outline-offset: 1px;
+}
+
+.sr-swatch[data-key="reset"] {
+  width: 0;
+  height: 12px;
+  background: transparent;
+  border-left: 1px dashed var(--sr-signal);
+}
+
+.sr-swatch[data-key="crossing"] {
+  border: 1.5px solid var(--sr-signal);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.sr-tape-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--muted-foreground);
+}
+
+.sr-tape-headline {
+  font-weight: 500;
+  color: var(--sr-signal-ink);
+}
+
+.sr-timeline {
+  --sr-gap: 3px;
+  /* One bar's width: markers and reset lines are placed on this grid, so they
+     sit exactly on a bar or exactly between two, at any width. */
+  --sr-slot: calc((100% - (var(--sr-days) - 1) * var(--sr-gap)) / var(--sr-days));
+  position: relative;
+  height: 112px;
+  border-bottom: 1px solid var(--sr-rule);
+}
+
+@media (max-width: 639px) {
+  .sr-timeline {
+    --sr-gap: 2px;
+  }
+}
+
+.sr-bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sr-gap);
+  padding-top: 26px;
+}
+
+.sr-bar {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 2px;
+  height: var(--h);
+  background: var(--sr-bar);
+  transform-origin: bottom;
+}
+
+.sr-bar[data-peak="true"] {
+  background: var(--sr-bar-peak);
+  outline: 1px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+.sr-bar[data-priced="true"] {
+  box-shadow: inset 0 2px 0 var(--sr-signal);
+}
+
+.sr-bar-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--over);
+  background: var(--sr-signal);
+  transform-origin: bottom;
+}
+
+.sr-marker {
+  position: absolute;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--sr-signal);
+  border-radius: 50%;
+  background: var(--background);
+  color: var(--sr-signal-ink);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  z-index: 3;
+}
+
+.sr-reset {
+  position: absolute;
+  top: 20px;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed color-mix(in oklab, var(--sr-signal) 70%, transparent);
+  z-index: 2;
+}
+
+.sr-scanhead {
+  position: absolute;
+  top: 4px;
+  bottom: 0;
+  left: 100%;
+  width: 1px;
+  background: var(--sr-signal);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.sr-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--sr-rule-soft);
+}
+
+.sr-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.sr-detail-row dt {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.sr-detail-row dt small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.sr-detail-row dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- 05 readout ---------- */
+
+.sr-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--sr-rule);
+}
+
+@media (min-width: 1024px) {
+  .sr-readout {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sr-readout {
+    grid-template-columns: 14.5rem minmax(0, 1fr);
+  }
+}
+
+/* ---------- choreography ---------- */
+
+@keyframes sr-resolve {
+  from {
+    opacity: 0.25;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sr-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes sr-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes sr-layer {
+  0%,
+  100% {
+    stroke: var(--sr-slab-stroke);
+    transform: translateY(0);
+  }
+  45% {
+    stroke: var(--sr-signal);
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes sr-state {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sr-leader {
+  from {
+    stroke: var(--sr-rule);
+  }
+  to {
+    stroke: color-mix(in oklab, var(--sr-signal) 70%, var(--sr-rule));
+  }
+}
+
+@keyframes sr-bar-rise {
+  from {
+    transform: scaleY(0.04);
+    opacity: 0.3;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sr-cap {
+  from {
+    opacity: 0;
+    transform: scaleY(0.1);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes sr-scanhead {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  4%,
+  94% {
+    opacity: 0.85;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes sr-settle {
+  from {
+    opacity: 0.12;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sr-hero[data-run="running"] .sr-metric dd {
+  animation: sr-resolve 0.22s ease both;
+  animation-delay: var(--d, 0s);
+}
+
+.sr-hero[data-run="running"] .sr-trace {
+  animation: sr-draw var(--dur) cubic-bezier(0.22, 0.7, 0.2, 1) both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-endpoint,
+.sr-hero[data-run="running"] .sr-breach-ring,
+.sr-hero[data-run="running"] .sr-breach-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sr-pop 0.16s ease both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-slab--bottom {
+  animation: sr-layer 0.24s ease 0.68s;
+}
+.sr-hero[data-run="running"] .sr-slab--mid {
+  animation: sr-layer 0.24s ease 0.9s;
+}
+.sr-hero[data-run="running"] .sr-slab--top {
+  animation: sr-layer 0.24s ease 1.22s;
+}
+
+.sr-hero[data-run="running"] .sr-state-value,
+.sr-hero[data-run="running"] .sr-layers dd {
+  animation: sr-state 0.2s ease both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-leader {
+  animation: sr-leader 0.2s ease both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-bar {
+  animation: sr-bar-rise 0.2s ease both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-bar-cap,
+.sr-hero[data-run="running"] .sr-marker,
+.sr-hero[data-run="running"] .sr-reset {
+  animation: sr-cap 0.2s ease both;
+  animation-delay: var(--d);
+}
+
+.sr-hero[data-run="running"] .sr-bar-cap {
+  animation-name: sr-cap;
+}
+
+.sr-hero[data-run="running"] .sr-marker,
+.sr-hero[data-run="running"] .sr-reset {
+  animation-name: sr-pop;
+}
+
+.sr-hero[data-run="running"] .sr-scanhead {
+  animation: sr-scanhead 1s linear 0.72s both;
+}
+
+.sr-hero[data-run="running"] .sr-settle {
+  animation: sr-settle 0.26s ease 1.64s both;
+}
+
+.sr-hero[data-run="running"] .sr-target-name,
+.sr-hero[data-run="running"] .sr-mapping {
+  animation: sr-resolve 0.2s ease 0.1s both;
+}
+
+.sr-readout p.sr-readout-line {
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+/* Before the first run starts (the instrument is still off screen), the stage
+   shows its pre-run frame: the observed workload, an undrawn path, and no
+   result yet. */
+.sr-hero[data-run="pending"] .sr-trace {
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+
+.sr-hero[data-run="pending"] .sr-endpoint,
+.sr-hero[data-run="pending"] .sr-breach-ring,
+.sr-hero[data-run="pending"] .sr-breach-halo,
+.sr-hero[data-run="pending"] .sr-marker,
+.sr-hero[data-run="pending"] .sr-reset,
+.sr-hero[data-run="pending"] .sr-bar-cap {
+  opacity: 0;
+}
+
+.sr-hero[data-run="pending"] .sr-state-value,
+.sr-hero[data-run="pending"] .sr-layers dd {
+  opacity: 0.2;
+}
+
+.sr-hero[data-run="pending"] .sr-bar {
+  transform: scaleY(0.04);
+  opacity: 0.3;
+}
+
+.sr-hero[data-run="pending"] .sr-settle {
+  opacity: 0.12;
+}
+
+/* Reduced motion renders the settled instrument at once. The global rule
+   shortens animations but keeps their delays, which would hold the result on
+   its dimmed first frame until the delay ran out. */
+@media (prefers-reduced-motion: reduce) {
+  .sr-hero *,
+  .sr-hero *::before,
+  .sr-hero *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: must outrank the global reduced-motion rule, which is itself important. */
+    animation: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: as above. */
+    transition: none !important;
+  }
+}

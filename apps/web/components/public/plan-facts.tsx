@@ -1,4 +1,6 @@
 import type { ModelRuleV1, PlanLimitV1 } from "@stackreplay/catalog";
+import { durationText, lifecycleText } from "@/lib/catalog-copy";
+import type { PublicModelSummary } from "@/lib/public-catalog";
 
 /**
  * Plan fact tables (M4).
@@ -10,7 +12,7 @@ import type { ModelRuleV1, PlanLimitV1 } from "@stackreplay/catalog";
 
 export function limitWindowText(limit: PlanLimitV1): string {
   return limit.window.type === "rolling"
-    ? `rolling ${limit.window.duration} from ${limit.window.anchor.replaceAll("_", " ")}`
+    ? `rolling ${durationText(limit.window.duration)} from ${limit.window.anchor.replaceAll("_", " ")}`
     : `calendar ${limit.window.unit}`;
 }
 
@@ -31,7 +33,7 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
   if (limits.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        This plan version states no quantitative limits in the catalog.
+        The provider does not publish a numeric allowance for this plan.
       </p>
     );
   }
@@ -91,7 +93,40 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
   );
 }
 
-export function ModelRuleList({ rules }: { rules: readonly ModelRuleV1[] }) {
+function RuleRow({ rule, model }: { rule: ModelRuleV1; model: PublicModelSummary | undefined }) {
+  const status = lifecycleText(model?.lifecycle);
+  return (
+    <li className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 border-b border-border py-2 text-sm">
+      <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+        <span className="text-foreground">{model?.name ?? rule.model}</span>
+        {status === "Legacy" ? <span className="text-muted-foreground"> · Legacy</span> : null}
+        <span className="block font-mono text-xs text-muted-foreground">{rule.model}</span>
+      </span>
+      {rule.excluded === true ? (
+        rule.access === "usage_credits" ? (
+          <span className="text-warning">usage credits only</span>
+        ) : (
+          <span className="text-negative">not included</span>
+        )
+      ) : null}
+      {rule.multiplier === undefined ? null : (
+        <span className="tabular-nums text-muted-foreground">×{rule.multiplier}</span>
+      )}
+    </li>
+  );
+}
+
+/**
+ * A plan's model rules by model name, releases first. Family names the rules
+ * also cover are identity records, not models, so they are listed separately.
+ */
+export function ModelRuleList({
+  rules,
+  modelById,
+}: {
+  rules: readonly ModelRuleV1[];
+  modelById: (id: string) => PublicModelSummary | undefined;
+}) {
   if (rules.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -99,22 +134,28 @@ export function ModelRuleList({ rules }: { rules: readonly ModelRuleV1[] }) {
       </p>
     );
   }
+  const releases = rules.filter((rule) => modelById(rule.model)?.kind !== "family");
+  const families = rules.filter((rule) => modelById(rule.model)?.kind === "family");
   return (
-    <ul className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3" data-testid="model-rule-list">
-      {rules.map((rule) => (
-        <li
-          key={rule.model}
-          className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 border-b border-border py-2 text-sm"
-        >
-          <span className="min-w-0 break-words text-foreground [overflow-wrap:anywhere]">
-            {rule.model}
-          </span>
-          {rule.excluded === true ? <span className="text-negative">not included</span> : null}
-          {rule.multiplier === undefined ? null : (
-            <span className="tabular-nums text-muted-foreground">×{rule.multiplier}</span>
-          )}
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-4">
+      <ul className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3" data-testid="model-rule-list">
+        {releases.map((rule) => (
+          <RuleRow key={rule.model} rule={rule} model={modelById(rule.model)} />
+        ))}
+      </ul>
+      {families.length === 0 ? null : (
+        <div>
+          <p className="text-sm text-muted-foreground">
+            Family names these rules also cover. They are not models; StackReplay keeps them so
+            workloads that use a family name still resolve.
+          </p>
+          <ul className="mt-1 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
+            {families.map((rule) => (
+              <RuleRow key={rule.model} rule={rule} model={modelById(rule.model)} />
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

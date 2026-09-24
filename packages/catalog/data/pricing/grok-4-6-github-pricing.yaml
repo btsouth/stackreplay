@@ -1,0 +1,27 @@
+id: grok-4-6-github-pricing
+role: pricing
+modelId: grok-4-6
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+rates:
+  input: '2.00'
+  output: '6.00'
+  cacheRead: '0.50'
+tiers:
+- id: long-context
+  label: Input-side tokens above 200,000
+  when:
+    inputTokensAbove: 200000
+  rates:
+    input: '4.00'
+    output: '12.00'
+    cacheRead: '1.00'
+effectiveFrom: '2026-09-23'
+sources:
+- url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+  title: GitHub Copilot current per-model AI-credit token rates, including any long-context
+    tier
+  checkedAt: '2026-09-23'
+lastVerifiedAt: '2026-09-23'
+verificationStatus: verified

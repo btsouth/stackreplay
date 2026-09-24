@@ -11,8 +11,26 @@ import { gotoImport, importDemo, runReplay } from "./helpers";
 test("direct navigation without an import shows an intentional empty state", async ({ page }) => {
   await page.goto("/app/replay");
   await expect(page.getByTestId("replay-empty")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Load workload" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Scan your AI history" })).toBeVisible();
   await expect(page.getByTestId("source-file-input")).toBeVisible();
+});
+
+test("keeps forensic result detail closed until requested", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/replay");
+  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await page.getByTestId("plan-example-cloud-pro").click();
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("replay-evidence-details")).not.toHaveAttribute("open");
+  await expect(page.getByTestId("replay-detail")).not.toHaveAttribute("open");
+  await expect(page.getByTestId("result-settlement")).toBeVisible();
+  await page.getByTestId("replay-evidence-details").locator(":scope > summary").click();
+  await expect(page.getByTestId("evidence-ledger")).toBeVisible();
+  await page.getByTestId("replay-detail").locator(":scope > summary").click();
+  await page.getByTestId("replay-model-distribution").locator(":scope > summary").click();
+  await expect(page.getByTestId("replay-model-distribution")).toContainText("Exact catalog ID");
+  await expect(page.getByTestId("replay-model-distribution")).toContainText("events");
 });
 
 test("replays a demo workload with full coverage", async ({ page }) => {
@@ -35,6 +53,7 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
   await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-pro");
+  await expect(page.getByTestId("replay-headline")).toBeInViewport({ ratio: 0.1 });
 
   const trace = page.getByTestId("constraint-trace");
   await expect(trace).toContainText("exceeded");
@@ -394,6 +413,67 @@ test("never reads as served while part of the demand is unavailable or undecided
   const undecided = (await undecidedRow.textContent()) ?? "0";
   expect(Number(undecided.replace(/[^0-9]/gu, ""))).toBeGreaterThan(0);
   await expect(page.getByTestId("result-settlement")).toContainText(/bounded|qualitative/i);
+});
+
+test("known unsupported demand rules out full coverage despite undecided events", async ({
+  page,
+}) => {
+  const exported = buildDemoExport("moderate");
+  const mutated = {
+    ...exported,
+    events: exported.events.map((event, index) =>
+      index === 0 ? { ...event, model: { rawName: "unmapped-test-model" } } : event,
+    ),
+  };
+  await gotoImport(page);
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "mixed-evidence.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(mutated)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.goto("/app/replay");
+  await runReplay(page, "anthropic-claude-max-5x", "2026-09-24");
+
+  await expect(page.getByTestId("headline-status")).toHaveText("Not fully served");
+  await expect(page.getByTestId("result-figure")).toHaveText("full coverage ruled out");
+  await expect(page.getByTestId("result-statement")).toContainText(
+    "the exact share remains unknown",
+  );
+  await expect(page.getByTestId("result-settlement")).toContainText("on unavailable models");
+  await expect(page.getByTestId("result-settlement")).toContainText("undecided");
+});
+
+test("Max plan confirms model match while leaving unpublished capacity unknown", async ({
+  page,
+}) => {
+  const exported = buildDemoExport("moderate");
+  const matched = {
+    ...exported,
+    events: exported.events.map((event) => ({
+      ...event,
+      model: { rawName: "claude-opus-5", canonicalId: "claude-opus-5" },
+    })),
+  };
+  await gotoImport(page);
+  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "max-model-match.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(matched)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.goto("/app/replay");
+  await runReplay(page, "anthropic-claude-max-5x", "2026-09-24");
+
+  await expect(page.getByTestId("headline-status")).toHaveText(
+    "Models supported; capacity unknown",
+  );
+  await expect(page.getByTestId("result-figure")).toHaveText("capacity not quantified");
+  await expect(page.getByTestId("result-statement")).toContainText(
+    "All observed models are supported",
+  );
 });
 
 test("lists models the target does not serve", async ({ page }) => {

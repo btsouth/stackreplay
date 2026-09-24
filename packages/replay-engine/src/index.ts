@@ -70,7 +70,14 @@ export {
   SemanticsAccumulator,
   workloadScopeStatement,
 } from "./semantics.js";
-export { instantToIso, parseInstant, Temporal } from "./time.js";
+export {
+  type CalendarUnit,
+  calendarBucketBoundsMs,
+  durationToMs,
+  instantToIso,
+  parseInstant,
+  Temporal,
+} from "./time.js";
 export {
   prepareTranslation,
   substituteFor,
@@ -91,3 +98,16 @@ export {
   tokenAccountingOf,
 } from "./units.js";
 export { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
+/**
+ * Window slicing, exported so workload analysis reads demand through the same
+ * rolling (anchored at first use) and calendar windows Replay applies to limits,
+ * instead of a second implementation of the same arithmetic.
+ */
+export {
+  sliceCalendarWindows,
+  sliceRollingWindows,
+  sortTimedEvents,
+  type TimedEvent,
+  toTimedEvents,
+  type WindowSlice,
+} from "./windows.js";

@@ -132,6 +132,18 @@ export function bundledPlanFacts(versionId: string): BundledPlanFacts | undefine
   };
 }
 
+/**
+ * Models a plan version excludes from its included usage but lets subscribers
+ * run with usage credits, so a replay can name that paid route instead of
+ * reporting the model as simply unavailable.
+ */
+export function bundledUsageCreditModels(versionId: string): readonly string[] {
+  const version = loadBundledCatalog().planVersions[versionId];
+  return (version?.modelRules ?? [])
+    .filter((rule) => rule.excluded === true && rule.access === "usage_credits")
+    .map((rule) => rule.model);
+}
+
 /** Provider facts a Direct API surface needs, resolved from the bundled catalog. */
 export interface BundledProviderFacts {
   id: string;
@@ -186,10 +198,16 @@ export interface BundledApiProviderSummary {
  */
 function coversInstant(
   instant: string,
-  record: { effectiveFrom: string; effectiveTo?: string | undefined },
+  record: {
+    effectiveFrom: string;
+    effectiveTo?: string | undefined;
+    effectiveFromInstant?: string | undefined;
+  },
 ): boolean {
   return (
     record.effectiveFrom <= instant &&
+    (record.effectiveFromInstant === undefined ||
+      Date.parse(instant) >= Date.parse(record.effectiveFromInstant)) &&
     (record.effectiveTo === undefined || instant <= record.effectiveTo)
   );
 }
@@ -228,4 +246,101 @@ export function bundledApiProviders(rulesAsOf?: string): BundledApiProviderSumma
     });
   }
   return summaries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+
+/**
+ * Provider routes with an authoritative Direct API offer in the public picker.
+ * Copilot and Cursor token rates belong to target billing. The explicitly
+ * labeled example providers remain available for bundled demo workloads.
+ */
+export const PUBLIC_API_PROVIDER_IDS: ReadonlySet<string> = new Set([
+  "anthropic",
+  "deepseek",
+  "example-cloud",
+  "example-open",
+  "google",
+  "openai",
+  "x-ai",
+  "z-ai",
+]);
+
+export function bundledPublicApiProviders(rulesAsOf?: string): BundledApiProviderSummary[] {
+  return bundledApiProviders(rulesAsOf).filter((provider) =>
+    PUBLIC_API_PROVIDER_IDS.has(provider.id),
+  );
+}
+
+/**
+ * The public Direct API providers the catalog records as offering a model.
+ * This is an offering fact, not a claim about who built the model: the catalog
+ * does not record authorship, and nothing here infers it.
+ */
+export function directApiProviderIdsFor(catalog: CatalogV1, modelId: string): string[] {
+  return (catalog.models[modelId]?.providerIds ?? []).filter((id) =>
+    PUBLIC_API_PROVIDER_IDS.has(id),
+  );
+}
+
+/** One model a target can run, for a scenario picker. */
+export interface BundledTargetModel {
+  id: string;
+  name: string;
+  /**
+   * For a subscription: the plan's rule names the model and does not exclude
+   * it. For a Direct API provider: the provider is recorded as offering it.
+   */
+  available: boolean;
+  /** Direct API only: an api_list_price record is in force at the rules date. */
+  priced?: boolean;
+}
+
+/**
+ * The models a subscription plan's version in force at `rulesAsOf` names, with
+ * excluded models marked unavailable. The same rule the engine applies: a model
+ * the plan's rules do not name is not served.
+ */
+export function bundledPlanModelsAt(
+  planId: string,
+  rulesAsOf: string,
+): { versionId: string; models: BundledTargetModel[] } | undefined {
+  const catalog = loadBundledCatalog();
+  const plan = catalog.plans[planId];
+  if (plan === undefined) return undefined;
+  const version = selectPlanVersionAt(plan.versions, rulesAsOf);
+  if (version === undefined) return undefined;
+  const models = version.modelRules.map((rule) => ({
+    id: rule.model,
+    name: catalog.models[rule.model]?.name ?? rule.model,
+    available: rule.excluded !== true,
+  }));
+  return {
+    versionId: `${plan.id}@${version.effectiveFrom}`,
+    models: models.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
+  };
+}
+
+/**
+ * The models a Direct API provider is recorded as offering, with whether a list
+ * price is in force at `rulesAsOf`: the same offering and pricing facts the API
+ * replay reads.
+ */
+export function bundledApiProviderModels(
+  providerId: string,
+  rulesAsOf: string,
+): BundledTargetModel[] {
+  const catalog = loadBundledCatalog();
+  const priced = new Set(
+    Object.values(catalog.pricing)
+      .filter((pricing) => pricing.basis === "api_list_price" && coversInstant(rulesAsOf, pricing))
+      .map((pricing) => pricing.modelId),
+  );
+  return Object.values(catalog.models)
+    .filter((model) => model.providerIds?.includes(providerId) === true)
+    .map((model) => ({
+      id: model.id,
+      name: model.name,
+      available: true,
+      priced: priced.has(model.id),
+    }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 }

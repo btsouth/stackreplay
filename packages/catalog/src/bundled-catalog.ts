@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34";
+export const BUNDLED_CATALOG_VERSION = "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:73684c134d2c88af79929ef674b81d10c11f209435a3a6c071743d4aa4f71f34",
+  "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -21,10 +21,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Anthropic current API models and token prices",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "cursor": {
@@ -35,10 +40,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek": {
@@ -49,10 +54,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "DeepSeek API pricing",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "example-cloud": {
@@ -91,10 +96,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "google": {
@@ -105,10 +110,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Google Gemini API models and token prices",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "openai": {
@@ -119,10 +129,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "OpenAI API models and token prices",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "x-ai": {
+      "id": "x-ai",
+      "role": "provider",
+      "name": "xAI",
+      "sources": [
+        {
+          "url": "https://docs.x.ai/developers/models",
+          "title": "xAI model and pricing documentation",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "z-ai": {
@@ -133,10 +162,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "Z.AI (Zhipu) API pricing",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     }
   },
@@ -145,9 +174,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "id": "claude-fable-5-1",
       "role": "model",
       "name": "Claude Fable 5.1",
+      "familyId": "claude-fable",
+      "lifecycle": "current",
+      "developerId": "anthropic",
       "providerIds": [
         "cursor",
-        "github"
+        "github",
+        "anthropic"
       ],
       "aliases": [
         {
@@ -169,23 +202,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Fable 5.1 in the current lineup, Claude API ID `claude-fable-5-1`",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-fable-5": {
       "id": "claude-fable-5",
       "role": "model",
       "name": "Claude Fable 5",
+      "familyId": "claude-fable",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
-        "github"
+        "github",
+        "anthropic"
       ],
       "aliases": [
         {
@@ -207,16 +259,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Fable 5 listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Anthropic model deprecations: `claude-fable-5` active on the Claude API, retirement not sooner than June 9, 2027",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-fable": {
       "id": "claude-fable",
       "role": "model",
       "name": "Fable",
+      "kind": "family",
+      "developerId": "anthropic",
       "providerIds": [
         "anthropic"
       ],
@@ -224,18 +293,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude models are developed by Anthropic; each release has its own pinned model ID",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://code.claude.com/docs/en/model-config",
+          "title": "Claude Code model configuration: the `fable` alias resolves to a Fable release that depends on the provider and date",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-haiku-4-5": {
       "id": "claude-haiku-4-5",
       "role": "model",
       "name": "Claude Haiku 4.5",
+      "familyId": "claude-haiku",
+      "lifecycle": "current",
+      "developerId": "anthropic",
       "providerIds": [
-        "github"
+        "github",
+        "anthropic"
       ],
       "aliases": [
         {
@@ -257,16 +340,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/haiku-4-5/overview",
+          "title": "Claude Haiku 4.5 model page: Claude API ID `claude-haiku-4-5-20251001`, alias `claude-haiku-4-5`",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Haiku 4.5 in the current lineup",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-haiku": {
       "id": "claude-haiku",
       "role": "model",
       "name": "Haiku",
+      "kind": "family",
+      "developerId": "anthropic",
       "providerIds": [
         "anthropic"
       ],
@@ -274,33 +374,65 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude models are developed by Anthropic; each release has its own pinned model ID",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://code.claude.com/docs/en/model-config",
+          "title": "Claude Code model configuration: the `haiku` alias resolves to a Haiku release that depends on the provider and date",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-opus-4-7": {
       "id": "claude-opus-4-7",
       "role": "model",
       "name": "Claude Opus 4.7",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
-        "github"
+        "github",
+        "anthropic"
       ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Opus 4.7 listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Anthropic model deprecations: `claude-opus-4-7` active on the Claude API, retirement not sooner than April 16, 2027",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8-fast-mode": {
       "id": "claude-opus-4-8-fast-mode",
       "role": "model",
       "name": "Claude Opus 4.8 (fast mode) (preview)",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
         "github"
       ],
@@ -308,18 +440,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Opus 4.8, the model this fast-mode route serves, listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8": {
       "id": "claude-opus-4-8",
       "role": "model",
       "name": "Claude Opus 4.8",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
-        "github"
+        "github",
+        "anthropic"
       ],
       "aliases": [
         {
@@ -341,19 +487,79 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Opus 4.8 listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Anthropic model deprecations: `claude-opus-4-8` active on the Claude API, retirement not sooner than May 28, 2027",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-5-5": {
+      "id": "claude-opus-5-5",
+      "role": "model",
+      "name": "Claude Opus 5.5",
+      "familyId": "claude-opus",
+      "lifecycle": "current",
+      "developerId": "anthropic",
+      "providerIds": [
+        "anthropic"
+      ],
+      "aliases": [
+        {
+          "id": "claude-opus-5-5-api-id",
+          "alias": "claude-opus-5-5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+              "title": "Claude Opus 5.5 model ID, 1M context, and API availability",
+              "checkedAt": "2026-09-24"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-24",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+          "title": "Claude Opus 5.5 model specifications and availability",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Opus 5.5 in the current lineup, Claude API ID `claude-opus-5-5`",
+          "checkedAt": "2026-09-24"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-opus-5": {
       "id": "claude-opus-5",
       "role": "model",
       "name": "Claude Opus 5",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
         "cursor",
-        "github"
+        "github",
+        "anthropic"
       ],
       "aliases": [
         {
@@ -375,21 +581,43 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Opus 5 listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Anthropic model deprecations: `claude-opus-5` active on the Claude API, retirement not sooner than July 24, 2027",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-opus": {
       "id": "claude-opus",
       "role": "model",
       "name": "Opus",
+      "kind": "family",
+      "developerId": "anthropic",
       "providerIds": [
         "anthropic"
       ],
@@ -397,34 +625,67 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude models are developed by Anthropic; each release has its own pinned model ID",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://code.claude.com/docs/en/model-config",
+          "title": "Claude Code model configuration: the `opus` alias resolves to an Opus release that depends on the provider and date",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-sonnet-4-6": {
       "id": "claude-sonnet-4-6",
       "role": "model",
       "name": "Claude Sonnet 4.6",
+      "familyId": "claude-sonnet",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
       "providerIds": [
-        "github"
+        "github",
+        "anthropic"
       ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Sonnet 4.6 listed under legacy models (still available)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Anthropic model deprecations: `claude-sonnet-4-6` active on the Claude API, retirement not sooner than February 17, 2027",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-sonnet-5": {
       "id": "claude-sonnet-5",
       "role": "model",
       "name": "Claude Sonnet 5",
+      "familyId": "claude-sonnet",
+      "lifecycle": "current",
+      "developerId": "anthropic",
       "providerIds": [
+        "anthropic",
         "cursor",
         "github"
       ],
@@ -446,23 +707,45 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
+          "url": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+          "title": "Claude Sonnet 5 model page: Claude API model ID `claude-sonnet-5`; platforms list the Claude API",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude Sonnet 5 in the current lineup, Claude API ID `claude-sonnet-5`",
+          "checkedAt": "2026-09-24"
+        },
+        {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "claude-sonnet": {
       "id": "claude-sonnet",
       "role": "model",
       "name": "Sonnet",
+      "kind": "family",
+      "developerId": "anthropic",
       "providerIds": [
         "anthropic"
       ],
@@ -470,10 +753,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://claude.com/pricing",
           "title": "Anthropic pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/overview",
+          "title": "Anthropic models overview: Claude models are developed by Anthropic; each release has its own pinned model ID",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://code.claude.com/docs/en/model-config",
+          "title": "Claude Code model configuration: the `sonnet` alias resolves to a Sonnet release that depends on the provider and date",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "composer-2-5": {
@@ -487,16 +780,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-1-flash": {
       "id": "deepseek-v4-1-flash",
       "role": "model",
       "name": "DeepSeek-V4.1-Flash",
+      "developerId": "deepseek",
       "providerIds": [
         "deepseek"
       ],
@@ -579,16 +878,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "DeepSeek-V4.1-Flash model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "title": "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-vision-exp": {
       "id": "deepseek-v4-flash-vision-exp",
       "role": "model",
       "name": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired)",
+      "lifecycle": "legacy",
+      "developerId": "deepseek",
       "providerIds": [
         "deepseek"
       ],
@@ -612,16 +918,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "DeepSeek-V4-Flash-Vision-Exp (legacy name, model retired) model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "title": "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash": {
       "id": "deepseek-v4-flash",
       "role": "model",
       "name": "DeepSeek-V4-Flash (legacy name, model retired)",
+      "lifecycle": "legacy",
+      "developerId": "deepseek",
       "providerIds": [
         "deepseek"
       ],
@@ -645,10 +958,59 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "DeepSeek-V4-Flash (legacy name, model retired) model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "title": "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-pro": {
+      "id": "deepseek-v4-pro",
+      "role": "model",
+      "name": "DeepSeek-V4-Pro-0813",
+      "developerId": "deepseek",
+      "providerIds": [
+        "deepseek"
+      ],
+      "aliases": [
+        {
+          "id": "deepseek-v4-pro-api-id",
+          "alias": "deepseek-v4-pro",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://api-docs.deepseek.com/quick_start/pricing",
+              "title": "DeepSeek current API model ID and served version",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek current model, context, and availability",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/updates/",
+          "title": "DeepSeek continues V4 Pro API service after September 14",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "title": "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "example-large": {
@@ -707,6 +1069,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "id": "gemini-3-1-pro",
       "role": "model",
       "name": "Gemini 3.1 Pro",
+      "developerId": "google",
       "providerIds": [
         "cursor",
         "google"
@@ -745,15 +1108,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-5-flash": {
@@ -767,10 +1140,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-6-flash": {
@@ -778,16 +1156,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3.6 Flash",
       "providerIds": [
-        "github"
+        "github",
+        "google"
       ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://gemini.google/us/subscriptions/",
+          "title": "Google US subscriptions: Gemini app access to 3.6 Flash (official)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Gemini API models: `gemini-3.6-flash` listed as stable (official)",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
     "gemini-3-7-flash": {
@@ -801,10 +1195,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash": {
@@ -849,21 +1248,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-flash-lite": {
       "id": "gemini-3-flash-lite",
       "role": "model",
       "name": "Gemini 3 Flash-Lite",
+      "developerId": "google",
       "providerIds": [
         "google"
       ],
@@ -871,16 +1281,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-flash": {
       "id": "gemini-3-flash",
       "role": "model",
       "name": "Gemini 3 Flash",
+      "developerId": "google",
       "providerIds": [
         "google"
       ],
@@ -904,16 +1320,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-pro": {
       "id": "gemini-3-pro",
       "role": "model",
       "name": "Gemini 3 Pro",
+      "developerId": "google",
       "providerIds": [
         "google"
       ],
@@ -921,16 +1343,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://gemini.google/us/subscriptions/",
+          "title": "Subscription model label checked for the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3-flash": {
       "id": "glm-5-3-flash",
       "role": "model",
       "name": "GLM 5.3 Flash",
+      "developerId": "z-ai",
       "providerIds": [
         "z-ai"
       ],
@@ -1013,16 +1446,17 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "GLM 5.3 Flash model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3-flashx": {
       "id": "glm-5-3-flashx",
       "role": "model",
       "name": "GLM 5.3 FlashX",
+      "developerId": "z-ai",
       "providerIds": [
         "z-ai"
       ],
@@ -1060,16 +1494,17 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "GLM 5.3 FlashX model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3": {
       "id": "glm-5-3",
       "role": "model",
       "name": "GLM 5.3",
+      "developerId": "z-ai",
       "providerIds": [
         "z-ai"
       ],
@@ -1107,10 +1542,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "GLM 5.3 model documentation",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex": {
@@ -1140,10 +1575,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-mini": {
@@ -1173,10 +1613,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-nano": {
@@ -1190,10 +1635,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4": {
@@ -1223,10 +1673,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-5": {
@@ -1256,16 +1711,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-luna": {
       "id": "gpt-5-6-luna",
       "role": "model",
       "name": "GPT-5.6 Luna",
+      "developerId": "openai",
       "providerIds": [
         "cursor",
         "github",
@@ -1291,26 +1752,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol-pro": {
       "id": "gpt-5-6-sol-pro",
       "role": "model",
       "name": "GPT-5.6 Sol Pro",
+      "developerId": "openai",
       "providerIds": [
         "openai"
       ],
@@ -1318,16 +1795,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "Subscription model label checked for the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol": {
       "id": "gpt-5-6-sol",
       "role": "model",
       "name": "GPT-5.6 Sol",
+      "developerId": "openai",
       "providerIds": [
         "cursor",
         "github",
@@ -1381,26 +1869,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-terra": {
       "id": "gpt-5-6-terra",
       "role": "model",
       "name": "GPT-5.6 Terra",
+      "developerId": "openai",
       "providerIds": [
         "cursor",
         "github",
@@ -1440,20 +1944,35 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-mini": {
@@ -1483,16 +2002,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-thinking-mini": {
       "id": "gpt-5-thinking-mini",
       "role": "model",
       "name": "GPT-5 Thinking Mini",
+      "developerId": "openai",
       "providerIds": [
         "openai"
       ],
@@ -1500,16 +2025,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "Subscription model label checked for the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-6-astra": {
       "id": "gpt-6-astra",
       "role": "model",
       "name": "GPT-6 Astra",
+      "developerId": "openai",
       "providerIds": [
         "github",
         "openai"
@@ -1534,15 +2070,93 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://openai.com/chatgpt/pricing/",
           "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "OpenAI API model catalog; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-luna": {
+      "id": "gpt-6-luna",
+      "role": "model",
+      "name": "GPT-6 Luna",
+      "developerId": "openai",
+      "providerIds": [
+        "openai"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-6-luna-api-id",
+          "alias": "gpt-6-luna",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+              "title": "GPT-6 Luna canonical API ID",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+          "title": "GPT-6 Luna model specifications and API availability",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-sol": {
+      "id": "gpt-6-sol",
+      "role": "model",
+      "name": "GPT-6 Sol",
+      "developerId": "openai",
+      "providerIds": [
+        "openai"
+      ],
+      "aliases": [
+        {
+          "id": "gpt-6-sol-api-id",
+          "alias": "gpt-6-sol",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+              "title": "GPT-6 Sol canonical API ID",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+          "title": "GPT-6 Sol model specifications and API availability",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "grok-4-5": {
@@ -1557,15 +2171,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "grok-4-6": {
@@ -1580,38 +2204,81 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "grok-4-7": {
       "id": "grok-4-7",
       "role": "model",
       "name": "Grok 4.7",
+      "developerId": "x-ai",
       "providerIds": [
         "cursor",
-        "github"
+        "github",
+        "x-ai"
+      ],
+      "aliases": [
+        {
+          "id": "grok-4-7-api-id",
+          "alias": "grok-4.7",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.x.ai/developers/release-notes",
+              "title": "xAI Grok 4.7 canonical API ID",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.x.ai/developers/release-notes",
+          "title": "xAI Grok 4.7 API availability, context, reasoning, and prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "kimi-k2-7-code": {
@@ -1625,10 +2292,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "kimi-k3": {
@@ -1642,10 +2314,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "mai-code-1-1-flash": {
@@ -1659,10 +2336,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3": {
@@ -1676,16 +2358,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "nano-banana-pro": {
       "id": "nano-banana-pro",
       "role": "model",
       "name": "Nano Banana Pro",
+      "developerId": "google",
       "providerIds": [
         "google"
       ],
@@ -1693,10 +2381,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     }
   },
@@ -1709,6 +2402,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "200",
@@ -1751,7 +2445,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "usage-credits-opt-in-pay-as-you-go-overage",
               "label": "Usage credits (opt-in pay-as-you-go overage)",
               "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
-              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "topic": "after_limit"
             },
             {
               "id": "usage-credit-daily-redemption-limit",
@@ -1822,6 +2517,161 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "200",
+            "interval": "month"
+          },
+          "billingMechanics": "Official pricing: 'Max 20x : $200 per month'.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "per-session-usage-allowance-multiple-of-pro",
+              "label": "Per-session usage allowance (multiple of Pro)",
+              "statement": "Max 20x includes 20 times the Pro plan's per-session usage allowance. This tier is ideal for daily users who collaborate often with Claude for most tasks.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "session-usage-limit-reset",
+              "label": "Session usage limit reset",
+              "statement": "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "weekly-usage-limit-across-all-models",
+              "label": "Weekly usage limit across all models",
+              "statement": "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "fable-model-share-of-weekly-usage-limits",
+              "label": "Fable model share of weekly usage limits",
+              "statement": "You can use up to 50% of your weekly usage limits on Fable models at no extra cost.",
+              "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+            },
+            {
+              "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+              "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+              "statement": "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "usage-credits-opt-in-pay-as-you-go-overage",
+              "label": "Usage credits (opt-in pay-as-you-go overage)",
+              "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "topic": "after_limit"
+            },
+            {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
+              "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+              "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+              "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Same as Max 5x: no absolute numeric allowance published; only the 20x multiple relative to Pro, whose own allowance is unquantified.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://claude.com/pricing"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
+            },
+            {
+              "model": "claude-fable-5"
+            },
+            {
+              "model": "claude-fable-5-1"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-fable",
+              "excluded": true
+            },
+            {
+              "model": "claude-haiku"
+            },
+            {
+              "model": "claude-opus"
+            },
+            {
+              "model": "claude-sonnet"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://claude.com/pricing",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+              "title": "Anthropic Opus 5.5 availability on Pro and Max",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+              "title": "Anthropic Claude Code supported model IDs",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -1833,6 +2683,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "100",
@@ -1875,7 +2726,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "usage-credits-opt-in-pay-as-you-go-overage",
               "label": "Usage credits (opt-in pay-as-you-go overage)",
               "statement": "Max plan users - If you're on the Max 5x plan, consider upgrading to the Max 20x plan if you consistently hit limits. - Enable usage credits to continue using Claude with your Max plan after hitting the included usage limit.",
-              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan"
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "topic": "after_limit"
             },
             {
               "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
@@ -1951,6 +2803,166 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Official pricing: 'Max 5x : $100 per month'.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "per-session-usage-allowance-multiple-of-pro",
+              "label": "Per-session usage allowance (multiple of Pro)",
+              "statement": "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "session-usage-limit-reset",
+              "label": "Session usage limit reset",
+              "statement": "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "weekly-usage-limit-across-all-models",
+              "label": "Weekly usage limit across all models",
+              "statement": "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "fable-model-share-of-weekly-usage-limits",
+              "label": "Fable model share of weekly usage limits",
+              "statement": "Max plans, premium seats on Team plans, and premium seats on seat-based Enterprise plans: Fable 5 and Fable 5.1 are included as a standard part of your plan. You can use up to 50% of your weekly usage limits on Fable models at no extra cost. They draw from your plan's regular weekly usage limits and use them faster than other Claude models. When you reach your Fable limit, you can keep using Fable models with usage credits, or switch to another model to stay within your plan's usage limits.",
+              "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+            },
+            {
+              "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+              "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+              "statement": "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "usage-credits-opt-in-pay-as-you-go-overage",
+              "label": "Usage credits (opt-in pay-as-you-go overage)",
+              "statement": "Max plan users - If you're on the Max 5x plan, consider upgrading to the Max 20x plan if you consistently hit limits. - Enable usage credits to continue using Claude with your Max plan after hitting the included usage limit.",
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "topic": "after_limit"
+            },
+            {
+              "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+              "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+              "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+            },
+            {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "No numeric session or weekly allowance is published; usage is expressed only as a multiple of Pro ('five times the Pro plan's per-session usage allowance') and Pro's own allowance is unquantified.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://claude.com/pricing"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
+            },
+            {
+              "model": "claude-fable-5"
+            },
+            {
+              "model": "claude-fable-5-1"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-fable",
+              "excluded": true
+            },
+            {
+              "model": "claude-haiku"
+            },
+            {
+              "model": "claude-opus"
+            },
+            {
+              "model": "claude-sonnet"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://claude.com/pricing",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+              "title": "Anthropic Opus 5.5 availability on Pro and Max",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+              "title": "Anthropic Claude Code supported model IDs",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -1962,12 +2974,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "20",
             "interval": "month"
           },
-          "billingMechanics": "Monthly price is $20 (pricing page card: '$17 Per month with annual subscription discount ( $200 billed up front).",
+          "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -1998,7 +3011,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "usage-credits-opt-in-pay-as-you-go-overage",
               "label": "Usage credits (opt-in pay-as-you-go overage)",
               "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits. Instead of being blocked when you hit your session limits, you can switch to consumption-based pricing at standard API rates and continue your work without interruption.",
-              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "topic": "after_limit"
             },
             {
               "id": "usage-credit-daily-redemption-limit",
@@ -2064,6 +3078,166 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "20",
+            "interval": "month"
+          },
+          "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "5-hour-session-usage-limit-rolling",
+              "label": "5-hour session usage limit (rolling)",
+              "statement": "Your session-based usage limit will reset every five hours.",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
+            },
+            {
+              "id": "weekly-usage-limit-across-all-models",
+              "label": "Weekly usage limit across all models",
+              "statement": "Pro plans also have a weekly usage limit that applies across all models. Weekly limits reset at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle. You can see your next reset time in Settings > Usage .",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
+            },
+            {
+              "id": "pro-usage-relative-to-free-per-5-hour-session",
+              "label": "Pro usage relative to Free (per 5-hour session)",
+              "statement": "Free covers everyday questions. Pro gives you at least 5x more usage per 5-hour session than Free. Max gives you 5x or 20x more usage per 5-hour session than Pro.",
+              "sourceUrl": "https://claude.com/pricing"
+            },
+            {
+              "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+              "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+              "statement": "To manage capacity and make sure all users have fair access, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion. When you reach a limit, you can wait for it to reset, move to a higher plan, or, on paid plans, turn on usage credits to keep working at standard API rates. You can see where you stand anytime in Settings > Usage .",
+              "sourceUrl": "https://claude.com/pricing"
+            },
+            {
+              "id": "usage-credits-opt-in-pay-as-you-go-overage",
+              "label": "Usage credits (opt-in pay-as-you-go overage)",
+              "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits. Instead of being blocked when you hit your session limits, you can switch to consumption-based pricing at standard API rates and continue your work without interruption.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "topic": "after_limit"
+            },
+            {
+              "id": "usage-credit-daily-redemption-limit",
+              "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+              "statement": "There is a daily redemption limit of $2000.",
+              "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+            },
+            {
+              "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+              "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+              "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+              "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Anthropic does not publish numeric session/weekly allowances for Pro; only relative multiples ('at least 5x more usage per 5-hour session than Free') and the 5-hour/weekly window structure. Limits are measured as compute-weighted 'usage', not literal request counts ('there's no fixed message count').",
+              "sourceUrl": "https://claude.com/pricing"
+            },
+            {
+              "id": "fable-models-usage-credits-only",
+              "label": "Fable models: usage credits only",
+              "statement": "Fable 5 and Fable 5.1 aren't included in your plan's usage limits. You can use them with usage credits, which let you pay for usage beyond what your plan includes.",
+              "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://claude.com/pricing"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-fable-5",
+              "excluded": true,
+              "access": "usage_credits"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "excluded": true,
+              "access": "usage_credits"
+            },
+            {
+              "model": "claude-fable",
+              "excluded": true,
+              "access": "usage_credits"
+            },
+            {
+              "model": "claude-haiku"
+            },
+            {
+              "model": "claude-opus"
+            },
+            {
+              "model": "claude-sonnet"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://claude.com/pricing",
+              "title": "Anthropic pricing: Pro lists Opus, Sonnet and Haiku, and Fable through usage credits (official)",
+              "checkedAt": "2026-09-24"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+              "title": "Anthropic pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+              "title": "Anthropic plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+              "title": "Anthropic Opus 5.5 availability on Pro and Max",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "title": "Use Claude Code with your Pro or Max plan (official)",
+              "checkedAt": "2026-09-24"
+            },
+            {
+              "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+              "title": "Claude Fable models on your plan: Pro uses usage credits (official)",
+              "checkedAt": "2026-09-24"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-24",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -2084,6 +3258,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "hobby-auto-only",
+              "label": "Auto model only",
+              "statement": "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model.",
+              "sourceUrl": "https://cursor.com/help/account-and-billing/pricing"
+            },
+            {
               "id": "agent-requests-on-hobby-unquantified",
               "label": "Agent requests on Hobby (unquantified)",
               "statement": "Hobby ... Free ... Includes: No credit card required / Limited Agent requests / Access to Composer",
@@ -2098,79 +3278,83 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "what-the-provider-does-not-publish",
               "label": "What the provider does not publish",
-              "statement": "Hobby's usage limits are not published anywhere official that I could find: the pricing page says only 'Limited Agent requests' and the docs do not list Hobby in the plan table. No number, window or exceed behaviour is documented. Note that some cursor.com locale/legacy variants of the same page describe Hobby as 'Limited Tab completions' rather than 'Access to Composer'; the live cursor.com/pricing page I read on 2026-09-21 said 'Access to Composer'.",
-              "sourceUrl": "https://cursor.com/pricing"
-            },
-            {
-              "id": "model-availability-scope",
-              "label": "Model availability scope",
-              "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "statement": "Cursor describes limited Hobby usage but does not publish a numeric Agent allowance, reset window, or exact Auto routing. Those values remain unknown for Replay.",
               "sourceUrl": "https://cursor.com/pricing"
             }
           ],
           "modelRules": [
             {
               "model": "claude-fable-5-1",
-              "pricingRef": "claude-fable-5-1-pricing"
+              "excluded": true
             },
             {
               "model": "claude-opus-5",
-              "pricingRef": "claude-opus-5-pricing"
+              "excluded": true
             },
             {
               "model": "claude-sonnet-5",
-              "pricingRef": "claude-sonnet-5-pricing"
+              "excluded": true
             },
             {
-              "model": "composer-2-5"
+              "model": "composer-2-5",
+              "excluded": true
             },
             {
               "model": "gemini-3-1-pro",
-              "pricingRef": "gemini-3-1-pro-pricing"
+              "excluded": true
             },
             {
               "model": "gemini-3-8-flash",
-              "pricingRef": "gemini-3-8-flash-pricing"
+              "excluded": true
             },
             {
               "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
+              "excluded": true
             },
             {
               "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
+              "excluded": true
             },
             {
               "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
+              "excluded": true
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "excluded": true
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "excluded": true
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "excluded": true
             },
             {
-              "model": "muse-spark-1-3"
+              "model": "muse-spark-1-3",
+              "excluded": true
             }
           ],
           "sources": [
             {
+              "url": "https://cursor.com/help/account-and-billing/pricing",
+              "title": "Cursor Hobby Auto-only model selection",
+              "checkedAt": "2026-09-23"
+            },
+            {
               "url": "https://cursor.com/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://cursor.com/docs/account/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
-          "verificationStatus": "verified"
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "unknown"
         }
       ]
     },
@@ -2191,6 +3375,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "grok-route-pricing-unknown",
+              "label": "Grok 4.7 route pricing depends on speed and context",
+              "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+              "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+            },
+            {
               "id": "agent-limits-relative-to-pro",
               "label": "Agent limits relative to Pro",
               "statement": "Everything in Pro, plus: 3x Pro limits on Agent",
@@ -2206,7 +3396,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-included-monthly-usage-is-exce",
               "label": "What happens when included monthly usage is exceeded",
               "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage.",
-              "sourceUrl": "https://cursor.com/docs/account/pricing"
+              "sourceUrl": "https://cursor.com/docs/account/pricing",
+              "topic": "after_limit"
             },
             {
               "id": "tab-completions-unlimited",
@@ -2223,7 +3414,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "model-availability-scope",
               "label": "Model availability scope",
-              "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
               "sourceUrl": "https://cursor.com/pricing"
             }
           ],
@@ -2235,6 +3426,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "model": "claude-opus-5",
               "pricingRef": "claude-opus-5-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
             },
             {
               "model": "claude-sonnet-5",
@@ -2278,17 +3473,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "sources": [
             {
+              "url": "https://cursor.com/docs/models-and-pricing",
+              "title": "Cursor paid-plan pools and current model prices",
+              "checkedAt": "2026-09-23"
+            },
+            {
               "url": "https://cursor.com/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://cursor.com/docs/account/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -2310,6 +3510,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "grok-route-pricing-unknown",
+              "label": "Grok 4.7 route pricing depends on speed and context",
+              "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+              "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+            },
+            {
               "id": "cursor-models-pool-included-usage-unquantified",
               "label": "Cursor Models pool (included usage, unquantified)",
               "statement": "Cursor Models : Significantly more included usage for Grok 4.7, Grok 4.6, Grok 4.5, and Composer 2.5.",
@@ -2325,7 +3531,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-included-monthly-usage-is-exce",
               "label": "What happens when included monthly usage is exceeded",
               "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage. On-demand usage is billed monthly at the same rates. Requests are never downgraded in quality or speed.",
-              "sourceUrl": "https://cursor.com/docs/account/pricing"
+              "sourceUrl": "https://cursor.com/docs/account/pricing",
+              "topic": "after_limit"
             },
             {
               "id": "agent-limits-extended-vs-hobby-unquantified",
@@ -2354,7 +3561,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "model-availability-scope",
               "label": "Model availability scope",
-              "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
               "sourceUrl": "https://cursor.com/pricing"
             }
           ],
@@ -2366,6 +3573,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "model": "claude-opus-5",
               "pricingRef": "claude-opus-5-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
             },
             {
               "model": "claude-sonnet-5",
@@ -2409,17 +3620,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "sources": [
             {
+              "url": "https://cursor.com/docs/models-and-pricing",
+              "title": "Cursor paid-plan pools and current model prices",
+              "checkedAt": "2026-09-23"
+            },
+            {
               "url": "https://cursor.com/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://cursor.com/docs/account/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -2441,6 +3657,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "grok-route-pricing-unknown",
+              "label": "Grok 4.7 route pricing depends on speed and context",
+              "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+              "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+            },
+            {
               "id": "agent-limits-relative-to-pro",
               "label": "Agent limits relative to Pro",
               "statement": "Everything in Pro, plus: 20x Pro limits on Agent",
@@ -2456,7 +3678,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-included-monthly-usage-is-exce",
               "label": "What happens when included monthly usage is exceeded",
               "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage.",
-              "sourceUrl": "https://cursor.com/docs/account/pricing"
+              "sourceUrl": "https://cursor.com/docs/account/pricing",
+              "topic": "after_limit"
             },
             {
               "id": "tab-completions-unlimited",
@@ -2473,7 +3696,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "model-availability-scope",
               "label": "Model availability scope",
-              "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
               "sourceUrl": "https://cursor.com/pricing"
             }
           ],
@@ -2485,6 +3708,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "model": "claude-opus-5",
               "pricingRef": "claude-opus-5-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-pricing"
             },
             {
               "model": "claude-sonnet-5",
@@ -2528,17 +3755,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "sources": [
             {
+              "url": "https://cursor.com/docs/models-and-pricing",
+              "title": "Cursor paid-plan pools and current model prices",
+              "checkedAt": "2026-09-23"
+            },
+            {
               "url": "https://cursor.com/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://cursor.com/docs/account/pricing",
               "title": "Cursor pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -2816,6 +4048,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "19",
@@ -2847,7 +4080,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "policy-dependent-behaviour-when-pooled-credits-a",
               "label": "Policy-dependent behaviour when pooled credits are exhausted",
               "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
-              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "topic": "after_limit"
             },
             {
               "id": "code-completions-and-next-edit-suggestions-unlim",
@@ -2910,10 +4144,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
-              "model": "gemini-3-5-flash"
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
             },
             {
-              "model": "gemini-3-6-flash"
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
             },
             {
               "model": "gemini-3-7-flash"
@@ -2963,19 +4199,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
             },
             {
-              "model": "kimi-k2-7-code"
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
             },
             {
-              "model": "kimi-k3"
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
             },
             {
               "model": "mai-code-1-1-flash"
@@ -3005,6 +4246,227 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "19",
+            "interval": "month"
+          },
+          "billingMechanics": "$19 per granted seat per month, contributing 1,900 monthly AI credits per user to the organization pool.",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits per seat (1,900 credits = $19.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "19.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "additional-usage-beyond-the-pool",
+              "label": "Additional usage beyond the pool",
+              "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "policy-dependent-behaviour-when-pooled-credits-a",
+              "label": "Policy-dependent behaviour when pooled credits are exhausted",
+              "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "rate-limits-unquantified",
+              "label": "Rate limits (unquantified)",
+              "statement": "If you receive a limit error when using Copilot, you should: - Wait and try again. Rate limits are temporary. Often, waiting a short period and trying again resolves the issue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "The billing interval for Copilot Business seats is not stated as monthly or annual on the plans page; the price is quoted 'per granted seat per month'. The reset date for included credits is fixed to the calendar month and not the billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "pricingRef": "claude-opus-4-7-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -3016,6 +4478,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "39",
@@ -3041,7 +4504,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "additional-usage-beyond-the-pool",
               "label": "Additional usage beyond the pool",
               "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
-              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "topic": "after_limit"
             },
             {
               "id": "budget-controls-user-cost-center-enterprise-spen",
@@ -3104,10 +4568,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
-              "model": "gemini-3-5-flash"
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
             },
             {
-              "model": "gemini-3-6-flash"
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
             },
             {
               "model": "gemini-3-7-flash"
@@ -3157,19 +4623,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
             },
             {
-              "model": "kimi-k2-7-code"
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
             },
             {
-              "model": "kimi-k3"
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
             },
             {
               "model": "mai-code-1-1-flash"
@@ -3194,6 +4665,216 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "39",
+            "interval": "month"
+          },
+          "billingMechanics": "$39 per granted seat per month, contributing 3,900 monthly AI credits per user to the organization pool.",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits per seat (3,900 credits = $39.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "39.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "additional-usage-beyond-the-pool",
+              "label": "Additional usage beyond the pool",
+              "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "topic": "after_limit"
+            },
+            {
+              "id": "budget-controls-user-cost-center-enterprise-spen",
+              "label": "Budget controls (user, cost-center, enterprise spending limits)",
+              "statement": "If you have set a user-level budget and a user exhausts it, that user's access to Copilot is halted, regardless of whether the organization's pool still has capacity. A user can also be blocked by an enterprise spending limit before they reach their individual user-level budget, if the spending limit runs out first. There is no automatic fallback to lower-cost models when a budget is exhausted.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Same as Copilot Business: billing interval not stated as monthly/annual on the plans page; credits reset on the calendar month, not the billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "pricingRef": "claude-opus-4-7-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -3210,7 +4891,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "amount": "0",
             "interval": "month"
           },
-          "billingMechanics": "Docs: 'Copilot Free : ..",
+          "billingMechanics": "No subscription charge. GitHub documents 2,000 monthly inline suggestions and an AI credit allowance whose amount is not published. Model access uses Auto selection only.",
           "limits": [
             {
               "id": "inline-suggestions",
@@ -3253,8 +4934,209 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "model-availability-scope",
               "label": "Model availability scope",
-              "statement": "GitHub publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
-              "sourceUrl": "https://github.com/features/copilot/plans"
+              "statement": "Copilot Free offers model access through Auto selection only. A named model is not a selectable Replay target on this plan.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-fable-5-1",
+              "excluded": true
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-4",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-mini",
+              "excluded": true
+            },
+            {
+              "model": "gpt-6-astra",
+              "excluded": true
+            },
+            {
+              "model": "grok-4-5",
+              "excluded": true
+            },
+            {
+              "model": "grok-4-6",
+              "excluded": true
+            },
+            {
+              "model": "grok-4-7",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "excluded": true
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "excluded": true
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "github-copilot-max": {
+      "id": "github-copilot-max",
+      "role": "plan",
+      "name": "Copilot Max",
+      "providerId": "github",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Copilot Max costs $100 USD per month and includes 20,000 monthly AI credits (10,000 base and 10,000 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (20,000 credits = $200.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "200.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "priority-premium-models",
+              "label": "Priority premium model access",
+              "statement": "GitHub describes Copilot Max as providing priority access to premium models; no numeric priority guarantee is published.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
             }
           ],
           "modelRules": [
@@ -3271,14 +5153,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-haiku-4-5-github-pricing"
             },
             {
-              "model": "claude-opus-4-7"
+              "model": "claude-opus-4-7",
+              "pricingRef": "claude-opus-4-7-github-pricing"
             },
             {
               "model": "claude-opus-4-8",
               "pricingRef": "claude-opus-4-8-github-pricing"
             },
             {
-              "model": "claude-opus-4-8-fast-mode"
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
             },
             {
               "model": "claude-opus-5",
@@ -3293,13 +5177,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
-              "model": "gemini-3-5-flash"
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
             },
             {
-              "model": "gemini-3-6-flash"
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
             },
             {
-              "model": "gemini-3-7-flash"
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
             },
             {
               "model": "gemini-3-8-flash",
@@ -3319,7 +5206,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-4-nano",
-              "excluded": true
+              "pricingRef": "gpt-5-4-nano-github-pricing"
             },
             {
               "model": "gpt-5-5",
@@ -3346,42 +5233,65 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
             },
             {
-              "model": "kimi-k2-7-code"
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
             },
             {
-              "model": "kimi-k3"
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
             },
             {
-              "model": "mai-code-1-1-flash"
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
             }
           ],
           "sources": [
             {
               "url": "https://docs.github.com/en/copilot/get-started/plans",
               "title": "GitHub pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
-              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
               "title": "GitHub plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://github.com/features/copilot/plans",
               "title": "GitHub pricing (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -3394,6 +5304,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "39",
@@ -3431,7 +5342,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-included-credits-are-exhausted",
               "label": "What happens when included credits are exhausted",
               "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
-              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
             },
             {
               "id": "what-the-provider-does-not-publish",
@@ -3482,10 +5394,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
-              "model": "gemini-3-5-flash"
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
             },
             {
-              "model": "gemini-3-6-flash"
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
             },
             {
               "model": "gemini-3-7-flash"
@@ -3535,19 +5449,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
             },
             {
-              "model": "kimi-k2-7-code"
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
             },
             {
-              "model": "kimi-k3"
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
             },
             {
               "model": "mai-code-1-1-flash"
@@ -3572,6 +5491,222 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "39",
+            "interval": "month"
+          },
+          "billingMechanics": "$39 per month, including 7,000 monthly AI credits (3,900 base and 3,100 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (7,000 credits = $70.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "70.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "None specific to Pro+ beyond the general absence of published numeric rate limits.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "annual-sonnet-4-6-exception",
+              "label": "Claude Sonnet 4.6 annual-plan exception",
+              "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "pricingRef": "claude-opus-4-7-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "pricingRef": "gpt-5-4-nano-github-pricing"
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -3583,6 +5718,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "10",
@@ -3620,7 +5756,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-included-credits-are-exhausted",
               "label": "What happens when included credits are exhausted",
               "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
-              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
             },
             {
               "id": "additional-usage-budget-usd-fixed-conversion-rat",
@@ -3677,10 +5814,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "claude-sonnet-5-github-pricing"
             },
             {
-              "model": "gemini-3-5-flash"
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
             },
             {
-              "model": "gemini-3-6-flash"
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
             },
             {
               "model": "gemini-3-7-flash"
@@ -3730,19 +5869,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "gpt-6-astra-github-pricing"
             },
             {
-              "model": "grok-4-5"
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
             },
             {
-              "model": "grok-4-6"
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
             },
             {
-              "model": "grok-4-7"
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
             },
             {
-              "model": "kimi-k2-7-code"
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
             },
             {
-              "model": "kimi-k3"
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
             },
             {
               "model": "mai-code-1-1-flash"
@@ -3767,6 +5911,228 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "10",
+            "interval": "month"
+          },
+          "billingMechanics": "$10 per month, including 1,500 monthly AI credits (1,000 base and 500 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (1,500 credits = $15.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "15.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month. This reset date is fixed and does not change based on your subscription billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "additional-usage-budget-usd-fixed-conversion-rat",
+              "label": "Additional usage budget (USD, fixed conversion rate)",
+              "statement": "Your additional usage budget is set in US dollars, and your usage is shown in GitHub AI Credits. GitHub AI Credits draw down your budget at a fixed rate: 1 AI credits = $0.01 USD, so a $10 budget covers 1,000 AI credits.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Copilot Pro is 'free for some users' (verified teachers, popular open-source maintainers) - the $10 USD/month is the standard price. The flex allotment is described as variable by GitHub.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "annual-sonnet-4-6-exception",
+              "label": "Claude Sonnet 4.6 annual-plan exception",
+              "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-fable-5-1",
+              "excluded": true
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "pricingRef": "gemini-3-5-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "pricingRef": "gemini-3-6-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "excluded": true
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "pricingRef": "kimi-k2-7-code-github-pricing"
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "excluded": true
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "excluded": true
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -3783,7 +6149,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "amount": "19.99",
             "interval": "month"
           },
-          "billingMechanics": "gemini.google/subscriptions lists 'Google AI Pro 1 ..",
+          "billingMechanics": "Google AI Pro costs $19.99 per month in the US. Google describes its usage as 4x the Free tier; it does not publish an absolute allowance.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -3802,7 +6168,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "what-happens-when-you-reach-a-usage-limit",
               "label": "What happens when you reach a usage limit",
               "statement": "If you have a Google AI subscription and reach your limit, you can continue your conversation with Flash-Lite. If you reach your five hour or weekly usage limits you can upgrade to a Google AI subscription with higher limits or wait until your model limit is refreshed.",
-              "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+              "sourceUrl": "https://support.google.com/gemini/answer/16275805",
+              "topic": "after_limit"
             },
             {
               "id": "ai-credits-for-extra-usage-flow-antigravity-othe",
@@ -3848,6 +6215,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-flash-lite"
             },
             {
+              "model": "gemini-3-6-flash"
+            },
+            {
               "model": "gemini-3-pro"
             },
             {
@@ -3858,20 +6228,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "url": "https://gemini.google/subscriptions/",
               "title": "Google official page",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/gemini/answer/16275805",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/googleone/answer/14534406",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://gemini.google/us/subscriptions/",
+              "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+              "checkedAt": "2026-09-24"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -3889,7 +6264,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "amount": "199.99",
             "interval": "month"
           },
-          "billingMechanics": "Second official price point for Google AI Ultra: '$199.99 / month: 20x higher usage limits vs.",
+          "billingMechanics": "Google AI Ultra has a $199.99 per month tier with 20x the AI Pro usage limits.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -3926,7 +6301,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "ai-credits-for-extra-usage",
               "label": "AI credits for extra usage",
               "statement": "If you reach your plan's limit, Google AI Pro and Google AI Ultra members can purchase AI credits to get extra usage in Google Flow and Google Antigravity.",
-              "sourceUrl": "https://support.google.com/googleone/answer/16286513"
+              "sourceUrl": "https://support.google.com/googleone/answer/16286513",
+              "topic": "after_limit"
             },
             {
               "id": "what-the-provider-does-not-publish",
@@ -3954,6 +6330,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-flash-lite"
             },
             {
+              "model": "gemini-3-6-flash"
+            },
+            {
               "model": "gemini-3-pro"
             },
             {
@@ -3964,20 +6343,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "url": "https://gemini.google/subscriptions/",
               "title": "Google official page",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/googleone/answer/16286513",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/gemini/answer/16275805",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://gemini.google/us/subscriptions/",
+              "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+              "checkedAt": "2026-09-24"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -3995,7 +6379,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "amount": "99.99",
             "interval": "month"
           },
-          "billingMechanics": "The page presents Google AI Ultra with two price points: 'Starting at: $99.99 / month - $99.99 / month: 5x higher usage limits vs.",
+          "billingMechanics": "Google AI Ultra has a $99.99 per month tier with 5x the AI Pro usage limits. Google also offers a separate $199.99 tier.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -4032,7 +6416,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "ai-credits-for-extra-usage-flow-antigravity-othe",
               "label": "AI credits for extra usage (Flow, Antigravity, other products)",
               "statement": "You can also purchase AI credits with the Google AI Ultra plan, which can be used to extend your usage in Google Flow, Google Antigravity, and other products where AI credits are supported.",
-              "sourceUrl": "https://support.google.com/googleone/answer/16286513"
+              "sourceUrl": "https://support.google.com/googleone/answer/16286513",
+              "topic": "after_limit"
             },
             {
               "id": "jules-and-antigravity-limits-relative-unquantifi",
@@ -4066,6 +6451,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "model": "gemini-3-flash-lite"
             },
             {
+              "model": "gemini-3-6-flash"
+            },
+            {
               "model": "gemini-3-pro"
             },
             {
@@ -4076,20 +6464,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "url": "https://gemini.google/subscriptions/",
               "title": "Google official page",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/gemini/answer/16275805",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
             },
             {
               "url": "https://support.google.com/googleone/answer/16286513",
               "title": "Google plan documentation (official)",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://gemini.google/us/subscriptions/",
+              "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+              "checkedAt": "2026-09-24"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
       ]
@@ -4102,6 +6495,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "25",
@@ -4120,7 +6514,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "workspace-credits-for-usage-beyond-included-rate",
               "label": "Workspace credits for usage beyond included rate limits",
               "statement": "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls.",
-              "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business"
+              "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+              "topic": "after_limit"
             },
             {
               "id": "monthly-credit-usage-limits-per-seat-type-spend-",
@@ -4201,6 +6596,127 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "25",
+            "interval": "month"
+          },
+          "billingMechanics": "Price is per seat.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "standard-seat-included-usage-unquantified-5-hour",
+              "label": "Standard seat included usage (unquantified) + 5-hour usage limit",
+              "statement": "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace.",
+              "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+            },
+            {
+              "id": "workspace-credits-for-usage-beyond-included-rate",
+              "label": "Workspace credits for usage beyond included rate limits",
+              "statement": "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls.",
+              "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+              "topic": "after_limit"
+            },
+            {
+              "id": "monthly-credit-usage-limits-per-seat-type-spend-",
+              "label": "Monthly credit usage limits per seat type (spend controls)",
+              "statement": "Workspace owners and admins can manage monthly credit usage limits by seat type and per-user overrides. ... Set monthly credit usage limits for Standard and Premium seats to manage additional usage beyond each member's included allowance. ... By default, all seats and users have no limits specified.",
+              "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business"
+            },
+            {
+              "id": "maximum-paid-seats-per-business-subscription",
+              "label": "Maximum paid seats per Business subscription",
+              "statement": "Starting on Aug 24, 2026, the maximum is 200 paid Standard and Premium seats total per ChatGPT Business subscription. Our support team is unable to change your maximum seat limit. If you need a larger number of seats, consider ChatGPT Enterprise.",
+              "sourceUrl": "https://help.openai.com/en/articles/8801848"
+            },
+            {
+              "id": "minimum-paid-seats",
+              "label": "Minimum paid seats",
+              "statement": "A workspace requires at least two paid seats, which can be any combination of Standard and Premium seats.",
+              "sourceUrl": "https://help.openai.com/en/articles/8801848"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "OpenAI does not quantify the 'included usage' or 'included rate limits' for Business seats, and states there is 'no single credit or dollar equivalent for Premium's included usage'. The Premium seat is a second price point on the same plan; the Standard-seat price is recorded here as priceAmount and the Premium price is documented in notes/limits.",
+              "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol-pro"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
+            },
+            {
+              "model": "gpt-5-thinking-mini"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://help.openai.com/en/articles/8792828-chatgpt-business",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/8801848",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://openai.com/chatgpt/pricing/",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+              "title": "OpenAI model launch and paid plan availability",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://chatgpt.com/pricing/",
+              "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -4212,12 +6728,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "20",
             "interval": "month"
           },
-          "billingMechanics": "Official help center: 'ChatGPT Plus is a subscription plan that provides enhanced access to the ChatGPT web app for $20/month.' and 'Price: $20/month (billed monthly).' No annual billing: 'Currently, we do not support annual billing or the option to pay for...",
+          "billingMechanics": "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -4242,7 +6759,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "usage-credits-pay-as-you-go-overage-for-codex-wo",
               "label": "Usage credits (pay-as-you-go overage for Codex/Work)",
               "statement": "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance.",
-              "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+              "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+              "topic": "after_limit"
             },
             {
               "id": "support-cannot-reset-limits",
@@ -4316,6 +6834,132 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "20",
+            "interval": "month"
+          },
+          "billingMechanics": "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "message-caps-on-plus-unquantified",
+              "label": "Message caps on Plus (unquantified)",
+              "statement": "To ensure a smooth experience for all users, Plus subscriptions may include usage limits such as message caps, especially during high demand. These limits may vary based on system conditions.",
+              "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+            },
+            {
+              "id": "higher-model-limits-than-free",
+              "label": "Higher model limits than Free",
+              "statement": "Higher model limits: Use more messages and broader model options than on the Free plan. Model availability changes during rollouts; use the model picker for current access.",
+              "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+            },
+            {
+              "id": "shared-work-codex-5-hour-and-weekly-allowances",
+              "label": "Shared Work/Codex 5-hour and weekly allowances",
+              "statement": "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage.",
+              "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+            },
+            {
+              "id": "usage-credits-pay-as-you-go-overage-for-codex-wo",
+              "label": "Usage credits (pay-as-you-go overage for Codex/Work)",
+              "statement": "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance.",
+              "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+              "topic": "after_limit"
+            },
+            {
+              "id": "support-cannot-reset-limits",
+              "label": "Support cannot reset limits",
+              "statement": "No. OpenAI Support does not reset ChatGPT or Codex usage limits. If you reach a limit, wait until it resets or use another available option shown in your account.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "OpenAI does not publish numeric message caps for Plus. The help center says only that limits 'may vary based on system conditions'. The Codex/Work allowance is described as shared across features but is not quantified on any official page I could read; the pricing page's price and limit widgets did not render values in my browser session (client-side gated), so all OpenAI prices here come from help.openai.com articles.",
+              "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol-pro"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
+            },
+            {
+              "model": "gpt-5-thinking-mini"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://openai.com/chatgpt/pricing/",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+              "title": "OpenAI model launch and paid plan availability",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://chatgpt.com/pricing/",
+              "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -4327,6 +6971,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "200",
@@ -4345,7 +6990,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "per-model-usage-allowances-temporary-model-unava",
               "label": "Per-model usage allowances (temporary model unavailability)",
               "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
             },
             {
               "id": "new-sign-ups-and-upgrades-paused",
@@ -4404,23 +7050,123 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "200",
+            "interval": "month"
+          },
+          "billingMechanics": "Included as a separate entry because ChatGPT Pro has two official price points and usage allowances under one plan name.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "pro-200-usage-relative-to-plus",
+              "label": "Pro $200 usage relative to Plus",
+              "statement": "Pro $200 unlocks 20x usage than Plus.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "per-model-usage-allowances-temporary-model-unava",
+              "label": "Per-model usage allowances (temporary model unavailability)",
+              "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
+            },
+            {
+              "id": "new-sign-ups-and-upgrades-paused",
+              "label": "New sign-ups and upgrades paused",
+              "statement": "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol-pro"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
+            },
+            {
+              "model": "gpt-5-thinking-mini"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://openai.com/chatgpt/pricing/",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+              "title": "OpenAI model launch and paid plan availability",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://chatgpt.com/pricing/",
+              "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     },
     "openai-chatgpt-pro": {
       "id": "openai-chatgpt-pro",
       "role": "plan",
-      "name": "ChatGPT Pro ($100 / Pro 10x tier)",
+      "name": "ChatGPT Pro ($100 / Pro 5x tier)",
       "providerId": "openai",
       "versions": [
         {
           "effectiveFrom": "2026-09-21",
+          "effectiveTo": "2026-09-21",
           "price": {
             "currency": "USD",
             "amount": "100",
             "interval": "month"
           },
-          "billingMechanics": "ChatGPT Pro is sold as two priced tiers in the same help article: 'The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus.' and 'The $100 Pro tier includes lower usage allowances than t...",
+          "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
           "limits": [],
           "qualitativeLimits": [
             {
@@ -4433,7 +7179,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "id": "per-model-usage-allowances-temporary-model-unava",
               "label": "Per-model usage allowances (temporary model unavailability)",
               "statement": "Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier. The $100 Pro tier includes lower usage allowances than the $200 Pro tier. When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available. Reaching a model's allowance does not by itself mean that your account was restricted or that your subscription ended. You can use another available model or wait until the displayed reset time. There is no setting to increase or bypass a model's usage allowance.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
             },
             {
               "id": "5-hour-and-weekly-codex-work-allowances",
@@ -4520,6 +7267,133 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-22",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "pro-100-usage-relative-to-plus",
+              "label": "Pro $100 usage relative to Plus",
+              "statement": "Both Pro tiers include the same core capabilities. The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "per-model-usage-allowances-temporary-model-unava",
+              "label": "Per-model usage allowances (temporary model unavailability)",
+              "statement": "Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier. The $100 Pro tier includes lower usage allowances than the $200 Pro tier. When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available. Reaching a model's allowance does not by itself mean that your account was restricted or that your subscription ended. You can use another available model or wait until the displayed reset time. There is no setting to increase or bypass a model's usage allowance.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
+            },
+            {
+              "id": "5-hour-and-weekly-codex-work-allowances",
+              "label": "5-hour and weekly Codex/Work allowances",
+              "statement": "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage. It pulls your normal weekly allowance forward rather than adding a separate usage entitlement.",
+              "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+            },
+            {
+              "id": "paid-instant-weekly-reset-plus-and-pro-only",
+              "label": "Paid instant weekly reset (Plus and Pro only)",
+              "statement": "Buying a reset is available to eligible ChatGPT Plus and Pro personal accounts on ChatGPT web and the Codex desktop app. It is not available on Free, Go, Business, Enterprise, or Edu plans.",
+              "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+            },
+            {
+              "id": "usage-credits-pay-as-you-go-overage",
+              "label": "Usage credits (pay-as-you-go overage)",
+              "statement": "For Plus and Pro, Codex, ChatGPT Work, Excel, and PowerPoint can share the same agentic usage allowance when those features are available on your plan.",
+              "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+            },
+            {
+              "id": "pro-200-new-signup-pause-as-of-2026-09-10",
+              "label": "Pro $200 new-signup pause (as of 2026-09-10)",
+              "statement": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "OpenAI publishes no numeric allowance for Pro; usage is given only as a multiple of Plus ('5x higher usage than Plus'), and Plus's own allowance is unquantified. 'Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier.'",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol-pro"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
+            },
+            {
+              "model": "gpt-5-thinking-mini"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+              "title": "OpenAI plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://openai.com/chatgpt/pricing/",
+              "title": "OpenAI pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+              "title": "OpenAI model launch and paid plan availability",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://chatgpt.com/pricing/",
+              "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+              "checkedAt": "2026-09-23"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
         }
       ]
     }
@@ -4527,6 +7401,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
   "planVersions": {
     "anthropic-claude-max-20x@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "200",
@@ -4569,7 +7444,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "usage-credits-opt-in-pay-as-you-go-overage",
           "label": "Usage credits (opt-in pay-as-you-go overage)",
           "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
-          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "topic": "after_limit"
         },
         {
           "id": "usage-credit-daily-redemption-limit",
@@ -4645,8 +7521,168 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Claude Max 20x",
       "providerId": "anthropic"
     },
+    "anthropic-claude-max-20x@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "200",
+        "interval": "month"
+      },
+      "billingMechanics": "Official pricing: 'Max 20x : $200 per month'.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "per-session-usage-allowance-multiple-of-pro",
+          "label": "Per-session usage allowance (multiple of Pro)",
+          "statement": "Max 20x includes 20 times the Pro plan's per-session usage allowance. This tier is ideal for daily users who collaborate often with Claude for most tasks.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "session-usage-limit-reset",
+          "label": "Session usage limit reset",
+          "statement": "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "weekly-usage-limit-across-all-models",
+          "label": "Weekly usage limit across all models",
+          "statement": "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "fable-model-share-of-weekly-usage-limits",
+          "label": "Fable model share of weekly usage limits",
+          "statement": "You can use up to 50% of your weekly usage limits on Fable models at no extra cost.",
+          "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+        },
+        {
+          "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+          "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+          "statement": "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "usage-credits-opt-in-pay-as-you-go-overage",
+          "label": "Usage credits (opt-in pay-as-you-go overage)",
+          "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "topic": "after_limit"
+        },
+        {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
+          "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+          "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+          "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Same as Max 5x: no absolute numeric allowance published; only the 20x multiple relative to Pro, whose own allowance is unquantified.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://claude.com/pricing"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
+        },
+        {
+          "model": "claude-fable-5"
+        },
+        {
+          "model": "claude-fable-5-1"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-fable",
+          "excluded": true
+        },
+        {
+          "model": "claude-haiku"
+        },
+        {
+          "model": "claude-opus"
+        },
+        {
+          "model": "claude-sonnet"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://claude.com/pricing",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+          "title": "Anthropic Opus 5.5 availability on Pro and Max",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+          "title": "Anthropic Claude Code supported model IDs",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "anthropic-claude-max-20x@2026-09-22",
+      "planId": "anthropic-claude-max-20x",
+      "planName": "Claude Max 20x",
+      "providerId": "anthropic"
+    },
     "anthropic-claude-max-5x@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "100",
@@ -4689,7 +7725,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "usage-credits-opt-in-pay-as-you-go-overage",
           "label": "Usage credits (opt-in pay-as-you-go overage)",
           "statement": "Max plan users - If you're on the Max 5x plan, consider upgrading to the Max 20x plan if you consistently hit limits. - Enable usage credits to continue using Claude with your Max plan after hitting the included usage limit.",
-          "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan"
+          "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+          "topic": "after_limit"
         },
         {
           "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
@@ -4770,14 +7807,179 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Claude Max 5x",
       "providerId": "anthropic"
     },
+    "anthropic-claude-max-5x@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Official pricing: 'Max 5x : $100 per month'.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "per-session-usage-allowance-multiple-of-pro",
+          "label": "Per-session usage allowance (multiple of Pro)",
+          "statement": "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "session-usage-limit-reset",
+          "label": "Session usage limit reset",
+          "statement": "Your session-based usage limit will reset every five hours. Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "weekly-usage-limit-across-all-models",
+          "label": "Weekly usage limit across all models",
+          "statement": "Max plans also have a weekly usage limit that applies across all models. The weekly limit resets at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "fable-model-share-of-weekly-usage-limits",
+          "label": "Fable model share of weekly usage limits",
+          "statement": "Max plans, premium seats on Team plans, and premium seats on seat-based Enterprise plans: Fable 5 and Fable 5.1 are included as a standard part of your plan. You can use up to 50% of your weekly usage limits on Fable models at no extra cost. They draw from your plan's regular weekly usage limits and use them faster than other Claude models. When you reach your Fable limit, you can keep using Fable models with usage credits, or switch to another model to stay within your plan's usage limits.",
+          "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+        },
+        {
+          "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+          "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+          "statement": "In addition, to manage capacity and ensure fair access to all users, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "usage-credits-opt-in-pay-as-you-go-overage",
+          "label": "Usage credits (opt-in pay-as-you-go overage)",
+          "statement": "Max plan users - If you're on the Max 5x plan, consider upgrading to the Max 20x plan if you consistently hit limits. - Enable usage credits to continue using Claude with your Max plan after hitting the included usage limit.",
+          "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+          "topic": "after_limit"
+        },
+        {
+          "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+          "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+          "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+        },
+        {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "No numeric session or weekly allowance is published; usage is expressed only as a multiple of Pro ('five times the Pro plan's per-session usage allowance') and Pro's own allowance is unquantified.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://claude.com/pricing"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
+        },
+        {
+          "model": "claude-fable-5"
+        },
+        {
+          "model": "claude-fable-5-1"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-fable",
+          "excluded": true
+        },
+        {
+          "model": "claude-haiku"
+        },
+        {
+          "model": "claude-opus"
+        },
+        {
+          "model": "claude-sonnet"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://claude.com/pricing",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+          "title": "Anthropic Opus 5.5 availability on Pro and Max",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+          "title": "Anthropic Claude Code supported model IDs",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "anthropic-claude-max-5x@2026-09-22",
+      "planId": "anthropic-claude-max-5x",
+      "planName": "Claude Max 5x",
+      "providerId": "anthropic"
+    },
     "anthropic-claude-pro@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "20",
         "interval": "month"
       },
-      "billingMechanics": "Monthly price is $20 (pricing page card: '$17 Per month with annual subscription discount ( $200 billed up front).",
+      "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -4808,7 +8010,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "usage-credits-opt-in-pay-as-you-go-overage",
           "label": "Usage credits (opt-in pay-as-you-go overage)",
           "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits. Instead of being blocked when you hit your session limits, you can switch to consumption-based pricing at standard API rates and continue your work without interruption.",
-          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "topic": "after_limit"
         },
         {
           "id": "usage-credit-daily-redemption-limit",
@@ -4879,6 +8082,170 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Claude Pro",
       "providerId": "anthropic"
     },
+    "anthropic-claude-pro@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "20",
+        "interval": "month"
+      },
+      "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "5-hour-session-usage-limit-rolling",
+          "label": "5-hour session usage limit (rolling)",
+          "statement": "Your session-based usage limit will reset every five hours.",
+          "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
+        },
+        {
+          "id": "weekly-usage-limit-across-all-models",
+          "label": "Weekly usage limit across all models",
+          "statement": "Pro plans also have a weekly usage limit that applies across all models. Weekly limits reset at a fixed time each week that is assigned to your account. Your reset day and time stay the same regardless of when you start using Claude or when your subscription begins, and you receive your full weekly allowance each cycle. You can see your next reset time in Settings > Usage .",
+          "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
+        },
+        {
+          "id": "pro-usage-relative-to-free-per-5-hour-session",
+          "label": "Pro usage relative to Free (per 5-hour session)",
+          "statement": "Free covers everyday questions. Pro gives you at least 5x more usage per 5-hour session than Free. Max gives you 5x or 20x more usage per 5-hour session than Pro.",
+          "sourceUrl": "https://claude.com/pricing"
+        },
+        {
+          "id": "discretionary-weekly-monthly-caps-and-model-or-f",
+          "label": "Discretionary weekly/monthly caps and model or feature usage limits",
+          "statement": "To manage capacity and make sure all users have fair access, we may limit your usage in other ways, such as weekly and monthly caps or model and feature usage, at our discretion. When you reach a limit, you can wait for it to reset, move to a higher plan, or, on paid plans, turn on usage credits to keep working at standard API rates. You can see where you stand anytime in Settings > Usage .",
+          "sourceUrl": "https://claude.com/pricing"
+        },
+        {
+          "id": "usage-credits-opt-in-pay-as-you-go-overage",
+          "label": "Usage credits (opt-in pay-as-you-go overage)",
+          "statement": "Usage credits allow individuals subscribed to paid Claude plans (Pro, Max 5x, and Max 20x) to continue using Claude seamlessly after reaching their included usage limits. Instead of being blocked when you hit your session limits, you can switch to consumption-based pricing at standard API rates and continue your work without interruption.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "topic": "after_limit"
+        },
+        {
+          "id": "usage-credit-daily-redemption-limit",
+          "label": "Usage-credit funding: daily redemption limit (funding rule, not simulated workload capacity)",
+          "statement": "There is a daily redemption limit of $2000.",
+          "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+        },
+        {
+          "id": "discounted-usage-bundle-purchase-cap-pro-and-max",
+          "label": "Discounted usage-bundle purchase cap (billing rule, not simulated workload capacity)",
+          "statement": "Individual Pro and Max plan subscribers can purchase up to $2000 worth of discounted bundles per month. Any usage beyond this limit is billed at standard rates.",
+          "sourceUrl": "https://support.claude.com/en/articles/14246112-buy-usage-bundles"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Anthropic does not publish numeric session/weekly allowances for Pro; only relative multiples ('at least 5x more usage per 5-hour session than Free') and the 5-hour/weekly window structure. Limits are measured as compute-weighted 'usage', not literal request counts ('there's no fixed message count').",
+          "sourceUrl": "https://claude.com/pricing"
+        },
+        {
+          "id": "fable-models-usage-credits-only",
+          "label": "Fable models: usage credits only",
+          "statement": "Fable 5 and Fable 5.1 aren't included in your plan's usage limits. You can use them with usage credits, which let you pay for usage beyond what your plan includes.",
+          "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "Anthropic publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://claude.com/pricing"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-fable-5",
+          "excluded": true,
+          "access": "usage_credits"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "excluded": true,
+          "access": "usage_credits"
+        },
+        {
+          "model": "claude-fable",
+          "excluded": true,
+          "access": "usage_credits"
+        },
+        {
+          "model": "claude-haiku"
+        },
+        {
+          "model": "claude-opus"
+        },
+        {
+          "model": "claude-sonnet"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://claude.com/pricing",
+          "title": "Anthropic pricing: Pro lists Opus, Sonnet and Haiku, and Fable through usage credits (official)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+          "title": "Anthropic pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/14246112-buy-usage-bundles",
+          "title": "Anthropic plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://claude.com/blog/what-a-task-costs-on-opus-5-5",
+          "title": "Anthropic Opus 5.5 availability on Pro and Max",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+          "title": "Use Claude Code with your Pro or Max plan (official)",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+          "title": "Claude Fable models on your plan: Pro uses usage credits (official)",
+          "checkedAt": "2026-09-24"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-24",
+      "verificationStatus": "verified",
+      "versionId": "anthropic-claude-pro@2026-09-22",
+      "planId": "anthropic-claude-pro",
+      "planName": "Claude Pro",
+      "providerId": "anthropic"
+    },
     "cursor-hobby@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "price": {
@@ -4889,6 +8256,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Pricing page card: 'Hobby / For the tinkerer / Free / Includes: No credit card required / Limited Agent requests / Access to Composer'.",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "hobby-auto-only",
+          "label": "Auto model only",
+          "statement": "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model.",
+          "sourceUrl": "https://cursor.com/help/account-and-billing/pricing"
+        },
         {
           "id": "agent-requests-on-hobby-unquantified",
           "label": "Agent requests on Hobby (unquantified)",
@@ -4904,79 +8277,83 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "what-the-provider-does-not-publish",
           "label": "What the provider does not publish",
-          "statement": "Hobby's usage limits are not published anywhere official that I could find: the pricing page says only 'Limited Agent requests' and the docs do not list Hobby in the plan table. No number, window or exceed behaviour is documented. Note that some cursor.com locale/legacy variants of the same page describe Hobby as 'Limited Tab completions' rather than 'Access to Composer'; the live cursor.com/pricing page I read on 2026-09-21 said 'Access to Composer'.",
-          "sourceUrl": "https://cursor.com/pricing"
-        },
-        {
-          "id": "model-availability-scope",
-          "label": "Model availability scope",
-          "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "statement": "Cursor describes limited Hobby usage but does not publish a numeric Agent allowance, reset window, or exact Auto routing. Those values remain unknown for Replay.",
           "sourceUrl": "https://cursor.com/pricing"
         }
       ],
       "modelRules": [
         {
           "model": "claude-fable-5-1",
-          "pricingRef": "claude-fable-5-1-pricing"
+          "excluded": true
         },
         {
           "model": "claude-opus-5",
-          "pricingRef": "claude-opus-5-pricing"
+          "excluded": true
         },
         {
           "model": "claude-sonnet-5",
-          "pricingRef": "claude-sonnet-5-pricing"
+          "excluded": true
         },
         {
-          "model": "composer-2-5"
+          "model": "composer-2-5",
+          "excluded": true
         },
         {
           "model": "gemini-3-1-pro",
-          "pricingRef": "gemini-3-1-pro-pricing"
+          "excluded": true
         },
         {
           "model": "gemini-3-8-flash",
-          "pricingRef": "gemini-3-8-flash-pricing"
+          "excluded": true
         },
         {
           "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
+          "excluded": true
         },
         {
           "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
+          "excluded": true
         },
         {
           "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
+          "excluded": true
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "excluded": true
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "excluded": true
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "excluded": true
         },
         {
-          "model": "muse-spark-1-3"
+          "model": "muse-spark-1-3",
+          "excluded": true
         }
       ],
       "sources": [
         {
+          "url": "https://cursor.com/help/account-and-billing/pricing",
+          "title": "Cursor Hobby Auto-only model selection",
+          "checkedAt": "2026-09-23"
+        },
+        {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/docs/account/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
-      "verificationStatus": "verified",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "unknown",
       "versionId": "cursor-hobby@2026-09-21",
       "planId": "cursor-hobby",
       "planName": "Hobby",
@@ -4993,6 +8370,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "grok-route-pricing-unknown",
+          "label": "Grok 4.7 route pricing depends on speed and context",
+          "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+          "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+        },
+        {
           "id": "agent-limits-relative-to-pro",
           "label": "Agent limits relative to Pro",
           "statement": "Everything in Pro, plus: 3x Pro limits on Agent",
@@ -5008,7 +8391,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-included-monthly-usage-is-exce",
           "label": "What happens when included monthly usage is exceeded",
           "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage.",
-          "sourceUrl": "https://cursor.com/docs/account/pricing"
+          "sourceUrl": "https://cursor.com/docs/account/pricing",
+          "topic": "after_limit"
         },
         {
           "id": "tab-completions-unlimited",
@@ -5025,7 +8409,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "model-availability-scope",
           "label": "Model availability scope",
-          "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
           "sourceUrl": "https://cursor.com/pricing"
         }
       ],
@@ -5037,6 +8421,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "model": "claude-opus-5",
           "pricingRef": "claude-opus-5-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
         },
         {
           "model": "claude-sonnet-5",
@@ -5080,17 +8468,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor paid-plan pools and current model prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/docs/account/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "cursor-pro-plus@2026-09-21",
       "planId": "cursor-pro-plus",
@@ -5108,6 +8501,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "grok-route-pricing-unknown",
+          "label": "Grok 4.7 route pricing depends on speed and context",
+          "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+          "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+        },
+        {
           "id": "cursor-models-pool-included-usage-unquantified",
           "label": "Cursor Models pool (included usage, unquantified)",
           "statement": "Cursor Models : Significantly more included usage for Grok 4.7, Grok 4.6, Grok 4.5, and Composer 2.5.",
@@ -5123,7 +8522,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-included-monthly-usage-is-exce",
           "label": "What happens when included monthly usage is exceeded",
           "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage. On-demand usage is billed monthly at the same rates. Requests are never downgraded in quality or speed.",
-          "sourceUrl": "https://cursor.com/docs/account/pricing"
+          "sourceUrl": "https://cursor.com/docs/account/pricing",
+          "topic": "after_limit"
         },
         {
           "id": "agent-limits-extended-vs-hobby-unquantified",
@@ -5152,7 +8552,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "model-availability-scope",
           "label": "Model availability scope",
-          "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
           "sourceUrl": "https://cursor.com/pricing"
         }
       ],
@@ -5164,6 +8564,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "model": "claude-opus-5",
           "pricingRef": "claude-opus-5-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
         },
         {
           "model": "claude-sonnet-5",
@@ -5207,17 +8611,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor paid-plan pools and current model prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/docs/account/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "cursor-pro@2026-09-21",
       "planId": "cursor-pro",
@@ -5235,6 +8644,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "grok-route-pricing-unknown",
+          "label": "Grok 4.7 route pricing depends on speed and context",
+          "statement": "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate.",
+          "sourceUrl": "https://cursor.com/docs/models/grok-4-7"
+        },
+        {
           "id": "agent-limits-relative-to-pro",
           "label": "Agent limits relative to Pro",
           "statement": "Everything in Pro, plus: 20x Pro limits on Agent",
@@ -5250,7 +8665,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-included-monthly-usage-is-exce",
           "label": "What happens when included monthly usage is exceeded",
           "statement": "When you exceed your included monthly usage, you can either: - Add on-demand usage : Continue at the same API rates with pay-as-you-go billing - Upgrade your plan : Move to a higher tier for more included usage.",
-          "sourceUrl": "https://cursor.com/docs/account/pricing"
+          "sourceUrl": "https://cursor.com/docs/account/pricing",
+          "topic": "after_limit"
         },
         {
           "id": "tab-completions-unlimited",
@@ -5267,7 +8683,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "model-availability-scope",
           "label": "Model availability scope",
-          "statement": "Cursor publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "statement": "Cursor says paid individual plans unlock all supported named models, subject to regional and organization controls.",
           "sourceUrl": "https://cursor.com/pricing"
         }
       ],
@@ -5279,6 +8695,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "model": "claude-opus-5",
           "pricingRef": "claude-opus-5-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-pricing"
         },
         {
           "model": "claude-sonnet-5",
@@ -5322,17 +8742,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Cursor paid-plan pools and current model prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
           "url": "https://cursor.com/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://cursor.com/docs/account/pricing",
           "title": "Cursor pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "cursor-ultra@2026-09-21",
       "planId": "cursor-ultra",
@@ -5598,6 +9023,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-business@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "19",
@@ -5629,7 +9055,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "policy-dependent-behaviour-when-pooled-credits-a",
           "label": "Policy-dependent behaviour when pooled credits are exhausted",
           "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
-          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "topic": "after_limit"
         },
         {
           "id": "code-completions-and-next-edit-suggestions-unlim",
@@ -5692,10 +9119,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
-          "model": "gemini-3-5-flash"
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
         },
         {
-          "model": "gemini-3-6-flash"
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
         },
         {
           "model": "gemini-3-7-flash"
@@ -5745,19 +9174,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
         },
         {
-          "model": "kimi-k2-7-code"
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
         },
         {
-          "model": "kimi-k3"
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
         },
         {
           "model": "mai-code-1-1-flash"
@@ -5792,8 +9226,234 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Business",
       "providerId": "github"
     },
+    "github-copilot-business@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "19",
+        "interval": "month"
+      },
+      "billingMechanics": "$19 per granted seat per month, contributing 1,900 monthly AI credits per user to the organization pool.",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits per seat (1,900 credits = $19.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "19.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "additional-usage-beyond-the-pool",
+          "label": "Additional usage beyond the pool",
+          "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "policy-dependent-behaviour-when-pooled-credits-a",
+          "label": "Policy-dependent behaviour when pooled credits are exhausted",
+          "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "rate-limits-unquantified",
+          "label": "Rate limits (unquantified)",
+          "statement": "If you receive a limit error when using Copilot, you should: - Wait and try again. Rate limits are temporary. Often, waiting a short period and trying again resolves the issue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "The billing interval for Copilot Business seats is not stated as monthly or annual on the plans page; the price is quoted 'per granted seat per month'. The reset date for included credits is fixed to the calendar month and not the billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "pricingRef": "claude-opus-4-7-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-business@2026-09-22",
+      "planId": "github-copilot-business",
+      "planName": "Copilot Business",
+      "providerId": "github"
+    },
     "github-copilot-enterprise@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "39",
@@ -5819,7 +9479,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "additional-usage-beyond-the-pool",
           "label": "Additional usage beyond the pool",
           "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
-          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+          "topic": "after_limit"
         },
         {
           "id": "budget-controls-user-cost-center-enterprise-spen",
@@ -5882,10 +9543,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
-          "model": "gemini-3-5-flash"
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
         },
         {
-          "model": "gemini-3-6-flash"
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
         },
         {
           "model": "gemini-3-7-flash"
@@ -5935,19 +9598,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
         },
         {
-          "model": "kimi-k2-7-code"
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
         },
         {
-          "model": "kimi-k3"
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
         },
         {
           "model": "mai-code-1-1-flash"
@@ -5977,6 +9645,220 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Enterprise",
       "providerId": "github"
     },
+    "github-copilot-enterprise@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "39",
+        "interval": "month"
+      },
+      "billingMechanics": "$39 per granted seat per month, contributing 3,900 monthly AI credits per user to the organization pool.",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits per seat (3,900 credits = $39.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "39.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "additional-usage-beyond-the-pool",
+          "label": "Additional usage beyond the pool",
+          "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+          "topic": "after_limit"
+        },
+        {
+          "id": "budget-controls-user-cost-center-enterprise-spen",
+          "label": "Budget controls (user, cost-center, enterprise spending limits)",
+          "statement": "If you have set a user-level budget and a user exhausts it, that user's access to Copilot is halted, regardless of whether the organization's pool still has capacity. A user can also be blocked by an enterprise spending limit before they reach their individual user-level budget, if the spending limit runs out first. There is no automatic fallback to lower-cost models when a budget is exhausted.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Same as Copilot Business: billing interval not stated as monthly/annual on the plans page; credits reset on the calendar month, not the billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "pricingRef": "claude-opus-4-7-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-enterprise@2026-09-22",
+      "planId": "github-copilot-enterprise",
+      "planName": "Copilot Enterprise",
+      "providerId": "github"
+    },
     "github-copilot-free@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "price": {
@@ -5984,7 +9866,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "amount": "0",
         "interval": "month"
       },
-      "billingMechanics": "Docs: 'Copilot Free : ..",
+      "billingMechanics": "No subscription charge. GitHub documents 2,000 monthly inline suggestions and an AI credit allowance whose amount is not published. Model access uses Auto selection only.",
       "limits": [
         {
           "id": "inline-suggestions",
@@ -6027,8 +9909,205 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "model-availability-scope",
           "label": "Model availability scope",
-          "statement": "GitHub publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
-          "sourceUrl": "https://github.com/features/copilot/plans"
+          "statement": "Copilot Free offers model access through Auto selection only. A named model is not a selectable Replay target on this plan.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-fable-5-1",
+          "excluded": true
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-4",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-mini",
+          "excluded": true
+        },
+        {
+          "model": "gpt-6-astra",
+          "excluded": true
+        },
+        {
+          "model": "grok-4-5",
+          "excluded": true
+        },
+        {
+          "model": "grok-4-6",
+          "excluded": true
+        },
+        {
+          "model": "grok-4-7",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "excluded": true
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "excluded": true
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-free@2026-09-21",
+      "planId": "github-copilot-free",
+      "planName": "Copilot Free",
+      "providerId": "github"
+    },
+    "github-copilot-max@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Copilot Max costs $100 USD per month and includes 20,000 monthly AI credits (10,000 base and 10,000 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (20,000 credits = $200.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "200.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "priority-premium-models",
+          "label": "Priority premium model access",
+          "statement": "GitHub describes Copilot Max as providing priority access to premium models; no numeric priority guarantee is published.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
         }
       ],
       "modelRules": [
@@ -6045,14 +10124,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-haiku-4-5-github-pricing"
         },
         {
-          "model": "claude-opus-4-7"
+          "model": "claude-opus-4-7",
+          "pricingRef": "claude-opus-4-7-github-pricing"
         },
         {
           "model": "claude-opus-4-8",
           "pricingRef": "claude-opus-4-8-github-pricing"
         },
         {
-          "model": "claude-opus-4-8-fast-mode"
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
         },
         {
           "model": "claude-opus-5",
@@ -6067,13 +10148,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
-          "model": "gemini-3-5-flash"
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
         },
         {
-          "model": "gemini-3-6-flash"
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
         },
         {
-          "model": "gemini-3-7-flash"
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
         },
         {
           "model": "gemini-3-8-flash",
@@ -6093,7 +10177,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-4-nano",
-          "excluded": true
+          "pricingRef": "gpt-5-4-nano-github-pricing"
         },
         {
           "model": "gpt-5-5",
@@ -6120,50 +10204,74 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
         },
         {
-          "model": "kimi-k2-7-code"
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
         },
         {
-          "model": "kimi-k3"
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
         },
         {
-          "model": "mai-code-1-1-flash"
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
         }
       ],
       "sources": [
         {
           "url": "https://docs.github.com/en/copilot/get-started/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
-          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
           "title": "GitHub plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
-      "versionId": "github-copilot-free@2026-09-21",
-      "planId": "github-copilot-free",
-      "planName": "Copilot Free",
+      "versionId": "github-copilot-max@2026-09-22",
+      "planId": "github-copilot-max",
+      "planName": "Copilot Max",
       "providerId": "github"
     },
     "github-copilot-pro-plus@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "39",
@@ -6201,7 +10309,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-included-credits-are-exhausted",
           "label": "What happens when included credits are exhausted",
           "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
-          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
         },
         {
           "id": "what-the-provider-does-not-publish",
@@ -6252,10 +10361,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
-          "model": "gemini-3-5-flash"
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
         },
         {
-          "model": "gemini-3-6-flash"
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
         },
         {
           "model": "gemini-3-7-flash"
@@ -6305,19 +10416,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
         },
         {
-          "model": "kimi-k2-7-code"
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
         },
         {
-          "model": "kimi-k3"
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
         },
         {
           "model": "mai-code-1-1-flash"
@@ -6347,8 +10463,229 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Pro+",
       "providerId": "github"
     },
+    "github-copilot-pro-plus@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "39",
+        "interval": "month"
+      },
+      "billingMechanics": "$39 per month, including 7,000 monthly AI credits (3,900 base and 3,100 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (7,000 credits = $70.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "70.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "None specific to Pro+ beyond the general absence of published numeric rate limits.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "annual-sonnet-4-6-exception",
+          "label": "Claude Sonnet 4.6 annual-plan exception",
+          "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "pricingRef": "claude-opus-4-7-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "pricingRef": "gpt-5-4-nano-github-pricing"
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-pro-plus@2026-09-22",
+      "planId": "github-copilot-pro-plus",
+      "planName": "Copilot Pro+",
+      "providerId": "github"
+    },
     "github-copilot-pro@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "10",
@@ -6386,7 +10723,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-included-credits-are-exhausted",
           "label": "What happens when included credits are exhausted",
           "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
-          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
         },
         {
           "id": "additional-usage-budget-usd-fixed-conversion-rat",
@@ -6443,10 +10781,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "claude-sonnet-5-github-pricing"
         },
         {
-          "model": "gemini-3-5-flash"
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
         },
         {
-          "model": "gemini-3-6-flash"
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
         },
         {
           "model": "gemini-3-7-flash"
@@ -6496,19 +10836,24 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "pricingRef": "gpt-6-astra-github-pricing"
         },
         {
-          "model": "grok-4-5"
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
         },
         {
-          "model": "grok-4-6"
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
         },
         {
-          "model": "grok-4-7"
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
         },
         {
-          "model": "kimi-k2-7-code"
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
         },
         {
-          "model": "kimi-k3"
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
         },
         {
           "model": "mai-code-1-1-flash"
@@ -6538,6 +10883,232 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Pro",
       "providerId": "github"
     },
+    "github-copilot-pro@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "10",
+        "interval": "month"
+      },
+      "billingMechanics": "$10 per month, including 1,500 monthly AI credits (1,000 base and 500 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (1,500 credits = $15.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "15.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month. This reset date is fixed and does not change based on your subscription billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "additional-usage-budget-usd-fixed-conversion-rat",
+          "label": "Additional usage budget (USD, fixed conversion rate)",
+          "statement": "Your additional usage budget is set in US dollars, and your usage is shown in GitHub AI Credits. GitHub AI Credits draw down your budget at a fixed rate: 1 AI credits = $0.01 USD, so a $10 budget covers 1,000 AI credits.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Copilot Pro is 'free for some users' (verified teachers, popular open-source maintainers) - the $10 USD/month is the standard price. The flex allotment is described as variable by GitHub.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "annual-sonnet-4-6-exception",
+          "label": "Claude Sonnet 4.6 annual-plan exception",
+          "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-fable-5-1",
+          "excluded": true
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "pricingRef": "gemini-3-5-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "pricingRef": "gemini-3-6-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "excluded": true
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "pricingRef": "kimi-k2-7-code-github-pricing"
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "excluded": true
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "excluded": true
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-pro@2026-09-22",
+      "planId": "github-copilot-pro",
+      "planName": "Copilot Pro",
+      "providerId": "github"
+    },
     "google-ai-pro@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "price": {
@@ -6545,7 +11116,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "amount": "19.99",
         "interval": "month"
       },
-      "billingMechanics": "gemini.google/subscriptions lists 'Google AI Pro 1 ..",
+      "billingMechanics": "Google AI Pro costs $19.99 per month in the US. Google describes its usage as 4x the Free tier; it does not publish an absolute allowance.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -6564,7 +11135,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "what-happens-when-you-reach-a-usage-limit",
           "label": "What happens when you reach a usage limit",
           "statement": "If you have a Google AI subscription and reach your limit, you can continue your conversation with Flash-Lite. If you reach your five hour or weekly usage limits you can upgrade to a Google AI subscription with higher limits or wait until your model limit is refreshed.",
-          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805",
+          "topic": "after_limit"
         },
         {
           "id": "ai-credits-for-extra-usage-flow-antigravity-othe",
@@ -6610,6 +11182,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-flash-lite"
         },
         {
+          "model": "gemini-3-6-flash"
+        },
+        {
           "model": "gemini-3-pro"
         },
         {
@@ -6620,20 +11195,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/gemini/answer/16275805",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/googleone/answer/14534406",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://gemini.google/us/subscriptions/",
+          "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "google-ai-pro@2026-09-21",
       "planId": "google-ai-pro",
@@ -6647,7 +11227,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "amount": "199.99",
         "interval": "month"
       },
-      "billingMechanics": "Second official price point for Google AI Ultra: '$199.99 / month: 20x higher usage limits vs.",
+      "billingMechanics": "Google AI Ultra has a $199.99 per month tier with 20x the AI Pro usage limits.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -6684,7 +11264,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "ai-credits-for-extra-usage",
           "label": "AI credits for extra usage",
           "statement": "If you reach your plan's limit, Google AI Pro and Google AI Ultra members can purchase AI credits to get extra usage in Google Flow and Google Antigravity.",
-          "sourceUrl": "https://support.google.com/googleone/answer/16286513"
+          "sourceUrl": "https://support.google.com/googleone/answer/16286513",
+          "topic": "after_limit"
         },
         {
           "id": "what-the-provider-does-not-publish",
@@ -6712,6 +11293,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-flash-lite"
         },
         {
+          "model": "gemini-3-6-flash"
+        },
+        {
           "model": "gemini-3-pro"
         },
         {
@@ -6722,20 +11306,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/googleone/answer/16286513",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/gemini/answer/16275805",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://gemini.google/us/subscriptions/",
+          "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "google-ai-ultra-20x@2026-09-21",
       "planId": "google-ai-ultra-20x",
@@ -6749,7 +11338,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "amount": "99.99",
         "interval": "month"
       },
-      "billingMechanics": "The page presents Google AI Ultra with two price points: 'Starting at: $99.99 / month - $99.99 / month: 5x higher usage limits vs.",
+      "billingMechanics": "Google AI Ultra has a $99.99 per month tier with 5x the AI Pro usage limits. Google also offers a separate $199.99 tier.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -6786,7 +11375,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "ai-credits-for-extra-usage-flow-antigravity-othe",
           "label": "AI credits for extra usage (Flow, Antigravity, other products)",
           "statement": "You can also purchase AI credits with the Google AI Ultra plan, which can be used to extend your usage in Google Flow, Google Antigravity, and other products where AI credits are supported.",
-          "sourceUrl": "https://support.google.com/googleone/answer/16286513"
+          "sourceUrl": "https://support.google.com/googleone/answer/16286513",
+          "topic": "after_limit"
         },
         {
           "id": "jules-and-antigravity-limits-relative-unquantifi",
@@ -6820,6 +11410,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "model": "gemini-3-flash-lite"
         },
         {
+          "model": "gemini-3-6-flash"
+        },
+        {
           "model": "gemini-3-pro"
         },
         {
@@ -6830,20 +11423,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://gemini.google/subscriptions/",
           "title": "Google official page",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/gemini/answer/16275805",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://support.google.com/googleone/answer/16286513",
           "title": "Google plan documentation (official)",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://gemini.google/us/subscriptions/",
+          "title": "Google US subscription prices, relative limits and model lineup (3.6 Flash in Free, which paid plans include)",
+          "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "google-ai-ultra@2026-09-21",
       "planId": "google-ai-ultra",
@@ -6852,6 +11450,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "openai-chatgpt-business@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "25",
@@ -6870,7 +11469,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "workspace-credits-for-usage-beyond-included-rate",
           "label": "Workspace credits for usage beyond included rate limits",
           "statement": "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls.",
-          "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business"
+          "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+          "topic": "after_limit"
         },
         {
           "id": "monthly-credit-usage-limits-per-seat-type-spend-",
@@ -6956,14 +11556,140 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "ChatGPT Business (Standard seat)",
       "providerId": "openai"
     },
+    "openai-chatgpt-business@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "25",
+        "interval": "month"
+      },
+      "billingMechanics": "Price is per seat.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "standard-seat-included-usage-unquantified-5-hour",
+          "label": "Standard seat included usage (unquantified) + 5-hour usage limit",
+          "statement": "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace.",
+          "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+        },
+        {
+          "id": "workspace-credits-for-usage-beyond-included-rate",
+          "label": "Workspace credits for usage beyond included rate limits",
+          "statement": "A ChatGPT Business workspace consists of Standard and Premium seats, which include usage for features such as Codex, reasoning models, and agentic features. When that included usage is exhausted, workspace credits can cover additional eligible usage, subject to your workspace's spend controls.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+          "topic": "after_limit"
+        },
+        {
+          "id": "monthly-credit-usage-limits-per-seat-type-spend-",
+          "label": "Monthly credit usage limits per seat type (spend controls)",
+          "statement": "Workspace owners and admins can manage monthly credit usage limits by seat type and per-user overrides. ... Set monthly credit usage limits for Standard and Premium seats to manage additional usage beyond each member's included allowance. ... By default, all seats and users have no limits specified.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business"
+        },
+        {
+          "id": "maximum-paid-seats-per-business-subscription",
+          "label": "Maximum paid seats per Business subscription",
+          "statement": "Starting on Aug 24, 2026, the maximum is 200 paid Standard and Premium seats total per ChatGPT Business subscription. Our support team is unable to change your maximum seat limit. If you need a larger number of seats, consider ChatGPT Enterprise.",
+          "sourceUrl": "https://help.openai.com/en/articles/8801848"
+        },
+        {
+          "id": "minimum-paid-seats",
+          "label": "Minimum paid seats",
+          "statement": "A workspace requires at least two paid seats, which can be any combination of Standard and Premium seats.",
+          "sourceUrl": "https://help.openai.com/en/articles/8801848"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "OpenAI does not quantify the 'included usage' or 'included rate limits' for Business seats, and states there is 'no single credit or dollar equivalent for Premium's included usage'. The Premium seat is a second price point on the same plan; the Standard-seat price is recorded here as priceAmount and the Premium price is documented in notes/limits.",
+          "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol-pro"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
+        },
+        {
+          "model": "gpt-5-thinking-mini"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/8792828-chatgpt-business",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/8801848",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://openai.com/chatgpt/pricing/",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+          "title": "OpenAI model launch and paid plan availability",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "openai-chatgpt-business@2026-09-22",
+      "planId": "openai-chatgpt-business",
+      "planName": "ChatGPT Business (Standard seat)",
+      "providerId": "openai"
+    },
     "openai-chatgpt-plus@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "20",
         "interval": "month"
       },
-      "billingMechanics": "Official help center: 'ChatGPT Plus is a subscription plan that provides enhanced access to the ChatGPT web app for $20/month.' and 'Price: $20/month (billed monthly).' No annual billing: 'Currently, we do not support annual billing or the option to pay for...",
+      "billingMechanics": "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -6988,7 +11714,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "usage-credits-pay-as-you-go-overage-for-codex-wo",
           "label": "Usage credits (pay-as-you-go overage for Codex/Work)",
           "statement": "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance.",
-          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+          "topic": "after_limit"
         },
         {
           "id": "support-cannot-reset-limits",
@@ -7067,8 +11794,139 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "ChatGPT Plus",
       "providerId": "openai"
     },
+    "openai-chatgpt-plus@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "20",
+        "interval": "month"
+      },
+      "billingMechanics": "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "message-caps-on-plus-unquantified",
+          "label": "Message caps on Plus (unquantified)",
+          "statement": "To ensure a smooth experience for all users, Plus subscriptions may include usage limits such as message caps, especially during high demand. These limits may vary based on system conditions.",
+          "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+        },
+        {
+          "id": "higher-model-limits-than-free",
+          "label": "Higher model limits than Free",
+          "statement": "Higher model limits: Use more messages and broader model options than on the Free plan. Model availability changes during rollouts; use the model picker for current access.",
+          "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+        },
+        {
+          "id": "shared-work-codex-5-hour-and-weekly-allowances",
+          "label": "Shared Work/Codex 5-hour and weekly allowances",
+          "statement": "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        },
+        {
+          "id": "usage-credits-pay-as-you-go-overage-for-codex-wo",
+          "label": "Usage credits (pay-as-you-go overage for Codex/Work)",
+          "statement": "Credits let you continue using eligible features after reaching your plan's included limits. Supported features include Codex, ChatGPT Work, Word, Excel, and PowerPoint, depending on your plan and account. Your plan's included usage is used first. After you hit plan limits, usage draws from your credit balance.",
+          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+          "topic": "after_limit"
+        },
+        {
+          "id": "support-cannot-reset-limits",
+          "label": "Support cannot reset limits",
+          "statement": "No. OpenAI Support does not reset ChatGPT or Codex usage limits. If you reach a limit, wait until it resets or use another available option shown in your account.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "OpenAI does not publish numeric message caps for Plus. The help center says only that limits 'may vary based on system conditions'. The Codex/Work allowance is described as shared across features but is not quantified on any official page I could read; the pricing page's price and limit widgets did not render values in my browser session (client-side gated), so all OpenAI prices here come from help.openai.com articles.",
+          "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol-pro"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
+        },
+        {
+          "model": "gpt-5-thinking-mini"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://openai.com/chatgpt/pricing/",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+          "title": "OpenAI model launch and paid plan availability",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "openai-chatgpt-plus@2026-09-22",
+      "planId": "openai-chatgpt-plus",
+      "planName": "ChatGPT Plus",
+      "providerId": "openai"
+    },
     "openai-chatgpt-pro-20x@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "200",
@@ -7087,7 +11945,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "per-model-usage-allowances-temporary-model-unava",
           "label": "Per-model usage allowances (temporary model unavailability)",
           "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
         },
         {
           "id": "new-sign-ups-and-upgrades-paused",
@@ -7151,14 +12010,118 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "ChatGPT Pro $200 (Pro 20x tier)",
       "providerId": "openai"
     },
+    "openai-chatgpt-pro-20x@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "200",
+        "interval": "month"
+      },
+      "billingMechanics": "Included as a separate entry because ChatGPT Pro has two official price points and usage allowances under one plan name.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "pro-200-usage-relative-to-plus",
+          "label": "Pro $200 usage relative to Plus",
+          "statement": "Pro $200 unlocks 20x usage than Plus.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "per-model-usage-allowances-temporary-model-unava",
+          "label": "Per-model usage allowances (temporary model unavailability)",
+          "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
+        },
+        {
+          "id": "new-sign-ups-and-upgrades-paused",
+          "label": "New sign-ups and upgrades paused",
+          "statement": "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol-pro"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
+        },
+        {
+          "model": "gpt-5-thinking-mini"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://openai.com/chatgpt/pricing/",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+          "title": "OpenAI model launch and paid plan availability",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "openai-chatgpt-pro-20x@2026-09-22",
+      "planId": "openai-chatgpt-pro-20x",
+      "planName": "ChatGPT Pro $200 (Pro 20x tier)",
+      "providerId": "openai"
+    },
     "openai-chatgpt-pro@2026-09-21": {
       "effectiveFrom": "2026-09-21",
+      "effectiveTo": "2026-09-21",
       "price": {
         "currency": "USD",
         "amount": "100",
         "interval": "month"
       },
-      "billingMechanics": "ChatGPT Pro is sold as two priced tiers in the same help article: 'The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus.' and 'The $100 Pro tier includes lower usage allowances than t...",
+      "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
       "limits": [],
       "qualitativeLimits": [
         {
@@ -7171,7 +12134,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "id": "per-model-usage-allowances-temporary-model-unava",
           "label": "Per-model usage allowances (temporary model unavailability)",
           "statement": "Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier. The $100 Pro tier includes lower usage allowances than the $200 Pro tier. When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available. Reaching a model's allowance does not by itself mean that your account was restricted or that your subscription ended. You can use another available model or wait until the displayed reset time. There is no setting to increase or bypass a model's usage allowance.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
         },
         {
           "id": "5-hour-and-weekly-codex-work-allowances",
@@ -7260,7 +12224,138 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro@2026-09-21",
       "planId": "openai-chatgpt-pro",
-      "planName": "ChatGPT Pro ($100 / Pro 10x tier)",
+      "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
+      "providerId": "openai"
+    },
+    "openai-chatgpt-pro@2026-09-22": {
+      "effectiveFrom": "2026-09-22",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "pro-100-usage-relative-to-plus",
+          "label": "Pro $100 usage relative to Plus",
+          "statement": "Both Pro tiers include the same core capabilities. The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "per-model-usage-allowances-temporary-model-unava",
+          "label": "Per-model usage allowances (temporary model unavailability)",
+          "statement": "Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier. The $100 Pro tier includes lower usage allowances than the $200 Pro tier. When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available. Reaching a model's allowance does not by itself mean that your account was restricted or that your subscription ended. You can use another available model or wait until the displayed reset time. There is no setting to increase or bypass a model's usage allowance.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
+        },
+        {
+          "id": "5-hour-and-weekly-codex-work-allowances",
+          "label": "5-hour and weekly Codex/Work allowances",
+          "statement": "Customers on ChatGPT Plus and Pro plans can buy an instant reset from Usage settings in ChatGPT Desktop before reaching a limit, or from an in-app offer after reaching the weekly limit. A completed purchase immediately restores both 5-hour and weekly usage. It pulls your normal weekly allowance forward rather than adding a separate usage entitlement.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        },
+        {
+          "id": "paid-instant-weekly-reset-plus-and-pro-only",
+          "label": "Paid instant weekly reset (Plus and Pro only)",
+          "statement": "Buying a reset is available to eligible ChatGPT Plus and Pro personal accounts on ChatGPT web and the Codex desktop app. It is not available on Free, Go, Business, Enterprise, or Edu plans.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        },
+        {
+          "id": "usage-credits-pay-as-you-go-overage",
+          "label": "Usage credits (pay-as-you-go overage)",
+          "statement": "For Plus and Pro, Codex, ChatGPT Work, Excel, and PowerPoint can share the same agentic usage allowance when those features are available on your plan.",
+          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+        },
+        {
+          "id": "pro-200-new-signup-pause-as-of-2026-09-10",
+          "label": "Pro $200 new-signup pause (as of 2026-09-10)",
+          "statement": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "OpenAI publishes no numeric allowance for Pro; usage is given only as a multiple of Plus ('5x higher usage than Plus'), and Plus's own allowance is unquantified. 'Some models have separate usage allowances on ChatGPT Pro, and allowances can differ by Pro tier.'",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol-pro"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
+        },
+        {
+          "model": "gpt-5-thinking-mini"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+          "title": "OpenAI plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://openai.com/chatgpt/pricing/",
+          "title": "OpenAI pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
+          "title": "OpenAI model launch and paid plan availability",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://chatgpt.com/pricing/",
+          "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified",
+      "versionId": "openai-chatgpt-pro@2026-09-22",
+      "planId": "openai-chatgpt-pro",
+      "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
       "providerId": "openai"
     }
   },
@@ -7286,20 +12381,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Fable 5.1 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-fable-5-1-pricing": {
@@ -7323,15 +12418,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude fable 5 1 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-fable-5-github-pricing": {
@@ -7355,20 +12450,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Fable 5 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-fable-5-pricing": {
@@ -7392,15 +12487,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude fable 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-haiku-4-5-github-pricing": {
@@ -7424,20 +12519,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Haiku 4.5 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-haiku-4-5-pricing": {
@@ -7461,15 +12556,69 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude haiku 4 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-7-github-pricing": {
+      "id": "claude-opus-4-7-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "5.00",
+        "output": "25.00",
+        "cacheRead": "0.50",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-8-fast-mode-github-pricing": {
+      "id": "claude-opus-4-8-fast-mode-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8-fast-mode",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "10.00",
+        "output": "50.00",
+        "cacheRead": "1.00",
+        "cacheWrite": "12.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8-github-pricing": {
@@ -7493,20 +12642,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Opus 4.8 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8-pricing": {
@@ -7530,15 +12679,69 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude opus 4 8 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-5-5-github-pricing": {
+      "id": "claude-opus-5-5-github-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "4.00",
+        "output": "20.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "5.00",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-5-5-pricing": {
+      "id": "claude-opus-5-5-pricing",
+      "role": "pricing",
+      "modelId": "claude-opus-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "4.00",
+        "output": "20.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "5.00",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-22",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+          "title": "Claude Opus 5.5 API pricing; cache write is the 5-minute rate, not the 1-hour rate",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-opus-5-github-pricing": {
@@ -7562,20 +12765,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Opus 5 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-opus-5-pricing": {
@@ -7599,15 +12802,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude opus 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-sonnet-5-github-pricing": {
@@ -7631,20 +12834,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Claude Sonnet 5 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "claude-sonnet-5-pricing": {
@@ -7668,15 +12871,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.claude.com/en/docs/about-claude/pricing",
           "title": "Claude sonnet 5 API list pricing (table row; cache write is the published 5-minute cache-write rate, 1.25x base input; the published 1-hour cache-write rate is not modeled). Cache reads are a separately published rate, not a discount off a merged input rate.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.claude.com/en/docs/build-with-claude/thinking-steering-and-cost",
           "title": "Thinking-token billing relationship: \"Tokens Claude uses while thinking (billed as output tokens)\"; \"output_tokens\" remains the inclusive, authoritative total used for billing.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-1-flash-pricing": {
@@ -7694,7 +12897,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
           "when": {
             "utcWindows": [
               {
@@ -7728,20 +12931,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         }
       ],
-      "effectiveFrom": "2026-09-21",
+      "effectiveFrom": "2026-09-10",
+      "effectiveFromInstant": "2026-09-10T04:00:00Z",
       "sources": [
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-21"
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/news/news260910/",
+          "title": "V4.1 Flash pricing effective September 10 at 04:00 UTC",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-pricing": {
@@ -7759,7 +12968,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
           "when": {
             "utcWindows": [
               {
@@ -7798,20 +13007,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "Legacy name: \"Use deepseek-flash as the model name. The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash model and billed at the Flash price.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-21"
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/news/news260910/",
+          "title": "Legacy V4 Flash name currently routes to V4.1 Flash; exact historical switch instant not published",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-vision-exp-pricing": {
@@ -7829,7 +13043,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday (excluding Chinese public holidays)",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
           "when": {
             "utcWindows": [
               {
@@ -7868,20 +13082,91 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "Legacy name: \"Use deepseek-flash as the model name. The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash model and billed at the Flash price.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-21"
+          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
           "title": "Rate rows: cache hit \"OFF-PEAK | $0.003\" / \"PEAK | $0.006\"; cache miss \"OFF-PEAK | $0.15\" / \"PEAK | $0.3\"; output \"OFF-PEAK | $0.6\" / \"PEAK | $1.2\" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/news/news260910/",
+          "title": "Legacy V4 Flash name currently routes to V4.1 Flash; exact historical switch instant not published",
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-pro-pricing": {
+      "id": "deepseek-v4-pro-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.66",
+        "output": "1.98",
+        "cacheRead": "0.022"
+      },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ]
+          },
+          "rates": {
+            "input": "1.32",
+            "output": "3.96",
+            "cacheRead": "0.044"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-08-16",
+      "effectiveFromInstant": "2026-08-16T16:00:00Z",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "DeepSeek V4 Pro cache hit, cache miss, output and time of day prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/news/news260813/",
+          "title": "DeepSeek V4 Pro price effective August 16",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "example-large-pricing": {
@@ -7996,20 +13281,100 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Gemini 3.1 Pro API list pricing (prompts <= 200k tier). No cache-write rate is published; context caching is a read rate plus a per-hour storage price.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Long-context tier rows: \"$2.00, prompts <= 200k tokens\" / \"$4.00, prompts > 200k tokens\" (input) and \"$12.00, prompts <= 200k tokens$18.00, prompts > 200k\" (output).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-5-flash-github-pricing": {
+      "id": "gemini-3-5-flash-github-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-5-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "1.50",
+        "output": "9.00",
+        "cacheRead": "0.15",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-6-flash-github-pricing": {
+      "id": "gemini-3-6-flash-github-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-6-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "effectiveTo": "2026-12-31",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-7-flash-github-pricing": {
+      "id": "gemini-3-7-flash-github-pricing",
+      "role": "pricing",
+      "modelId": "gemini-3-7-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "effectiveTo": "2026-12-31",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash-github-pricing": {
@@ -8033,20 +13398,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for Gemini 3.8 Flash: \"Gemini 3.6 Flash, Gemini 3.7 Flash, and Gemini 3.8 Flash are available at the promotional pricing of $0.75 per 1M input tokens, $0.075 per 1M cached input tokens, and $3.75 per 1M output tokens through December 31, 2026.\" No cache-write column is published for Google models. GitHub publishes no rate for this model after that date.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash-pricing-2027": {
@@ -8069,15 +13434,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Gemini 3.8 Flash API list pricing \"starting January 1, 2027\": input \"$1.50\", output (including thinking tokens) \"$7.50\", context caching \"$0.15\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash-pricing": {
@@ -8101,15 +13466,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Gemini 3.8 Flash promotional API list pricing, valid \"through December 31, 2026\": input \"$0.75\", output (including thinking tokens) \"$3.75\", context caching \"$0.075\" (exactly three decimal places). Higher rates apply starting January 1, 2027 (see gemini-3-8-flash-pricing-2027).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gemini-3-flash-pricing": {
@@ -8132,15 +13497,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Gemini 3 Flash API list pricing (text / image / video modality rates; no request-size tiers).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://ai.google.dev/gemini-api/docs/pricing",
           "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3-flash-pricing": {
@@ -8160,10 +13525,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "Z.ai API list pricing (Model row for glm-5-3-flash); no cache-write rate and no reasoning-token billing relationship is published.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3-flashx-pricing": {
@@ -8183,10 +13548,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "Z.ai API list pricing (Model row for glm-5-3-flashx); no cache-write rate and no reasoning-token billing relationship is published.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "glm-5-3-pricing": {
@@ -8206,10 +13571,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "Z.ai API list pricing (Model row for glm-5-3); no cache-write rate and no reasoning-token billing relationship is published.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex-github-pricing": {
@@ -8235,25 +13600,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.3-Codex (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex-pricing": {
@@ -8279,20 +13644,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.3-Codex API list pricing (row \"Codex | gpt-5.3-codex | $1.75 | $0.175 | $14.00\"); published cache-read rate is exactly \"$0.175\". \"Maximum input tokens: 272,000\" (no long-context tier).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
           "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-github-pricing": {
@@ -8338,30 +13703,30 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.4 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.4 | GA | Versatile | Long context | > 272K | $5.00 | $0.50 | Not applicable | $22.50",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-mini-github-pricing": {
@@ -8387,25 +13752,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.4 mini (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-mini-pricing": {
@@ -8431,20 +13796,46 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.4 mini API list pricing; published cache-read rate is exactly \"$0.075\". \"Maximum input tokens: 272,000\" (no long-context tier).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
           "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-nano-github-pricing": {
+      "id": "gpt-5-4-nano-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-5-4-nano",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.20",
+        "output": "1.25",
+        "cacheRead": "0.02",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-4-pricing": {
@@ -8490,25 +13881,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.4 API list pricing (row \"gpt-5.4 (<272K context length)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.4",
           "title": "Long-context relationship: \"For models with a 1.05M context window (GPT-5.4 and GPT-5.4 Pro), prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
           "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-5-github-pricing": {
@@ -8554,30 +13945,30 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.5 (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.5 | GA | Powerful | Long context | > 272K | $10.00 | $1.00 | Not applicable | $45.00",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-5-pricing": {
@@ -8623,25 +14014,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.5 API list pricing (row \"gpt-5.5 (<272K context length)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.5",
           "title": "Long-context relationship: \"For GPT-5.5, prompts with >272K input tokens are priced at 2x input and 1.5x output for the full session for standard, batch, and flex.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
           "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-luna-github-pricing": {
@@ -8683,25 +14074,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.6 Luna (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Luna | GA | Lightweight | Long context | > 200K | $0.40 | $0.04 | $0.50 | $1.80",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-luna-pricing": {
@@ -8743,20 +14134,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.6 Luna API list pricing (short-context row).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
           "title": "Long-context relationship: \"Prompts with >272K input tokens are priced at 2x input and 1.5x output for the full request.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol-github-pricing": {
@@ -8798,25 +14189,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.6 Sol (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Sol | GA | Powerful | Long context | > 272K | $8.00 | $0.80 | $10.00 | $30.00",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol-pricing": {
@@ -8858,20 +14249,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.6 Sol API list pricing (short-context row). Promotional pricing note: \"GPT-5.6 Sol’s promotional pricing is available at least through November 21, 2026.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "Long-context rates row: \"gpt-5.6-sol | $4.00 | $0.40 | $5.00 | $20.00 | $8.00 | $0.80 | $10.00 | $30.00\" (short input | cached input | cache writes | output | long input | long cached | long writes | long output).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-terra-github-pricing": {
@@ -8913,25 +14304,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5.6 Terra (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-5.6 Terra | GA | Versatile | Long context | > 272K | $4.00 | $0.40 | $5.00 | $18.00",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-6-terra-pricing": {
@@ -8973,20 +14364,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5.6 Terra API list pricing (short-context row).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
           "title": "Long-context relationship: \"Prompts with >272K input tokens are priced at 2x input and 1.5x output for the full request.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-mini-github-pricing": {
@@ -9012,25 +14403,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-5 mini (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Cache-write billing relationship: \"the quoted table row shows Not applicable in the Cache write column\" (no separate write rate; stored tokens are \"input tokens (what's sent to the model)\").",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-5-mini-pricing": {
@@ -9056,20 +14447,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-5 mini API list pricing; published cache-read rate is exactly \"$0.025\". \"Maximum input tokens: 272,000\" (no long-context tier).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
           "title": "Cache-write billing relationship: \"Cache-write pricing is not an additive fee: input tokens use the uncached-input, cached-input, or cache-write rate.\" Earlier models: \"No additional cache-write charge\".",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-6-astra-github-pricing": {
@@ -9111,25 +14502,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot target billing: \"additional usage is billed in GitHub AI Credits at the per-token rates shown in the pricing tables below (1 AI credit = $0.01 USD).\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing table row for GPT-6 Astra (per 1M tokens).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "Thinking-token billing relationship: GitHub bills \"output tokens (what the model generates)\" at the published Output rate and publishes no separate reasoning category.",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot billing long-context row (verbatim): GPT-6 Astra | GA | Powerful | Long context | > 272K | $20.00 | $2.00 | $25.00 | $75.00",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
     "gpt-6-astra-pricing": {
@@ -9171,20 +14562,427 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/pricing",
           "title": "GPT-6 Astra API list pricing (short-context row).",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
           "title": "Long-context relationship: \"Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         },
         {
           "url": "https://developers.openai.com/api/docs/guides/reasoning",
           "title": "Thinking-token billing relationship: \"While reasoning tokens are not visible via the API, they still occupy space in the model's context window and are billed as output tokens.\"",
-          "checkedAt": "2026-09-21"
+          "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-21",
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-luna-github-pricing": {
+      "id": "gpt-6-luna-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-luna",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.10",
+        "output": "0.50",
+        "cacheRead": "0.01",
+        "cacheWrite": "0.125",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Input-side tokens above 272,000",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "0.20",
+            "output": "0.75",
+            "cacheRead": "0.02",
+            "cacheWrite": "0.25",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-luna-pricing": {
+      "id": "gpt-6-luna-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-luna",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.10",
+        "output": "0.50",
+        "cacheRead": "0.01",
+        "cacheWrite": "0.125",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens; higher rates apply to the full request",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "0.20",
+            "output": "0.75",
+            "cacheRead": "0.02",
+            "cacheWrite": "0.25",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-22",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-6 Luna standard short and long context API list prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+          "title": "Long context threshold and reasoning behavior",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-sol-github-pricing": {
+      "id": "gpt-6-sol-github-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "10.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Input-side tokens above 272,000",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "15.00",
+            "cacheRead": "0.40",
+            "cacheWrite": "5.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-6-sol-pricing": {
+      "id": "gpt-6-sol-pricing",
+      "role": "pricing",
+      "modelId": "gpt-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2.00",
+        "output": "10.00",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens; higher rates apply to the full request",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "15.00",
+            "cacheRead": "0.40",
+            "cacheWrite": "5.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-22",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/pricing",
+          "title": "GPT-6 Sol standard short and long context API list prices",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+          "title": "Long context threshold and reasoning behavior",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "grok-4-5-github-pricing": {
+      "id": "grok-4-5-github-pricing",
+      "role": "pricing",
+      "modelId": "grok-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "6.00",
+        "cacheRead": "0.50"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Input-side tokens above 200,000",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "12.00",
+            "cacheRead": "1.00"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "grok-4-6-github-pricing": {
+      "id": "grok-4-6-github-pricing",
+      "role": "pricing",
+      "modelId": "grok-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "6.00",
+        "cacheRead": "0.50"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Input-side tokens above 200,000",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "12.00",
+            "cacheRead": "1.00"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "grok-4-7-github-pricing": {
+      "id": "grok-4-7-github-pricing",
+      "role": "pricing",
+      "modelId": "grok-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "2.00",
+        "output": "6.00",
+        "cacheRead": "0.50"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Input-side tokens above 200,000",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "12.00",
+            "cacheRead": "1.00"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "grok-4-7-pricing": {
+      "id": "grok-4-7-pricing",
+      "role": "pricing",
+      "modelId": "grok-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2.00",
+        "output": "6.00",
+        "cacheRead": "0.50"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 200K prompt tokens",
+          "when": {
+            "inputTokensAbove": 200000
+          },
+          "rates": {
+            "input": "4.00",
+            "output": "12.00",
+            "cacheRead": "1.00"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-21",
+      "sources": [
+        {
+          "url": "https://docs.x.ai/developers/release-notes",
+          "title": "Grok 4.7 API price tiers; cache-write and reasoning billing not established",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "kimi-k2-7-code-github-pricing": {
+      "id": "kimi-k2-7-code-github-pricing",
+      "role": "pricing",
+      "modelId": "kimi-k2-7-code",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.95",
+        "output": "4.00",
+        "cacheRead": "0.19"
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "kimi-k3-github-pricing": {
+      "id": "kimi-k3-github-pricing",
+      "role": "pricing",
+      "modelId": "kimi-k3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "3.00",
+        "output": "15.00",
+        "cacheRead": "0.30"
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "mai-code-1-1-flash-github-pricing": {
+      "id": "mai-code-1-1-flash-github-pricing",
+      "role": "pricing",
+      "modelId": "mai-code-1-1-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "rates": {
+        "input": "0.20",
+        "output": "1.20",
+        "cacheRead": "0.02"
+      },
+      "effectiveFrom": "2026-09-23",
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+          "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
+          "checkedAt": "2026-09-23"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     }
   }

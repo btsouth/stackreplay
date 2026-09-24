@@ -18,6 +18,23 @@ describe("complete IndexedDB pair contract", () => {
   it("accepts the normalized valid pair", () => {
     expect(validateStoredPair(record, payload)?.id).toBe(record.id);
   });
+  it("stores a Claude scan whose repeated response rows raised RECORD_DUPLICATE", () => {
+    const scanned = {
+      ...record,
+      intake: {
+        outcomes: [],
+        exactDuplicates: 473,
+        overlaps: 0,
+        warnings: [
+          {
+            code: "RECORD_DUPLICATE",
+            message: "Repeated assistant rows for one API response were counted once.",
+          },
+        ],
+      },
+    };
+    expect(validateStoredPair(scanned, payload)?.id).toBe(record.id);
+  });
   it.each([
     ["summary.tokens", { ...record, summary: { ...record.summary, tokens: null } }, payload],
     ["summary.models", { ...record, summary: { ...record.summary, models: "bad" } }, payload],

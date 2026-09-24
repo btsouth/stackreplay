@@ -34,6 +34,19 @@ export async function runReplay(
   await page.getByTestId(`plan-${planId}`).click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
+  await openReplayDetails(page);
+}
+
+/** Opens the native evidence disclosures for tests that inspect forensic rows. */
+export async function openReplayDetails(page: Page): Promise<void> {
+  // Most replay cases inspect forensic rows. Open the two native disclosures
+  // without moving the viewport so those assertions exercise their content.
+  await page.getByTestId("replay-evidence-details").evaluate((element: HTMLDetailsElement) => {
+    element.open = true;
+  });
+  await page.getByTestId("replay-detail").evaluate((element: HTMLDetailsElement) => {
+    element.open = true;
+  });
 }
 
 export interface CapturedRequest {

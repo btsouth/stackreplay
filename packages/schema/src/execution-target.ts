@@ -59,10 +59,19 @@ export type SubscriptionTargetV1 = z.infer<typeof subscriptionTargetV1Schema>;
  * stream actually covers. Absent means the conservative reading, an imported
  * workload only.
  */
-export const replayContextV1Schema = z.strictObject({
-  rulesAsOf: isoDateV1Schema,
-  workloadScope: workloadScopeDeclarationV1Schema.optional(),
-});
+export const replayContextV1Schema = z
+  .strictObject({
+    rulesAsOf: isoDateV1Schema,
+    /** Optional sub-day precision for a provider rule activated during this date. */
+    rulesAsOfInstant: z.string().datetime({ offset: true }).optional(),
+    workloadScope: workloadScopeDeclarationV1Schema.optional(),
+  })
+  .refine(
+    (context) =>
+      context.rulesAsOfInstant === undefined ||
+      context.rulesAsOfInstant.slice(0, 10) === context.rulesAsOf,
+    { message: "rulesAsOfInstant must fall on rulesAsOf" },
+  );
 export type ReplayContextV1 = z.infer<typeof replayContextV1Schema>;
 
 /**

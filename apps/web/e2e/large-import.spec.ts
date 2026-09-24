@@ -38,9 +38,11 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   await page.evaluate(() => {
     const marks: { phase: string; at: number }[] = [];
     (window as unknown as { __phaseMarks: typeof marks }).__phaseMarks = marks;
-    const list = document.querySelector("[data-testid='import-phases']");
-    if (list === null) return;
+    // The scan instrument mounts its stage list when a scan starts, so the
+    // observer watches the document for it rather than a node present at load.
     const record = () => {
+      const list = document.querySelector("[data-testid='import-phases']");
+      if (list === null) return;
       for (const item of list.querySelectorAll("[data-phase]")) {
         const state = item.getAttribute("data-state");
         const phase = item.getAttribute("data-phase");
@@ -48,8 +50,9 @@ test("imports and replays a ~100k-event export with measured phases", async ({
       }
     };
     record();
-    new MutationObserver(record).observe(list, {
+    new MutationObserver(record).observe(document.body, {
       subtree: true,
+      childList: true,
       attributes: true,
       attributeFilter: ["data-state"],
     });
@@ -62,7 +65,9 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   // a real interaction round-trip during the import.
   const interactionStart = Date.now();
   await page.getByTestId("plan-search").count();
-  await page.getByText("Demo workloads").click({ timeout: 20_000 });
+  // The import options collapse while a scan runs; the scan instrument's own
+  // status stays on screen and must remain responsive.
+  await page.getByTestId("scan-privacy-status").click({ timeout: 20_000 });
   const interactionMs = Date.now() - interactionStart;
 
   // Completion is measured, not assumed: if this environment cannot finish a

@@ -27,8 +27,12 @@ export function ResultSettlement({
   // A count the result does not carry is absent, not a zero: this line prints
   // "unknown" rather than claiming nothing was blocked.
   const blocked = projection.outcomes.find((outcome) => outcome.key === "blocked")?.count;
+  const unavailable = projection.outcomes.find((outcome) => outcome.key === "unavailable")?.count;
   const overage = projection.outcomes.find((outcome) => outcome.key === "overage")?.count;
   const unknown = projection.outcomes.find((outcome) => outcome.key === "unknown")?.count;
+  const knownUnserved = (blocked ?? 0) + (unavailable ?? 0) > 0;
+  const modelsSupportedWithUnknownCapacity =
+    headline.statusLabel === "Models supported; capacity unknown";
   const partial = projection.evidence.filter((row) => row.status === "partial").length;
   const cost = projection.economics.targetCost;
   const economics = projection.economics;
@@ -52,7 +56,11 @@ export function ResultSettlement({
               className="font-mono text-3xl leading-none text-warning sm:text-4xl"
               data-testid="result-figure"
             >
-              not established
+              {knownUnserved
+                ? "full coverage ruled out"
+                : modelsSupportedWithUnknownCapacity
+                  ? "capacity not quantified"
+                  : "not established"}
             </span>
           ) : (
             <span
@@ -64,7 +72,11 @@ export function ResultSettlement({
           )}
           <span className="text-xs text-foreground">
             {percent === undefined
-              ? "the engine could not decide every event"
+              ? knownUnserved
+                ? "the exact share remains unknown because some events are undecided"
+                : modelsSupportedWithUnknownCapacity
+                  ? "all observed models match, but the plan has no published numeric allowance"
+                  : "the engine could not decide every event"
               : `of modelled ${headline.dimension === "usage" ? "token demand" : "requests"} would have fit`}
           </span>
         </div>
@@ -121,6 +133,12 @@ export function ResultSettlement({
         </span>
         <span className="flex items-baseline gap-2">
           <span className="font-mono text-xs tabular-nums text-foreground">
+            {formatCount(unavailable) ?? "unknown"}
+          </span>
+          <MicroLabel>on unavailable models</MicroLabel>
+        </span>
+        <span className="flex items-baseline gap-2">
+          <span className="font-mono text-xs tabular-nums text-foreground">
             {formatCount(overage) ?? "unknown"}
           </span>
           <MicroLabel>billed above allowance</MicroLabel>
@@ -134,7 +152,11 @@ export function ResultSettlement({
         <span className="flex items-baseline gap-2">
           {projection.evidenceEstablished ? (
             <StatusWord tone={partial === 0 ? "positive" : "warning"}>
-              {partial === 0 ? "evidence complete" : `${partial} dimensions partial`}
+              {partial === 0
+                ? "evidence complete"
+                : partial === 1
+                  ? "1 dimension partial"
+                  : `${partial} dimensions partial`}
             </StatusWord>
           ) : (
             <StatusWord tone="neutral">no evidence recorded</StatusWord>

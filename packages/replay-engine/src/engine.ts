@@ -747,6 +747,8 @@ interface SliceRun {
   accepted: Units;
   /** Events this constraint itself did not serve inside this window. */
   affectedEvents: number;
+  /** First event whose attempted demand took this window past capacity. */
+  exceededAt?: { atMs: number; subMs: number };
 }
 
 interface ConstraintRuntime {
@@ -931,6 +933,10 @@ function evaluateConstraints(
       const run = rt.slices[index] as SliceRun;
       run.attempted = addUnits(run.attempted, quantity);
       rt.attemptedTotal = addUnits(rt.attemptedTotal, quantity);
+      // The same comparison that later records the violation, taken at the
+      // event that first makes it true.
+      if (run.exceededAt === undefined && asDecimal(run.attempted).gt(rt.limitAmount))
+        run.exceededAt = { atMs: timedEvent.atMs, subMs: timedEvent.subMs };
     }
 
     if (unknown) {
@@ -1035,6 +1041,9 @@ function evaluateConstraints(
           ? { overageUnits: toUnitString(overage) }
           : {}),
         ...(rt.limit.models !== undefined ? { modelIds: [...rt.limit.models] } : {}),
+        ...(run.exceededAt !== undefined
+          ? { exceededAt: isoFromEpochMs(run.exceededAt.atMs, run.exceededAt.subMs) }
+          : {}),
       });
     }
 

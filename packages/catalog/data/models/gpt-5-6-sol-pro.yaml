@@ -1,11 +1,18 @@
 id: gpt-5-6-sol-pro
 role: model
 name: "GPT-5.6 Sol Pro"
+developerId: openai
 providerIds:
   - openai
 sources:
   - url: https://openai.com/chatgpt/pricing/
     title: "OpenAI pricing (official)"
-    checkedAt: 2026-09-21
-lastVerifiedAt: 2026-09-21
+    checkedAt: 2026-09-23
+  - url: https://developers.openai.com/api/docs/models
+    title: "OpenAI API model catalog; reviewed in the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+  - url: https://chatgpt.com/pricing/
+    title: "Subscription model label checked for the Sep 23 launch audit"
+    checkedAt: 2026-09-23
+lastVerifiedAt: 2026-09-23
 verificationStatus: verified
