@@ -45,6 +45,12 @@ export function callShareOf(window: WindowFact, profile: WorkloadProfile): numbe
   return total === 0 ? undefined : window.events / total;
 }
 
+/** Share of known processed tokens that were reads from the prompt cache. */
+export function cacheReadShareOf(profile: WorkloadProfile): number | undefined {
+  const known = profile.overview.knownTokens;
+  return known === 0 ? undefined : profile.tokens.cacheRead / known;
+}
+
 const count = (value: number): string => value.toLocaleString("en-US");
 const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
 

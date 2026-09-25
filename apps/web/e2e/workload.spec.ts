@@ -451,8 +451,16 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   await page.goto(href ?? "/app/workload");
   const notice = page.getByTestId("partial-scan");
   await expect(notice).toContainText("Partial scan", { timeout: 30_000 });
-  await expect(notice).toContainText("could not be read to the end");
+  await expect(notice).toContainText(
+    "source file was incomplete; missing usage is outside these totals",
+  );
   await expect(notice).not.toContainText(/malformed|changed/iu);
+  const opening = page.getByTestId("workload-opening");
+  await expect(opening.getByTestId("value-scope")).toContainText("included calls priced");
+  const scopeOrder = await opening
+    .locator('[data-testid="value-scope"], [data-testid="partial-scan"]')
+    .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
+  expect(scopeOrder).toEqual(["value-scope", "partial-scan"]);
   await expect(page.getByTestId("workload-rescan")).toHaveAttribute("href", "/app/import");
   await page.getByTestId("scan-evidence-details").evaluate((element: HTMLDetailsElement) => {
     element.open = true;

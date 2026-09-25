@@ -1,6 +1,6 @@
 "use client";
 
-import { shareText } from "@stackreplay/share";
+import { formatUsd, shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -14,8 +14,9 @@ import { localDayOf } from "@/lib/timeline";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
+import { cacheReadShareOf } from "@/lib/workload-facts";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
-import type { Measure, WorkloadProfile } from "@/lib/workload-profile";
+import type { Insight, Measure, WorkloadProfile } from "@/lib/workload-profile";
 import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
 import { PartialScanNotice, ScanEvidence } from "./evidence";
@@ -227,7 +228,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     );
 
   return (
-    <div className="flex min-w-0 flex-col gap-12" data-testid="workload-surface">
+    <div className="flex min-w-0 flex-col gap-8" data-testid="workload-surface">
       <WorkloadOpening
         record={record}
         profile={profile}
@@ -318,6 +319,83 @@ function WorkloadPicker({
   );
 }
 
+function CacheReadBriefing({ profile }: { profile: WorkloadProfile }) {
+  const share = cacheReadShareOf(profile);
+  if (share === undefined || profile.tokens.cacheRead === 0) return null;
+  const value = profile.value;
+  const freshInput = formatUsd(value?.cacheReadsAtInputRate);
+  const priced = formatUsd(value?.total);
+  return (
+    <div className="flex min-w-0 flex-col gap-2" data-testid="cache-briefing">
+      <MicroLabel>Why the value looks like this</MicroLabel>
+      <p className="text-sm leading-relaxed">
+        <strong className="font-semibold tabular-nums">{percent(share)}</strong> of known processed
+        tokens were cache reads.
+      </p>
+      {freshInput === undefined || priced === undefined ? null : (
+        <>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            For the priced calls, at published rates, repricing their cache reads as fresh input
+            would produce a <span className="tabular-nums text-foreground">{freshInput}</span>{" "}
+            scenario instead of <span className="tabular-nums text-foreground">{priced}</span>.
+          </p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            Hypothetical pricing comparison · not savings
+          </p>
+        </>
+      )}
+      <a className={`${ACTION_LINK} self-start`} href="#tokens">
+        Inspect token composition →
+      </a>
+    </div>
+  );
+}
+
+function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
+  return (
+    <ol className="grid gap-x-7 gap-y-4 lg:grid-cols-3" data-testid="workload-insights">
+      {insights.map((insight) => {
+        const shareLead = insight.id === "projects" || insight.id === "late-night";
+        const lead = shareLead
+          ? percent(insight.fact.share ?? 0)
+          : insight.comparison.match(/^\S+×/u)?.[0];
+        const label =
+          insight.id === "largest-session"
+            ? "Largest session versus median session"
+            : insight.id === "projects"
+              ? "of known processed tokens came from three projects"
+              : insight.id === "peak-5h"
+                ? "Busiest five hours versus a median active window"
+                : undefined;
+        const detail = insight.id === "projects" ? insight.comparison : insight.text;
+        return (
+          <li
+            key={insight.id}
+            className="flex min-w-0 flex-col gap-1 border-t border-border pt-3"
+            data-insight={insight.id}
+          >
+            {lead === undefined ? null : (
+              <strong className="font-sans text-3xl font-semibold leading-none tracking-tight tabular-nums">
+                {lead}
+              </strong>
+            )}
+            <p className="text-sm leading-snug">{label ?? insight.text}</p>
+            <p className="text-xs leading-snug text-muted-foreground">
+              {detail.endsWith(".") ? detail : `${detail}.`}{" "}
+              <a
+                className="text-accent underline-offset-4 hover:underline"
+                href={`#${insight.evidence.section}`}
+              >
+                {insight.evidence.label} →
+              </a>
+            </p>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 function WorkloadOpening({
   record,
   profile,
@@ -339,6 +417,9 @@ function WorkloadOpening({
         ? "synthetic demo"
         : "portable workload file";
   const overview = profile?.overview;
+  const insights = profile?.insights.filter((insight) => insight.id !== "cache-value") ?? [];
+  const leadingInsights = insights.slice(0, 3);
+  const remainingInsights = insights.slice(3);
   const figures: { label: string; value: string; title?: string; testId: string }[] = [
     { label: "calls", value: count(summary.eventCount), testId: "opening-events" },
     {
@@ -358,9 +439,20 @@ function WorkloadOpening({
       testId: "opening-tokens",
     },
   ];
+  const scanNotice = (
+    <PartialScanNotice
+      record={record}
+      briefing
+      action={
+        <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
+          Rescan history →
+        </Link>
+      }
+    />
+  );
   return (
-    <header className="flex min-w-0 flex-col gap-7" data-testid="workload-opening">
-      <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+    <header className="flex min-w-0 flex-col gap-6" data-testid="workload-opening">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-2">
           <MicroLabel className="text-accent">
             {origin === "synthetic demo" ? "Synthetic demo workload" : "Your workload"}
@@ -368,97 +460,125 @@ function WorkloadOpening({
           <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
             How you actually use AI
           </h1>
+          <p
+            className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
+            data-testid="opening-meta"
+          >
+            {count(summary.eventCount)} included calls ·{" "}
+            {overview === undefined
+              ? recordedRange(record)
+              : plainRange(overview.firstDate, overview.lastDate)}{" "}
+            · {sources} · {origin}
+            {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
+          </p>
+          {record.savedLocally === false ? (
+            <p className="text-xs text-warning" data-testid="workload-not-saved">
+              Not saved in this browser: this workload is available only until the page reloads.
+            </p>
+          ) : null}
         </div>
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
-      <div className="grid min-w-0 gap-8 border-t border-border pt-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-12">
-        <div className="flex min-w-0 flex-col gap-3">
-          <MicroLabel>What this work is worth</MicroLabel>
-          {profile?.value === undefined ? (
+      <section
+        className="flex min-w-0 flex-col gap-2 border-t border-border pt-5"
+        aria-label="Published API valuation"
+      >
+        <MicroLabel>What this work is worth</MicroLabel>
+        {profile?.value === undefined ? (
+          <>
             <p className="text-sm text-muted-foreground" role="status" data-testid="value-pending">
               Pricing each maker&apos;s calls at its own published API rates, in this browser…
             </p>
-          ) : (
-            <WorkloadValueFigure value={profile.value} />
-          )}
-          {profile === undefined ? null : (
-            <a
-              className={`${ACTION_LINK} self-start`}
-              data-testid="share-workload-link"
-              href="#share"
-            >
-              Share this workload →
-            </a>
-          )}
-        </div>
-        <div className="flex min-w-0 flex-col gap-5">
-          <ToolSplit sources={summary.usageSources} />
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-4">
-            {figures.map((figure) => (
-              <div
-                key={figure.label}
-                className="flex min-w-0 flex-col gap-0.5"
-                data-testid={figure.testId}
-              >
-                <dd
-                  className="order-1 font-sans text-2xl font-semibold leading-none tracking-tight tabular-nums"
-                  title={figure.title}
-                >
-                  {figure.value}
-                </dd>
-                <dt className="order-2 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-                  {figure.label}
-                </dt>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </div>
-      {profile === undefined || profile.insights.length === 0 ? null : (
-        <section aria-labelledby="insights-heading" className="flex min-w-0 flex-col gap-3">
+            {scanNotice}
+          </>
+        ) : (
+          <WorkloadValueFigure value={profile.value} briefing afterScope={scanNotice} />
+        )}
+      </section>
+      <section
+        className="grid min-w-0 gap-6 border-t border-border pt-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10"
+        aria-label="What produced this workload and value"
+      >
+        <ToolSplit sources={summary.usageSources} compact />
+        {profile === undefined ? null : <CacheReadBriefing profile={profile} />}
+      </section>
+      {leadingInsights.length === 0 ? null : (
+        <section
+          aria-labelledby="insights-heading"
+          className="flex min-w-0 flex-col gap-3 border-t border-border pt-5"
+        >
           <h2
             id="insights-heading"
             className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase"
           >
-            What stands out
+            What is unusual about this work
           </h2>
-          <InsightList insights={profile.insights} limit={3} />
-          {profile.insights.length > 3 ? (
+          <BriefingInsights insights={leadingInsights} />
+          {remainingInsights.length > 0 ? (
             <details data-testid="more-insights">
               <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
-                {count(profile.insights.length - 3)} more{" "}
-                {profile.insights.length - 3 === 1 ? "fact" : "facts"}
+                {count(remainingInsights.length)} more{" "}
+                {remainingInsights.length === 1 ? "fact" : "facts"}
               </summary>
               <div className="mt-3">
-                <InsightList insights={profile.insights.slice(3)} testId="workload-insights-more" />
+                <InsightList insights={remainingInsights} testId="workload-insights-more" />
               </div>
             </details>
           ) : null}
         </section>
       )}
-      <div className="flex min-w-0 flex-col gap-1.5 text-sm">
-        <p className="text-muted-foreground [overflow-wrap:anywhere]" data-testid="opening-meta">
-          <span className="text-foreground">
-            {overview === undefined
-              ? recordedRange(record)
-              : plainRange(overview.firstDate, overview.lastDate)}
-          </span>{" "}
-          · {sources} · {origin}
-          {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
-        </p>
-        {record.savedLocally === false ? (
-          <p className="text-xs text-warning" data-testid="workload-not-saved">
-            Not saved in this browser: this workload is available only until the page reloads.
+      {profile === undefined ? null : (
+        <section
+          className="flex min-w-0 flex-col gap-3 border-y border-accent/60 py-4"
+          aria-labelledby="next-question-heading"
+        >
+          <MicroLabel className="text-accent">Next decision</MicroLabel>
+          <h2 id="next-question-heading" className="text-lg font-medium">
+            Which part of this work do you want to test?
+          </h2>
+          <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
+            Choose the work first, then test a plan or API. Models stay as recorded unless you
+            explicitly substitute them.
           </p>
-        ) : null}
-        <PartialScanNotice
-          record={record}
-          action={
-            <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
-              Rescan history →
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              href={replayLink(record.id)}
+              className={buttonVariants({ size: "sm" })}
+              data-testid="workload-replay-top"
+            >
+              Replay part of this workload
             </Link>
-          }
-        />
+            <Link
+              href={`/app/compare?import=${record.id}`}
+              className={ACTION_LINK}
+              data-testid="workload-compare-cta"
+            >
+              Compare ways to buy this work →
+            </Link>
+          </div>
+        </section>
+      )}
+      <div className="flex min-w-0 flex-col gap-3 text-sm">
+        <dl
+          className="grid grid-cols-2 gap-x-6 gap-y-3 text-muted-foreground sm:flex sm:flex-wrap sm:gap-x-8"
+          aria-label="Workload scale"
+        >
+          {figures.map((figure) => (
+            <div
+              key={figure.label}
+              className="flex items-baseline gap-1.5"
+              data-testid={figure.testId}
+            >
+              <dd
+                className="order-1 font-sans font-semibold tabular-nums text-foreground"
+                title={figure.title}
+              >
+                {figure.value}
+              </dd>
+              <dt className="order-2 text-xs">{figure.label}</dt>
+            </div>
+          ))}
+        </dl>
         {overview === undefined ? null : (
           <p className="text-xs text-muted-foreground" data-testid="opening-quality">
             {overview.unresolvedEvents === 0
@@ -468,6 +588,15 @@ function WorkloadOpening({
               ? " · token totals known for every call"
               : ` · ${count(overview.unknownUsageEvents)} calls with unknown usage`}
           </p>
+        )}
+        {profile === undefined ? null : (
+          <a
+            className={`${ACTION_LINK} self-start`}
+            data-testid="share-workload-link"
+            href="#share"
+          >
+            Share this workload →
+          </a>
         )}
         {profile === undefined || overview === undefined ? null : (
           <CurrentSpend
@@ -524,35 +653,12 @@ function WorkloadBody({
     );
   }
   const known = profile.overview.knownTokens;
-  const cacheShare = known === 0 ? 0 : profile.tokens.cacheRead / known;
+  const cacheShare = cacheReadShareOf(profile) ?? 0;
   const median = measure === "events" ? profile.days.medianEvents : profile.days.medianTokens;
   const peakDay = measure === "events" ? profile.days.peakByEvents : profile.days.peakByTokens;
 
   return (
     <div className="flex min-w-0 flex-col gap-14">
-      <section
-        className="flex flex-col gap-4 border-y border-accent/60 py-5"
-        aria-labelledby="next-question-heading"
-      >
-        <div>
-          <MicroLabel className="text-accent">Next question</MicroLabel>
-          <h2 id="next-question-heading" className="mt-1 text-lg font-medium">
-            What could run this work?
-          </h2>
-          <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
-            Choose all recorded work or one tool&apos;s work, then test it against a plan or direct
-            API. Models stay as recorded unless you explicitly choose a substitution.
-          </p>
-        </div>
-        <Link
-          href={replayLink(record.id)}
-          className={`${buttonVariants({ size: "sm" })} self-start`}
-          data-testid="workload-replay-top"
-        >
-          Replay this workload
-        </Link>
-      </section>
-
       <nav
         aria-label="Explore workload details"
         className="flex flex-col gap-2 border-b border-border pb-5 text-sm"
@@ -836,13 +942,6 @@ function WorkloadBody({
             data-testid="workload-replay-cta"
           >
             Replay this workload
-          </Link>
-          <Link
-            href={`/app/compare?import=${record.id}`}
-            className={buttonVariants({ size: "sm", variant: "secondary" })}
-            data-testid="workload-compare-cta"
-          >
-            Compare this workload
           </Link>
         </div>
       </section>

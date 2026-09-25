@@ -52,9 +52,11 @@ export function partialScanOf(record: ImportRecord): { unreadable: number; other
 export function PartialScanNotice({
   record,
   action,
+  briefing = false,
 }: {
   record: ImportRecord;
   action?: ReactNode;
+  briefing?: boolean;
 }) {
   const { unreadable, other } = partialScanOf(record);
   if (unreadable + other === 0) return null;
@@ -77,8 +79,9 @@ export function PartialScanNotice({
         <span className="font-mono text-[11px] tracking-[0.12em] text-warning uppercase">
           Partial scan
         </span>{" "}
-        {parts.join("; ")}. If a tool was still writing to a file, scanning again once it is idle
-        usually includes it.
+        {briefing
+          ? `${count(unreadable + other)} source ${unreadable + other === 1 ? "file was" : "files were"} incomplete; missing usage is outside these totals.`
+          : `${parts.join("; ")}. If a tool was still writing to a file, scanning again once it is idle usually includes it.`}
       </p>
       {action}
     </div>

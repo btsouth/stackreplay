@@ -55,8 +55,7 @@ test("the workload opens with its value, scope, tool split and comparative facts
   await expect(opening.getByTestId("value-figure")).toBeVisible({ timeout: 60_000 });
   await expect(opening.getByTestId("value-figure")).toBeInViewport();
   await expect(opening.getByTestId("value-caption")).toBeInViewport();
-  await expect(opening.getByTestId("value-scope")).toContainText("OpenAI $");
-  await expect(opening.getByTestId("value-scope")).toContainText("Anthropic $");
+  await expect(opening.getByTestId("value-scope")).toContainText("included calls priced");
   await expect(opening.getByTestId("tool-split")).toBeInViewport();
 
   const facts = opening.getByTestId("workload-insights").locator("li");
@@ -65,6 +64,15 @@ test("the workload opens with its value, scope, tool split and comparative facts
     await expect(facts.nth(index)).toContainText("×");
     await expect(facts.nth(index).getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
   }
+  await expect(
+    opening.getByRole("heading", { name: "Which part of this work do you want to test?" }),
+  ).toBeVisible();
+  await expect(opening.getByTestId("workload-replay-top")).toHaveText(
+    "Replay part of this workload",
+  );
+  await expect(opening.getByTestId("workload-compare-cta")).toHaveText(
+    "Compare ways to buy this work →",
+  );
   // A fact's link lands on the section that shows it.
   const href = (await facts.first().getByRole("link").getAttribute("href")) ?? "";
   await facts.first().getByRole("link").click();
@@ -72,6 +80,8 @@ test("the workload opens with its value, scope, tool split and comparative facts
 
   // Every dollar opens to its arithmetic, one receipt per maker.
   await page.getByTestId("value-receipts").locator(":scope > summary").click();
+  await expect(page.getByTestId("value-receipts")).toContainText("Anthropic:");
+  await expect(page.getByTestId("value-receipts")).toContainText("OpenAI:");
   await expect(page.getByTestId("value-receipt-anthropic")).toBeVisible();
   await expect(page.getByTestId("value-receipt-openai")).toBeVisible();
 });

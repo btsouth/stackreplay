@@ -6,9 +6,10 @@ import {
   formatCents,
   formatUsd,
   isSyntheticCatalogId,
+  partOfWhole,
   prorateCents,
 } from "@stackreplay/share";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
 import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
@@ -54,9 +55,15 @@ export function valueLeftOut(value: WorkloadValue): string | undefined {
 export function WorkloadValueFigure({
   value,
   compact = false,
+  briefing = false,
+  afterScope,
 }: {
   value: WorkloadValue;
   compact?: boolean;
+  /** The Workload briefing qualifies priced calls against included history. */
+  briefing?: boolean;
+  /** A partial-scan notice sits directly after the included-history scope. */
+  afterScope?: ReactNode;
 }) {
   const total = value.total === undefined ? undefined : splitMoney(value.total);
   const leftOut = valueLeftOut(value);
@@ -71,6 +78,7 @@ export function WorkloadValueFigure({
         {leftOut === undefined ? null : (
           <p className="text-xs leading-relaxed text-muted-foreground">{leftOut}</p>
         )}
+        {afterScope}
       </div>
     );
   return (
@@ -85,30 +93,41 @@ export function WorkloadValueFigure({
         at published API list prices · not what you paid
       </p>
       <p className="max-w-[60ch] text-sm leading-relaxed text-foreground" data-testid="value-scope">
-        {scope.calls}, each maker&apos;s at its own rates
-        {compact
-          ? "."
-          : `: ${value.priced
-              .map(
-                (slice) =>
-                  `${slice.makerName} ${formatUsd(slice.amount) ?? slice.amount} for ${count(slice.calls)}`,
-              )
-              .join(" · ")}.`}
+        {briefing ? (
+          value.pricedCalls >= value.recordedCalls ? (
+            `All ${count(value.recordedCalls)} included calls priced.`
+          ) : (
+            `${count(value.pricedCalls)} of ${count(value.recordedCalls)} included calls priced (${partOfWhole(value.pricedCalls, value.recordedCalls)}).`
+          )
+        ) : (
+          <>
+            {scope.calls}, each maker&apos;s at its own rates
+            {compact
+              ? "."
+              : `: ${value.priced
+                  .map(
+                    (slice) =>
+                      `${slice.makerName} ${formatUsd(slice.amount) ?? slice.amount} for ${count(slice.calls)}`,
+                  )
+                  .join(" · ")}.`}
+          </>
+        )}
       </p>
-      {scope.tokens === undefined ? null : (
-        <p
-          className="max-w-[60ch] text-sm leading-relaxed text-foreground"
-          data-testid="value-token-scope"
-        >
-          {scope.tokens}
-        </p>
-      )}
+      {afterScope}
       {leftOut === undefined ? null : (
         <p
           className="max-w-[60ch] text-xs leading-relaxed text-muted-foreground"
           data-testid="value-left-out"
         >
           {leftOut}
+        </p>
+      )}
+      {scope.tokens === undefined ? null : (
+        <p
+          className="max-w-[60ch] text-sm leading-relaxed text-foreground"
+          data-testid="value-token-scope"
+        >
+          {scope.tokens}
         </p>
       )}
       {compact ? null : <ValueReceipts value={value} />}
@@ -148,7 +167,13 @@ function ValueReceipts({ value }: { value: WorkloadValue }) {
 }
 
 /** Which tools recorded the work, by share of calls. */
-export function ToolSplit({ sources }: { sources: readonly SourceSummary[] }) {
+export function ToolSplit({
+  sources,
+  compact = false,
+}: {
+  sources: readonly SourceSummary[];
+  compact?: boolean;
+}) {
   const usage = sources.filter((source) => source.role === "usage" && source.events > 0);
   const total = usage.reduce((sum, source) => sum + source.events, 0);
   if (usage.length === 0 || total === 0) return null;
@@ -168,9 +193,20 @@ export function ToolSplit({ sources }: { sources: readonly SourceSummary[] }) {
           ))}
         </div>
       ) : null}
-      <ul className="flex flex-col gap-1 text-sm">
+      <ul
+        className={
+          compact ? "grid gap-x-5 gap-y-1 text-sm sm:grid-cols-3" : "flex flex-col gap-1 text-sm"
+        }
+      >
         {usage.map((source) => (
-          <li key={source.adapterId} className="flex items-baseline justify-between gap-4">
+          <li
+            key={source.adapterId}
+            className={
+              compact
+                ? "flex min-w-0 items-baseline justify-between gap-2 sm:flex-col sm:gap-0"
+                : "flex items-baseline justify-between gap-4"
+            }
+          >
             <span className="min-w-0 truncate">{source.name}</span>
             <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
               {count(source.events)} · {percent(source.events / total)}
