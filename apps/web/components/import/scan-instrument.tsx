@@ -141,7 +141,7 @@ export function ScanInstrument({
 
       <p className="sr-only" role="status">
         {stage === "ready"
-          ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} calls`}`
+          ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} ${summary.eventCount === 1 ? "call" : "calls"}`}`
           : stage === "finishing"
             ? "Finishing the published API value and strongest insight."
             : running

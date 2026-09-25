@@ -965,7 +965,8 @@ export function ImportSurface({
                           ) : null}
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {entry.eventCount.toLocaleString("en-US")} calls
+                          {entry.eventCount.toLocaleString("en-US")}{" "}
+                          {entry.eventCount === 1 ? "call" : "calls"}
                           {savedDateRange(entry) === undefined ? "" : ` · ${savedDateRange(entry)}`}
                         </p>
                         <p className="mt-0.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
@@ -1293,7 +1294,7 @@ export function ImportSummaryGrid({
                     {model.rawName}
                   </span>
                   <span className="text-right text-xs tabular-nums text-muted-foreground">
-                    {model.events.toLocaleString("en-US")} calls
+                    {model.events.toLocaleString("en-US")} {model.events === 1 ? "call" : "calls"}
                     {model.canonicalId === undefined ? " · no catalog match" : ""}
                   </span>
                 </li>
@@ -1322,7 +1323,8 @@ export function ImportSummaryGrid({
                     >
                       <span className="min-w-0 [overflow-wrap:anywhere]">{source.name}</span>
                       <span className="font-mono tabular-nums text-muted-foreground">
-                        {source.events.toLocaleString("en-US")} calls
+                        {source.events.toLocaleString("en-US")}{" "}
+                        {source.events === 1 ? "call" : "calls"}
                       </span>
                     </li>
                   ))

@@ -44,7 +44,7 @@ test("imports a demo workload and reports usage sources and orchestration separa
   const orchestration = page.getByTestId("orchestration");
   await expect(orchestration).toContainText("T3 Code");
   await expect(orchestration).toContainText(/sessions attributed|attribution available/);
-  await expect(page.getByTestId("import-summary")).not.toContainText("T3 Code\n0 events");
+  await expect(page.getByTestId("import-summary")).not.toContainText("T3 Code\n0 calls");
 });
 
 test("rejects a file that is not a StackReplay export without quoting it", async ({ page }) => {
@@ -118,7 +118,7 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   await page.getByTestId("discovery-after-ready").locator(":scope > summary").click();
   await page.getByTestId("demo-moderate").click();
   await expect(summary).not.toContainText(events.toLocaleString("en-US"), { timeout: 60_000 });
-  await expect(summary).toContainText("Events");
+  await expect(summary).toContainText("Calls");
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   await expect(page.getByTestId("import-working")).toHaveCount(0);
 

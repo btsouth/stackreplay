@@ -112,7 +112,7 @@ test("Claude assistant content blocks count usage once in the browser import", a
       ),
     },
   ]);
-  await expect(page.getByTestId("import-summary")).toContainText("1 event");
+  await expect(page.getByTestId("import-summary")).toContainText("1 call");
   await expect(page.getByTestId("import-summary")).toContainText("Exact known tokens: 110");
   await expect(page.getByTestId("import-summary")).toContainText(
     "Reused context read from cache: 100",
@@ -191,7 +191,7 @@ test("selected source stays local, can be saved, exported and replayed", async (
   });
   await expect(page.getByTestId("import-dropzone")).toContainText("rollout-fixture.jsonl");
   await expect(page.getByTestId("intake-review")).toContainText("Codex");
-  await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(JSON.stringify(requests)).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
   expect(JSON.stringify(requests)).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
@@ -263,14 +263,21 @@ test("custom file controls retain native labels and mobile saved actions reflow"
     "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
   );
   const actions = row.getByTestId("stored-import-actions");
-  await expect(actions).toHaveCSS("display", "grid");
-  for (const name of ["Replay", "Delete", "Export"]) {
-    const control = actions.getByRole(name === "Replay" ? "link" : "button", {
-      name: `${name} a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl`,
+  await expect(actions).toHaveCSS("display", "flex");
+  for (const name of ["Open workload", "Replay", "Export"]) {
+    const control = actions.getByRole(name === "Export" ? "button" : "link", {
+      name:
+        name === "Open workload"
+          ? name
+          : `${name} a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl`,
     });
     await expect(control).toBeVisible();
     expect((await control.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   }
+  const more = actions.getByText("More");
+  await expect(more).toBeVisible();
+  await more.click();
+  await expect(actions.getByRole("button", { name: /^Delete snapshot /u })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -330,7 +337,7 @@ test("selected folder is scanned without implying a whole computer scan", async 
   await expect(page.getByTestId("intake-review")).toContainText(
     "No supported source structure found",
   );
-  await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
 });
 
 test("an unsaved source can replay in this session without IndexedDB persistence", async ({
@@ -379,7 +386,7 @@ test("ZIP selection expands supported members and reports unsafe paths", async (
     mimeType: "application/zip",
     buffer: Buffer.from(zip),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
   await expect(page.getByTestId("intake-review")).toContainText("Unsafe archive member path");
 });
 
@@ -467,7 +474,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(CODEX_ROLLOUT),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export portable workload" }).click();
   const stream = await (await downloadPromise).createReadStream();
@@ -483,7 +490,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "usage.json", mimeType: "application/json", buffer: portable });
-  await expect(page.getByTestId("import-summary")).toContainText("2 events");
+  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
   await expect(page.getByTestId("import-summary")).toContainText("saved on this browser");
   await page.reload();
   await page.goto("/app/import");

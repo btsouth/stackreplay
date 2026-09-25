@@ -51,8 +51,10 @@ test("schema-valid long workload and model identities remain usable at 390px", a
   const rows = page.getByTestId("stored-imports").getByRole("listitem");
   await expect(rows).toHaveCount(2);
   await expect(rows.getByRole("link", { name: /^Replay first-observed-workload/u })).toBeVisible();
+  const second = rows.filter({ hasText: "second-observed-workload" });
+  await second.getByText("More").click();
   await expect(
-    rows.getByRole("button", { name: /^Delete second-observed-workload/u }),
+    second.getByRole("button", { name: /^Delete snapshot .*second-observed-workload/u }),
   ).toBeVisible();
 
   await page.goto("/app/replay");
