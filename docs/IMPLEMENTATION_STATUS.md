@@ -299,8 +299,10 @@ Metadata always describes the canonical production origin (`https://stackreplay.
 through `NEXT_PUBLIC_SITE_URL`), never localhost; `robots.txt` keeps `/app` out of search results and
 the sitemap lists public pages plus catalogued plans and models.
 
-**Sharing.** A share link is `/s/<token>` where the token carries the entire result:
-`<version>.<checksum>.<base64url(deflate(canonical JSON))>`. No database, no account, no server copy.
+**Sharing.** A share token carries the entire result:
+`<version>.<checksum>.<base64url(deflate(canonical JSON))>`, and needs no database or account to
+read. A self-contained link is `/s/<token>`; a short link (`/s/<id>`, decision 63) stores exactly
+this token in Workers KV when the person chooses Create share link, and nothing else is stored.
 `ShareReplaySnapshotV1` is a strict aggregate-only schema, `FORBIDDEN_SHARE_KEYS` scans for fields
 that must never be public independently of the schema, and the projection from a replay result
 (`apps/web/lib/share-snapshot.ts`) is a whitelist that names every field it copies, so a field added
@@ -601,8 +603,8 @@ Milestone 3 adds the first real product experience on top of them:
 - `/app/replay`: workload, target plan, explicit rules instant, and a result surface that explains
   what happened and why, including separate coverage dimensions, constraint states, confidence with
   reasons, violation detail and an activity/violation timeline.
-- Browser-local persistence in IndexedDB only, with real delete and clear, and no upload path of any
-  kind. A browser test records every request during import and replay and fails if any body carries
+- Browser-local persistence in IndexedDB only, with real delete and clear, and no upload path for
+  workload data (the only upload is the aggregate share token sent by Create share link, decision 63). A browser test records every request during import and replay and fails if any body carries
   events, token history or a project/session hash.
 - Deterministic demo workloads (`moderate`, `heavy`, `multistack`) that reach the interesting product
   states: served, exceeded and unknown.

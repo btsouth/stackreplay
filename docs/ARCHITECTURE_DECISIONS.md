@@ -433,7 +433,8 @@ self-contained artifact:
 - The public link is `/s/<token>`, where the token carries the snapshot itself: canonical JSON,
   DEFLATE-compressed, base64url-encoded, prefixed with a version and a truncated SHA-256 checksum
   of the canonical bytes. Deterministic for a given snapshot, corruption-detectable, URL-safe, and
-  bounded. No database and no server-side storage are involved.
+  bounded. No database and no server-side storage are involved. (Short links, decision 63, later
+  store exactly this token so the public URL stays short; the token itself is unchanged.)
 - Encoding is not encryption. Public share data is public by design, so nothing sensitive may enter
   the token in the first place. The snapshot is the only thing transmitted, ever: share creation
   never sends raw events, and an image or metadata renderer receives only the already-sanitized

@@ -1,8 +1,8 @@
 # Public site and sharing
 
 Milestone 4 built two surfaces that did not exist before: a **public site** that
-publishes the catalog and the methodology, and **stateless sharing** that turns a
-replay result into a link. This document records how they are structured so the
+publishes the catalog and the methodology, and **sharing** that turns a result into
+a self-contained link (short links, which store only that link's token, followed in decision 63). This document records how they are structured so the
 next milestone does not have to rediscover it.
 
 Source of truth for the decisions behind this: `docs/ARCHITECTURE_DECISIONS.md`

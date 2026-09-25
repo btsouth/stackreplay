@@ -1,6 +1,6 @@
 /**
  * Geist Medium and Geist Mono Regular, subset to the characters a share image
- * uses, for the stateless social image (`app/(public)/s/[token]/image`).
+ * uses, for each link's social image (`app/(public)/s/[token]/image`).
  *
  * The image renderer needs font bytes at request time, and a Worker cannot
  * read the package's font files, so the subsets travel with the code (about
