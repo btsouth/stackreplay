@@ -128,7 +128,7 @@ function demandReading(
   if (projection.constraints.length === 0)
     return (
       name +
-      " does not publish a numeric capacity limit for this work. Model support is still known."
+      " describes its limits in words, not numbers, so capacity at this demand can't be determined."
     );
   const crossing = projection.crossings.find((item) => item.exceededAt !== undefined);
   if (crossing?.exceededAt !== undefined)
@@ -416,13 +416,13 @@ export function PurchaseComparison({
       <ColumnHead subscription={`Subscription · ${planName}`} api={`Direct API · ${apiName}`} />
       <div data-testid="compare-results">
         <Row
-          label="Recorded models supported?"
+          label="Model availability"
           testId="compare-models"
           subscription={modelReading(planCoverage, slice)}
           api={modelReading(apiCoverage, slice)}
         />
         <Row
-          label="At your observed demand"
+          label="Capacity at your demand"
           testId="compare-demand"
           subscription={demandReading(shown?.plan, planName, false, profile.timeZone)}
           api={demandReading(shown?.api, apiName, true, profile.timeZone)}
@@ -570,7 +570,7 @@ export function StackComparison({
           <ColumnHead subscription="Your configured plans" api="Published API equivalent" />
           <div data-testid="compare-results">
             <Row
-              label="Recorded models supported?"
+              label="Model availability"
               testId="compare-models"
               subscription={
                 <>
@@ -582,7 +582,7 @@ export function StackComparison({
               api="Each maker's own API prices its recorded models where the catalog has a published rate."
             />
             <Row
-              label="At your observed demand"
+              label="Capacity at your demand"
               testId="compare-demand"
               subscription="There is no combined stack allowance. Each plan has its own published rules; inspect it in Replay to test capacity against work it can serve."
               api="No subscription allowance applies. The same observed provider mix is valued at each maker's published API rates."

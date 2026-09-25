@@ -144,7 +144,7 @@
 
 .sr-verdict[data-weight="quiet"] .sr-verdict-body {
   grid-template-columns: minmax(0, 1fr);
-  row-gap: 0.75rem;
+  row-gap: 1rem;
 }
 
 .sr-verdict[data-weight="quiet"] .sr-verdict-figures {

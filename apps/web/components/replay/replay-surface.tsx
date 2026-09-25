@@ -31,6 +31,7 @@ import { ReplayPath } from "@/components/instrument/replay-path";
 import { ResultSettlement } from "@/components/instrument/result-settlement";
 import { useReplayChoreography } from "@/components/instrument/use-replay-choreography";
 import { WorkloadSpecimen } from "@/components/instrument/workload-specimen";
+import { MissingWorkload } from "@/components/missing-workload";
 import { ReplayReading } from "@/components/replay/replay-reading";
 import { ReplayVerdict } from "@/components/replay/replay-verdict";
 import {
@@ -672,22 +673,21 @@ export function ReplaySurface({
     );
   }
 
+  // A named workload that is gone is said once, with a way on; the setup below
+  // would otherwise wait for a workload that will never arrive.
+  if (requestedWorkloadMissing)
+    return (
+      <MissingWorkload
+        latest={imports[0]}
+        onOpenLatest={(id) => {
+          setSelectedId(id);
+          dropResult();
+        }}
+      />
+    );
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      {requestedWorkloadMissing ? (
-        <Card role="alert" className="border-warning/40" data-testid="workload-missing">
-          <CardContent className="flex flex-col gap-2 p-5">
-            <h2 className="text-sm font-medium text-warning">
-              That workload is no longer stored in this browser
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              It was deleted or cleared, so this page will not substitute a different one. Choose a
-              stored workload below, or import the file again.
-            </p>
-          </CardContent>
-        </Card>
-      ) : null}
-
       <WorkloadStrip
         workload={workload}
         imports={imports}

@@ -177,7 +177,7 @@ function PeakExplanation({
     drivers.push(
       window.models.length === 1
         ? `Every one ran on ${model.label}.`
-        : `The leading model was ${model.label}, at ${percent(shareOf(model))}.`,
+        : `The leading model, ${model.label}, carried ${percent(shareOf(model))}.`,
     );
   if (project !== undefined && window.projects.length > 1)
     drivers.push(

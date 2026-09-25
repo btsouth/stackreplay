@@ -3,9 +3,11 @@
 import { formatUsd, shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { MissingWorkload } from "@/components/missing-workload";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
@@ -148,6 +150,16 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
   );
   const timeZone = useUtc ? "UTC" : localZone;
 
+  // A workload chosen here replaces a stale id in the address, so a reload or
+  // Back returns to what is on screen rather than to the missing one.
+  const router = useRouter();
+  useEffect(() => {
+    if (record === undefined) return;
+    const current = new URLSearchParams(window.location.search).get("import");
+    if (current !== null && current !== record.id)
+      router.replace(`/app/workload?import=${record.id}`, { scroll: false });
+  }, [record, router]);
+
   const analyze = useCallback(async (importId: string, zone: string, cancelled: () => boolean) => {
     setError(undefined);
     try {
@@ -210,22 +222,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     );
 
   if (record === undefined)
-    return (
-      <div
-        role="alert"
-        className="flex max-w-2xl flex-col gap-3 border-l-2 border-warning pl-4"
-        data-testid="workload-missing"
-      >
-        <h2 className="text-sm font-medium text-warning">
-          That workload is no longer stored in this browser
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          A scan that was not saved on this browser is kept only until the page reloads, and a saved
-          one may have been deleted. Choose a stored workload, or scan again.
-        </p>
-        <WorkloadPicker imports={imports} selectedId={selectedId} onSelect={setSelectedId} />
-      </div>
-    );
+    return <MissingWorkload latest={imports[0]} onOpenLatest={setSelectedId} />;
 
   return (
     <div className="flex min-w-0 flex-col gap-8" data-testid="workload-surface">

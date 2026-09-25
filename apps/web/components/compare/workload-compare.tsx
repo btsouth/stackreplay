@@ -4,6 +4,7 @@ import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { MissingWorkload } from "@/components/missing-workload";
 import { count, plainRange } from "@/components/workload/format";
 import type { CompareDecision } from "@/lib/compare-decision";
 import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
@@ -104,11 +105,8 @@ export function WorkloadCompare({
     );
   if (record === undefined && imports.length > 0)
     return (
-      <div className="flex max-w-prose flex-col gap-3" role="alert" data-testid="compare-missing">
-        <p className="text-sm">That saved workload is no longer available in this browser.</p>
-        <Link className={buttonVariants({ size: "sm" })} href="/app/import">
-          Open another workload
-        </Link>
+      <div data-testid="compare-missing">
+        <MissingWorkload latest={imports[0]} onOpenLatest={setImportId} />
       </div>
     );
   if (record === undefined)

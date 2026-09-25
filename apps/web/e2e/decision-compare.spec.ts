@@ -12,8 +12,11 @@ test("a missing saved workload is identified instead of shown as an empty browse
   await importDemo(page, "moderate");
   await page.goto("/app/compare?import=missing-snapshot");
   await expect(page.getByTestId("compare-missing")).toContainText(
-    "That saved workload is no longer available in this browser",
+    "That workload is no longer stored in this browser",
   );
+  // The next step is offered, never substituted silently.
+  await page.getByTestId("open-latest-workload").click();
+  await expect(page.getByTestId("compare-decisions")).toBeVisible({ timeout: 30_000 });
 });
 
 test("a mixed workload compares one purchase decision and moves work through Replay", async ({
