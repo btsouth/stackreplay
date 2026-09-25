@@ -85,8 +85,8 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
   await page.goto(workloadHref ?? "/app/workload");
   await expect(page.getByTestId("workload-restoring")).toBeVisible();
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await expect(page.getByTestId("workload-replay-top")).toBeVisible();
-  await page.getByTestId("workload-replay-top").click();
+  await expect(page.getByTestId("workload-replay-cta")).toBeVisible();
+  await page.getByTestId("workload-replay-cta").click();
   await expect(page.getByTestId("replay-restoring")).toBeVisible();
   await expect(page.getByTestId("replay-empty")).toHaveCount(0);
   await expect(page.getByTestId("workload-strip")).toBeVisible();

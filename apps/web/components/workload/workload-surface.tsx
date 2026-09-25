@@ -464,13 +464,42 @@ function WorkloadOpening({
             className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
             data-testid="opening-meta"
           >
-            {count(summary.eventCount)} included calls ·{" "}
             {overview === undefined
               ? recordedRange(record)
               : plainRange(overview.firstDate, overview.lastDate)}{" "}
             · {sources} · {origin}
             {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
           </p>
+          <dl
+            className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground"
+            aria-label="Workload scale"
+          >
+            {figures.map((figure) => (
+              <div
+                key={figure.label}
+                className="flex items-baseline gap-1.5"
+                data-testid={figure.testId}
+              >
+                <dd
+                  className="font-mono font-medium tabular-nums text-foreground"
+                  title={figure.title}
+                >
+                  {figure.value}
+                </dd>
+                <dt>{figure.label}</dt>
+              </div>
+            ))}
+          </dl>
+          {overview === undefined ? null : (
+            <p className="text-xs text-muted-foreground" data-testid="opening-quality">
+              {overview.unresolvedEvents === 0
+                ? `All ${count(overview.events)} calls resolved to catalog models`
+                : `${count(overview.resolvedEvents)} calls fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "call needs" : "calls need"} identity review`}
+              {overview.unknownUsageEvents === 0
+                ? " · token totals known for every call"
+                : ` · ${count(overview.unknownUsageEvents)} calls with unknown usage`}
+            </p>
+          )}
           {record.savedLocally === false ? (
             <p className="text-xs text-warning" data-testid="workload-not-saved">
               Not saved in this browser: this workload is available only until the page reloads.
@@ -527,85 +556,6 @@ function WorkloadOpening({
           ) : null}
         </section>
       )}
-      {profile === undefined ? null : (
-        <section
-          className="flex min-w-0 flex-col gap-3 border-y border-accent/60 py-4"
-          aria-labelledby="next-question-heading"
-        >
-          <MicroLabel className="text-accent">Next decision</MicroLabel>
-          <h2 id="next-question-heading" className="text-lg font-medium">
-            Which part of this work do you want to test?
-          </h2>
-          <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
-            Choose the work first, then test a plan or API. Models stay as recorded unless you
-            explicitly substitute them.
-          </p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link
-              href={replayLink(record.id)}
-              className={buttonVariants({ size: "sm" })}
-              data-testid="workload-replay-top"
-            >
-              Replay part of this workload
-            </Link>
-            <Link
-              href={`/app/compare?import=${record.id}`}
-              className={ACTION_LINK}
-              data-testid="workload-compare-cta"
-            >
-              Compare ways to buy this work →
-            </Link>
-          </div>
-        </section>
-      )}
-      <div className="flex min-w-0 flex-col gap-3 text-sm">
-        <dl
-          className="grid grid-cols-2 gap-x-6 gap-y-3 text-muted-foreground sm:flex sm:flex-wrap sm:gap-x-8"
-          aria-label="Workload scale"
-        >
-          {figures.map((figure) => (
-            <div
-              key={figure.label}
-              className="flex items-baseline gap-1.5"
-              data-testid={figure.testId}
-            >
-              <dd
-                className="order-1 font-sans font-semibold tabular-nums text-foreground"
-                title={figure.title}
-              >
-                {figure.value}
-              </dd>
-              <dt className="order-2 text-xs">{figure.label}</dt>
-            </div>
-          ))}
-        </dl>
-        {overview === undefined ? null : (
-          <p className="text-xs text-muted-foreground" data-testid="opening-quality">
-            {overview.unresolvedEvents === 0
-              ? `All ${count(overview.events)} calls resolved to catalog models`
-              : `${count(overview.resolvedEvents)} calls fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "call needs" : "calls need"} identity review`}
-            {overview.unknownUsageEvents === 0
-              ? " · token totals known for every call"
-              : ` · ${count(overview.unknownUsageEvents)} calls with unknown usage`}
-          </p>
-        )}
-        {profile === undefined ? null : (
-          <a
-            className={`${ACTION_LINK} self-start`}
-            data-testid="share-workload-link"
-            href="#share"
-          >
-            Share this workload →
-          </a>
-        )}
-        {profile === undefined || overview === undefined ? null : (
-          <CurrentSpend
-            periodDays={overview.spanDays}
-            rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
-            value={profile.value}
-          />
-        )}
-      </div>
     </header>
   );
 }
@@ -678,6 +628,9 @@ function WorkloadBody({
           </a>
           <a className={ACTION_LINK} href="#sessions">
             Session shape
+          </a>
+          <a className={ACTION_LINK} href="#share" data-testid="share-workload-link">
+            Share this workload
           </a>
         </div>
       </nav>
@@ -892,6 +845,16 @@ function WorkloadBody({
         <SessionShape profile={profile} />
       </WorkloadSection>
 
+      <WorkloadSection
+        index="08"
+        eyebrow="Scan quality"
+        title="Evidence behind these figures"
+        id="evidence"
+        testId="section-evidence"
+      >
+        <ScanEvidence profile={profile} record={record} />
+      </WorkloadSection>
+
       <section
         id="next"
         aria-labelledby="next-heading"
@@ -899,16 +862,36 @@ function WorkloadBody({
         data-testid="replay-transition"
       >
         <div className="flex max-w-3xl flex-col gap-2">
-          <MicroLabel className="text-accent">Replay</MicroLabel>
+          <MicroLabel className="text-accent">After the analysis</MicroLabel>
           <h2 id="next-heading" className="text-2xl font-medium tracking-tight">
-            What if you changed the stack?
+            What would you like to test next?
           </h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Test this recorded workload against another subscription, provider, or API. Replay keeps
-            your real chronology, the bursts above included, and applies the target&apos;s own rules
-            to it.
+            Choose a part of this recorded work to replay against a plan or API, or compare ways to
+            buy that same work. The chronology and peaks you just inspected stay in the analysis.
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link
+            href={replayLink(record.id)}
+            className={buttonVariants({ size: "sm" })}
+            data-testid="workload-replay-cta"
+          >
+            Replay part of this workload
+          </Link>
+          <Link
+            href={`/app/compare?import=${record.id}`}
+            className={ACTION_LINK}
+            data-testid="workload-compare-cta"
+          >
+            Compare ways to buy this work →
+          </Link>
+        </div>
+        <CurrentSpend
+          periodDays={profile.overview.spanDays}
+          rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
+          value={profile.value}
+        />
         {routes.length === 0 ? null : (
           <ul
             className={`grid gap-px border border-border bg-border ${routes.length === 1 ? "" : routes.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
@@ -935,30 +918,11 @@ function WorkloadBody({
             })}
           </ul>
         )}
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href={replayLink(record.id)}
-            className={buttonVariants({ size: "sm" })}
-            data-testid="workload-replay-cta"
-          >
-            Replay this workload
-          </Link>
-        </div>
       </section>
 
       <div className="scroll-mt-20" id="share">
         <SharePanelV2 build={shareBuild} kind="workload" />
       </div>
-
-      <WorkloadSection
-        index="08"
-        eyebrow="Scan quality"
-        title="Evidence behind these figures"
-        id="evidence"
-        testId="section-evidence"
-      >
-        <ScanEvidence profile={profile} record={record} />
-      </WorkloadSection>
 
       <p
         className="max-w-prose border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground"

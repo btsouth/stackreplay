@@ -64,15 +64,33 @@ test("the workload opens with its value, scope, tool split and comparative facts
     await expect(facts.nth(index)).toContainText("×");
     await expect(facts.nth(index).getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
   }
-  await expect(
-    opening.getByRole("heading", { name: "Which part of this work do you want to test?" }),
-  ).toBeVisible();
-  await expect(opening.getByTestId("workload-replay-top")).toHaveText(
+  await expect(opening.getByRole("link", { name: "Replay part of this workload" })).toHaveCount(0);
+  await expect(opening.getByRole("link", { name: /Compare ways to buy this work/u })).toHaveCount(
+    0,
+  );
+  const decision = page.getByTestId("replay-transition");
+  await expect(decision.getByTestId("workload-replay-cta")).toHaveText(
     "Replay part of this workload",
   );
-  await expect(opening.getByTestId("workload-compare-cta")).toHaveText(
+  await expect(decision.getByTestId("workload-compare-cta")).toHaveText(
     "Compare ways to buy this work →",
   );
+  const narrativeOrder = await page
+    .locator(
+      '[data-testid="workload-insights"], [data-testid="section-projects"], [data-testid="section-models"], [data-testid="section-chronology"], [data-testid="section-pressure"], [data-testid="section-tokens"], [data-testid="section-sessions"], [data-testid="section-evidence"], [data-testid="replay-transition"]',
+    )
+    .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
+  expect(narrativeOrder).toEqual([
+    "workload-insights",
+    "section-projects",
+    "section-models",
+    "section-chronology",
+    "section-pressure",
+    "section-tokens",
+    "section-sessions",
+    "section-evidence",
+    "replay-transition",
+  ]);
   // A fact's link lands on the section that shows it.
   const href = (await facts.first().getByRole("link").getAttribute("href")) ?? "";
   await facts.first().getByRole("link").click();
