@@ -458,7 +458,7 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
         <h2 className="text-base font-medium text-foreground">Replay your own workload</h2>
         <p className="text-sm text-muted-foreground">
           StackReplay reads your AI coding history in your browser and replays it against plans,
-          providers and APIs. Nothing is uploaded.
+          providers and APIs. Your history never leaves your device.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link className={buttonVariants()} href="/app/import" data-testid="share-cta">
