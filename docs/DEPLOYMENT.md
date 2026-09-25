@@ -3,7 +3,9 @@
 StackReplay runs on Cloudflare Workers through vinext. The website's Cloudflare
 Worker serves the app; the **browser Web Worker** at `/stackreplay-worker.js`
 continues to parse imports and run Replay locally. Raw workloads stay in the
-browser. This deployment has no database, upload route, or production secret.
+browser. The one server-side store is the `SHARE_LINKS` Workers KV namespace, which holds the
+aggregate share token of a short link after someone chooses Create share link
+(`docs/ARCHITECTURE_DECISIONS.md`, decision 63). There is no database or production secret.
 
 The source of truth is this repository. Production runs at `stackreplay.com`,
 and Workers Builds deploys it on every push to `main`. Any other branch gets a

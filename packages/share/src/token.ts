@@ -16,8 +16,9 @@ import { SHARE_SNAPSHOT_V2, type ShareSnapshotV2, shareSnapshotV2Schema } from "
  *   <version>.<checksum>.<payload>
  *
  * where payload is base64url(DEFLATE-RAW(canonical JSON)) and checksum is a
- * truncated SHA-256 of the canonical bytes. No database, no account, no server
- * storage, and nothing that is not already public by design.
+ * truncated SHA-256 of the canonical bytes. A token needs no database or
+ * account to read, and holds nothing that is not already public by design.
+ * Short links (`/s/<id>`) store exactly this token and nothing else.
  *
  * Encoding is not encryption. The snapshot is the only thing that ever enters a
  * token, and decoding treats a token as hostile input: version, checksum, byte

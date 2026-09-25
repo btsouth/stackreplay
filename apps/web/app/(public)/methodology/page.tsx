@@ -92,7 +92,7 @@ const sections = [
   {
     heading: "What a replay does not do",
     body: [
-      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action and currently supports only compatible, full-scope Exact Replay results.",
+      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action: only the aggregate result shown in the share preview is uploaded and stored, so the link can be short. Raw history is never uploaded.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
       "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
     ],
