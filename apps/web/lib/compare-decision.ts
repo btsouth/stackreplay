@@ -3,7 +3,7 @@ import { addAmounts, isSyntheticCatalogId } from "@stackreplay/share";
 import { supportedModelsFor, type TargetKey } from "./routes";
 import type { SourceDemand } from "./workload-profile";
 
-export type CompareDecision = "claude" | "codex" | "stack" | "migration";
+export type CompareDecision = "claude" | "codex" | "stack";
 
 export const PURCHASE_DECISIONS = {
   claude: {

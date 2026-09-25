@@ -20,7 +20,6 @@ import {
   targetCoverages,
   type WorkloadSlice,
   workloadSlice,
-  workloadSlices,
 } from "@/lib/routes";
 import { localDayOf } from "@/lib/timeline";
 import { describeWorkerFailure, getWorkerClient, type ReplayOutcome } from "@/lib/worker-client";
@@ -195,6 +194,114 @@ function gaps(
     : `${parts.filter(Boolean).join(" · ")}.`;
 }
 
+/**
+ * The decision in two figures: what the plan costs and what is known about it
+ * carrying this work, beside what the same calls cost at API list prices. They
+ * are set side by side with their own units and never subtracted.
+ */
+function PurchaseAnswer({
+  plan,
+  planName,
+  planOutcome,
+  api,
+  apiName,
+  slice,
+  timeZone,
+}: {
+  plan: ReturnType<typeof eligiblePlans>[number] | undefined;
+  planName: string;
+  planOutcome: ReplayOutcome | undefined;
+  api: ReplayOutcome | undefined;
+  apiName: string;
+  slice: WorkloadSlice;
+  timeZone: string;
+}) {
+  const resolved = api?.resolvedScope;
+  const apiAmount =
+    resolved?.projection.economics.targetCost ?? api?.projection.economics.targetCost;
+  const apiCalls = resolved?.projection.workload.eventCount ?? api?.priceability?.priced;
+  const days = api?.projection.workload.windowDays;
+  const projection = planOutcome?.projection;
+  const crossing = projection?.crossings.find((item) => item.exceededAt !== undefined);
+  const capacity =
+    projection === undefined
+      ? "Checking this plan against your recorded demand…"
+      : projection.constraints.length === 0
+        ? `Its limits are unpublished, so whether ${planName} would have kept up with these calls can't be determined.`
+        : crossing?.exceededAt !== undefined
+          ? `Its published limit would have been crossed first on ${instantWithZone(Date.parse(crossing.exceededAt), timeZone)}.`
+          : "No published limit would have been crossed by this recorded demand.";
+  const money = (amount: string | undefined) => {
+    const shown = formatUsd(amount);
+    if (shown === undefined) return undefined;
+    const [whole, cents] = shown.split(".");
+    return { whole: whole ?? shown, cents };
+  };
+  const planPrice = money(plan?.price.amount);
+  const apiPrice = money(apiAmount);
+  return (
+    <div
+      className="grid min-w-0 gap-6 border-b border-border pb-6 md:grid-cols-2 md:gap-10"
+      data-testid="compare-answer"
+    >
+      <div className="flex min-w-0 flex-col gap-2">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+          {planName} · subscription
+        </p>
+        {planPrice === undefined ? (
+          <p className="text-sm text-muted-foreground">No published plan price in force.</p>
+        ) : (
+          <p className="sr-figure sr-figure--compact" data-kind="money">
+            {planPrice.whole}
+            <small className="sr-figure-minor">
+              {planPrice.cents === undefined || planPrice.cents === "00"
+                ? ""
+                : `.${planPrice.cents}`}
+              /{plan?.price.interval}
+            </small>
+          </p>
+        )}
+        <p className="max-w-[48ch] text-sm leading-relaxed">{capacity}</p>
+      </div>
+      <div className="flex min-w-0 flex-col gap-2">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+          {apiName} · list prices
+        </p>
+        {api === undefined ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            Pricing the same {count(slice.events)} calls…
+          </p>
+        ) : apiPrice === undefined ? (
+          <p className="text-sm leading-relaxed">
+            No complete published-rate total for these calls; the unpriced ones are not estimated.
+          </p>
+        ) : (
+          <>
+            <p className="sr-figure sr-figure--compact" data-kind="money">
+              {apiPrice.whole}
+              {apiPrice.cents === undefined ? null : (
+                <small className="sr-figure-minor">.{apiPrice.cents}</small>
+              )}
+            </p>
+            <p className="max-w-[48ch] text-sm leading-relaxed">
+              For {apiCalls === undefined ? "these" : count(apiCalls)}
+              {apiCalls !== undefined && apiCalls < slice.events
+                ? ` of ${count(slice.events)}`
+                : ""}{" "}
+              calls{days === undefined ? "" : ` over ${count(days)} days`}, at published API rates.
+              Not what you paid.
+            </p>
+          </>
+        )}
+      </div>
+      <p className="max-w-[80ch] text-xs leading-relaxed text-muted-foreground md:col-span-2">
+        Two different ways to buy the same work: a fixed monthly price with limits, or metered
+        usage. The difference between the two figures is not a saving.
+      </p>
+    </div>
+  );
+}
+
 export function PurchaseComparison({
   decision,
   record,
@@ -275,10 +382,6 @@ export function PurchaseComparison({
           {count(slice.events)} calls · {scopeDates} · Models as recorded
         </p>
       </div>
-      <p className="max-w-[70ch] text-sm leading-relaxed">
-        For this work, compare a fixed plan price with the same recorded demand through {apiName} at
-        published usage rates. These are different purchasing models, not a savings calculation.
-      </p>
       <label
         className="flex flex-col gap-1 self-start text-xs text-muted-foreground"
         htmlFor="compare-plan"
@@ -301,6 +404,15 @@ export function PurchaseComparison({
           <span className="text-accent">In your configured stack</span>
         ) : null}
       </label>
+      <PurchaseAnswer
+        api={shown?.api}
+        apiName={apiName}
+        plan={plan}
+        planName={planName}
+        planOutcome={shown?.plan}
+        slice={slice}
+        timeZone={profile.timeZone}
+      />
       <ColumnHead subscription={`Subscription · ${planName}`} api={`Direct API · ${apiName}`} />
       <div data-testid="compare-results">
         <Row
@@ -539,65 +651,6 @@ export function StackComparison({
           </p>
         </>
       )}
-    </section>
-  );
-}
-
-export function MigrationEntry({
-  record,
-  profile,
-}: {
-  record: ImportRecord;
-  profile: WorkloadProfile;
-}) {
-  const names = new Map(record.summary.usageSources.map((item) => [item.adapterId, item.name]));
-  const slices = workloadSlices(profile.sources, names);
-  const choices = slices.length === 1 ? slices : slices.filter((slice) => slice.sources.length > 0);
-  const [scope, setScope] = useState<string[] | undefined>();
-  const selected = choices.find((slice) => slice.sources.join(",") === scope?.join(","));
-  return (
-    <section className="flex flex-col gap-5" data-testid="migration-entry">
-      <div className="border-y border-accent/60 py-4">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-accent">
-          Move part of this work
-        </p>
-        <h2 className="mt-1 text-xl font-medium">Choose the work to move</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Start with recorded models. Replay shows what a destination can run as recorded before you
-          choose any substitute.
-        </p>
-      </div>
-      <div className="grid border-y border-border sm:grid-cols-2">
-        {choices.map((slice) => (
-          <button
-            key={slice.label}
-            type="button"
-            className={`min-h-20 border-b border-border border-l-2 px-3 py-3 text-left hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring ${selected === slice ? "border-l-accent bg-muted/30" : "border-l-transparent"}`}
-            aria-pressed={selected === slice}
-            onClick={() => setScope([...slice.sources])}
-            data-testid={`migration-scope-${slice.sources[0] ?? "all"}`}
-          >
-            <span className="block text-sm font-medium">
-              {slice.sources.length === 0 ? "All recorded work" : `${slice.label} work`}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {count(slice.events)} calls · Models as recorded
-            </span>
-          </button>
-        ))}
-      </div>
-      {selected === undefined ? (
-        <p className="text-sm text-muted-foreground">Choose one part above to continue.</p>
-      ) : (
-        <ReplayLink importId={record.id} scope={selected.sources}>
-          Choose a destination in Replay
-        </ReplayLink>
-      )}
-      <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
-        If the destination does not offer a recorded model, it stays unavailable in Exact Replay.
-        You can then explicitly choose a substitute and run a Translated Replay. Recorded token
-        demand carries over as a scenario assumption; model quality is not treated as equivalent.
-      </p>
     </section>
   );
 }

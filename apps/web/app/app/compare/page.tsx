@@ -12,17 +12,21 @@ export const metadata: Metadata = {
 export default async function WorkloadComparePage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string }>;
+  searchParams: Promise<{ import?: string; decision?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
+  const decision =
+    params.decision === "claude" || params.decision === "codex" || params.decision === "stack"
+      ? params.decision
+      : undefined;
   return (
     <>
       <PageHeader
         title="Compare this workload"
         description="What would a plan or direct API mean for the work you recorded?"
       />
-      <WorkloadCompare initialImportId={importId} />
+      <WorkloadCompare initialDecision={decision} initialImportId={importId} />
     </>
   );
 }

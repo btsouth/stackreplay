@@ -16,7 +16,7 @@ test("a missing saved workload is identified instead of shown as an empty browse
   );
 });
 
-test("a mixed workload compares one purchase decision and enters migration through Replay", async ({
+test("a mixed workload compares one purchase decision and moves work through Replay", async ({
   page,
 }) => {
   test.setTimeout(120_000);
@@ -84,9 +84,10 @@ test("a mixed workload compares one purchase decision and enters migration throu
   await expect(page.getByTestId("stack-plan-anthropic-claude-max-20x")).toBeChecked();
   await expect(page.getByTestId("stack-plan-openai-chatgpt-pro")).toBeChecked();
 
-  await page.getByTestId("compare-decision-migration").click();
-  await page.getByTestId("migration-scope-codex").click();
-  await page.getByRole("link", { name: "Choose a destination in Replay" }).click();
+  // Moving work is a Replay question: Compare hands it over instead of hosting it.
+  await expect(page.getByTestId("compare-decisions")).not.toContainText("Move part");
+  await page.getByTestId("compare-move-link").click();
+  await page.getByTestId("scope-codex").click();
   await expect(page.getByTestId("scope-codex")).toHaveAttribute("aria-pressed", "true");
   await page.getByTestId("plan-anthropic-claude-max-20x").click();
   await page.getByTestId("run-replay").click();
@@ -94,7 +95,9 @@ test("a mixed workload compares one purchase decision and enters migration throu
     timeout: 60_000,
   });
   await expect(page.getByTestId("replay-result-object")).toContainText("Exact replay");
-  await page.getByTestId("configure-translation").click();
+  // The exact result offers the move directly and opens the substitution editor.
+  await page.getByTestId("result-move").click();
+  await expect(page.getByTestId("translation-editor")).toBeVisible();
   await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-4-8");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result-object")).toContainText("Translated replay", {
