@@ -190,31 +190,33 @@ export function ScanInstrument({
 
       {stage === "ready" && summary !== undefined ? (
         <div className="sr-scan-body">
+          {/* The value and the strongest finding lead (in `ready`); the scale of
+              the scan is context, so it reads as one quiet line. */}
           <h2 className="sr-scan-title">Workload ready</h2>
-          <dl className="sr-scan-facts" data-testid="scan-ready-facts">
-            <Fact label="Calls" value={count.format(summary.eventCount)} />
-            <Fact
-              label="Sessions"
-              value={summary.sessionCount === 0 ? "N/A" : count.format(summary.sessionCount)}
-            />
-            <Fact
-              label="Projects"
-              value={summary.projectCount === 0 ? "N/A" : count.format(summary.projectCount)}
-            />
-            <Fact
-              label="Known tokens"
-              note={cacheShare === undefined ? undefined : `${cacheShare.toFixed(1)}% cache reads`}
-              value={tokens(summary.tokens.known)}
-            />
-          </dl>
           <p className="sr-scan-range">
             {shortDate(summary.firstEventAt) === undefined
               ? "No dated calls"
               : `${shortDate(summary.firstEventAt)} to ${shortDate(summary.lastEventAt)}`}
             {summary.usageSources.length > 0
-              ? ` · ${summary.usageSources.map((source) => source.name).join(" · ")}`
+              ? ` · ${summary.usageSources.map((source) => source.name).join(" + ")}`
               : ""}
           </p>
+          <dl className="sr-scan-facts" data-testid="scan-ready-facts">
+            <Fact label="calls" value={count.format(summary.eventCount)} />
+            <Fact
+              label="sessions"
+              value={summary.sessionCount === 0 ? "N/A" : count.format(summary.sessionCount)}
+            />
+            <Fact
+              label="projects"
+              value={summary.projectCount === 0 ? "N/A" : count.format(summary.projectCount)}
+            />
+            <Fact
+              label="known tokens"
+              note={cacheShare === undefined ? undefined : `${cacheShare.toFixed(1)}% cache reads`}
+              value={tokens(summary.tokens.known)}
+            />
+          </dl>
           {ready}
         </div>
       ) : (
@@ -299,11 +301,11 @@ export function ScanInstrument({
 function Fact({ label, value, note }: { label: string; value: string; note?: string | undefined }) {
   return (
     <div>
-      <dt className="sr-micro">{label}</dt>
-      <dd>
-        {value}
-        {note === undefined ? null : <small className="sr-scan-sub">{note}</small>}
-      </dd>
+      <dd>{value}</dd>
+      <dt>
+        {label}
+        {note === undefined ? null : ` (${note})`}
+      </dt>
     </div>
   );
 }

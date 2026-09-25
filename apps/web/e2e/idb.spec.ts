@@ -129,6 +129,7 @@ test("clear local data removes every workload", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/import");
   await page.getByTestId("clear-local-data").click();
+  await page.getByTestId("clear-local-data-confirm").click();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
@@ -238,6 +239,7 @@ test("clearing local data during an import leaves nothing stored", async ({ page
 
     await page.getByTestId("import-file-input").setInputFiles(path);
     await page.getByTestId("clear-local-data").click();
+    await page.getByTestId("clear-local-data-confirm").click();
 
     // The clear takes effect, and the import that was running when the user asked
     // for the store to be cleared is cancelled rather than allowed to write after it.

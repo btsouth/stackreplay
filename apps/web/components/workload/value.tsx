@@ -9,6 +9,7 @@ import {
   partOfWhole,
   prorateCents,
 } from "@stackreplay/share";
+import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
 import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
@@ -170,9 +171,12 @@ function ValueReceipts({ value }: { value: WorkloadValue }) {
 export function ToolSplit({
   sources,
   compact = false,
+  testHref,
 }: {
   sources: readonly SourceSummary[];
   compact?: boolean;
+  /** Where "Test this work" goes for one tool's calls; omitted where no action belongs. */
+  testHref?: ((adapterId: string) => string) | undefined;
 }) {
   const usage = sources.filter((source) => source.role === "usage" && source.events > 0);
   const total = usage.reduce((sum, source) => sum + source.events, 0);
@@ -211,6 +215,16 @@ export function ToolSplit({
             <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
               {count(source.events)} · {percent(source.events / total)}
             </span>
+            {testHref === undefined ? null : (
+              <Link
+                className="inline-flex min-h-11 shrink-0 items-center text-xs text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0 sm:pt-1"
+                href={testHref(source.adapterId)}
+                aria-label={`Test the ${source.name} work against a plan or API`}
+                data-testid={`test-tool-${source.adapterId}`}
+              >
+                Test this work →
+              </Link>
+            )}
           </li>
         ))}
       </ul>
@@ -329,7 +343,7 @@ export function CurrentSpend({
         )}
         <fieldset className="grid max-h-56 min-w-0 gap-x-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
           <legend className="mb-1 text-xs text-muted-foreground">
-            Mark every plan you pay for. Compare uses the same list.
+            Mark every plan you pay for. Compare and Settings use the same list.
           </legend>
           {plans.map((plan) => (
             <label key={plan.id} className="flex min-h-11 items-center gap-2 sm:min-h-9">
@@ -360,10 +374,13 @@ export function ReadyPreview({
   importId,
   profile,
   sources,
+  afterScope,
 }: {
   importId: string;
   profile: WorkloadProfile;
   sources: readonly SourceSummary[];
+  /** Anything that qualifies the value's scope, such as a partial scan. */
+  afterScope?: ReactNode;
 }) {
   const workloadHref = `/app/workload?import=${importId}`;
   return (
@@ -374,11 +391,14 @@ export function ReadyPreview({
     >
       <div className="flex min-w-0 flex-col gap-3">
         {profile.value === undefined ? (
-          <p className="text-sm text-muted-foreground" role="status">
-            Pricing each maker&apos;s calls at its own published API rates, in this browser…
-          </p>
+          <>
+            <p className="text-sm text-muted-foreground" role="status">
+              Pricing each maker&apos;s calls at its own published API rates, in this browser…
+            </p>
+            {afterScope}
+          </>
         ) : (
-          <WorkloadValueFigure compact value={profile.value} />
+          <WorkloadValueFigure afterScope={afterScope} compact value={profile.value} />
         )}
         <InsightList
           evidenceHref={(section) => `${workloadHref}#${section}`}

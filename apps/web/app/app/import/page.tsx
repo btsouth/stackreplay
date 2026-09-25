@@ -19,7 +19,7 @@ export default async function ImportPage({
     <>
       <PageHeader
         title="Import"
-        description="Select a workload and review the usage StackReplay can establish."
+        description="Turn the AI coding history already on this computer into a workload. It is read in this browser and never uploaded."
       />
       <ImportSurface initialImports={[]} initialTarget={target} />
     </>

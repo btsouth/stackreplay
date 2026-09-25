@@ -552,16 +552,7 @@ export function ImportSurface({
         {scanActive && imports.length > 0 ? (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>To stop this scan, use Cancel scan above.</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-negative"
-              data-testid="clear-local-data"
-              onClick={() => void clearAll()}
-            >
-              Clear all local data
-            </Button>
+            <ClearAllControl count={imports.length} onConfirm={() => void clearAll()} />
           </div>
         ) : null}
         <div ref={feedbackAnchorRef} className="scroll-mt-20" />
@@ -723,8 +714,10 @@ export function ImportSurface({
           data-testid="import-dropzone"
           data-drag-active={dragActive ? "true" : "false"}
           className={[
-            "order-2 border border-dashed p-5 transition-colors sm:p-6",
-            dragActive ? "border-accent bg-surface-2" : "border-border-strong bg-transparent",
+            "order-2 transition-colors",
+            dragActive
+              ? "border border-dashed border-accent bg-surface-2 p-5 sm:p-6"
+              : "border-t border-border bg-transparent pt-5",
           ].join(" ")}
         >
           <div className="flex flex-col gap-4">
@@ -876,7 +869,7 @@ export function ImportSurface({
         <div className="flex min-w-0 flex-col gap-5">
           {showIntro ? (
             <section
-              className="border-y border-border-strong py-4"
+              className={`border-y border-border-strong py-4 ${imports.length > 0 ? "order-2" : ""}`}
               data-testid="privacy-boundary"
               aria-label="Local scan privacy boundary"
             >
@@ -908,144 +901,197 @@ export function ImportSurface({
               </div>
             </section>
           ) : null}
-          <Card>
-            <CardContent className="flex flex-col gap-4 p-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 className="text-sm font-medium">Local workloads</h2>
-                {imports.length > 0 ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    data-testid="clear-local-data"
-                    onClick={() => void clearAll()}
-                  >
-                    Clear all local data
-                  </Button>
-                ) : null}
+          <section
+            aria-labelledby="saved-workloads-heading"
+            className={`order-1 flex flex-col gap-3 ${imports.length > 0 || !showIntro ? "border-t border-border-strong pt-4" : "pt-1"}`}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 id="saved-workloads-heading" className="text-sm font-medium">
+                Saved workloads
+              </h2>
+              {imports.length > 0 ? (
+                <ClearAllControl count={imports.length} onConfirm={() => void clearAll()} />
+              ) : null}
+            </div>
+            {importsState === "loading" ? (
+              <p
+                className="text-xs text-muted-foreground"
+                role="status"
+                data-testid="stored-imports-loading"
+              >
+                Looking up local workloads…
+              </p>
+            ) : importsState === "error" ? (
+              <div
+                role="alert"
+                className="flex flex-col items-start gap-2 border-l-2 border-warning pl-3 text-xs"
+              >
+                <p>Local workloads could not be read from this browser.</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void refreshImports()}
+                >
+                  Try again
+                </Button>
               </div>
-              {importsState === "loading" ? (
-                <p
-                  className="text-xs text-muted-foreground"
-                  role="status"
-                  data-testid="stored-imports-loading"
-                >
-                  Looking up local workloads…
-                </p>
-              ) : importsState === "error" ? (
-                <div
-                  role="alert"
-                  className="flex flex-col items-start gap-2 border-l-2 border-warning pl-3 text-xs"
-                >
-                  <p>Local workloads could not be read from this browser.</p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void refreshImports()}
-                  >
-                    Try again
-                  </Button>
-                </div>
-              ) : imports.length === 0 ? (
-                <p className="text-xs text-muted-foreground" data-testid="no-stored-imports">
-                  No workloads stored yet.
-                </p>
-              ) : (
-                <ul className="flex flex-col divide-y divide-border" data-testid="stored-imports">
-                  {imports.map((entry, index) => (
-                    <li key={entry.id} className="flex min-w-0 flex-col gap-3 py-4">
-                      <div className="min-w-0">
-                        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 break-words text-sm font-medium [overflow-wrap:anywhere]">
-                          <span>{entry.label}</span>
-                          {index === 0 ? (
-                            <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
-                              Latest
-                            </span>
-                          ) : null}
-                        </p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {entry.eventCount.toLocaleString("en-US")}{" "}
-                          {entry.eventCount === 1 ? "call" : "calls"}
-                          {savedDateRange(entry) === undefined ? "" : ` · ${savedDateRange(entry)}`}
-                        </p>
-                        <p className="mt-0.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
-                          {entry.savedLocally === false ? "Temporary" : "Saved"}{" "}
-                          {new Date(entry.createdAt).toLocaleString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                      <div
-                        className="flex flex-wrap items-center gap-x-4 gap-y-2"
-                        data-testid="stored-import-actions"
+            ) : imports.length === 0 ? (
+              <p className="text-xs text-muted-foreground" data-testid="no-stored-imports">
+                No workloads stored yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-border" data-testid="stored-imports">
+                {imports.map((entry, index) => (
+                  <li key={entry.id} className="flex min-w-0 flex-col gap-3 py-4">
+                    <div className="min-w-0">
+                      <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 break-words text-sm font-medium [overflow-wrap:anywhere]">
+                        <span>{entry.label}</span>
+                        {index === 0 ? (
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                            Latest
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {entry.eventCount.toLocaleString("en-US")}{" "}
+                        {entry.eventCount === 1 ? "call" : "calls"}
+                        {savedDateRange(entry) === undefined ? "" : ` · ${savedDateRange(entry)}`}
+                      </p>
+                      <p className="mt-0.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                        {entry.savedLocally === false ? "Temporary" : "Saved"}{" "}
+                        {new Date(entry.createdAt).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <div
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2"
+                      data-testid="stored-import-actions"
+                    >
+                      <Link
+                        href={`/app/workload?import=${entry.id}`}
+                        data-testid={`open-import-${entry.id}`}
+                        className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
                       >
-                        <Link
-                          href={`/app/workload?import=${entry.id}`}
-                          data-testid={`open-import-${entry.id}`}
-                          className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
-                        >
-                          Open workload
-                        </Link>
-                        <Link
-                          href={replayHref(entry.id, initialTarget)}
-                          aria-label={`Replay ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
-                          className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
-                        >
-                          Replay
-                        </Link>
+                        Open workload
+                      </Link>
+                      <Link
+                        href={replayHref(entry.id, initialTarget)}
+                        aria-label={`Replay ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
+                        className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
+                      >
+                        Replay
+                      </Link>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="min-h-11 sm:min-h-0"
+                        aria-label={`Export ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
+                        onClick={() => void exportWorkload(entry.id)}
+                      >
+                        Export
+                      </Button>
+                      <details
+                        className="group text-xs text-muted-foreground"
+                        data-testid={`delete-menu-${entry.id}`}
+                      >
+                        <summary className="min-h-11 cursor-pointer content-center sm:min-h-0">
+                          More
+                        </summary>
+                        <p className="py-1 font-mono text-[11px] text-muted-foreground">
+                          Snapshot {entry.id.slice(0, 6)}
+                        </p>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="min-h-11 sm:min-h-0"
-                          aria-label={`Export ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
-                          onClick={() => void exportWorkload(entry.id)}
+                          className="text-negative"
+                          data-testid={`delete-import-${entry.id}`}
+                          aria-label={`Delete snapshot ${entry.id.slice(0, 6)} of ${entry.label}`}
+                          onClick={() => void removeImport(entry.id)}
                         >
-                          Export
+                          Delete snapshot
                         </Button>
-                        <details
-                          className="group text-xs text-muted-foreground"
-                          data-testid={`delete-menu-${entry.id}`}
-                        >
-                          <summary className="min-h-11 cursor-pointer content-center sm:min-h-0">
-                            More
-                          </summary>
-                          <p className="py-1 font-mono text-[11px] text-muted-foreground">
-                            Snapshot {entry.id.slice(0, 6)}
-                          </p>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-negative"
-                            data-testid={`delete-import-${entry.id}`}
-                            aria-label={`Delete snapshot ${entry.id.slice(0, 6)} of ${entry.label}`}
-                            onClick={() => void removeImport(entry.id)}
-                          >
-                            Delete snapshot
-                          </Button>
-                        </details>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {importsState === "loaded" && imports.length > 1 ? (
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Each build is a separate local snapshot. Similar counts do not prove identical
-                  calls, so snapshots are never merged by appearance.
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
+                      </details>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {importsState === "loaded" && imports.length > 1 ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Each build is a separate local snapshot. Similar counts do not prove identical
+                calls, so snapshots are never merged by appearance.
+              </p>
+            ) : null}
+          </section>
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Clearing every saved workload cannot be undone, so it asks once, in place,
+ * and names what goes.
+ */
+function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () => void }) {
+  const [asking, setAsking] = useState(false);
+  if (!asking)
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="min-h-11 sm:min-h-0"
+        data-testid="clear-local-data"
+        onClick={() => setAsking(true)}
+      >
+        Clear all local data
+      </Button>
+    );
+  return (
+    <fieldset
+      aria-label="Confirm clearing local data"
+      className="m-0 flex w-full min-w-0 flex-wrap items-center gap-2 border-0 border-l-2 border-negative py-1 pl-3 text-xs"
+      data-testid="clear-local-data-confirmation"
+    >
+      <span className="basis-full text-foreground">
+        Delete{" "}
+        {count === 1
+          ? "the saved workload"
+          : `all ${count.toLocaleString("en-US")} saved workloads`}{" "}
+        and remembered folders from this browser? This cannot be undone.
+      </span>
+      <Button
+        type="button"
+        variant="destructive"
+        size="sm"
+        className="min-h-11 sm:min-h-0"
+        data-testid="clear-local-data-confirm"
+        onClick={() => {
+          setAsking(false);
+          onConfirm();
+        }}
+      >
+        Delete everything
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="min-h-11 sm:min-h-0"
+        onClick={() => setAsking(false)}
+      >
+        Keep my workloads
+      </Button>
+    </fieldset>
   );
 }
 
@@ -1107,52 +1153,58 @@ function ReadyDetails({
   initialTarget?: string | undefined;
   skippedCount: number;
 }) {
+  // An incomplete source file qualifies the value, so it sits with it.
+  const partialScan = (
+    <PartialScanNotice
+      record={record}
+      action={
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={onRescan}
+          disabled={busy}
+          data-testid="rescan"
+        >
+          Rescan
+        </Button>
+      }
+    />
+  );
   return (
     <div className="mt-5 flex min-w-0 flex-col gap-5">
-      {profile === undefined ? null : (
+      {profile === undefined ? (
+        partialScan
+      ) : (
         <ReadyPreview
+          afterScope={partialScan}
           importId={record.id}
           profile={profile}
           sources={record.summary.usageSources}
         />
       )}
-      <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
-        {record.label} ·{" "}
-        {record.savedLocally === false
-          ? "scan results available until reload"
-          : "saved on this browser"}
-      </p>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <Link
           href={`/app/workload?import=${record.id}`}
           data-testid="open-workload"
           className={buttonVariants({ size: "lg" })}
         >
-          See how you use AI →
+          Open workload →
         </Link>
         <Link
           href={replayHref(record.id, initialTarget)}
           data-testid="continue-to-replay"
-          className={buttonVariants({ variant: "secondary", size: "lg" })}
+          className="inline-flex min-h-11 items-center text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
         >
-          Replay this workload
+          Or test it against a plan in Replay
         </Link>
       </div>
-      <PartialScanNotice
-        record={record}
-        action={
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={onRescan}
-            disabled={busy}
-            data-testid="rescan"
-          >
-            Rescan
-          </Button>
-        }
-      />
+      <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+        {record.label} ·{" "}
+        {record.savedLocally === false
+          ? "scan results available until reload"
+          : "saved on this browser"}
+      </p>
       {record.savedLocally === false ? (
         <p
           className="border-l-2 border-warning bg-surface-2 px-3 py-2.5 text-sm leading-relaxed"
@@ -1167,38 +1219,45 @@ function ReadyDetails({
             : "You chose not to save this workload, so it is available only until the page reloads."}
         </p>
       ) : null}
-      <ImportSummaryGrid compact record={record} />
-      {record.intake !== undefined ? (
-        <div
-          className="grid gap-3 border-y border-border py-4 text-sm sm:grid-cols-3"
-          data-testid="detected-sources"
-        >
-          <div>
-            <p className="text-xs text-muted-foreground">Detected sources</p>
-            <p className="mt-1 font-medium">
-              {[
-                ...new Set(
-                  record.intake.outcomes
-                    .filter((item) => item.status === "imported")
-                    .map((item) => item.source ?? "Source"),
-                ),
-              ].join(" · ") || "Portable workload"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Files skipped or unsupported</p>
-            <p className="mt-1 font-medium">{skippedCount.toLocaleString("en-US")}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Evidence</p>
-            <p className="mt-1 font-medium">
-              {record.summary.tokens.unknownEvents > 0
-                ? `${record.summary.tokens.unknownEvents.toLocaleString("en-US")} included calls have unknown usage`
-                : "Token totals known for included calls"}
-            </p>
-          </div>
+      <details className="min-w-0 border-t border-border pt-3" data-testid="scan-details">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
+          Scan details: sources and token categories
+        </summary>
+        <div className="mt-4 flex min-w-0 flex-col gap-5">
+          <ImportSummaryGrid compact record={record} />
+          {record.intake !== undefined ? (
+            <div
+              className="grid gap-3 border-y border-border py-4 text-sm sm:grid-cols-3"
+              data-testid="detected-sources"
+            >
+              <div>
+                <p className="text-xs text-muted-foreground">Detected sources</p>
+                <p className="mt-1 font-medium">
+                  {[
+                    ...new Set(
+                      record.intake.outcomes
+                        .filter((item) => item.status === "imported")
+                        .map((item) => item.source ?? "Source"),
+                    ),
+                  ].join(" · ") || "Portable workload"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Files skipped or unsupported</p>
+                <p className="mt-1 font-medium">{skippedCount.toLocaleString("en-US")}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Evidence</p>
+                <p className="mt-1 font-medium">
+                  {record.summary.tokens.unknownEvents > 0
+                    ? `${record.summary.tokens.unknownEvents.toLocaleString("en-US")} included calls have unknown usage`
+                    : "Token totals known for included calls"}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </details>
       {record.intake !== undefined ? (
         <details data-testid="intake-review" className="border-b border-border pb-4">
           <summary className="min-h-11 content-center cursor-pointer text-xs font-medium uppercase tracking-wide focus-visible:outline-2 focus-visible:outline-ring">

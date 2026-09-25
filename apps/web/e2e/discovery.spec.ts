@@ -362,6 +362,7 @@ test("connected histories are remembered by name and refresh asks for the folder
 
   // Clearing local data forgets them too.
   await page.getByTestId("clear-local-data").click();
+  await page.getByTestId("clear-local-data-confirm").click();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("connected-histories")).toHaveCount(0);
