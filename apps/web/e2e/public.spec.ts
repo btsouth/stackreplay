@@ -15,7 +15,7 @@ import { captureRequests, createShareToken, importDemo, runReplay } from "./help
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Replay before you switch." },
+  { path: "/", heading: "Your AI coding history, measured." },
   { path: "/plans", heading: "Plans" },
   { path: "/models", heading: "Models" },
   { path: "/compare", heading: "Compare plans" },

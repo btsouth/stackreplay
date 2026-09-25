@@ -438,7 +438,7 @@ export function heroTargetView(hero: HeroWorkload, target: HeroTarget): HeroTarg
     crossed: false,
     result: {
       status: [
-        { text: translated ? "Models translated" : "Models mapped", tone: "signal" },
+        { text: translated ? "Models translated" : "Models offered", tone: "signal" },
         { text: "Capacity not published", tone: "open" },
       ],
       figure: {
@@ -449,7 +449,7 @@ export function heroTargetView(hero: HeroWorkload, target: HeroTarget): HeroTarg
       caption: "fixed plan price",
       sentence: translated
         ? `${target.label} does not run the recorded models. Under the mapping shown, all ${replayed} events route to ${mapping.map((row) => row.to).join(" and ")}. ${target.provider} publishes no numeric allowance, so whether this demand fits cannot be established.`
-        : `All ${recordedModels} recorded models run on ${target.label}. ${target.provider} publishes no numeric allowance, so whether ${replayed} events fit cannot be established.`,
+        : `${target.label} offers all ${recordedModels} recorded models. ${target.provider} publishes no numeric allowance, so whether ${replayed} events fit cannot be established.`,
       ledger: [
         translated
           ? {
