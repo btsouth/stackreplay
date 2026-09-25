@@ -484,7 +484,7 @@ test.describe("share links", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/u);
   });
 
-  test("creating a share link in the app uploads nothing and re-reads in public", async ({
+  test("creating a share link uploads only its aggregate token and re-reads in public", async ({
     page,
   }) => {
     const requests = captureRequests(page);
@@ -508,11 +508,15 @@ test.describe("share links", () => {
       );
     } else throw new Error("expected a V2 replay snapshot");
 
+    // The one upload is the aggregate token itself, to the share store.
     const uploads = requests.filter(
       (request) =>
         request.method !== "GET" && !request.url.includes("_next") && !request.url.includes("/s/"),
     );
-    expect(uploads, "creating a share link must not send a request").toEqual([]);
+    expect(uploads.map((request) => `${request.method} ${new URL(request.url).pathname}`)).toEqual([
+      "POST /api/share",
+    ]);
+    expect(JSON.parse(uploads[0]?.body ?? "{}")).toEqual({ token });
 
     await page.getByTestId("share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();

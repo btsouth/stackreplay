@@ -141,11 +141,31 @@ export async function expectNoConsoleErrors(page: Page, run: () => Promise<void>
   expect(errors).toEqual([]);
 }
 
-/** Creates a share link from the visible share panel and returns its token. */
-export async function createShareToken(page: Page): Promise<string> {
+/**
+ * Creates a short share link from the visible share panel. Returns the short
+ * id, the URL shown, and the aggregate token the browser uploaded (read from
+ * the request itself, so a test sees exactly what left the page).
+ */
+export async function createShareLink(
+  page: Page,
+): Promise<{ id: string; token: string; url: string; body: unknown }> {
   const panel = page.getByTestId("share-panel");
+  const upload = page.waitForRequest(
+    (request) => request.method() === "POST" && new URL(request.url()).pathname === "/api/share",
+  );
   await panel.getByTestId("share-create").click();
+  const body = (await upload).postDataJSON() as { token?: unknown };
   await expect(panel.getByTestId("share-open")).toBeVisible();
-  const url = (await panel.getByTestId("share-url").textContent()) ?? "";
-  return url.split("/s/")[1]?.trim() ?? "";
+  const url = ((await panel.getByTestId("share-url").textContent()) ?? "").trim();
+  return {
+    id: url.split("/s/")[1] ?? "",
+    token: typeof body.token === "string" ? body.token : "",
+    url,
+    body,
+  };
+}
+
+/** Creates a share link and returns the aggregate token it stores (a self-contained link path). */
+export async function createShareToken(page: Page): Promise<string> {
+  return (await createShareLink(page)).token;
 }

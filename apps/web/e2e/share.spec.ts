@@ -97,5 +97,5 @@ test("the panel offers the image and a suggested post once a link exists", async
   await expect(page.getByTestId("share-post-text")).toContainText(
     "StackReplay replayed my recorded AI coding work against",
   );
-  await expect(page.getByTestId("share-post-text")).toContainText("/s/2.");
+  await expect(page.getByTestId("share-post-text")).toContainText(/\/s\/[A-Za-z0-9_-]{22}\b/u);
 });

@@ -2,15 +2,18 @@ import { type AnyShareSnapshot, decodeAnyShareToken } from "@stackreplay/share";
 import { ImageResponse } from "next/og";
 import { shareImageFonts } from "@/lib/og-fonts";
 import { WORDMARK_DARK } from "@/lib/og-wordmark";
+import { resolveShareParam } from "@/lib/share-link-store";
 import { presentShare, type SharePresentation } from "@/lib/share-presentation";
 
 /**
  * The social image for one share link (decision 61).
  *
- * Stateless like the link: the token in the path is decoded and validated
- * here, and the image is drawn from its aggregate snapshot through the same
+ * The path names a short-link id (its stored token is read from the share
+ * store) or a self-contained token. The token is decoded and validated here,
+ * and the image is drawn from its aggregate snapshot through the same
  * presentation the public page renders, so the image says what the page says.
- * A token is content-addressed, so the image never changes for a given URL.
+ * Neither a token nor a stored link ever changes, so the image never changes
+ * for a given URL.
  */
 
 const INK = "#eef1f6";
@@ -220,8 +223,12 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ token: string }> },
 ): Promise<Response> {
-  const { token } = await params;
-  const decoded = await decodeAnyShareToken(token);
+  const { token: param } = await params;
+  const resolved = await resolveShareParam(param);
+  const decoded =
+    resolved.kind === "token"
+      ? await decodeAnyShareToken(resolved.token)
+      : ({ ok: false } as const);
   const presentation = !decoded.ok
     ? undefined
     : decoded.snapshot.version === 2

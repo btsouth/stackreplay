@@ -1181,3 +1181,28 @@ value read "3,199 of 3,200 calls (100.0%)" while leaving out 64% of known demand
   priced ones. `composeValueScope` states the call scope with `partOfWhole`, which never rounds an
   incomplete part to 100%, and, when calls are left out, the share of known processed tokens they
   carry. The token share is a materiality measure, never a share of dollars.
+
+## 63. Short share links store the aggregate share token, and nothing else
+
+A self-contained link (`/s/<token>`, decision 32) carries its whole snapshot in the URL, which made
+public links hundreds of characters long. Short links replace them in the product:
+
+- **What is stored.** When the person chooses Create share link, the browser builds the same
+  canonical V2 share token a self-contained link carries and sends it, and only it, to
+  `POST /api/share`. The server stores `{ version, token, createdAt }` under a 128-bit random id in
+  the `SHARE_LINKS` Workers KV namespace, and the link becomes `/s/<22-character id>`. No other
+  field exists: raw history, prompts, responses, code, paths, project names and session or call
+  records have no place in the V2 schema, and nothing is stored before the person asks.
+- **The server trusts nothing it is sent.** The token is decoded with the same bounded,
+  checksummed, strict-schema reader the public page uses; forbidden field names are refused; any
+  string that looks like a local path or file name is refused; the stored copy is re-encoded from
+  the parsed snapshot, so it is the canonical encoding whatever bytes arrived. Requests must be
+  same-origin JSON of one token, and creation is rate-limited per client.
+- **Reading.** `/s/<id>` and `/s/<id>/image` read the stored token and render it exactly as a
+  self-contained link renders. An unknown id is a friendly "does not exist" page. Every earlier
+  V1 and V2 self-contained link keeps working unchanged, and if the store cannot be reached when a
+  link is created, the panel offers the self-contained link instead.
+- **Runtimes.** Production and branch previews use separate KV namespaces (`stackreplay-shares`,
+  `stackreplay-shares-preview`). The Node server the end-to-end suite runs keeps links in process
+  memory; a Workers deployment without the binding reports short links unavailable rather than
+  falling back.

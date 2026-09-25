@@ -9,7 +9,33 @@
     "not_found_handling": "none",
     "binding": "ASSETS"
   },
-  // Required by `wrangler preview`, which Workers Builds runs for non-production
-  // branches. Empty: a preview needs no settings beyond the top level.
-  "previews": {}
+  // Short share links: each value is one aggregate V2 share token, stored only
+  // when someone chooses Create share link (app/api/share/route.ts).
+  "kv_namespaces": [
+    {
+      "binding": "SHARE_LINKS",
+      "id": "d004e20672704962939402e0fbed353c",
+      "preview_id": "a300dac18bb94c3abd30de2c94feba58"
+    }
+  ],
+  // Bounds how fast one client can create links; reads are unlimited.
+  "ratelimits": [
+    {
+      "name": "SHARE_CREATE_LIMIT",
+      "namespace_id": "4401",
+      "simple": { "limit": 20, "period": 60 }
+    }
+  ],
+  // Used by `wrangler preview`, which Workers Builds runs for non-production
+  // branches. Previews write to their own namespace, never production's.
+  "previews": {
+    "kv_namespaces": [{ "binding": "SHARE_LINKS", "id": "a300dac18bb94c3abd30de2c94feba58" }],
+    "ratelimits": [
+      {
+        "name": "SHARE_CREATE_LIMIT",
+        "namespace_id": "4402",
+        "simple": { "limit": 20, "period": 60 }
+      }
+    ]
+  }
 }

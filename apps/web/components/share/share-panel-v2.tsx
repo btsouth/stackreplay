@@ -11,10 +11,31 @@ import type { ShareOptions } from "@/lib/share-v2";
  * Share panel (decision 61).
  *
  * The preview comes first: the person sees exactly what a stranger will see
- * before any link exists. The link is built in this browser from the result in
- * memory; nothing is sent anywhere to create it. The raw URL, which is long,
- * waits behind "Show link".
+ * before any link exists. Create share link builds the aggregate share token in
+ * this browser from the result in memory, and that token is the only thing
+ * uploaded: the server stores it under a short random id. If that upload
+ * fails, the long self-contained link (the token itself in the URL) is offered
+ * instead, so sharing never depends on the store.
  */
+
+interface ShareLink {
+  /** The canonical V2 share token: what the preview shows, and all that is uploaded. */
+  token: string;
+  /** The short-link id, once the token is stored. */
+  id?: string;
+}
+
+async function storeShareToken(token: string): Promise<string> {
+  const response = await fetch("/api/share", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  const body = (await response.json().catch(() => ({}))) as { id?: unknown; error?: unknown };
+  if (!response.ok || typeof body.id !== "string")
+    throw new Error(typeof body.error === "string" ? body.error : `status ${response.status}`);
+  return body.id;
+}
 export function SharePanelV2({
   kind,
   build,
@@ -33,7 +54,10 @@ export function SharePanelV2({
     includeSessions: false,
     includeTimes: false,
   });
-  const [token, setToken] = useState<string | undefined>(undefined);
+  const [link, setLink] = useState<ShareLink | undefined>(undefined);
+  const [creating, setCreating] = useState(false);
+  /** A token built but not stored: offered as a self-contained link. */
+  const [unstored, setUnstored] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const snapshot = useMemo(
@@ -41,29 +65,40 @@ export function SharePanelV2({
     [build, options, refusal],
   );
   const origin = siteUrl ?? (typeof window === "undefined" ? "" : window.location.origin);
-  const url = token === undefined ? undefined : `${origin}/s/${token}`;
+  const url = link === undefined ? undefined : `${origin}/s/${link.id ?? link.token}`;
 
   const choose = (key: keyof ShareOptions, value: boolean) => {
     setOptions((current) => ({ ...current, [key]: value }));
-    setToken(undefined);
+    setLink(undefined);
+    setUnstored(undefined);
+    setError(undefined);
     setStatus(undefined);
   };
 
-  async function ensureToken(): Promise<string | undefined> {
-    if (token !== undefined) return token;
-    if (snapshot === undefined) return undefined;
+  async function createLink(): Promise<void> {
+    if (link !== undefined || snapshot === undefined) return;
     setError(undefined);
+    setUnstored(undefined);
+    setCreating(true);
+    let token: string;
     try {
-      const next = await encodeShareTokenV2(snapshot);
-      setToken(next);
-      return next;
+      token = await encodeShareTokenV2(snapshot);
     } catch (cause) {
       setError(
         cause instanceof Error
           ? `The link could not be built: ${cause.message}`
           : "The link could not be built.",
       );
-      return undefined;
+      setCreating(false);
+      return;
+    }
+    try {
+      setLink({ token, id: await storeShareToken(token) });
+    } catch {
+      setUnstored(token);
+      setError("A short link could not be created right now.");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -77,11 +112,11 @@ export function SharePanelV2({
   }
 
   async function downloadImage() {
-    const next = await ensureToken();
-    if (next === undefined) return;
+    if (link === undefined) return;
     setStatus("Drawing the image…");
     try {
-      const response = await fetch(`/s/${next}/image`);
+      // Drawn from the token itself, so the image never depends on the store.
+      const response = await fetch(`/s/${link.token}/image`);
       if (!response.ok) throw new Error(`status ${response.status}`);
       const blob = await response.blob();
       const href = URL.createObjectURL(blob);
@@ -106,14 +141,13 @@ export function SharePanelV2({
         <h2 id="share-heading" className="text-sm font-medium text-foreground">
           {kind === "replay" ? "Share this result" : "Share this workload"}
         </h2>
-        <p className="max-w-prose text-xs text-muted-foreground">
-          A link carries the result inside the URL, so it needs no account and no server copy. It
-          holds aggregate numbers only: never individual calls or sessions, project names, prompts,
-          responses, code, file names or paths.
+        <p className="max-w-prose text-xs text-muted-foreground" data-testid="share-upload-note">
+          Only the aggregate result shown in this preview is uploaded when you create a public link.
+          Your raw history stays on this device.
         </p>
-        <p className="text-xs text-muted-foreground" data-testid="share-disclosure">
-          Anyone with this link can read the aggregate numbers it contains. The link is not
-          encrypted.
+        <p className="max-w-prose text-xs text-muted-foreground" data-testid="share-disclosure">
+          Anyone with the link can see this result. It never includes individual calls or sessions,
+          project names, prompts, responses, code, file names or paths.
         </p>
         {refusal === undefined ? null : (
           <p className="text-xs text-warning" data-testid="share-refused">
@@ -176,14 +210,29 @@ export function SharePanelV2({
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-3">
-        {token === undefined ? (
-          <Button
-            data-testid="share-create"
-            disabled={snapshot === undefined}
-            onClick={() => void ensureToken()}
-          >
-            Create share link
-          </Button>
+        {link === undefined ? (
+          <>
+            <Button
+              data-testid="share-create"
+              disabled={snapshot === undefined || creating}
+              onClick={() => void createLink()}
+            >
+              {creating ? "Creating link…" : "Create share link"}
+            </Button>
+            {unstored === undefined ? null : (
+              <Button
+                data-testid="share-use-long-link"
+                onClick={() => {
+                  setLink({ token: unstored });
+                  setError(undefined);
+                  setStatus("This link carries the result in the URL; nothing was uploaded.");
+                }}
+                variant="secondary"
+              >
+                Use a self-contained link instead
+              </Button>
+            )}
+          </>
         ) : (
           <>
             <Button
@@ -216,7 +265,7 @@ export function SharePanelV2({
           </>
         )}
       </div>
-      {token === undefined || url === undefined || snapshot === undefined ? null : (
+      {link === undefined || url === undefined || snapshot === undefined ? null : (
         <details className="min-w-0" data-testid="share-show-link">
           <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
             Show link · {url.length.toLocaleString("en-US")} characters
@@ -236,8 +285,8 @@ export function SharePanelV2({
         </details>
       )}
       <p className="max-w-prose text-[11px] text-muted-foreground">
-        Download PNG draws the image on this site from the link&apos;s own aggregate data, the same
-        way a social preview is drawn.
+        Download PNG draws the image on this site from the same aggregate result, the way a social
+        preview is drawn.
       </p>
       {status === undefined ? null : (
         <p className="text-xs text-muted-foreground" role="status">
