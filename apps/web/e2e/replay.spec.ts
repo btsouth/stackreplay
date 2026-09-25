@@ -551,19 +551,22 @@ test("the share panel discloses what a link reveals before one is created", asyn
 
   const panel = page.getByTestId("share-panel");
   await expect(panel).toBeVisible();
-  // Creation-time disclosure: possession of the URL is access, and the payload is not
-  // encrypted. It must not read as a security guarantee.
-  await expect(page.getByTestId("share-disclosure")).toHaveText(
-    /Anyone with this link can read the aggregate numbers it contains\. The link is not encrypted\./u,
+  // Creation-time disclosure: what is uploaded, and that possession of the URL
+  // is access. It must not read as a security guarantee.
+  await expect(page.getByTestId("share-upload-note")).toHaveText(
+    "Only the aggregate result shown in this preview is uploaded when you create a public link. Your raw history stays on this device.",
+  );
+  await expect(page.getByTestId("share-disclosure")).toContainText(
+    "Anyone with the link can see this result.",
   );
   await expect(panel).not.toContainText(/tamper-proof|authenticat|signed|verif/u);
 
   await panel.getByTestId("share-create").click();
   await expect(page.getByTestId("share-open")).toBeVisible();
-  // The long raw URL waits behind "Show link".
+  // The short URL waits behind "Show link".
   const url = page.getByTestId("share-url");
   await expect(url).toBeHidden();
   await page.getByTestId("share-show-link").locator(":scope > summary").click();
   await expect(url).toBeVisible();
-  expect(await url.textContent()).toContain("/s/2.");
+  expect(await url.textContent()).toMatch(/\/s\/[A-Za-z0-9_-]{22}$/u);
 });

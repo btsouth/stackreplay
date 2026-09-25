@@ -6,6 +6,7 @@ import { formatUnit } from "@/components/instrument/format";
 import { ShareCard } from "@/components/share/share-card";
 import { ShareCardV2 } from "@/components/share/share-card-v2";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { resolveShareParam } from "@/lib/share-link-store";
 import { presentShare } from "@/lib/share-presentation";
 import { describeShareTruncation } from "@/lib/share-truncation";
 import { brandAssets, siteName } from "@/lib/site";
@@ -13,19 +14,28 @@ import { brandAssets, siteName } from "@/lib/site";
 /**
  * Public share page (M4, decision 32).
  *
- * A share link is stateless: the token in the path carries an aggregate-only
- * snapshot, and this page decodes it, validates it and renders it. There is no
- * lookup, no account and no server copy of anyone's workload. An invalid or
- * tampered token is a normal, friendly state, not an error page.
+ * The path names either a short-link id, whose stored aggregate share token is
+ * read from the share store, or a self-contained token (every link made before
+ * short links). Either way this page decodes the token with the strict share
+ * reader, validates it and renders it. There is no account, and nothing about
+ * anyone's workload beyond that aggregate snapshot is ever stored. An unknown
+ * id or a tampered token is a normal, friendly state, not an error page.
  */
 
 interface SharePageProps {
   params: Promise<{ token: string }>;
 }
 
+/** The token a path names, and the path to link back to. */
+async function tokenOf(param: string): Promise<{ token: string | undefined; path: string }> {
+  const resolved = await resolveShareParam(param);
+  return { token: resolved.kind === "token" ? resolved.token : undefined, path: resolved.path };
+}
+
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
-  const { token } = await params;
-  const decoded = await decodeAnyShareToken(token);
+  const { token: param } = await params;
+  const { token, path } = await tokenOf(param);
+  const decoded = token === undefined ? ({ ok: false } as const) : await decodeAnyShareToken(token);
   if (!decoded.ok) {
     return {
       title: "Shared replay",
@@ -35,7 +45,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
   // Every link has its own image, drawn from its own snapshot.
   const image = {
-    url: `/s/${token}/image`,
+    url: `${path}/image`,
     width: 1200,
     height: 630,
     alt: `${siteName} result`,
@@ -51,7 +61,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     return {
       title,
       description,
-      alternates: { canonical: `/s/${token}` },
+      alternates: { canonical: path },
       robots: { index: false, follow: false },
       openGraph: { title, description, images: [image] },
       twitter: { card: "summary_large_image", title, description, images: [image.url] },
@@ -64,7 +74,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   return {
     title: `${snapshot.workload.eventCount.toLocaleString("en-US")} events replayed against ${snapshot.target.planName}`,
     description: `Aggregate replay result: ${snapshot.constraints.length} documented limits checked, ${exceeded} exceeded, confidence ${snapshot.confidence.level}. Aggregate data only.`,
-    alternates: { canonical: `/s/${token}` },
+    alternates: { canonical: path },
     openGraph: {
       title: `${snapshot.target.planName}: ${snapshot.workload.eventCount.toLocaleString("en-US")} events replayed`,
       description: `${exceeded} of ${snapshot.constraints.length} documented limits exceeded. Aggregate data only.`,
@@ -75,8 +85,11 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
 }
 
 export default async function SharePage({ params }: SharePageProps) {
-  const { token } = await params;
-  const decoded = await decodeAnyShareToken(token);
+  const { token: param } = await params;
+  const resolved = await resolveShareParam(param);
+  if (resolved.kind !== "token")
+    return <ShareLinkMissing unavailable={resolved.kind === "unavailable"} />;
+  const decoded = await decodeAnyShareToken(resolved.token);
 
   if (!decoded.ok) {
     return (
@@ -90,8 +103,7 @@ export default async function SharePage({ params }: SharePageProps) {
               : "The link is incomplete or not a StackReplay share link."}
         </p>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          A share link carries the whole result inside the URL, so a truncated or edited link cannot
-          be repaired by reloading. Ask for a fresh link, or{" "}
+          A truncated or edited link cannot be repaired by reloading. Ask for a fresh link, or{" "}
           <Link className="text-accent underline underline-offset-2" href="/app/import">
             run your own replay
           </Link>
@@ -478,5 +490,39 @@ function SourceWhere({ url }: { url: string }) {
     <span className="ml-2 font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
       {where}
     </span>
+  );
+}
+
+/** A short link whose id this site does not hold, or a store it cannot reach. */
+function ShareLinkMissing({ unavailable }: { unavailable: boolean }) {
+  return (
+    <div
+      className="flex flex-col gap-4 pb-8"
+      data-testid="share-invalid"
+      data-reason={unavailable ? "unavailable" : "missing"}
+    >
+      <h1 className="text-2xl font-semibold text-foreground">
+        {unavailable
+          ? "This share link cannot be opened right now"
+          : "This share link does not exist"}
+      </h1>
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        {unavailable
+          ? "Shared results could not be read at the moment. Try again shortly."
+          : "No shared result has this address. Check that the whole link was copied, or ask for a fresh one."}
+      </p>
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        You can also{" "}
+        <Link className="text-accent underline underline-offset-2" href="/app/import">
+          run your own replay
+        </Link>
+        .
+      </p>
+      <div>
+        <Link className={buttonVariants({ variant: "secondary" })} href="/">
+          Back to {siteName}
+        </Link>
+      </div>
+    </div>
   );
 }
