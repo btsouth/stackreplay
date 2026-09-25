@@ -131,6 +131,84 @@ export function WindowDetail({
   );
 }
 
+/**
+ * Why the heaviest five hours were heavy, in one sentence: how far above a
+ * typical window it ran, and which tool, model and project carried it. Every
+ * figure is the window's own; nothing here is estimated.
+ */
+function PeakExplanation({
+  window,
+  median,
+  measure,
+  timeZone,
+  sourceNames,
+  open,
+  onInspect,
+}: {
+  window: WindowFact;
+  median: number;
+  measure: Measure;
+  timeZone: string;
+  sourceNames?: ReadonlyMap<string, string> | undefined;
+  open: boolean;
+  onInspect: () => void;
+}) {
+  const total = measureValue(window, measure);
+  const amount =
+    measure === "events"
+      ? `${count(window.events)} calls`
+      : `${formatTokens(window.tokens) ?? "0"} known tokens`;
+  const multiple = ratio(total, median);
+  const shareOf = (part: RankedShareLike | undefined) =>
+    part === undefined || total === 0 ? 0 : measureValue(part, measure) / total;
+  const them = measure === "events" ? "those calls" : "those tokens";
+  const tool = window.sources[0];
+  const toolName = tool === undefined ? undefined : (sourceNames?.get(tool.key) ?? tool.label);
+  const model = window.models[0];
+  const project = window.projects[0];
+  const drivers: string[] = [];
+  if (toolName !== undefined)
+    drivers.push(
+      window.sources.length === 1
+        ? `All of ${them} came from ${toolName}.`
+        : `${toolName} made ${percent(shareOf(tool))} of ${them}.`,
+    );
+  if (model !== undefined)
+    drivers.push(
+      window.models.length === 1
+        ? `Every one ran on ${model.label}.`
+        : `The leading model was ${model.label}, at ${percent(shareOf(model))}.`,
+    );
+  if (project !== undefined && window.projects.length > 1)
+    drivers.push(
+      shareOf(project) >= 0.5
+        ? `${percent(shareOf(project))} came from one project, ${project.label}.`
+        : `It was spread across ${count(window.projects.length)} projects.`,
+    );
+  return (
+    <div className="flex max-w-[78ch] flex-col gap-2" data-testid="pressure-why">
+      <p className="text-base leading-relaxed">
+        Your heaviest five hours, {windowText(window.startMs, window.endMs, timeZone)}, held{" "}
+        <strong className="font-semibold tabular-nums">{amount}</strong>
+        {multiple === undefined ? "" : `, ${multiple} a typical active five-hour window`}.{" "}
+        <span className="text-muted-foreground">{drivers.join(" ")}</span>
+      </p>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="pressure-detail-5h"
+        className="min-h-11 self-start text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
+        onClick={onInspect}
+        data-testid="pressure-why-inspect"
+      >
+        {open ? "Close this window" : "Inspect this window →"}
+      </button>
+    </div>
+  );
+}
+
+type RankedShareLike = WindowFact["sources"][number];
+
 /** Calendar windows read as dates; rolling windows as their exact span. */
 function pressureWhen(id: string, startMs: number, endMs: number, timeZone: string): string {
   const day = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(ms));
@@ -156,9 +234,21 @@ export function HistoricalPressure({
   const rows = profile.pressure[measure];
   const [open, setOpen] = useState<string | undefined>(undefined);
   const windows = profile.topWindows[measure];
+  const fiveHours = rows.find((row) => row.id === "5h");
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
+      {fiveHours?.peak === undefined ? null : (
+        <PeakExplanation
+          measure={measure}
+          median={fiveHours.median}
+          onInspect={() => setOpen(open === "5h" ? undefined : "5h")}
+          open={open === "5h"}
+          sourceNames={sourceNames}
+          timeZone={profile.timeZone}
+          window={fiveHours.peak}
+        />
+      )}
       <table className="w-full text-sm" data-testid="pressure-table">
         <caption className="sr-only">Peak recorded {measureNoun(measure)} by window length</caption>
         <thead>

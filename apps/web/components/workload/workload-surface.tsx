@@ -90,15 +90,15 @@ function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: 
     return {
       kind: "Numeric limits",
       title: whole ? `Where ${name} would run out` : `Your ${route.slice.label} work on ${name}`,
-      body: `It runs ${share} of ${yourCalls} and publishes its allowance, so Replay can show whether and when it would have run out.`,
+      body: `It offers the models for ${share} of ${yourCalls} and publishes its allowance, so Replay can show whether and when it would have run out.`,
     };
   return {
     kind: "Translated replay",
-    title: route.target.runnable > 0 ? `Put everything on ${name}` : `Move to ${name}`,
+    title: `Move ${whole ? "this work" : `your ${route.slice.label} work`} to ${name}`,
     body:
       route.target.runnable > 0
-        ? `It runs ${share} of your calls as they are; you choose which of its models take the rest.`
-        : "It runs none of these models as they are; you choose which of its models take your calls.",
+        ? `It offers the models for ${share} of your calls; you choose which of its models take the rest.`
+        : "It offers none of these models; you choose which of its models take your calls.",
   };
 }
 
@@ -198,9 +198,9 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
       <div className="flex max-w-2xl flex-col gap-4" data-testid="workload-empty">
         <h1 className="text-2xl font-medium tracking-tight">Workload</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          No workload in this browser yet. Scan your Claude Code or Codex history, or load a demo
-          workload, to see how you actually use AI: when you work, your heaviest windows, which
-          projects and models carry the demand, and where the tokens go. Everything is read in this
+          No workload in this browser yet. Scan the history your AI coding tools already keep
+          (Claude Code, Codex, Command Code), or load a demo, to see what that work is worth at
+          published API prices, what drives it, and when it gets heavy. Everything is read in this
           browser; nothing in your history leaves it.
         </p>
         <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
@@ -528,7 +528,18 @@ function WorkloadOpening({
         className="grid min-w-0 gap-6 border-t border-border pt-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10"
         aria-label="What produced this workload and value"
       >
-        <ToolSplit sources={summary.usageSources} compact />
+        <ToolSplit
+          sources={summary.usageSources}
+          compact
+          testHref={(adapterId) =>
+            replayLink(record.id, {
+              scope:
+                summary.usageSources.filter((source) => source.role === "usage").length > 1
+                  ? [adapterId]
+                  : undefined,
+            })
+          }
+        />
         {profile === undefined ? null : <CacheReadBriefing profile={profile} />}
       </section>
       {leadingInsights.length === 0 ? null : (
@@ -593,7 +604,6 @@ function WorkloadBody({
   );
   const apiRoute = routes.find((route) => route.id === "api-value");
   const numericRoute = routes.find((route) => route.id === "numeric-limits");
-  const switchRoute = routes.find((route) => route.id === "switch-provider");
   const peakDates = new Set<string>();
   for (const window of profile.topWindows[measure]) {
     peakDates.add(
@@ -636,7 +646,7 @@ function WorkloadBody({
       </nav>
 
       <div
-        className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur"
+        className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
         data-testid="measure-bar"
       >
         <fieldset className="flex flex-wrap items-center gap-2">
@@ -694,17 +704,6 @@ function WorkloadBody({
         lede="Grouped by canonical model, so different spellings of one model are counted once."
         id="models"
         testId="section-models"
-        action={
-          switchRoute === undefined ? undefined : (
-            <Link
-              className={ACTION_LINK}
-              href={routeLink(record.id, switchRoute)}
-              data-testid="models-translate-link"
-            >
-              Try these models' demand on {switchRoute.target.name} →
-            </Link>
-          )
-        }
       >
         <ModelMix measure={measure} profile={profile} />
       </WorkloadSection>
@@ -756,7 +755,7 @@ function WorkloadBody({
               href={routeLink(record.id, numericRoute)}
               data-testid="pressure-replay-link"
             >
-              See how {numericRoute.target.name} handles these peaks →
+              Test these peaks against {numericRoute.target.name}&apos;s published limits →
             </Link>
           )
         }
@@ -920,7 +919,7 @@ function WorkloadBody({
         )}
       </section>
 
-      <div className="scroll-mt-20" id="share">
+      <div className="scroll-mt-36" id="share">
         <SharePanelV2 build={shareBuild} kind="workload" />
       </div>
 
