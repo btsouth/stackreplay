@@ -14,13 +14,11 @@ export default function NotFound() {
     >
       <section className="flex min-h-[55vh] max-w-2xl flex-col justify-center gap-5 py-16">
         <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-          No route found · 404
+          Page not found · 404
         </p>
-        <h1 className="text-3xl font-medium tracking-tight">
-          This page is outside the replay path.
-        </h1>
+        <h1 className="text-3xl font-medium tracking-tight">There is nothing at this address.</h1>
         <p className="text-base leading-relaxed text-muted-foreground">
-          The address may have changed. Return to the product or open your local workspace.
+          It may have moved. Your saved workload is still in this browser.
         </p>
         <div className="flex flex-wrap gap-5 text-sm">
           <Link
@@ -30,10 +28,10 @@ export default function NotFound() {
             StackReplay home
           </Link>
           <Link
-            href="/app/replay"
+            href="/app"
             className="min-h-11 content-center text-accent underline underline-offset-4"
           >
-            Open Replay
+            Open your workload
           </Link>
         </div>
       </section>
