@@ -16,7 +16,6 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { projectReplay, replay } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -25,6 +24,7 @@ import {
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
   type ImportRecord,
@@ -36,7 +36,6 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
-import { splitByIdentity } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
 /**
@@ -653,45 +652,43 @@ async function handleImportDemo(
 async function handleRunReplay(
   request: Extract<WorkerRequest, { type: "RUN_REPLAY" }>,
 ): Promise<void> {
-  const { requestId, importId, target, rulesAsOf, excludeUnresolved } = request;
+  const { requestId, importId, target, rulesAsOf, excludeUnresolved, sources, timeZone } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
   const workload = await loadWorkloadEvents(importId);
   if (!workload.ok) {
     post({ type: "ERROR", requestId, error: workload.error });
     return;
   }
-  const scoped =
-    excludeUnresolved === true
-      ? splitByIdentity(workload.exported.events, bundledModelIdentity())
-      : undefined;
-  const events = scoped?.resolved ?? workload.exported.events;
 
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
-    const catalog = loadBundledCatalog();
-    const result = replay({
-      events,
+    const run = runScopedReplay({
+      events: workload.exported.events,
       target,
-      catalog,
-      context: { rulesAsOf },
+      catalog: loadBundledCatalog(),
+      identity: bundledModelIdentity(),
+      rulesAsOf,
+      timeZone,
+      sources,
+      sourceNames: new Map(
+        workload.exported.detectedSources.map((source) => [source.adapterId, source.name]),
+      ),
+      excludeUnresolved,
     });
     post({
       type: "REPLAY_OK",
       requestId,
-      result,
-      timeline: buildTimeline(events),
+      result: run.result,
+      timeline: buildTimeline(run.events, timeZone),
+      ...(run.receipt === undefined ? {} : { receipt: run.receipt }),
+      ...(run.priceability === undefined ? {} : { priceability: run.priceability }),
+      ...(run.resolvedScope === undefined ? {} : { resolvedScope: run.resolvedScope }),
+      ...(run.undecidedAtMs === undefined ? {} : { undecidedAtMs: run.undecidedAtMs }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.
-      projection: projectReplay(result, catalog),
-      ...(scoped === undefined
-        ? {}
-        : {
-            scope: {
-              excludedUnresolvedEvents: scoped.unresolved,
-              recordedEvents: workload.exported.events.length,
-            },
-          }),
+      projection: run.projection,
+      ...(run.scope === undefined ? {} : { scope: run.scope }),
     });
   } catch (error) {
     post({
@@ -767,10 +764,10 @@ async function handleAnalyze(
     post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
     return;
   }
-  const profile = buildWorkloadProfile(
-    loaded.exported.events,
-    profileOptions(loaded.record, request.timeZone),
-  );
+  const profile = buildWorkloadProfile(loaded.exported.events, {
+    ...profileOptions(loaded.record, request.timeZone),
+    ...(request.rulesAsOf === undefined ? {} : { rulesAsOf: request.rulesAsOf }),
+  });
   post({ type: "PROFILE_OK", requestId: request.requestId, profile });
 }
 

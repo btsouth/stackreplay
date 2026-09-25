@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { LargeHistoryNote } from "@/components/import/large-history-note";
 import type { ImportRecord, ScanProgress } from "@/lib/worker-protocol";
 
-export type ScanStage = "idle" | "discover" | "resolve" | "reconstruct" | "ready";
+export type ScanStage = "idle" | "discover" | "resolve" | "reconstruct" | "finishing" | "ready";
 
 /** The worker's import phases, in order, as the stage rail names them. */
 export const SCAN_STAGES: readonly {
@@ -95,7 +95,11 @@ export function ScanInstrument({
   onCancel?: (() => void) | undefined;
 }) {
   const activeIndex =
-    stage === "idle" ? -1 : SCAN_STAGES.findIndex((entry) => entry.stage === stage);
+    stage === "idle"
+      ? -1
+      : stage === "finishing"
+        ? SCAN_STAGES.length - 1
+        : SCAN_STAGES.findIndex((entry) => entry.stage === stage);
   const fileShare =
     scan !== undefined && scan.filesTotal > 0 ? Math.min(1, scan.filesDone / scan.filesTotal) : 0;
   // The path is lit through every completed stage; inside Resolve it advances
@@ -127,18 +131,22 @@ export function ScanInstrument({
         <p className="sr-micro text-muted-foreground">
           {stage === "ready"
             ? "Workload ready"
-            : running
-              ? `Reading ${sourceName ?? "your selection"} on this device`
-              : "Waiting for a folder"}
+            : stage === "finishing"
+              ? "Finishing value and insight analysis"
+              : running
+                ? `Reading ${sourceName ?? "your selection"} on this device`
+                : "Waiting for a folder"}
         </p>
       </div>
 
       <p className="sr-only" role="status">
         {stage === "ready"
-          ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} events`}`
-          : running
-            ? `Scan stage: ${SCAN_STAGES[activeIndex]?.label ?? "Discover"}. ${SCAN_STAGES[activeIndex]?.note ?? ""}`
-            : ""}
+          ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} ${summary.eventCount === 1 ? "call" : "calls"}`}`
+          : stage === "finishing"
+            ? "Finishing the published API value and strongest insight."
+            : running
+              ? `Scan stage: ${SCAN_STAGES[activeIndex]?.label ?? "Discover"}. ${SCAN_STAGES[activeIndex]?.note ?? ""}`
+              : ""}
       </p>
       <div className="sr-scan-rail" style={{ "--lit": lit } as CSSProperties}>
         <span aria-hidden="true" className="sr-scan-track">
@@ -169,7 +177,11 @@ export function ScanInstrument({
               >
                 <span aria-hidden="true" className="sr-scan-knot" />
                 <span className="sr-micro">{entry.label}</span>
-                <small>{entry.note}</small>
+                <small>
+                  {stage === "finishing" && index === SCAN_STAGES.length - 1
+                    ? "Pricing and finding insights"
+                    : entry.note}
+                </small>
               </li>
             );
           })}
@@ -178,31 +190,33 @@ export function ScanInstrument({
 
       {stage === "ready" && summary !== undefined ? (
         <div className="sr-scan-body">
+          {/* The value and the strongest finding lead (in `ready`); the scale of
+              the scan is context, so it reads as one quiet line. */}
           <h2 className="sr-scan-title">Workload ready</h2>
+          <p className="sr-scan-range">
+            {shortDate(summary.firstEventAt) === undefined
+              ? "No dated calls"
+              : `${shortDate(summary.firstEventAt)} to ${shortDate(summary.lastEventAt)}`}
+            {summary.usageSources.length > 0
+              ? ` · ${summary.usageSources.map((source) => source.name).join(" + ")}`
+              : ""}
+          </p>
           <dl className="sr-scan-facts" data-testid="scan-ready-facts">
-            <Fact label="Events" value={count.format(summary.eventCount)} />
+            <Fact label="calls" value={count.format(summary.eventCount)} />
             <Fact
-              label="Sessions"
+              label="sessions"
               value={summary.sessionCount === 0 ? "N/A" : count.format(summary.sessionCount)}
             />
             <Fact
-              label="Projects"
+              label="projects"
               value={summary.projectCount === 0 ? "N/A" : count.format(summary.projectCount)}
             />
             <Fact
-              label="Known tokens"
+              label="known tokens"
               note={cacheShare === undefined ? undefined : `${cacheShare.toFixed(1)}% cache reads`}
               value={tokens(summary.tokens.known)}
             />
           </dl>
-          <p className="sr-scan-range">
-            {shortDate(summary.firstEventAt) === undefined
-              ? "No dated events"
-              : `${shortDate(summary.firstEventAt)} to ${shortDate(summary.lastEventAt)}`}
-            {summary.usageSources.length > 0
-              ? ` · ${summary.usageSources.map((source) => source.name).join(" · ")}`
-              : ""}
-          </p>
           {ready}
         </div>
       ) : (
@@ -217,7 +231,7 @@ export function ScanInstrument({
               />
               <Reading label="Sessions" value={count.format(scan.sessions)} />
               <Reading
-                label="Events"
+                label="Calls"
                 note="before duplicates are removed"
                 value={count.format(scan.events)}
               />
@@ -255,8 +269,10 @@ export function ScanInstrument({
           {running ? (
             <div className="sr-scan-foot">
               <p className="sr-scan-detail" data-testid="import-working">
-                {scan === undefined && detail !== undefined ? `${detail}. ` : ""}A background Worker
-                does this work on this device; this page stays responsive.
+                {detail !== undefined && (scan === undefined || stage === "finishing")
+                  ? `${detail}. `
+                  : ""}
+                A background Worker does this work on this device; this page stays responsive.
               </p>
               {onCancel === undefined ? null : (
                 <button
@@ -285,11 +301,11 @@ export function ScanInstrument({
 function Fact({ label, value, note }: { label: string; value: string; note?: string | undefined }) {
   return (
     <div>
-      <dt className="sr-micro">{label}</dt>
-      <dd>
-        {value}
-        {note === undefined ? null : <small className="sr-scan-sub">{note}</small>}
-      </dd>
+      <dd>{value}</dd>
+      <dt>
+        {label}
+        {note === undefined ? null : ` (${note})`}
+      </dt>
     </div>
   );
 }
@@ -382,7 +398,7 @@ function HistoryLedger({
               <strong>
                 {entry === undefined || entry.events === 0
                   ? ""
-                  : `${count.format(entry.events)} events`}
+                  : `${count.format(entry.events)} calls`}
               </strong>
             </li>
           );

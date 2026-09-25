@@ -6,6 +6,7 @@ import {
   type ShareReplaySnapshotV1,
   shareReplaySnapshotV1Schema,
 } from "./schema.js";
+import { SHARE_SNAPSHOT_V2, type ShareSnapshotV2, shareSnapshotV2Schema } from "./v2.js";
 
 /**
  * Stateless share tokens (M4, decision 32).
@@ -208,11 +209,14 @@ export async function encodeShareToken(snapshot: ShareReplaySnapshotV1): Promise
  * forbidden field, a corrupted checksum). Callers that handle a real snapshot
  * must use `encodeShareToken`, which validates and guards first.
  */
-export async function encodeShareTokenFromCanonical(canonical: string): Promise<string> {
+export async function encodeShareTokenFromCanonical(
+  canonical: string,
+  version: string = SHARE_TOKEN_VERSION,
+): Promise<string> {
   const canonicalBytes = new TextEncoder().encode(canonical);
   const checksum = await checksumOf(canonicalBytes);
   const payload = base64UrlEncode(await deflate(canonicalBytes));
-  const token = `${SHARE_TOKEN_VERSION}.${checksum}.${payload}`;
+  const token = `${version}.${checksum}.${payload}`;
   if (token.length > MAX_SHARE_TOKEN_LENGTH) {
     throw new ShareTokenError("SHARE_TOKEN_TOO_LONG", "Share token exceeds the supported length.");
   }
@@ -242,6 +246,27 @@ export async function decodeShareToken(token: string): Promise<ShareTokenResult>
 export async function decodeShareTokenOrThrow(
   token: string,
 ): Promise<{ snapshot: ShareReplaySnapshotV1; canonical: string }> {
+  const { version, json, canonical } = await openToken(token, [SHARE_TOKEN_VERSION]);
+  void version;
+  const parsed = shareReplaySnapshotV1Schema.safeParse(json);
+  if (!parsed.success) {
+    throw new ShareTokenError(
+      "SHARE_TOKEN_INVALID_SNAPSHOT",
+      "Share token does not describe a valid share snapshot.",
+    );
+  }
+  return { snapshot: parsed.data, canonical };
+}
+
+/**
+ * The checks every token passes before its snapshot is read, whatever its
+ * version: length, shape, version, bounded decompression, checksum, JSON
+ * depth and sizes, and forbidden fields.
+ */
+async function openToken(
+  token: string,
+  versions: readonly string[],
+): Promise<{ version: string; json: unknown; canonical: string }> {
   if (token.length > MAX_SHARE_TOKEN_LENGTH) {
     throw new ShareTokenError("SHARE_TOKEN_TOO_LONG", "Share token exceeds the supported length.");
   }
@@ -250,7 +275,7 @@ export async function decodeShareTokenOrThrow(
     throw new ShareTokenError("SHARE_TOKEN_MALFORMED", "Share token has an unexpected shape.");
   }
   const [version, checksum, payload] = parts as [string, string, string];
-  if (version !== SHARE_TOKEN_VERSION) {
+  if (!versions.includes(version)) {
     throw new ShareTokenError(
       "SHARE_TOKEN_UNSUPPORTED_VERSION",
       `Share token version ${version} is not supported.`,
@@ -280,14 +305,50 @@ export async function decodeShareTokenOrThrow(
       "Share token carries a field that must never be public.",
     );
   }
-  const parsed = shareReplaySnapshotV1Schema.safeParse(parsedJson);
-  if (!parsed.success) {
-    throw new ShareTokenError(
-      "SHARE_TOKEN_INVALID_SNAPSHOT",
-      "Share token does not describe a valid share snapshot.",
-    );
+  return { version, json: parsedJson, canonical };
+}
+
+export const SHARE_TOKEN_V2 = `${SHARE_SNAPSHOT_V2}` as const;
+
+/** Encodes a V2 snapshot (a replay of any kind, or a workload card) into a public token. */
+export async function encodeShareTokenV2(snapshot: ShareSnapshotV2): Promise<string> {
+  assertNoForbiddenFields(snapshot);
+  const parsed = shareSnapshotV2Schema.parse(snapshot);
+  return encodeShareTokenFromCanonical(canonicalStringify(parsed as never), SHARE_TOKEN_V2);
+}
+
+export type AnyShareSnapshot = ShareReplaySnapshotV1 | ShareSnapshotV2;
+
+export type AnyShareTokenResult =
+  | { ok: true; snapshot: AnyShareSnapshot; canonical: string }
+  | { ok: false; code: ShareTokenErrorCode; message: string };
+
+/**
+ * Decodes a token of any supported version: V1 links made before V2 keep
+ * reading exactly as they did, and V2 links read as V2.
+ */
+export async function decodeAnyShareToken(token: string): Promise<AnyShareTokenResult> {
+  try {
+    const { version, json, canonical } = await openToken(token, [
+      SHARE_TOKEN_VERSION,
+      SHARE_TOKEN_V2,
+    ]);
+    const parsed =
+      version === SHARE_TOKEN_V2
+        ? shareSnapshotV2Schema.safeParse(json)
+        : shareReplaySnapshotV1Schema.safeParse(json);
+    if (!parsed.success)
+      return {
+        ok: false,
+        code: "SHARE_TOKEN_INVALID_SNAPSHOT",
+        message: "Share token does not describe a valid share snapshot.",
+      };
+    return { ok: true, snapshot: parsed.data, canonical };
+  } catch (error) {
+    if (error instanceof ShareTokenError)
+      return { ok: false, code: error.code, message: error.message };
+    return { ok: false, code: "SHARE_TOKEN_MALFORMED", message: "Share token could not be read." };
   }
-  return { snapshot: parsed.data, canonical };
 }
 
 /** Public share path for a token. */

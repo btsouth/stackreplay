@@ -64,7 +64,7 @@ export function DemandChronology({
                 {unit === "week" ? "Week of " : ""}
                 {plainDay(focus.date, true)}
               </span>{" "}
-              · {count(focus.events)} events · {formatTokens(focus.tokens) ?? "0"} known tokens
+              · {count(focus.events)} calls · {formatTokens(focus.tokens) ?? "0"} known tokens
               {hover === undefined ? ` · highest ${unit}` : ""}
             </>
           )}
@@ -174,7 +174,7 @@ export function DemandChronology({
                     {unit === "day" ? "Date" : "Week of"}
                   </th>
                   <th className="py-1.5 text-right font-normal" scope="col">
-                    Events
+                    Calls
                   </th>
                   <th className="py-1.5 text-right font-normal" scope="col">
                     Known tokens

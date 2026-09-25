@@ -1,19 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("shell renders the workspace with working navigation", async ({ page }, testInfo) => {
+test("the app entry opens Import on a first visit, with working navigation", async ({
+  page,
+}, testInfo) => {
   await page.goto("/app");
-  await expect(page.getByRole("heading", { name: "Your replay workspace" })).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/import$/);
+  await expect(page.getByRole("heading", { name: "Import", exact: true })).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(page.getByRole("link", { name: "StackReplay home" })).toBeVisible();
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(6);
-    await expect(nav.getByRole("link", { name: "Workspace" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(nav.getByRole("link")).toHaveCount(5);
+    await expect(nav.getByRole("link", { name: "Import" })).toHaveAttribute("aria-current", "page");
   }
 });
 
@@ -48,7 +48,7 @@ test("Import and Settings provide a route back into Replay", async ({ page }, te
 });
 
 test("skip link becomes visible on focus", async ({ page }) => {
-  await page.goto("/app");
+  await page.goto("/app/import");
   const skipLink = page.getByRole("link", { name: "Skip to content" });
   await page.keyboard.press("Tab");
   await expect(skipLink).toBeFocused();
@@ -59,12 +59,12 @@ test("skip link becomes visible on focus", async ({ page }) => {
 
 test("theme defaults to the system preference", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/app");
+  await page.goto("/app/import");
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
 test("theme toggle switches and persists across reloads", async ({ page }) => {
-  await page.goto("/app");
+  await page.goto("/app/import");
   const html = page.locator("html");
   await expect(html).not.toHaveClass(/dark/);
 
@@ -82,7 +82,7 @@ test("theme toggle switches and persists across reloads", async ({ page }) => {
 
 test("mobile drawer navigation works and closes on navigate", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app");
+  await page.goto("/app/import");
 
   await page.getByRole("button", { name: "Open navigation" }).click();
   const dialog = page.getByRole("dialog");
@@ -112,14 +112,14 @@ test("internal design surface does not claim a navigation section", async ({ pag
   test.skip(testInfo.project.name !== "desktop", "desktop viewport only");
   await page.goto("/design");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("link", { name: "Workspace" })).not.toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "Workload" })).not.toHaveAttribute(
     "aria-current",
     "page",
   );
 });
 
 for (const theme of ["light", "dark"] as const) {
-  for (const route of ["/app", "/design"]) {
+  for (const route of ["/app/import", "/design"]) {
     test(`${route} has no axe violations or horizontal overflow in ${theme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(route);
@@ -142,7 +142,7 @@ test("system theme survives unavailable or invalid storage", async ({ page }) =>
       throw new Error("Storage blocked");
     };
   });
-  await page.goto("/app");
+  await page.goto("/app/import");
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.getByRole("button", { name: "Toggle theme" }).click();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
@@ -151,18 +151,18 @@ test("system theme survives unavailable or invalid storage", async ({ page }) =>
 test("invalid stored theme falls back to system", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addInitScript(() => localStorage.setItem("stackreplay-theme", "invalid"));
-  await page.goto("/app");
+  await page.goto("/app/import");
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
 test("all workspace routes have a matching heading and navigation state", async ({
   page,
 }, info) => {
-  for (const label of ["Workspace", "Import", "Workload", "Replay", "Settings"]) {
-    await page.goto(label === "Workspace" ? "/app" : `/app/${label.toLowerCase()}`);
+  for (const label of ["Import", "Workload", "Replay", "Compare", "Settings"]) {
+    await page.goto(`/app/${label.toLowerCase()}`);
     await expect(
       page.getByRole("heading", {
-        name: label === "Workspace" ? "Your replay workspace" : label,
+        name: label === "Compare" ? "Compare this workload" : label,
         exact: true,
       }),
     ).toBeVisible();
@@ -178,7 +178,7 @@ test("all workspace routes have a matching heading and navigation state", async 
 
 test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app");
+  await page.goto("/app/import");
   const trigger = page.getByRole("button", { name: "Open navigation" });
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "StackReplay" });
@@ -186,7 +186,7 @@ test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ pag
   await expect(
     dialog.getByRole("link", { name: "StackReplay home" }).locator("img").first(),
   ).toHaveAttribute("src", /\/brand\/navbar-64-/);
-  for (const route of ["Workspace", "Import", "Workload", "Replay", "Settings"]) {
+  for (const route of ["Workload", "Replay", "Compare", "Import", "Settings"]) {
     await expect(dialog.getByRole("link", { name: route, exact: true })).toBeVisible();
   }
   // Base UI transfers focus through an offscreen guard asynchronously.

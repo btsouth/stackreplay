@@ -186,8 +186,7 @@
   border-top: 1px solid var(--sr-rule-soft);
 }
 
-.sr-scan-readings,
-.sr-scan-facts {
+.sr-scan-readings {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px 20px;
@@ -198,14 +197,26 @@
   .sr-scan-readings {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .sr-scan-facts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
-.sr-scan-readings dt,
-.sr-scan-facts dt {
+.sr-scan-readings dt {
   color: var(--muted-foreground);
+}
+
+/* Scale of the finished scan: one quiet line of context under the title. */
+.sr-scan-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.sr-scan-facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .sr-scan-readings dd {
@@ -237,17 +248,15 @@
 }
 
 .sr-scan-facts dd {
-  margin: 6px 0 0;
-  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
-  line-height: 1;
+  margin: 0;
+  font-family: var(--font-mono);
   font-weight: 500;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: tabular-nums;
   color: var(--foreground);
 }
 
 .sr-scan-range {
-  margin-top: 14px;
+  margin-top: -6px;
   font-size: 13px;
   color: var(--muted-foreground);
 }

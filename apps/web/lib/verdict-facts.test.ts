@@ -1,0 +1,217 @@
+import { bundledModelIdentity, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { replay } from "@stackreplay/replay-engine";
+import type { ExecutionTargetV1 } from "@stackreplay/schema";
+import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
+import { describe, expect, it } from "vitest";
+import { runScopedReplay } from "./scoped-replay";
+import { verdictOfOutcome } from "./verdict-facts";
+
+/**
+ * Phase 2 acceptance: for each scenario the first sentence of the verdict
+ * carries a date, a dollar amount, a count or a bounded share, and is never
+ * only an engine state. Verdicts are composed from real engine replays of the
+ * archetype workloads, not from hand-written facts.
+ */
+
+const catalog = loadBundledCatalog();
+const MEANINGFUL = /\$[\d,]+|\b[A-Z][a-z]{2} \d{1,2}\b|\d[\d,]* calls?\b|\d+(?:\.\d+)?%/u;
+const ENGINE_STATES =
+  /full coverage ruled out|capacity not quantified|not determinable|not established|would have fit|^unknown/iu;
+
+/** The verdict the app composes: the same scoped replay and outcome derivation. */
+function verdictFor(archetype: WorkloadArchetypeId, target: ExecutionTargetV1, name: string) {
+  const outcome = runScopedReplay({
+    events: buildArchetypeExport(archetype).events,
+    target,
+    catalog,
+    identity: bundledModelIdentity(),
+    rulesAsOf: "2026-09-23",
+    timeZone: "America/New_York",
+  });
+  const composed = verdictOfOutcome(outcome, name, { timeZone: "America/New_York", catalog });
+  if (composed === undefined) throw new Error("no verdict");
+  return composed;
+}
+
+const scenarios: [string, WorkloadArchetypeId, ExecutionTargetV1, string][] = [
+  [
+    "Exact, same models",
+    "claude-only",
+    { type: "subscription", planId: "anthropic-claude-max-20x" },
+    "Claude Max 20x",
+  ],
+  [
+    "numeric subscription",
+    "mixed",
+    { type: "subscription", planId: "github-copilot-pro-plus" },
+    "Copilot Pro+",
+  ],
+  [
+    "qualitative subscription, mixed",
+    "mixed",
+    { type: "subscription", planId: "anthropic-claude-max-20x" },
+    "Claude Max 20x",
+  ],
+  ["Direct API", "claude-only", { type: "api", providerId: "anthropic" }, "Anthropic API"],
+  [
+    "Translated",
+    "codex-only",
+    {
+      type: "subscription",
+      planId: "anthropic-claude-max-20x",
+      modelTranslation: {
+        id: "user-model-substitution",
+        version: "1",
+        name: "test",
+        provenance: "user",
+        transform: "token-preserving",
+        rules: [
+          { sourceModelId: "gpt-5-6-sol", targetModelId: "claude-opus-5-5" },
+          { sourceModelId: "gpt-6-astra", targetModelId: "claude-sonnet-5" },
+          { sourceModelId: "gpt-6-sol", targetModelId: "claude-opus-5-5" },
+        ],
+      },
+    },
+    "Claude Max 20x",
+  ],
+  ["unresolved subset", "heavy-unresolved", { type: "api", providerId: "openai" }, "OpenAI API"],
+];
+
+describe("decision-first verdicts from real replays", () => {
+  it.each(scenarios)("%s leads with a meaningful fact", (_name, archetype, target, name) => {
+    const { verdict } = verdictFor(archetype, target, name);
+    const first = verdict.headline.split(/(?<=\.)\s/u)[0] ?? "";
+    expect(first).toMatch(MEANINGFUL);
+    expect(first).not.toMatch(ENGINE_STATES);
+  });
+
+  it("numeric plan names the run-out date and overage", () => {
+    const { verdict, facts } = verdictFor(
+      "mixed",
+      { type: "subscription", planId: "github-copilot-pro-plus" },
+      "Copilot Pro+",
+    );
+    expect(facts.runOut?.behaviour).toBe("overage");
+    // One of the five unresolved calls came before the first run-out, none in
+    // the second run-out's window before it.
+    expect(facts.runOut?.dates.map((date) => date.undecidedBefore)).toEqual([1, 0]);
+    expect(verdict.headline).toMatch(
+      /^Recognized calls alone would exhaust Copilot Pro\+ credits by [A-Z][a-z]{2} \d+ \(day \d+\) and again on [A-Z][a-z]{2} \d+\./u,
+    );
+    expect(verdict.headline).toMatch(/about \$[\d,]+ in modeled overage over \d+ days/u);
+    expect(verdict.support[0]).toMatch(
+      /^5 unresolved calls could move the run-out earlier and add to the overage: 1 of them was recorded before [A-Z][a-z]{2} \d+\.$/u,
+    );
+  });
+
+  it("an unresolved subset becomes a bounded share, not UNKNOWN", () => {
+    const { verdict } = verdictFor(
+      "heavy-unresolved",
+      { type: "api", providerId: "openai" },
+      "OpenAI API",
+    );
+    expect(verdict.bound).toBeDefined();
+    expect(verdict.headline).toMatch(/\d+\.\d–\d+\.\d%/u);
+  });
+
+  it("translated verdicts say so and name the substitution", () => {
+    const { verdict } = verdictFor(
+      "codex-only",
+      scenarios[4]?.[2] as ExecutionTargetV1,
+      "Claude Max 20x",
+    );
+    expect(verdict.modeLabel).toBe("Translated replay");
+    expect(verdict.headline).toMatch(/^Under your model substitution/u);
+    expect(verdict.support.join(" ")).toMatch(/GPT-5\.6 Sol → Claude Opus 5\.5/u);
+  });
+
+  it("the Direct API figure is the engine's own total", () => {
+    const events = buildArchetypeExport("claude-only").events;
+    const result = replay({
+      events,
+      target: { type: "api", providerId: "anthropic" },
+      catalog,
+      context: { rulesAsOf: "2026-09-23" },
+    });
+    const { facts } = verdictFor(
+      "claude-only",
+      { type: "api", providerId: "anthropic" },
+      "Anthropic API",
+    );
+    expect(facts.money.apiCost).toBe(result.economics?.targetCost.amount);
+  });
+});
+
+describe("the verdict for a worker outcome", () => {
+  // Claude-only demand with every hundredth call on an ID no catalog source
+  // resolves: unrecognized IDs are then the only gap in a Direct API price.
+  const events = buildArchetypeExport("claude-only").events.map((event, index) =>
+    index % 100 === 0
+      ? {
+          ...event,
+          model: { rawName: "orchid-alpha-preview" },
+          confidence: { ...event.confidence, model: "unknown" as const },
+        }
+      : event,
+  );
+  const target: ExecutionTargetV1 = { type: "api", providerId: "anthropic" };
+  const timeZone = "America/New_York";
+  const options = { timeZone, catalog };
+  const run = (extra: { excludeUnresolved?: boolean } = {}) =>
+    runScopedReplay({
+      events,
+      target,
+      catalog,
+      identity: bundledModelIdentity(),
+      rulesAsOf: "2026-09-23",
+      timeZone,
+      ...extra,
+    });
+
+  it("leads with the resolved-only price and states what it leaves out", () => {
+    const outcome = run();
+    expect(outcome.result.economics).toBeUndefined();
+    expect(outcome.scope).toBeUndefined();
+    expect(outcome.resolvedScope?.excludedUnresolvedEvents).toBe(32);
+    const composed = verdictOfOutcome(outcome, "Anthropic API", options);
+    if (composed === undefined) throw new Error("no verdict");
+    const { facts, verdict } = composed;
+    expect(facts.scope).toEqual({
+      kind: "resolved",
+      recordedCalls: 3_200,
+      unrecognizedLeftOut: 32,
+    });
+    expect(facts.calls.total).toBe(3_168);
+    expect(facts.money.apiCost).toBe(outcome.resolvedScope?.result.economics?.targetCost.amount);
+    expect(verdict.headline).toMatch(
+      /^Your 3,168 calls with recognized models are worth \$[\d,]+\.\d\d at Anthropic's published API rates/u,
+    );
+    expect(verdict.support).toContain("That's a list-price equivalent, not what you paid.");
+    expect(verdict.support.join(" ")).toMatch(
+      /32 calls with unrecognized model IDs are left out and not priced/u,
+    );
+  });
+
+  it("without the resolved-only replay, states the served share and no price", () => {
+    const { resolvedScope: _, ...fullOnly } = run();
+    const composed = verdictOfOutcome(fullOnly, "Anthropic API", options);
+    if (composed === undefined) throw new Error("no verdict");
+    expect(composed.facts.scope.kind).toBe("all");
+    expect(composed.facts.money.apiCost).toBeUndefined();
+    expect(composed.verdict.figure.kind).toBe("share");
+    expect(composed.verdict.headline).not.toMatch(/\$/u);
+  });
+
+  it("a scope the person chose is stated the same way", () => {
+    const outcome = run({ excludeUnresolved: true });
+    expect(outcome.scope).toEqual({ recordedEvents: 3_200, excludedUnresolvedEvents: 32 });
+    expect(outcome.resolvedScope).toBeUndefined();
+    const composed = verdictOfOutcome(outcome, "Anthropic API", options);
+    expect(composed?.facts.scope).toEqual({
+      kind: "resolved",
+      recordedCalls: 3_200,
+      unrecognizedLeftOut: 32,
+    });
+    expect(composed?.verdict.headline).toMatch(/^Your 3,168 calls with recognized models/u);
+  });
+});

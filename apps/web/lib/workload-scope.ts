@@ -15,27 +15,39 @@ import type { UsageEventV1 } from "@stackreplay/schema";
  * canonical id the catalog still knows, otherwise the catalog's alias
  * resolution for the event's harness.
  */
+/**
+ * A resolver for the canonical model of each event, by the shared rule, with
+ * the answer cached per spelling and harness. Undefined when it is unresolved.
+ */
+export function modelIdResolver(
+  identity: ModelIdentityIndex,
+): (event: UsageEventV1) => string | undefined {
+  const known = new Set(identity.modelIds);
+  const cache = new Map<string, string | undefined>();
+  return (event) => {
+    const harness = event.harness?.id;
+    const key = `${event.model.canonicalId ?? ""}\u0000${event.model.rawName}\u0000${harness ?? ""}`;
+    if (cache.has(key)) return cache.get(key);
+    const recorded = event.model.canonicalId;
+    const resolved =
+      recorded !== undefined && known.has(recorded)
+        ? recorded
+        : identity.resolve(event.model.rawName, harness === undefined ? undefined : { harness })
+            .canonicalId;
+    cache.set(key, resolved);
+    return resolved;
+  };
+}
+
 export function splitByIdentity(
   events: readonly UsageEventV1[],
   identity: ModelIdentityIndex,
 ): { resolved: UsageEventV1[]; unresolved: number } {
-  const known = new Set(identity.modelIds);
-  const cache = new Map<string, boolean>();
+  const modelIdOf = modelIdResolver(identity);
   const resolved: UsageEventV1[] = [];
   let unresolved = 0;
   for (const event of events) {
-    const harness = event.harness?.id;
-    const key = `${event.model.canonicalId ?? ""}\u0000${event.model.rawName}\u0000${harness ?? ""}`;
-    let isResolved = cache.get(key);
-    if (isResolved === undefined) {
-      const recorded = event.model.canonicalId;
-      isResolved =
-        (recorded !== undefined && known.has(recorded)) ||
-        identity.resolve(event.model.rawName, harness === undefined ? undefined : { harness })
-          .canonicalId !== undefined;
-      cache.set(key, isResolved);
-    }
-    if (isResolved) resolved.push(event);
+    if (modelIdOf(event) !== undefined) resolved.push(event);
     else unresolved += 1;
   }
   return { resolved, unresolved };

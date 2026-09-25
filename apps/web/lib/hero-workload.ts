@@ -1,4 +1,5 @@
 import rawFixture from "./generated/hero-workload.json";
+import { formatUsd } from "./money-display";
 
 /**
  * The homepage hero's anonymized real workload, as the hero reads it.
@@ -119,8 +120,9 @@ export function formatTokens(value: number): string {
 
 /** Splits "$1,793.32" into "$1,793" and ".32" so the cents can sit smaller. */
 export function splitMoney(amount: string): { whole: string; cents: string } {
-  const [whole = "0", cents = "00"] = Number(amount).toFixed(2).split(".");
-  return { whole: `$${count.format(Number(whole))}`, cents: `.${cents}` };
+  const exact = formatUsd(amount) ?? `$${amount}`;
+  const [whole = "$0", cents = "00"] = exact.split(".");
+  return { whole, cents: `.${cents}` };
 }
 
 export function formatMoney(amount: string): string {
@@ -436,7 +438,7 @@ export function heroTargetView(hero: HeroWorkload, target: HeroTarget): HeroTarg
     crossed: false,
     result: {
       status: [
-        { text: translated ? "Models translated" : "Models mapped", tone: "signal" },
+        { text: translated ? "Models translated" : "Models offered", tone: "signal" },
         { text: "Capacity not published", tone: "open" },
       ],
       figure: {
@@ -447,7 +449,7 @@ export function heroTargetView(hero: HeroWorkload, target: HeroTarget): HeroTarg
       caption: "fixed plan price",
       sentence: translated
         ? `${target.label} does not run the recorded models. Under the mapping shown, all ${replayed} events route to ${mapping.map((row) => row.to).join(" and ")}. ${target.provider} publishes no numeric allowance, so whether this demand fits cannot be established.`
-        : `All ${recordedModels} recorded models run on ${target.label}. ${target.provider} publishes no numeric allowance, so whether ${replayed} events fit cannot be established.`,
+        : `${target.label} offers all ${recordedModels} recorded models. ${target.provider} publishes no numeric allowance, so whether ${replayed} events fit cannot be established.`,
       ledger: [
         translated
           ? {

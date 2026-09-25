@@ -32,7 +32,7 @@ export const siteName = "StackReplay";
 export const siteTagline = "Your workload. Any stack. Replay the difference.";
 
 export const siteDescription =
-  "Replay your real AI coding workload against other subscription plans, including rolling limits, weekly caps and model-specific rules, before you switch.";
+  "See what your real AI coding workload is worth at published API prices and what drives it, then replay it against other plans and APIs, privately in your browser.";
 
 export const repositoryUrl = "https://github.com/btsouth/stackreplay";
 

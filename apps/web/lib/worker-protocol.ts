@@ -1,8 +1,15 @@
 import type { CandidateOutcome } from "@stackreplay/adapters/browser";
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
+
+export type { ReplayScope, ResolvedScopeReplay };
 
 /**
  * Internal Worker protocol (spec point 12, M3 brief).
@@ -200,8 +207,8 @@ export interface ImportRecord {
  * (benchmark finding F031). `partialEvents` says how many events contributed to it.
  */
 export interface TimelinePoint {
-  /** Bucket start, ISO-8601 UTC (daily buckets). */
-  at: string;
+  /** The bucket's calendar date (YYYY-MM-DD) in the viewer's timezone. */
+  day: string;
   events: number;
   /** Sum of the events whose token total is fully known. */
   tokens: number;
@@ -266,6 +273,13 @@ export type WorkerRequest =
        * The response reports how many were left out.
        */
       excludeUnresolved?: boolean;
+      /**
+       * Explicit user scope: replay only the calls these recording tools made,
+       * by adapter id. The response states the slice.
+       */
+      sources?: string[];
+      /** IANA timezone the timeline's calendar days are read in. */
+      timeZone?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -274,6 +288,8 @@ export type WorkerRequest =
       importId: string;
       /** IANA timezone the clock positions are read in. */
       timeZone: string;
+      /** When given, the profile carries the workload's published-rate value at this date. */
+      rulesAsOf?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -346,7 +362,25 @@ export type WorkerResponse =
        */
       projection: ProjectedReplayV1;
       /** Present when the replay ran under an explicit scope. */
-      scope?: { excludedUnresolvedEvents: number; recordedEvents: number };
+      scope?: ReplayScope;
+      /**
+       * The model × category arithmetic behind the result's money: a Direct API
+       * list price, or a plan's credit demand. Collected in the same pass as the
+       * result, so it adds up to the engine's own figure.
+       */
+      receipt?: PriceReceiptV1;
+      /** Direct API only: how many events fared each way in that pass. */
+      priceability?: ApiPriceabilityCountsV1;
+      /**
+       * Direct API only, and only when unrecognized model IDs are the one thing
+       * standing between the workload and a complete price: the same replay
+       * over the calls whose identity resolves (decision 49's explicit scope),
+       * complete on its own terms. The interface states that scope wherever it
+       * shows this figure.
+       */
+      resolvedScope?: ResolvedScopeReplay;
+      /** Subscription targets: when each undecided call occurred, epoch ms. */
+      undecidedAtMs?: number[];
     }
   | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
   | { type: "WINDOW_OK"; requestId: number; window: WindowFact }

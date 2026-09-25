@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay } from "./helpers";
+import { gotoImport, importDemo, runReplay, setRulesAsOf } from "./helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -21,19 +21,22 @@ test("direct navigation without an import shows an intentional empty state", asy
 test("keeps forensic result detail closed until requested", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("replay-evidence-details")).not.toHaveAttribute("open");
   await expect(page.getByTestId("replay-detail")).not.toHaveAttribute("open");
-  await expect(page.getByTestId("result-settlement")).toBeVisible();
+  // The answer leads; the engine's own reading waits under Inspect.
+  await expect(page.getByTestId("verdict-headline")).toBeVisible();
+  await expect(page.getByTestId("result-settlement")).toBeHidden();
   await page.getByTestId("replay-evidence-details").locator(":scope > summary").click();
+  await expect(page.getByTestId("result-settlement")).toBeVisible();
   await expect(page.getByTestId("evidence-ledger")).toBeVisible();
   await page.getByTestId("replay-detail").locator(":scope > summary").click();
   await page.getByTestId("replay-model-distribution").locator(":scope > summary").click();
   await expect(page.getByTestId("replay-model-distribution")).toContainText("Exact catalog ID");
-  await expect(page.getByTestId("replay-model-distribution")).toContainText("events");
+  await expect(page.getByTestId("replay-model-distribution")).toContainText("calls");
 });
 
 test("replays a demo workload with full coverage", async ({ page }) => {
@@ -197,7 +200,7 @@ test("a target change during a replay never displays the earlier result", async 
   await page.goto("/app/replay");
 
   // Select target A, hold its replay at the Worker boundary, and start it.
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.evaluate(() => {
     (window as unknown as { __armReplayGate: () => void }).__armReplayGate();
@@ -342,6 +345,10 @@ test("explains how observed model names map onto the catalog", async ({ page }) 
   await page.goto("/app/replay");
 
   const identities = page.getByTestId("model-identities");
+  // Every name resolved, so the raw identity map waits under the workload
+  // details instead of standing between the person and the target choice.
+  await expect(page.getByTestId("workload-details")).not.toHaveAttribute("open");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   await expect(identities).toBeVisible();
   await expect(identities.getByRole("heading", { name: "Models in this workload" })).toBeVisible();
   // The demo workloads use the catalog's synthetic namespace, which the bundled
@@ -371,6 +378,9 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
   await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
   await page.goto("/app/replay");
 
+  // The strip says unmapped IDs exist; the raw map is one step down.
+  await expect(page.getByTestId("workload-strip-summary")).toContainText("1 unresolved model ID");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   const identities = page.getByTestId("model-identities");
   await expect(identities).toBeVisible();
   await expect(identities).toContainText(unknown);
@@ -549,8 +559,11 @@ test("the share panel discloses what a link reveals before one is created", asyn
   await expect(panel).not.toContainText(/tamper-proof|authenticat|signed|verif/u);
 
   await panel.getByTestId("share-create").click();
-  const url = page.getByTestId("share-url");
-  await expect(url).toBeVisible();
-  expect(await url.textContent()).toContain("/s/");
   await expect(page.getByTestId("share-open")).toBeVisible();
+  // The long raw URL waits behind "Show link".
+  const url = page.getByTestId("share-url");
+  await expect(url).toBeHidden();
+  await page.getByTestId("share-show-link").locator(":scope > summary").click();
+  await expect(url).toBeVisible();
+  expect(await url.textContent()).toContain("/s/2.");
 });

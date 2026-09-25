@@ -1,9 +1,12 @@
-import { decodeShareToken } from "@stackreplay/share";
+import { decodeAnyShareToken, type ShareSnapshotV2, shareHeadline } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { formatUnit } from "@/components/instrument/format";
 import { ShareCard } from "@/components/share/share-card";
+import { ShareCardV2 } from "@/components/share/share-card-v2";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { presentShare } from "@/lib/share-presentation";
 import { describeShareTruncation } from "@/lib/share-truncation";
 import { brandAssets, siteName } from "@/lib/site";
 
@@ -22,12 +25,36 @@ interface SharePageProps {
 
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { token } = await params;
-  const decoded = await decodeShareToken(token);
+  const decoded = await decodeAnyShareToken(token);
   if (!decoded.ok) {
     return {
       title: "Shared replay",
       description: `A shared ${siteName} replay result.`,
       robots: { index: false, follow: false },
+    };
+  }
+  // Every link has its own image, drawn from its own snapshot.
+  const image = {
+    url: `/s/${token}/image`,
+    width: 1200,
+    height: 630,
+    alt: `${siteName} result`,
+  };
+  if (decoded.snapshot.version === 2) {
+    const snapshot = decoded.snapshot;
+    const title = shareHeadline(snapshot);
+    const presentation = presentShare(snapshot);
+    const description =
+      presentation.figure?.caption === undefined
+        ? (presentation.support[0] ?? `A shared ${siteName} result. Aggregate data only.`)
+        : `${presentation.figure.value}${presentation.figure.minor ?? ""} ${presentation.figure.caption}. Aggregate data only.`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/s/${token}` },
+      robots: { index: false, follow: false },
+      openGraph: { title, description, images: [image] },
+      twitter: { card: "summary_large_image", title, description, images: [image.url] },
     };
   }
   const snapshot = decoded.snapshot;
@@ -41,21 +68,15 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     openGraph: {
       title: `${snapshot.target.planName}: ${snapshot.workload.eventCount.toLocaleString("en-US")} events replayed`,
       description: `${exceeded} of ${snapshot.constraints.length} documented limits exceeded. Aggregate data only.`,
-      images: [
-        {
-          url: brandAssets.openGraph.src,
-          width: brandAssets.openGraph.width,
-          height: brandAssets.openGraph.height,
-          alt: `${siteName} replay result`,
-        },
-      ],
+      images: [image],
     },
+    twitter: { card: "summary_large_image", images: [image.url] },
   };
 }
 
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params;
-  const decoded = await decodeShareToken(token);
+  const decoded = await decodeAnyShareToken(token);
 
   if (!decoded.ok) {
     return (
@@ -85,6 +106,7 @@ export default async function SharePage({ params }: SharePageProps) {
     );
   }
 
+  if (decoded.snapshot.version === 2) return <ShareV2Page snapshot={decoded.snapshot} />;
   const snapshot = decoded.snapshot;
   const exceeded = snapshot.constraints.filter((constraint) => constraint.status === "exceeded");
   const unknown = snapshot.constraints.filter((constraint) => constraint.status === "unknown");
@@ -165,7 +187,8 @@ export default async function SharePage({ params }: SharePageProps) {
                       <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
                         Allowance
                       </span>
-                      {constraint.limitUnits} {constraint.unit}
+                      {formatUnit(constraint.limitUnits, constraint.unit)}
+                      {constraint.unit === "usd" ? "" : ` ${constraint.unit}`}
                     </td>
                     <td className="block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
                       <span className="mb-1 block text-xs lg:hidden">Window</span>
@@ -173,7 +196,8 @@ export default async function SharePage({ params }: SharePageProps) {
                     </td>
                     <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
                       <span className="mb-1 block text-xs lg:hidden">Attempted</span>
-                      {constraint.attemptedUnits}
+                      {formatUnit(constraint.attemptedUnits, constraint.unit)}
+                      {constraint.unit === "usd" ? "" : ` ${constraint.unit}`}
                     </td>
                     <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2">
                       <span className="mb-1 block text-xs lg:hidden">Outcome</span>
@@ -253,6 +277,7 @@ export default async function SharePage({ params }: SharePageProps) {
               >
                 {source.title}
               </a>
+              <SourceWhere url={source.url} />
             </li>
           ))}
         </ul>
@@ -298,7 +323,7 @@ export default async function SharePage({ params }: SharePageProps) {
         </p>
         <div className="flex flex-wrap gap-3">
           <Link className={buttonVariants()} href="/app/import">
-            Try Replay
+            Scan your AI history
           </Link>
           {catalogued === undefined ? null : (
             <Link
@@ -318,5 +343,140 @@ export default async function SharePage({ params }: SharePageProps) {
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * A V2 link: the result leads, in the words the application leads it with,
+ * then where the numbers come from and what the link does and does not carry.
+ */
+function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
+  const presentation = presentShare(snapshot);
+  const catalogued =
+    snapshot.kind === "replay" && snapshot.target.type === "subscription"
+      ? loadPublicCatalog().planById(snapshot.target.id)
+      : undefined;
+  return (
+    <div className="flex flex-col gap-10 pb-8" data-testid="share-v2">
+      <p className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+        Shared {snapshot.kind === "replay" ? "replay" : "workload"} · computed on the sharer&apos;s
+        device
+      </p>
+      {presentation.synthetic ? (
+        <p
+          className="max-w-3xl border-l-2 border-warning pl-4 text-sm text-warning"
+          data-testid="share-synthetic"
+        >
+          Demo data. This result comes from a synthetic <code>example-</code> workload or target, so
+          its names, prices and limits are illustrative, not a real-world claim.
+        </p>
+      ) : null}
+      <ShareCardV2 heading="h1" presentation={presentation} />
+
+      <section
+        className="flex max-w-3xl flex-col gap-2 border-t border-border pt-5 text-sm"
+        data-testid="share-provenance"
+      >
+        <h2 className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+          Where the numbers come from
+        </h2>
+        {snapshot.kind === "replay" ? (
+          <>
+            <p className="text-muted-foreground">
+              Replayed by StackReplay engine {snapshot.versions.engine}, methodology{" "}
+              {snapshot.versions.methodology}, against the rules in force on{" "}
+              {snapshot.versions.rulesAsOf}
+              {snapshot.target.versionId === undefined
+                ? ""
+                : ` (plan version ${snapshot.target.versionId})`}
+              . The link states the target&apos;s data as {snapshot.target.verificationStatus}
+              {snapshot.target.lastVerifiedAt === undefined
+                ? ""
+                : `, checked ${snapshot.target.lastVerifiedAt}`}
+              ; this site has not re-checked the link&apos;s claim.
+              {catalogued === undefined ? null : (
+                <>
+                  {" "}
+                  <Link
+                    className="text-accent underline underline-offset-2"
+                    href={`/plans/${catalogued.id}`}
+                  >
+                    See the catalogued plan
+                  </Link>
+                  .
+                </>
+              )}
+            </p>
+            {snapshot.target.sources.length === 0 ? null : (
+              <ul className="flex flex-col gap-1">
+                {snapshot.target.sources.map((source) => (
+                  <li key={`${source.url}-${source.title}`}>
+                    <a
+                      className="text-accent underline underline-offset-2"
+                      href={source.url}
+                      rel="noreferrer noopener nofollow"
+                      target="_blank"
+                    >
+                      {source.title}
+                    </a>
+                    <SourceWhere url={source.url} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground">
+            Each model maker&apos;s calls priced by an Exact Direct API replay at that maker&apos;s
+            published list prices in force on {snapshot.value?.rulesAsOf ?? "the sharing date"},
+            then added up. A list-price equivalent of the recorded work, never a bill.
+          </p>
+        )}
+        <p className="text-muted-foreground" data-testid="share-privacy">
+          This link carries aggregate numbers only. It has no individual calls or sessions, no
+          project names, prompts, responses, code, file names or paths
+          {snapshot.kind === "workload" && snapshot.facts.every((fact) => fact.at === undefined)
+            ? ", and no times of day"
+            : ""}
+          .
+        </p>
+      </section>
+
+      <section className="flex max-w-3xl flex-col gap-3 border-t border-border pt-5">
+        <h2 className="text-base font-medium text-foreground">Replay your own workload</h2>
+        <p className="text-sm text-muted-foreground">
+          StackReplay reads your AI coding history in your browser and replays it against plans,
+          providers and APIs. Nothing is uploaded.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link className={buttonVariants()} href="/app/import" data-testid="share-cta">
+            Scan your AI history
+          </Link>
+          <Link className={buttonVariants({ variant: "secondary" })} href="/methodology">
+            How it works
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * Several sources can share a title ("Anthropic plan documentation"), so each
+ * one also shows where it points.
+ */
+function SourceWhere({ url }: { url: string }) {
+  let where: string | undefined;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.length > 1 ? parsed.pathname : "";
+    where = `${parsed.hostname}${path.length > 36 ? `${path.slice(0, 35)}…` : path}`;
+  } catch {
+    where = undefined;
+  }
+  return where === undefined ? null : (
+    <span className="ml-2 font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
+      {where}
+    </span>
   );
 }

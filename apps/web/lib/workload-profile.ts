@@ -12,6 +12,13 @@ import {
   type WindowSlice,
 } from "@stackreplay/replay-engine";
 import type { UsageEventV1 } from "@stackreplay/schema";
+import {
+  composeWorkloadFact,
+  formatUsdWhole,
+  verdictDay,
+  type WorkloadFactV1,
+} from "@stackreplay/share";
+import { type WorkloadValue, workloadValue } from "./workload-value";
 
 /**
  * Workload profile: what the imported history says on its own, before any
@@ -73,6 +80,7 @@ export interface WindowFact extends Demand {
   sessions: number;
   unknownUsageEvents: number;
   buckets: TokenBuckets;
+  sources: RankedShare[];
   projects: RankedShare[];
   models: RankedShare[];
 }
@@ -126,12 +134,29 @@ export interface ModelShare extends Demand {
    * offering fact only: the catalog does not record who built a model.
    */
   apiProviders: { id: string; name: string }[];
+  /** Who made the model, from the catalog's developer record, when it is recorded. */
+  maker?: string | undefined;
   /** Observed spellings that resolved to this canonical model. */
   observedNames: string[];
 }
 
 export interface UnresolvedModel extends Demand {
   rawName: string;
+}
+
+/**
+ * One recording tool's share of the workload: the calls it recorded, on which
+ * models. The slice a Replay scope names ("your Claude Code work"), and what a
+ * target's coverage of that slice is read from. The tool's display name is the
+ * workload summary's (`usageSources`), joined by `id`.
+ */
+export interface SourceDemand extends Demand {
+  /** The adapter that recorded the calls, e.g. "claude-code". */
+  id: string;
+  /** Calls per resolved canonical model, most first. */
+  models: { modelId: string; events: number }[];
+  /** Calls whose model identity does not resolve. */
+  unresolvedEvents: number;
 }
 
 export interface RhythmFacts {
@@ -143,9 +168,25 @@ export interface RhythmFacts {
   weekendShare: number;
 }
 
+/**
+ * A comparative fact about the workload: a figure, what it is compared with,
+ * and the section that shows the evidence. Composed from fixed templates and
+ * ranked by fixed rules; nothing is generated.
+ */
 export interface Insight {
-  id: string;
+  id: WorkloadFactV1["id"];
+  /** The structured fact a share link can carry; the words come from it. */
+  fact: WorkloadFactV1;
+  /** Facts in one family say similar things; the top three come from different families. */
+  family: "burst" | "session" | "cache" | "projects" | "time";
+  /** The finding, with its figure (`composeWorkloadFact`). */
   text: string;
+  /** What it is compared with ("4.8× your median active day"). */
+  comparison: string;
+  /** The workload section that shows the evidence, by anchor id. */
+  evidence: { section: string; label: string };
+  /** How far the figure is from its baseline, as a ratio: the ranking key. */
+  strength: number;
 }
 
 export interface WorkloadProfile {
@@ -197,6 +238,12 @@ export interface WorkloadProfile {
   topWindows: { events: WindowFact[]; tokens: WindowFact[] };
   projects: ProjectProfile[];
   models: { canonical: ModelShare[]; unresolved: UnresolvedModel[] };
+  /** Per recording tool, most calls first. */
+  sources: SourceDemand[];
+  /** Calls between 10 PM and 4 AM local time, and the local dates they fell on. */
+  lateNight: { events: number; days: number };
+  /** What the workload is worth at each maker's published API rates, when a rules date was given. */
+  value?: WorkloadValue | undefined;
   sessions: {
     count: number;
     perActiveDay: number;
@@ -214,6 +261,8 @@ export interface ProfileOptions {
   timeZone: string;
   /** Local-only labels by project hash, from this browser's scan. */
   projectLabels?: ReadonlyMap<string, string> | undefined;
+  /** When given, the profile carries the workload's published-rate value at this date. */
+  rulesAsOf?: string | undefined;
 }
 
 const HOUR_MS = 3_600_000;
@@ -309,6 +358,7 @@ interface PreparedEvent {
   modelKey: string;
   modelLabel: string;
   resolved: boolean;
+  sourceId: string;
   session: string | undefined;
   project: string;
   local: LocalParts;
@@ -364,6 +414,7 @@ function prepare(
           ? event.model.rawName
           : (catalog.models[canonicalId]?.name ?? canonicalId),
       resolved: canonicalId !== undefined,
+      sourceId: event.source.adapterId,
       session: event.source.nativeSessionHash,
       project: event.projectHash ?? NO_PROJECT,
       local: clock(item.atMs),
@@ -400,6 +451,7 @@ function describe(
   const sessions = new Set<string>();
   const projects = new Map<string, RankedShare>();
   const models = new Map<string, RankedShare>();
+  const sources = new Map<string, RankedShare>();
   let tokens = 0;
   let unknown = 0;
   for (const item of events) {
@@ -413,6 +465,15 @@ function describe(
       buckets.reasoning += item.buckets.reasoning;
     }
     if (item.session !== undefined) sessions.add(item.session);
+    const source = sources.get(item.sourceId) ?? {
+      key: item.sourceId,
+      label: item.sourceId,
+      events: 0,
+      tokens: 0,
+    };
+    source.events += 1;
+    source.tokens += item.tokens;
+    sources.set(item.sourceId, source);
     const project = projects.get(item.project) ?? {
       key: item.project,
       label: labelFor(item.project),
@@ -442,6 +503,7 @@ function describe(
     sessions: sessions.size,
     unknownUsageEvents: unknown,
     buckets,
+    sources: rank([...sources.values()], measure),
     projects: rank([...projects.values()], measure).slice(0, 5),
     models: rank([...models.values()], measure).slice(0, 5),
   };
@@ -585,8 +647,6 @@ function mondayOf(date: string): string {
   return plain.subtract({ days: plain.dayOfWeek - 1 }).toString();
 }
 
-const PERCENT = (value: number): string => `${(value * 100).toFixed(1)}%`;
-
 export function formatHour(hour: number): string {
   if (hour === 0) return "midnight";
   if (hour === 12) return "noon";
@@ -608,46 +668,174 @@ function shortDate(ms: number, timeZone: string): string {
  * figure computed above. They are chosen by fixed rules in a fixed order, not
  * written or ranked by anything that interprets the work.
  */
+/** "Z.AI (Zhipu)" -> "Z.AI": the maker's name for a label. */
+function makerOf(catalog: CatalogV1, modelId: string): string | undefined {
+  const developer = catalog.models[modelId]?.developerId;
+  const name = developer === undefined ? undefined : catalog.providers[developer]?.name;
+  return name?.replace(/\s*\([^)]*\)\s*$/u, "").trim();
+}
+
+/** Order among facts of equal strength. */
+const TIE_ORDER: readonly Insight["id"][] = [
+  "peak-day",
+  "cache-value",
+  "peak-hour",
+  "largest-session",
+  "peak-5h",
+  "projects",
+  "late-night",
+];
+
+/**
+ * Comparative facts, ranked. Each states a figure against a baseline from the
+ * same workload (a median, an even share, an unchanged price) and links to the
+ * section that shows it. The ranking key is how far the figure is from its
+ * baseline; the top three come from three different families, so the opening
+ * does not say "your bursts are big" three ways.
+ */
 function insightsFor(profile: Omit<WorkloadProfile, "insights">): Insight[] {
-  const insights: Insight[] = [];
-  const { overview, tokens, timeZone } = profile;
-  const knownTokens = overview.knownTokens;
-  if (knownTokens > 0 && tokens.cacheRead / knownTokens >= 0.5)
-    insights.push({
-      id: "cache-share",
-      text: `${PERCENT(tokens.cacheRead / knownTokens)} of known processed tokens were cache reads: context reused from earlier turns, not fresh input.`,
+  const facts: Insight[] = [];
+  const { overview, timeZone, days, sessions, value } = profile;
+  const add = (fact: WorkloadFactV1, family: Insight["family"], evidence: Insight["evidence"]) =>
+    facts.push({
+      id: fact.id,
+      fact,
+      family,
+      ...composeWorkloadFact(fact),
+      evidence,
+      strength: fact.ratio,
     });
-  const peak5h = profile.pressure.tokens.find((row) => row.id === "5h")?.peak;
-  const peak5hEvents = profile.pressure.events.find((row) => row.id === "5h")?.peak;
-  const peak = knownTokens > 0 ? peak5h : peak5hEvents;
-  if (peak !== undefined && overview.spanDays > 1)
-    insights.push({
-      id: "peak-5h",
-      text: `Your heaviest five-hour window, starting ${shortDate(peak.startMs, timeZone)}, held ${PERCENT(peak.share)} of all recorded ${knownTokens > 0 ? "known tokens" : "events"}.`,
-    });
+
+  const peakDay = days.peakByEvents;
+  if (peakDay !== undefined && days.activeDays >= 3 && days.medianEvents > 0) {
+    const ratio = peakDay.events / days.medianEvents;
+    if (ratio >= 1.5)
+      add(
+        {
+          id: "peak-day",
+          figure: peakDay.events,
+          baseline: days.medianEvents,
+          ratio,
+          share: peakDay.events / overview.events,
+          count: overview.spanDays,
+          at: verdictDay(peakDay.date),
+        },
+        "burst",
+        { section: "chronology", label: "See the day" },
+      );
+  }
+
+  for (const [id, row] of [
+    ["peak-hour", profile.pressure.events.find((entry) => entry.id === "1h")],
+    ["peak-5h", profile.pressure.events.find((entry) => entry.id === "5h")],
+  ] as const) {
+    const peak = row?.peak;
+    if (row === undefined || peak === undefined || row.windowCount < 5 || row.median <= 0) continue;
+    const ratio = peak.events / row.median;
+    if (ratio < 1.5) continue;
+    // Every figure in the sentence belongs to that one window (decision 57).
+    add(
+      {
+        id,
+        figure: peak.events,
+        baseline: row.median,
+        ratio,
+        share: peak.share,
+        at: shortDate(peak.startMs, timeZone),
+      },
+      "burst",
+      { section: "pressure", label: "See the window" },
+    );
+  }
+
+  const largest = sessions.top[0];
+  if (
+    largest !== undefined &&
+    sessions.count >= 5 &&
+    sessions.medianTokens > 0 &&
+    overview.knownTokens > 0
+  ) {
+    const ratio = largest.tokens / sessions.medianTokens;
+    if (ratio >= 2)
+      add(
+        {
+          id: "largest-session",
+          figure: largest.tokens,
+          baseline: sessions.medianTokens,
+          ratio,
+          share: largest.tokens / overview.knownTokens,
+        },
+        "session",
+        { section: "sessions", label: "See the sessions" },
+      );
+  }
+
+  if (value?.total !== undefined && value.cacheReadsAtInputRate !== undefined) {
+    const total = Number(value.total);
+    const ratio = total > 0 ? Number(value.cacheReadsAtInputRate) / total : 0;
+    if (ratio >= 1.2 && formatUsdWhole(value.total) !== undefined)
+      add(
+        {
+          id: "cache-value",
+          figure: value.pricedCalls,
+          baseline: total,
+          ratio,
+          count: value.recordedCalls,
+          amounts: { value: value.total, without: value.cacheReadsAtInputRate },
+        },
+        "cache",
+        { section: "tokens", label: "See where the tokens go" },
+      );
+  }
+
   const named = profile.projects.filter((project) => project.labelKind !== "none");
-  if (named.length >= 4 && knownTokens > 0) {
+  if (named.length >= 4 && overview.knownTokens > 0) {
     const topThree = rank(profile.projects, "tokens")
       .slice(0, 3)
       .reduce((sum, project) => sum + project.tokens, 0);
-    insights.push({
-      id: "project-concentration",
-      text: `Three projects generated ${PERCENT(topThree / knownTokens)} of known token volume across ${named.length.toLocaleString("en-US")} projects.`,
-    });
+    const share = topThree / overview.knownTokens;
+    const ratio = share / (3 / named.length);
+    if (ratio >= 1.5)
+      add(
+        {
+          id: "projects",
+          figure: topThree,
+          baseline: overview.knownTokens * (3 / named.length),
+          ratio,
+          share,
+          count: named.length,
+        },
+        "projects",
+        { section: "projects", label: "See the projects" },
+      );
   }
-  const topModel = rank(profile.models.canonical, "events")[0];
-  if (topModel !== undefined && overview.events > 0)
-    insights.push({
-      id: "top-model",
-      text: `${topModel.name} handled ${PERCENT(topModel.events / overview.events)} of recorded events.`,
-    });
-  const window = profile.rhythm.byEvents.typicalWindow;
-  if (window !== undefined && window.endHour !== window.startHour && insights.length < 5)
-    insights.push({
-      id: "typical-window",
-      text: `${PERCENT(window.share)} of recorded events fell between ${formatHour(window.startHour)} and ${formatHour(window.endHour)} (${timeZone}).`,
-    });
-  return insights.slice(0, 5);
+
+  const late = profile.lateNight;
+  if (overview.events > 0 && late.events / overview.events >= 0.1 && days.activeDays >= 3) {
+    const share = late.events / overview.events;
+    // Six hours are a quarter of the day: a share above that is the signal.
+    add(
+      {
+        id: "late-night",
+        figure: late.days,
+        baseline: 0.25,
+        ratio: share / 0.25,
+        share,
+        count: days.activeDays,
+        zone: timeZone,
+      },
+      "time",
+      { section: "rhythm", label: "See the hours" },
+    );
+  }
+
+  const ranked = [...facts].sort(
+    (a, b) => b.strength - a.strength || TIE_ORDER.indexOf(a.id) - TIE_ORDER.indexOf(b.id),
+  );
+  const top: Insight[] = [];
+  for (const fact of ranked)
+    if (top.length < 3 && !top.some((entry) => entry.family === fact.family)) top.push(fact);
+  return [...top, ...ranked.filter((fact) => !top.includes(fact))].slice(0, 6);
 }
 
 /**
@@ -728,6 +916,7 @@ export function buildWorkloadProfile(
           id,
           name: options.catalog.providers[id]?.name ?? id,
         })),
+        maker: makerOf(options.catalog, item.modelKey),
         events: 0,
         tokens: 0,
         observedNames: [],
@@ -955,6 +1144,51 @@ export function buildWorkloadProfile(
     };
   });
 
+  const sourceDemand = new Map<
+    string,
+    { events: number; tokens: number; models: Map<string, number>; unresolvedEvents: number }
+  >();
+  for (const item of prepared) {
+    const entry = sourceDemand.get(item.sourceId) ?? {
+      events: 0,
+      tokens: 0,
+      models: new Map<string, number>(),
+      unresolvedEvents: 0,
+    };
+    entry.events += 1;
+    entry.tokens += item.tokens;
+    if (item.resolved) entry.models.set(item.modelKey, (entry.models.get(item.modelKey) ?? 0) + 1);
+    else entry.unresolvedEvents += 1;
+    sourceDemand.set(item.sourceId, entry);
+  }
+  const sources: SourceDemand[] = [...sourceDemand.entries()]
+    .map(([id, entry]) => ({
+      id,
+      events: entry.events,
+      tokens: entry.tokens,
+      models: [...entry.models.entries()]
+        .map(([modelId, events]) => ({ modelId, events }))
+        .sort((a, b) => b.events - a.events || (a.modelId < b.modelId ? -1 : 1)),
+      unresolvedEvents: entry.unresolvedEvents,
+    }))
+    .sort((a, b) => b.events - a.events || (a.id < b.id ? -1 : 1));
+
+  let lateEvents = 0;
+  const lateDates = new Set<string>();
+  for (const item of prepared)
+    if (item.local.hour >= 22 || item.local.hour < 4) {
+      lateEvents += 1;
+      lateDates.add(item.local.date);
+    }
+  const value =
+    options.rulesAsOf === undefined
+      ? undefined
+      : workloadValue(events, {
+          catalog: options.catalog,
+          identity: options.identity,
+          rulesAsOf: options.rulesAsOf,
+        });
+
   const activeDays = daily.size;
   const base: Omit<WorkloadProfile, "insights"> = {
     version: PROFILE_VERSION,
@@ -1004,6 +1238,9 @@ export function buildWorkloadProfile(
       canonical: rank([...models.values()], "events"),
       unresolved: rank([...unresolved.values()], "events"),
     },
+    sources,
+    lateNight: { events: lateEvents, days: lateDates.size },
+    ...(value === undefined ? {} : { value }),
     sessions: {
       count: sessions.size,
       perActiveDay: activeDays === 0 ? 0 : sessions.size / activeDays,

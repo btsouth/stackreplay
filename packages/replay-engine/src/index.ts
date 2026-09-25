@@ -18,6 +18,7 @@
  * ExecutionReplayResult. API, local and hybrid targets are schema-only.
  */
 
+export type { ApiEventPriceability } from "./api-replay.js";
 export {
   type BacktestAmountV1,
   type BacktestCaseInputV1,
@@ -38,7 +39,14 @@ export {
   reconstructListPrice,
   resolutionExpectation,
 } from "./backtest.js";
-export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
+export {
+  type ApiPriceabilityCountsV1,
+  type ReplayInput,
+  type ReplayOptions,
+  replay,
+  replayObservingPriceability,
+  replayWithReceipt,
+} from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {
@@ -59,8 +67,10 @@ export {
   type ProjectedTargetV1,
   type ProjectedWorkloadV1,
   type ProjectionCatalogV1,
+  type ProjectReplayOptionsV1,
   projectReplay,
 } from "./projection.js";
+export { PriceReceiptBuilder, type PriceReceiptLineV1, type PriceReceiptV1 } from "./receipt.js";
 export {
   deriveOverageMode,
   deriveResetAssumption,

@@ -4,7 +4,7 @@ import { Dialog } from "@base-ui-components/react/dialog";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { appNavItems } from "../lib/nav";
+import { appNavItems, appUtilityNavItems } from "../lib/nav";
 import { NavLink } from "./nav-link";
 
 /**
@@ -94,6 +94,19 @@ export function MobileNav({
                     href={item.href}
                     label={item.label}
                     size="md"
+                    onNavigate={() => setOpen(false)}
+                  />
+                </li>
+              ))}
+            </ul>
+            <ul className="mt-4 flex flex-col gap-1 border-t border-border pt-4">
+              {appUtilityNavItems.map((item) => (
+                <li key={item.href}>
+                  <NavLink
+                    href={item.href}
+                    label={item.label}
+                    size="md"
+                    quiet
                     onNavigate={() => setOpen(false)}
                   />
                 </li>

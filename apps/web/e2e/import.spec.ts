@@ -44,7 +44,7 @@ test("imports a demo workload and reports usage sources and orchestration separa
   const orchestration = page.getByTestId("orchestration");
   await expect(orchestration).toContainText("T3 Code");
   await expect(orchestration).toContainText(/sessions attributed|attribution available/);
-  await expect(page.getByTestId("import-summary")).not.toContainText("T3 Code\n0 events");
+  await expect(page.getByTestId("import-summary")).not.toContainText("T3 Code\n0 calls");
 });
 
 test("rejects a file that is not a StackReplay export without quoting it", async ({ page }) => {
@@ -101,27 +101,29 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   const started = Date.now();
   await page.getByTestId("import-file-input").setInputFiles(path);
 
-  // The interface must stay responsive while the Worker works: this click
-  // happens while the import is in flight.
-  await page.getByTestId("demo-moderate").click({ timeout: 15_000 });
+  // The interface stays responsive while the Worker works: a control outside
+  // the scan answers while the import is in flight.
+  await expect(page.getByTestId("import-summary")).toHaveCount(0);
+  await page.getByRole("button", { name: "Toggle theme" }).first().click({ timeout: 15_000 });
+  await expect(page.getByTestId("import-summary")).toHaveCount(0);
 
   await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 150_000 });
   const elapsed = Date.now() - started;
 
   const summary = page.getByTestId("import-summary");
-  await expect(summary).toContainText("Events");
+  await expect(summary).toContainText(events.toLocaleString("en-US"));
 
-  // The large import is superseded by the demo import; the visible summary must
-  // be the newest request, never the stale one.
-  const eventsText = await summary.textContent();
-  expect(eventsText).not.toContain(events.toLocaleString("en-US"));
-  // A superseded import is cancelled on purpose: it must not report a failure
-  // and it must not leave the interface stuck in a working state.
+  // A second import, from the folded panel under Workload ready, replaces the
+  // first: the visible summary is the newest request, never the stale one.
+  await page.getByTestId("discovery-after-ready").locator(":scope > summary").click();
+  await page.getByTestId("demo-moderate").click();
+  await expect(summary).not.toContainText(events.toLocaleString("en-US"), { timeout: 60_000 });
+  await expect(summary).toContainText("Calls");
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   await expect(page.getByTestId("import-working")).toHaveCount(0);
 
   console.log(
-    `[large-import] file ${sizeMb} MB, ${events.toLocaleString("en-US")} events, wall time ${elapsed} ms (superseded by a demo import mid-flight)`,
+    `[large-import] file ${sizeMb} MB, ${events.toLocaleString("en-US")} events, wall time ${elapsed} ms`,
   );
   testInfo.attach("large-import.json", {
     body: JSON.stringify({ events, bytes, sizeMb, elapsedMs: elapsed }),

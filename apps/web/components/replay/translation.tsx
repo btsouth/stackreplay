@@ -2,12 +2,20 @@
 
 import type { BundledTargetModel } from "@stackreplay/catalog/bundled";
 import { useId } from "react";
-import type { ModelMapping, SourceModel, WorkloadModels } from "./translation-model";
+import {
+  type ModelMapping,
+  type SourceModel,
+  type SubstituteChoice,
+  substituteChoices,
+  type WorkloadModels,
+} from "./translation-model";
 
 export {
   compatibility,
   type ModelMapping,
   type SourceModel,
+  type SubstituteChoice,
+  substituteChoices,
   type TargetSelection,
   targetModels,
   translationPolicy,
@@ -68,9 +76,9 @@ export function TranslationEntry({
           .map((source) => source.name)
           .join(", ")}
         {unserved.length > 4 ? ` and ${unserved.length - 4} more` : ""}, which carried{" "}
-        {COUNT.format(unservedEvents)} of {COUNT.format(totalEvents)} recorded events. An exact
-        replay reports that demand as unavailable. To simulate moving the workload, choose which{" "}
-        {targetName} models should handle it.
+        {COUNT.format(unservedEvents)} of {COUNT.format(totalEvents)} recorded calls. As recorded,
+        those calls remain unavailable. To model moving this work, choose which {targetName} models
+        should handle it.
       </p>
       {open ? null : (
         <button
@@ -79,7 +87,7 @@ export function TranslationEntry({
           onClick={onOpen}
           data-testid="configure-translation"
         >
-          Configure translated replay →
+          Move this work to another model →
         </button>
       )}
     </div>
@@ -102,8 +110,10 @@ export function TranslationEditor({
   apiTarget: boolean;
 }) {
   const allId = useId();
-  const choices = available.filter((model) => model.available);
-  const serves = new Set(choices.map((model) => model.id));
+  // Serving is decided by every model the target runs, family aliases included;
+  // the options offered as substitutes are the concrete releases.
+  const serves = new Set(available.filter((model) => model.available).map((model) => model.id));
+  const choices = substituteChoices(available);
   const unserved = workload.sources.filter((source) => !serves.has(source.modelId));
   const mappedEvents = workload.sources.reduce((sum, source) => {
     const target = mapping[source.modelId];
@@ -113,8 +123,8 @@ export function TranslationEditor({
   }, 0);
   const unresolvedEvents = workload.unresolved.reduce((sum, model) => sum + model.events, 0);
 
-  const optionLabel = (model: BundledTargetModel) =>
-    apiTarget && model.priced !== true ? `${model.name} (no list price in force)` : model.name;
+  const optionLabel = (model: SubstituteChoice) =>
+    apiTarget && model.priced !== true ? `${model.label} (no list price in force)` : model.label;
 
   return (
     <section
@@ -130,8 +140,8 @@ export function TranslationEditor({
           Choose which {targetName} models handle your recorded demand
         </h3>
         <p className="max-w-prose text-xs leading-relaxed text-muted-foreground">
-          Target models are user-selected scenario substitutions, not claims of model quality
-          equivalence. Your chronology, sessions and bursts stay exactly as recorded.
+          You choose every substitution. Recorded demand and tokens are reused as a scenario
+          assumption; actual target-model usage may differ. This does not claim equal model quality.
         </p>
       </div>
 
@@ -178,7 +188,7 @@ export function TranslationEditor({
               Observed
             </th>
             <th className="hidden py-2 pr-3 text-right font-normal sm:table-cell" scope="col">
-              Events
+              Calls
             </th>
             <th className="py-2 font-normal" scope="col">
               Replay as
@@ -200,7 +210,7 @@ export function TranslationEditor({
                   <label htmlFor={selectId} className="flex flex-col">
                     <span>{source.name}</span>
                     <span className="text-[11px] text-muted-foreground">
-                      <span className="sm:hidden">{COUNT.format(source.events)} events · </span>
+                      <span className="sm:hidden">{COUNT.format(source.events)} calls · </span>
                       {servedAsIs ? `${targetName} runs this model` : "not run by this target"}
                     </span>
                   </label>
@@ -252,7 +262,7 @@ export function TranslationEditor({
             Model routing
           </dt>
           <dd data-testid="translation-routing">
-            {COUNT.format(mappedEvents)} events substituted
+            {COUNT.format(mappedEvents)} calls substituted
             {unserved.some((source) => (mapping[source.modelId] ?? "") === "")
               ? ` · ${COUNT.format(
                   unserved
@@ -278,7 +288,7 @@ export function TranslationEditor({
           <dd>
             {workload.unresolved.length === 0
               ? "None: every observed identifier resolved."
-              : `${COUNT.format(workload.unresolved.length)} ${workload.unresolved.length === 1 ? "ID" : "IDs"} (${COUNT.format(unresolvedEvents)} events) have no established model, so they cannot be mapped and stay unknown.`}
+              : `${COUNT.format(workload.unresolved.length)} ${workload.unresolved.length === 1 ? "ID" : "IDs"} (${COUNT.format(unresolvedEvents)} calls) have no established model, so they cannot be mapped and stay unknown.`}
           </dd>
         </div>
       </dl>

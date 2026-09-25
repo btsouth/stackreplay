@@ -28,7 +28,7 @@ export function WorkloadSection({
   return (
     <section
       aria-labelledby={headingId}
-      className="flex min-w-0 scroll-mt-20 flex-col gap-5 border-t border-border-strong pt-6"
+      className="flex min-w-0 scroll-mt-36 flex-col gap-5 border-t border-border-strong pt-6"
       data-testid={testId}
       id={id}
     >

@@ -2,7 +2,7 @@ import { createModelIdentityIndex } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { sliceRollingWindows, sortTimedEvents, toTimedEvents } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { buildArchetypeExport, buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { buildWorkloadProfile, inspectWindow, safeTimeZone } from "./workload-profile";
 
@@ -173,13 +173,38 @@ describe("workload profile", () => {
     expect(window.models[0]?.label).toBe(catalog.models["gpt-6-sol"]?.name);
   });
 
-  it("states only insights its figures support", () => {
+  it("states comparative facts only, each with its baseline and its evidence", () => {
     const profile = buildWorkloadProfile(buildDemoExport("heavy").events, options());
     expect(profile.insights.length).toBeGreaterThan(0);
-    expect(profile.insights.length).toBeLessThanOrEqual(5);
-    const cache = profile.insights.find((insight) => insight.id === "cache-share");
-    const share = profile.tokens.cacheRead / profile.overview.knownTokens;
-    if (share >= 0.5) expect(cache).toBeDefined();
-    else expect(cache).toBeUndefined();
+    expect(profile.insights.length).toBeLessThanOrEqual(6);
+    for (const insight of profile.insights) {
+      expect(insight.comparison).toMatch(/\d/u);
+      expect(insight.evidence.section).toMatch(/^[a-z]+$/u);
+      expect(insight.text.trim()).toMatch(/[.]$/u);
+    }
+    // The top three cover as many families as there are, strongest first.
+    const top = profile.insights.slice(0, 3);
+    const families = new Set(profile.insights.map((insight) => insight.family)).size;
+    expect(new Set(top.map((insight) => insight.family)).size).toBe(Math.min(3, families));
+    expect(top[0]?.strength).toBe(Math.max(...profile.insights.map((insight) => insight.strength)));
+    // Without a rules date there is no value, so no dollar fact.
+    expect(profile.value).toBeUndefined();
+    expect(profile.insights.some((insight) => insight.id === "cache-value")).toBe(false);
+  });
+
+  it("with a rules date, carries the published-rate value and its cache fact", () => {
+    const exported = buildArchetypeExport("mixed");
+    const profile = buildWorkloadProfile(exported.events, {
+      ...options(),
+      rulesAsOf: "2026-09-24",
+    });
+    expect(profile.value?.total).toBeDefined();
+    const cache = profile.insights.find((insight) => insight.id === "cache-value");
+    expect(cache?.text).toMatch(/at published API list prices/u);
+    expect(cache?.comparison).toMatch(/× the list-price value without caching$/u);
+    // The cache share is stated once, in the tokens section, not in a fact.
+    expect(profile.insights.every((insight) => !/cache reads were/iu.test(insight.text))).toBe(
+      true,
+    );
   });
 });

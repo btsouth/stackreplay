@@ -8,6 +8,7 @@ import { splitByIdentity } from "../../lib/workload-scope";
 import { summarizeExport } from "../../lib/workload-summary";
 import {
   compatibility,
+  substituteChoices,
   targetModels,
   translationPolicy,
   workloadModels,
@@ -199,6 +200,22 @@ describe("translated replay", () => {
     });
     expect(translated.projection.mode).toBe("translated");
     expect(translated.projection.economics.targetCost).toBeDefined();
+  });
+});
+
+describe("substitute choices", () => {
+  it("offers concrete releases instead of bare family aliases, and marks legacy ones", () => {
+    const choices = substituteChoices(
+      targetModels({ kind: "subscription", planId: "anthropic-claude-max-20x" }, "2026-09-23"),
+    );
+    const labels = choices.map((choice) => choice.label);
+    for (const alias of ["Opus", "Sonnet", "Haiku", "Fable"]) expect(labels).not.toContain(alias);
+    expect(labels).toContain("Claude Opus 5.5");
+    expect(labels).toContain("Claude Opus 4.8 (legacy)");
+    // Current releases come before legacy ones.
+    const firstLegacy = choices.findIndex((choice) => choice.lifecycle === "legacy");
+    const lastCurrent = choices.map((choice) => choice.lifecycle).lastIndexOf("current");
+    expect(firstLegacy).toBeGreaterThan(lastCurrent);
   });
 });
 

@@ -3,7 +3,7 @@
   "generatedBy": "apps/web/scripts/build-demo-artifact.mjs",
   "engineVersion": "0.0.4",
   "methodologyVersion": "1.4.0",
-  "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+  "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
   "rulesAsOf": "2026-09-20",
   "scenario": {
     "id": "m4d-demo",
@@ -86,6 +86,8 @@
           "eventCount": 10723,
           "sessionCount": 335,
           "modelCount": 3,
+          "resolvedModelCount": 3,
+          "unresolvedIdCount": 0,
           "from": "2026-08-21T05:27:50.059Z",
           "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
@@ -133,7 +135,7 @@
         "headline": {
           "dimension": "requests",
           "percent": 76.2846,
-          "statement": "8,180 of 10,723 modeled requests fit (76.3%). 2,543 blocked across 3 crossing windows.",
+          "statement": "8,180 of 10,723 modeled requests were served (76.3%). 2,543 blocked across 3 crossing windows.",
           "status": "partial",
           "statusLabel": "Partly served"
         },
@@ -383,7 +385,7 @@
         "provenance": {
           "planVersion": "example-cloud-pro@2026-08-01",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+          "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "Not established: the target's allowance windows mix rolling and calendar behaviour, so no single reset phase is established, and reset-phase sensitivity is not analysed in this milestone",
@@ -438,6 +440,8 @@
           "eventCount": 10723,
           "sessionCount": 335,
           "modelCount": 3,
+          "resolvedModelCount": 3,
+          "unresolvedIdCount": 0,
           "from": "2026-08-21T05:27:50.059Z",
           "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
@@ -498,7 +502,7 @@
         "headline": {
           "dimension": "requests",
           "percent": 100,
-          "statement": "10,723 of 10,723 modeled requests fit (100%).",
+          "statement": "10,723 of 10,723 modeled requests were served (100%).",
           "status": "full",
           "statusLabel": "Fully served"
         },
@@ -680,7 +684,7 @@
         "provenance": {
           "planVersion": "example-cloud-starter@2026-09-15",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+          "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "translationPolicy": {
@@ -727,6 +731,8 @@
           "eventCount": 10723,
           "sessionCount": 335,
           "modelCount": 3,
+          "resolvedModelCount": 3,
+          "unresolvedIdCount": 0,
           "from": "2026-08-21T05:27:50.059Z",
           "to": "2026-09-20T12:09:58.756Z",
           "windowDays": 31,
@@ -774,7 +780,7 @@
         "headline": {
           "dimension": "requests",
           "percent": 100,
-          "statement": "10,723 of 10,723 modeled requests fit (100%).",
+          "statement": "10,723 of 10,723 modeled requests were served (100%).",
           "status": "full",
           "statusLabel": "Fully served"
         },
@@ -958,7 +964,7 @@
         "provenance": {
           "apiProvider": "example-cloud",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+          "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "a Direct API target has no subscription allowance window, so no reset phase can apply to it",
@@ -1000,6 +1006,8 @@
         "eventCount": 488,
         "sessionCount": 208,
         "modelCount": 4,
+        "resolvedModelCount": 3,
+        "unresolvedIdCount": 1,
         "from": "2026-08-21T04:01:11.462Z",
         "to": "2026-09-20T06:56:00.300Z",
         "windowDays": 31,
@@ -1250,7 +1258,7 @@
       "provenance": {
         "planVersion": "example-cloud-starter@2026-09-15",
         "rulesAsOf": "2026-09-20",
-        "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+        "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
         "engineVersion": "0.0.4",
         "methodologyVersion": "1.4.0",
         "translationPolicy": {

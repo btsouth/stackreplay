@@ -1,8 +1,13 @@
 "use client";
 
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import { browserTimeZone } from "./time-zone";
 import {
   type ImportPhase,
   type ImportRecord,
@@ -10,6 +15,8 @@ import {
   isWorkerResponse,
   protocolMismatch,
   type ReplayPhase,
+  type ReplayScope,
+  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
   type TimelinePoint,
@@ -26,7 +33,15 @@ export interface ReplayOutcome {
   /** The display contract for the same result (M4D). */
   projection: ProjectedReplayV1;
   /** Present when the replay ran under an explicit, user-chosen scope. */
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  scope?: ReplayScope | undefined;
+  /** The engine's model × category arithmetic behind the result's money. */
+  receipt?: PriceReceiptV1 | undefined;
+  /** Direct API only: how many events fared each way. */
+  priceability?: ApiPriceabilityCountsV1 | undefined;
+  /** Direct API only: the resolved-only scope, when it completes the price. */
+  resolvedScope?: ResolvedScopeReplay | undefined;
+  /** Subscription targets: when each undecided call occurred, epoch ms. */
+  undecidedAtMs?: number[] | undefined;
 }
 
 /**
@@ -425,7 +440,12 @@ export class ReplayWorkerClient {
     target: ExecutionTargetV1,
     rulesAsOf: string,
     onProgress?: ProgressHandler,
-    options: { excludeUnresolved?: boolean } = {},
+    options: {
+      excludeUnresolved?: boolean;
+      timeZone?: string;
+      /** Recording tools to keep, by adapter id. */
+      sources?: readonly string[] | undefined;
+    } = {},
   ): Promise<ReplayOutcome> {
     const response = await this.send(
       (requestId) => ({
@@ -435,7 +455,11 @@ export class ReplayWorkerClient {
         importId,
         target,
         rulesAsOf,
+        timeZone: options.timeZone ?? browserTimeZone(),
         ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
+        ...(options.sources === undefined || options.sources.length === 0
+          ? {}
+          : { sources: [...options.sources] }),
       }),
       onProgress,
       "replay",
@@ -446,11 +470,19 @@ export class ReplayWorkerClient {
       timeline: response.timeline,
       projection: response.projection,
       ...(response.scope === undefined ? {} : { scope: response.scope }),
+      ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
+      ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
+      ...(response.resolvedScope === undefined ? {} : { resolvedScope: response.resolvedScope }),
+      ...(response.undecidedAtMs === undefined ? {} : { undecidedAtMs: response.undecidedAtMs }),
     };
   }
 
   /** The workload profile, computed locally in the Worker from the stored events. */
-  async analyzeWorkload(importId: string, timeZone: string): Promise<WorkloadProfile> {
+  async analyzeWorkload(
+    importId: string,
+    timeZone: string,
+    rulesAsOf?: string,
+  ): Promise<WorkloadProfile> {
     const response = await this.send(
       (requestId) => ({
         protocol: WORKER_PROTOCOL_VERSION,
@@ -458,6 +490,7 @@ export class ReplayWorkerClient {
         requestId,
         importId,
         timeZone,
+        ...(rulesAsOf === undefined ? {} : { rulesAsOf }),
       }),
       undefined,
       "analyze",

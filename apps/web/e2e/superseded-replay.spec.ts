@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { importDemo, setRulesAsOf } from "./helpers";
 
 /**
  * Superseded requests (M3 brief, independent audit).
@@ -15,7 +15,7 @@ test("a superseded replay is never reported as a failure", async ({ page }) => {
   await page.goto("/app/replay");
   await expect(page.getByTestId("workload-strip")).toBeVisible();
   await page.getByTestId("plan-example-cloud-pro").click();
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
 
   // Both replays start in the same tick, so the first response is superseded.
   await page.evaluate(() => {

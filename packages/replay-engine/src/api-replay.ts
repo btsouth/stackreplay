@@ -22,6 +22,7 @@ import type {
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { type Decimal, ZERO } from "./money.js";
+import type { PriceReceiptBuilder } from "./receipt.js";
 import {
   buildWarnings,
   CoverageBuilder,
@@ -90,6 +91,27 @@ export interface ApiReplayInput {
 }
 
 /**
+ * How one event fared in a Direct API replay, reported to an optional observer
+ * in the order the questions are asked: identity, the provider's offering,
+ * token accounting, then the price record and its categories.
+ */
+export type ApiEventPriceability =
+  | "priced"
+  | "unresolved"
+  | "not_offered"
+  | "offering_unestablished"
+  | "usage_incomplete"
+  | "price_not_recorded"
+  | "price_category_undocumented";
+
+export interface ApiReplayExtras {
+  /** Collects the model × category arithmetic of the counted events. */
+  receipt?: PriceReceiptBuilder;
+  /** Told how each event fared, so a caller can state a scope from the same pass. */
+  observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+}
+
+/**
  * How the catalog's price history treats one effective model at the pinned
  * instant. A pricing record that is not in force then is never substituted for
  * one that is.
@@ -106,7 +128,10 @@ type ApiPricingOutcome =
 /** Whether the selected provider serves one effective model. */
 type ApiAvailability = "offered" | "not-offered" | "offering-unestablished";
 
-export function replayApiTarget(input: ApiReplayInput): ExecutionReplayResultV1 {
+export function replayApiTarget(
+  input: ApiReplayInput,
+  extras: ApiReplayExtras = {},
+): ExecutionReplayResultV1 {
   const { target, catalog, context } = input;
   const rulesAsOf = context.rulesAsOf;
   const scopeKind: WorkloadScopeKindV1 = context.workloadScope?.kind ?? "imported_workload";
@@ -221,6 +246,14 @@ export function replayApiTarget(input: ApiReplayInput): ExecutionReplayResultV1 
       : undefined;
     let pricing: ApiPricingOutcome = { kind: "not-recorded" };
     let moneyUnits: Decimal | undefined;
+    let pendingReceipt:
+      | {
+          modelId: string;
+          pricingId: string;
+          tierId: string | undefined;
+          parts: NonNullable<ReturnType<typeof moneyUnitsForUsage>["parts"]>;
+        }
+      | undefined;
 
     if (identityEstablished) {
       if (availability === "offered") {
@@ -235,7 +268,15 @@ export function replayApiTarget(input: ApiReplayInput): ExecutionReplayResultV1 
           event.usage,
           pricing.kind === "selected" ? pricing.pricing : undefined,
           { atMs: timedEvent.atMs },
+          { parts: extras.receipt !== undefined },
         );
+        if (outcome.known && pricing.kind === "selected" && outcome.parts !== undefined)
+          pendingReceipt = {
+            modelId: effectiveModelId,
+            pricingId: pricing.pricing.id,
+            tierId: outcome.tierId,
+            parts: outcome.parts,
+          };
         if (pricing.kind === "selected") usedPricingIds.add(pricing.pricing.id);
         if (pricing.kind === "not-recorded")
           tracker.warn(
@@ -307,7 +348,26 @@ export function replayApiTarget(input: ApiReplayInput): ExecutionReplayResultV1 
     if (disposition === "included" && moneyUnits !== undefined) {
       pricedEvents += 1;
       costUnits = costUnits.plus(moneyUnits);
+      if (pendingReceipt !== undefined)
+        extras.receipt?.add({ ...pendingReceipt, multiplier: undefined });
     }
+    if (extras.observe !== undefined)
+      extras.observe(
+        event,
+        !identityEstablished
+          ? "unresolved"
+          : availability === "not-offered"
+            ? "not_offered"
+            : availability === "offering-unestablished"
+              ? "offering_unestablished"
+              : !tokens.known
+                ? "usage_incomplete"
+                : pricing.kind !== "selected"
+                  ? "price_not_recorded"
+                  : moneyUnits === undefined
+                    ? "price_category_undocumented"
+                    : "priced",
+      );
 
     const needsPrice = availability === "offered";
     /**

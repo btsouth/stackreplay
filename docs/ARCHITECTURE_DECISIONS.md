@@ -1001,3 +1001,183 @@ Explicitly deferred. Do not implement, guess, or resolve these before their mile
 - The splitter searches each decoded chunk once. The file signature is WebCrypto SHA-256 over fixed 8 MiB blocks; it is compared only within one scan and never stored. A streamed file is signed only when another selected streamed file has its size, because identical bytes need identical sizes; any file read as text keeps every file signed, since a decoded-text signature does not follow byte size. A file no larger than the peek is parsed from the peek instead of being read again. Session and project identities are derived once per collect call with a pre-keyed HMAC clone, byte for byte the same. Progress is posted at most every 100 ms and always at the end. The next file's detection read starts while the current file is processed (read-ahead 2, chosen against 1, 4 and 8 in Chromium; 8 was slower on the real history).
 - Results are unchanged: a digest of the complete intake result (export, outcomes, warnings, duplicate and overlap counts, local project labels) is identical before and after on every benchmark case, including the real snapshot, and the new splitter is tested against the old one across chunk sizes from one byte to a whole file.
 - A transaction the browser aborts (an in-memory profile such as Incognito cannot hold about 300,000 events in one value; a full disk) no longer leaves the import waiting on a request that never answers: the scan finishes unsaved, as refused storage was always meant to. A cancelled scan now stops within a chunk of a long file instead of at its end.
+
+## 57. One definition per figure, and every dollar opens to its arithmetic (product trust pass)
+
+A product-success audit found figures that changed meaning between surfaces. Each now has one
+definition, computed in one place and presented many ways.
+
+- **Day basis.** A user-facing day is a calendar day in the viewer's IANA timezone. The workload
+  profile already read days that way; the Replay timeline bucketed by UTC day, so "busiest day"
+  named different dates on the two pages. `buildTimeline` now takes the viewer's timezone
+  (`RUN_REPLAY.timeZone`) and crossing bands are placed on the same local days. A plan's calendar
+  window keeps its own zone ("calendar month (UTC)") where its boundary is shown.
+- **Peak window.** The busiest five-hour window is ranked by calls (events). The heaviest five-hour
+  window by tokens is a different window when the rankings disagree, and it is named as such. A
+  sentence never takes its start time from one window and its share from another
+  (`apps/web/lib/workload-facts.ts`).
+- **Output.** Output is the disjoint output bucket. Reasoning is its own bucket and is shown beside
+  output, never added into it under the same word.
+- **Models.** "Models" are canonical catalog models. Unresolved identifiers are counted separately.
+  `ProjectedWorkloadV1` gains `resolvedModelCount` and `unresolvedIdCount`; `modelCount`, which adds
+  both, is labelled "model identities" wherever it is shown (a V1 share link carries only that
+  sum).
+- **Service outcomes.** Served within allowance, served as overage, not served, undecided. "Would
+  have fit" is gone: it described calls that were billed as overage. A plan whose numeric limits
+  were never reached because it runs none of the recorded models says exactly that, never that its
+  constraints were satisfied.
+- **Scope advice is computed, not assumed.** A Direct API replay reports how each event fared
+  (`replayWithReceipt(...).priceability`, from the same pass). "Leaving out the unresolved events
+  gives a complete priced scope" is shown only when unresolved identity is the one remaining gap.
+- **Price receipts.** `replayWithReceipt` returns, beside the unchanged result, the model × category
+  arithmetic behind its money: tokens × published rate (× a plan's model multiplier for credit
+  demand), collected from the per-event conversion the engine already performs
+  (`moneyUnitsForUsage` with `parts`) and only for events the engine counted. It is not a second
+  pricing pass over aggregated buckets (decision 45 stands): its exact total equals the engine's
+  figure digit for digit, which `receipt.test.ts` holds it to. Rows are shown to the cent by
+  largest-remainder apportionment so the column adds to the headline exactly. Money is formatted
+  from exact decimal strings everywhere, never through a float.
+- **Catalog hygiene.** Synthetic `example-` targets are offered only for synthetic demo workloads.
+  Cursor plan names carry the provider ("Cursor Pro"). The translation picker offers concrete
+  releases, hides a family alias ("Opus") when a release of that family is available, and marks
+  legacy releases.
+
+## 58. A result leads with a verdict composed from the engine's facts (decision-first replay)
+
+A replay result used to open with the engine's state word ("full coverage ruled out", "capacity
+not quantified"), so the largest thing on screen was what StackReplay could not say. It now opens
+with a verdict: one or two sentences carrying a date, a dollar amount, a count of the person's calls
+or a bounded share, then what stays open, each in one sentence.
+
+- **Facts, then words.** `verdictFactsOf` (`apps/web/lib/verdict-facts.ts`) reduces a projection to
+  `VerdictFactsV1` (`@stackreplay/share`): outcome counts, crossings, economics, the target's
+  capacity kind, the substitution and the scope. `composeVerdict` turns facts into words with fixed
+  templates. Nothing is ranked or generated, a count the facts do not carry is never stated, and an
+  undecided call is never assigned to an outcome.
+- **One derivation.** Replay and Compare both call `verdictOfOutcome` with the worker's outcome, so
+  which replay a verdict reads and which scope it states is decided in one place. The period is the
+  projection's `windowDays`, which `projectReplay` now counts in the viewer's calendar days when
+  given a time zone (decision 57); without one it still counts UTC days.
+- **Bounds, not UNKNOWN.** When undecided calls leave a share open, the verdict states both ends
+  ("53.0–53.1%") and says how many calls are undecided and why.
+- **Resolved-only Direct API price.** When unrecognized model IDs are the only gap in a Direct API
+  price, the worker also replays the resolved-only scope (decision 49's `splitByIdentity`) and
+  returns it as `resolvedScope` beside the unchanged full result. The verdict then leads with that
+  price and names its scope in its first words ("Your 3,168 calls with recognized models are worth
+  …"); the figure's caption carries the same scope. The person's own scope choice is not changed,
+  the full replay stays the engine reading under Inspect, and no total for the whole workload is
+  implied.
+- **Exact and Translated stay unmistakable.** A translated verdict opens "Under your model
+  substitution", names each substitution, says recorded token amounts carry over unchanged, and
+  says nothing here claims the substitute models would do the same work.
+- **The engine reading is kept, one step down.** The status word, dispositions, coverage
+  dimensions, replayability and evidence moved under Inspect. Nothing was removed.
+
+## 59. Suggestions come from the workload's own coverage, and tool slices are explicit scopes (workload-aware routing)
+
+The suggested routes were fixed: "a plan with a published allowance" was always Copilot Pro, and
+the API route was the top model's provider whatever else the workload held. On a mixed history
+every suggestion ended in a non-answer.
+
+- **One coverage measure.** `targetCoverages` (`apps/web/lib/routes.ts`) counts, per target, the
+  calls on models it runs, with the catalog rule the engine applies (`bundledPlanModelsAt`,
+  `bundledApiProviderModels`). `routes.test.ts` holds every count, for every archetype, tool
+  slice and public target, to the engine's own served count. Unresolved calls are never assigned.
+- **Suggested routes.** `suggestRoutes` offers up to three, each able to answer: a Direct API
+  provider that runs and prices every resolved call (of the whole workload, or of the largest
+  tool slice one provider covers); the numeric-limit plan that runs the most of the workload, at
+  least half of it; and a provider switch framed as a translated scenario. Plans sold per seat to
+  organizations are never suggested and sort after individual plans on a tie.
+- **Tool slices.** A replay can be scoped to the calls one or more recording tools made
+  (`runScopedReplay`, `apps/web/lib/scoped-replay.ts`, the one place scopes are applied). The
+  verdict names the slice in its first words, its figure caption and its short form; the reading
+  states the scope and omits whole-workload peaks the slice did not send. A share link refuses a
+  sliced result until share V2 can state the scope.
+- **Current stack.** "What you use today" is a set. Each current target is replayed on the tools
+  whose calls it runs at least half of (`stackCoverage`), and tools no current target carries are
+  named.
+- **Setup order.** Work to replay, then target (ordered by coverage, with the share each runs),
+  then substitutions. The rules date and catalog version badges sit under Advanced, and the raw
+  identity map under the workload details.
+
+## 60. The workload opens with what it is worth at each maker's own rates, and comparative facts (first-scan value)
+
+The workload page opened with counts and five shares, with no money on it; for a mixed stack the
+only money route priced everything at one provider and refused.
+
+- **Published-rate value.** `workloadValue` (`apps/web/lib/workload-value.ts`) groups resolved
+  calls by the model's maker (`developerId`) and prices each group with an Exact Direct API
+  replay at that maker's own published rates. A group that does not price completely falls back
+  to one replay per model. Only complete replays are added, exactly (`addAmounts`); the remainder
+  is named with its reason (a token category the maker's price record gives no rate for, no list
+  price in force, no recorded maker) and unresolved calls are counted. It equals the sum of
+  per-maker replays to the cent, and a single-maker workload equals its own Direct API replay.
+  Every placement shows "at published API list prices · not what you paid" beside the figure,
+  and "How $X adds up" opens one price receipt per maker.
+- **Computed with the profile.** `ANALYZE_WORKLOAD` takes the rules date and the profile carries
+  the value, so the workload page, Workload Ready and anything later read one figure.
+- **Comparative facts.** The five share-only insights are replaced by facts that state a figure
+  against a baseline from the same workload: the busiest day against the median active day, the
+  heaviest hour and five-hour window against their medians, the largest session against the
+  median session, caching's effect (the receipts' `cacheReadsAtInputRate` against the total),
+  project concentration against an even share, and late-night share. Each links to the section
+  that shows it. They are ranked by how far the figure is from its baseline; the top three come
+  from different families when there are that many. Templates only, nothing generated. The cache
+  share is stated once, in the token section.
+- **Tool split** is shown beside the value, from the summary's per-tool call counts.
+- **What you pay today** is optional and shares Compare's current-stack set. Plan prices are
+  pro-rated to the recorded days (price × days × 12 ÷ 365 for a monthly price) with the
+  arithmetic shown, and set beside the list-price value as context. No saving is computed
+  between two different products.
+
+## 61. Share links carry what a result says, for every kind of result (share V2)
+
+V1 links carried one exact subscription replay as engine state, so Direct API, translated and
+scoped replays could not be shared, the public page read like engine output, and every link had
+the same generic image.
+
+- **V2 snapshot.** `shareSnapshotV2Schema` (`packages/share/src/v2.ts`) is a union of a replay,
+  which carries its `VerdictFactsV1` plus target provenance and versions, and a workload card,
+  which carries counts, the tool split, the published-rate value and up to three comparative
+  facts. Tokens are `2.<checksum>.<payload>` through the same bounded, checksummed, forbidden-field
+  checked path as V1. `decodeAnyShareToken` reads both versions; V1 links render as before.
+- **One set of words.** The verdict composer and `composeWorkloadFact` (moved to the share
+  package) write the sentences for the application, the public page and the image, so a result
+  cannot read one way in the app and another in public. `presentShare` is the one presentation
+  the public page, the panel preview and the image render.
+- **Privacy at the builder.** `replayShareV2` and `workloadShareV2` (`apps/web/lib/share-v2.ts`)
+  are whitelists. Maker and model names are kept only when the catalog knows them; tools are an
+  enum of known recording tools, so a label from a hand-edited file becomes "Other tools"; a tool
+  slice's label is rebuilt from that enum. The date range, the session count and peak times are
+  published only when the sharer ticks them. `share-v2.test.ts` decodes real links and checks
+  that project labels, hashes, sessions and times are absent.
+- **Per-link image.** `/s/<token>/image` decodes the token and draws the presentation with
+  `ImageResponse` (satori), using subsets of Geist embedded in the code so it renders in a Worker.
+  A token is content-addressed, so the image is cached as immutable. The page's Open Graph and
+  Twitter metadata point at it.
+- **Panel.** The preview comes first. Actions: create the link, copy it, download the PNG (drawn
+  by the image route from the link's own aggregate data), copy a suggested post that quotes the
+  result rather than rewriting it. The long URL waits behind "Show link".
+
+## 62. Undecided demand qualifies only what it could change (independent audit fix-forward)
+
+An independent audit replayed a workload whose one unresolved call carried a billion input tokens.
+The verdict stated the recognized calls' run-out and overage as the workload's, and the published-rate
+value read "3,199 of 3,200 calls (100.0%)" while leaving out 64% of known demand.
+
+- **Chronology from the engine.** `replayWithReceipt` also reports when each undecided event occurred
+  (`undecidedAt`), from the same per-event dispositions the result counts. The result is unchanged.
+- **Per run-out, in the facts.** `verdictFactsOf` records, for each run-out date, the undecided calls
+  that could have moved it (`undecidedBefore`): any before the first run-out, and for a later
+  run-out only those in its own window before it. Replay, Compare, a share link and its image all
+  read these facts.
+- **Words.** A run-out with undecided calls before it is what the recognized calls alone establish
+  ("Recognized calls alone would exhaust … by Aug 29"), followed at once by what the undecided calls
+  could change. Undecided calls only after a run-out leave its date exact and qualify the overage.
+  A numeric plan never reached says only the recognized calls fit. Nothing is guessed about the
+  undecided calls and no upper bound is invented; a tiny undecided subset qualifies a sentence, it
+  never turns a result into UNKNOWN.
+- **Price scope.** `workloadValue` carries known processed tokens across all calls and in the
+  priced ones. `composeValueScope` states the call scope with `partOfWhole`, which never rounds an
+  incomplete part to 100%, and, when calls are left out, the share of known processed tokens they
+  carry. The token share is a materiality measure, never a share of dollars.

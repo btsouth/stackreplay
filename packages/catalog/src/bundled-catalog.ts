@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124";
+export const BUNDLED_CATALOG_VERSION = "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:f32e4c007204041addf53d9e62112125846ac180ea882316bfb46f3fdd197124",
+  "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -3244,7 +3244,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "cursor-hobby": {
       "id": "cursor-hobby",
       "role": "plan",
-      "name": "Hobby",
+      "name": "Cursor Hobby",
       "providerId": "cursor",
       "versions": [
         {
@@ -3361,7 +3361,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "cursor-pro-plus": {
       "id": "cursor-pro-plus",
       "role": "plan",
-      "name": "Pro+",
+      "name": "Cursor Pro+",
       "providerId": "cursor",
       "versions": [
         {
@@ -3496,7 +3496,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "cursor-pro": {
       "id": "cursor-pro",
       "role": "plan",
-      "name": "Pro",
+      "name": "Cursor Pro",
       "providerId": "cursor",
       "versions": [
         {
@@ -3643,7 +3643,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "cursor-ultra": {
       "id": "cursor-ultra",
       "role": "plan",
-      "name": "Ultra",
+      "name": "Cursor Ultra",
       "providerId": "cursor",
       "versions": [
         {
@@ -8356,7 +8356,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "unknown",
       "versionId": "cursor-hobby@2026-09-21",
       "planId": "cursor-hobby",
-      "planName": "Hobby",
+      "planName": "Cursor Hobby",
       "providerId": "cursor"
     },
     "cursor-pro-plus@2026-09-21": {
@@ -8487,7 +8487,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "cursor-pro-plus@2026-09-21",
       "planId": "cursor-pro-plus",
-      "planName": "Pro+",
+      "planName": "Cursor Pro+",
       "providerId": "cursor"
     },
     "cursor-pro@2026-09-21": {
@@ -8630,7 +8630,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "cursor-pro@2026-09-21",
       "planId": "cursor-pro",
-      "planName": "Pro",
+      "planName": "Cursor Pro",
       "providerId": "cursor"
     },
     "cursor-ultra@2026-09-21": {
@@ -8761,7 +8761,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "cursor-ultra@2026-09-21",
       "planId": "cursor-ultra",
-      "planName": "Ultra",
+      "planName": "Cursor Ultra",
       "providerId": "cursor"
     },
     "example-cloud-pro@2026-08-01": {

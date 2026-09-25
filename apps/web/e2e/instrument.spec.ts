@@ -82,7 +82,7 @@ test.describe("the homepage replay instrument", () => {
       "true",
     );
     await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
-    await expect(hero.getByTestId("hero-result-status")).toContainText("Models mapped");
+    await expect(hero.getByTestId("hero-result-status")).toContainText("Models offered");
     await expect(hero.getByTestId("hero-result-status")).toContainText("Capacity not published");
   });
 

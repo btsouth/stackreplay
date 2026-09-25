@@ -1,10 +1,18 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { decodeAnyShareToken } from "@stackreplay/share";
 import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, gotoImport, importDemo, openReplayDetails } from "./helpers";
+import {
+  captureRequests,
+  createShareToken,
+  gotoImport,
+  importDemo,
+  openReplayDetails,
+  setRulesAsOf,
+} from "./helpers";
 
 /**
  * SCAN → UNDERSTAND → REPLAY → COMPARE, end to end in a real browser.
@@ -83,13 +91,19 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 async function openWorkload(page: Page): Promise<void> {
   await page.getByTestId("open-workload").click();
   await expect(page.getByRole("heading", { name: "How you actually use AI" })).toBeVisible();
-  await expect(page.getByTestId("workload-insights")).toBeVisible({ timeout: 30_000 });
+  // The value block appears once the analysis is in: a figure, or why there is none.
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 test("the workload page stands on its own after a scan, with local project names", async ({
   page,
 }) => {
   await scanFixtures(page);
+  await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
+  await expect(page.getByTestId("ready-preview")).toContainText("not what you paid");
+  await expect(page.getByTestId("ready-preview").getByTestId("ready-insight")).toBeVisible();
   await openWorkload(page);
 
   await expect(page.getByTestId("opening-events")).toContainText("6");
@@ -115,6 +129,12 @@ test("the workload page stands on its own after a scan, with local project names
   // Peak windows are inspectable and name what was in them.
   await page.getByTestId("inspect-5h").click();
   await expect(page.getByTestId("pressure-window-detail")).toBeVisible();
+  await expect(page.getByTestId("pressure-window-detail")).toContainText(
+    "Tools that created this peak",
+  );
+  await expect(
+    page.getByTestId("pressure-window-detail").getByTestId("window-token-composition"),
+  ).toContainText("Token composition");
 
   // One control switches every shape between events and known tokens.
   await page.getByTestId("measure-tokens").click();
@@ -168,7 +188,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
   );
   await page.getByTestId("configure-translation").click();
   const editor = page.getByTestId("translation-editor");
-  await expect(editor).toContainText("not claims of model quality equivalence");
+  await expect(editor).toContainText("does not claim equal model quality");
   await expect(editor).toContainText("Recorded usage magnitude is preserved");
   // Aliases are grouped: one row per canonical model, never pre-mapped.
   await expect(page.getByTestId("translation-row")).toHaveCount(2);
@@ -176,16 +196,23 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
 
   await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
   await page.getByTestId("translation-select-gpt-6-sol").selectOption("claude-opus-5-5");
-  await expect(page.getByTestId("run-replay")).toHaveText("Run translated replay");
+  await expect(page.getByTestId("run-replay")).toHaveText("Run replay with your substitutions");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
 
   await expect(page.getByTestId("reading-mode")).toHaveText("Translated replay");
-  await expect(page.getByTestId("reading-routing")).toContainText("6 events substituted");
+  await expect(page.getByTestId("reading-routing")).toContainText("6 calls substituted");
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
   await expect(page.getByTestId("reading-assumption")).toBeVisible();
   await expect(page.getByTestId("replay-mode")).toContainText(/translated/i);
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  // A translated replay can be shared, and the link says it is one.
+  const token = await createShareToken(page);
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-mode")).toHaveText("Translated replay");
+  await expect(page.getByTestId("share-support")).toContainText("Substitution you chose");
+  await expect(page.getByTestId("share-support")).toContainText(
+    "nothing here says they would do the same work",
+  );
 });
 
 test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
@@ -221,6 +248,18 @@ test("same models on the Direct API: an explicit scope prices what is establishe
   await expect(page.getByTestId("reading-cost")).toContainText("Not established", {
     timeout: 60_000,
   });
+  // Unrecognized IDs are the only gap, so the verdict already leads with the
+  // price of the calls that resolve and states what it leaves out. The replay
+  // below it is still the whole workload's.
+  await expect(page.getByTestId("verdict-headline")).toContainText(
+    /^Your \d+ calls with recognized models are worth \$[\d,]+\.\d\d at OpenAI's published API rates/u,
+  );
+  await expect(page.getByTestId("verdict-support")).toContainText("not what you paid");
+  await expect(page.getByTestId("verdict-support")).toContainText(
+    /\d+ calls? with unrecognized model IDs (is|are) left out and not priced/u,
+  );
+  await expect(page.getByTestId("cost-resolved-scope")).toContainText("Not what you paid");
+  await expect(page.getByTestId("exclude-unresolved").getByRole("checkbox")).not.toBeChecked();
 
   await page.getByTestId("exclude-unresolved").getByRole("checkbox").check();
   await page.getByTestId("run-replay").click();
@@ -229,7 +268,11 @@ test("same models on the Direct API: an explicit scope prices what is establishe
   });
   await expect(page.getByTestId("reading-cost")).toContainText("Not what you paid");
   await expect(page.getByTestId("reading-scope")).toContainText("left out of this replay");
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  // The scope travels with the link.
+  const token = await createShareToken(page);
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-headline")).toContainText("calls with recognized models");
+  await expect(page.getByTestId("share-support")).toContainText("left out and not priced");
 });
 
 test("a numeric limit crossing states when the allowance ran out and opens its window", async ({
@@ -237,7 +280,7 @@ test("a numeric limit crossing states when the allowance ran out and opens its w
 }) => {
   await importDemo(page, "heavy");
   await page.getByTestId("continue-to-replay").click();
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
@@ -258,21 +301,61 @@ test("qualitative plans keep capacity unknown while model support is established
   );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Exact replay", { timeout: 60_000 });
+  // Capacity is the answer, and it is unknown: the verdict says so first and
+  // never reads model availability as the plan carrying the work.
+  await expect(page.getByTestId("verdict-headline")).toContainText("can't be determined");
+  await expect(page.getByTestId("verdict-headline")).not.toContainText(/runs every|can run/u);
+  await expect(page.getByTestId("replay-headline")).toHaveAttribute("data-weight", "quiet");
+  await expect(page.getByTestId("verdict-support")).toContainText("Model availability only");
+  await expect(page.getByTestId("verdict-figures")).toContainText("capacity unknown");
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
-  await expect(page.getByTestId("reading-routing")).toContainText("events on models");
+  await expect(page.getByTestId("reading-routing")).toContainText("calls use models");
   await expect(page.getByTestId("reading-cost")).toContainText("per month");
+  // The honest economic reference for the same work: the maker's API prices.
+  await page.getByTestId("result-api-alternative").click();
+  await expect(page).toHaveURL(/api=openai/u);
+  // The address change selects the API target; the plan's result is gone.
+  await expect(page.getByTestId("replay-result")).toHaveCount(0);
+  await expect(page.getByTestId("target-kind-api")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("verdict-headline")).toContainText("published API rates", {
+    timeout: 60_000,
+  });
 });
 
-test("compare against my workload replays each target without ranking them", async ({ page }) => {
+test("Compare asks for a decision before showing Codex subscription and API facts", async ({
+  page,
+}) => {
   await scanFixtures(page);
   await openWorkload(page);
   await page.getByTestId("workload-compare-cta").click();
-  await expect(page.getByRole("heading", { name: "Compare against my workload" })).toBeVisible();
-  await page.getByTestId("compare-run").click();
-  await expect(page.getByTestId("compare-column")).toHaveCount(4, { timeout: 60_000 });
-  await expect(page.getByTestId("compare-results")).toContainText("Exact replay available");
-  await expect(page.getByTestId("compare-results")).toContainText("Translation required");
-  await expect(page.getByTestId("compare-results")).not.toContainText(/best|score|winner/i);
+  await expect(page.getByRole("heading", { name: "Compare this workload" })).toBeVisible();
+  await expect(page.getByTestId("compare-results")).toHaveCount(0);
+  await page.getByTestId("compare-decision-codex").click();
+  await expect(page.getByTestId("comparison-object")).toContainText("Codex work");
+  await expect(page.getByTestId("comparison-object")).toContainText("Models as recorded");
+  await expect(page.getByTestId("compare-demand")).toContainText("No subscription allowance", {
+    timeout: 60_000,
+  });
+  await expect(page.getByTestId("compare-price")).toContainText("published API rates");
+  await expect(page.getByTestId("compare-results")).not.toContainText(/best|score|winner|savings/i);
+});
+
+test("a mixed workload keeps its selected slice in the Replay result", async ({ page }) => {
+  await importDemo(page, "multistack");
+  await page.getByTestId("continue-to-replay").click();
+  await expect(page.getByTestId("replay-scope-picker")).toContainText("All recorded work");
+  for (const tool of ["claude-code", "codex", "command-code"]) {
+    await expect(page.getByTestId(`scope-${tool}`)).toBeVisible();
+  }
+  await page.getByTestId("scope-claude-code").click();
+  await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("plan-example-cloud-pro").click();
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result-object")).toContainText("Claude Code work", {
+    timeout: 60_000,
+  });
+  await expect(page.getByTestId("replay-result-object")).toContainText("Models as recorded");
 });
 
 async function expectNoSeriousViolations(page: Page) {
@@ -309,8 +392,8 @@ for (const theme of ["dark", "light"] as const) {
 
     await page.getByTestId("strip-workload-link").click();
     await page.getByTestId("workload-compare-cta").click();
-    await page.getByTestId("compare-run").click();
-    await expect(page.getByTestId("compare-column")).toHaveCount(4, { timeout: 60_000 });
+    await page.getByTestId("compare-decision-codex").click();
+    await expect(page.getByTestId("compare-results")).toBeVisible({ timeout: 60_000 });
     await expectNoSeriousViolations(page);
   });
 }
@@ -336,8 +419,17 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("not-saved-notice")).toHaveCount(0);
   await openWorkload(page);
   await page.reload();
-  await expect(page.getByTestId("workload-insights")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
+  // The app entry opens the stored workload and its value directly.
+  await page.goto("/app");
+  await expect(page).toHaveURL(/\/app\/workload$/);
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toContainText(
+    "not what you paid",
+    { timeout: 30_000 },
+  );
 });
 
 test("a partial scan says so beside the totals and offers a rescan", async ({ page }) => {
@@ -375,8 +467,16 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   await page.goto(href ?? "/app/workload");
   const notice = page.getByTestId("partial-scan");
   await expect(notice).toContainText("Partial scan", { timeout: 30_000 });
-  await expect(notice).toContainText("could not be read to the end");
+  await expect(notice).toContainText(
+    "source file was incomplete; missing usage is outside these totals",
+  );
   await expect(notice).not.toContainText(/malformed|changed/iu);
+  const opening = page.getByTestId("workload-opening");
+  await expect(opening.getByTestId("value-scope")).toContainText("included calls priced");
+  const scopeOrder = await opening
+    .locator('[data-testid="value-scope"], [data-testid="partial-scan"]')
+    .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
+  expect(scopeOrder).toEqual(["value-scope", "partial-scan"]);
   await expect(page.getByTestId("workload-rescan")).toHaveAttribute("href", "/app/import");
   await page.getByTestId("scan-evidence-details").evaluate((element: HTMLDetailsElement) => {
     element.open = true;
@@ -394,4 +494,30 @@ test.describe("rules date default", () => {
     await page.getByTestId("continue-to-replay").click();
     await expect(page.getByTestId("rules-as-of")).toHaveValue("2026-09-23");
   });
+});
+
+test("a workload share link carries aggregates only and reads as StackReplay in public", async ({
+  page,
+}) => {
+  await scanFixtures(page);
+  await openWorkload(page);
+  await page.getByTestId("share-workload-link").click();
+  const panel = page.getByTestId("share-panel");
+  await expect(panel.getByTestId("share-preview")).toBeVisible();
+  const token = await createShareToken(page);
+  const decoded = await decodeAnyShareToken(token);
+  expect(decoded.ok).toBe(true);
+  const json = decoded.ok ? JSON.stringify(decoded.snapshot) : "";
+  // Local project names, other projects, sessions and times never leave.
+  expect(json).not.toContain(PROJECT_MARKER);
+  expect(json).not.toContain("orbit-service");
+  expect(json).not.toMatch(/nativeSessionHash|projectHash|rawName|"at"|"zone"|"period"/u);
+
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-card-v2")).toHaveAttribute("data-kind", "workload");
+  await expect(page.getByTestId("share-figure-caption")).toHaveText(
+    "at published API list prices · not what you paid",
+  );
+  await expect(page.getByTestId("share-privacy")).toContainText("no times of day");
+  await expect(page.locator("main")).not.toContainText(PROJECT_MARKER);
 });
