@@ -112,6 +112,21 @@ const DEMO_SOURCES: DemoSource[] = [
   },
 ];
 
+// The first demo teaches Workload's published-price reading with recorded
+// calls on catalogued models. The other presets retain their example models
+// for the synthetic Replay scenarios they exercise.
+const MODERATE_MODELS: Record<string, string[]> = {
+  "claude-code": ["claude-sonnet-5", "claude-haiku-4-5"],
+  codex: ["gpt-6-sol", "gpt-5-6-sol"],
+  opencode: ["claude-sonnet-5", "gpt-5-6-sol"],
+  "command-code": ["gpt-5-6-sol", "claude-haiku-4-5"],
+  hermes: ["claude-sonnet-5"],
+};
+const MODERATE_SOURCES: DemoSource[] = DEMO_SOURCES.map((source) => ({
+  ...source,
+  models: MODERATE_MODELS[source.adapterId] ?? source.models,
+}));
+
 /** Fixed anchor so demo timestamps never depend on the wall clock. */
 const DEMO_END = Date.parse("2026-09-20T18:00:00.000Z");
 const DAY_MS = 86_400_000;
@@ -244,6 +259,7 @@ function sessionHash(sessionId: string): string {
 /** Builds a deterministic demo export for a preset. */
 export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExportV1 {
   const config = demoWorkloadPresets[preset];
+  const sources = preset === "moderate" ? MODERATE_SOURCES : DEMO_SOURCES;
   const random = createRandom(
     preset === "heavy" ? 0x51a3 : preset === "moderate" ? 0x2b71 : 0x77c1,
   );
@@ -253,7 +269,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
   const sessionIdsBySource = new Map<string, string[]>();
   const orchestratedSessions = new Set<string>();
 
-  for (const source of DEMO_SOURCES) {
+  for (const source of sources) {
     const count = Math.round(config.eventTarget * source.share);
     const sessionCount = Math.max(2, Math.round(count / (preset === "heavy" ? 60 : 25)));
     const sessions: string[] = [];
@@ -323,7 +339,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
     collectorVersion: "demo",
     range: { from: first, to: last },
     detectedSources: [
-      ...DEMO_SOURCES.map((source) => ({
+      ...sources.map((source) => ({
         adapterId: source.adapterId,
         name: source.name,
         detected: true,

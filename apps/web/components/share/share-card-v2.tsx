@@ -107,7 +107,9 @@ export function ShareCardV2({
               </span>
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="text-base leading-snug text-foreground">{fact.text}</p>
-                <p className="text-sm text-muted-foreground">{fact.comparison}.</p>
+                {fact.comparison === "" ? null : (
+                  <p className="text-sm text-muted-foreground">{fact.comparison}.</p>
+                )}
               </div>
             </li>
           ))}

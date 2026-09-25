@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { isSyntheticWorkload } from "./workload-kind";
 
-const record = (models: { rawName: string; canonicalId?: string }[]) => ({
+const record = (
+  models: { rawName: string; canonicalId?: string }[],
+  usageSources: { note?: string }[] = [],
+) => ({
   summary: {
+    usageSources,
     models: models.map((model) => ({
       ...model,
       events: 1,
@@ -30,6 +34,22 @@ describe("synthetic workloads", () => {
           { rawName: "claude-opus-4-8", canonicalId: "claude-opus-4-8" },
           { rawName: "mystery-alpha" },
         ]) as never,
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the priced Moderate week visibly synthetic", () => {
+    expect(
+      isSyntheticWorkload(
+        record(
+          [{ rawName: "claude-sonnet-5", canonicalId: "claude-sonnet-5" }],
+          [{ note: "demo data" }],
+        ) as never,
+      ),
+    ).toBe(true);
+    expect(
+      isSyntheticWorkload(
+        record([{ rawName: "claude-sonnet-5" }], [{ note: "local history" }]) as never,
       ),
     ).toBe(false);
   });

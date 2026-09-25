@@ -39,8 +39,8 @@ test("keeps forensic result detail closed until requested", async ({ page }) => 
   await expect(page.getByTestId("replay-model-distribution")).toContainText("calls");
 });
 
-test("replays a demo workload with full coverage", async ({ page }) => {
-  await importDemo(page, "moderate");
+test("replays a demo workload with known coverage", async ({ page }) => {
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-pro");
 
@@ -530,18 +530,15 @@ test("plan picker is searchable and keyboard operable", async ({ page }) => {
 });
 
 test("a replay can be re-run for a different target without leaving the page", async ({ page }) => {
-  await importDemo(page, "moderate");
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-starter");
-  const firstHeadline = await page.getByTestId("headline-status").textContent();
+  await expect(page.getByTestId("replay-result-object")).toContainText("Example Cloud Starter");
 
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
-  const secondHeadline = await page.getByTestId("headline-status").textContent();
-
-  expect(secondHeadline).not.toBe(firstHeadline);
-  await expect(page.getByTestId("replay-result")).toContainText("example-cloud-pro");
+  await expect(page.getByTestId("replay-result-object")).toContainText("Example Cloud Pro");
 });
 
 test("the share panel discloses what a link reveals before one is created", async ({ page }) => {

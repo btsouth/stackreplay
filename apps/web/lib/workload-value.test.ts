@@ -3,6 +3,7 @@ import { replay } from "@stackreplay/replay-engine";
 import { addAmounts } from "@stackreplay/share";
 import {
   buildArchetypeExport,
+  buildDemoExport,
   WORKLOAD_ARCHETYPE_IDS,
   type WorkloadArchetypeId,
 } from "@stackreplay/test-fixtures";
@@ -20,6 +21,17 @@ function valueFor(archetype: WorkloadArchetypeId) {
 }
 
 describe("workload value at published API list prices", () => {
+  it("prices every synthetic call in the primary Moderate week demo", () => {
+    const events = buildDemoExport("moderate").events;
+    const value = workloadValue(events, { catalog, identity, rulesAsOf: "2026-09-25" });
+    expect(value.pricedCalls).toBe(events.length);
+    expect(value.total).toBeDefined();
+    expect(Number(value.total)).toBeGreaterThan(0);
+    expect(value.excluded).toEqual([]);
+    expect(value.unresolvedCalls).toBe(0);
+    expect(value.priced.every((slice) => slice.receipt !== undefined)).toBe(true);
+  });
+
   it("a single-maker workload is exactly its own Direct API replay", () => {
     const { events, value } = valueFor("claude-only");
     const direct = replay({

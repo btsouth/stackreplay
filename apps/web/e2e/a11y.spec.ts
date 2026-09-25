@@ -59,7 +59,7 @@ test.describe("import surface accessibility", () => {
 test.describe("replay surface accessibility", () => {
   test("passes axe for a served workload in dark mode", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "moderate");
+    await importDemo(page, "heavy");
     await page.goto("/app/replay");
     await runReplay(page, "example-cloud-pro");
     await expectNoSeriousViolations(page);
@@ -154,11 +154,9 @@ test.describe("public site accessibility", () => {
     await page.goto("/");
     await page.keyboard.press("Tab");
     const skipLink = page.getByRole("link", { name: /skip to content/iu });
-    if (await skipLink.count()) {
-      await expect(skipLink.first()).toBeFocused();
-      await page.keyboard.press("Enter");
-      await expect(page.locator("#main-content")).toBeFocused();
-    }
+    await expect(skipLink).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#main-content")).toBeFocused();
     // Every primary destination is reachable and labelled. Wide viewports show the
     // header navigation; narrow ones reach the same destinations through the menu
     // button's panel, and the footer lists them at every width.

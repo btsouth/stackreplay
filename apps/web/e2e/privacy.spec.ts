@@ -57,7 +57,8 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   expect(uploadLike.map((request) => request.url)).toEqual([]);
 
   // Every request must stay on our own origin.
-  const foreign = requests.filter((request) => !request.url.startsWith("http://localhost:3100"));
+  const origin = new URL(page.url()).origin;
+  const foreign = requests.filter((request) => !request.url.startsWith(origin));
   expect(foreign.map((request) => request.url)).toEqual([]);
 
   // The Worker is a same-origin asset; it must have been loaded and used.
