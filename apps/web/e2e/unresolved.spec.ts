@@ -8,7 +8,7 @@ import { createShareToken, gotoImport } from "./helpers";
  * Claude workload (independent audit P0 and P1). Every surface tells one
  * story: the recognized calls' run-out and overage stay visible but are not
  * the whole workload's, and the published-rate price says how much known
- * demand it leaves out. Resolving the call makes every surface exact.
+ * demand it leaves out. Resolving the call makes every applicable fact exact.
  */
 
 test.use({ timezoneId: "America/New_York" });
@@ -48,18 +48,20 @@ async function replayCopilot(page: Page): Promise<string> {
   return ((await headline.textContent()) ?? "").replace(/\s+/gu, " ").trim();
 }
 
-async function compareCopilot(page: Page): Promise<string> {
+async function compareConfiguredStack(page: Page, unresolved: number): Promise<void> {
   await page.goto("/app/compare");
-  await page.getByTestId("compare-run").click();
-  const column = page.locator(
-    '[data-testid="compare-column"][data-target="plan:github-copilot-pro-plus"]',
+  await page.getByTestId("compare-decision-stack").click();
+  await page.getByTestId("stack-plan-github-copilot-pro-plus").check();
+  await expect(page.getByTestId("comparison-object")).toContainText("3,200 calls");
+  await expect(page.getByTestId("compare-gaps")).toContainText(
+    `${unresolved} with unresolved model identity`,
   );
-  const headline = column.getByTestId("compare-verdict-headline");
-  await expect(headline).toBeVisible({ timeout: 90_000 });
-  return ((await headline.textContent()) ?? "").replace(/\s+/gu, " ").trim();
+  await expect(page.getByTestId("compare-price")).toContainText(
+    `${(3_200 - unresolved).toLocaleString("en-US")} of 3,200 calls`,
+  );
 }
 
-test("a giant unresolved call qualifies the run-out and the price on every surface", async ({
+test("a giant unresolved call qualifies the run-out and the price across relevant surfaces", async ({
   page,
   request,
 }) => {
@@ -106,8 +108,8 @@ test("a giant unresolved call qualifies the run-out and the price on every surfa
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
 
-  // Compare reads the same derivation.
-  expect(await compareCopilot(page)).toBe(replay);
+  // The configured whole-stack decision keeps the identity and pricing gap visible.
+  await compareConfiguredStack(page, 1);
 });
 
 test("resolving that call makes every surface exact", async ({ page }) => {
@@ -124,5 +126,5 @@ test("resolving that call makes every surface exact", async ({ page }) => {
     "Copilot Pro+ credits would have run out on Aug 20 (day 1) and again on Sep 10. This workload would have generated about $5,178 in modeled overage over 35 days on top of the $39/month subscription.",
   );
   await expect(page.getByTestId("replay-headline")).not.toContainText(/unresolved|recognized/iu);
-  expect(await compareCopilot(page)).toBe(replay);
+  await compareConfiguredStack(page, 0);
 });

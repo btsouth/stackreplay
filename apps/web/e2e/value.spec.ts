@@ -106,9 +106,12 @@ test("what you pay today is pro-rated to the recorded days, with the arithmetic"
     "Claude Max 20x: $200.00 per month ×",
   );
   await expect(page.getByTestId("current-spend")).not.toContainText(/sav(e|ing)/iu);
-  // Compare reads the same stack.
+  const apiValue =
+    (await page.getByTestId("workload-opening").getByTestId("value-figure").textContent()) ?? "";
+  // The whole-stack decision reuses the configured plans and the canonical API value.
   await page.goto("/app/compare");
-  await expect(page.getByTestId("stack-summary")).toContainText("Claude Max 20x", {
-    timeout: 60_000,
-  });
+  await page.getByTestId("compare-decision-stack").click();
+  await expect(page.getByTestId("compare-price")).toContainText("Claude Max 20x");
+  await expect(page.getByTestId("compare-price")).toContainText("ChatGPT Pro");
+  await expect(page.getByTestId("compare-price")).toContainText(apiValue);
 });

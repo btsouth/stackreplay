@@ -5,7 +5,7 @@ import { createShareToken, gotoImport } from "./helpers";
 /**
  * Phase 3: every suggested route answers for the work it is scoped to, tool
  * slices are explicit, pickers put the targets that run this work first, and a
- * stack of several current plans replays each on the work it carries.
+ * configured stack is compared against the same observed API workload.
  */
 
 async function importMixed(page: Page): Promise<string> {
@@ -100,43 +100,24 @@ test("pickers put the targets that run this work first and never list demo targe
   );
 });
 
-test("a stack of two current plans replays each on the work it carries", async ({ page }) => {
+test("a configured stack compares the whole workload with its published API equivalent", async ({
+  page,
+}) => {
   const importId = await importMixed(page);
   await page.goto(`/app/compare?import=${importId}`);
-  await page.getByTestId("current-stack").locator(":scope > summary").click();
-  await page.getByTestId("current-plan:anthropic-claude-max-20x").check();
-  await page.getByTestId("current-plan:openai-chatgpt-pro").check();
-  await expect(page.getByTestId("stack-summary")).toContainText(
-    "Claude Max 20x carries your Claude Code work.",
-  );
-  await expect(page.getByTestId("stack-summary")).toContainText("carries your Codex work.");
-  await expect(page.getByTestId("stack-summary")).toContainText(
-    "150 Command Code calls are not carried by any of them.",
-  );
-  await page.getByTestId("compare-run").click();
-  const claude = page.locator(
-    '[data-testid="compare-column"][data-target="plan:anthropic-claude-max-20x"]',
-  );
-  await expect(claude).toHaveAttribute("data-scope", "claude-code");
-  await expect(claude).toContainText("What you use today");
-  await expect(claude.getByTestId("compare-verdict-headline")).toContainText(
-    /^For your Claude Code work, Claude Max 20x runs every model in your [\d,]+ calls/u,
-    { timeout: 60_000 },
-  );
-  const chatgpt = page.locator(
-    '[data-testid="compare-column"][data-target="plan:openai-chatgpt-pro"]',
-  );
-  await expect(chatgpt.getByTestId("compare-verdict-headline")).toContainText(
-    /^For your Codex work, ChatGPT Pro/u,
-    { timeout: 60_000 },
-  );
-  // The scoped Direct API column states the same price in its verdict and its
-  // findings, never "not established" beside a dollar figure.
-  const api = page.locator('[data-testid="compare-column"][data-target="api:anthropic"]');
-  await expect(api.getByTestId("compare-figure")).toContainText("$", { timeout: 60_000 });
-  await expect(api).not.toContainText("Not established for this workload");
-  await expect(api).toContainText("published-rate equivalent for the");
-  // Kept in this browser: a reload remembers both plans.
+  await page.getByTestId("compare-decision-stack").click();
+  await expect(page.getByTestId("comparison-object")).toContainText("5,000 calls");
+  await expect(page.getByTestId("comparison-object")).toContainText("Models as recorded");
+  await page.getByTestId("stack-plan-anthropic-claude-max-20x").check();
+  await page.getByTestId("stack-plan-openai-chatgpt-pro").check();
+  await expect(page.getByTestId("compare-price")).toContainText("$300.00/month");
+  await expect(page.getByTestId("compare-price")).toContainText("published list prices");
+  await expect(page.getByTestId("stack-tool-breakdown")).toContainText("Command Code");
+  await expect(page.getByTestId("stack-tool-breakdown")).toContainText("150 outside plans");
   await page.reload();
-  await expect(page.getByTestId("current-stack")).toContainText("Claude Max 20x + ChatGPT Pro");
+  await page.getByTestId("compare-decision-stack").click();
+  await expect(page.getByTestId("compare-price")).toContainText("$300.00/month");
+  await page.getByTestId("stack-plan-picker").locator("summary").click();
+  await expect(page.getByTestId("stack-plan-anthropic-claude-max-20x")).toBeChecked();
+  await expect(page.getByTestId("stack-plan-openai-chatgpt-pro")).toBeChecked();
 });

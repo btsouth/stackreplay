@@ -842,7 +842,7 @@ function WorkloadBody({
             className={buttonVariants({ size: "sm", variant: "secondary" })}
             data-testid="workload-compare-cta"
           >
-            Compare several targets against this workload
+            Compare this workload
           </Link>
         </div>
       </section>

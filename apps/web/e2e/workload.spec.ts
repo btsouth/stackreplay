@@ -308,32 +308,22 @@ test("qualitative plans keep capacity unknown while model support is established
   await expect(page.getByTestId("reading-cost")).toContainText("per month");
 });
 
-test("compare against my workload replays each target without ranking them", async ({ page }) => {
+test("Compare asks for a decision before showing Codex subscription and API facts", async ({
+  page,
+}) => {
   await scanFixtures(page);
   await openWorkload(page);
   await page.getByTestId("workload-compare-cta").click();
-  await expect(page.getByRole("heading", { name: "Compare against my workload" })).toBeVisible();
-  await page.getByTestId("compare-run").click();
-  await expect(page.getByTestId("compare-column")).toHaveCount(4, { timeout: 60_000 });
-  await expect(page.getByTestId("compare-results")).toContainText("Exact replay available");
-  await expect(page.getByTestId("compare-results")).toContainText("Translation required");
-  await expect(page.getByTestId("compare-results")).not.toContainText(/best|score|winner/i);
-
-  // A column leads with the same verdict the full Replay leads with: one
-  // derivation, two presentations.
-  const column = page.locator(
-    '[data-testid="compare-column"][data-target="plan:openai-chatgpt-pro"]',
-  );
-  const fromCompare = await column.getByTestId("compare-verdict-headline").textContent();
-  expect(fromCompare).toMatch(/ChatGPT Pro/u);
-  const importId = new URL(page.url()).searchParams.get("import") ?? "";
-  await page.goto(
-    `/app/replay?${new URLSearchParams({ import: importId, target: "openai-chatgpt-pro" })}`,
-  );
-  await page.getByTestId("run-replay").click();
-  await expect(page.getByTestId("verdict-headline")).toHaveText(fromCompare ?? "", {
+  await expect(page.getByRole("heading", { name: "Compare this workload" })).toBeVisible();
+  await expect(page.getByTestId("compare-results")).toHaveCount(0);
+  await page.getByTestId("compare-decision-codex").click();
+  await expect(page.getByTestId("comparison-object")).toContainText("Codex work");
+  await expect(page.getByTestId("comparison-object")).toContainText("Models as recorded");
+  await expect(page.getByTestId("compare-demand")).toContainText("No subscription allowance", {
     timeout: 60_000,
   });
+  await expect(page.getByTestId("compare-price")).toContainText("published API rates");
+  await expect(page.getByTestId("compare-results")).not.toContainText(/best|score|winner|savings/i);
 });
 
 test("a mixed workload keeps its selected slice in the Replay result", async ({ page }) => {
@@ -387,8 +377,8 @@ for (const theme of ["dark", "light"] as const) {
 
     await page.getByTestId("strip-workload-link").click();
     await page.getByTestId("workload-compare-cta").click();
-    await page.getByTestId("compare-run").click();
-    await expect(page.getByTestId("compare-column")).toHaveCount(4, { timeout: 60_000 });
+    await page.getByTestId("compare-decision-codex").click();
+    await expect(page.getByTestId("compare-results")).toBeVisible({ timeout: 60_000 });
     await expectNoSeriousViolations(page);
   });
 }

@@ -7,11 +7,8 @@ import {
 } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import {
-  coverageBySlice,
   coverageShare,
-  defaultColumns,
   type SuggestedRoute,
-  stackCoverage,
   suggestRoutes,
   type TargetCoverage,
   targetCoverages,
@@ -195,64 +192,6 @@ describe("tool slices", () => {
       );
       expect(sliced.composed?.facts.calls).toEqual(alone.composed?.facts.calls);
       expect(sliced.composed?.facts.money).toEqual(alone.composed?.facts.money);
-    }
-  });
-});
-
-describe("compare starting columns and the current stack", () => {
-  const columnsFor = (archetype: WorkloadArchetypeId, current: `plan:${string}`[] = []) =>
-    defaultColumns(current, workload(archetype).slices, RULES, { synthetic: false, max: 4 }).map(
-      (column) =>
-        `${column.key}${column.sources.length === 0 ? "" : `@${column.sources.join("+")}`}${column.current ? " (current)" : ""}`,
-    );
-
-  it("starts from targets that can answer for this workload", () => {
-    expect(columnsFor("codex-only")).toEqual([
-      "api:openai",
-      "plan:github-copilot-pro-plus",
-      "plan:openai-chatgpt-pro",
-      "plan:anthropic-claude-max-20x",
-    ]);
-    expect(columnsFor("mixed")).toEqual([
-      "api:anthropic@claude-code",
-      "plan:github-copilot-pro-plus",
-      "plan:anthropic-claude-max-20x@claude-code",
-      "plan:openai-chatgpt-pro@codex",
-    ]);
-  });
-
-  it("replays each plan of a two-plan stack on the work it carries", () => {
-    const current: `plan:${string}`[] = [
-      "plan:anthropic-claude-max-20x",
-      "plan:openai-chatgpt-pro",
-    ];
-    expect(columnsFor("mixed", current)).toEqual([
-      "plan:anthropic-claude-max-20x@claude-code (current)",
-      "plan:openai-chatgpt-pro@codex (current)",
-      "api:anthropic@claude-code",
-      "plan:github-copilot-pro-plus",
-    ]);
-    const stack = stackCoverage(
-      current,
-      coverageBySlice(workload("mixed").slices, RULES, { synthetic: false }),
-    );
-    expect(stack.members.map((member) => [member.name, member.carries, member.label])).toEqual([
-      ["Claude Max 20x", "some", "Claude Code"],
-      ["ChatGPT Pro ($100 / Pro 5x tier)", "some", "Codex"],
-    ]);
-    expect(stack.uncovered).toEqual([{ id: "command-code", label: "Command Code", events: 150 }]);
-  });
-
-  it("each current plan's scoped verdict leads with a meaningful fact", () => {
-    const { events, names } = workload("mixed");
-    for (const [planId, sources] of [
-      ["anthropic-claude-max-20x", ["claude-code"]],
-      ["openai-chatgpt-pro", ["codex"]],
-    ] as const) {
-      const { composed } = replayRoute(events, names, { type: "subscription", planId }, sources);
-      expect(composed?.verdict.headline).toMatch(/^For your (Claude Code|Codex) work, /u);
-      expect(composed?.verdict.headline).toMatch(MEANINGFUL);
-      expect(composed?.facts.calls.unavailable).toBe(0);
     }
   });
 });

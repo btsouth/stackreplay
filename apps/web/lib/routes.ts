@@ -106,6 +106,14 @@ function runnableIn(slice: WorkloadSlice, runs: ReadonlySet<string>): number {
   return runnable;
 }
 
+/** Catalogued model availability shared by target suggestions and stack comparison. */
+export function supportedModelsFor(key: TargetKey, rulesAsOf: string): ReadonlySet<string> {
+  const models = key.startsWith("plan:")
+    ? (bundledPlanModelsAt(key.slice(5), rulesAsOf)?.models ?? [])
+    : bundledApiProviderModels(key.slice(4), rulesAsOf);
+  return new Set(models.filter((model) => model.available).map((model) => model.id));
+}
+
 /**
  * Every target a person can replay this slice against, ordered by how much of
  * it the target runs. Synthetic `example-` targets appear only for a synthetic
@@ -120,8 +128,7 @@ export function targetCoverages(
   const coverages: TargetCoverage[] = [];
   for (const plan of bundledPlansAt(rulesAsOf)) {
     if (!keep(plan.id)) continue;
-    const models = bundledPlanModelsAt(plan.id, rulesAsOf)?.models ?? [];
-    const runs = new Set(models.filter((model) => model.available).map((model) => model.id));
+    const runs = supportedModelsFor(`plan:${plan.id}`, rulesAsOf);
     coverages.push({
       key: `plan:${plan.id}`,
       kind: "subscription",
@@ -138,7 +145,7 @@ export function targetCoverages(
   for (const provider of bundledPublicApiProviders(rulesAsOf)) {
     if (!keep(provider.id)) continue;
     const models = bundledApiProviderModels(provider.id, rulesAsOf);
-    const runs = new Set(models.filter((model) => model.available).map((model) => model.id));
+    const runs = supportedModelsFor(`api:${provider.id}`, rulesAsOf);
     const unpriced = new Set(models.filter((model) => model.priced !== true).map((m) => m.id));
     const runnable = runnableIn(slice, runs);
     coverages.push({
@@ -299,140 +306,4 @@ export function suggestRoutes(
       });
   }
   return routes;
-}
-
-/** A comparison column: a target over the whole workload, or over the tool slice it carries. */
-export interface CompareColumn {
-  key: TargetKey;
-  /** Recording tools in scope; empty for the whole workload. */
-  sources: readonly string[];
-  /** Part of the stack the person uses today. */
-  current: boolean;
-}
-
-export function columnId(column: Pick<CompareColumn, "key" | "sources">): string {
-  return `${column.key}|${column.sources.join(",")}`;
-}
-
-/** Coverage of every target over the whole workload and over each tool on its own. */
-export function coverageBySlice(
-  slices: readonly WorkloadSlice[],
-  rulesAsOf: string,
-  options: { synthetic: boolean },
-): { slice: WorkloadSlice; coverages: TargetCoverage[] }[] {
-  return slices.map((slice) => ({ slice, coverages: targetCoverages(slice, rulesAsOf, options) }));
-}
-
-/** The flagship plan that runs every resolved call of a slice, if one does. */
-export function flagshipFor(coverages: readonly TargetCoverage[]): TargetCoverage | undefined {
-  return coverages.find(
-    (coverage) =>
-      coverage.kind === "subscription" &&
-      FLAGSHIPS[coverage.providerId] === coverage.id &&
-      runsAllResolved(coverage),
-  );
-}
-
-export interface StackMember {
-  key: TargetKey;
-  name: string;
-  /** The tools whose calls this target runs at least half of; empty when it carries all of them. */
-  sources: string[];
-  /** Tool names, joined, for the tools it carries. */
-  label: string | undefined;
-  /** Whether it carries every tool's work, some of it, or none on its own. */
-  carries: "all" | "some" | "none";
-}
-
-export interface StackCoverage {
-  members: StackMember[];
-  /** Tools no target in the stack carries. */
-  uncovered: { id: string; label: string; events: number }[];
-}
-
-/**
- * What a stack of current targets carries: each target takes the tools whose
- * calls it runs at least half of, so a Claude Max 20x + ChatGPT Pro user sees
- * each plan replayed on the work it actually does.
- */
-export function stackCoverage(
-  current: readonly TargetKey[],
-  bySlice: readonly { slice: WorkloadSlice; coverages: TargetCoverage[] }[],
-): StackCoverage {
-  const tools = bySlice.filter(({ slice }) => slice.sources.length === 1);
-  const whole = bySlice[0];
-  const members: StackMember[] = [];
-  const carried = new Set<string>();
-  for (const key of current) {
-    const name = whole?.coverages.find((coverage) => coverage.key === key)?.name ?? key;
-    const takes = tools
-      .filter(({ coverages }) => {
-        const coverage = coverages.find((entry) => entry.key === key);
-        return coverage !== undefined && coverageShare(coverage) >= 0.5;
-      })
-      .map(({ slice }) => slice);
-    for (const slice of takes) for (const id of slice.sources) carried.add(id);
-    const carries =
-      tools.length === 0 || takes.length === tools.length
-        ? "all"
-        : takes.length === 0
-          ? "none"
-          : "some";
-    members.push({
-      key,
-      name,
-      sources: carries === "some" ? takes.flatMap((slice) => slice.sources) : [],
-      label: carries === "some" ? takes.map((slice) => slice.label).join(" + ") : undefined,
-      carries,
-    });
-  }
-  const uncovered =
-    current.length === 0
-      ? []
-      : tools
-          .filter(({ slice }) => !slice.sources.some((id) => carried.has(id)))
-          .map(({ slice }) => ({
-            id: slice.sources[0] ?? "",
-            label: slice.label,
-            events: slice.events,
-          }));
-  return { members, uncovered };
-}
-
-/**
- * The columns Compare starts with: the person's current stack, each on the
- * work it carries, then targets that can answer for this workload: the
- * suggested API and numeric routes, the flagship plan that runs each tool's
- * work as it is, and the provider switch. A starting set, never a ranking.
- */
-export function defaultColumns(
-  current: readonly TargetKey[],
-  slices: readonly WorkloadSlice[],
-  rulesAsOf: string,
-  options: { synthetic: boolean; max: number },
-): CompareColumn[] {
-  const bySlice = coverageBySlice(slices, rulesAsOf, options);
-  const columns: CompareColumn[] = [];
-  const add = (column: CompareColumn) => {
-    if (columns.length >= options.max) return;
-    if (columns.some((entry) => entry.key === column.key)) return;
-    columns.push(column);
-  };
-  for (const member of stackCoverage(current, bySlice).members)
-    add({ key: member.key, sources: member.sources, current: true });
-  const routes = suggestRoutes(slices, rulesAsOf, options);
-  for (const id of ["api-value", "numeric-limits"] as const) {
-    const route = routes.find((entry) => entry.id === id);
-    if (route !== undefined)
-      add({ key: route.target.key, sources: route.slice.sources, current: false });
-  }
-  const tools = bySlice.length > 1 ? bySlice.slice(1) : bySlice;
-  for (const { slice, coverages } of tools) {
-    const flagship = flagshipFor(coverages);
-    if (flagship !== undefined) add({ key: flagship.key, sources: slice.sources, current: false });
-  }
-  const switchRoute = routes.find((entry) => entry.id === "switch-provider");
-  if (switchRoute !== undefined)
-    add({ key: switchRoute.target.key, sources: switchRoute.slice.sources, current: false });
-  return columns;
 }
