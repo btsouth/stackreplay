@@ -431,6 +431,29 @@ export function ReplaySurface({
   }, [initialScopeKey]);
 
   /**
+   * A link can change the target while this surface stays mounted (a result's
+   * "same work at API prices", or Back to an earlier choice). When the address
+   * names a different target than the one selected, the address wins and the
+   * old result goes; when it only echoes the current choice, nothing changes.
+   */
+  const selectionRef = useRef({ targetKind, planId, providerId });
+  selectionRef.current = { targetKind, planId, providerId };
+  useEffect(() => {
+    const current = selectionRef.current;
+    if (initialTarget !== undefined) {
+      if (current.targetKind === "subscription" && current.planId === initialTarget) return;
+      setTargetKind("subscription");
+      setPlanId(initialTarget);
+    } else if (initialApi !== undefined) {
+      if (current.targetKind === "api" && current.providerId === initialApi) return;
+      setTargetKind("api");
+      setProviderId(initialApi);
+    } else return;
+    setTranslationOpen(false);
+    dropResult();
+  }, [dropResult, initialApi, initialTarget]);
+
+  /**
    * The choices live in the address too (replacing, not adding, history
    * entries), so Back, Forward and a reload return to the same work and
    * target. Only an opaque local id, catalog ids and tool ids are written.

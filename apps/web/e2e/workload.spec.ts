@@ -314,6 +314,13 @@ test("qualitative plans keep capacity unknown while model support is established
   // The honest economic reference for the same work: the maker's API prices.
   await page.getByTestId("result-api-alternative").click();
   await expect(page).toHaveURL(/api=openai/u);
+  // The address change selects the API target; the plan's result is gone.
+  await expect(page.getByTestId("replay-result")).toHaveCount(0);
+  await expect(page.getByTestId("target-kind-api")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("verdict-headline")).toContainText("published API rates", {
+    timeout: 60_000,
+  });
 });
 
 test("Compare asks for a decision before showing Codex subscription and API facts", async ({
