@@ -35,6 +35,7 @@ export function ReplayVerdict({
       className="sr-verdict"
       data-mode={translated ? "translated" : "exact"}
       data-testid={testId}
+      data-weight={verdict.weight}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span

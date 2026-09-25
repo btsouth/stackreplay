@@ -84,7 +84,7 @@ test("pickers put the targets that run this work first and never list demo targe
     "github-copilot-pro-plus",
     { timeout: 30_000 },
   );
-  await expect(page.getByTestId("plan-coverage-github-copilot-pro-plus")).toContainText("Runs");
+  await expect(page.getByTestId("plan-coverage-github-copilot-pro-plus")).toContainText("Offers");
   await expect(plans.locator('[data-plan-option^="example-"]')).toHaveCount(0);
   // Setup stays out of the way: rules date and version badges wait under Advanced.
   await expect(page.getByTestId("replay-advanced")).not.toHaveAttribute("open");

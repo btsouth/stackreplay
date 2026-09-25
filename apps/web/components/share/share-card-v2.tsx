@@ -26,6 +26,7 @@ export function ShareCardV2({
       className="sr-verdict"
       data-kind={presentation.kind}
       data-testid={testId}
+      data-weight={presentation.weight}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span

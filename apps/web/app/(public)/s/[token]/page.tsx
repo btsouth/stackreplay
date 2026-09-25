@@ -277,6 +277,7 @@ export default async function SharePage({ params }: SharePageProps) {
               >
                 {source.title}
               </a>
+              <SourceWhere url={source.url} />
             </li>
           ))}
         </ul>
@@ -418,6 +419,7 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
                     >
                       {source.title}
                     </a>
+                    <SourceWhere url={source.url} />
                   </li>
                 ))}
               </ul>
@@ -456,5 +458,25 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
         </div>
       </section>
     </div>
+  );
+}
+
+/**
+ * Several sources can share a title ("Anthropic plan documentation"), so each
+ * one also shows where it points.
+ */
+function SourceWhere({ url }: { url: string }) {
+  let where: string | undefined;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.length > 1 ? parsed.pathname : "";
+    where = `${parsed.hostname}${path.length > 36 ? `${path.slice(0, 35)}…` : path}`;
+  } catch {
+    where = undefined;
+  }
+  return where === undefined ? null : (
+    <span className="ml-2 font-mono text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
+      {where}
+    </span>
   );
 }

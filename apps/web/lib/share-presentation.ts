@@ -23,6 +23,8 @@ export interface SharePresentation {
   valueScope?: ReturnType<typeof composeValueScope> | undefined;
   secondary?: { value: string; caption: string } | undefined;
   headline: string;
+  /** `quiet`: the sentence is the answer and the figure stays small (see VerdictV1). */
+  weight: "strong" | "quiet";
   support: string[];
   facts: { text: string; comparison: string }[];
   tools: { name: string; calls: number; share: number }[];
@@ -61,6 +63,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
       figure: verdict.figure,
       secondary: verdict.secondary,
       headline: verdict.headline,
+      weight: verdict.weight,
       support: verdict.support,
       facts: [],
       tools: [],
@@ -103,6 +106,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
         }),
     valueScope,
     // The figure beside it states the money, so the headline gives the scale.
+    weight: "strong",
     headline: `${NUMBER.format(workload.calls)} recorded AI coding calls${workload.tools.length === 0 ? "" : ` across ${list(workload.tools.map((tool) => SHAREABLE_TOOLS[tool.id]))}`}, over ${NUMBER.format(workload.spanDays)} ${workload.spanDays === 1 ? "day" : "days"}.`,
     support,
     facts: snapshot.facts.map(composeWorkloadFact),

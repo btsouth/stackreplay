@@ -379,7 +379,7 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
   await page.goto("/app/replay");
 
   // The strip says unmapped IDs exist; the raw map is one step down.
-  await expect(page.getByTestId("workload-strip-summary")).toContainText("1 unmapped model ID");
+  await expect(page.getByTestId("workload-strip-summary")).toContainText("1 unresolved model ID");
   await page.getByTestId("workload-details").locator(":scope > summary").click();
   const identities = page.getByTestId("model-identities");
   await expect(identities).toBeVisible();

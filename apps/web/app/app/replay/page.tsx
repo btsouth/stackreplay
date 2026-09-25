@@ -31,7 +31,7 @@ export default async function ReplayPage({
     <>
       <PageHeader
         title="Replay"
-        description="Your recorded workload, a target stack, and what would have happened: same models, a cheaper plan, another provider, or the API."
+        description="Send your recorded work through a plan or an API, in the order it happened, and see what would have happened. It runs in this browser."
       />
       <ReplaySurface
         initialApi={api}

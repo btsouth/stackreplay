@@ -251,12 +251,16 @@ describe("replay verdicts", () => {
       }),
     );
     check(verdict);
+    // Capacity is the question, and it cannot be answered: the verdict says
+    // so first, and model availability follows as a quiet, labelled fact.
     expect(verdict.headline).toBe(
-      "Claude Max 20x can run 35,445 of your 66,851 calls (53.0–53.1%), the ones on Anthropic models. The other 31,323 use OpenAI, DeepSeek and Z.AI models that aren't available there.",
+      "Whether Claude Max 20x would have kept up with your 66,851 calls can't be determined: Anthropic doesn't publish its usage limits as numbers.",
     );
     expect(verdict.support[0]).toBe(
-      "Anthropic doesn't publish numeric limits for Claude Max 20x, so whether your heaviest windows fit can't be tested.",
+      "Model availability only: 35,445 of your 66,851 calls (53.0–53.1%) use models Claude Max 20x offers, the ones on Anthropic models. The other 31,323 use OpenAI, DeepSeek and Z.AI models that aren't available there.",
     );
+    expect(verdict.weight).toBe("quiet");
+    expect(verdict.figure.caption).toMatch(/capacity unknown/u);
     expect(verdict.bound).toEqual({ low: 35_445 / 66_851, high: 35_528 / 66_851 });
     expect(verdict.support.join(" ")).toMatch(
       /83 of 66,851 calls \(0\.12%\) use model IDs StackReplay couldn't resolve/u,
@@ -385,7 +389,10 @@ describe("replay verdicts", () => {
     check(verdict);
     expect(verdict.modeLabel).toBe("Translated replay");
     expect(verdict.headline).toBe(
-      "Under your model substitution, Claude Max 20x would run every model in your 66,768 calls with recognized models.",
+      "Under your model substitution, whether Claude Max 20x would have kept up with your 66,851 calls can't be determined: Anthropic doesn't publish its usage limits as numbers.",
+    );
+    expect(verdict.support[0]).toBe(
+      "Model availability only: Claude Max 20x offers every model in your 66,768 calls with recognized models after your substitution. That shows the models are available there, not that its limits would hold.",
     );
     const support = verdict.support.join(" ");
     expect(support).toMatch(/Substitution you chose: GPT-5\.6 Sol → Claude Opus 5\.5/u);
@@ -418,8 +425,8 @@ describe("replay verdicts", () => {
       }),
     );
     check(verdict);
-    expect(verdict.headline).toBe(
-      "Cursor Pro can run 1,387 of your 2,600 calls (53.3%), the ones on GPT-5.6 Sol. The other 1,213 use GPT-6 Sol and GPT-6 Astra, which aren't available there.",
+    expect(verdict.support[0]).toBe(
+      "Model availability only: 1,387 of your 2,600 calls (53.3%) use models Cursor Pro offers, the ones on GPT-5.6 Sol. The other 1,213 use GPT-6 Sol and GPT-6 Astra, which aren't available there.",
     );
     const long = composeVerdict(
       facts({

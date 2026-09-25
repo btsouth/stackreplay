@@ -35,6 +35,7 @@ function presentV1(snapshot: Extract<AnyShareSnapshot, { version: 1 }>): SharePr
       ? {}
       : { figure: { value: `${percent.toFixed(1)}%`, caption: "of recorded requests served" } }),
     headline: `${snapshot.workload.eventCount.toLocaleString("en-US")} recorded calls replayed against ${snapshot.target.planName}.`,
+    weight: "strong",
     support: [],
     facts: [],
     tools: [],
@@ -48,6 +49,9 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
       ? "This share link cannot be read."
       : firstSentence(presentation.headline);
   const long = headline.length > 110;
+  // A quiet verdict's sentence is the answer: it leads, and the figure is a
+  // small labelled line under it rather than a number set at display size.
+  const quiet = presentation?.weight === "quiet";
   // A workload image carries its strongest comparative fact under the headline.
   const fact = presentation?.facts[0];
   const valueScope = presentation?.kind === "workload" ? presentation.valueScope : undefined;
@@ -95,7 +99,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
         <div style={{ display: "flex", width: "100%", height: 2, background: RULE }}>
           <div style={{ display: "flex", width: 180, height: 2, background: SIGNAL }} />
         </div>
-        {presentation?.figure === undefined ? null : (
+        {presentation?.figure === undefined || quiet ? null : (
           <div style={{ display: "flex", flexDirection: "column", marginTop: 34 }}>
             <div
               style={{
@@ -153,15 +157,31 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
         <div
           style={{
             display: "flex",
-            marginTop: valueScope === undefined ? 30 : 22,
-            fontSize: long ? 30 : 36,
-            lineHeight: 1.25,
-            letterSpacing: "-0.01em",
+            marginTop: quiet ? 40 : valueScope === undefined ? 30 : 22,
+            fontSize: quiet ? (long ? 40 : 48) : long ? 30 : 36,
+            lineHeight: quiet ? 1.18 : 1.25,
+            letterSpacing: quiet ? "-0.02em" : "-0.01em",
             maxWidth: 1040,
           }}
         >
           {headline}
         </div>
+        {!quiet || presentation?.figure === undefined ? null : (
+          <div
+            style={{
+              display: "flex",
+              marginTop: 22,
+              fontFamily: "Geist Mono",
+              fontSize: 19,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: MUTED,
+              maxWidth: 1040,
+            }}
+          >
+            {`${presentation.figure.value} ${presentation.figure.caption}`}
+          </div>
+        )}
         {fact === undefined || valueScope?.complete === false ? null : (
           <div
             style={{

@@ -14,6 +14,7 @@ import { isSyntheticCatalogId, shareText } from "@stackreplay/share";
 import { Badge, Button, Card, CardContent, Metric } from "@stackreplay/ui";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ImportSurface } from "@/components/import/import-surface";
 import { ConstraintTrace } from "@/components/instrument/constraint-trace";
@@ -42,12 +43,14 @@ import {
   workloadModels,
 } from "@/components/replay/translation";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
+import { plainRange } from "@/components/workload/format";
 import { formatUsd } from "@/lib/money-display";
 import { type TargetCoverage, targetCoverages, workloadSlice } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
 import { replayShareV2, type ShareOptions } from "@/lib/share-v2";
 import { browserTimeZone } from "@/lib/time-zone";
+import { localDayOf } from "@/lib/timeline";
 import { useWorkloadProfile } from "@/lib/use-workload-profile";
 import { verdictOfOutcome } from "@/lib/verdict-facts";
 import {
@@ -226,10 +229,13 @@ export function ReplaySurface({
     [usageSources],
   );
   /** The tool slice in force: only tools this workload has, and none when it is every tool. */
-  const scope = useMemo(() => {
+  const scopeKey = useMemo(() => {
     const known = scopeSources.filter((id) => sourceNames.has(id));
-    return known.length === 0 || known.length === sourceNames.size ? [] : known;
+    return known.length === 0 || known.length === sourceNames.size ? "" : known.join(",");
   }, [scopeSources, sourceNames]);
+  // Keyed by its content, so a re-render that finds the same tools keeps the
+  // same array and does not count as a new slice of work.
+  const scope = useMemo(() => (scopeKey === "" ? [] : scopeKey.split(",")), [scopeKey]);
   const slice = useMemo(
     () => (profile === undefined ? undefined : workloadSlice(profile.sources, sourceNames, scope)),
     [profile, scope, sourceNames],
@@ -360,7 +366,10 @@ export function ReplaySurface({
   const models = useMemo(() => {
     if (workload === undefined) return undefined;
     const all = workloadModels(workload.summary.models);
-    if (scope.length === 0 || slice === undefined) return all;
+    if (scope.length === 0) return all;
+    // A tool slice's models come from the profile; until it is ready, nothing
+    // scoped is shown rather than the whole workload's models under its name.
+    if (slice === undefined) return undefined;
     return {
       sources: all.sources
         .filter((source) => slice.models.has(source.modelId))
@@ -409,8 +418,34 @@ export function ReplaySurface({
   // A suggested route's link can change only the query string, too.
   const initialScopeKey = (initialScope ?? []).join(",");
   useEffect(() => {
-    setScopeSources(initialScopeKey === "" ? [] : initialScopeKey.split(","));
+    // Unchanged when the URL only echoes the current choice back (see below),
+    // so a held plan order is not released under the pointer.
+    setScopeSources((current) =>
+      current.join(",") === initialScopeKey
+        ? current
+        : initialScopeKey === ""
+          ? []
+          : initialScopeKey.split(","),
+    );
   }, [initialScopeKey]);
+
+  /**
+   * The choices live in the address too (replacing, not adding, history
+   * entries), so Back, Forward and a reload return to the same work and
+   * target. Only an opaque local id, catalog ids and tool ids are written.
+   */
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    if (workload === undefined) return;
+    const params = new URLSearchParams({ import: workload.id });
+    if (targetKind === "api") {
+      if (providerId !== undefined) params.set("api", providerId);
+    } else if (planId !== undefined) params.set("target", planId);
+    if (scope.length > 0) params.set("scope", scope.join(","));
+    const next = `?${params.toString()}`;
+    if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
+  }, [pathname, planId, providerId, router, scope, targetKind, workload]);
 
   /**
    * The bundled demo workloads are synthetic and use the `example-` model
@@ -418,14 +453,23 @@ export function ReplaySurface({
    * result that reads as a failure when a visitor replays a demo against a
    * catalogued plan.
    */
+  const importsRef = useRef(imports);
+  importsRef.current = imports;
   useEffect(() => {
+    // The address echoing a workload this list already holds needs no re-read.
+    if (
+      initialImportId !== undefined &&
+      importsRef.current?.some((entry) => entry.id === initialImportId)
+    )
+      return;
     let cancelled = false;
     void (async () => {
       try {
         const list = await client.listImports();
         if (cancelled) return;
         setImports(list);
-        if (initialImportId === undefined && list.length > 0) setSelectedId(list[0]?.id);
+        if (initialImportId === undefined && list.length > 0)
+          setSelectedId((current) => current ?? list[0]?.id);
       } catch {
         if (!cancelled) setImportsError(true);
       }
@@ -567,6 +611,40 @@ export function ReplaySurface({
     [activeIndex, filteredPlans, runReplay, selectPlan],
   );
 
+  /**
+   * After an exact result that leaves calls on models the target does not
+   * offer, the next honest question is a move: open the substitution editor
+   * where the choices are made, instead of implying one.
+   */
+  const openMove = useCallback(() => {
+    setTranslationOpen(true);
+    requestAnimationFrame(() =>
+      document.querySelector('[data-testid="translation-editor"]')?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+        block: "start",
+      }),
+    );
+  }, []);
+  /**
+   * A plan whose limits are unpublished cannot say whether it keeps up, but the
+   * same work at its maker's API list prices is a figure the evidence supports.
+   */
+  const apiAlternative = useMemo(() => {
+    if (targetKind !== "subscription" || selectedPlan === undefined || workload === undefined)
+      return undefined;
+    const provider = providers.find((entry) => entry.id === selectedPlan.providerId);
+    if (provider === undefined || provider.pricedModelCount === 0) return undefined;
+    // Only where the maker's API offers these calls' models: otherwise the
+    // link would lead to a result that prices nothing.
+    const coverage = coverageByKey.get(`api:${provider.id}`)?.coverage;
+    if (coverage === undefined || coverage.runnable === 0) return undefined;
+    const params = new URLSearchParams({ import: workload.id, api: provider.id });
+    if (scope.length > 0) params.set("scope", scope.join(","));
+    return { href: `/app/replay?${params.toString()}`, name: provider.name };
+  }, [coverageByKey, providers, scope, selectedPlan, targetKind, workload]);
+
   if (importsError)
     return (
       <p role="alert" className="border-l-2 border-warning pl-4 text-sm">
@@ -678,7 +756,9 @@ export function ReplaySurface({
               <p className="max-w-prose text-xs text-muted-foreground" data-testid="scope-note">
                 {scope.length === 0
                   ? "Selected: all recorded work. A single-provider plan may naturally cover only part of this mixed workload."
-                  : `Only the calls your ${scope.map((id) => sourceNames.get(id) ?? id).join(" + ")} work recorded: ${formatCount(scopedEvents)} of ${formatCount(workload?.summary.eventCount ?? 0)}. The result states this scope.`}
+                  : slice === undefined
+                    ? `Reading your ${scope.map((id) => sourceNames.get(id) ?? id).join(" + ")} calls in this browser…`
+                    : `Only the calls your ${scope.map((id) => sourceNames.get(id) ?? id).join(" + ")} work recorded: ${formatCount(scopedEvents)} of ${formatCount(workload?.summary.eventCount ?? 0)}. The result states this scope.`}
               </p>
             </fieldset>
           ) : null}
@@ -687,19 +767,19 @@ export function ReplaySurface({
             <div>
               <h2 className="text-sm font-medium">
                 {usageSources.length > 1
-                  ? "2. What do you want to test this work against?"
+                  ? "2. What do you want to test it against?"
                   : "What do you want to test this work against?"}
               </h2>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Use models as recorded. No substitution happens when you choose a different plan or
-                provider. If a model is unavailable, you can explicitly model a move after choosing
-                the target.
+              <p className="mt-1 max-w-[70ch] text-xs leading-relaxed text-muted-foreground">
+                A plan with published limits shows whether and when it would have run out. API list
+                prices show what the same calls would cost. Every model stays as recorded unless you
+                choose to move work to other models.
               </p>
             </div>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <fieldset className="flex flex-col gap-2" data-testid="target-kind">
                 <legend className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Replay against
+                  Test against
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -718,7 +798,7 @@ export function ReplaySurface({
                     onClick={() => selectTargetKind("api")}
                     className={segmentedClass(targetKind === "api")}
                   >
-                    Direct API list prices
+                    API list prices
                   </button>
                 </div>
               </fieldset>
@@ -771,8 +851,18 @@ export function ReplaySurface({
                     No catalogued provider is recorded as offering a model.
                   </li>
                 ) : (
-                  filteredProviders.map((provider) => (
+                  filteredProviders.map((provider, index) => (
                     <li key={provider.id}>
+                      {startsUnavailableGroup(
+                        coverageByKey.get(`api:${provider.id}`)?.coverage,
+                        index === 0
+                          ? undefined
+                          : coverageByKey.get(`api:${filteredProviders[index - 1]?.id}`)?.coverage,
+                      ) ? (
+                        <p className="border-b border-border bg-surface-2/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
+                          Offer none of these models · test them with a substitution
+                        </p>
+                      ) : null}
                       <button
                         type="button"
                         aria-pressed={provider.id === providerId}
@@ -797,7 +887,11 @@ export function ReplaySurface({
                           </span>
                           <CoverageLine
                             coverage={coverageByKey.get(`api:${provider.id}`)?.coverage}
-                            fallback={`${formatCount(provider.pricedModelCount)} of ${formatCount(provider.modelCount)} offered models have API list prices`}
+                            fallback={
+                              profile === undefined
+                                ? "Checking which of these calls' models it offers…"
+                                : `${formatCount(provider.pricedModelCount)} of ${formatCount(provider.modelCount)} offered models have API list prices`
+                            }
                             testId={`provider-coverage-${provider.id}`}
                           />
                         </span>
@@ -826,6 +920,16 @@ export function ReplaySurface({
                 ) : (
                   filteredPlans.map((plan, index) => (
                     <li key={plan.id}>
+                      {startsUnavailableGroup(
+                        coverageByKey.get(`plan:${plan.id}`)?.coverage,
+                        index === 0
+                          ? undefined
+                          : coverageByKey.get(`plan:${filteredPlans[index - 1]?.id}`)?.coverage,
+                      ) ? (
+                        <p className="border-b border-border bg-surface-2/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
+                          Offer none of these models · test them with a substitution
+                        </p>
+                      ) : null}
                       <button
                         type="button"
                         aria-pressed={plan.id === planId}
@@ -851,7 +955,11 @@ export function ReplaySurface({
                           </span>
                           <CoverageLine
                             coverage={coverageByKey.get(`plan:${plan.id}`)?.coverage}
-                            fallback={`${plan.providerId} · rules from ${plan.effectiveFrom}`}
+                            fallback={
+                              profile === undefined
+                                ? "Checking which of these calls' models it offers…"
+                                : `${plan.providerId} · rules from ${plan.effectiveFrom}`
+                            }
                             testId={`plan-coverage-${plan.id}`}
                           />
                         </span>
@@ -1021,8 +1129,8 @@ export function ReplaySurface({
               {phase === "loading" || phase === "replaying"
                 ? "Replaying…"
                 : policy !== undefined
-                  ? "Run moved-work scenario · Translated Replay"
-                  : "Run as recorded · Exact Replay"}
+                  ? "Run replay with your substitutions"
+                  : "Run replay · models as recorded"}
             </Button>
             <span className="text-xs text-muted-foreground" aria-live="polite">
               {phase === "idle"
@@ -1072,10 +1180,27 @@ export function ReplaySurface({
           outcome={outcome}
           computedFor={outcomeSelection}
           workload={imports.find((entry) => entry.id === outcomeSelection?.workloadId)}
+          onMove={
+            policy === undefined &&
+            compat !== undefined &&
+            compat.unserved.length > 0 &&
+            available.some((model) => model.available)
+              ? openMove
+              : undefined
+          }
+          apiAlternative={apiAlternative}
         />
       ) : null}
     </div>
   );
+}
+
+/** The first target in the ordered list that offers none of the work's models. */
+function startsUnavailableGroup(
+  coverage: TargetCoverage | undefined,
+  previous: TargetCoverage | undefined,
+): boolean {
+  return coverage?.runnable === 0 && (previous === undefined || previous.runnable > 0);
 }
 
 /**
@@ -1091,20 +1216,18 @@ function CoverageLine({
   fallback: string;
   testId: string;
 }) {
+  // Availability, never capacity: a plan that offers a model has not been
+  // shown to carry the calls that use it.
   const text =
     coverage === undefined
       ? fallback
       : coverage.runnable === 0
-        ? coverage.kind === "api"
-          ? "Offers none of these calls' models"
-          : "Runs none of these calls"
-        : `${coverage.kind === "api" ? "Offers the models behind" : "Runs"} ${
+        ? "Offers none of these calls' models"
+        : `${
             coverage.runnable === coverage.events
-              ? "all"
-              : shareText(coverage.runnable / coverage.events)
-          } of ${coverage.runnable === coverage.events ? `${formatCount(coverage.events)} calls` : "these calls"}${
-            coverage.kind === "api" && coverage.priced === false ? " · not all priced" : ""
-          }`;
+              ? `Offers every model in these ${formatCount(coverage.events)} calls`
+              : `Offers the models behind ${shareText(coverage.runnable / coverage.events)} of these calls`
+          }${coverage.kind === "api" && coverage.priced === false ? " · not all priced" : ""}`;
   return (
     <span className="truncate text-xs text-muted-foreground" data-testid={testId}>
       {text}
@@ -1124,10 +1247,11 @@ function WorkloadStrip({
   if (workload === undefined) return null;
   const { summary } = workload;
   const unmapped = summary.models.filter((model) => !model.mapped).length;
+  const day = localDayOf(browserTimeZone());
   const range =
     summary.firstEventAt !== undefined && summary.lastEventAt !== undefined
-      ? `${summary.firstEventAt.slice(0, 10)} to ${summary.lastEventAt.slice(0, 10)}`
-      : "unknown";
+      ? plainRange(day(summary.firstEventAt), day(summary.lastEventAt))
+      : "no recorded dates";
   return (
     <Card
       data-testid="workload-strip"
@@ -1144,7 +1268,7 @@ function WorkloadStrip({
                 href={`/app/workload?import=${workload.id}`}
                 data-testid="strip-workload-link"
               >
-                See how you use AI
+                Open workload
               </Link>
             </p>
           </div>
@@ -1173,7 +1297,7 @@ function WorkloadStrip({
             : ` · ${summary.usageSources.map((source) => `${source.name} ${formatCount(source.events)}`).join(" · ")}`}
           {unmapped === 0
             ? ""
-            : ` · ${formatCount(unmapped)} unmapped model ${unmapped === 1 ? "ID" : "IDs"}`}
+            : ` · ${formatCount(unmapped)} unresolved model ${unmapped === 1 ? "ID" : "IDs"}`}
         </p>
         <details className="border-t border-border pt-3" data-testid="workload-details">
           <summary className="min-h-11 cursor-pointer text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
@@ -1297,11 +1421,17 @@ function ReplayResult({
   outcome,
   computedFor,
   workload,
+  onMove,
+  apiAlternative,
 }: {
   outcome: ReplayOutcome;
   /** What this result was computed from; may be absent for older callers. */
   computedFor: ComputedFor | undefined;
   workload: ImportRecord | undefined;
+  /** Opens the substitution editor for calls on models the target does not offer. */
+  onMove?: (() => void) | undefined;
+  /** The same work at the plan maker's API list prices. */
+  apiAlternative?: { href: string; name: string } | undefined;
 }) {
   const { result, timeline, projection } = outcome;
   const apiTarget = projection.target.kind === "api";
@@ -1426,6 +1556,39 @@ function ReplayResult({
           }
           verdict={composed.verdict}
         />
+      )}
+      {composed === undefined ||
+      ((onMove === undefined || composed.facts.calls.unavailable === 0) &&
+        (apiAlternative === undefined ||
+          composed.facts.target.capacity !== "unpublished" ||
+          translated)) ? null : (
+        <div
+          className="-mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm"
+          data-testid="result-next"
+        >
+          {onMove === undefined || composed.facts.calls.unavailable === 0 ? null : (
+            <button
+              type="button"
+              className="min-h-11 text-left text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+              onClick={onMove}
+              data-testid="result-move"
+            >
+              Move the {formatCount(composed.facts.calls.unavailable)} unavailable{" "}
+              {composed.facts.calls.unavailable === 1 ? "call" : "calls"} to {targetName} models →
+            </button>
+          )}
+          {apiAlternative === undefined ||
+          composed.facts.target.capacity !== "unpublished" ||
+          translated ? null : (
+            <Link
+              className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+              href={apiAlternative.href}
+              data-testid="result-api-alternative"
+            >
+              See this work at {apiAlternative.name} API list prices →
+            </Link>
+          )}
+        </div>
       )}
       <ReplayReading
         importId={computedFor?.workloadId}

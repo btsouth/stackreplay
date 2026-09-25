@@ -196,9 +196,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
 
   await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
   await page.getByTestId("translation-select-gpt-6-sol").selectOption("claude-opus-5-5");
-  await expect(page.getByTestId("run-replay")).toHaveText(
-    "Run moved-work scenario · Translated Replay",
-  );
+  await expect(page.getByTestId("run-replay")).toHaveText("Run replay with your substitutions");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
 
@@ -303,9 +301,19 @@ test("qualitative plans keep capacity unknown while model support is established
   );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Exact replay", { timeout: 60_000 });
+  // Capacity is the answer, and it is unknown: the verdict says so first and
+  // never reads model availability as the plan carrying the work.
+  await expect(page.getByTestId("verdict-headline")).toContainText("can't be determined");
+  await expect(page.getByTestId("verdict-headline")).not.toContainText(/runs every|can run/u);
+  await expect(page.getByTestId("replay-headline")).toHaveAttribute("data-weight", "quiet");
+  await expect(page.getByTestId("verdict-support")).toContainText("Model availability only");
+  await expect(page.getByTestId("verdict-figures")).toContainText("capacity unknown");
   await expect(page.getByTestId("reading-capacity")).toContainText("Cannot be established");
   await expect(page.getByTestId("reading-routing")).toContainText("calls use models");
   await expect(page.getByTestId("reading-cost")).toContainText("per month");
+  // The honest economic reference for the same work: the maker's API prices.
+  await page.getByTestId("result-api-alternative").click();
+  await expect(page).toHaveURL(/api=openai/u);
 });
 
 test("Compare asks for a decision before showing Codex subscription and API facts", async ({
@@ -408,12 +416,13 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
     timeout: 30_000,
   });
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
-  // The workspace starts from the stored workload and its value.
+  // The app entry opens the stored workload and its value directly.
   await page.goto("/app");
-  await expect(page.getByTestId("stored-workload")).toContainText("calls", { timeout: 30_000 });
-  await expect(page.getByTestId("stored-workload")).toContainText("not what you paid", {
-    timeout: 30_000,
-  });
+  await expect(page).toHaveURL(/\/app\/workload$/);
+  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toContainText(
+    "not what you paid",
+    { timeout: 30_000 },
+  );
 });
 
 test("a partial scan says so beside the totals and offers a rescan", async ({ page }) => {

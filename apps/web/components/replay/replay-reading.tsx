@@ -183,7 +183,7 @@ export function ReplayReading({
         ) : null}
       </div>
       <dl className="flex flex-col">
-        <Row label="What it can run" testId="reading-routing">
+        <Row label="Model availability" testId="reading-routing">
           {translated && projection.translation !== undefined ? (
             <>
               {count(projection.translation.substitutedEvents)} calls substituted onto {targetName}{" "}
@@ -199,15 +199,20 @@ export function ReplayReading({
             </>
           ) : unavailable === 0 ? (
             unknown === 0 ? (
-              `All ${count(served + blocked)} calls use models ${targetName} runs.`
+              `All ${count(served + blocked)} calls use models ${targetName} offers.`
             ) : (
-              `${count(served + blocked)} calls use models ${targetName} runs; the other ${count(unknown)} are undecided.`
+              `${count(served + blocked)} calls use models ${targetName} offers; the other ${count(unknown)} are undecided.`
             )
           ) : (
             <>
-              {count(unavailable)} calls use models {targetName} does not run
+              {count(unavailable)} calls use models {targetName} does not offer
               {served + blocked > 0 ? `; ${count(served + blocked)} use models it does` : ""}.
             </>
+          )}
+          {api || numeric || served + blocked === 0 ? null : (
+            <span className="block text-xs text-muted-foreground">
+              Availability is not capacity: it says these models can be used there, not how much.
+            </span>
           )}
           {usageCredits !== undefined && usageCredits.events > 0 ? (
             <span
@@ -228,7 +233,7 @@ export function ReplayReading({
           ) : null}
         </Row>
         <Row
-          label="At your demand"
+          label="Capacity at your demand"
           testId="reading-capacity"
           tone={crossings.length > 0 ? "warning" : undefined}
         >
@@ -236,9 +241,8 @@ export function ReplayReading({
             "Not applicable. A Direct API target has no allowance: every request is served and billed."
           ) : !numeric ? (
             <>
-              Cannot be established. {targetName} publishes its limits qualitatively, so there is no
-              number to replay your chronology against. Model support and your workload&apos;s shape
-              are still known.
+              Cannot be established. {targetName} describes its limits in words, not numbers, so
+              there is no allowance to replay your chronology against.
             </>
           ) : crossings.length === 0 ? (
             served === 0 ? (

@@ -172,8 +172,12 @@ describe("Case C: a tiny unresolved subset", () => {
       "Claude Max 20x",
     );
     expect(verdict.headline).toMatch(
-      /^Claude Max 20x can run 2,648 of your 5,000 calls \(53\.0–53\.1%\)/u,
+      /^Whether Claude Max 20x would have kept up with your 5,000 calls can't be determined/u,
     );
+    expect(verdict.support[0]).toMatch(
+      /^Model availability only: 2,648 of your 5,000 calls \(53\.0–53\.1%\) use models Claude Max 20x offers/u,
+    );
+    expect(verdict.figure.value).toBe("53.0–53.1%");
   });
 
   it("says only the recognized calls fit when a numeric plan is never crossed", () => {

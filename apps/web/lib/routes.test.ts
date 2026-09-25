@@ -183,7 +183,9 @@ describe("tool slices", () => {
       });
       // The verdict states the slice, then says the same thing about it.
       const scoped = sliced.composed?.verdict;
-      expect(scoped?.headline).toMatch(/^(?:For your Claude Code work, |Your Claude Code work )/u);
+      expect(scoped?.headline).toMatch(
+        /^(?:For your Claude Code work, |Your Claude Code work )|your [\d,]+ Claude Code calls/u,
+      );
       expect(scoped?.support.join(" ")).toMatch(
         new RegExp(
           `Scope: your Claude Code work, 3,200 of ${combined.length.toLocaleString("en-US")} calls`,

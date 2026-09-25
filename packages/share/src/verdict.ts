@@ -141,6 +141,14 @@ export interface VerdictV1 {
   bound?: { low: number; high: number } | undefined;
   /** A compact form for a Compare column heading or a social card. */
   short: string;
+  /**
+   * How strongly a surface should present the figure. `strong`: the facts
+   * establish an answer (a run-out date, an API price, a fit within numeric
+   * limits), so the figure is set large. `quiet`: the answer is what cannot be
+   * established, or a share of calls the target cannot run at all, so the
+   * sentence leads and the figure stays small.
+   */
+  weight: "strong" | "quiet";
 }
 
 const NUMBER = new Intl.NumberFormat("en-US");
@@ -361,11 +369,6 @@ function substitutionSentence(facts: VerdictFactsV1): string | undefined {
   return `Substitution you chose: ${shown.join(", ")}${more > 0 ? ` and ${n(more)} more` : ""}. Recorded token amounts carry over unchanged; the substitute models could use more or fewer, and nothing here says they would do the same work.`;
 }
 
-function capacitySentence(facts: VerdictFactsV1): string | undefined {
-  if (facts.target.capacity !== "unpublished") return undefined;
-  return `${facts.target.providerName} doesn't publish numeric limits for ${facts.target.name}, so whether your heaviest windows fit can't be tested.`;
-}
-
 /**
  * Composes the verdict. Pure and deterministic: the same facts always give the
  * same words.
@@ -444,6 +447,7 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
         },
         bound: undefined,
         short: `${cost} at list prices${scopeTag === undefined ? "" : ` · ${scopeTag}`}`,
+        weight: "strong",
       };
     }
     const headline =
@@ -470,6 +474,7 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       short: tag(
         runnable === 0 ? "Offers none of these models" : `Offers ${shareShown} of calls' models`,
       ),
+      weight: "quiet",
     };
   }
 
@@ -486,9 +491,10 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       modeLabel,
       headline: `${translatedLead}${plan} can't run ${workNoun}: none of your ${calls(total)}${c.undecided > 0 ? " with recognized models" : ""} use models it offers.`,
       support: tail,
-      figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
+      figure: { value: shareShown, caption: `${ofCalls} on models ${plan} offers`, kind: "share" },
       bound,
-      short: tag("Can't run this workload"),
+      short: tag("Offers none of these models"),
+      weight: "quiet",
     };
   }
   if (high < 0.5) {
@@ -504,9 +510,10 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
       modeLabel,
       headline: `${translatedLead}${plan} can't run most of ${workNoun}: only ${n(runnable)} of ${calls(total)} use models available on the plan.`,
       support: tail,
-      figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
+      figure: { value: shareShown, caption: `${ofCalls} on models ${plan} offers`, kind: "share" },
       bound,
-      short: tag(`Runs only ${shareShown} of calls`),
+      short: tag(`Offers the models for only ${shareShown} of calls`),
+      weight: "quiet",
     };
   }
 
@@ -585,6 +592,7 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
           showOverage ? ` · ${overageOpen ? "at least " : ""}${overageWhole} overage` : ""
         }`,
       ),
+      weight: "strong",
     };
   }
 
@@ -633,16 +641,27 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
           ? `Recognized calls within limits · ${shareShown}`
           : `Within limits · ${shareShown} of calls`,
       ),
+      weight: "strong",
     };
   }
 
-  // Qualitative limits: model support is known, capacity cannot be tested.
+  // Qualitative limits. Model availability is known; capacity is not, and a
+  // plan that offers every recorded model has not been shown to carry them.
+  // The answer is what cannot be determined, so the sentence leads and the
+  // availability share is a supporting, quiet figure.
   const servedMakers = list(facts.servedMakers);
-  const headline =
+  const yourCalls =
+    slice === undefined
+      ? `your ${calls(total)}`
+      : `your ${n(total)} ${slice} ${total === 1 ? "call" : "calls"}`;
+  const whether = `${translatedLead === "" ? "Whether" : `${translatedLead}whether`} ${plan} would have kept up with ${yourCalls}`;
+  const headline = `${whether} can't be determined: ${facts.target.providerName} doesn't publish its usage limits as numbers.`;
+  const recognized = c.undecided > 0 ? " with recognized models" : "";
+  push(
     c.unavailable === 0
-      ? `${under}${plan} ${translated ? "would run" : "runs"} every model in your ${calls(runnable)}${c.undecided > 0 ? " with recognized models" : ""}.`
-      : `${under}${plan} can run ${n(runnable)} of your ${calls(total)} (${shareShown})${servedMakers === "" || translated ? "" : `, the ones on ${runPhrase(facts)}`}. The other ${n(c.unavailable)} use ${notRun(facts)}.`;
-  push(capacitySentence(facts));
+      ? `Model availability only: ${plan} offers every model in your ${calls(runnable)}${recognized}${translated ? " after your substitution" : ""}. That shows the models are available there, not that its limits would hold.`
+      : `Model availability only: ${n(runnable)} of your ${calls(total)} (${shareShown}) use models ${plan} offers${servedMakers === "" || translated ? "" : `, the ones on ${runPhrase(facts)}`}. The other ${n(c.unavailable)} use ${notRun(facts)}.`,
+  );
   push(scopeSentence(facts));
   push(undecidedSentence(facts));
   push(substitutionSentence(facts));
@@ -650,8 +669,13 @@ export function composeVerdict(facts: VerdictFactsV1): VerdictV1 {
     modeLabel,
     headline,
     support: tail,
-    figure: { value: shareShown, caption: `${ofCalls} run on ${plan}`, kind: "share" },
+    figure: {
+      value: shareShown,
+      caption: `${ofCalls} on models ${plan} offers · capacity unknown`,
+      kind: "share",
+    },
     bound,
-    short: tag(`Runs ${shareShown} of calls · limits unpublished`),
+    short: tag(`Capacity unpublished · models for ${shareShown} of calls`),
+    weight: "quiet",
   };
 }

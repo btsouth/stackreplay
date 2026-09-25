@@ -128,6 +128,33 @@
   color: var(--muted-foreground);
 }
 
+/*
+ * A quiet verdict: the sentence is the answer (capacity that cannot be
+ * determined, a target that offers none of the models), so the supporting
+ * share sits small beside it instead of competing with it.
+ */
+.sr-verdict[data-weight="quiet"] .sr-verdict-figures .sr-figure {
+  font-size: clamp(1.5rem, 1.35rem + 0.5vw, 1.875rem);
+  letter-spacing: -0.02em;
+}
+
+.sr-verdict[data-weight="quiet"] .sr-verdict-headline {
+  max-width: 56ch;
+}
+
+.sr-verdict[data-weight="quiet"] .sr-verdict-body {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.75rem;
+}
+
+.sr-verdict[data-weight="quiet"] .sr-verdict-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  text-align: left;
+}
+
 /* A figure in a narrow column (Compare) or a card: the same face, smaller. */
 .sr-figure.sr-figure--compact {
   font-size: clamp(1.75rem, 1.5rem + 0.8vw, 2.25rem);
