@@ -34,6 +34,12 @@ export function PublicShell({
 }: PublicShellProps) {
   return (
     <div className={cn("flex min-h-dvh flex-col bg-background text-foreground", className)}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-20 focus:z-50 focus:rounded-md focus:border focus:border-border-strong focus:bg-surface focus:px-3 focus:py-1.5 focus:text-sm"
+      >
+        Skip to content
+      </a>
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
         <div className="sr-page-rail relative flex h-16 items-center gap-3 sm:h-[4.5rem]">
           <Link

@@ -196,7 +196,9 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
               maxWidth: 1040,
             }}
           >
-            {`${fact.text} ${fact.comparison.charAt(0).toUpperCase()}${fact.comparison.slice(1)}.`}
+            {fact.comparison === ""
+              ? fact.text
+              : `${fact.text} ${fact.comparison.charAt(0).toUpperCase()}${fact.comparison.slice(1)}.`}
           </div>
         )}
       </div>

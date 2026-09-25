@@ -264,7 +264,7 @@ export function InsightList({
           <div className="flex min-w-0 flex-col gap-1.5">
             <p className="text-base leading-snug text-foreground">{insight.text}</p>
             <p className="text-sm leading-snug text-muted-foreground">
-              {insight.comparison}.{" "}
+              {insight.comparison === "" ? null : `${insight.comparison}. `}
               <a
                 className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline sm:min-h-0"
                 href={evidenceHref(insight.evidence.section)}

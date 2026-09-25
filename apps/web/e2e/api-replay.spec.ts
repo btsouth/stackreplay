@@ -8,7 +8,7 @@ import { createShareToken, importDemo, openReplayDetails, setRulesAsOf } from ".
  */
 
 test("runs a replay against a provider's list prices", async ({ page }) => {
-  await importDemo(page, "moderate");
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runApiReplay(page, "example-cloud");
 
@@ -45,7 +45,7 @@ test("runs a replay against a provider's list prices", async ({ page }) => {
 });
 
 test("states a Direct API summary instead of plan rules", async ({ page }) => {
-  await importDemo(page, "moderate");
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runApiReplay(page, "example-cloud");
 
@@ -65,7 +65,7 @@ test("states a Direct API summary instead of plan rules", async ({ page }) => {
 });
 
 test("explains an unpriced provider instead of inventing a cost", async ({ page }) => {
-  await importDemo(page, "moderate");
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   // anthropic offers catalogued models but no API list prices for them.
   await setRulesAsOf(page, "2026-09-15");
@@ -94,7 +94,7 @@ test("keeps subscription billing platforms out of Direct API targets", async ({ 
 });
 
 test("shares a Direct API result, and the link keeps its caveat", async ({ page }) => {
-  await importDemo(page, "moderate");
+  await importDemo(page, "heavy");
   await page.goto("/app/replay");
   await runApiReplay(page, "example-cloud");
 

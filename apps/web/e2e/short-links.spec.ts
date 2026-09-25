@@ -92,7 +92,7 @@ test("a workload link is short, uploads only its aggregate token and renders fro
   expectNoMarkers(decoded.ok ? JSON.stringify(decoded.snapshot) : "");
 
   // A short, opaque, same-site URL.
-  expect(link.url).toMatch(/^http:\/\/localhost:3100\/s\/[A-Za-z0-9_-]{22}$/u);
+  expect(link.url).toMatch(new RegExp(`^${new URL(page.url()).origin}/s/[A-Za-z0-9_-]{22}$`, "u"));
   expect(link.url.length).toBeLessThan(60);
 
   // The public page renders from the stored snapshot, with nothing private.
@@ -136,7 +136,7 @@ test("an unknown or malformed short id is a friendly page and a fallback image",
 test("the share store accepts only a same-site request carrying one aggregate token", async ({
   request,
 }) => {
-  const origin = "http://localhost:3100";
+  const origin = `http://localhost:${process.env.STACKREPLAY_E2E_PORT ?? "3100"}`;
   const json = { "content-type": "application/json" };
   const cross = await request.post("/api/share", {
     headers: { ...json, origin: "https://evil.example" },

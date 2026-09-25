@@ -408,7 +408,8 @@ test("privacy: discovery opens only registered locations, reads nothing, and sen
     const surface = `${request.url} ${JSON.stringify(request.headers)}`;
     for (const marker of markers) expect(surface, request.url).not.toContain(marker);
   }
-  const foreign = requests.filter((request) => !request.url.startsWith("http://localhost:3100"));
+  const origin = new URL(page.url()).origin;
+  const foreign = requests.filter((request) => !request.url.startsWith(origin));
   expect(foreign.map((request) => request.url)).toEqual([]);
 });
 

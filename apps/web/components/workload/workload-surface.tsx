@@ -642,214 +642,216 @@ function WorkloadBody({
         </div>
       </nav>
 
-      <div
-        className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
-        data-testid="measure-bar"
-      >
-        <fieldset className="flex flex-wrap items-center gap-2">
-          <legend className="sr-only">Read demand as</legend>
-          <span aria-hidden="true" className="text-xs text-muted-foreground">
-            Read demand as
-          </span>
-          <button
-            type="button"
-            aria-pressed={measure === "events"}
-            className={segmented(measure === "events")}
-            onClick={() => onMeasure("events")}
-            data-testid="measure-events"
-          >
-            Calls
-          </button>
-          <button
-            type="button"
-            aria-pressed={measure === "tokens"}
-            className={segmented(measure === "tokens")}
-            onClick={() => onMeasure("tokens")}
-            data-testid="measure-tokens"
-          >
-            Known tokens
-          </button>
-        </fieldset>
-        <p className="text-xs text-muted-foreground">
-          Times in <span className="font-mono text-foreground">{profile.timeZone}</span> ·{" "}
-          <button
-            type="button"
-            className="min-h-11 text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
-            onClick={() => onUtc(!useUtc)}
-            data-testid="timezone-toggle"
-          >
-            {useUtc ? `Use ${localZone}` : "Use UTC"}
-          </button>
-        </p>
-      </div>
-
-      <WorkloadSection
-        index="01"
-        eyebrow="Projects"
-        title="Where the work came from"
-        lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
-        id="projects"
-        testId="section-projects"
-      >
-        <ProjectLedger measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="02"
-        eyebrow="Model mix"
-        title="Which models did the work"
-        lede="Grouped by canonical model, so different spellings of one model are counted once."
-        id="models"
-        testId="section-models"
-      >
-        <ModelMix measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="03"
-        eyebrow="Recorded demand"
-        title="Your history, day by day"
-        lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
-        id="chronology"
-        testId="section-chronology"
-      >
-        <DemandChronology
-          highlighted={{
-            dates: peakDates,
-            legend: "day holding one of the five heaviest five-hour windows",
-          }}
-          label="Recorded demand"
-          measure={measure}
-          median={profile.chronology.unit === "day" ? median : undefined}
-          points={profile.chronology.points}
-          testId="workload-chronology"
-          unit={profile.chronology.unit}
-        />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="04"
-        eyebrow="When you work"
-        title="Hours and weekdays"
-        lede={`Read in ${profile.timeZone}, from each call's recorded timestamp.`}
-        id="rhythm"
-        testId="section-rhythm"
-      >
-        <WorkRhythm measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="05"
-        eyebrow="Historical pressure"
-        title="Your heaviest windows"
-        lede="Monthly totals hide bursts. Rolling windows open at the first call after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
-        id="pressure"
-        testId="section-pressure"
-        action={
-          numericRoute === undefined ? undefined : (
-            <Link
-              className={ACTION_LINK}
-              href={routeLink(record.id, numericRoute)}
-              data-testid="pressure-replay-link"
+      <div className="flex min-w-0 flex-col gap-14" data-testid="analysis-region">
+        <div
+          className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
+          data-testid="measure-bar"
+        >
+          <fieldset className="flex flex-wrap items-center gap-2">
+            <legend className="sr-only">Read demand as</legend>
+            <span aria-hidden="true" className="text-xs text-muted-foreground">
+              Read demand as
+            </span>
+            <button
+              type="button"
+              aria-pressed={measure === "events"}
+              className={segmented(measure === "events")}
+              onClick={() => onMeasure("events")}
+              data-testid="measure-events"
             >
-              Test these peaks against {numericRoute.target.name}&apos;s published limits →
-            </Link>
-          )
-        }
-      >
-        <HistoricalPressure
-          measure={measure}
-          profile={profile}
-          sourceNames={
-            new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
-          }
-        />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="06"
-        eyebrow="Token composition"
-        title="Where the tokens go"
-        id="tokens"
-        testId="section-tokens"
-        action={
-          apiRoute === undefined ? undefined : (
-            <Link
-              className={ACTION_LINK}
-              href={routeLink(record.id, apiRoute)}
-              data-testid="tokens-api-link"
+              Calls
+            </button>
+            <button
+              type="button"
+              aria-pressed={measure === "tokens"}
+              className={segmented(measure === "tokens")}
+              onClick={() => onMeasure("tokens")}
+              data-testid="measure-tokens"
             >
-              {apiRoute.slice.sources.length === 0
-                ? `Estimate at ${apiRoute.target.name} rates →`
-                : `Price your ${apiRoute.slice.label} work at ${apiRoute.target.name} rates →`}
-            </Link>
-          )
-        }
-      >
-        <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <div className="flex min-w-0 flex-col gap-3">
-            <p
-              className="font-sans text-5xl font-semibold leading-none tracking-tight tabular-nums sm:text-6xl"
-              data-testid="cache-share"
+              Known tokens
+            </button>
+          </fieldset>
+          <p className="text-xs text-muted-foreground">
+            Times in <span className="font-mono text-foreground">{profile.timeZone}</span> ·{" "}
+            <button
+              type="button"
+              className="min-h-11 text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
+              onClick={() => onUtc(!useUtc)}
+              data-testid="timezone-toggle"
             >
-              {percent(cacheShare)}
-            </p>
-            <p className="text-sm leading-relaxed">
-              of {formatTokens(known) ?? "0"} known processed tokens were cache reads.
-            </p>
-            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-              Processed tokens count everything a model read or wrote on each request, including
-              context it re-read from cache on every turn. They are not unique text, and a cache
-              read is not billed like fresh input. Fresh input was{" "}
-              <span className="font-mono text-foreground">
-                {formatTokens(profile.tokens.uncachedInput) ?? "0"}
-              </span>{" "}
-              and output{" "}
-              <span className="font-mono text-foreground">
-                {formatTokens(profile.tokens.output) ?? "0"}
-              </span>
-              {profile.tokens.reasoning > 0 ? (
-                <>
-                  , with{" "}
-                  <span className="font-mono text-foreground">
-                    {formatTokens(profile.tokens.reasoning) ?? "0"}
-                  </span>{" "}
-                  reasoning counted separately
-                </>
-              ) : null}
-              .
-            </p>
-            {profile.overview.unknownUsageEvents > 0 ? (
-              <p className="text-xs text-warning">
-                {count(profile.overview.unknownUsageEvents)} calls report an incomplete set of token
-                categories and are not in these totals. Their reported part is at least{" "}
-                {formatTokens(profile.overview.lowerBoundTokens) ?? "0"} tokens.
-              </p>
-            ) : null}
-          </div>
-          <CompositionLedger buckets={profile.tokens} />
+              {useUtc ? `Use ${localZone}` : "Use UTC"}
+            </button>
+          </p>
         </div>
-      </WorkloadSection>
 
-      <WorkloadSection
-        index="07"
-        eyebrow="Session shape"
-        title="How the sessions break down"
-        id="sessions"
-        testId="section-sessions"
-      >
-        <SessionShape profile={profile} />
-      </WorkloadSection>
+        <WorkloadSection
+          index="01"
+          eyebrow="Projects"
+          title="Where the work came from"
+          lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
+          id="projects"
+          testId="section-projects"
+        >
+          <ProjectLedger measure={measure} profile={profile} />
+        </WorkloadSection>
 
-      <WorkloadSection
-        index="08"
-        eyebrow="Scan quality"
-        title="Evidence behind these figures"
-        id="evidence"
-        testId="section-evidence"
-      >
-        <ScanEvidence profile={profile} record={record} />
-      </WorkloadSection>
+        <WorkloadSection
+          index="02"
+          eyebrow="Model mix"
+          title="Which models did the work"
+          lede="Grouped by canonical model, so different spellings of one model are counted once."
+          id="models"
+          testId="section-models"
+        >
+          <ModelMix measure={measure} profile={profile} />
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="03"
+          eyebrow="Recorded demand"
+          title="Your history, day by day"
+          lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
+          id="chronology"
+          testId="section-chronology"
+        >
+          <DemandChronology
+            highlighted={{
+              dates: peakDates,
+              legend: "day holding one of the five heaviest five-hour windows",
+            }}
+            label="Recorded demand"
+            measure={measure}
+            median={profile.chronology.unit === "day" ? median : undefined}
+            points={profile.chronology.points}
+            testId="workload-chronology"
+            unit={profile.chronology.unit}
+          />
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="04"
+          eyebrow="When you work"
+          title="Hours and weekdays"
+          lede={`Read in ${profile.timeZone}, from each call's recorded timestamp.`}
+          id="rhythm"
+          testId="section-rhythm"
+        >
+          <WorkRhythm measure={measure} profile={profile} />
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="05"
+          eyebrow="Historical pressure"
+          title="Your heaviest windows"
+          lede="Monthly totals hide bursts. Rolling windows open at the first call after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
+          id="pressure"
+          testId="section-pressure"
+          action={
+            numericRoute === undefined ? undefined : (
+              <Link
+                className={ACTION_LINK}
+                href={routeLink(record.id, numericRoute)}
+                data-testid="pressure-replay-link"
+              >
+                Test these peaks against {numericRoute.target.name}&apos;s published limits →
+              </Link>
+            )
+          }
+        >
+          <HistoricalPressure
+            measure={measure}
+            profile={profile}
+            sourceNames={
+              new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
+            }
+          />
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="06"
+          eyebrow="Token composition"
+          title="Where the tokens go"
+          id="tokens"
+          testId="section-tokens"
+          action={
+            apiRoute === undefined ? undefined : (
+              <Link
+                className={ACTION_LINK}
+                href={routeLink(record.id, apiRoute)}
+                data-testid="tokens-api-link"
+              >
+                {apiRoute.slice.sources.length === 0
+                  ? `Estimate at ${apiRoute.target.name} rates →`
+                  : `Price your ${apiRoute.slice.label} work at ${apiRoute.target.name} rates →`}
+              </Link>
+            )
+          }
+        >
+          <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+            <div className="flex min-w-0 flex-col gap-3">
+              <p
+                className="font-sans text-5xl font-semibold leading-none tracking-tight tabular-nums sm:text-6xl"
+                data-testid="cache-share"
+              >
+                {percent(cacheShare)}
+              </p>
+              <p className="text-sm leading-relaxed">
+                of {formatTokens(known) ?? "0"} known processed tokens were cache reads.
+              </p>
+              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+                Processed tokens count everything a model read or wrote on each request, including
+                context it re-read from cache on every turn. They are not unique text, and a cache
+                read is not billed like fresh input. Fresh input was{" "}
+                <span className="font-mono text-foreground">
+                  {formatTokens(profile.tokens.uncachedInput) ?? "0"}
+                </span>{" "}
+                and output{" "}
+                <span className="font-mono text-foreground">
+                  {formatTokens(profile.tokens.output) ?? "0"}
+                </span>
+                {profile.tokens.reasoning > 0 ? (
+                  <>
+                    , with{" "}
+                    <span className="font-mono text-foreground">
+                      {formatTokens(profile.tokens.reasoning) ?? "0"}
+                    </span>{" "}
+                    reasoning counted separately
+                  </>
+                ) : null}
+                .
+              </p>
+              {profile.overview.unknownUsageEvents > 0 ? (
+                <p className="text-xs text-warning">
+                  {count(profile.overview.unknownUsageEvents)} calls report an incomplete set of
+                  token categories and are not in these totals. Their reported part is at least{" "}
+                  {formatTokens(profile.overview.lowerBoundTokens) ?? "0"} tokens.
+                </p>
+              ) : null}
+            </div>
+            <CompositionLedger buckets={profile.tokens} />
+          </div>
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="07"
+          eyebrow="Session shape"
+          title="How the sessions break down"
+          id="sessions"
+          testId="section-sessions"
+        >
+          <SessionShape profile={profile} />
+        </WorkloadSection>
+
+        <WorkloadSection
+          index="08"
+          eyebrow="Scan quality"
+          title="Evidence behind these figures"
+          id="evidence"
+          testId="section-evidence"
+        >
+          <ScanEvidence profile={profile} record={record} />
+        </WorkloadSection>
+      </div>
 
       <section
         id="next"

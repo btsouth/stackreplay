@@ -28,10 +28,10 @@ export default function HomePage() {
         </div>
         <div className="flex flex-col gap-4">
           <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Claude Code, Codex and Command Code already record every model call. StackReplay reads
-            that history in your browser and shows what the work is worth at published API prices,
-            what drives it and when it gets heavy. Then replay it against another plan or API to see
-            where the allowance would have run out.
+            Claude Code, Codex and Command Code keep records of your AI coding work. StackReplay
+            reads supported history in your browser to show what drives usage, when it gets heavy
+            and what covered calls would cost at published API prices. Replay that work against
+            another plan or API to see how its documented rules apply.
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link className={buttonVariants({ size: "lg" })} href="/app/import">

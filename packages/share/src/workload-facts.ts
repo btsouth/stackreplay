@@ -100,8 +100,8 @@ export function composeWorkloadFact(fact: WorkloadFactV1): { text: string; compa
       };
     case "late-night":
       return {
-        text: `${percent(share)} of your calls came between 10 PM and 4 AM${fact.zone === undefined ? "" : ` (${fact.zone})`}.`,
-        comparison: `on ${n(fact.figure)} of ${n(fact.count ?? 0)} active days`,
+        text: `${percent(share)} of your calls came between 10 PM and 4 AM${fact.zone === undefined ? "" : ` (${fact.zone})`} on ${n(fact.figure)} of ${n(fact.count ?? 0)} active days.`,
+        comparison: "",
       };
   }
 }

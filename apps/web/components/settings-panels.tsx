@@ -57,7 +57,7 @@ export function PlansYouPayFor() {
                 onChange={() => toggle(key)}
                 data-testid={`settings-plan-${plan.id}`}
               />
-              <span className="min-w-0 flex-1 truncate">{plan.name}</span>
+              <span className="min-w-0 flex-1 break-words">{plan.name}</span>
               <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
                 {formatUsd(plan.price.amount)}/{plan.price.interval}
               </span>
