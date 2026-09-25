@@ -114,7 +114,7 @@ export function ReplayTimeline({
       entries.map((violation) => dayOf(violation.startedAt)).join(", ");
     return [
       `${data.length} day(s) of activity.`,
-      `Busiest day ${busiest.label} with ${busiest.events.toLocaleString("en-US")} events.`,
+      `Busiest day ${busiest.label} with ${busiest.events.toLocaleString("en-US")} calls.`,
       groups.refused.length === 0
         ? ""
         : `${groups.refused.length} window(s) the rules refused individual requests in: ${days(groups.refused)}.`,
@@ -133,7 +133,7 @@ export function ReplayTimeline({
         : `${groups.unestablished.length} window(s) whose rule this result does not carry, so what the rule did is not established: ${days(groups.unestablished)}.`,
       partialDays === 0
         ? ""
-        : `Token totals are a lower bound on ${partialDays} day(s): some events report no total.`,
+        : `Token totals are a lower bound on ${partialDays} day(s): some calls report no total.`,
     ]
       .filter((part) => part.length > 0)
       .join(" ");
@@ -169,7 +169,7 @@ export function ReplayTimeline({
         {violations.length === 0 ? "No window exceeded, so no band is shaded. " : null}
         {partialDays === 0
           ? null
-          : `Token totals are a lower bound on ${partialDays} day(s): events that report no total are plotted separately.`}
+          : `Token totals are a lower bound on ${partialDays} day(s): calls that report no total are plotted separately.`}
       </figcaption>
       <div
         role="img"

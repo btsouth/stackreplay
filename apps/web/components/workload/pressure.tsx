@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import type { Measure, WindowFact, WorkloadProfile } from "@/lib/workload-profile";
-import { CompositionBar } from "./composition";
+import { COMPOSITION, CompositionBar } from "./composition";
 import { count, measureNoun, measureValue, percent, plainDay, ratio, windowText } from "./format";
 import { ShareBar } from "./section";
 
@@ -17,14 +17,15 @@ export function WindowDetail({
   timeZone,
   measure,
   testId,
+  sourceNames,
 }: {
   window: WindowFact;
   timeZone: string;
   measure: Measure;
   testId?: string;
+  sourceNames?: ReadonlyMap<string, string> | undefined;
 }) {
-  const projectMax = Math.max(1, ...window.projects.map((entry) => measureValue(entry, measure)));
-  const modelMax = Math.max(1, ...window.models.map((entry) => measureValue(entry, measure)));
+  const windowMeasure = measure === "events" ? window.events : window.tokens;
   return (
     <div
       className="grid min-w-0 gap-6 border-l-2 border-accent bg-surface-2/60 px-4 py-4 sm:px-5 lg:grid-cols-3"
@@ -35,7 +36,7 @@ export function WindowDetail({
           {windowText(window.startMs, window.endMs, timeZone)}
         </p>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-          <dt className="text-muted-foreground">Events</dt>
+          <dt className="text-muted-foreground">Calls</dt>
           <dd className="text-right font-mono tabular-nums">{count(window.events)}</dd>
           <dt className="text-muted-foreground">Known tokens</dt>
           <dd
@@ -50,45 +51,78 @@ export function WindowDetail({
             <>
               <dt className="text-muted-foreground">Usage unknown</dt>
               <dd className="text-right font-mono tabular-nums text-warning">
-                {count(window.unknownUsageEvents)} events
+                {count(window.unknownUsageEvents)} calls
               </dd>
             </>
           ) : null}
         </dl>
-        <CompositionBar buckets={window.buckets} size="sm" />
-        <p className="text-[11px] text-muted-foreground">
-          Cache reads {percent(window.tokens === 0 ? 0 : window.buckets.cacheRead / window.tokens)}{" "}
-          of this window&apos;s known tokens
-        </p>
+        <div className="border-t border-border pt-3" data-testid="window-token-composition">
+          <p className="mb-2 text-xs font-medium">Token composition</p>
+          <CompositionBar buckets={window.buckets} size="sm" />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Each segment is a share of known tokens; narrow marks keep small categories visible.
+          </p>
+          <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            {COMPOSITION.filter((part) => window.buckets[part.key] > 0).map((part) => (
+              <li key={part.key} className="flex justify-between gap-2">
+                <span>{part.label}</span>
+                <span className="font-mono tabular-nums text-foreground">
+                  {percent(window.tokens === 0 ? 0 : window.buckets[part.key] / window.tokens)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       <div className="flex min-w-0 flex-col gap-2">
-        <p className="text-xs text-muted-foreground">Projects in this window</p>
+        <p className="text-xs font-medium">Tools that created this peak</p>
         <ul className="flex flex-col gap-2">
-          {window.projects.map((project) => (
-            <li key={project.key} className="flex min-w-0 flex-col gap-1">
+          {window.sources.map((source) => (
+            <li key={source.key} className="flex min-w-0 flex-col gap-1">
               <span className="flex items-baseline justify-between gap-3 text-xs">
-                <span className="min-w-0 truncate">{project.label}</span>
+                <span className="min-w-0 truncate">
+                  {sourceNames?.get(source.key) ?? source.label}
+                </span>
                 <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
-                  {measure === "events" ? count(project.events) : formatTokens(project.tokens)}
+                  {measure === "events" ? count(source.events) : formatTokens(source.tokens)} ·{" "}
+                  {percent(windowMeasure === 0 ? 0 : measureValue(source, measure) / windowMeasure)}
                 </span>
               </span>
-              <ShareBar share={measureValue(project, measure) / projectMax} />
+              <ShareBar
+                share={windowMeasure === 0 ? 0 : measureValue(source, measure) / windowMeasure}
+              />
             </li>
           ))}
         </ul>
+        <details className="border-t border-border pt-2 text-xs text-muted-foreground">
+          <summary className="min-h-8 cursor-pointer">Top projects in this window</summary>
+          <ul className="mt-2 flex flex-col gap-2">
+            {window.projects.map((project) => (
+              <li key={project.key} className="flex min-w-0 items-baseline justify-between gap-2">
+                <span className="min-w-0 truncate">{project.label}</span>
+                <span className="font-mono tabular-nums">
+                  {measure === "events" ? count(project.events) : formatTokens(project.tokens)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
       <div className="flex min-w-0 flex-col gap-2">
-        <p className="text-xs text-muted-foreground">Models in this window</p>
+        <p className="text-xs font-medium">Models in this window</p>
         <ul className="flex flex-col gap-2">
           {window.models.map((model) => (
             <li key={model.key} className="flex min-w-0 flex-col gap-1">
               <span className="flex items-baseline justify-between gap-3 text-xs">
                 <span className="min-w-0 truncate">{model.label}</span>
                 <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
-                  {measure === "events" ? count(model.events) : formatTokens(model.tokens)}
+                  {measure === "events" ? count(model.events) : formatTokens(model.tokens)} ·{" "}
+                  {percent(windowMeasure === 0 ? 0 : measureValue(model, measure) / windowMeasure)}
                 </span>
               </span>
-              <ShareBar share={measureValue(model, measure) / modelMax} />
+              <ShareBar
+                share={windowMeasure === 0 ? 0 : measureValue(model, measure) / windowMeasure}
+              />
             </li>
           ))}
         </ul>
@@ -113,9 +147,11 @@ function pressureWhen(id: string, startMs: number, endMs: number, timeZone: stri
 export function HistoricalPressure({
   profile,
   measure,
+  sourceNames,
 }: {
   profile: WorkloadProfile;
   measure: Measure;
+  sourceNames?: ReadonlyMap<string, string> | undefined;
 }) {
   const rows = profile.pressure[measure];
   const [open, setOpen] = useState<string | undefined>(undefined);
@@ -190,7 +226,7 @@ export function HistoricalPressure({
                     <span className="block text-[11px] text-muted-foreground">
                       {measure === "events"
                         ? `${formatTokens(peak.tokens) ?? "0"} tokens`
-                        : `${count(peak.events)} events`}
+                        : `${count(peak.events)} calls`}
                       <span className="sm:hidden"> · {percent(peak.share)}</span>
                     </span>
                   )}
@@ -232,6 +268,7 @@ export function HistoricalPressure({
               testId="pressure-window-detail"
               timeZone={profile.timeZone}
               window={row.peak}
+              sourceNames={sourceNames}
             />
           </div>
         ) : null,

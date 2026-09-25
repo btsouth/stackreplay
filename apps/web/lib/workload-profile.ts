@@ -80,6 +80,7 @@ export interface WindowFact extends Demand {
   sessions: number;
   unknownUsageEvents: number;
   buckets: TokenBuckets;
+  sources: RankedShare[];
   projects: RankedShare[];
   models: RankedShare[];
 }
@@ -450,6 +451,7 @@ function describe(
   const sessions = new Set<string>();
   const projects = new Map<string, RankedShare>();
   const models = new Map<string, RankedShare>();
+  const sources = new Map<string, RankedShare>();
   let tokens = 0;
   let unknown = 0;
   for (const item of events) {
@@ -463,6 +465,15 @@ function describe(
       buckets.reasoning += item.buckets.reasoning;
     }
     if (item.session !== undefined) sessions.add(item.session);
+    const source = sources.get(item.sourceId) ?? {
+      key: item.sourceId,
+      label: item.sourceId,
+      events: 0,
+      tokens: 0,
+    };
+    source.events += 1;
+    source.tokens += item.tokens;
+    sources.set(item.sourceId, source);
     const project = projects.get(item.project) ?? {
       key: item.project,
       label: labelFor(item.project),
@@ -492,6 +503,7 @@ function describe(
     sessions: sessions.size,
     unknownUsageEvents: unknown,
     buckets,
+    sources: rank([...sources.values()], measure),
     projects: rank([...projects.values()], measure).slice(0, 5),
     models: rank([...models.values()], measure).slice(0, 5),
   };

@@ -140,7 +140,8 @@ export function ReplaySurface({
   initialScope?: readonly string[] | undefined;
 }) {
   const client = getWorkerClient();
-  const [imports, setImports] = useState<ImportRecord[]>([]);
+  const [imports, setImports] = useState<ImportRecord[] | undefined>(undefined);
+  const [importsError, setImportsError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
   const [rulesAsOf, setRulesAsOf] = useState<string>(() => defaultRulesDate());
   const [query, setQuery] = useState("");
@@ -206,10 +207,11 @@ export function ReplaySurface({
   }, [guard]);
 
   const workload = useMemo(
-    () => imports.find((entry) => entry.id === selectedId),
+    () => imports?.find((entry) => entry.id === selectedId),
     [imports, selectedId],
   );
-  const requestedWorkloadMissing = selectedId !== undefined && workload === undefined;
+  const requestedWorkloadMissing =
+    imports !== undefined && selectedId !== undefined && workload === undefined;
   const selectedWorkloadIsDemo = useMemo(
     () => (workload === undefined ? false : isSyntheticWorkload(workload)),
     [workload],
@@ -425,7 +427,7 @@ export function ReplaySurface({
         setImports(list);
         if (initialImportId === undefined && list.length > 0) setSelectedId(list[0]?.id);
       } catch {
-        if (!cancelled) setImports([]);
+        if (!cancelled) setImportsError(true);
       }
     })();
     return () => {
@@ -565,6 +567,25 @@ export function ReplaySurface({
     [activeIndex, filteredPlans, runReplay, selectPlan],
   );
 
+  if (importsError)
+    return (
+      <p role="alert" className="border-l-2 border-warning pl-4 text-sm">
+        Local workloads could not be read from this browser. Reload to try again.
+      </p>
+    );
+
+  if (imports === undefined)
+    return (
+      <div role="status" data-testid="replay-restoring" className="border-t border-border pt-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+          Opening your workload
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Looking up recorded work in this browser before choosing what to test…
+        </p>
+      </div>
+    );
+
   if (imports.length === 0) {
     return (
       <div data-testid="replay-empty">
@@ -601,21 +622,30 @@ export function ReplaySurface({
       <Card className="rounded-none border-x-0 border-b-0 bg-transparent p-0">
         <CardContent className="flex flex-col gap-5 py-5">
           {usageSources.length > 1 ? (
-            <fieldset className="flex flex-col gap-2" data-testid="replay-scope-picker">
-              <legend className="text-xs uppercase tracking-widest text-muted-foreground">
-                Work to replay
-              </legend>
-              <div className="flex flex-wrap gap-2">
+            <fieldset
+              className="flex flex-col gap-4 border-b border-border pb-6"
+              data-testid="replay-scope-picker"
+            >
+              <legend className="text-sm font-medium">1. Which work are you testing?</legend>
+              <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
+                This is one chronological workload. Test all of it, or focus on the calls recorded
+                by one tool.
+              </p>
+              <div className="grid gap-px border border-border bg-border sm:grid-cols-2">
                 <button
                   type="button"
                   aria-pressed={scope.length === 0}
                   data-testid="scope-all"
                   onClick={() => selectScope([])}
-                  className={segmentedClass(scope.length === 0)}
+                  className={`flex min-h-24 flex-col items-start justify-center gap-1 px-4 py-3 text-left ${scope.length === 0 ? "bg-surface-2 text-foreground outline outline-2 outline-accent -outline-offset-2" : "bg-background text-muted-foreground hover:text-foreground"}`}
                 >
-                  Full workload ·{" "}
-                  <span className="tabular-nums">
-                    {formatCount(workload?.summary.eventCount ?? 0)}
+                  <span className="text-sm font-medium">All recorded work</span>
+                  <span className="font-mono text-xs tabular-nums">
+                    {formatCount(workload?.summary.eventCount ?? 0)} calls ·{" "}
+                    {usageSources.map((source) => source.name).join(" + ")}
+                  </span>
+                  <span className="text-xs">
+                    Keep each model exactly as recorded. A target serves only models it offers.
                   </span>
                 </button>
                 {usageSources.map((source) => {
@@ -627,23 +657,45 @@ export function ReplaySurface({
                       aria-pressed={active}
                       data-testid={`scope-${source.adapterId}`}
                       onClick={() => selectScope([source.adapterId])}
-                      className={segmentedClass(active)}
+                      className={`flex min-h-24 flex-col items-start justify-center gap-1 px-4 py-3 text-left ${active ? "bg-surface-2 text-foreground outline outline-2 outline-accent -outline-offset-2" : "bg-background text-muted-foreground hover:text-foreground"}`}
                     >
-                      Your {source.name} work ·{" "}
-                      <span className="tabular-nums">{formatCount(source.events)}</span>
+                      <span className="text-sm font-medium">{source.name} work</span>
+                      <span className="font-mono text-xs tabular-nums">
+                        {formatCount(source.events)} calls ·{" "}
+                        {((source.events / (workload?.summary.eventCount || 1)) * 100).toFixed(1)}%
+                        of all work
+                      </span>
+                      <span className="text-xs">
+                        Only calls recorded by {source.name}.{" "}
+                        {source.name === "Command Code"
+                          ? "This tool may have used models from several providers."
+                          : "The models and demand stay as recorded."}
+                      </span>
                     </button>
                   );
                 })}
               </div>
               <p className="max-w-prose text-xs text-muted-foreground" data-testid="scope-note">
                 {scope.length === 0
-                  ? "Every recorded call, from every tool. A plan that runs one tool's models can be asked about that tool's calls on their own."
+                  ? "Selected: all recorded work. A single-provider plan may naturally cover only part of this mixed workload."
                   : `Only the calls your ${scope.map((id) => sourceNames.get(id) ?? id).join(" + ")} work recorded: ${formatCount(scopedEvents)} of ${formatCount(workload?.summary.eventCount ?? 0)}. The result states this scope.`}
               </p>
             </fieldset>
           ) : null}
 
           <div className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-sm font-medium">
+                {usageSources.length > 1
+                  ? "2. What do you want to test this work against?"
+                  : "What do you want to test this work against?"}
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Use models as recorded. No substitution happens when you choose a different plan or
+                provider. If a model is unavailable, you can explicitly model a move after choosing
+                the target.
+              </p>
+            </div>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <fieldset className="flex flex-col gap-2" data-testid="target-kind">
                 <legend className="text-xs uppercase tracking-widest text-muted-foreground">
@@ -969,8 +1021,8 @@ export function ReplaySurface({
               {phase === "loading" || phase === "replaying"
                 ? "Replaying…"
                 : policy !== undefined
-                  ? "Run translated replay"
-                  : "Replay this workload"}
+                  ? "Run moved-work scenario · Translated Replay"
+                  : "Run as recorded · Exact Replay"}
             </Button>
             <span className="text-xs text-muted-foreground" aria-live="polite">
               {phase === "idle"
@@ -1129,7 +1181,7 @@ function WorkloadStrip({
           </summary>
           <div className="mt-4 flex min-w-0 flex-col gap-4">
             <div className="grid grid-cols-2 gap-x-5 gap-y-6 border-y border-border py-5 sm:grid-cols-4">
-              <Metric label="Events" value={formatCount(summary.eventCount)} size="lg" />
+              <Metric label="Calls" value={formatCount(summary.eventCount)} size="lg" />
               <Metric
                 label="Tokens processed"
                 value={formatTokens(summary.tokens.known) ?? "0"}
@@ -1140,7 +1192,7 @@ function WorkloadStrip({
               <Metric
                 label="Incomplete token data"
                 value={formatCount(summary.tokens.unknownEvents)}
-                unit="events"
+                unit="calls"
                 size="lg"
                 tone={summary.tokens.unknownEvents > 0 ? "warning" : "default"}
               />
@@ -1213,7 +1265,7 @@ function ModelIdentityList({ models }: { models: ModelSummary[] }) {
               </span>
             )}
             <span className="tabular-nums text-muted-foreground">
-              {formatCount(model.events)} events
+              {formatCount(model.events)} calls
             </span>
           </li>
         ))}
@@ -1332,6 +1384,26 @@ function ReplayResult({
 
   return (
     <div className="flex min-w-0 flex-col gap-7" data-testid="replay-result">
+      <header className="border-y border-accent/60 py-4" data-testid="replay-result-object">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-accent">Work tested</p>
+        <h2 className="mt-1 text-lg font-medium">
+          {computedFor?.scopeLabel === undefined
+            ? "All recorded work"
+            : `${computedFor.scopeLabel} work`}{" "}
+          → {verdictTarget}
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {formatCount(result.workload.eventCount)} of{" "}
+          {formatCount(outcome.scope?.recordedEvents ?? result.workload.eventCount)} recorded calls
+          ·{" "}
+          {projection.mode === "exact"
+            ? "Models as recorded"
+            : projection.mode === "translated"
+              ? "Explicit model substitutions"
+              : "Routing assumption not recorded"}{" "}
+          · {modeLabel(projection.mode)}
+        </p>
+      </header>
       {composed === undefined ? (
         <section className="flex flex-col gap-2" data-testid="replay-headline">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">Replay result</p>
@@ -1344,7 +1416,6 @@ function ReplayResult({
             {modeLabel(projection.mode)}
           </span>
           <p className="text-sm text-muted-foreground">{targetName}</p>
-          {computedLine}
         </section>
       ) : (
         <ReplayVerdict
@@ -1354,9 +1425,7 @@ function ReplayResult({
             </>
           }
           verdict={composed.verdict}
-        >
-          {computedLine}
-        </ReplayVerdict>
+        />
       )}
       <ReplayReading
         importId={computedFor?.workloadId}
@@ -1468,6 +1537,7 @@ function ReplayResult({
           Timeline and provenance
         </summary>
         <div className="mt-4 flex flex-col gap-6">
+          {computedLine}
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-sm font-medium">Detail and provenance</h2>
             <MicroLabel>the same recorded crossings, day by day</MicroLabel>
@@ -1506,7 +1576,7 @@ function ReplayResult({
                   label={apiTarget ? "Direct API provider" : "Plan version"}
                   value={projection.target.reference}
                 />
-                <Detail label="Events replayed" value={formatCount(result.workload.eventCount)} />
+                <Detail label="Calls replayed" value={formatCount(result.workload.eventCount)} />
               </dl>
               {result.warnings.length > 0 ? (
                 <div data-testid="replay-warnings">
@@ -1517,7 +1587,7 @@ function ReplayResult({
                         {humanizeWarningMessage(warning.message)}
                         {warning.eventCount === undefined
                           ? ""
-                          : ` (${formatCount(warning.eventCount)} events)`}
+                          : ` (${formatCount(warning.eventCount)} calls)`}
                       </li>
                     ))}
                   </ul>
@@ -1531,7 +1601,7 @@ function ReplayResult({
                   <ul className="mt-2 flex flex-col gap-1 font-mono text-xs text-muted-foreground">
                     {result.unsupportedModels.slice(0, 8).map((model) => (
                       <li key={model.rawName} className="[overflow-wrap:anywhere]">
-                        {model.rawName} · {formatCount(model.eventCount)} events ·{" "}
+                        {model.rawName} · {formatCount(model.eventCount)} calls ·{" "}
                         {creditOnly(model) ? "usage credits only" : model.reason}
                       </li>
                     ))}
@@ -1613,7 +1683,7 @@ function ReplayResult({
                         <div className="min-w-0 [overflow-wrap:anywhere]">
                           <span className="font-mono text-foreground">{model.rawName}</span>
                           <span className="ml-2 tabular-nums text-muted-foreground">
-                            {formatCount(model.events)} events
+                            {formatCount(model.events)} calls
                           </span>
                         </div>
                         <div className="min-w-0 [overflow-wrap:anywhere] text-muted-foreground">

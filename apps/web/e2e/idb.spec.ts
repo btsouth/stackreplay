@@ -51,12 +51,54 @@ test("an imported workload survives a reload", async ({ page }) => {
   await expect(page.getByTestId("workload-strip")).toBeVisible();
 });
 
+test("a delayed storage lookup never appears empty or sends Replay through Import", async ({
+  page,
+}) => {
+  await importDemo(page, "moderate");
+  await page.goto("/app/import");
+  const workloadHref = await page
+    .locator("[data-testid^='open-import-']")
+    .first()
+    .getAttribute("href");
+  expect(workloadHref).toBeTruthy();
+
+  // Delay only metadata requests. This reproduces the gap between the page
+  // painting and IndexedDB answering without constructing a large payload.
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      override postMessage(message: unknown) {
+        if ((message as { type?: string })?.type === "LIST_LOCAL_IMPORTS") {
+          setTimeout(() => super.postMessage(message), 900);
+        } else {
+          super.postMessage(message);
+        }
+      }
+    };
+  });
+
+  await page.goto("/app/import");
+  await expect(page.getByTestId("stored-imports-loading")).toBeVisible();
+  await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
+  await expect(page.getByTestId("stored-imports")).toBeVisible();
+
+  await page.goto(workloadHref ?? "/app/workload");
+  await expect(page.getByTestId("workload-restoring")).toBeVisible();
+  await expect(page.getByTestId("workload-empty")).toHaveCount(0);
+  await expect(page.getByTestId("workload-replay-top")).toBeVisible();
+  await page.getByTestId("workload-replay-top").click();
+  await expect(page.getByTestId("replay-restoring")).toBeVisible();
+  await expect(page.getByTestId("replay-empty")).toHaveCount(0);
+  await expect(page.getByTestId("workload-strip")).toBeVisible();
+});
+
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/import");
   const stored = page.getByTestId("stored-imports");
   await expect(stored).toBeVisible();
 
+  await page.locator("[data-testid^='delete-menu-'] summary").first().click();
   const deleteButton = page.locator("[data-testid^='delete-import-']").first();
   await deleteButton.click();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
@@ -103,7 +145,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
   await expect(page.getByTestId("stored-imports")).toContainText("Demo: multistack");
 });
 
-test("a corrupted stored workload is removed before it can be reopened", async ({ page }) => {
+test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
 
   // Replace the stored payload with something incompatible, as an older or
@@ -128,6 +170,12 @@ test("a corrupted stored workload is removed before it can be reopened", async (
     });
   });
 
+  await page.goto("/app/import");
+  // Listing reads metadata and payload keys only; the full payload is checked
+  // when opened, without cloning every saved workload merely to list them.
+  await expect(page.getByTestId("stored-imports")).toBeVisible();
+  await page.getByRole("link", { name: "Open workload" }).click();
+  await expect(page.getByTestId("workload-error")).toContainText("stored workload cannot be read");
   await page.goto("/app/import");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   const count = () =>

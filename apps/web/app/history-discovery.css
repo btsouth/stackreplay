@@ -319,7 +319,24 @@ label.sr-find-choice {
 }
 
 .sr-find-tag[data-status="access-needed"] {
+  color: var(--warning);
+}
+
+.sr-find-access-warning {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--warning);
+  background: var(--surface-2);
   color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sr-find-access-warning > svg {
+  flex: none;
+  color: var(--warning);
 }
 
 .sr-find-detail {

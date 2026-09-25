@@ -12,9 +12,8 @@ import { useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
 import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
-import { useWorkloadProfile } from "@/lib/use-workload-profile";
 import type { SourceSummary } from "@/lib/worker-protocol";
-import type { Insight } from "@/lib/workload-profile";
+import type { Insight, WorkloadProfile } from "@/lib/workload-profile";
 import type { ExcludedSlice, WorkloadValue } from "@/lib/workload-value";
 import { count, percent } from "./format";
 
@@ -323,12 +322,13 @@ export function CurrentSpend({
  */
 export function ReadyPreview({
   importId,
+  profile,
   sources,
 }: {
   importId: string;
+  profile: WorkloadProfile;
   sources: readonly SourceSummary[];
 }) {
-  const profile = useWorkloadProfile(importId);
   const workloadHref = `/app/workload?import=${importId}`;
   return (
     <section
@@ -337,21 +337,19 @@ export function ReadyPreview({
       data-testid="ready-preview"
     >
       <div className="flex min-w-0 flex-col gap-3">
-        {profile?.value === undefined ? (
+        {profile.value === undefined ? (
           <p className="text-sm text-muted-foreground" role="status">
             Pricing each maker&apos;s calls at its own published API rates, in this browser…
           </p>
         ) : (
           <WorkloadValueFigure compact value={profile.value} />
         )}
-        {profile === undefined ? null : (
-          <InsightList
-            evidenceHref={(section) => `${workloadHref}#${section}`}
-            insights={profile.insights}
-            limit={1}
-            testId="ready-insight"
-          />
-        )}
+        <InsightList
+          evidenceHref={(section) => `${workloadHref}#${section}`}
+          insights={profile.insights}
+          limit={1}
+          testId="ready-insight"
+        />
       </div>
       <ToolSplit sources={sources} />
     </section>

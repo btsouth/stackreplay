@@ -19,10 +19,7 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
           value={sessions.perActiveDay.toFixed(1)}
           note={`across ${count(overview.activeDays)} active days`}
         />
-        <Figure
-          label="Median events per session"
-          value={count(Math.round(sessions.medianEvents))}
-        />
+        <Figure label="Median calls per session" value={count(Math.round(sessions.medianEvents))} />
         <Figure
           label="Median known tokens per session"
           value={formatTokens(Math.round(sessions.medianTokens)) ?? "0"}
@@ -45,7 +42,7 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
                   Model
                 </th>
                 <th className="py-2 pr-3 text-right font-normal" scope="col">
-                  Events
+                  Calls
                 </th>
                 <th className="py-2 text-right font-normal" scope="col">
                   Known tokens
@@ -84,7 +81,7 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
           </table>
           {sessions.longestSpan === undefined ? null : (
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Longest time between a session&apos;s first and last recorded event:{" "}
+              Longest time between a session&apos;s first and last recorded call:{" "}
               <span className="font-mono text-foreground">
                 {spanText(sessions.longestSpan.observedSpanMs)}
               </span>{" "}
@@ -96,8 +93,8 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
       ) : null}
       {overview.eventsWithoutSession > 0 ? (
         <p className="text-xs text-muted-foreground">
-          {count(overview.eventsWithoutSession)} events carry no session identity and are not
-          counted in any session.
+          {count(overview.eventsWithoutSession)} calls carry no session identity and are not counted
+          in any session.
         </p>
       ) : null}
     </div>

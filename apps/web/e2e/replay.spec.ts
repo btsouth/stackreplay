@@ -36,7 +36,7 @@ test("keeps forensic result detail closed until requested", async ({ page }) => 
   await page.getByTestId("replay-detail").locator(":scope > summary").click();
   await page.getByTestId("replay-model-distribution").locator(":scope > summary").click();
   await expect(page.getByTestId("replay-model-distribution")).toContainText("Exact catalog ID");
-  await expect(page.getByTestId("replay-model-distribution")).toContainText("events");
+  await expect(page.getByTestId("replay-model-distribution")).toContainText("calls");
 });
 
 test("replays a demo workload with full coverage", async ({ page }) => {

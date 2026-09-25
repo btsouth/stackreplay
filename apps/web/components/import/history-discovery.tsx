@@ -7,6 +7,7 @@ import {
   type SourceFinding,
 } from "@stackreplay/adapters/discovery";
 import { Button } from "@stackreplay/ui";
+import { AlertTriangle } from "lucide-react";
 import {
   type CSSProperties,
   type ReactNode,
@@ -711,7 +712,7 @@ const TAGS: Record<RowStatus, string> = {
   found: "Found",
   connected: "Connected",
   empty: "No sessions yet",
-  "access-needed": "Additional access required",
+  "access-needed": "Needs folder access",
   unsupported: "Not readable in browser",
   "not-found": "Not found",
 };
@@ -720,7 +721,6 @@ const TAGS: Record<RowStatus, string> = {
 const MARKS: Partial<Record<RowStatus, string>> = {
   found: "✓",
   connected: "✓",
-  "access-needed": "!",
   unsupported: "–",
   empty: "–",
   "not-found": "–",
@@ -815,22 +815,34 @@ function HistoryRowView({
             {tag}
           </p>
         )}
-        {detail === undefined || detail === "" ? null : (
+        {row.status === "access-needed" && selectable ? (
+          <div
+            className="sr-find-access-warning"
+            role="status"
+            data-testid={`access-warning-${row.key}`}
+          >
+            <AlertTriangle aria-hidden="true" size={18} strokeWidth={2} />
+            <div>
+              <p className="font-medium">
+                {row.name} history will not be included until you connect its folder.
+              </p>
+              {detail === undefined ? null : <p className="mt-1 text-xs">{detail}</p>}
+              <button
+                type="button"
+                className="sr-find-link"
+                disabled={disabled}
+                onClick={() => onConnect(row.key)}
+                data-testid={`connect-row-${row.key}`}
+              >
+                Connect {row.name} →
+              </button>
+            </div>
+          </div>
+        ) : detail === undefined || detail === "" ? null : (
           <p className="sr-find-detail" id={detailId}>
             {detail}
           </p>
         )}
-        {row.status === "access-needed" && selectable ? (
-          <button
-            type="button"
-            className="sr-find-link"
-            disabled={disabled}
-            onClick={() => onConnect(row.key)}
-            data-testid={`connect-row-${row.key}`}
-          >
-            Connect {row.name} →
-          </button>
-        ) : null}
         {row.status === "access-needed" && selectable ? (
           <p className="sr-find-detail" data-testid={`connect-hint-${row.key}`}>
             {HIDDEN_FOLDERS[row.adapterId ?? row.key] === undefined

@@ -169,7 +169,7 @@ export function ReplayReading({
           id="replay-reading-heading"
           className={`font-mono text-xs tracking-[0.14em] uppercase ${translated ? "text-accent" : "text-muted-foreground"}`}
         >
-          Why
+          What this means
           <span className="sr-only"> · </span>
           <span className="ml-2" data-testid="reading-mode">
             {translated ? "Translated replay" : "Exact replay"}
@@ -183,7 +183,7 @@ export function ReplayReading({
         ) : null}
       </div>
       <dl className="flex flex-col">
-        <Row label="Model routing" testId="reading-routing">
+        <Row label="What it can run" testId="reading-routing">
           {translated && projection.translation !== undefined ? (
             <>
               {count(projection.translation.substitutedEvents)} calls substituted onto {targetName}{" "}
@@ -228,7 +228,7 @@ export function ReplayReading({
           ) : null}
         </Row>
         <Row
-          label="Capacity"
+          label="At your demand"
           testId="reading-capacity"
           tone={crossings.length > 0 ? "warning" : undefined}
         >
@@ -345,7 +345,7 @@ export function ReplayReading({
           </Row>
         ) : null}
         <Row
-          label="Identity / evidence"
+          label="Identity and usage gaps"
           testId="reading-evidence"
           tone={unknown > 0 ? "warning" : undefined}
         >
@@ -561,7 +561,7 @@ function LimitCrossings({
                     </>
                   )}
                   {crossing.affectedEvents > 0
-                    ? ` · ${count(crossing.affectedEvents)} events refused`
+                    ? ` · ${count(crossing.affectedEvents)} calls refused`
                     : ""}
                   {crossing.exceededAt === undefined
                     ? ""

@@ -159,7 +159,10 @@ test("a linked history needs additional access and connects without disturbing t
 
   const claude = page.getByTestId("history-claude-code");
   await expect(claude).toHaveAttribute("data-status", "access-needed");
-  await expect(claude).toContainText("Additional access required");
+  await expect(claude).toContainText("Needs folder access");
+  await expect(page.getByTestId("access-warning-claude-code")).toContainText(
+    "Claude Code history will not be included until you connect its folder",
+  );
   await expect(page.getByTestId("history-codex")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("access-guidance")).toContainText("folder chooser");
 

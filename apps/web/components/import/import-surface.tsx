@@ -18,14 +18,19 @@ import {
   PartialScanNotice,
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
+import { plainRange } from "@/components/workload/format";
 import { ReadyPreview } from "@/components/workload/value";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
 import { importSizeAdvice } from "@/lib/import-validation";
 import { forgetSources } from "@/lib/remembered-sources";
+import { browserTimeZone } from "@/lib/time-zone";
+import { localDayOf } from "@/lib/timeline";
+import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protocol";
+import type { WorkloadProfile } from "@/lib/workload-profile";
 
 /**
  * Import surface (M3 brief).
@@ -41,7 +46,7 @@ import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protoco
  * legalese, because it is the reason the file never leaves the browser.
  */
 
-type Phase = "idle" | "reading" | "validating" | "preparing" | "ready";
+type Phase = "idle" | "reading" | "validating" | "preparing" | "finishing" | "ready";
 
 /**
  * Every source card opens the same `webkitdirectory` chooser. Chromium's
@@ -72,6 +77,13 @@ function replayHref(importId: string, target?: string | undefined): string {
   return target === undefined
     ? `/app/replay?import=${importId}`
     : `/app/replay?import=${importId}&target=${encodeURIComponent(target)}`;
+}
+
+function savedDateRange(entry: ImportRecord): string | undefined {
+  const { firstEventAt, lastEventAt } = entry.summary;
+  if (firstEventAt === undefined || lastEventAt === undefined) return undefined;
+  const day = localDayOf(browserTimeZone());
+  return plainRange(day(firstEventAt), day(lastEventAt));
 }
 
 export function ImportSurface({
@@ -108,7 +120,11 @@ export function ImportSurface({
   /** A large-but-allowed file: said out loud before the work starts. */
   const [notice, setNotice] = useState<string | undefined>(undefined);
   const [record, setRecord] = useState<ImportRecord | undefined>(undefined);
+  const [activationProfile, setActivationProfile] = useState<WorkloadProfile | undefined>(
+    undefined,
+  );
   const [imports, setImports] = useState<ImportRecord[]>(initialImports);
+  const [importsState, setImportsState] = useState<"loading" | "loaded" | "error">("loading");
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState({ source: "", workload: "" });
@@ -153,8 +169,9 @@ export function ImportSurface({
   const refreshImports = useCallback(async () => {
     try {
       setImports(await client.listImports());
+      setImportsState("loaded");
     } catch {
-      setImports([]);
+      setImportsState("error");
     }
   }, [client]);
 
@@ -181,6 +198,7 @@ export function ImportSurface({
       setCanceled(false);
       setError(undefined);
       setRecord(undefined);
+      setActivationProfile(undefined);
       setPhase("reading");
       setDetail(undefined);
       setScan(undefined);
@@ -193,9 +211,13 @@ export function ImportSurface({
           setDetail(nextDetail);
           if (nextScan !== undefined) setScan(nextScan);
         });
+        setPhase("finishing");
+        setDetail("Finishing the published API value and strongest insight");
+        await refreshImports();
+        const profile = await loadWorkloadProfile(imported.id, browserTimeZone());
+        setActivationProfile(profile);
         setRecord(imported);
         setPhase("ready");
-        await refreshImports();
         return imported;
       } catch (failure) {
         if (failure instanceof SupersededError) {
@@ -466,7 +488,9 @@ export function ImportSurface({
           ? "resolve"
           : phase === "preparing"
             ? "reconstruct"
-            : "discover"
+            : phase === "finishing"
+              ? "finishing"
+              : "discover"
         : record !== undefined
           ? "ready"
           : "idle";
@@ -497,6 +521,7 @@ export function ImportSurface({
                     onExport={() => void exportWorkload(record.id)}
                     onRescan={rescan}
                     record={record}
+                    profile={activationProfile}
                     requestedSave={requestedSave}
                     skippedCount={skippedOutcomes.length}
                   />
@@ -507,7 +532,7 @@ export function ImportSurface({
               stage={scanStage}
               histories={scanHistories}
               largeHistoryBytes={largeBytes}
-              onCancel={scanActive ? cancelScan : undefined}
+              onCancel={scanActive && phase !== "finishing" ? cancelScan : undefined}
             />
           </div>
         ) : null}
@@ -899,51 +924,79 @@ export function ImportSurface({
                   </Button>
                 ) : null}
               </div>
-              {imports.length === 0 ? (
+              {importsState === "loading" ? (
+                <p
+                  className="text-xs text-muted-foreground"
+                  role="status"
+                  data-testid="stored-imports-loading"
+                >
+                  Looking up local workloads…
+                </p>
+              ) : importsState === "error" ? (
+                <div
+                  role="alert"
+                  className="flex flex-col items-start gap-2 border-l-2 border-warning pl-3 text-xs"
+                >
+                  <p>Local workloads could not be read from this browser.</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void refreshImports()}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              ) : imports.length === 0 ? (
                 <p className="text-xs text-muted-foreground" data-testid="no-stored-imports">
                   No workloads stored yet.
                 </p>
               ) : (
                 <ul className="flex flex-col divide-y divide-border" data-testid="stored-imports">
                   {imports.map((entry, index) => (
-                    <li
-                      key={entry.id}
-                      className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
-                    >
+                    <li key={entry.id} className="flex min-w-0 flex-col gap-3 py-4">
                       <div className="min-w-0">
-                        <p className="break-words text-sm font-medium [overflow-wrap:anywhere]">
-                          {entry.label}
+                        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 break-words text-sm font-medium [overflow-wrap:anywhere]">
+                          <span>{entry.label}</span>
+                          {index === 0 ? (
+                            <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                              Latest
+                            </span>
+                          ) : null}
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {entry.eventCount.toLocaleString("en-US")} events ·{" "}
-                          {entry.savedLocally === false
-                            ? "temporary until reload"
-                            : "saved on this browser"}{" "}
-                          · {new Date(entry.createdAt).toISOString().slice(0, 10)}
+                          {entry.eventCount.toLocaleString("en-US")} calls
+                          {savedDateRange(entry) === undefined ? "" : ` · ${savedDateRange(entry)}`}
+                        </p>
+                        <p className="mt-0.5 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                          {entry.savedLocally === false ? "Temporary" : "Saved"}{" "}
+                          {new Date(entry.createdAt).toLocaleString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       <div
-                        className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0 sm:items-center"
+                        className="flex flex-wrap items-center gap-x-4 gap-y-2"
                         data-testid="stored-import-actions"
                       >
                         <Link
+                          href={`/app/workload?import=${entry.id}`}
+                          data-testid={`open-import-${entry.id}`}
+                          className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
+                        >
+                          Open workload
+                        </Link>
+                        <Link
                           href={replayHref(entry.id, initialTarget)}
                           aria-label={`Replay ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
-                          className={`${buttonVariants({ variant: "ghost", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
+                          className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
                         >
                           Replay
                         </Link>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="min-h-11 border border-negative/40 text-negative sm:min-h-0"
-                          data-testid={`delete-import-${entry.id}`}
-                          aria-label={`Delete ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
-                          onClick={() => void removeImport(entry.id)}
-                        >
-                          Delete
-                        </Button>
                         <Button
                           type="button"
                           variant="ghost"
@@ -954,11 +1007,39 @@ export function ImportSurface({
                         >
                           Export
                         </Button>
+                        <details
+                          className="group text-xs text-muted-foreground"
+                          data-testid={`delete-menu-${entry.id}`}
+                        >
+                          <summary className="min-h-11 cursor-pointer content-center sm:min-h-0">
+                            More
+                          </summary>
+                          <p className="py-1 font-mono text-[11px] text-muted-foreground">
+                            Snapshot {entry.id.slice(0, 6)}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-negative"
+                            data-testid={`delete-import-${entry.id}`}
+                            aria-label={`Delete snapshot ${entry.id.slice(0, 6)} of ${entry.label}`}
+                            onClick={() => void removeImport(entry.id)}
+                          >
+                            Delete snapshot
+                          </Button>
+                        </details>
                       </div>
                     </li>
                   ))}
                 </ul>
               )}
+              {importsState === "loaded" && imports.length > 1 ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Each build is a separate local snapshot. Similar counts do not prove identical
+                  calls, so snapshots are never merged by appearance.
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -1008,6 +1089,7 @@ function DiscoveryPanel({
  */
 function ReadyDetails({
   record,
+  profile,
   requestedSave,
   busy,
   onRescan,
@@ -1016,6 +1098,7 @@ function ReadyDetails({
   skippedCount,
 }: {
   record: ImportRecord;
+  profile: WorkloadProfile | undefined;
   requestedSave: boolean;
   busy: boolean;
   onRescan: () => void;
@@ -1025,7 +1108,13 @@ function ReadyDetails({
 }) {
   return (
     <div className="mt-5 flex min-w-0 flex-col gap-5">
-      <ReadyPreview importId={record.id} sources={record.summary.usageSources} />
+      {profile === undefined ? null : (
+        <ReadyPreview
+          importId={record.id}
+          profile={profile}
+          sources={record.summary.usageSources}
+        />
+      )}
       <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
         {record.label} ·{" "}
         {record.savedLocally === false
@@ -1103,8 +1192,8 @@ function ReadyDetails({
             <p className="text-xs text-muted-foreground">Evidence</p>
             <p className="mt-1 font-medium">
               {record.summary.tokens.unknownEvents > 0
-                ? `${record.summary.tokens.unknownEvents.toLocaleString("en-US")} included events have unknown usage`
-                : "Token totals known for included events"}
+                ? `${record.summary.tokens.unknownEvents.toLocaleString("en-US")} included calls have unknown usage`
+                : "Token totals known for included calls"}
             </p>
           </div>
         </div>
@@ -1148,7 +1237,7 @@ export function ImportSummaryGrid({
         className="grid grid-cols-2 gap-x-5 gap-y-6 border-y border-border py-5 sm:grid-cols-4"
         hidden={compact}
       >
-        <Metric label="Events" value={summary.eventCount.toLocaleString("en-US")} size="lg" />
+        <Metric label="Calls" value={summary.eventCount.toLocaleString("en-US")} size="lg" />
         <Metric
           label="Sessions"
           value={summary.sessionCount === 0 ? "N/A" : summary.sessionCount.toLocaleString("en-US")}
@@ -1167,7 +1256,7 @@ export function ImportSummaryGrid({
           size="lg"
           title={`${exactTokens} reported tokens processed, including reused context read from cache`}
           {...(summary.tokens.unknownEvents > 0
-            ? { hint: `${summary.tokens.unknownEvents.toLocaleString("en-US")} events unknown` }
+            ? { hint: `${summary.tokens.unknownEvents.toLocaleString("en-US")} calls unknown` }
             : {})}
         />
       </div>
@@ -1204,7 +1293,7 @@ export function ImportSummaryGrid({
                     {model.rawName}
                   </span>
                   <span className="text-right text-xs tabular-nums text-muted-foreground">
-                    {model.events.toLocaleString("en-US")} events
+                    {model.events.toLocaleString("en-US")} calls
                     {model.canonicalId === undefined ? " · no catalog match" : ""}
                   </span>
                 </li>
@@ -1224,7 +1313,7 @@ export function ImportSummaryGrid({
               </h3>
               <ul className="mt-2 flex flex-col gap-1.5" data-testid="usage-sources">
                 {summary.usageSources.length === 0 ? (
-                  <li className="text-sm text-muted-foreground">No usage events found.</li>
+                  <li className="text-sm text-muted-foreground">No recorded calls found.</li>
                 ) : (
                   summary.usageSources.map((source) => (
                     <li
@@ -1233,7 +1322,7 @@ export function ImportSummaryGrid({
                     >
                       <span className="min-w-0 [overflow-wrap:anywhere]">{source.name}</span>
                       <span className="font-mono tabular-nums text-muted-foreground">
-                        {source.events.toLocaleString("en-US")} events
+                        {source.events.toLocaleString("en-US")} calls
                       </span>
                     </li>
                   ))
@@ -1277,7 +1366,7 @@ export function ImportSummaryGrid({
               className="text-xs text-muted-foreground [overflow-wrap:anywhere]"
               data-testid="other-sources"
             >
-              Detected with no events in this file:{" "}
+              Detected with no calls in this file:{" "}
               {summary.otherSources.map((source) => source.name).join(", ")}.
             </p>
           ) : null}

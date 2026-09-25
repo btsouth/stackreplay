@@ -101,6 +101,9 @@ test("the workload page stands on its own after a scan, with local project names
   page,
 }) => {
   await scanFixtures(page);
+  await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
+  await expect(page.getByTestId("ready-preview")).toContainText("not what you paid");
+  await expect(page.getByTestId("ready-preview").getByTestId("ready-insight")).toBeVisible();
   await openWorkload(page);
 
   await expect(page.getByTestId("opening-events")).toContainText("6");
@@ -126,6 +129,12 @@ test("the workload page stands on its own after a scan, with local project names
   // Peak windows are inspectable and name what was in them.
   await page.getByTestId("inspect-5h").click();
   await expect(page.getByTestId("pressure-window-detail")).toBeVisible();
+  await expect(page.getByTestId("pressure-window-detail")).toContainText(
+    "Tools that created this peak",
+  );
+  await expect(
+    page.getByTestId("pressure-window-detail").getByTestId("window-token-composition"),
+  ).toContainText("Token composition");
 
   // One control switches every shape between events and known tokens.
   await page.getByTestId("measure-tokens").click();
@@ -179,7 +188,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
   );
   await page.getByTestId("configure-translation").click();
   const editor = page.getByTestId("translation-editor");
-  await expect(editor).toContainText("not claims of model quality equivalence");
+  await expect(editor).toContainText("does not claim equal model quality");
   await expect(editor).toContainText("Recorded usage magnitude is preserved");
   // Aliases are grouped: one row per canonical model, never pre-mapped.
   await expect(page.getByTestId("translation-row")).toHaveCount(2);
@@ -187,7 +196,9 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
 
   await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
   await page.getByTestId("translation-select-gpt-6-sol").selectOption("claude-opus-5-5");
-  await expect(page.getByTestId("run-replay")).toHaveText("Run translated replay");
+  await expect(page.getByTestId("run-replay")).toHaveText(
+    "Run moved-work scenario · Translated Replay",
+  );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
 
@@ -323,6 +334,23 @@ test("compare against my workload replays each target without ranking them", asy
   await expect(page.getByTestId("verdict-headline")).toHaveText(fromCompare ?? "", {
     timeout: 60_000,
   });
+});
+
+test("a mixed workload keeps its selected slice in the Replay result", async ({ page }) => {
+  await importDemo(page, "multistack");
+  await page.getByTestId("continue-to-replay").click();
+  await expect(page.getByTestId("replay-scope-picker")).toContainText("All recorded work");
+  for (const tool of ["claude-code", "codex", "command-code"]) {
+    await expect(page.getByTestId(`scope-${tool}`)).toBeVisible();
+  }
+  await page.getByTestId("scope-claude-code").click();
+  await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("plan-example-cloud-pro").click();
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result-object")).toContainText("Claude Code work", {
+    timeout: 60_000,
+  });
+  await expect(page.getByTestId("replay-result-object")).toContainText("Models as recorded");
 });
 
 async function expectNoSeriousViolations(page: Page) {

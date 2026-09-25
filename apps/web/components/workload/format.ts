@@ -29,12 +29,12 @@ export function measureValue(demand: Demand, measure: Measure): number {
 /** A measure's value with its unit, compact for tokens. */
 export function measureText(demand: Demand, measure: Measure): string {
   return measure === "events"
-    ? `${count(demand.events)} ${demand.events === 1 ? "event" : "events"}`
+    ? `${count(demand.events)} ${demand.events === 1 ? "call" : "calls"}`
     : `${formatTokens(demand.tokens) ?? "0"} tokens`;
 }
 
 export function measureNoun(measure: Measure): string {
-  return measure === "events" ? "events" : "known tokens";
+  return measure === "events" ? "calls" : "known tokens";
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

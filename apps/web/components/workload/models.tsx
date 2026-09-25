@@ -68,7 +68,7 @@ export function ModelMix({ profile, measure }: { profile: WorkloadProfile; measu
             </span>{" "}
             <span className="text-sm">
               {count(unresolved.length)} {unresolved.length === 1 ? "ID" : "IDs"} ·{" "}
-              {count(unresolvedEvents)} events
+              {count(unresolvedEvents)} calls
             </span>{" "}
             <span className="text-xs text-accent">Inspect</span>
           </summary>
@@ -82,7 +82,7 @@ export function ModelMix({ profile, measure }: { profile: WorkloadProfile; measu
               <li key={model.rawName} className="flex flex-wrap justify-between gap-3">
                 <span className="[overflow-wrap:anywhere]">{model.rawName}</span>
                 <span className="tabular-nums text-muted-foreground">
-                  {count(model.events)} events · {formatTokens(model.tokens) ?? "0"} tokens
+                  {count(model.events)} calls · {formatTokens(model.tokens) ?? "0"} tokens
                 </span>
               </li>
             ))}

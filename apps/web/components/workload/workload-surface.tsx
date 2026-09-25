@@ -10,6 +10,7 @@ import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { type ShareOptions, workloadShareV2 } from "@/lib/share-v2";
+import { localDayOf } from "@/lib/timeline";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
@@ -108,6 +109,7 @@ function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: 
 export function WorkloadSurface({ initialImportId }: { initialImportId?: string | undefined }) {
   const client = getWorkerClient();
   const [imports, setImports] = useState<ImportRecord[] | undefined>(undefined);
+  const [importsError, setImportsError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
   const [localZone, setLocalZone] = useState(() =>
     typeof window === "undefined" ? "UTC" : browserTimeZone(),
@@ -131,7 +133,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         setImports(list);
         setSelectedId((current) => current ?? list[0]?.id);
       } catch {
-        if (!cancelled) setImports([]);
+        if (!cancelled) setImportsError(true);
       }
     })();
     return () => {
@@ -166,11 +168,28 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     };
   }, [analyze, record, timeZone]);
 
+  if (importsError)
+    return (
+      <div role="alert" className="border-l-2 border-warning pl-4 text-sm">
+        Local workloads could not be read from this browser. Reload to try again.
+      </div>
+    );
+
   if (imports === undefined)
     return (
-      <p className="text-sm text-muted-foreground" role="status">
-        Opening local workloads…
-      </p>
+      <div
+        className="flex max-w-2xl flex-col gap-3 border-t border-border pt-6"
+        role="status"
+        data-testid="workload-restoring"
+      >
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+          Opening your workload
+        </p>
+        <h1 className="text-2xl font-medium">Restoring your recorded work</h1>
+        <p className="text-sm text-muted-foreground">
+          Looking up the workload saved in this browser…
+        </p>
+      </div>
     );
 
   if (imports.length === 0 || (record === undefined && selectedId === undefined))
@@ -223,11 +242,15 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
       ) : null}
       {profile === undefined ? (
         error === undefined ? (
-          <div className="flex flex-col gap-3" role="status" data-testid="workload-analyzing">
+          <div
+            className="flex flex-col gap-3 border-t border-border pt-4"
+            role="status"
+            data-testid="workload-analyzing"
+          >
             <p className="text-sm text-muted-foreground">
-              Reading chronology, projects and sessions in this browser…
+              Restoring {count(record.eventCount)} recorded calls and analyzing their chronology,
+              projects and sessions in this browser…
             </p>
-            <div className="h-48 animate-pulse bg-surface-2 motion-reduce:animate-none" />
           </div>
         ) : null
       ) : (
@@ -246,12 +269,21 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
 }
 
 /** A stored workload named by what it holds, not by how many files were selected. */
+function recordedRange(entry: ImportRecord): string {
+  const first = entry.summary.firstEventAt;
+  const last = entry.summary.lastEventAt;
+  if (first === undefined || last === undefined) return "no recorded dates";
+  const day = localDayOf(browserTimeZone());
+  return plainRange(day(first), day(last));
+}
+
 function workloadName(entry: ImportRecord): string {
   const sources = entry.summary.usageSources.map((source) => source.name).join(" + ");
-  const first = entry.summary.firstEventAt?.slice(0, 10);
-  const last = entry.summary.lastEventAt?.slice(0, 10);
-  const range = first === undefined || last === undefined ? "" : ` · ${plainRange(first, last)}`;
-  return `${sources.length > 0 ? sources : entry.label} · ${count(entry.eventCount)} events${range}`;
+  const range =
+    entry.summary.firstEventAt === undefined || entry.summary.lastEventAt === undefined
+      ? ""
+      : ` · ${recordedRange(entry)}`;
+  return `${sources.length > 0 ? sources : entry.label} · ${count(entry.eventCount)} calls${range}`;
 }
 
 function WorkloadPicker({
@@ -407,7 +439,9 @@ function WorkloadOpening({
       <div className="flex min-w-0 flex-col gap-1.5 text-sm">
         <p className="text-muted-foreground [overflow-wrap:anywhere]" data-testid="opening-meta">
           <span className="text-foreground">
-            {plainRange(overview?.firstDate, overview?.lastDate)}
+            {overview === undefined
+              ? recordedRange(record)
+              : plainRange(overview.firstDate, overview.lastDate)}
           </span>{" "}
           · {sources} · {origin}
           {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
@@ -496,6 +530,52 @@ function WorkloadBody({
 
   return (
     <div className="flex min-w-0 flex-col gap-14">
+      <section
+        className="flex flex-col gap-4 border-y border-accent/60 py-5"
+        aria-labelledby="next-question-heading"
+      >
+        <div>
+          <MicroLabel className="text-accent">Next question</MicroLabel>
+          <h2 id="next-question-heading" className="mt-1 text-lg font-medium">
+            What could run this work?
+          </h2>
+          <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
+            Choose all recorded work or one tool&apos;s work, then test it against a plan or direct
+            API. Models stay as recorded unless you explicitly choose a substitution.
+          </p>
+        </div>
+        <Link
+          href={replayLink(record.id)}
+          className={`${buttonVariants({ size: "sm" })} self-start`}
+          data-testid="workload-replay-top"
+        >
+          Replay this workload
+        </Link>
+      </section>
+
+      <nav
+        aria-label="Explore workload details"
+        className="flex flex-col gap-2 border-b border-border pb-5 text-sm"
+      >
+        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+          Explore the detail
+        </p>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <a className={ACTION_LINK} href="#projects">
+            What drives usage
+          </a>
+          <a className={ACTION_LINK} href="#pressure">
+            When demand gets heavy
+          </a>
+          <a className={ACTION_LINK} href="#tokens">
+            How tokens behave
+          </a>
+          <a className={ACTION_LINK} href="#sessions">
+            Session shape
+          </a>
+        </div>
+      </nav>
+
       <div
         className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur"
         data-testid="measure-bar"
@@ -512,7 +592,7 @@ function WorkloadBody({
             onClick={() => onMeasure("events")}
             data-testid="measure-events"
           >
-            Events
+            Calls
           </button>
           <button
             type="button"
@@ -539,61 +619,6 @@ function WorkloadBody({
 
       <WorkloadSection
         index="01"
-        eyebrow="Recorded demand"
-        title="Your history, day by day"
-        lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} events` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
-        id="chronology"
-        testId="section-chronology"
-      >
-        <DemandChronology
-          highlighted={{
-            dates: peakDates,
-            legend: "day holding one of the five heaviest five-hour windows",
-          }}
-          label="Recorded demand"
-          measure={measure}
-          median={profile.chronology.unit === "day" ? median : undefined}
-          points={profile.chronology.points}
-          testId="workload-chronology"
-          unit={profile.chronology.unit}
-        />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="02"
-        eyebrow="When you work"
-        title="Hours and weekdays"
-        lede={`Read in ${profile.timeZone}, from each event's recorded timestamp.`}
-        id="rhythm"
-        testId="section-rhythm"
-      >
-        <WorkRhythm measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="03"
-        eyebrow="Historical pressure"
-        title="Your heaviest windows"
-        lede="Monthly totals hide bursts. Rolling windows open at the first event after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
-        id="pressure"
-        testId="section-pressure"
-        action={
-          numericRoute === undefined ? undefined : (
-            <Link
-              className={ACTION_LINK}
-              href={routeLink(record.id, numericRoute)}
-              data-testid="pressure-replay-link"
-            >
-              See how {numericRoute.target.name} handles these peaks →
-            </Link>
-          )
-        }
-      >
-        <HistoricalPressure measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="04"
         eyebrow="Projects"
         title="Where the work came from"
         lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
@@ -604,7 +629,7 @@ function WorkloadBody({
       </WorkloadSection>
 
       <WorkloadSection
-        index="05"
+        index="02"
         eyebrow="Model mix"
         title="Which models did the work"
         lede="Grouped by canonical model, so different spellings of one model are counted once."
@@ -623,6 +648,67 @@ function WorkloadBody({
         }
       >
         <ModelMix measure={measure} profile={profile} />
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="03"
+        eyebrow="Recorded demand"
+        title="Your history, day by day"
+        lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
+        id="chronology"
+        testId="section-chronology"
+      >
+        <DemandChronology
+          highlighted={{
+            dates: peakDates,
+            legend: "day holding one of the five heaviest five-hour windows",
+          }}
+          label="Recorded demand"
+          measure={measure}
+          median={profile.chronology.unit === "day" ? median : undefined}
+          points={profile.chronology.points}
+          testId="workload-chronology"
+          unit={profile.chronology.unit}
+        />
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="04"
+        eyebrow="When you work"
+        title="Hours and weekdays"
+        lede={`Read in ${profile.timeZone}, from each call's recorded timestamp.`}
+        id="rhythm"
+        testId="section-rhythm"
+      >
+        <WorkRhythm measure={measure} profile={profile} />
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="05"
+        eyebrow="Historical pressure"
+        title="Your heaviest windows"
+        lede="Monthly totals hide bursts. Rolling windows open at the first call after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
+        id="pressure"
+        testId="section-pressure"
+        action={
+          numericRoute === undefined ? undefined : (
+            <Link
+              className={ACTION_LINK}
+              href={routeLink(record.id, numericRoute)}
+              data-testid="pressure-replay-link"
+            >
+              See how {numericRoute.target.name} handles these peaks →
+            </Link>
+          )
+        }
+      >
+        <HistoricalPressure
+          measure={measure}
+          profile={profile}
+          sourceNames={
+            new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
+          }
+        />
       </WorkloadSection>
 
       <WorkloadSection
@@ -680,8 +766,8 @@ function WorkloadBody({
             </p>
             {profile.overview.unknownUsageEvents > 0 ? (
               <p className="text-xs text-warning">
-                {count(profile.overview.unknownUsageEvents)} events report an incomplete set of
-                token categories and are not in these totals. Their reported part is at least{" "}
+                {count(profile.overview.unknownUsageEvents)} calls report an incomplete set of token
+                categories and are not in these totals. Their reported part is at least{" "}
                 {formatTokens(profile.overview.lowerBoundTokens) ?? "0"} tokens.
               </p>
             ) : null}
@@ -749,7 +835,7 @@ function WorkloadBody({
             className={buttonVariants({ size: "sm" })}
             data-testid="workload-replay-cta"
           >
-            Choose a target
+            Replay this workload
           </Link>
           <Link
             href={`/app/compare?import=${record.id}`}
