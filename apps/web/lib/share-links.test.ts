@@ -49,8 +49,14 @@ function memoryStore(): ShareLinkStore & { values: Map<string, string> } {
 
 const request = (token: string) => JSON.stringify({ token });
 
-/** A mixed workload whose local names are distinctive markers. */
+/** A mixed workload whose local names are distinctive markers, built once per file. */
+let marked: ReturnType<typeof buildMarkedWorkload> | undefined;
 function markedWorkload() {
+  marked ??= buildMarkedWorkload();
+  return marked;
+}
+
+function buildMarkedWorkload() {
   const exported = buildArchetypeExport("mixed");
   const hashes = [...new Set(exported.events.flatMap((event) => event.projectHash ?? []))];
   const projectLabels = new Map(hashes.map((hash, index) => [hash, `zz-private-project-${index}`]));
@@ -122,9 +128,11 @@ describe("short share link ids", () => {
   });
 });
 
+let workloadSnapshot: ShareSnapshotV2 | undefined;
 function workloadShareV2Snapshot(): ShareSnapshotV2 {
   const { record, profile } = markedWorkload();
-  return workloadShareV2(record, profile, { includePeriod: false });
+  workloadSnapshot ??= workloadShareV2(record, profile, { includePeriod: false });
+  return structuredClone(workloadSnapshot);
 }
 
 describe("creating a short link", () => {
