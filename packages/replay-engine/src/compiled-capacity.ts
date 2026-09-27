@@ -8,6 +8,7 @@ import type {
   ExecutionWindow,
   TextUsageEventV1,
 } from "@stackreplay/schema";
+import { materializeFixedPartitions, purchaseCycleEnd } from "./execution-binding.js";
 import { type Decimal as Amount, Decimal, toUnitString, ZERO } from "./money.js";
 import { calendarBucketBoundsMs, isoFromEpochMs, parseInstant } from "./time.js";
 import { moneyUnitsForUsage, tokenAccountingOf } from "./units.js";
@@ -96,6 +97,7 @@ export function resourceReadiness(
     status: code === "eligibility_false" ? "unavailable" : "not_computable",
     reasons: [reason(code, subject, refs)],
   });
+  if (p.contractVersion !== scenario.version) return fail("invalid_contract", "contract_version");
   if (ns(scenario.rulesAt) < ns(p.validity.start) || ns(scenario.rulesAt) >= ns(p.validity.end))
     return fail("unsupported_semantics", "rules_binding");
   for (const r of p.requirements) {
@@ -111,11 +113,25 @@ export function resourceReadiness(
       return fail("unsupported_purchase");
     if (p.purchase.fixedUsd === null) return fail("price_unknown");
     if (!b.cycle) return fail("reset_unknown", "purchase_cycle");
-    const start = parseInstant(b.cycle.start);
-    const expected =
-      p.purchase.term === "28_days"
-        ? start.add({ hours: 28 * 24 })
-        : start.toZonedDateTimeISO("UTC").add({ months: 1 }).toInstant();
+
+    let expected: ReturnType<typeof parseInstant>;
+    try {
+      const start = parseInstant(b.cycle.start);
+      expected =
+        p.contractVersion === 1
+          ? p.purchase.term === "28_days"
+            ? start.add({ hours: 28 * 24 })
+            : start.toZonedDateTimeISO("UTC").add({ months: 1 }).toInstant()
+          : parseInstant(
+              purchaseCycleEnd(
+                p.purchase.term,
+                b.cycle.start,
+                "billingTimezone" in b ? b.billingTimezone : undefined,
+              ),
+            );
+    } catch {
+      return fail("unsupported_purchase", "billing_timezone_or_calendar_end");
+    }
     if (
       expected.epochNanoseconds !== ns(b.cycle.end) ||
       ns(b.cycle.start) > ns(scenario.period.start) ||
@@ -147,6 +163,7 @@ export function resourceReadiness(
     ...r.constraints,
     ...r.routes,
     ...r.routes.flatMap((x) => x.requirements),
+    ...r.windows.filter((w) => "claimRefs" in w),
     ...(p.purchase.kind === "subscription" ? [p.purchase] : []),
   ])
     if (x.claimRefs.some((ref) => !claims.has(ref)))
@@ -209,8 +226,47 @@ export function resourceReadiness(
   for (const c of r.constraints)
     if (!r.pools.some((p) => p.id === c.poolId) || !r.windows.some((w) => w.id === c.windowId))
       return fail("invalid_contract", c.id);
+  if (p.contractVersion === 2) {
+    if (!("windowInstances" in b)) return fail("reset_unknown", "bound_windows");
+    if (
+      r.windows.some(
+        (w) =>
+          w.kind === "fixed_partition" &&
+          "anchorRequirementId" in w &&
+          !b.windowAnchors[w.anchorRequirementId],
+      )
+    )
+      return fail("reset_unknown", "partition_anchor");
+    try {
+      const expected = materializeFixedPartitions(p, b);
+      if (
+        expected.length !== b.windowInstances.length ||
+        expected.some((w, index) => {
+          const actual = b.windowInstances[index];
+          return (
+            !actual ||
+            actual.windowDefinitionId !== w.windowDefinitionId ||
+            actual.windowInstanceId !== w.windowInstanceId ||
+            ns(actual.start) !== ns(w.start) ||
+            ns(actual.end) !== ns(w.end)
+          );
+        })
+      )
+        return fail("invalid_contract", "bound_partitions");
+    } catch {
+      return fail("invalid_contract", "partition_schedule");
+    }
+  }
   for (const w of r.windows) {
-    if (w.kind === "fixed_partition") {
+    if (w.kind === "fixed_partition" && !("intervals" in w)) {
+      if (!("windowInstances" in b)) return fail("reset_unknown", w.id);
+      const instances = b.windowInstances.filter((i) => i.windowDefinitionId === w.id);
+      if (
+        ns(instances[0]?.start ?? scenario.period.end) > ns(scenario.period.start) ||
+        ns(instances.at(-1)?.end ?? scenario.period.start) < ns(scenario.period.end)
+      )
+        return fail("reset_unknown", w.id);
+    } else if (w.kind === "fixed_partition") {
       if (
         !b.cycle ||
         w.parentCycleId !== b.cycle.id ||
@@ -324,9 +380,20 @@ export function windowAt(
       end: BigInt(bounds.endMs) * 1000000n,
     };
   } else if (w.kind === "fixed_partition") {
-    const interval = w.intervals.find((i) => ns(i.start) <= at && at < ns(i.end));
-    if (!interval) return undefined;
-    current = { id: interval.id, start: ns(interval.start), end: ns(interval.end) };
+    if ("intervals" in w) {
+      const interval = w.intervals.find((i) => ns(i.start) <= at && at < ns(i.end));
+      if (!interval) return undefined;
+      current = { id: interval.id, start: ns(interval.start), end: ns(interval.end) };
+    } else {
+      const interval =
+        "windowInstances" in binding
+          ? binding.windowInstances.find(
+              (i) => i.windowDefinitionId === w.id && ns(i.start) <= at && at < ns(i.end),
+            )
+          : undefined;
+      if (!interval) return undefined;
+      current = { id: interval.windowInstanceId, start: ns(interval.start), end: ns(interval.end) };
+    }
   } else {
     const seed = binding.firstUse[w.id];
     if (seed && seed !== "inactive" && ns(seed.start) <= at && at < ns(seed.end))

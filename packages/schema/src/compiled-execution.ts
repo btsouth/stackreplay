@@ -72,7 +72,7 @@ export const executionDebitSchema = z.strictObject({
     }),
   ]),
 });
-export const executionWindowSchema = z.discriminatedUnion("kind", [
+export const executionWindowV1Schema = z.discriminatedUnion("kind", [
   z.strictObject({
     id,
     kind: z.literal("calendar"),
@@ -94,7 +94,7 @@ export const executionWindowSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 const requirement = z.strictObject({ id, claimRefs: refs });
-export const compiledExecutionPlanSchema = z.strictObject({
+export const compiledExecutionPlanV1Schema = z.strictObject({
   contractVersion: z.literal(1),
   artifactHash: id,
   catalogHash: id,
@@ -138,7 +138,7 @@ export const compiledExecutionPlanSchema = z.strictObject({
       meters: z.array(executionMeterSchema).max(16),
       pools: z.array(z.strictObject({ id, meterId: id })).max(16),
       debits: z.array(executionDebitSchema).max(256),
-      windows: z.array(executionWindowSchema).max(32),
+      windows: z.array(executionWindowV1Schema).max(32),
       constraints: z
         .array(
           z.strictObject({
@@ -179,9 +179,6 @@ export const compiledExecutionPlanSchema = z.strictObject({
     )
     .max(512),
 });
-export type CompiledExecutionPlan = z.infer<typeof compiledExecutionPlanSchema>;
-export type ExecutableRules = Extract<CompiledExecutionPlan["computation"], { kind: "executable" }>;
-export type ExecutionWindow = z.infer<typeof executionWindowSchema>;
 export type ExecutionMeter = z.infer<typeof executionMeterSchema>;
 export const executionObservationSchema = z.strictObject({
   resourceInstanceId: id,
@@ -194,7 +191,7 @@ export const executionObservationSchema = z.strictObject({
   latched: z.boolean(),
   observationRef: id,
 });
-export const boundExecutionScenarioSchema = z.strictObject({
+export const boundExecutionScenarioV1Schema = z.strictObject({
   version: z.literal(1),
   scenarioHash: id,
   rulesAt: instant,
@@ -231,5 +228,71 @@ export const boundExecutionScenarioSchema = z.strictObject({
   maxSubscriptions: z.union([z.literal(1), z.literal(2)]).default(2),
   maxAssignmentStates: z.number().int().min(1).max(100000).default(10000),
 });
-export type BoundExecutionScenario = z.infer<typeof boundExecutionScenarioSchema>;
 export type ExecutionObservation = z.infer<typeof executionObservationSchema>;
+
+/** v2 artifacts contain schedule semantics only; account instants belong to bindings. */
+export const fixedPartitionScheduleSchema = z.strictObject({
+  id,
+  kind: z.literal("fixed_partition"),
+  durationMs: z.number().int().positive().safe(),
+  count: z.number().int().min(1).max(64),
+  parent: z.literal("purchase_cycle"),
+  coverage: z.enum(["purchase_cycle", "observation"]),
+  carry: z.literal("none"),
+  anchorRequirementId: id,
+  claimRefs: refs,
+});
+export const executionWindowV2Schema = z.discriminatedUnion("kind", [
+  executionWindowV1Schema.options[0],
+  executionWindowV1Schema.options[1],
+  fixedPartitionScheduleSchema,
+]);
+export const compiledExecutionPlanV2Schema = compiledExecutionPlanV1Schema.extend({
+  contractVersion: z.literal(2),
+  computation: z.discriminatedUnion("kind", [
+    compiledExecutionPlanV1Schema.shape.computation.options[0],
+    compiledExecutionPlanV1Schema.shape.computation.options[1].extend({
+      windows: z.array(executionWindowV2Schema).max(32),
+    }),
+  ]),
+});
+/** Resource/artifact identity is inherited from the containing resource binding. */
+export const boundWindowInstanceSchema = z.strictObject({
+  windowDefinitionId: id,
+  windowInstanceId: id,
+  start: instant,
+  end: instant,
+});
+export const boundExecutionResourceV2Schema =
+  boundExecutionScenarioV1Schema.shape.resources.element.extend({
+    billingTimezone: id.optional(),
+    windowAnchors: z.record(id, instant),
+    windowInstances: z.array(boundWindowInstanceSchema).max(2048),
+  });
+export const boundExecutionScenarioV2Schema = boundExecutionScenarioV1Schema.extend({
+  version: z.literal(2),
+  resources: z.array(boundExecutionResourceV2Schema).max(14),
+});
+export const compiledExecutionPlanSchema = z.discriminatedUnion("contractVersion", [
+  compiledExecutionPlanV1Schema,
+  compiledExecutionPlanV2Schema,
+]);
+export const boundExecutionScenarioSchema = z.discriminatedUnion("version", [
+  boundExecutionScenarioV1Schema,
+  boundExecutionScenarioV2Schema,
+]);
+export type CompiledExecutionPlanV1 = z.infer<typeof compiledExecutionPlanV1Schema>;
+export type CompiledExecutionPlanV2 = z.infer<typeof compiledExecutionPlanV2Schema>;
+export type CompiledExecutionPlan = z.infer<typeof compiledExecutionPlanSchema>;
+export type BoundExecutionScenarioV1 = z.infer<typeof boundExecutionScenarioV1Schema>;
+export type BoundExecutionScenarioV2 = z.infer<typeof boundExecutionScenarioV2Schema>;
+export type BoundExecutionScenario = z.infer<typeof boundExecutionScenarioSchema>;
+export type BoundExecutionResourceV2 = z.infer<typeof boundExecutionResourceV2Schema>;
+export type BoundWindowInstance = z.infer<typeof boundWindowInstanceSchema>;
+export type FixedPartitionSchedule = z.infer<typeof fixedPartitionScheduleSchema>;
+export type ExecutionWindow =
+  | z.infer<typeof executionWindowV1Schema>
+  | z.infer<typeof executionWindowV2Schema>;
+export type ExecutableRules = Extract<CompiledExecutionPlan["computation"], { kind: "executable" }>;
+/** The public unversioned window schema now denotes the current compiler target. */
+export const executionWindowSchema = executionWindowV2Schema;

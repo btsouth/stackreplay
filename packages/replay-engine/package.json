@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
+    "@noble/hashes": "^2.4.0",
     "@stackreplay/catalog": "workspace:*",
     "@stackreplay/schema": "workspace:*",
     "decimal.js": "^10.6.0",

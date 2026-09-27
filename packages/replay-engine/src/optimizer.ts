@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { ApiEventPriceability } from "./api-replay.js";
 import { replayWithReceipt, type SubscriptionEventObservation, validateEvents } from "./engine.js";
 import { ReplayEngineError } from "./errors.js";
+import { purchaseCycleEnd } from "./execution-binding.js";
 import { parseAmount, toUnitString, ZERO } from "./money.js";
 import { parseInstant } from "./time.js";
 import { sortTimedEvents, toTimedEvents } from "./windows.js";
@@ -107,13 +108,25 @@ function unsupported(message: string): never {
 }
 
 /** Shared validation for O1 evaluation and O2's single common scope. */
-export function prepareCandidateDemand(input: Pick<StackCandidateInput, "events" | "period">) {
+export function prepareCandidateDemand(
+  input: Pick<StackCandidateInput, "events" | "period">,
+  calendarMonth?: { start: string; billingTimezone: string },
+) {
   const period = periodSchema.parse(input.period);
   const start = parseInstant(period.start);
   const end = parseInstant(period.end);
+  // v2 may supply one explicit local monthly cycle. DST can make it exceed
+  // 31 elapsed days; this is calendar containment, never a duration tolerance.
+  const containedMonth =
+    calendarMonth &&
+    start.epochNanoseconds >= parseInstant(calendarMonth.start).epochNanoseconds &&
+    end.epochNanoseconds <=
+      parseInstant(purchaseCycleEnd("month", calendarMonth.start, calendarMonth.billingTimezone))
+        .epochNanoseconds;
   if (
     end.epochNanoseconds <= start.epochNanoseconds ||
-    end.epochNanoseconds - start.epochNanoseconds > 31n * 24n * 60n * 60n * 1_000_000_000n
+    (!containedMonth &&
+      end.epochNanoseconds - start.epochNanoseconds > 31n * 24n * 60n * 60n * 1_000_000_000n)
   )
     unsupported("A candidate requires a positive observation period of at most 31 days.");
   const timed = sortTimedEvents(toTimedEvents(validateEvents(input.events)));

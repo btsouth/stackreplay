@@ -233,6 +233,9 @@ importers:
       '@js-temporal/polyfill':
         specifier: ^0.5.1
         version: 0.5.1
+      '@noble/hashes':
+        specifier: ^2.4.0
+        version: 2.4.0
       '@stackreplay/catalog':
         specifier: workspace:*
         version: link:../catalog

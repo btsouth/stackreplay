@@ -181,3 +181,7 @@ this implementation. No real subscription capacity is inferred.
 ## O3B compiled execution contract
 
 The neutral compiler target, compatibility boundaries, supported capacity domain and Worker lifecycle are documented in [optimizer-o3b.md](optimizer-o3b.md), implementing the locked [contract review](optimizer-catalog-contract-review.md). No real-provider compiler or UI is included.
+
+### O3B.1 compiler binding boundary
+
+New compilation targets contract/scenario version 2. Commercial schedule definitions remain in immutable artifacts; concrete account purchase cycles, IANA billing timezones, anchors and fixed-partition instances belong to bound scenarios. The canonical shapes, exact calendar-month policy, SHA-256 scenario hashing and version-1 compatibility are specified in [optimizer-o3b1.md](optimizer-o3b1.md). The locked architecture review is not revised. No catalog authoring/compiler/provider work is part of this repair.

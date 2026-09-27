@@ -1,5 +1,5 @@
 // biome-ignore-all lint/style/noNonNullAssertion: fixture construction guarantees array entries.
-import type { CompiledExecutionPlan, ExecutableRules } from "@stackreplay/schema";
+import type { CompiledExecutionPlan, CompiledExecutionPlanV1 } from "@stackreplay/schema";
 import type { CompiledOptimizationInput } from "../compiled-optimizer.js";
 import { request, scenario } from "./exact-optimizer.js";
 export const start = "2026-09-01T00:00:00Z",
@@ -9,7 +9,9 @@ export function syntheticPlan(
   id = "plan",
   amount = "100",
   price = "20",
-): CompiledExecutionPlan & { computation: ExecutableRules } {
+): CompiledExecutionPlanV1 & {
+  computation: Extract<CompiledExecutionPlanV1["computation"], { kind: "executable" }>;
+} {
   return {
     contractVersion: 1,
     artifactHash: `synthetic:${id}:v1`,
@@ -83,7 +85,9 @@ export function syntheticPlan(
 export function syntheticApi(
   id = "api",
   price = "1",
-): CompiledExecutionPlan & { computation: ExecutableRules } {
+): CompiledExecutionPlanV1 & {
+  computation: Extract<CompiledExecutionPlanV1["computation"], { kind: "executable" }>;
+} {
   const plan = syntheticPlan(id);
   plan.purchase = { kind: "api" };
   plan.computation.pools = [];

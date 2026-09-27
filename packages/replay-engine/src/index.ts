@@ -68,6 +68,14 @@ export {
   explainExactCandidate,
   optimizeExactModels,
 } from "./exact-optimizer.js";
+export {
+  bindExecutionScenario,
+  type ExecutionScenarioDraftV2,
+  executionContentHash,
+  hashBoundExecutionScenario,
+  materializeFixedPartitions,
+  purchaseCycleEnd,
+} from "./execution-binding.js";
 export type { InitialCapacityEntry, SubscriptionInitialCapacity } from "./initial-capacity.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {

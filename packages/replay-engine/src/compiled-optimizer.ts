@@ -20,6 +20,7 @@ import {
   routeEligibility,
   windowAt,
 } from "./compiled-capacity.js";
+import { hashBoundExecutionScenario, purchaseCycleEnd } from "./execution-binding.js";
 import { Decimal, toUnitString, ZERO } from "./money.js";
 import { prepareCandidateDemand } from "./optimizer.js";
 import {
@@ -30,7 +31,7 @@ import {
 import { ENGINE_VERSION } from "./version.js";
 
 export interface CompiledOptimizationInput {
-  contract: "compiled-v1";
+  contract: "compiled-v1" | "compiled-v2";
   events: readonly TextUsageEventV1[];
   /** Identity resolution only. Execution rules and rates come exclusively from artifacts. */
   catalog: CatalogV1;
@@ -58,9 +59,9 @@ export interface CompiledCandidate {
   allocation: "api-only" | "weighted-matching" | "exhaustive-replay" | "not-evaluated";
 }
 export interface CompiledOptimizationResult {
-  contract: "compiled-v1";
+  contract: "compiled-v1" | "compiled-v2";
   engineVersion: string;
-  methodology: "compiled-offline-v1";
+  methodology: "compiled-offline-v1" | "compiled-offline-v2";
   status: "optimal" | "incomplete" | "infeasible" | "empty";
   winnerId?: string;
   bestKnownId?: string;
@@ -161,6 +162,13 @@ export function optimizeCompiledExactModels(
   if (input.artifacts.length > 14) throw new Error("Compiled artifact bound exceeded");
   const artifacts = input.artifacts.map((p) => compiledExecutionPlanSchema.parse(p));
   if (
+    input.contract !== `compiled-v${scenario.version}` ||
+    artifacts.some((p) => p.contractVersion !== scenario.version)
+  )
+    throw new Error("Mixed compiled contract versions");
+  if (scenario.version === 2 && scenario.scenarioHash !== hashBoundExecutionScenario(scenario))
+    throw new Error("Bound scenario hash mismatch");
+  if (
     new Set(artifacts.map((p) => p.artifactHash)).size !== artifacts.length ||
     new Set(scenario.resources.map((r) => r.id)).size !== scenario.resources.length
   )
@@ -194,7 +202,34 @@ export function optimizeCompiledExactModels(
     ) > 8
   )
     throw new Error("Compiled candidate family bound exceeded");
-  const demand = prepareCandidateDemand({ events: input.events, period: scenario.period });
+  const calendarMonth =
+    scenario.version === 2
+      ? scenario.resources.find((b) => {
+          const p = artifacts.find((p) => p.artifactHash === b.artifactHash);
+          if (
+            p?.purchase.kind !== "subscription" ||
+            p.purchase.term !== "month" ||
+            !b.cycle ||
+            !b.billingTimezone
+          )
+            return false;
+          try {
+            return (
+              ns(purchaseCycleEnd("month", b.cycle.start, b.billingTimezone)) === ns(b.cycle.end) &&
+              ns(b.cycle.start) <= ns(scenario.period.start) &&
+              ns(b.cycle.end) >= ns(scenario.period.end)
+            );
+          } catch {
+            return false;
+          }
+        })
+      : undefined;
+  const demand = prepareCandidateDemand(
+    { events: input.events, period: scenario.period },
+    calendarMonth?.cycle && calendarMonth.billingTimezone
+      ? { start: calendarMonth.cycle.start, billingTimezone: calendarMonth.billingTimezone }
+      : undefined,
+  );
   const identity = createModelIdentityIndex(input.catalog);
   const events: Event[] = [],
     excluded: string[] = [];
@@ -216,7 +251,11 @@ export function optimizeCompiledExactModels(
     else events.push({ event: t.event, modelId, at: BigInt(t.atMs) * 1000000n + BigInt(t.subMs) });
   }
   // Aggregate adapters cannot acquire chronology through a caller override.
-  if (events.some((e) => e.event.source.adapterId === "ccusage")) scenario.chronology = "aggregate";
+  if (events.some((e) => e.event.source.adapterId === "ccusage")) {
+    scenario.chronology = "aggregate";
+    // Pin the effective scenario facts after conservative chronology normalization.
+    if (scenario.version === 2) scenario.scenarioHash = hashBoundExecutionScenario(scenario);
+  }
   const readiness = resources.map((r) => resourceReadiness(r, scenario));
   const interned = new Map<string, Choice>();
   const choice = (resource: number, route: string, cash: string): Choice => {
@@ -619,9 +658,9 @@ export function optimizeCompiledExactModels(
     best &&
     omissions.every((c) => new Decimal(c.fixedLowerBoundUsd).gt(best?.candidate.totalUsd ?? 0));
   const result: CompiledOptimizationResult = {
-    contract: "compiled-v1",
+    contract: input.contract,
     engineVersion: ENGINE_VERSION,
-    methodology: "compiled-offline-v1",
+    methodology: scenario.version === 2 ? "compiled-offline-v2" : "compiled-offline-v1",
     status: !events.length
       ? "empty"
       : certified
