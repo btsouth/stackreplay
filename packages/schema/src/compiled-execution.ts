@@ -268,6 +268,18 @@ export const compiledExecutionPlanV2Schema = compiledExecutionPlanV1Schema.exten
         .array(
           compiledExecutionPlanV1Schema.shape.computation.options[1].shape.rates.element.extend({
             pricingRef: id.optional(),
+            basePricingRef: id.nullable().optional(),
+            cashOverrides: z
+              .array(
+                z.strictObject({
+                  category: z.enum(["input", "output", "cacheRead", "cacheWrite", "reasoning"]),
+                  pricingRef: id,
+                  overlayId: id,
+                  claimRefs: refs,
+                }),
+              )
+              .max(64)
+              .optional(),
             endpointId: id.optional(),
             rateVersion: id.optional(),
             validity: z.strictObject({ start: instant, end: instant.optional() }).optional(),

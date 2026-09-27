@@ -185,7 +185,7 @@ export function compileExecutionPlan(
   const occupied = new Map<string, number>();
   for (const o of overlays)
     for (const m of o.modifications) {
-      const key = `${m.kind}:${"constraintId" in m ? m.constraintId : "debitId" in m ? m.debitId : "routeId" in m ? m.routeId : "purchase"}`;
+      const key = `${m.kind === "cash_category_override" ? `${m.kind}:${m.rateId}:${m.category}` : m.kind}:${"constraintId" in m ? m.constraintId : "debitId" in m ? m.debitId : "routeId" in m ? m.routeId : "purchase"}`;
       if (occupied.get(key) === o.precedence) throw new Error(`Ambiguous overlay stacking: ${key}`);
       occupied.set(key, o.precedence);
     }
@@ -283,32 +283,100 @@ export function compileExecutionPlan(
   const rates = v.rates
     .map((r) => {
       numeric(r.id, r.claimRefs, "price_unknown");
-      const p = catalog.pricing[r.pricingRef];
+      const p = r.pricingRef ? catalog.pricing[r.pricingRef] : undefined;
+      const changes = overlays.flatMap((o) =>
+        o.modifications
+          .filter((m) => m.kind === "cash_category_override" && m.rateId === r.id)
+          .map((m) => ({ o, m })),
+      );
+      const valid = (price: typeof p) =>
+        price?.verificationStatus === "verified" &&
+        price.basis === r.basis &&
+        price.endpointId === r.endpointId &&
+        price.rateVersion === r.rateVersion &&
+        pricingValidAt(price, rulesAt);
+      if (r.pricingRef && !valid(p)) {
+        block("price_unknown", r.id, r.claimRefs);
+        return undefined;
+      }
       if (
-        p?.verificationStatus !== "verified" ||
-        p.basis !== r.basis ||
-        p.endpointId !== r.endpointId ||
-        p.rateVersion !== r.rateVersion ||
-        !pricingValidAt(p, rulesAt)
+        changes.length &&
+        (r.denomination !== "USD" ||
+          v.debits.some((d) => d.operation.kind === "rate" && d.operation.rateId === r.id))
+      )
+        throw new Error("Cash category overrides require a dedicated USD cash rate");
+      let values: Record<string, unknown> = { ...p?.rates };
+      let tiers = p?.tiers?.map((t) => ({
+        ...t,
+        rates: { ...t.rates } as Record<string, unknown>,
+      }));
+      const claimRefs = [...r.claimRefs];
+      const cashOverrides: {
+        category: "input" | "output" | "cacheRead" | "cacheWrite" | "reasoning";
+        pricingRef: string;
+        overlayId: string;
+        claimRefs: string[];
+      }[] = [];
+      for (const { o, m } of changes) {
+        if (m.kind !== "cash_category_override") continue;
+        const source = catalog.pricing[m.pricingRef];
+        numeric(r.id, [...m.claimRefs, ...o.claimRefs], "price_unknown");
+        if (!valid(source) || source?.rates[m.category] === undefined) {
+          block("price_unknown", m.pricingRef, m.claimRefs);
+          continue;
+        }
+        const routeModels = v.routes
+          .filter((route) => route.cash?.rateId === r.id)
+          .flatMap((route) => resolve(route.id, route.models, route.claimRefs));
+        if (!routeModels.length || routeModels.some((id) => id !== source.modelId))
+          throw new Error("Cash category override model mismatch");
+        if (!tiers && !p && source.tiers) tiers = source.tiers.map((t) => ({ ...t, rates: {} }));
+        if (
+          stableStringify((tiers ?? []).map(({ id, when }) => ({ id, when }))) !==
+          stableStringify((source.tiers ?? []).map(({ id, when }) => ({ id, when })))
+        )
+          throw new Error("Cash category override tier mismatch");
+        values = { ...values, [m.category]: source.rates[m.category] };
+        for (const tier of tiers ?? []) {
+          const value = source.tiers?.find((t) => t.id === tier.id)?.rates[m.category];
+          if (value === undefined)
+            block("price_unknown", `${m.pricingRef}:${tier.id}`, m.claimRefs);
+          else tier.rates[m.category] = value;
+        }
+        claimRefs.push(...m.claimRefs, ...o.claimRefs);
+        cashOverrides.push({
+          category: m.category,
+          pricingRef: m.pricingRef,
+          overlayId: o.id,
+          claimRefs: sorted([...m.claimRefs, ...o.claimRefs]),
+        });
+        use(r.id, [...m.claimRefs, ...o.claimRefs]);
+      }
+      if (
+        !pricingRateSetV1Schema.safeParse(values).success ||
+        tiers?.some((t) => !pricingRateSetV1Schema.safeParse(t.rates).success)
       ) {
         block("price_unknown", r.id, r.claimRefs);
         return undefined;
       }
       return {
         id: r.id,
-        pricingRef: r.pricingRef,
+        ...(r.pricingRef ? { pricingRef: r.pricingRef } : {}),
         endpointId: r.endpointId,
         rateVersion: r.rateVersion,
-        validity: {
-          start: new Date(p.effectiveFromInstant ?? `${p.effectiveFrom}T00:00:00Z`).toISOString(),
-          ...(p.effectiveTo ? { end: `${p.effectiveTo}T00:00:00Z` } : {}),
-        },
+        validity: p
+          ? {
+              start: new Date(
+                p.effectiveFromInstant ?? `${p.effectiveFrom}T00:00:00Z`,
+              ).toISOString(),
+              ...(p.effectiveTo ? { end: `${p.effectiveTo}T00:00:00Z` } : {}),
+            }
+          : { start: v.validity.start, end: v.validity.end },
         denomination: r.denomination,
-        rates: normalizeRateSet(p.rates),
-        ...(p.tiers
-          ? { tiers: p.tiers.map((tier) => ({ ...tier, rates: normalizeRateSet(tier.rates) })) }
-          : {}),
-        claimRefs: sorted(r.claimRefs),
+        rates: normalizeRateSet(values),
+        ...(tiers ? { tiers: tiers.map((t) => ({ ...t, rates: normalizeRateSet(t.rates) })) } : {}),
+        claimRefs: sorted(claimRefs),
+        ...(cashOverrides.length ? { basePricingRef: r.pricingRef, cashOverrides } : {}),
       };
     })
     .filter((r): r is NonNullable<typeof r> => r !== undefined);
@@ -472,7 +540,7 @@ export function compileExecutionPlan(
       if (d.operation.kind === "rate") {
         const rateId = d.operation.rateId;
         const rate = v.rates.find((x) => x.id === rateId);
-        const price = rate && catalog.pricing[rate.pricingRef];
+        const price = rate && (rate.pricingRef ? catalog.pricing[rate.pricingRef] : undefined);
         const models = routes.find((x) => x.id === r.id)?.models ?? [];
         if (price && models.some((model) => model !== price.modelId))
           throw new Error(`Debit rate ${rate?.id} does not belong to exact route models`);
@@ -482,7 +550,7 @@ export function compileExecutionPlan(
       block("price_unknown", r.id, r.claimRefs);
     if (r.cash) {
       const rate = v.rates.find((x) => x.id === r.cash?.rateId);
-      const price = rate && catalog.pricing[rate.pricingRef];
+      const price = rate && (rate.pricingRef ? catalog.pricing[rate.pricingRef] : undefined);
       const models = routes.find((x) => x.id === r.id)?.models ?? [];
       if (price && models.some((model) => model !== price.modelId))
         throw new Error(`Cash rate ${rate?.id} does not belong to exact route models`);
@@ -510,6 +578,11 @@ export function compileExecutionPlan(
   for (const o of overlays)
     for (const m of o.modifications) {
       numeric(`${o.id}:${m.kind}`, m.claimRefs);
+      if (m.kind === "cash_category_override") {
+        if (!v.rates.some((r) => r.id === m.rateId))
+          throw new Error(`Unknown cash rate ${m.rateId}`);
+        continue; // Applied to the local rate derivation above; never to allowance debit.
+      }
       if (m.kind === "fixed_fee") {
         if (purchase.kind !== "subscription") throw new Error("Fee overlay on API plan");
         purchase = {
@@ -577,13 +650,13 @@ export function compileExecutionPlan(
       if (debit?.operation.kind !== "rate") continue;
       const rateId = debit.operation.rateId;
       const rate = v.rates.find((r) => r.id === rateId);
-      const price = rate && catalog.pricing[rate.pricingRef];
+      const price = rate && (rate.pricingRef ? catalog.pricing[rate.pricingRef] : undefined);
       if (price && route.models.some((model) => model !== price.modelId))
         throw new Error(`Overlay entitlement conflicts with debit rate ${rate?.id}`);
     }
     if (source.cash) {
       const rate = v.rates.find((r) => r.id === source.cash?.rateId);
-      const price = rate && catalog.pricing[rate.pricingRef];
+      const price = rate && (rate.pricingRef ? catalog.pricing[rate.pricingRef] : undefined);
       if (price && route.models.some((model) => model !== price.modelId))
         throw new Error(`Overlay entitlement conflicts with cash rate ${rate?.id}`);
     }
@@ -641,11 +714,27 @@ export function compileExecutionPlan(
   const content = {
     contractVersion: 2 as const,
     catalogHash: catalog.catalogVersion,
-    compilerVersion: EXECUTION_COMPILER_VERSION,
+    compilerVersion:
+      v.rates.some((r) => r.pricingRef === null) ||
+      overlays.some((o) => o.modifications.some((m) => m.kind === "cash_category_override"))
+        ? "catalog-execution-d0-v2"
+        : EXECUTION_COMPILER_VERSION,
     planId,
     planVersionId: v.id,
     appliedOverlayIds: overlays.map((o) => o.id),
-    validity: { start: v.validity.start, end: v.validity.end, basis: v.validity.basis },
+    validity: {
+      start: overlays.length
+        ? new Date(
+            Math.max(Date.parse(v.validity.start), ...overlays.map((o) => Date.parse(o.validFrom))),
+          ).toISOString()
+        : v.validity.start,
+      end: overlays.length
+        ? new Date(
+            Math.min(Date.parse(v.validity.end), ...overlays.map((o) => Date.parse(o.validUntil))),
+          ).toISOString()
+        : v.validity.end,
+      basis: v.validity.basis,
+    },
     purchase,
     requirements: requirements.sort((a, b) => lexical(a.id, b.id)),
     knownAccess,

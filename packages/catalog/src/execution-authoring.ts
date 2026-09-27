@@ -161,7 +161,7 @@ export const executionVersionSchema = z.strictObject({
     .array(
       z.strictObject({
         id,
-        pricingRef: id,
+        pricingRef: id.nullable(),
         basis: z.enum(["api_list_price", "target_billing_rate"]),
         endpointId: id,
         rateVersion: id,
@@ -282,6 +282,13 @@ export const executionOverlaySchema = z.strictObject({
           kind: z.literal("debit_factor"),
           debitId: id,
           factor: amount,
+          claimRefs: refs,
+        }),
+        z.strictObject({
+          kind: z.literal("cash_category_override"),
+          rateId: id,
+          category: z.enum(["input", "output", "cacheRead", "cacheWrite", "reasoning"]),
+          pricingRef: id,
           claimRefs: refs,
         }),
         z.strictObject({
