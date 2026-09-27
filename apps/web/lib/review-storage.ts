@@ -76,6 +76,7 @@ export function clearReviewState(importId?: string): void {
     if (importId) {
       const state = readReviewState();
       delete state.reviews[importId];
+      window.localStorage.removeItem(`${REVIEW_STORAGE_KEY}.capacity.${importId}`);
       window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(state));
       window.localStorage.removeItem(`${REVIEW_STORAGE_KEY}.demo.${importId}`);
       window.localStorage.removeItem(`stackreplay.current-stack.demo.${importId}`);

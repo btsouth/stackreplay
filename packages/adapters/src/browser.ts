@@ -1,3 +1,5 @@
+import type { ObservedCapacityEvent } from "@stackreplay/schema";
+import { dedupeCapacityEvents } from "./claude-capacity.js";
 /** Browser collection uses the same tested source adapters as the CLI. */
 
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
@@ -690,6 +692,8 @@ export async function intakeBrowserCandidates(
   const salt = options.salt ?? generateSalt();
   const mapper = createModelMapper(catalog);
   const events: UsageEventV1[] = [];
+  const capacityEvents: ObservedCapacityEvent[] = [];
+  let capacityInspected = false;
   const warnings: AdapterWarning[] = [];
   const outcomes: CandidateOutcome[] = [];
   const seen = new Set<string>();
@@ -931,10 +935,12 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
+    capacityEvents.push(...(result.capacityEvents ?? []));
+    capacityInspected ||= result.capacityEvents !== undefined;
     warnings.push(
       ...result.warnings.map((warning) => ({ code: warning.code, message: warning.message })),
     );
-    if (result.events.length === 0) {
+    if (result.events.length === 0 && !result.capacityEvents?.length) {
       outcomes.push({
         path: display,
         status: "unsupported",
@@ -1010,6 +1016,14 @@ export async function intakeBrowserCandidates(
       filePathsIncluded: false,
       repositoryNamesIncluded: false,
     },
+    ...(capacityInspected
+      ? {
+          capacityObservations: {
+            methodology: "claude-native-capacity-v1" as const,
+            events: dedupeCapacityEvents(capacityEvents),
+          },
+        }
+      : {}),
     ...(safeWarnings.length > 0 ? { collectionWarnings: safeWarnings } : {}),
   };
   return {

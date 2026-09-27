@@ -1,4 +1,4 @@
-import type { UsageEventV1 } from "@stackreplay/schema";
+import type { ObservedCapacityEvent, UsageEventV1 } from "@stackreplay/schema";
 import type { ModelMapper } from "./models.js";
 
 /**
@@ -153,6 +153,7 @@ export function emptyStats(): CollectStats {
 }
 
 export interface CollectResult {
+  capacityEvents?: ObservedCapacityEvent[];
   adapterId: AdapterId;
   events: UsageEventV1[];
   warnings: AdapterWarning[];

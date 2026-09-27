@@ -19,6 +19,7 @@ import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { BillingEditor } from "./billing-editor";
 import { partialScanOf } from "./evidence";
+import { ObservedCapacity } from "./observed-capacity";
 import { HistoryConfirmation, ReviewSetup } from "./review-setup";
 
 const dollars = (value: string) => `$${new Decimal(value).toFixed(2)}`;
@@ -453,6 +454,26 @@ export function MarketDecisionSurface({
           {review?.conclusion ?? "Calculating the recorded workload for this review."}
         </p>
       </section>
+      {decision?.capacity &&
+      choice.resourceInstanceId &&
+      review?.period &&
+      selected.length === 1 &&
+      selected[0] &&
+      decision.scenarios[0]?.summary.scope.digest ? (
+        <ObservedCapacity
+          key={`${executionKey}:${selected[0]}:${decision.capacity.digest}`}
+          summary={decision.capacity}
+          importId={importId}
+          resourceInstanceId={choice.resourceInstanceId}
+          planId={selected[0]}
+          planName={
+            subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ??
+            "Selected subscription"
+          }
+          period={review.period}
+          workloadDigest={decision.scenarios[0].summary.scope.digest}
+        />
+      ) : null}
       <ReviewSetup
         choice={choice}
         review={review}

@@ -402,3 +402,86 @@ test("D4 separates account billing, binds history and reuses the completed resul
   expect(axe.violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+for (const theme of ["dark", "light"] as const) {
+  test(`D5 local capacity evidence and manual assertions in ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
+    await page.addInitScript((theme) => {
+      localStorage.setItem("stackreplay-theme", theme);
+      localStorage.setItem(
+        "stackreplay.current-stack",
+        JSON.stringify(["plan:anthropic-claude-max-5x"]),
+      );
+      const original = Worker.prototype.postMessage;
+      (window as unknown as { runs: number }).runs = 0;
+      Worker.prototype.postMessage = function (message, ...args: unknown[]) {
+        if (message?.type === "API_MARKET") (window as unknown as { runs: number }).runs++;
+        return original.call(this, message, ...(args as [StructuredSerializeOptions]));
+      };
+    }, theme);
+    const file = buildDemoExport("moderate");
+    file.events = file.events
+      .filter((e) => e.model.rawName.startsWith("claude"))
+      .map((e) => ({
+        ...e,
+        source: { ...e.source, adapterId: "claude-code", resourceInstanceId: "main" },
+      }));
+    file.capacityObservations = {
+      methodology: "claude-native-capacity-v1",
+      events: [
+        {
+          id: "synthetic-limit",
+          timestamp: "2026-09-16T12:00:00Z",
+          resourceInstanceId: "main",
+          sessionId: "synthetic-session",
+          evidence: "native-client",
+          code: "quota_rejected",
+          eventType: "hard_limit_reached",
+          windowType: "five_hour",
+          resetAt: "2026-09-16T13:00:00Z",
+          duplicateRows: 1,
+        },
+      ],
+    };
+    file.collectorVersion = "synthetic-capacity-test";
+    file.detectedSources = file.detectedSources.map(({ note: _note, ...source }) => source);
+    await gotoImport(page);
+    await page.getByTestId("import-file-input").setInputFiles({
+      name: "capacity.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(file)),
+    });
+    await expect(page.getByTestId("import-summary")).toBeVisible();
+    await page.getByTestId("open-workload").click();
+    await page.getByLabel("Local source account").selectOption("main");
+    const capacity = page.getByTestId("observed-capacity");
+    await expect(capacity).toContainText("1 direct capacity-limit event");
+    await capacity.getByText(/Inspect capacity timeline/).click();
+    await expect(capacity).toContainText("Reset shown: 2026-09-16 13:00 UTC");
+    await capacity.getByText("Workload before this event", { exact: true }).click();
+    await expect(capacity).toContainText("Prior 7 days");
+    const runs = await page.evaluate(() => (window as unknown as { runs: number }).runs);
+    await capacity.getByText("Add observed interruption", { exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await capacity.getByLabel("Limit reached at (UTC)").fill("2026-09-17T12:00");
+    await capacity.getByLabel("Notes (optional, local only)").fill("Synthetic private note");
+    await capacity.getByRole("button", { name: "Confirm and save interruption locally" }).click();
+    await expect(capacity.getByRole("status")).toContainText("Interruption saved locally");
+    await expect(capacity).toContainText("1 additional user-confirmed interruption");
+    expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
+    await expect(page.getByTestId("share-preview")).not.toContainText("Synthetic private note");
+    const axe = await new AxeBuilder({ page })
+      .include('[data-testid="observed-capacity"]')
+      .analyze();
+    expect(axe.violations).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.getByTestId("workload-compare-cta").click();
+    await expect(page).toHaveURL(/\/app\/compare/u);
+    await expect(capacity).toContainText("1 additional user-confirmed interruption");
+    expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
+    await page.reload();
+    await expect(capacity).toContainText("1 additional user-confirmed interruption");
+  });
+}

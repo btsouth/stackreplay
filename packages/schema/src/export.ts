@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { capacityObservationsSchema } from "./observed-capacity.js";
 import { isoUtcTimestampV1Schema } from "./scalars.js";
 import { usageEventV1Schema } from "./usage-event.js";
 
@@ -84,6 +85,7 @@ export const stackReplayExportV1Schema = z
     detectedSources: z.array(detectedSourceV1Schema),
     events: z.array(usageEventV1Schema),
     redactionReport: redactionReportV1Schema,
+    capacityObservations: capacityObservationsSchema.optional(),
     /**
      * Warnings raised while collecting, so a damaged or truncated history is
      * visible in the artifact instead of only on the terminal that wrote it.

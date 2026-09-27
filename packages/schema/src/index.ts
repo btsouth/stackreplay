@@ -45,6 +45,12 @@ export {
   signedMoneyV1Schema,
 } from "./money.js";
 export {
+  type CapacityObservations,
+  capacityObservationsSchema,
+  type ObservedCapacityEvent,
+  observedCapacityEventSchema,
+} from "./observed-capacity.js";
+export {
   type ConstraintExceedV1,
   type ConstraintKindV1,
   type ConstraintResultV1,

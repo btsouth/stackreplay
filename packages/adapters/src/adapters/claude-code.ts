@@ -1,4 +1,5 @@
-import type { TextUsageV1 } from "@stackreplay/schema";
+import type { ObservedCapacityEvent, TextUsageV1 } from "@stackreplay/schema";
+import { claudeCapacityEvent, dedupeCapacityEvents } from "../claude-capacity.js";
 import {
   buildEvent,
   type EventDraft,
@@ -168,6 +169,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
     async collect(env: SourceEnvironment, options: CollectOptions): Promise<CollectResult> {
       const warnings = new WarningCollector();
       const stats = emptyStats();
+      const capacityEvents: ObservedCapacityEvent[] = [];
       const responses = new Map<string, ResponseCandidate>();
       const roots = options.roots ?? claudeCodeRoots(env);
       const maxFiles = effectiveMaxFiles(options);
@@ -222,6 +224,19 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             }
             const record = asRecord(parsed.value);
             if (record === undefined) continue;
+            if (sourceRoot) {
+              const observation = claudeCapacityEvent(
+                record,
+                sourceRoot.resourceInstanceId,
+                options.salt,
+              );
+              if (observation) {
+                if (inWindow(Date.parse(observation.timestamp), options))
+                  capacityEvents.push(observation);
+                // Client capacity records are evidence, never missing-model usage calls.
+                continue;
+              }
+            }
             if (readString(record, "type") !== "assistant") continue;
             const message = asRecord(record.message);
             if (message === undefined) continue;
@@ -322,7 +337,13 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
       const context = eventContext(env, options);
       const events = [...responses.values()].map(({ draft }) => buildEvent(draft, context));
       stats.eventsEmitted = events.length;
-      return { adapterId: ADAPTER_ID, events, warnings: warnings.toArray(), stats };
+      return {
+        adapterId: ADAPTER_ID,
+        events,
+        capacityEvents: dedupeCapacityEvents(capacityEvents),
+        warnings: warnings.toArray(),
+        stats,
+      };
     },
   };
 }

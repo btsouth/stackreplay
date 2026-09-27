@@ -34,6 +34,7 @@ import {
   validateExportValue,
 } from "../lib/import-validation";
 import type { MarketDecision } from "../lib/market-decision";
+import { summarizeCapacity } from "../lib/observed-capacity";
 import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
 import { reviewWorkload } from "../lib/review-workload";
 import { runScopedReplay } from "../lib/scoped-replay";
@@ -106,7 +107,16 @@ async function handleMarket(
     ];
     if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
     const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
-    const decision: MarketDecision = { scenarios: [], history: scoped.history };
+    const decision: MarketDecision = {
+      scenarios: [],
+      history: scoped.history,
+      capacity: summarizeCapacity(
+        loaded.exported.capacityObservations,
+        scoped.events,
+        request.period,
+        request.resourceInstanceId,
+      ),
+    };
     // The existing compiled evaluator retains its one-cycle observation guard.
     // Explain this unsupported input rather than suggesting a retry or clipping calls.
     const period = inputs[0]?.scenario.period;
