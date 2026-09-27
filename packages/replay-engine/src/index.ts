@@ -39,6 +39,7 @@ export {
   reconstructListPrice,
   resolutionExpectation,
 } from "./backtest.js";
+export type { ReplayObservers, SubscriptionEventObservation } from "./engine.js";
 export {
   type ApiPriceabilityCountsV1,
   type ReplayInput,
@@ -49,6 +50,16 @@ export {
 } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+export {
+  type CapacityEvidenceV1,
+  capacityEvidenceV1Schema,
+  evaluateStackCandidate,
+  type StackAssignment,
+  type StackAttempt,
+  type StackCandidateInput,
+  type StackCandidateResult,
+  type StackRouteEvaluation,
+} from "./optimizer.js";
 export {
   crossingCount,
   dispositionCount,

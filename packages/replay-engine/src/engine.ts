@@ -126,6 +126,17 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
 /** How many events of a Direct API replay fared each way. */
 export type ApiPriceabilityCountsV1 = Record<ApiEventPriceability, number>;
 
+export interface SubscriptionEventObservation {
+  disposition: ReplayDispositionKindV1;
+  modelId: string | undefined;
+  blockingLimitIds: readonly string[];
+}
+
+export interface ReplayObservers {
+  subscription?: (event: TextUsageEventV1, observation: SubscriptionEventObservation) => void;
+  api?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+}
+
 /**
  * A replay together with the price receipt behind its money (see `receipt.ts`).
  *
@@ -137,7 +148,10 @@ export type ApiPriceabilityCountsV1 = Record<ApiEventPriceability, number>;
  * each way (`priceability`), so an interface can say what would complete a
  * cost from the questions the replay itself asked.
  */
-export function replayWithReceipt(input: ReplayInput): {
+export function replayWithReceipt(
+  input: ReplayInput,
+  observers: ReplayObservers = {},
+): {
   result: ExecutionReplayResultV1;
   receipt: PriceReceiptV1 | undefined;
   priceability: ApiPriceabilityCountsV1 | undefined;
@@ -171,11 +185,13 @@ export function replayWithReceipt(input: ReplayInput): {
       : {
           observe: (_event: TextUsageEventV1, outcome: ApiEventPriceability) => {
             counts[outcome] += 1;
+            observers.api?.(_event, outcome);
           },
         }),
     ...(undecidedAt === undefined
       ? {}
       : { onUndecided: (occurredAt: string) => undecidedAt.push(occurredAt) }),
+    ...(observers.subscription === undefined ? {} : { onSubscription: observers.subscription }),
   });
   const built = receipt.build();
   return {
@@ -206,6 +222,7 @@ function replayWith(
     observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
     /** Subscription targets: told when each undecided event occurred. */
     onUndecided?: (occurredAt: string) => void;
+    onSubscription?: ReplayObservers["subscription"];
   },
 ): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
@@ -260,7 +277,25 @@ function replayWith(
     translationApplication,
   );
   const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker, extras.receipt);
-  const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
+  const evaluation = evaluateConstraints(
+    timed,
+    resolution,
+    prepared,
+    planVersion,
+    tracker,
+    extras.onSubscription !== undefined,
+  );
+  if (extras.onSubscription !== undefined) {
+    for (const { event } of timed) {
+      const entry = prepared.get(event.id);
+      if (entry === undefined) continue;
+      extras.onSubscription(event, {
+        disposition: dispositionOf(entry),
+        modelId: entry.resolution.sourceModelId,
+        blockingLimitIds: entry.blockingLimitIds ?? [],
+      });
+    }
+  }
   const coverage = computeCoverage(timed, prepared, planVersion, tracker);
   const confidence = computeConfidence(
     timed,
@@ -536,7 +571,7 @@ function resolveTargetPlan(
   return selected;
 }
 
-function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
+export function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
   if (!Array.isArray(events))
     throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Events must be an array.");
   const validated: TextUsageEventV1[] = [];
@@ -730,6 +765,7 @@ function resolveModels(
 }
 
 interface PreparedEvent {
+  blockingLimitIds?: string[];
   resolution: ModelResolution;
   /** Disjoint canonical token accounting for this event. */
   tokens: TokenAccounting;
@@ -1010,6 +1046,7 @@ function evaluateConstraints(
   prepared: ReadonlyMap<string, PreparedEvent>,
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
+  captureBlockingLimits = false,
 ): ConstraintEvaluation {
   const runtimes: ConstraintRuntime[] = planVersion.limits.map((limit) => {
     const eligible = timed.filter(({ event }) => {
@@ -1085,6 +1122,8 @@ function evaluateConstraints(
 
     if (rejecting.length > 0) {
       preparedEvent.outcome = "rejected";
+      if (captureBlockingLimits)
+        preparedEvent.blockingLimitIds = rejecting.map(({ rt }) => rt.limit.id);
       for (const rejection of rejecting) {
         const run = rejection.rt.slices[rejection.index] as SliceRun;
         run.affectedEvents += 1;
