@@ -1,6 +1,12 @@
 import type { LimitWindowV1 } from "@stackreplay/catalog";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-import { type CalendarUnit, calendarBucketBoundsMs, durationToMs, epochMsFromIso } from "./time.js";
+import {
+  type CalendarUnit,
+  calendarBucketBoundsMs,
+  durationToMs,
+  epochMsFromIso,
+  subMillisecondNanoseconds,
+} from "./time.js";
 
 /**
  * Window slicing (spec point 24). Boundaries are half-open: [start, end).
@@ -39,7 +45,7 @@ export interface WindowSlice {
 export function toTimedEvents(events: readonly TextUsageEventV1[]): TimedEvent[] {
   return events.map((event) => ({
     atMs: epochMsFromIso(event.occurredAt),
-    subMs: Number((event.occurredAt.split(".")[1]?.slice(0, -1) ?? "").padEnd(9, "0").slice(3)),
+    subMs: subMillisecondNanoseconds(event.occurredAt),
     event,
   }));
 }

@@ -57,8 +57,10 @@ describe("C2A accepted current-market snapshot", () => {
           basis: "current-market",
         },
       });
-      expect(version?.claims).toHaveLength(claimCount);
-      for (const claim of version?.claims ?? []) {
+      // D0 adds optional overlay evidence; the historical base claim set and artifact stay pinned.
+      const originalClaims = version?.claims.filter((c) => !c.id.endsWith("-d0"));
+      expect(originalClaims).toHaveLength(claimCount);
+      for (const claim of originalClaims ?? []) {
         expect(claim.authority).toBe("provider");
         expect(claim.sourceUrl).toMatch(/^https:\/\//);
         expect(claim.effectiveDateBasis).toBe("catalog_activation");

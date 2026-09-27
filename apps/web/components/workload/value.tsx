@@ -114,6 +114,18 @@ export function WorkloadValueFigure({
           </>
         )}
       </p>
+      {value.priced.some((slice) =>
+        slice.receipt?.lines.some((line) => line.category === "cacheWrite" && line.tokens > 0),
+      ) ? (
+        <p
+          className="max-w-[70ch] text-xs leading-relaxed text-muted-foreground"
+          data-testid="legacy-cache-assumption"
+        >
+          This earlier pricing view uses catalog cache-write defaults, not observed retention
+          durations. For Claude writes, that is the 5-minute assumption. Workload’s published API
+          equivalent shows both duration alternatives.
+        </p>
+      ) : null}
       {afterScope}
       {leftOut === undefined ? null : (
         <p

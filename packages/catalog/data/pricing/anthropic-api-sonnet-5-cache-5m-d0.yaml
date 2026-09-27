@@ -1,0 +1,25 @@
+id: anthropic-api-sonnet-5-cache-5m-d0
+role: pricing
+modelId: claude-sonnet-5
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: anthropic-messages-global
+rateVersion: current-20260927
+rates:
+  input: '2'
+  output: '10'
+  cacheRead: '0.20'
+  cacheWrite: '2.5'
+  reasoning:
+    billedAs: output
+effectiveFrom: '2026-09-27'
+effectiveFromInstant: '2026-09-27T18:20:00Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Explicit 5m cache-write interpretation; no inference from imported timestamps
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified
+variantId: cache-write-5m

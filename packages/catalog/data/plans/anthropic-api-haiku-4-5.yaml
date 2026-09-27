@@ -1,6 +1,6 @@
 id: anthropic-api-haiku-4-5
 role: plan
-name: "Anthropic API: Claude Haiku 4.5"
+name: 'Anthropic API: Claude Haiku 4.5'
 providerId: anthropic
 versions: []
 executionVersions:
@@ -30,7 +30,8 @@ executionVersions:
     authority: provider
     certainty: published_deterministic
     locator: current model or pricing listing
-    excerpt: Model and listed rates were current at review; provider effective date was not established.
+    excerpt: Model and listed rates were current at review; provider effective date
+      was not established.
     normalizedClaimHash: sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813
     evidencePackageHash: sha256:c0e4c76df456d619b2da5c920eb807a2c9832da6b8471a393621fa65c00664ce
     reviewer: Codex C2A manual official-source review
@@ -58,11 +59,25 @@ executionVersions:
     authority: provider
     certainty: published_deterministic
     locator: model price row
-    excerpt: USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes
-      need duration and are unresolved here.
+    excerpt: USD per 1M base input, output and cache-read tokens; standard global
+      Claude API. Cache writes need duration and are unresolved here.
     normalizedClaimHash: sha256:924080d2ac9cbbf9a199902222292b6b513af75546b29131f763892126ce3d75
     evidencePackageHash: sha256:6f3d0f70d561478115114c120ca2b7342c994d88b1a80e6acfa8b7be343fb89d
     reviewer: Codex C2A manual official-source review
+  - id: cache-duration-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Cache writes: five minutes at 1.25 times input; one hour at 2 times
+      input. Imported undifferentiated writes do not establish which duration applied.'
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:dfb53162630812395c274d842d8fca05eab8e36a9fd89603fe0fae588aa23b6d
+    evidencePackageHash: sha256:e6e68c2287486a2ca9befa78359ba5a5e40ee118eda45a602a49c4d4d55f9ec5
   requirements:
   - id: paid-api-account
     scope: plan
@@ -107,3 +122,36 @@ executionVersions:
     claimRefs:
     - route
   capabilities: []
+executionOverlays:
+- id: cache-write-5m-d0
+  validFrom: '2026-09-27T18:20:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-haiku-4-5-current-20260927
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-haiku-4-5-cache-5m-d0
+    claimRefs:
+    - cache-duration-d0
+- id: cache-write-1h-d0
+  validFrom: '2026-09-27T18:20:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-haiku-4-5-current-20260927
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-haiku-4-5-cache-1h-d0
+    claimRefs:
+    - cache-duration-d0

@@ -437,3 +437,43 @@ describe("optimizer AbortSignal lifetime", () => {
     client.dispose();
   });
 });
+
+describe("market decision cancellation and generations", () => {
+  it("never launches a pre-aborted market run", async () => {
+    const client = new ReplayWorkerClient();
+    const before = FakeWorker.instances.length;
+    await expect(client.apiMarket("a", AbortSignal.abort())).rejects.toBeInstanceOf(
+      SupersededError,
+    );
+    expect(FakeWorker.instances.length).toBe(before);
+    client.dispose();
+  });
+  it("rejects replaced market work and drops its late success", async () => {
+    const client = new ReplayWorkerClient();
+    const old = client.apiMarket("old");
+    const rejected = expect(old).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const oldId = (worker.sent.at(-1) as WorkerRequest).requestId;
+    const next = client.apiMarket("new");
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "API_MARKET_OK", requestId: oldId, decision: { scenarios: [] } });
+    worker.reply({ type: "API_MARKET_OK", requestId: id, decision: { scenarios: [] } });
+    await rejected;
+    expect(await next).toEqual({ scenarios: [] });
+    client.dispose();
+  });
+  it("aborts a running market child without publishing success", async () => {
+    const client = new ReplayWorkerClient(),
+      abort = new AbortController();
+    const result = client.apiMarket("a", abort.signal);
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    abort.abort();
+    await rejected;
+    expect(worker.sent.at(-1)?.type).toBe("CANCEL_OPTIMIZER");
+    worker.reply({ type: "API_MARKET_OK", requestId: id, decision: { scenarios: [] } });
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    client.dispose();
+  });
+});

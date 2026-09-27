@@ -218,6 +218,7 @@ export function bundledApiProviders(rulesAsOf?: string): BundledApiProviderSumma
     Object.values(catalog.pricing)
       .filter(
         (pricing) =>
+          pricing.variantId === undefined &&
           pricing.basis === "api_list_price" &&
           (rulesAsOf === undefined || coversInstant(rulesAsOf, pricing)),
       )
@@ -331,7 +332,12 @@ export function bundledApiProviderModels(
   const catalog = loadBundledCatalog();
   const priced = new Set(
     Object.values(catalog.pricing)
-      .filter((pricing) => pricing.basis === "api_list_price" && coversInstant(rulesAsOf, pricing))
+      .filter(
+        (pricing) =>
+          pricing.variantId === undefined &&
+          pricing.basis === "api_list_price" &&
+          coversInstant(rulesAsOf, pricing),
+      )
       .map((pricing) => pricing.modelId),
   );
   return Object.values(catalog.models)

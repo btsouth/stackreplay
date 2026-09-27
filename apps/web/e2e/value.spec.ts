@@ -53,6 +53,14 @@ test("the workload opens with its value, scope, tool split and comparative facts
   await page.goto("/app/workload");
   const opening = page.getByTestId("workload-opening");
   await expect(opening.getByTestId("value-figure")).toBeVisible({ timeout: 60_000 });
+  // D0 deliberately makes the admitted market answer the first instrument.
+  // Keep the legacy valuation/insight assertions, and verify the new leading answer.
+  await expect(opening.getByTestId("market-total")).toHaveText("Full total unavailable");
+  await expect(opening.getByTestId("market-coverage")).toContainText("31 days");
+  await expect(opening.getByTestId("market-total")).toBeInViewport();
+  await opening
+    .getByRole("region", { name: "Published API valuation", exact: true })
+    .evaluate((section) => section.scrollIntoView({ block: "start" }));
   await expect(opening.getByTestId("value-figure")).toBeInViewport();
   await expect(opening.getByTestId("value-caption")).toBeInViewport();
   await expect(opening.getByTestId("value-scope")).toContainText("included calls priced");

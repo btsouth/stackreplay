@@ -901,3 +901,18 @@ function withPricing(overrides: Record<string, PricingV1>): CatalogV1 {
     pricing: { ...apiFixturePricing, ...overrides },
   });
 }
+
+it("never automatically selects an explicitly bound pricing variant", () => {
+  const catalog = makeApiFixtureCatalog();
+  const base = Object.values(catalog.pricing).find((p) => p.modelId === "fixture-api-small");
+  if (!base) throw new Error("missing base fixture price");
+  const events = [apiEvent("e1", "fixture-api-small")];
+  const before = apiReplay(events, { catalog });
+  catalog.pricing["optional-variant"] = {
+    ...base,
+    id: "optional-variant",
+    variantId: "explicit-only",
+    rates: { input: "0", output: "0" },
+  };
+  expect(apiReplay(events, { catalog })).toEqual(before);
+});

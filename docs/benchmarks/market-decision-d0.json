@@ -1,0 +1,86 @@
+{
+  "method": "Production owner/child Workers in Chromium through the existing isolated browser suite; two deterministic API scenarios per run; timings include owner preparation and both child transfers/evaluations, exclude import. Two runs per size, concurrent suite load. No new heap/RSS profiling.",
+  "samples": [
+    {
+      "count": 10000,
+      "ms": 1480.0999999996275,
+      "repeatMs": 1324.5,
+      "cancelMs": 31.200000000186265,
+      "ticks": 311,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 34814,
+      "cases": [
+        {
+          "required": 10000,
+          "modeled": 10000,
+          "status": "feasible",
+          "assignments": 10000,
+          "hasEvents": false
+        },
+        {
+          "required": 10000,
+          "modeled": 10000,
+          "status": "feasible",
+          "assignments": 10000,
+          "hasEvents": false
+        }
+      ]
+    },
+    {
+      "count": 50000,
+      "ms": 5520.899999999441,
+      "repeatMs": 5145.0999999996275,
+      "cancelMs": 41.10000000055879,
+      "ticks": 1144,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 34920,
+      "cases": [
+        {
+          "required": 50000,
+          "modeled": 50000,
+          "status": "feasible",
+          "assignments": 50000,
+          "hasEvents": false
+        },
+        {
+          "required": 50000,
+          "modeled": 50000,
+          "status": "feasible",
+          "assignments": 50000,
+          "hasEvents": false
+        }
+      ]
+    },
+    {
+      "count": 100000,
+      "ms": 9162.299999999814,
+      "repeatMs": 9966.700000000186,
+      "cancelMs": 67,
+      "ticks": 2057,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 34961,
+      "cases": [
+        {
+          "required": 100000,
+          "modeled": 100000,
+          "status": "feasible",
+          "assignments": 100000,
+          "hasEvents": false
+        },
+        {
+          "required": 100000,
+          "modeled": 100000,
+          "status": "feasible",
+          "assignments": 100000,
+          "hasEvents": false
+        }
+      ]
+    }
+  ]
+}

@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:7bae27ce2f09c6f2de52e5db0bddd009bb38b1868c1bb2943a6069c83c35e1c4";
+export const BUNDLED_CATALOG_VERSION = "sha256:6e26ff4332ef8b0f225ba72cd514910bb45a1263461b6df7ef83b1de401ad81f";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:7bae27ce2f09c6f2de52e5db0bddd009bb38b1868c1bb2943a6069c83c35e1c4",
+  "catalogVersion": "sha256:6e26ff4332ef8b0f225ba72cd514910bb45a1263461b6df7ef83b1de401ad81f",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -2568,6 +2568,21 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "normalizedClaimHash": "sha256:924080d2ac9cbbf9a199902222292b6b513af75546b29131f763892126ce3d75",
               "evidencePackageHash": "sha256:6f3d0f70d561478115114c120ca2b7342c994d88b1a80e6acfa8b7be343fb89d",
               "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Cache writes: five minutes at 1.25 times input; one hour at 2 times input. Imported undifferentiated writes do not establish which duration applied.",
+              "normalizedClaimHash": "sha256:dfb53162630812395c274d842d8fca05eab8e36a9fd89603fe0fae588aa23b6d",
+              "evidencePackageHash": "sha256:e6e68c2287486a2ca9befa78359ba5a5e40ee118eda45a602a49c4d4d55f9ec5",
+              "reviewer": "Codex D0 manual first-party review"
             }
           ],
           "requirements": [
@@ -2632,6 +2647,56 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             ]
           },
           "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T18:20:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-haiku-4-5-current-20260927"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-haiku-4-5-cache-5m-d0",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T18:20:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-haiku-4-5-current-20260927"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-haiku-4-5-cache-1h-d0",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -2710,6 +2775,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "normalizedClaimHash": "sha256:b8a7721c939e75663ed36fa99bfb0d939dc0a333b9ec398fdc5ea317d8da69e5",
               "evidencePackageHash": "sha256:0805cdb05e5cc19380a81219a3003877caf7cbd14565fb38172b4945df26d7db",
               "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Cache writes: five minutes at 1.25 times input; one hour at 2 times input. Imported undifferentiated writes do not establish which duration applied.",
+              "normalizedClaimHash": "sha256:dfb53162630812395c274d842d8fca05eab8e36a9fd89603fe0fae588aa23b6d",
+              "evidencePackageHash": "sha256:e6e68c2287486a2ca9befa78359ba5a5e40ee118eda45a602a49c4d4d55f9ec5",
+              "reviewer": "Codex D0 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:30:00Z",
+              "reviewedAt": "2026-09-27T18:30:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Thinking tokens are billed at output token rates; normalized inclusive output accounting remains authoritative.",
+              "excerpt": "Thinking tokens are billed at output token rates; normalized inclusive output accounting remains authoritative.",
+              "normalizedClaimHash": "sha256:783abc998e4d96262f18efb3024d8335631509df22ce84f7381d04fbeaabb2eb",
+              "evidencePackageHash": "sha256:aa181a71ff7beee238e6bfef9034bf5b76c7e8e2b29869d029d11d14aa97121b",
+              "reviewer": "Codex D0 manual first-party review"
             }
           ],
           "requirements": [
@@ -2774,6 +2870,76 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             ]
           },
           "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T18:30:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-sonnet-5-current-20260927"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-sonnet-5-cache-5m-d0",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-sonnet-5-cache-5m-d0",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T18:30:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-sonnet-5-current-20260927"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-sonnet-5-cache-1h-d0",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-sonnet-5-cache-1h-d0",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -8549,6 +8715,237 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             ]
           },
           "capabilities": []
+        }
+      ]
+    },
+    "openai-api-gpt-5-6-sol": {
+      "id": "openai-api-gpt-5-6-sol",
+      "role": "plan",
+      "name": "OpenAI API: GPT-5.6 Sol",
+      "providerId": "openai",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "openai-api-gpt-5-6-sol-d0-20260927",
+          "validity": {
+            "start": "2026-09-27T18:20:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T18:20:00Z",
+            "reviewedAt": "2026-09-27T18:20:00Z",
+            "catalogActivatedAt": "2026-09-27T18:20:00Z"
+          },
+          "productId": "openai-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current GPT-5.6 Sol exact model; Responses and Chat Completions endpoints.",
+              "normalizedClaimHash": "sha256:a0c142f6204e8dee0a586602a5123f65b3dae0f82477f17f67f6838757324c0f",
+              "evidencePackageHash": "sha256:4d02af7f096b1cb323953863f6276d451cdc33790f170d44f1698b6d756adaf9",
+              "reviewer": "Codex D0 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Exact gpt-5.6-sol through standard Responses using a separately paid API account.",
+              "normalizedClaimHash": "sha256:7d2a263f0bb9d4a7317d608de582a58d47a13039367befb29fe515c45d9b5cc1",
+              "evidencePackageHash": "sha256:683ce4ff68540ffcfb95f50ee10068cdfe39a5278f1c79780a37b4ec25fdc9f1",
+              "reviewer": "Codex D0 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Permanent post-promotion prices are not established by this admission; the base rate is explicitly unresolved.",
+              "normalizedClaimHash": "sha256:d349d4a0d16784ae22c575bbdd1c4c3e9795cb486ca701612ff51948f3315d1a",
+              "evidencePackageHash": "sha256:4415f64144f5cf0bf0dea49fecca950d7a95671f88cc2a328ee279ff043ac47d",
+              "reviewer": "Codex D0 manual first-party review"
+            },
+            {
+              "id": "promotion",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Promotional USD/1M input 4, cached input 0.4, writes 5, output 20; full-request above 272K: 8, 0.8, 10, 30. Available at least through 2026-11-21. Catalog review horizon is 2026-10-27, not promotion expiry.",
+              "normalizedClaimHash": "sha256:b94058f0ff0255acf2d6af80f1b87de9b202aa2fa39703ce47bd85bb00d7fbff",
+              "evidencePackageHash": "sha256:41e0b9e24d5e937e74d26ec61bf97eb915478b09a1f1fef2fde858a975b4be87",
+              "reviewer": "Codex D0 manual first-party review"
+            },
+            {
+              "id": "reasoning",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/guides/reasoning",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T18:20:00Z",
+              "reviewedAt": "2026-09-27T18:20:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Reasoning tokens are billed as output tokens.",
+              "normalizedClaimHash": "sha256:f18a5d67d10bcbc90e9bc33bc9431e7221e2a1b7eafb8e23cc4fc6b303f9ce55",
+              "evidencePackageHash": "sha256:2a0eb127136c7241b1c8de1f1ee67393ba95ab5c7174264abee39f8147126afb",
+              "reviewer": "Codex D0 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": null,
+              "basis": "api_list_price",
+              "endpointId": "openai-responses-standard",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "openai-responses-standard",
+              "protocol": "openai-responses",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "gpt-5-6-sol"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "gpt-5-6-sol-promotion-d0",
+          "validFrom": "2026-09-27T18:20:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "openai-api-gpt-5-6-sol-d0-20260927"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "promotion"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "input",
+              "pricingRef": "openai-api-gpt-5-6-sol-promotion-rate",
+              "claimRefs": [
+                "promotion"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "output",
+              "pricingRef": "openai-api-gpt-5-6-sol-promotion-rate",
+              "claimRefs": [
+                "promotion"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheRead",
+              "pricingRef": "openai-api-gpt-5-6-sol-promotion-rate",
+              "claimRefs": [
+                "promotion"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "openai-api-gpt-5-6-sol-promotion-rate",
+              "claimRefs": [
+                "promotion"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "openai-api-gpt-5-6-sol-promotion-rate",
+              "claimRefs": [
+                "reasoning"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -15090,6 +15487,64 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "pricing": {
+    "anthropic-api-haiku-4-5-cache-1h-d0": {
+      "id": "anthropic-api-haiku-4-5-cache-1h-d0",
+      "role": "pricing",
+      "modelId": "claude-haiku-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "1",
+        "output": "5",
+        "cacheRead": "0.10",
+        "cacheWrite": "2"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T18:20:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Explicit 1h cache-write interpretation; no inference from imported timestamps",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-haiku-4-5-cache-5m-d0": {
+      "id": "anthropic-api-haiku-4-5-cache-5m-d0",
+      "role": "pricing",
+      "modelId": "claude-haiku-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "1",
+        "output": "5",
+        "cacheRead": "0.10",
+        "cacheWrite": "1.25"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T18:20:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Explicit 5m cache-write interpretation; no inference from imported timestamps",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
     "anthropic-api-haiku-4-5-current-rate": {
       "id": "anthropic-api-haiku-4-5-current-rate",
       "role": "pricing",
@@ -15111,6 +15566,70 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://platform.claude.com/docs/en/about-claude/pricing",
           "title": "USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes need duration and are unresolved here.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-sonnet-5-cache-1h-d0": {
+      "id": "anthropic-api-sonnet-5-cache-1h-d0",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.20",
+        "cacheWrite": "4",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T18:20:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Explicit 1h cache-write interpretation; no inference from imported timestamps",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-sonnet-5-cache-5m-d0": {
+      "id": "anthropic-api-sonnet-5-cache-5m-d0",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T18:20:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Explicit 5m cache-write interpretation; no inference from imported timestamps",
           "checkedAt": "2026-09-27"
         }
       ],
@@ -17790,6 +18309,61 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
           "title": "USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and tool charges are outside this route.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "openai-api-gpt-5-6-sol-promotion-rate": {
+      "id": "openai-api-gpt-5-6-sol-promotion-rate",
+      "role": "pricing",
+      "modelId": "gpt-5-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "openai-responses-standard",
+      "rateVersion": "current-20260927",
+      "variantId": "promotion-d0",
+      "rates": {
+        "input": "4.00",
+        "output": "20.00",
+        "cacheRead": "0.40",
+        "cacheWrite": "5.00",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens (priced at 2x input and cache rates, 1.5x output, for the full request)",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "8.00",
+            "output": "30.00",
+            "cacheRead": "0.80",
+            "cacheWrite": "10.00",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T18:20:00Z",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+          "title": "Current temporary standard rates, full-request context tier, explicit cache-write rate; promotion at least through November 21",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/guides/reasoning",
+          "title": "Reasoning billed as output",
           "checkedAt": "2026-09-27"
         }
       ],

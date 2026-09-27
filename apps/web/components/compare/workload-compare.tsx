@@ -164,6 +164,12 @@ export function WorkloadCompare({
           {plainRange(profile.overview.firstDate, profile.overview.lastDate)}
         </p>
       </div>
+      <Link
+        href={`/app/workload?import=${encodeURIComponent(record.id)}#api-market`}
+        className="text-sm text-accent underline underline-offset-4"
+      >
+        Full admitted API equivalent · all recorded calls →
+      </Link>
       <section aria-labelledby="decision-heading">
         <h2 id="decision-heading" className="text-lg font-medium">
           What are you deciding?

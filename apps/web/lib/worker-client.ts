@@ -7,6 +7,7 @@ import type {
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { MarketDecision } from "./market-decision";
 import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
 import { browserTimeZone } from "./time-zone";
 import type { OptimizerConfiguration } from "./worker-protocol";
@@ -355,11 +356,13 @@ export class ReplayWorkerClient {
         "DELETE_LOCAL_IMPORT",
         "RUN_REPLAY",
         "OPTIMIZE",
+        "API_MARKET",
         "CANCEL_OPTIMIZER",
       ].includes(request.type)
     )
       this.invalidateOptimizer();
-    if (request.type === "OPTIMIZE") this.optimizerGeneration = requestId;
+    if (request.type === "OPTIMIZE" || request.type === "API_MARKET")
+      this.optimizerGeneration = requestId;
     return new Promise<WorkerResponse>((resolve, reject) => {
       const entry: Pending = { resolve, reject, channel, ...(onProgress ? { onProgress } : {}) };
       this.pending.set(requestId, entry);
@@ -391,6 +394,27 @@ export class ReplayWorkerClient {
       type: "CANCEL_OPTIMIZER",
       requestId,
     }));
+  }
+  async apiMarket(importId: string, signal?: AbortSignal): Promise<MarketDecision> {
+    if (signal?.aborted) throw new SupersededError();
+    let generation = 0;
+    const pending = this.send(
+      (requestId) => {
+        generation = requestId;
+        return { protocol: WORKER_PROTOCOL_VERSION, type: "API_MARKET", requestId, importId };
+      },
+      undefined,
+      "optimizer",
+    );
+    const abort = () => {
+      if (this.optimizerGeneration === generation)
+        void this.cancelOptimizer().catch(() => undefined);
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
+    const response = await pending;
+    if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
+    return response.decision;
   }
   async optimize(
     importId: string,

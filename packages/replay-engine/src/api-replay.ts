@@ -611,6 +611,7 @@ function buildApiPricingHistory(catalog: CatalogV1): {
   const byModel = new Map<string, PricingV1[]>();
   const otherBasisModels = new Set<string>();
   for (const pricing of Object.values(catalog.pricing)) {
+    if (pricing.variantId !== undefined) continue;
     if (pricing.basis !== "api_list_price") {
       otherBasisModels.add(pricing.modelId);
       continue;

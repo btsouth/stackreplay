@@ -23,6 +23,7 @@ import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
 import { PartialScanNotice, ScanEvidence } from "./evidence";
 import { count, percent, plainDay, plainRange } from "./format";
+import { MarketDecisionSurface } from "./market-decision";
 import { ModelMix } from "./models";
 import { HistoricalPressure } from "./pressure";
 import { ProjectLedger } from "./projects";
@@ -505,11 +506,16 @@ function WorkloadOpening({
         </div>
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
+      <MarketDecisionSurface key={record.id} importId={record.id} />
       <section
         className="flex min-w-0 flex-col gap-2 border-t border-border pt-5"
         aria-label="Published API valuation"
       >
-        <MicroLabel>What this work is worth</MicroLabel>
+        <MicroLabel>Recorded provider valuation</MicroLabel>
+        <p className="text-xs text-muted-foreground">
+          Historical replay pricing view. The admitted market calculation above uses its own pinned
+          evidence and explicit cache assumptions; these are distinct pricing methods.
+        </p>
         {profile?.value === undefined ? (
           <>
             <p className="text-sm text-muted-foreground" role="status" data-testid="value-pending">

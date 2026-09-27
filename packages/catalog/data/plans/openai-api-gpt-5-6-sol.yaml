@@ -1,0 +1,176 @@
+id: openai-api-gpt-5-6-sol
+role: plan
+name: 'OpenAI API: GPT-5.6 Sol'
+providerId: openai
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: openai-api-gpt-5-6-sol-d0-20260927
+  productId: openai-direct-api
+  validity:
+    start: '2026-09-27T18:20:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    catalogActivatedAt: '2026-09-27T18:20:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current GPT-5.6 Sol exact model; Responses and Chat Completions endpoints.
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:a0c142f6204e8dee0a586602a5123f65b3dae0f82477f17f67f6838757324c0f
+    evidencePackageHash: sha256:4d02af7f096b1cb323953863f6276d451cdc33790f170d44f1698b6d756adaf9
+  - id: route
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Exact gpt-5.6-sol through standard Responses using a separately paid
+      API account.
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:7d2a263f0bb9d4a7317d608de582a58d47a13039367befb29fe515c45d9b5cc1
+    evidencePackageHash: sha256:683ce4ff68540ffcfb95f50ee10068cdfe39a5278f1c79780a37b4ec25fdc9f1
+  - id: rate
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Permanent post-promotion prices are not established by this admission;
+      the base rate is explicitly unresolved.
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:d349d4a0d16784ae22c575bbdd1c4c3e9795cb486ca701612ff51948f3315d1a
+    evidencePackageHash: sha256:4415f64144f5cf0bf0dea49fecca950d7a95671f88cc2a328ee279ff043ac47d
+  - id: promotion
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Promotional USD/1M input 4, cached input 0.4, writes 5, output 20; full-request
+      above 272K: 8, 0.8, 10, 30. Available at least through 2026-11-21. Catalog review
+      horizon is 2026-10-27, not promotion expiry.'
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:b94058f0ff0255acf2d6af80f1b87de9b202aa2fa39703ce47bd85bb00d7fbff
+    evidencePackageHash: sha256:41e0b9e24d5e937e74d26ec61bf97eb915478b09a1f1fef2fde858a975b4be87
+  - id: reasoning
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/guides/reasoning
+    sourceType: provider_docs
+    observedAt: '2026-09-27T18:20:00Z'
+    reviewedAt: '2026-09-27T18:20:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Reasoning tokens are billed as output tokens.
+    reviewer: Codex D0 manual first-party review
+    normalizedClaimHash: sha256:f18a5d67d10bcbc90e9bc33bc9431e7221e2a1b7eafb8e23cc4fc6b303f9ce55
+    evidencePackageHash: sha256:2a0eb127136c7241b1c8de1f1ee67393ba95ab5c7174264abee39f8147126afb
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: null
+    basis: api_list_price
+    endpointId: openai-responses-standard
+    rateVersion: current-20260927
+    denomination: USD
+    claimRefs:
+    - rate
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: openai-responses-standard
+    protocol: openai-responses
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - gpt-5-6-sol
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []
+executionOverlays:
+- id: gpt-5-6-sol-promotion-d0
+  validFrom: '2026-09-27T18:20:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - openai-api-gpt-5-6-sol-d0-20260927
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - promotion
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: input
+    pricingRef: openai-api-gpt-5-6-sol-promotion-rate
+    claimRefs:
+    - promotion
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: output
+    pricingRef: openai-api-gpt-5-6-sol-promotion-rate
+    claimRefs:
+    - promotion
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheRead
+    pricingRef: openai-api-gpt-5-6-sol-promotion-rate
+    claimRefs:
+    - promotion
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: openai-api-gpt-5-6-sol-promotion-rate
+    claimRefs:
+    - promotion
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: openai-api-gpt-5-6-sol-promotion-rate
+    claimRefs:
+    - reasoning

@@ -16,7 +16,13 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { parseInstant, toTimedEvents } from "@stackreplay/replay-engine";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
+import {
+  type CompiledOptimizationInput,
+  marketDecisionInputs,
+  parseInstant,
+  toTimedEvents,
+} from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -25,6 +31,7 @@ import {
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import type { MarketDecision } from "../lib/market-decision";
 import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
 import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
@@ -57,14 +64,80 @@ import { summarizeExport } from "../lib/workload-summary";
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 const sessionWorkloads = new Map<string, { record: ImportRecord; exported: StackReplayExportV1 }>();
 const optimizer = new OptimizerRuntime();
+const marketOptimizer = new OptimizerRuntime<CompiledOptimizationInput>();
 let optimizerGeneration = 0;
 function cancelOptimizer(): void {
   optimizerGeneration = 0;
   optimizer.cancel();
+  marketOptimizer.cancel();
+}
+async function handleMarket(
+  request: Extract<WorkerRequest, { type: "API_MARKET" }>,
+): Promise<void> {
+  cancelOptimizer();
+  optimizerGeneration = request.requestId;
+  const current = () => optimizerGeneration === request.requestId;
+  try {
+    const loaded = await loadWorkloadEvents(request.importId, current);
+    if (!loaded.ok) throw new Error("Workload unavailable");
+    if (!current()) throw new OptimizerCancelledError();
+    const inputs = marketDecisionInputs(
+      loadBundledCatalog(),
+      DECISION_MARKET,
+      loaded.exported.events,
+    );
+    const decision: MarketDecision = { scenarios: [] };
+    // The existing compiled evaluator retains its one-cycle observation guard.
+    // Explain this unsupported input rather than suggesting a retry or clipping calls.
+    const period = inputs[0]?.scenario.period;
+    if (
+      period &&
+      parseInstant(period.end).epochNanoseconds - parseInstant(period.start).epochNanoseconds >
+        31n * 86400n * 1_000_000_000n
+    ) {
+      decision.unavailable = {
+        code: "observation_scope_unsupported",
+        calls: loaded.exported.events.length,
+        message:
+          "This market instrument currently supports observation spans up to 31 days. This workload is longer; no calls were removed to force a total. The recorded-provider valuation remains available below.",
+      };
+      if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
+      return;
+    }
+    for (const [i, input] of inputs.entries()) {
+      if (!current()) throw new OptimizerCancelledError();
+      const summary = await marketOptimizer.run(async () => input, {
+        onPhase: (phase) => {
+          if (current()) post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase });
+        },
+      });
+      if (!current()) throw new OptimizerCancelledError();
+      decision.scenarios.push({ id: DECISION_MARKET.scenarios[i]?.id ?? "unknown", summary });
+      marketOptimizer.cancel(); // Keep only durable aggregate receipts between interpretations.
+    }
+    if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
+  } catch (error) {
+    if (!current() || error instanceof OptimizerCancelledError)
+      post({ type: "CANCELLED", requestId: request.requestId });
+    else
+      post({
+        type: "ERROR",
+        requestId: request.requestId,
+        error: {
+          code: "REPLAY_FAILED",
+          title: "The market calculation could not complete.",
+          message:
+            "Keep the workload and retry. Unsupported scope or missing pricing remains unknown.",
+        },
+      });
+  } finally {
+    if (current()) marketOptimizer.cancel();
+  }
 }
 async function handleOptimize(
   request: Extract<WorkerRequest, { type: "OPTIMIZE" }>,
 ): Promise<void> {
+  cancelOptimizer();
   optimizerGeneration = request.requestId;
   try {
     const summary = await optimizer.run(
@@ -896,6 +969,9 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
     cancelOptimizer();
   try {
     switch (request.type) {
+      case "API_MARKET":
+        await handleMarket(request);
+        return;
       case "OPTIMIZE":
         await handleOptimize(request);
         return;

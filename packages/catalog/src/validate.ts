@@ -837,7 +837,7 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
     checkPricingSemantics(entry.value, entry.file, issues);
     pricingRanges.push({
       file: entry.file,
-      label: `pricing:${entry.value.modelId}:${entry.value.basis}:${entry.value.endpointId ?? "legacy"}`,
+      label: `pricing:${entry.value.modelId}:${entry.value.basis}:${entry.value.endpointId ?? "legacy"}:${entry.value.variantId ?? "base"}`,
       range: {
         from: entry.value.effectiveFrom,
         ...(entry.value.effectiveTo !== undefined ? { to: entry.value.effectiveTo } : {}),

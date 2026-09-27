@@ -332,6 +332,8 @@ export const pricingV1Schema = z.strictObject({
   /** Explicit endpoint and immutable rate revision for new execution selectors. */
   endpointId: catalogIdV1Schema.optional(),
   rateVersion: catalogIdV1Schema.optional(),
+  /** An explicitly selected interpretation/promotion; excluded from automatic price selection. */
+  variantId: catalogIdV1Schema.optional(),
   rates: pricingRateSetV1Schema,
   /** Conditional rate sets that override `rates` when their condition matches. */
   tiers: z.array(pricingTierV1Schema).optional(),

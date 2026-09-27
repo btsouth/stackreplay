@@ -7,6 +7,7 @@ import type {
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { MarketDecision } from "./market-decision";
 import type { OptimizerDetail, OptimizerPhase, OptimizerSummary } from "./optimizer-runtime";
 import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
@@ -224,6 +225,12 @@ export type OptimizerConfiguration = Omit<ExactOptimizationInput, "events" | "ca
 export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "API_MARKET";
+      requestId: number;
+      importId: string;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "OPTIMIZE";
       requestId: number;
       importId: string;
@@ -354,6 +361,7 @@ export interface ScanProgress {
 }
 
 export type WorkerResponse =
+  | { type: "API_MARKET_OK"; requestId: number; decision: MarketDecision }
   | { type: "OPTIMIZER_OK"; requestId: number; summary: OptimizerSummary }
   | { type: "OPTIMIZER_PHASE"; requestId: number; phase: OptimizerPhase }
   | { type: "OPTIMIZER_DETAIL_OK"; requestId: number; detail: OptimizerDetail }

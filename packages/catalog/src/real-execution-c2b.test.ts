@@ -102,8 +102,10 @@ describe("C2B manually admitted current market", () => {
         end: "2026-10-27T00:00:00Z",
         basis: "current-market",
       });
-      expect(version?.claims).toHaveLength(count);
-      for (const claim of version?.claims ?? []) {
+      // D0 adds optional overlay evidence; the historical base claim set and artifact stay pinned.
+      const originalClaims = version?.claims.filter((c) => !c.id.endsWith("-d0"));
+      expect(originalClaims).toHaveLength(count);
+      for (const claim of originalClaims ?? []) {
         expect(claim.sourceUrl).toMatch(/^https:\/\//);
         expect(claim.effectiveDateBasis).toBe("catalog_activation");
         if (!claim.sourceUrl || !claim.excerpt) throw new Error("C2B claim needs review text");
