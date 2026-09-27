@@ -456,6 +456,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByLabel("Local source account").selectOption("main");
     const capacity = page.getByTestId("observed-capacity");
     await expect(capacity).toContainText("1 direct capacity-limit event");
+    await capacity.getByText("Raw capacity evidence", { exact: true }).click();
     await capacity.getByText(/Inspect capacity timeline/).click();
     await expect(capacity).toContainText("Reset shown: 2026-09-16 13:00 UTC");
     await capacity.getByText("Workload before this event", { exact: true }).click();
@@ -466,7 +467,9 @@ for (const theme of ["dark", "light"] as const) {
     await capacity.getByLabel("Limit reached at (UTC)").fill("2026-09-17T12:00");
     await capacity.getByLabel("Notes (optional, local only)").fill("Synthetic private note");
     await capacity.getByRole("button", { name: "Confirm and save interruption locally" }).click();
-    await expect(capacity.getByRole("status")).toContainText("Interruption saved locally");
+    await expect(capacity.getByTestId("manual-capacity-status")).toContainText(
+      "Interruption saved locally",
+    );
     await expect(capacity).toContainText("1 additional user-confirmed interruption");
     expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
     await expect(page.getByTestId("share-preview")).not.toContainText("Synthetic private note");

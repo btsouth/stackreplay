@@ -7,6 +7,7 @@ import type {
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { CapacityBurden } from "./capacity-episodes";
 import type { MarketDecision } from "./market-decision";
 import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
 import { clearReviewState, localSourceRootSalt } from "./review-storage";
@@ -177,6 +178,8 @@ export class ReplayWorkerClient {
    */
   private failWorker(error: SafeError): void {
     this.marketSummaries.clear();
+    this.capacitySummaries.clear();
+    this.capacityEpoch++;
     this.invalidateOptimizer();
     this.clearReadyTimer();
     const worker = this.worker;
@@ -356,8 +359,11 @@ export class ReplayWorkerClient {
         "CLEAR_LOCAL_DATA",
         "DELETE_LOCAL_IMPORT",
       ].includes(request.type)
-    )
+    ) {
       this.marketSummaries.clear();
+      this.capacitySummaries.clear();
+      this.capacityEpoch++;
+    }
     if (
       [
         "IMPORT_FILE",
@@ -408,6 +414,33 @@ export class ReplayWorkerClient {
       type: "CANCEL_OPTIMIZER",
       requestId,
     }));
+  }
+  private capacityEpoch = 0;
+  private capacitySummaries = new Map<string, CapacityBurden>();
+  async capacityBurden(input: {
+    importId: string;
+    resourceInstanceId: string;
+    planId: string;
+    period: import("./review-period").ReviewPeriod;
+    contextImportIds: string[];
+  }): Promise<CapacityBurden> {
+    const normalized = { ...input, contextImportIds: [...new Set(input.contextImportIds)].sort() };
+    const key = JSON.stringify(normalized);
+    const cached = this.capacitySummaries.get(key);
+    if (cached) return cached;
+    const epoch = this.capacityEpoch;
+    const response = await this.send((requestId) => ({
+      protocol: WORKER_PROTOCOL_VERSION,
+      type: "CAPACITY_EPISODES",
+      requestId,
+      ...normalized,
+    }));
+    if (epoch !== this.capacityEpoch) throw new SupersededError();
+    if (response.type !== "CAPACITY_EPISODES_OK") throw new Error("unexpected capacity response");
+    if (this.capacitySummaries.size >= 3)
+      this.capacitySummaries.delete(this.capacitySummaries.keys().next().value ?? "");
+    this.capacitySummaries.set(key, response.burden);
+    return response.burden;
   }
   async apiMarket(
     importId: string,
@@ -504,6 +537,8 @@ export class ReplayWorkerClient {
   /** End all activity owned by this client, including child optimization, on owner teardown. */
   dispose(): void {
     this.marketSummaries.clear();
+    this.capacitySummaries.clear();
+    this.capacityEpoch++;
     this.invalidateOptimizer();
     this.clearReadyTimer();
     this.worker?.terminate();

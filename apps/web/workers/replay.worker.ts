@@ -27,6 +27,7 @@ import {
 } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { type ActivityPoint, activityPoint, composeCapacityBurden } from "../lib/capacity-episodes";
 import * as storage from "../lib/idb";
 import {
   importSizeAdvice,
@@ -75,6 +76,77 @@ function cancelOptimizer(): void {
   optimizer.cancel();
   marketOptimizer.cancel();
 }
+async function handleCapacityEpisodes(
+  request: Extract<WorkerRequest, { type: "CAPACITY_EPISODES" }>,
+): Promise<void> {
+  const loaded = await loadWorkloadEvents(request.importId);
+  if (!loaded.ok) {
+    post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
+    return;
+  }
+  const scoped = reviewWorkload(loaded.exported.events, request.period, request.resourceInstanceId);
+  const source = scoped.events[0]?.source.adapterId ?? "unknown";
+  const context: ActivityPoint[] = [];
+  const unavailable: string[] = [];
+  const warnings = new Set<string>();
+  let excluded = 0;
+  const from = Date.parse(`${request.period.start}T00:00:00Z`),
+    to = Date.parse(`${request.period.end}T00:00:00Z`);
+  const points = (exported: StackReplayExportV1, external: boolean) => {
+    for (const warning of exported.collectionWarnings ?? [])
+      if (
+        [
+          "RECORD_MALFORMED",
+          "USAGE_MISSING",
+          "SOURCE_TRUNCATED",
+          "SOURCE_UNREADABLE",
+          "TIMESTAMP_INVALID",
+        ].includes(warning.code)
+      )
+        warnings.add(warning.code);
+    for (const event of exported.events) {
+      if (Date.parse(event.occurredAt) < from || Date.parse(event.occurredAt) >= to) continue;
+      // A separate copy of this source cannot establish another local account.
+      if (external && event.source.adapterId === source) continue;
+      if (!external && event.source.resourceInstanceId === request.resourceInstanceId) continue;
+      const point = activityPoint(event);
+      if (point) context.push(point);
+      else excluded++;
+    }
+  };
+  points(loaded.exported, false);
+  for (const id of [...new Set(request.contextImportIds)]
+    .filter((id) => id !== request.importId)
+    .slice(0, 10)) {
+    const session = sessionWorkloads.get(id)?.exported;
+    const saved = session ? { ok: true as const, value: session } : await storage.loadImport(id);
+    if (saved.ok) points(saved.value, true);
+    else unavailable.push(id);
+  }
+  const mainActivity = scoped.events.flatMap((e) => {
+    const point = activityPoint(e);
+    return point ? [point] : [];
+  });
+  const burden = composeCapacityBurden({
+    capacity: summarizeCapacity(
+      loaded.exported.capacityObservations,
+      scoped.events,
+      request.period,
+      request.resourceInstanceId,
+    ),
+    mainActivity,
+    contextActivity: context,
+    resourceInstanceId: request.resourceInstanceId,
+    planId: request.planId,
+    period: request.period,
+    mainSource: source,
+    excludedActivityRecords: excluded,
+    contextUnavailable: unavailable,
+    contextWarnings: [...warnings],
+  });
+  post({ type: "CAPACITY_EPISODES_OK", requestId: request.requestId, burden });
+}
+
 async function handleMarket(
   request: Extract<WorkerRequest, { type: "API_MARKET" }>,
 ): Promise<void> {
@@ -1020,6 +1092,9 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
     cancelOptimizer();
   try {
     switch (request.type) {
+      case "CAPACITY_EPISODES":
+        await handleCapacityEpisodes(request);
+        return;
       case "API_MARKET":
         await handleMarket(request);
         return;

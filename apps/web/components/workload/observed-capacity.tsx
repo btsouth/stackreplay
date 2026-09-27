@@ -10,6 +10,7 @@ import {
 } from "@/lib/capacity-local";
 import type { CapacitySummary } from "@/lib/observed-capacity";
 import type { ReviewPeriod } from "@/lib/review-period";
+import { CapacityBurdenSurface } from "./capacity-burden";
 
 const count = (n: number) => n.toLocaleString();
 const time = (value: string) => `${value.slice(0, 10)} ${value.slice(11, 16)} UTC`;
@@ -63,133 +64,145 @@ export function ObservedCapacity({
       data-testid="observed-capacity"
     >
       <div>
-        <MicroLabel>Observed subscription capacity</MicroLabel>
+        <MicroLabel>Observed interruption burden</MicroLabel>
         <h3 className="mt-2 font-medium">{planName} · this account and cycle</h3>
       </div>
-      <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
-        {[
-          ["Direct hard-limit events", summary.directHardLimits],
-          ["Affected sessions", summary.sessions],
-          ["Days affected (UTC)", summary.days],
-          ["Distinct scheduled resets", summary.scheduledResets],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-xs text-muted-foreground">{label}</dt>
-            <dd className="mt-1 font-mono text-2xl tabular-nums">{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="max-w-3xl text-sm" data-testid="capacity-conclusion">
-        {summary.directHardLimits
-          ? `StackReplay observed ${count(summary.directHardLimits)} direct capacity-limit event${summary.directHardLimits === 1 ? "" : "s"} during this cycle. These are recorded blocked attempts, not a count of independent outages. Repeated attempts can share a reset time.`
-          : "No directly observable capacity-limit events were found in the available history. This does not establish that no limits were hit."}{" "}
-        {manual.length
-          ? `${manual.length} additional user-confirmed interruption${manual.length === 1 ? "" : "s"} recorded locally; these may overlap native events.`
-          : ""}
-      </p>
-      <p className="text-xs text-muted-foreground">
-        {summary.historyInspected
-          ? "Evidence: native client limit records."
-          : "This import has no native capacity scan attached. Reimport native history to inspect it."}{" "}
-        {summary.warnings} directly parsed warnings. {summary.duplicateRows} repeated capacity
-        records removed. Reset times are client-reported schedules, not observed resets or proof of
-        restored capacity. Missing warnings and limits may not have been preserved.
-      </p>
-      <details className="border-t border-border pt-2">
+      <CapacityBurdenSurface
+        importId={importId}
+        resourceInstanceId={resourceInstanceId}
+        planId={planId}
+        period={period}
+        workloadDigest={workloadDigest}
+      />
+      <details>
         <summary className="min-h-11 cursor-pointer content-center text-sm">
-          Inspect capacity timeline · {summary.events.length} native records
+          Raw capacity evidence
         </summary>
-        <p className="my-3 text-xs text-muted-foreground">
-          All times UTC. Workload before each limit is descriptive, restricted to the imported
-          account and cycle, and may be truncated at the cycle start. It does not establish the
-          provider's quota accounting. No reset start or uninterrupted stretch is inferred.
+        <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+          {[
+            ["Direct hard-limit events", summary.directHardLimits],
+            ["Affected sessions", summary.sessions],
+            ["Days affected (UTC)", summary.days],
+            ["Distinct scheduled resets", summary.scheduledResets],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt className="text-xs text-muted-foreground">{label}</dt>
+              <dd className="mt-1 font-mono text-2xl tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="max-w-3xl text-sm" data-testid="capacity-conclusion">
+          {summary.directHardLimits
+            ? `StackReplay observed ${count(summary.directHardLimits)} direct capacity-limit event${summary.directHardLimits === 1 ? "" : "s"} during this cycle. These are recorded blocked attempts, not a count of independent outages. Repeated attempts can share a reset time.`
+            : "No directly observable capacity-limit events were found in the available history. This does not establish that no limits were hit."}{" "}
+          {manual.length
+            ? `${manual.length} additional user-confirmed interruption${manual.length === 1 ? "" : "s"} recorded locally; these may overlap native events.`
+            : ""}
         </p>
-        <details>
-          <summary className="min-h-11 cursor-pointer content-center text-xs">
-            Daily workload and hard-limit events
+        <p className="text-xs text-muted-foreground">
+          {summary.historyInspected
+            ? "Evidence: native client limit records."
+            : "This import has no native capacity scan attached. Reimport native history to inspect it."}{" "}
+          {summary.warnings} directly parsed warnings. {summary.duplicateRows} repeated capacity
+          records removed. Reset times are client-reported schedules, not observed resets or proof
+          of restored capacity. Missing warnings and limits may not have been preserved.
+        </p>
+        <details className="border-t border-border pt-2">
+          <summary className="min-h-11 cursor-pointer content-center text-sm">
+            Inspect capacity timeline · {summary.events.length} native records
           </summary>
-          <ul className="space-y-1 text-xs font-mono">
-            {summary.daily.map((d) => (
-              <li key={d.date}>
-                {d.date} · {count(d.responses)} responses · {d.hardLimits} hard-limit events
+          <p className="my-3 text-xs text-muted-foreground">
+            All times UTC. Workload before each limit is descriptive, restricted to the imported
+            account and cycle, and may be truncated at the cycle start. It does not establish the
+            provider's quota accounting. No reset start or uninterrupted stretch is inferred.
+          </p>
+          <details>
+            <summary className="min-h-11 cursor-pointer content-center text-xs">
+              Daily workload and hard-limit events
+            </summary>
+            <ul className="space-y-1 text-xs font-mono">
+              {summary.daily.map((d) => (
+                <li key={d.date}>
+                  {d.date} · {count(d.responses)} responses · {d.hardLimits} hard-limit events
+                </li>
+              ))}
+            </ul>
+          </details>
+          <ol className="divide-y divide-border">
+            {summary.events.map((event) => (
+              <li key={event.id} className="py-3 text-sm">
+                <div className="font-mono text-xs">{time(event.timestamp)}</div>
+                <p className="mt-1">
+                  {event.eventType === "hard_limit_reached"
+                    ? "Limit reached"
+                    : event.eventType === "usage_warning"
+                      ? "Usage warning"
+                      : event.code === "api_rate_limit"
+                        ? "API rate-limit retry, subscription attribution unknown"
+                        : "Usage credits exhausted, subscription attribution unknown"}{" "}
+                  ·{" "}
+                  {event.windowType === "five_hour"
+                    ? "five-hour limit"
+                    : event.windowType === "model"
+                      ? `${event.modelLabel ?? "Model"} limit`
+                      : "window unknown"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Direct native client evidence · session {event.sessionId.slice(-8)}
+                  {event.resetAt
+                    ? ` · Reset shown: ${time(event.resetAt)}`
+                    : " · Reset time unavailable"}
+                </p>
+                {event.before.length ? (
+                  <details>
+                    <summary className="min-h-11 cursor-pointer content-center text-xs">
+                      Workload before this event
+                    </summary>
+                    <ul className="space-y-2 text-xs">
+                      {event.before.map((c) => (
+                        <li key={c.hours}>
+                          Prior {c.hours === 168 ? "7 days" : `${c.hours} hours`}:{" "}
+                          {count(c.responses)} responses · {count(c.knownTokens)} known processed
+                          tokens
+                          {c.unknownTokenResponses
+                            ? ` · ${c.unknownTokenResponses} responses with incomplete token accounting`
+                            : ""}
+                          <p className="text-muted-foreground">
+                            {Object.entries(c.models)
+                              .map(([model, n]) => `${model}: ${count(n)}`)
+                              .join(" · ")}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
               </li>
             ))}
-          </ul>
+            {manual.map((event) => (
+              <li key={event.id} className="py-3 text-sm">
+                <p className="font-mono text-xs">{time(event.timestamp)}</p>
+                <p>
+                  User-confirmed interruption
+                  {event.resetAt ? ` · Reset shown: ${time(event.resetAt)}` : ""}
+                </p>
+                {event.note ? (
+                  <p className="break-words text-xs text-muted-foreground">{event.note}</p>
+                ) : null}
+                <button
+                  type="button"
+                  className="min-h-11 text-xs underline"
+                  onClick={() => {
+                    if (save(manual.filter((e) => e.id !== event.id)))
+                      setStatus("Observation removed.");
+                  }}
+                >
+                  Remove local observation at {time(event.timestamp)}
+                </button>
+              </li>
+            ))}
+          </ol>
         </details>
-        <ol className="divide-y divide-border">
-          {summary.events.map((event) => (
-            <li key={event.id} className="py-3 text-sm">
-              <div className="font-mono text-xs">{time(event.timestamp)}</div>
-              <p className="mt-1">
-                {event.eventType === "hard_limit_reached"
-                  ? "Limit reached"
-                  : event.eventType === "usage_warning"
-                    ? "Usage warning"
-                    : event.code === "api_rate_limit"
-                      ? "API rate-limit retry, subscription attribution unknown"
-                      : "Usage credits exhausted, subscription attribution unknown"}{" "}
-                ·{" "}
-                {event.windowType === "five_hour"
-                  ? "five-hour limit"
-                  : event.windowType === "model"
-                    ? `${event.modelLabel ?? "Model"} limit`
-                    : "window unknown"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Direct native client evidence · session {event.sessionId.slice(-8)}
-                {event.resetAt
-                  ? ` · Reset shown: ${time(event.resetAt)}`
-                  : " · Reset time unavailable"}
-              </p>
-              {event.before.length ? (
-                <details>
-                  <summary className="min-h-11 cursor-pointer content-center text-xs">
-                    Workload before this event
-                  </summary>
-                  <ul className="space-y-2 text-xs">
-                    {event.before.map((c) => (
-                      <li key={c.hours}>
-                        Prior {c.hours === 168 ? "7 days" : `${c.hours} hours`}:{" "}
-                        {count(c.responses)} responses · {count(c.knownTokens)} known processed
-                        tokens
-                        {c.unknownTokenResponses
-                          ? ` · ${c.unknownTokenResponses} responses with incomplete token accounting`
-                          : ""}
-                        <p className="text-muted-foreground">
-                          {Object.entries(c.models)
-                            .map(([model, n]) => `${model}: ${count(n)}`)
-                            .join(" · ")}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-            </li>
-          ))}
-          {manual.map((event) => (
-            <li key={event.id} className="py-3 text-sm">
-              <p className="font-mono text-xs">{time(event.timestamp)}</p>
-              <p>
-                User-confirmed interruption
-                {event.resetAt ? ` · Reset shown: ${time(event.resetAt)}` : ""}
-              </p>
-              {event.note ? (
-                <p className="break-words text-xs text-muted-foreground">{event.note}</p>
-              ) : null}
-              <button
-                type="button"
-                className="min-h-11 text-xs underline"
-                onClick={() => {
-                  if (save(manual.filter((e) => e.id !== event.id)))
-                    setStatus("Observation removed.");
-                }}
-              >
-                Remove local observation at {time(event.timestamp)}
-              </button>
-            </li>
-          ))}
-        </ol>
       </details>
       <details>
         <summary className="min-h-11 cursor-pointer content-center text-sm">
@@ -261,7 +274,7 @@ export function ObservedCapacity({
           {error}
         </p>
       ) : null}
-      <p role="status" className="text-xs">
+      <p role="status" className="text-xs" data-testid="manual-capacity-status">
         {status}
       </p>
       <p className="max-w-3xl text-xs text-muted-foreground">
