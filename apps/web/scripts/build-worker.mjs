@@ -18,31 +18,36 @@ import { build } from "vite";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 
-await build({
-  root,
-  configFile: false,
-  logLevel: "warn",
-  // The output IS the public directory: disable Vite's public-dir copying so it
-  // never tries to copy the folder into itself.
-  publicDir: false,
-  define: {
-    "process.env.NODE_ENV": JSON.stringify("production"),
-  },
-  build: {
-    outDir: join(root, "public"),
-    emptyOutDir: false,
-    target: "es2022",
-    minify: true,
-    sourcemap: true,
-    lib: {
-      entry: join(root, "workers", "replay.worker.ts"),
-      formats: ["es"],
-      fileName: () => "stackreplay-worker.js",
+for (const [entry, output] of [
+  ["replay.worker.ts", "stackreplay-worker.js"],
+  ["optimizer.worker.ts", "stackreplay-optimizer-worker.js"],
+]) {
+  await build({
+    root,
+    configFile: false,
+    logLevel: "warn",
+    // The output IS the public directory: disable Vite's public-dir copying so it
+    // never tries to copy the folder into itself.
+    publicDir: false,
+    define: {
+      "process.env.NODE_ENV": JSON.stringify("production"),
     },
-    rollupOptions: {
-      output: { inlineDynamicImports: true },
+    build: {
+      outDir: join(root, "public"),
+      emptyOutDir: false,
+      target: "es2022",
+      minify: true,
+      sourcemap: true,
+      lib: {
+        entry: join(root, "workers", entry),
+        formats: ["es"],
+        fileName: () => output,
+      },
+      rollupOptions: {
+        output: { inlineDynamicImports: true },
+      },
     },
-  },
-});
+  });
 
-console.log("worker built: public/stackreplay-worker.js");
+  console.log(`worker built: public/${output}`);
+}

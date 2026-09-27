@@ -13,7 +13,11 @@ export interface RequestPool {
   limitId: string;
   start: string;
   end: string;
+  /** Available whole-request slots, after any initial consumption/latch. */
   capacity: number;
+  maximumCapacity?: string;
+  initialConsumed?: string;
+  initialLatched?: boolean;
 }
 
 export interface PoolMembership {

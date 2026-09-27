@@ -7,6 +7,9 @@ const state = vi.hoisted(() => ({
   holdList: undefined as (() => void) | undefined,
   listGate: undefined as Promise<void> | undefined,
   listCalls: 0,
+  loadCalls: 0,
+  loadGate: undefined as Promise<void> | undefined,
+  releaseLoad: undefined as (() => void) | undefined,
 }));
 
 vi.mock("../lib/idb", () => ({
@@ -20,10 +23,14 @@ vi.mock("../lib/idb", () => ({
     state.saved.set(record.id, { record, exported });
     return { ok: true, value: record };
   },
-  loadImport: async (id: string) =>
-    state.saved.has(id)
+  loadImport: async (id: string) => {
+    state.loadCalls++;
+    const result = state.saved.has(id)
       ? { ok: true, value: state.saved.get(id)?.exported }
-      : { ok: false, code: "IMPORT_NOT_FOUND" },
+      : { ok: false, code: "IMPORT_NOT_FOUND" };
+    await state.loadGate;
+    return result;
+  },
   invalidateInFlightWrites: () => undefined,
   clearLocalData: async () => {
     state.saved.clear();
@@ -73,6 +80,9 @@ beforeEach(() => {
   state.responses.length = 0;
   state.saved.clear();
   state.listCalls = 0;
+  state.loadCalls = 0;
+  state.loadGate = undefined;
+  state.releaseLoad = undefined;
   state.listGate = undefined;
   state.holdList = undefined;
 });
@@ -193,4 +203,33 @@ describe("Worker import supersession", () => {
       expect.objectContaining({ id: idB }),
     ]);
   });
+});
+
+it("clearing during an optimizer load cannot repopulate the workload cache", async () => {
+  const running = await worker();
+  state.saved.set(idA, { record: { id: idA }, exported });
+  state.loadGate = new Promise<void>((resolve) => {
+    state.releaseLoad = resolve;
+  });
+  const optimization = running.send({
+    protocol: 1,
+    type: "OPTIMIZE",
+    requestId: 1,
+    importId: idA,
+    configuration: {},
+  });
+  await vi.waitFor(() => expect(state.loadCalls).toBe(1));
+  await running.send({ protocol: 1, type: "CLEAR_LOCAL_DATA", requestId: 2 });
+  state.releaseLoad?.();
+  await optimization;
+  await running.send({
+    protocol: 1,
+    type: "ANALYZE_WORKLOAD",
+    requestId: 3,
+    importId: idA,
+    timeZone: "UTC",
+  });
+  expect(running.messages().find((m) => m.requestId === 1)?.type).toBe("CANCELLED");
+  expect(running.messages().find((m) => m.requestId === 3)?.type).toBe("ERROR");
+  expect(running.messages().some((m) => m.type === "OPTIMIZER_OK")).toBe(false);
 });

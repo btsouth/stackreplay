@@ -52,3 +52,13 @@ export function splitByIdentity(
   }
   return { resolved, unresolved };
 }
+
+/** Shared source selection for replay and optimization; empty means all sources. */
+export function selectSources(
+  events: readonly UsageEventV1[],
+  sources: readonly string[] = [],
+): readonly UsageEventV1[] {
+  return sources.length === 0
+    ? events
+    : events.filter((event) => sources.includes(event.source.adapterId));
+}

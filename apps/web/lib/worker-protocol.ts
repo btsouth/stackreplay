@@ -1,11 +1,13 @@
 import type { CandidateOutcome } from "@stackreplay/adapters/browser";
 import type {
   ApiPriceabilityCountsV1,
+  ExactOptimizationInput,
   PriceReceiptV1,
   ProjectedReplayV1,
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { OptimizerDetail, OptimizerPhase, OptimizerSummary } from "./optimizer-runtime";
 import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
 
@@ -218,7 +220,25 @@ export interface TimelinePoint {
   partialEvents: number;
 }
 
+export type OptimizerConfiguration = Omit<ExactOptimizationInput, "events" | "catalog">;
 export type WorkerRequest =
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "OPTIMIZE";
+      requestId: number;
+      importId: string;
+      configuration: OptimizerConfiguration;
+      sources?: string[];
+    }
+  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CANCEL_OPTIMIZER"; requestId: number }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "OPTIMIZER_DETAIL";
+      requestId: number;
+      generation: number;
+      offset: number;
+      limit: number;
+    }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "IMPORT_SOURCES";
@@ -334,6 +354,9 @@ export interface ScanProgress {
 }
 
 export type WorkerResponse =
+  | { type: "OPTIMIZER_OK"; requestId: number; summary: OptimizerSummary }
+  | { type: "OPTIMIZER_PHASE"; requestId: number; phase: OptimizerPhase }
+  | { type: "OPTIMIZER_DETAIL_OK"; requestId: number; detail: OptimizerDetail }
   | { type: "READY"; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "PONG"; requestId: number; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "CANCELLED"; requestId: number }

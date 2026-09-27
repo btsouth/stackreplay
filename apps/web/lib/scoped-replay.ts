@@ -7,7 +7,7 @@ import {
   replayWithReceipt,
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1, UsageEventV1 } from "@stackreplay/schema";
-import { splitByIdentity } from "./workload-scope";
+import { selectSources, splitByIdentity } from "./workload-scope";
 
 /**
  * A replay under an explicit scope, and the one place scopes are applied.
@@ -81,10 +81,7 @@ export function runScopedReplay(input: ScopedReplayInput): ScopedReplay {
   const { catalog, target, rulesAsOf, identity } = input;
   const timeZone = input.timeZone;
   const wanted = input.sources ?? [];
-  const sliced =
-    wanted.length === 0
-      ? input.events
-      : input.events.filter((event) => wanted.includes(event.source.adapterId));
+  const sliced = selectSources(input.events, wanted);
   const source =
     wanted.length === 0
       ? undefined

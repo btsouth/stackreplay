@@ -16,6 +16,7 @@ import {
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
+import { parseInstant, toTimedEvents } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
@@ -24,6 +25,7 @@ import {
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
 import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
@@ -36,6 +38,7 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
+import { selectSources } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
 /**
@@ -53,6 +56,56 @@ import { summarizeExport } from "../lib/workload-summary";
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 const sessionWorkloads = new Map<string, { record: ImportRecord; exported: StackReplayExportV1 }>();
+const optimizer = new OptimizerRuntime();
+let optimizerGeneration = 0;
+function cancelOptimizer(): void {
+  optimizerGeneration = 0;
+  optimizer.cancel();
+}
+async function handleOptimize(
+  request: Extract<WorkerRequest, { type: "OPTIMIZE" }>,
+): Promise<void> {
+  optimizerGeneration = request.requestId;
+  try {
+    const summary = await optimizer.run(
+      async () => {
+        const loaded = await loadWorkloadEvents(
+          request.importId,
+          () => optimizerGeneration === request.requestId,
+        );
+        if (!loaded.ok) throw new Error("Workload unavailable");
+        const start = parseInstant(request.configuration.period.start).epochNanoseconds;
+        const end = parseInstant(request.configuration.period.end).epochNanoseconds;
+        const events = toTimedEvents(selectSources(loaded.exported.events, request.sources))
+          .filter((t) => {
+            const at = BigInt(t.atMs) * 1000000n + BigInt(t.subMs);
+            return at >= start && at < end;
+          })
+          .map((t) => t.event);
+        return { ...request.configuration, events, catalog: loadBundledCatalog() };
+      },
+      {
+        onPhase: (phase) => post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase }),
+      },
+    );
+    if (optimizerGeneration === request.requestId)
+      post({ type: "OPTIMIZER_OK", requestId: request.requestId, summary });
+  } catch (error) {
+    if (error instanceof OptimizerCancelledError)
+      post({ type: "CANCELLED", requestId: request.requestId });
+    else
+      post({
+        type: "ERROR",
+        requestId: request.requestId,
+        error: {
+          code: "REPLAY_FAILED",
+          title: "Optimization did not complete.",
+          message:
+            "The supplied workload or execution options could not be evaluated within this browser's runtime budget.",
+        },
+      });
+  }
+}
 let currentImportRequestId = 0;
 let currentImportController: AbortController | undefined;
 
@@ -713,6 +766,7 @@ let loadedWorkload: { importId: string; exported: StackReplayExportV1 } | undefi
 
 async function loadWorkloadEvents(
   importId: string,
+  isCurrent?: () => boolean,
 ): Promise<
   | { ok: true; exported: StackReplayExportV1; record: ImportRecord | undefined }
   | { ok: false; error: SafeError }
@@ -721,9 +775,11 @@ async function loadWorkloadEvents(
   if (session !== undefined)
     return { ok: true, exported: session.exported, record: session.record };
   const record = (await storage.listImports()).find((entry) => entry.id === importId);
+  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
   if (loadedWorkload?.importId === importId)
     return { ok: true, exported: loadedWorkload.exported, record };
   const loaded = await storage.loadImport(importId);
+  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
   if (!loaded.ok)
     return {
       ok: false,
@@ -826,8 +882,38 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
     return;
   }
 
+  if (
+    [
+      "IMPORT_FILE",
+      "IMPORT_SOURCES",
+      "IMPORT_DEMO",
+      "CANCEL_IMPORT",
+      "CLEAR_LOCAL_DATA",
+      "DELETE_LOCAL_IMPORT",
+      "RUN_REPLAY",
+    ].includes(request.type)
+  )
+    cancelOptimizer();
   try {
     switch (request.type) {
+      case "OPTIMIZE":
+        await handleOptimize(request);
+        return;
+      case "CANCEL_OPTIMIZER":
+        cancelOptimizer();
+        post({ type: "CANCELLED", requestId: request.requestId });
+        return;
+      case "OPTIMIZER_DETAIL": {
+        if (optimizerGeneration !== request.generation) {
+          post({ type: "CANCELLED", requestId: request.requestId });
+          return;
+        }
+        const detail = await optimizer.detail(request.offset, request.limit);
+        if (optimizerGeneration === request.generation)
+          post({ type: "OPTIMIZER_DETAIL_OK", requestId: request.requestId, detail });
+        else post({ type: "CANCELLED", requestId: request.requestId });
+        return;
+      }
       case "PING":
         post({ type: "PONG", requestId: request.requestId, protocol: WORKER_PROTOCOL_VERSION });
         return;

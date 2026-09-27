@@ -8,6 +8,11 @@ import { z } from "zod";
 import { levelFromVerification, worstLevel } from "./confidence.js";
 import { parseCatalog, replay, replayObservingQuotes, replayWithReceipt } from "./engine.js";
 import { ReplayEngineError } from "./errors.js";
+import {
+  initialCapacityEntrySchema,
+  type SubscriptionInitialCapacity,
+  validateInitialCapacity,
+} from "./initial-capacity.js";
 import { type Decimal, parseAmount, toUnitString, ZERO } from "./money.js";
 import {
   capacityEvidenceV1Schema,
@@ -53,6 +58,7 @@ interface Subscription {
   version: LoadedPlanVersionV1;
   models: Set<string>;
   fast: boolean;
+  initialCapacity?: SubscriptionInitialCapacity | undefined;
 }
 interface Api {
   id: string;
@@ -88,11 +94,20 @@ interface Allocation {
 }
 
 function prepare(input: ExactOptimizationInput): Prepared {
-  if (input.initialAllowance?.kind !== "fresh")
+  if (input.initialAllowance?.kind !== "fresh" && input.initialAllowance?.kind !== "provided")
     unsupported(
-      "O2 requires explicit fresh initial allowance; supplied consumption is not implemented.",
+      "Initial allowance must explicitly declare fresh or provided state and unlisted pools.",
     );
-  z.strictObject({ kind: z.literal("fresh") }).parse(input.initialAllowance);
+  const initialAllowance = z
+    .discriminatedUnion("kind", [
+      z.strictObject({ kind: z.literal("fresh") }),
+      z.strictObject({
+        kind: z.literal("provided"),
+        unlistedPools: z.literal("fresh"),
+        entries: z.array(initialCapacityEntrySchema.extend({ resourceId: z.string().min(1) })),
+      }),
+    ])
+    .parse(input.initialAllowance);
   if (input.resources.length > 32)
     unsupported("At most 32 resource inputs are accepted before deduplication.");
   const chronology = chronologySchema.parse(input.chronology);
@@ -166,8 +181,9 @@ function prepare(input: ExactOptimizationInput): Prepared {
   }
   scope.required = events.length;
   scope.excludedCostImpact = scope.exclusions.length > 0 ? "unbounded" : "none";
-  const sharedInput = { ...input, catalog, context, period: demand.period };
+  const sharedInput = { ...input, initialAllowance, catalog, context, period: demand.period };
   const subscriptions: Subscription[] = [];
+  const availablePlans = new Map<string, LoadedPlanVersionV1>();
   const apis: Api[] = [];
   const skipped: Prepared["skipped"] = [];
   const seen = new Map<string, string>();
@@ -208,6 +224,7 @@ function prepare(input: ExactOptimizationInput): Prepared {
         continue;
       }
       seen.set(id, signature);
+      availablePlans.set(id, version);
       const models = new Set(
         version.modelRules.filter((rule) => !rule.excluded).map((rule) => rule.model),
       );
@@ -235,6 +252,25 @@ function prepare(input: ExactOptimizationInput): Prepared {
   skipped.sort((a, b) => lexical(a.id, b.id) || lexical(a.reason, b.reason));
   if (subscriptions.length > 6 || apis.length > 8)
     unsupported("O2 supports at most six subscriptions and eight API resources.");
+  if (initialAllowance.kind === "provided") {
+    for (const entry of initialAllowance.entries)
+      if (!availablePlans.has(entry.resourceId))
+        unsupported("Initial capacity references an unavailable subscription resource.");
+    for (const [id, version] of availablePlans) {
+      const state = validateInitialCapacity(
+        {
+          at: demand.period.start,
+          unlistedPools: "fresh",
+          entries: initialAllowance.entries
+            .filter((entry) => entry.resourceId === id)
+            .map(({ resourceId: _id, ...entry }) => entry),
+        },
+        version,
+      );
+      const subscription = subscriptions.find((sub) => sub.id === id);
+      if (subscription !== undefined) subscription.initialCapacity = state;
+    }
+  }
   const quotes: Prepared["quotes"] = Array.from({ length: events.length });
   const quoteCache = new Map<string, Quote>();
   const eventIndex = new Map(events.map((event, index) => [event.id, index]));
@@ -299,13 +335,29 @@ function prepare(input: ExactOptimizationInput): Prepared {
         limit.window.timezone,
       )) {
         const pool = pools.length;
+        const initial = subscription.initialCapacity?.entries.find(
+          (entry) =>
+            entry.limitId === limit.id &&
+            parseInstant(entry.windowStart).epochMilliseconds === slice.startMs,
+        );
         pools.push({
+          maximumCapacity: limit.amount,
+          initialConsumed: initial?.consumedUnits ?? "0",
+          initialLatched: initial?.latched ?? false,
           resource,
           resourceId: subscription.id,
           limitId: limit.id,
           start: isoFromEpochMs(slice.startMs),
           end: isoFromEpochMs(slice.endMs),
-          capacity: Math.min(events.length, parseAmount(limit.amount).floor().toNumber()),
+          capacity: Math.min(
+            events.length,
+            initial?.latched
+              ? 0
+              : parseAmount(limit.amount)
+                  .minus(initial?.consumedUnits ?? "0")
+                  .floor()
+                  .toNumber(),
+          ),
         });
         for (const { event } of slice.events) {
           const index = eventIndex.get(event.id);
@@ -544,6 +596,7 @@ function exhaustive(
           {
             events: indices.map((index) => prepared.events[index] as TextUsageEventV1),
             target: subscription.resource.target,
+            initialCapacity: subscription.initialCapacity,
             catalog: prepared.input.catalog,
             context: prepared.input.context,
           },
@@ -647,6 +700,7 @@ function explain(
       {
         events,
         target: resource.resource.target,
+        ...("initialCapacity" in resource ? { initialCapacity: resource.initialCapacity } : {}),
         catalog: prepared.input.catalog,
         context: prepared.input.context,
       },
@@ -668,6 +722,9 @@ function explain(
       records: events.length,
       result: run.result,
       receipt: run.receipt,
+      ...("initialCapacity" in resource && resource.initialCapacity !== undefined
+        ? { initialCapacity: resource.initialCapacity }
+        : {}),
       ...("capacityEvidence" in resource.resource
         ? { capacityEvidence: resource.resource.capacityEvidence }
         : {}),
@@ -695,16 +752,26 @@ function explain(
         for (const entry of compatible) {
           const subscription = prepared.subscriptions[entry];
           if (subscription === undefined) continue;
-          const trial = replay({
-            events: [...(assigned.get(subscription.id) ?? []), event],
-            target: subscription.resource.target,
-            catalog: prepared.input.catalog,
-            context: prepared.input.context,
-          });
+          const blocking = new Set<string>();
+          const trial = replayWithReceipt(
+            {
+              events: [...(assigned.get(subscription.id) ?? []), event],
+              target: subscription.resource.target,
+              initialCapacity: subscription.initialCapacity,
+              catalog: prepared.input.catalog,
+              context: prepared.input.context,
+            },
+            {
+              subscription: (_event, observation) => {
+                for (const id of observation.blockingLimitIds) blocking.add(id);
+              },
+            },
+          );
           capacityChecks.push({
             eventId: event.id,
             resourceId: subscription.id,
-            violations: trial.violations,
+            violations: trial.result.violations,
+            blockingLimitIds: [...blocking].sort(lexical),
           });
         }
       return {
@@ -749,11 +816,20 @@ export function explainExactCandidate(
   return explain(prepared, configuration, evaluate(prepared, configuration));
 }
 
-export function optimizeExactModels(input: ExactOptimizationInput): ExactOptimizationResult {
+export function optimizeExactModels(
+  input: ExactOptimizationInput,
+  runtime: {
+    /** Diagnostic phase notifications; cancellation belongs to the owning Worker lifecycle. */
+    onPhase?: (phase: "preparing" | "enumerating" | "assigning" | "receipts") => void;
+  } = {},
+): ExactOptimizationResult {
+  runtime.onPhase?.("preparing");
   const prepared = prepare(input);
+  runtime.onPhase?.("enumerating");
   const configs = configurations(prepared);
   const candidates: ExactCandidateSummary[] = [];
   let best: { configuration: Configuration; allocation: Allocation } | undefined;
+  runtime.onPhase?.("assigning");
   for (const configuration of configs) {
     const allocation = evaluate(prepared, configuration);
     candidates.push(allocation.summary);
@@ -788,6 +864,7 @@ export function optimizeExactModels(input: ExactOptimizationInput): ExactOptimiz
       parseAmount(candidate.fixedCost).gt(best?.allocation.summary.totalCost ?? "0"),
     );
   const nonempty = prepared.scope.required > 0;
+  runtime.onPhase?.("receipts");
   const explanation =
     best !== undefined && nonempty
       ? explain(prepared, best.configuration, best.allocation)
@@ -826,13 +903,13 @@ export function optimizeExactModels(input: ExactOptimizationInput): ExactOptimiz
       assignmentStateLimit: prepared.limits.maxAssignmentStates,
       assignmentWorkLimit: MAX_ASSIGNMENT_WORK,
       family: "api-pool-plus-subscription-singletons-and-pairs",
-      initialAllowance: "fresh",
+      initialAllowance: prepared.input.initialAllowance,
       retainedAssignmentSets: explanation === undefined ? 0 : 1,
     },
     assumptions: [
       "Optimum is over the declared API pool and subscription singleton/pair family, not arbitrary purchases.",
       "Each selected subscription is purchased at period.start for one full UTC calendar month; no proration or multi-cycle extrapolation.",
-      "Fresh initial allowance is explicitly supplied. Missing prior consumption and other account demand are not inferred.",
+      "Initial allowance is explicit: supplied consumption applies only to its stated active window; unlisted pools start fresh. No historical calls are fabricated.",
       "All recognized records are required. Unknown identities alone are excluded globally; missing prices cannot make a candidate cheaper.",
       "API resources have no fixed charges or modeled rate limits. Aggregate records use only chronology-independent flat prices.",
       "Calendar request quotas use exact weighted matching. Other hard policies use bounded exhaustive replay; incomplete search never silently becomes an optimum.",

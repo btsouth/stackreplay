@@ -452,14 +452,15 @@ describe("bounded exact-model optimizer", () => {
     expect(winner(optimizeExactModels(input)).id).toBe("api-only");
   });
 
-  it("requires explicit fresh allowance and refuses unsupported prior consumption", () => {
+  it("requires explicit starting allowance and rejects invalid supplied consumption", () => {
     const input = scenario([request("a")]);
-    expect(optimizeExactModels(input).search.initialAllowance).toBe("fresh");
+    expect(optimizeExactModels(input).search.initialAllowance).toEqual({ kind: "fresh" });
     expect(() =>
       optimizeExactModels({
         ...input,
         initialAllowance: {
           kind: "provided",
+          unlistedPools: "fresh",
           entries: [
             {
               resourceId: "a",
@@ -472,13 +473,13 @@ describe("bounded exact-model optimizer", () => {
           ],
         },
       }),
-    ).toThrow(/supplied consumption/);
+    ).toThrow(/unavailable/);
     expect(() =>
       optimizeExactModels({
         ...input,
         initialAllowance: undefined,
       } as unknown as ExactOptimizationInput),
-    ).toThrow(/explicit fresh/);
+    ).toThrow(/Initial allowance/);
   });
 
   it("aggregate logs retain flat API cost but cannot claim subscription survival", () => {

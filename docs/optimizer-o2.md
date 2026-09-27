@@ -1,5 +1,9 @@
 # O2: exact-model optimization
 
+O2 is committed as `eb2233a525344d9cc277229cb8486ba36e779aef`.
+The subsequent [O3A note](optimizer-o3a.md) supersedes the fresh-only allowance
+restriction and documents the browser runtime; the O2 search family is unchanged.
+
 O0/O1 was reviewed and committed as `812a5a63f0982a36f34bf3eb0d166c410092344d`.
 All 317 engine tests passed again before that commit. O2 changes start after it.
 
@@ -127,8 +131,7 @@ The full Playwright browser regression suite passed inside omabox: 376 passed,
 48 skipped, no failures (2.1 minutes), including accessibility and visual checks.
 An initial omabox startup failed while sweeping an unrelated stale sandbox; a
 task-specific cache directory allowed the suite to run without changing that sandbox.
-Changed-file Biome checks and `git diff --check` also pass. O2 is left uncommitted
-for review; no UI, provider catalog, import, persistence or privacy files changed.
+Changed-file Biome checks and `git diff --check` also pass. O2 was subsequently reviewed and committed; no UI, provider catalog, import, persistence or privacy files changed.
 
 Run `node packages/replay-engine/bench/optimizer-comparison-100k.mjs 100000 2`
 and repeat with `6` subscriptions. Each mode runs in a fresh Node 24.19.0 process;

@@ -41,6 +41,13 @@ import {
 import { type ApiEventPriceability, type ApiEventQuote, replayApiTarget } from "./api-replay.js";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
+import {
+  type InitialCapacityEntry,
+  initialSlices,
+  type SubscriptionInitialCapacity,
+  sliceHasInitial,
+  validateInitialCapacity,
+} from "./initial-capacity.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 import { PriceReceiptBuilder, type PriceReceiptV1 } from "./receipt.js";
 import {
@@ -60,7 +67,7 @@ import {
   type ReplayDispositionKindV1,
   SemanticsAccumulator,
 } from "./semantics.js";
-import { dateRangeContains, epochMsFromIso, isoFromEpochMs } from "./time.js";
+import { dateRangeContains, epochMsFromIso, isoFromEpochMs, parseInstant } from "./time.js";
 import {
   prepareTranslation,
   substituteFor,
@@ -75,13 +82,7 @@ import {
   tokenAccountingOf,
 } from "./units.js";
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
-import {
-  sliceWindows,
-  sortTimedEvents,
-  type TimedEvent,
-  toTimedEvents,
-  type WindowSlice,
-} from "./windows.js";
+import { sortTimedEvents, type TimedEvent, toTimedEvents, type WindowSlice } from "./windows.js";
 
 /**
  * The replay engine (spec point 22, decisions 1-5, 13-20).
@@ -117,6 +118,8 @@ export interface ReplayInput {
   /** Explicit rules context (decision 17): the engine never reads a clock. */
   context: ReplayContextV1;
   options?: ReplayOptions;
+  /** Explicit consumption before the supplied events, independent of billing. */
+  initialCapacity?: SubscriptionInitialCapacity | undefined;
 }
 
 export function replay(input: ReplayInput): ExecutionReplayResultV1 {
@@ -252,6 +255,11 @@ function replayWith(
    * model's published API list price at the pinned instant (M4C).
    */
   if (isApiTargetV1(target)) {
+    if (input.initialCapacity !== undefined)
+      throw new ReplayEngineError(
+        "IMPORT_SCHEMA_INVALID",
+        "API targets do not accept subscription starting capacity.",
+      );
     return replayApiTarget(
       {
         target,
@@ -294,6 +302,15 @@ function replayWith(
     translationApplication,
   );
   const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker, extras.receipt);
+  const initialCapacity = validateInitialCapacity(input.initialCapacity, planVersion);
+  if (initialCapacity !== undefined) {
+    const snapshotAt = parseInstant(initialCapacity.at).epochNanoseconds;
+    if (timed.some((t) => BigInt(t.atMs) * 1000000n + BigInt(t.subMs) < snapshotAt))
+      throw new ReplayEngineError(
+        "IMPORT_SCHEMA_INVALID",
+        "Events precede initial capacity snapshot.",
+      );
+  }
   const evaluation = evaluateConstraints(
     timed,
     resolution,
@@ -301,6 +318,7 @@ function replayWith(
     planVersion,
     tracker,
     extras.onSubscription !== undefined,
+    initialCapacity,
   );
   if (extras.onSubscription !== undefined) {
     for (const { event } of timed) {
@@ -954,8 +972,12 @@ interface ConstraintEvaluation {
   unknownConstraints: number;
 }
 
-function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): ConstraintRuntime {
-  const sliced = sliceWindows(eligible, limit.window);
+function buildRuntime(
+  limit: PlanLimitV1,
+  eligible: readonly TimedEvent[],
+  initial?: InitialCapacityEntry,
+): ConstraintRuntime {
+  const sliced = { slices: initialSlices(eligible, limit, initial) };
   // The wire timestamp contract uses four-digit years. Never emit a result
   // outside that contract when a window extends beyond the event date range.
   if (
@@ -968,8 +990,8 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
   }
   const slices: SliceRun[] = sliced.slices.map((slice) => ({
     slice,
-    attempted: 0,
-    accepted: 0,
+    attempted: sliceHasInitial(slice, initial) ? parseAmount(initial?.consumedUnits ?? "0") : 0,
+    accepted: sliceHasInitial(slice, initial) ? parseAmount(initial?.consumedUnits ?? "0") : 0,
     affectedEvents: 0,
   }));
 
@@ -982,7 +1004,9 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
     limitNumber: asNumber !== undefined && Number.isSafeInteger(asNumber) ? asNumber : undefined,
     slices,
     cursor: 0,
-    latchedSliceIndex: null,
+    latchedSliceIndex: initial?.latched
+      ? slices.findIndex((run) => sliceHasInitial(run.slice, initial))
+      : null,
     acceptedTotal: limit.type === "credit_pool" ? ZERO : 0,
     attemptedTotal: limit.type === "credit_pool" ? ZERO : 0,
     rejectedEvents: 0,
@@ -1064,6 +1088,7 @@ function evaluateConstraints(
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
   captureBlockingLimits = false,
+  initialCapacity?: SubscriptionInitialCapacity,
 ): ConstraintEvaluation {
   const runtimes: ConstraintRuntime[] = planVersion.limits.map((limit) => {
     const eligible = timed.filter(({ event }) => {
@@ -1075,7 +1100,11 @@ function evaluateConstraints(
       }
       return true;
     });
-    return buildRuntime(limit, eligible);
+    return buildRuntime(
+      limit,
+      eligible,
+      initialCapacity?.entries.find((entry) => entry.limitId === limit.id),
+    );
   });
 
   for (const timedEvent of timed) {
@@ -1125,6 +1154,19 @@ function evaluateConstraints(
       const index = sliceIndexFor(rt, timedEvent);
       if (index === undefined) continue;
       if (rt.latchedSliceIndex !== null && rt.latchedSliceIndex === index) {
+        if (
+          initialCapacity?.entries.some(
+            (entry) =>
+              entry.limitId === rt.limit.id &&
+              entry.latched &&
+              rt.slices[index] !== undefined &&
+              sliceHasInitial((rt.slices[index] as SliceRun).slice, entry),
+          )
+        )
+          tracker.warn(
+            "LATCH_TRIGGERED",
+            "A supplied initial latch blocks calls until its stated window resets.",
+          );
         rejecting.push({ rt, index });
         continue;
       }
@@ -1233,7 +1275,7 @@ function evaluateConstraints(
         ? "not_applicable"
         : rt.unknownConsumption
           ? "unknown"
-          : windowViolations.length > 0
+          : windowViolations.length > 0 || rt.rejectedEvents > 0
             ? "exceeded"
             : "pass";
 

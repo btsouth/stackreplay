@@ -55,6 +55,7 @@ export {
   explainExactCandidate,
   optimizeExactModels,
 } from "./exact-optimizer.js";
+export type { InitialCapacityEntry, SubscriptionInitialCapacity } from "./initial-capacity.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {
   type CapacityEvidenceV1,

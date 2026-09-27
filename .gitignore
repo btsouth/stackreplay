@@ -52,3 +52,6 @@ docs/brand/
 # local. Some of it records real usage statistics or private project names, so
 # none of it is published with the repository.
 /review/
+
+/apps/web/public/stackreplay-optimizer-worker.js
+/apps/web/public/stackreplay-optimizer-worker.js.map

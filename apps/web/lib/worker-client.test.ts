@@ -351,3 +351,89 @@ describe("replay worker client", () => {
     await expect(pending).resolves.toEqual([]);
   });
 });
+
+describe("optimizer client generations", () => {
+  const config = {
+    period: { start: "2026-09-01T00:00:00Z", end: "2026-10-01T00:00:00Z" },
+    context: { rulesAsOf: "2026-09-01" },
+    resources: [],
+    initialAllowance: { kind: "fresh" },
+    chronology: { default: "request", evidence: "fixture" },
+  } as const;
+  it("supersedes optimizations immediately and drops queued old success", async () => {
+    const client = new ReplayWorkerClient();
+    const old = client.optimize("a", config);
+    const rejected = expect(old).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const oldId = (worker.sent.at(-1) as WorkerRequest).requestId;
+    const next = client.optimize("a", config);
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "OPTIMIZER_OK", requestId: oldId, summary: {} } as WorkerResponse);
+    worker.reply({
+      type: "OPTIMIZER_OK",
+      requestId: id,
+      summary: { status: "optimal" },
+    } as WorkerResponse);
+    await rejected;
+    expect((await next).generation).toBe(id);
+    client.dispose();
+  });
+  it("clearing or disposing cannot publish an optimizer result", async () => {
+    const client = new ReplayWorkerClient();
+    const result = client.optimize("a", config);
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const clear = client.clearLocalData();
+    worker.reply({ type: "CLEARED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await rejected;
+    await clear;
+    client.dispose();
+    expect(worker.terminated).toBe(true);
+  });
+  it("rejects detail from an obsolete generation", async () => {
+    const client = new ReplayWorkerClient();
+    const result = client.optimize("a", config);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "OPTIMIZER_OK", requestId: id, summary: {} } as WorkerResponse);
+    await result;
+    const cancel = client.cancelOptimizer();
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await cancel;
+    await expect(client.optimizerDetail(id, 0)).rejects.toBeInstanceOf(SupersededError);
+    client.dispose();
+  });
+});
+
+describe("optimizer AbortSignal lifetime", () => {
+  it("does not create a Worker for a pre-aborted request", async () => {
+    const client = new ReplayWorkerClient();
+    const before = FakeWorker.instances.length;
+    await expect(
+      client.optimize(
+        "a",
+        {} as import("./worker-protocol").OptimizerConfiguration,
+        undefined,
+        AbortSignal.abort(),
+      ),
+    ).rejects.toBeInstanceOf(SupersededError);
+    expect(FakeWorker.instances.length).toBe(before);
+  });
+  it("aborting while optimizing rejects immediately and requests termination", async () => {
+    const client = new ReplayWorkerClient();
+    const abort = new AbortController();
+    const result = client.optimize(
+      "a",
+      {} as import("./worker-protocol").OptimizerConfiguration,
+      undefined,
+      abort.signal,
+    );
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    abort.abort();
+    await rejected;
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    expect(worker.sent.at(-1)?.type).toBe("CANCEL_OPTIMIZER");
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    client.dispose();
+  });
+});

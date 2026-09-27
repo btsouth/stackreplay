@@ -6,6 +6,7 @@ import type {
   TextUsageEventV1,
 } from "@stackreplay/schema";
 import type { replayWithReceipt } from "./engine.js";
+import type { InitialCapacityEntry, SubscriptionInitialCapacity } from "./initial-capacity.js";
 import type { CapacityEvidenceV1, StackCandidateInput } from "./optimizer.js";
 import type { RequestPool } from "./optimizer-assignment.js";
 
@@ -13,19 +14,13 @@ export type ExactExecutionResource =
   | { target: SubscriptionTargetV1; capacityEvidence: CapacityEvidenceV1 }
   | { target: ApiTargetV1 };
 
-/** Supplied-state shape is reserved explicitly; O2 refuses it until replay supports it. */
+/** Consumption immediately before period.start; unlisted pools explicitly start fresh. */
 export type InitialAllowanceState =
   | { kind: "fresh" }
   | {
       kind: "provided";
-      entries: readonly {
-        resourceId: string;
-        limitId: string;
-        windowStart: string;
-        windowEnd: string;
-        consumedUnits: string;
-        evidence: string;
-      }[];
+      unlistedPools: "fresh";
+      entries: readonly (InitialCapacityEntry & { resourceId: string })[];
     };
 
 export type DemandGranularity = "request" | "aggregate" | "unknown";
@@ -116,12 +111,15 @@ export interface ExactCandidateExplanation {
     result: ReplayRun["result"];
     receipt: ReplayRun["receipt"];
     capacityEvidence?: CapacityEvidenceV1;
+    initialCapacity?: SubscriptionInitialCapacity;
   }[];
   /** Generic-policy overflow insertion checks, including displaced previously assigned calls. */
   capacityChecks: {
     eventId: string;
     resourceId: string;
     violations: ReplayRun["result"]["violations"];
+    /** Includes already-active latches, even without a new numeric crossing. */
+    blockingLimitIds: string[];
   }[];
 }
 
@@ -150,7 +148,7 @@ export interface ExactOptimizationResult {
     assignmentStateLimit: number;
     assignmentWorkLimit: number;
     family: "api-pool-plus-subscription-singletons-and-pairs";
-    initialAllowance: "fresh";
+    initialAllowance: InitialAllowanceState;
     retainedAssignmentSets: number;
   };
   assumptions: readonly string[];

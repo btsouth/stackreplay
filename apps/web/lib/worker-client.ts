@@ -7,7 +7,9 @@ import type {
 } from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
 import { browserTimeZone } from "./time-zone";
+import type { OptimizerConfiguration } from "./worker-protocol";
 import {
   type ImportPhase,
   type ImportRecord,
@@ -85,7 +87,15 @@ type ProgressHandler = (
  * start with IMPORT", which is true of the list response `IMPORTS` as well, so a
  * perfectly valid listing was dropped whenever an import was running.
  */
-type Channel = "import" | "replay" | "list" | "mutation" | "analyze" | "inspect";
+type Channel =
+  | "import"
+  | "replay"
+  | "list"
+  | "mutation"
+  | "analyze"
+  | "inspect"
+  | "optimizer"
+  | "optimizer-detail";
 
 interface Pending {
   resolve: (response: WorkerResponse) => void;
@@ -112,11 +122,15 @@ const IDLE_TIMEOUT_MS: Record<Channel, number> = {
   mutation: 900_000,
   analyze: 300_000,
   inspect: 120_000,
+  optimizer: 120_000,
+  "optimizer-detail": 30_000,
 };
 
 export class ReplayWorkerClient {
   private worker: Worker | undefined;
   private nextRequestId = 1;
+  private optimizerGeneration = 0;
+  private optimizerAbortCleanup: (() => void) | undefined;
   private readonly pending = new Map<number, Pending>();
   /** Newest request id per channel: an older request on that channel is stale. */
   private readonly latestByChannel: Partial<Record<Channel, number>> = {};
@@ -160,6 +174,7 @@ export class ReplayWorkerClient {
    * the next request starts a fresh Worker instead of queueing behind a dead one.
    */
   private failWorker(error: SafeError): void {
+    this.invalidateOptimizer();
     this.clearReadyTimer();
     const worker = this.worker;
     this.worker = undefined;
@@ -201,8 +216,12 @@ export class ReplayWorkerClient {
       type: "module",
       name: "stackreplay-replay",
     });
-    worker.onmessage = (event: MessageEvent<unknown>) => this.receive(event.data);
-    worker.onerror = () => this.failWorker(ReplayWorkerClient.workerFailure());
+    worker.onmessage = (event: MessageEvent<unknown>) => {
+      if (this.worker === worker) this.receive(event.data);
+    };
+    worker.onerror = () => {
+      if (this.worker === worker) this.failWorker(ReplayWorkerClient.workerFailure());
+    };
     this.worker = worker;
     this.workerReady = false;
     this.clearReadyTimer();
@@ -243,6 +262,10 @@ export class ReplayWorkerClient {
     // even by reporting progress.
     const stale = response.requestId < (this.latestByChannel[entry.channel] ?? 0);
 
+    if (response.type === "OPTIMIZER_PHASE") {
+      if (!stale) this.armIdleTimer(response.requestId, entry);
+      return;
+    }
     if (response.type === "PROGRESS") {
       if (stale) return;
       this.armIdleTimer(response.requestId, entry);
@@ -253,6 +276,13 @@ export class ReplayWorkerClient {
     this.pending.delete(response.requestId);
     if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
     if (stale) {
+      entry.reject(new SupersededError());
+      return;
+    }
+    if (
+      response.type === "CANCELLED" &&
+      (entry.channel === "optimizer" || entry.channel === "optimizer-detail")
+    ) {
       entry.reject(new SupersededError());
       return;
     }
@@ -308,11 +338,28 @@ export class ReplayWorkerClient {
       channel === "replay" ||
       channel === "list" ||
       channel === "analyze" ||
-      channel === "inspect"
+      channel === "inspect" ||
+      channel === "optimizer" ||
+      channel === "optimizer-detail"
     ) {
       this.latestByChannel[channel] = requestId;
     }
     const request = build(requestId);
+    if (
+      [
+        "IMPORT_FILE",
+        "IMPORT_SOURCES",
+        "IMPORT_DEMO",
+        "CANCEL_IMPORT",
+        "CLEAR_LOCAL_DATA",
+        "DELETE_LOCAL_IMPORT",
+        "RUN_REPLAY",
+        "OPTIMIZE",
+        "CANCEL_OPTIMIZER",
+      ].includes(request.type)
+    )
+      this.invalidateOptimizer();
+    if (request.type === "OPTIMIZE") this.optimizerGeneration = requestId;
     return new Promise<WorkerResponse>((resolve, reject) => {
       const entry: Pending = { resolve, reject, channel, ...(onProgress ? { onProgress } : {}) };
       this.pending.set(requestId, entry);
@@ -324,6 +371,89 @@ export class ReplayWorkerClient {
         this.failWorker(ReplayWorkerClient.workerFailure());
       }
     });
+  }
+
+  private invalidateOptimizer(): void {
+    this.optimizerAbortCleanup?.();
+    this.optimizerAbortCleanup = undefined;
+    this.optimizerGeneration = 0;
+    for (const [id, entry] of this.pending)
+      if (entry.channel === "optimizer" || entry.channel === "optimizer-detail") {
+        if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+        this.pending.delete(id);
+        entry.reject(new SupersededError());
+      }
+  }
+  /** Call when leaving/changing optimizer scope. Existing import/clear/replay actions also invalidate it. */
+  async cancelOptimizer(): Promise<void> {
+    await this.send((requestId) => ({
+      protocol: WORKER_PROTOCOL_VERSION,
+      type: "CANCEL_OPTIMIZER",
+      requestId,
+    }));
+  }
+  async optimize(
+    importId: string,
+    configuration: OptimizerConfiguration,
+    sources?: string[],
+    signal?: AbortSignal,
+  ): Promise<{ generation: number; summary: OptimizerSummary }> {
+    if (signal?.aborted) throw new SupersededError();
+    let generation = 0;
+    const pending = this.send(
+      (requestId) => {
+        generation = requestId;
+        return {
+          protocol: WORKER_PROTOCOL_VERSION,
+          type: "OPTIMIZE",
+          requestId,
+          importId,
+          configuration,
+          ...(sources ? { sources } : {}),
+        };
+      },
+      undefined,
+      "optimizer",
+    );
+    const abort = () => {
+      if (this.optimizerGeneration === generation)
+        void this.cancelOptimizer().catch(() => undefined);
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
+    const response = await pending;
+    if (response.type !== "OPTIMIZER_OK") throw new Error("unexpected worker response");
+    return { generation: response.requestId, summary: response.summary };
+  }
+  async optimizerDetail(generation: number, offset: number, limit = 100): Promise<OptimizerDetail> {
+    if (generation !== this.optimizerGeneration) throw new SupersededError();
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "OPTIMIZER_DETAIL",
+        requestId,
+        generation,
+        offset,
+        limit,
+      }),
+      undefined,
+      "optimizer-detail",
+    );
+    if (response.type !== "OPTIMIZER_DETAIL_OK") throw new Error("unexpected worker response");
+    return response.detail;
+  }
+  /** End all activity owned by this client, including child optimization, on owner teardown. */
+  dispose(): void {
+    this.invalidateOptimizer();
+    this.clearReadyTimer();
+    this.worker?.terminate();
+    this.worker = undefined;
+    this.workerReady = false;
+    for (const entry of this.pending.values()) {
+      if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+      entry.reject(new SupersededError());
+    }
+    this.pending.clear();
   }
 
   async ping(): Promise<boolean> {
