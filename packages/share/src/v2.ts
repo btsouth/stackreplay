@@ -124,6 +124,50 @@ export const shareWorkloadV2Schema = z.strictObject({
       unresolvedCalls: count,
     })
     .optional(),
+  /** D2 aggregate review. Dates and local paid amounts require independent opt-ins. */
+  review: z
+    .strictObject({
+      period: z.strictObject({ start: isoDateV1Schema, end: isoDateV1Schema }).optional(),
+      history: periodSchema.optional(),
+      calls: count,
+      knownTokens: count,
+      historyConfirmed: z.boolean(),
+      state: z.enum(["partial", "aligned", "spend-private"]),
+      api: z
+        .strictObject({
+          low: amount,
+          high: amount,
+          priced: count,
+          rulesAsOf: isoDateV1Schema,
+          catalog: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+        })
+        .optional(),
+      spend: z
+        .strictObject({ amount, basis: z.literal("local-user-confirmed"), subscriptions: count })
+        .optional(),
+      difference: z
+        .strictObject({
+          low: z.string().regex(/^-?\d{1,24}(\.\d{1,40})?$/u),
+          high: z.string().regex(/^-?\d{1,24}(\.\d{1,40})?$/u),
+        })
+        .optional(),
+    })
+    .refine((r) => {
+      const days = r.period
+        ? (Date.parse(r.period.end) - Date.parse(r.period.start)) / 86_400_000
+        : 1;
+      return (
+        days > 0 &&
+        days <= 31 &&
+        (r.state !== "aligned" ||
+          (r.historyConfirmed &&
+            r.spend !== undefined &&
+            r.api?.priced === r.calls &&
+            r.calls > 0)) &&
+        (r.difference === undefined || r.state === "aligned")
+      );
+    })
+    .optional(),
   /** Optional D1 decision aggregates. No local stack or event data. */
   market: z
     .strictObject({

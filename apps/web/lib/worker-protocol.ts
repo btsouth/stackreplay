@@ -226,6 +226,7 @@ export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "API_MARKET";
+      period?: import("./review-period").ReviewPeriod;
       requestId: number;
       importId: string;
     }

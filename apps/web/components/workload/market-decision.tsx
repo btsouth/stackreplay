@@ -2,13 +2,24 @@
 
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MicroLabel } from "@/components/instrument/primitives";
-import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
-import { fixedDifference, marketRange } from "@/lib/decision-presentation";
+import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
+import {
+  composeReview,
+  daysInPeriod,
+  nextDate,
+  periodLabel,
+  resolveReviewPeriod,
+} from "@/lib/review-period";
 import type { TargetKey } from "@/lib/routes";
+import { useReview } from "@/lib/use-review";
 import { getWorkerClient, SupersededError } from "@/lib/worker-client";
+import type { ImportRecord } from "@/lib/worker-protocol";
+import { BillingEditor } from "./billing-editor";
+import { partialScanOf } from "./evidence";
+import { ReviewSetup } from "./review-setup";
 
 const dollars = (value: string) => `$${new Decimal(value).toFixed(2)}`;
 const subscriptions = DECISION_MARKET.plans.filter(
@@ -17,30 +28,55 @@ const subscriptions = DECISION_MARKET.plans.filter(
 
 /** Presentation of durable engine receipts. Never prices or assigns workload events. */
 export function MarketDecisionSurface({
-  importId,
+  record,
   onResult,
 }: {
-  importId: string;
-  onResult?: (id: string, result: MarketDecision) => void;
+  record: ImportRecord;
+  onResult?: (id: string, result: MarketDecision | undefined) => void;
 }) {
-  const [decision, setDecision] = useState<MarketDecision>();
+  const [computed, setComputed] = useState<{ key: string; result: MarketDecision }>();
   const [error, setError] = useState<string>();
-  const [selected, setSelected] = useState<TargetKey[]>([]);
+  const importId = record.id;
+  const local = useReview(record);
+  const { selected, choice, billing } = local;
+  const selectedPeriod = resolveReviewPeriod(choice, billing);
+  const periodStart = selectedPeriod?.start,
+    periodEnd = selectedPeriod?.end;
+  const executionKey = `${importId}:${periodStart ?? "history"}:${periodEnd ?? ""}`;
+  const decision = computed?.key === executionKey ? computed.result : undefined;
+  const scan = partialScanOf(record);
+  const partialScan = scan.unreadable + scan.other > 0;
+  const review = useMemo(
+    () =>
+      decision
+        ? composeReview({
+            decision,
+            choice,
+            billing,
+            selected,
+            partialScan,
+            synthetic: local.synthetic,
+          })
+        : undefined,
+    [decision, choice, billing, selected, partialScan, local.synthetic],
+  );
   useEffect(() => {
-    const refresh = () => setSelected(readCurrentStack());
-    refresh();
-    return subscribeCurrentStack(refresh);
-  }, []);
+    onResult?.(importId, decision ? { ...decision, ...(review ? { review } : {}) } : undefined);
+  }, [importId, decision, review, onResult]);
   useEffect(() => {
+    if (!local.ready) return;
     const controller = new AbortController();
-    setDecision(undefined);
+    setComputed(undefined);
     setError(undefined);
     getWorkerClient()
-      .apiMarket(importId, controller.signal)
+      .apiMarket(
+        importId,
+        controller.signal,
+        periodStart && periodEnd ? { start: periodStart, end: periodEnd } : undefined,
+      )
       .then((result) => {
         if (!controller.signal.aborted) {
-          setDecision(result);
-          onResult?.(importId, result);
+          setComputed({ key: executionKey, result });
         }
       })
       .catch((e: unknown) => {
@@ -52,7 +88,7 @@ export function MarketDecisionSurface({
           );
       });
     return () => controller.abort();
-  }, [importId, onResult]);
+  }, [importId, local.ready, periodStart, periodEnd, executionKey]);
   const scenarios = decision?.scenarios ?? [];
   const first = scenarios[0]?.summary;
   const range = marketRange(decision);
@@ -83,10 +119,72 @@ export function MarketDecisionSurface({
       data-testid="market-decision"
     >
       <div className="flex flex-col gap-2">
-        <MicroLabel>Published API equivalent</MicroLabel>
-        <h2 id="api-market-heading" className="text-xl font-medium tracking-tight">
-          What would your recorded work cost?
+        <MicroLabel className={review?.complete ? "text-accent" : "text-warning"}>
+          <span data-testid="review-state">
+            {review?.complete ? "Billing-period review" : "Partial review"}
+          </span>
+        </MicroLabel>
+        <h2
+          id="api-market-heading"
+          className="text-2xl font-medium tracking-tight"
+          data-testid="review-period"
+        >
+          {review?.period ? periodLabel(review.period) : "Choose your review period"}
         </h2>
+        <p className="text-xs text-muted-foreground" data-testid="review-source">
+          {choice.mode === "history"
+            ? "Using recorded history span"
+            : choice.mode === "cycle"
+              ? "Using a locally supplied subscription cycle"
+              : "Using your custom review period"}{" "}
+          · UTC
+        </p>
+        {local.synthetic ? (
+          <p className="text-xs text-muted-foreground">
+            Synthetic demo workload and billing data. Not real customer evidence.
+          </p>
+        ) : null}
+        {review ? (
+          <div className="my-2 flex flex-col gap-2 text-sm" data-testid="review-history">
+            <p>
+              Recorded history:{" "}
+              {review.history.firstDate && review.history.lastDate
+                ? periodLabel({
+                    start: review.history.firstDate,
+                    end: nextDate(review.history.lastDate),
+                  })
+                : "No calls in this period"}{" "}
+              · UTC
+            </p>
+            <p className="text-muted-foreground">
+              {review.history.firstDate && review.history.lastDate && review.period
+                ? `Recorded history spans ${daysInPeriod({ start: review.history.firstDate, end: nextDate(review.history.lastDate) })} days of this ${daysInPeriod(review.period)}-day review period. `
+                : ""}
+              This span does not prove complete logs.
+            </p>
+            <p>
+              <span className="font-mono">{review.history.calls.toLocaleString()}</span> recorded
+              calls ·{" "}
+              <span className="font-mono">{review.history.knownTokens.toLocaleString()}</span> known
+              processed tokens
+              {review.history.unknownTokenCalls
+                ? ` · ${review.history.unknownTokenCalls.toLocaleString()} calls with unknown token totals`
+                : ""}
+            </p>
+            {review.history.outsideCalls ? (
+              <p className="text-muted-foreground">
+                {review.history.outsideCalls.toLocaleString()} imported calls fall outside this
+                selected period. They remain in your saved workload.
+              </p>
+            ) : null}
+            <p className="text-muted-foreground">
+              {review.historyConfirmed
+                ? "History coverage: confirmed locally by you; not independently verified."
+                : "History coverage: not confirmed for this review period."}
+            </p>
+          </div>
+        ) : null}
+        <MicroLabel>Published API equivalent</MicroLabel>
         {!decision && !error ? (
           <p role="status" className="text-sm text-muted-foreground">
             Calculating what your exact models would cost through published APIs…
@@ -118,8 +216,8 @@ export function MarketDecisionSurface({
                   ? "At published API prices. Claude cache-write duration is not recorded by this source, so StackReplay calculated both published possibilities."
                   : "At published API prices for the recorded workload."
                 : "Some required execution or pricing facts remain unknown. No missing price is treated as zero."}{" "}
-              This is a published-price comparison, not your actual bill or a subscription savings
-              claim.
+              This is not your actual bill. No monthly projection or subscription-capacity
+              assumption.
             </p>
             {decision.unavailable ? (
               <p className="text-sm" data-testid="market-coverage">
@@ -129,6 +227,11 @@ export function MarketDecisionSurface({
             ) : null}
             {first ? (
               <p className="text-sm" data-testid="market-coverage">
+                Model coverage:{" "}
+                {comparable
+                  ? first.scope.required.toLocaleString()
+                  : (first.candidates[0]?.modeled ?? 0).toLocaleString()}{" "}
+                / {first.scope.recorded.toLocaleString()} recorded calls modeled.{" "}
                 {first.scope.recorded.toLocaleString()} / {first.scope.recorded.toLocaleString()}{" "}
                 calls retained in the comparison ·{" "}
                 {comparable ? first.scope.required.toLocaleString() : "See unknowns for"} priced
@@ -147,16 +250,29 @@ export function MarketDecisionSurface({
       <section aria-label="Your current stack" className="border-y border-border-strong py-5">
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
-            <MicroLabel>Your current stack</MicroLabel>
+            <MicroLabel>Published subscription price</MicroLabel>
             <p className="mt-2 font-mono text-3xl tabular-nums" data-testid="decision-fixed-spend">
               {selected.length ? `${dollars(current.toString())} / month` : "Not selected"}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Selected fixed subscriptions at listed monthly prices.
+              Accepted catalog list prices for full billing cycles. Not an invoice.
               {unlisted > 0
-                ? ` ${unlisted} selection(s) have no admitted monthly price in this subtotal; the difference is withheld.`
+                ? ` ${unlisted} selection(s) have no admitted monthly price in this subtotal.`
                 : ""}
             </p>
+            {subscriptions
+              .filter((p) => selected.includes(`plan:${p.id}`))
+              .map((p) => (
+                <p className="mt-1 text-sm" key={p.id}>
+                  {p.name}
+                  {billing[`plan:${p.id}`]?.paid !== undefined
+                    ? ` · locally entered paid ${dollars(billing[`plan:${p.id}`]?.paid ?? "0")}`
+                    : ""}
+                  {billing[`plan:${p.id}`]?.cycle
+                    ? ` · ${periodLabel(billing[`plan:${p.id}`]?.cycle as { start: string; end: string })}`
+                    : " · cycle not supplied"}
+                </p>
+              ))}
             <button
               type="button"
               className="inline-flex min-h-11 items-center text-sm text-accent underline"
@@ -171,31 +287,58 @@ export function MarketDecisionSurface({
             >
               Select or edit your subscriptions →
             </button>
-            {subscriptions
-              .filter((p) => selected.includes(`plan:${p.id}`))
-              .map((p) => (
-                <p className="text-sm" key={p.id}>
-                  {p.name}
-                </p>
-              ))}
           </div>
           <div>
-            <MicroLabel>Difference versus published API equivalent</MicroLabel>
-            <p className="mt-2 font-mono text-2xl tabular-nums" data-testid="decision-difference">
-              {selected.length && range && !unlisted
-                ? `${dollars(fixedDifference(current.toString(), range).low)} – ${dollars(fixedDifference(current.toString(), range).high)}`
-                : "Select your stack to compare"}
+            <MicroLabel>Confirmed fixed subscription spend</MicroLabel>
+            <p
+              className="mt-2 font-mono text-3xl tabular-nums"
+              data-testid="review-confirmed-spend"
+            >
+              {review?.confirmedSpend !== undefined
+                ? dollars(review.confirmedSpend)
+                : "Not confirmed"}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              One monthly subscription bill versus this recorded workload
-              {first
-                ? ` (${first.scope.period.start.slice(0, 10)} to ${first.scope.period.end.slice(0, 10)})`
+              {review?.confirmedCount ?? 0} / {selected.length} selected subscriptions have a paid
+              amount and the exact review cycle. Local user-supplied amounts, not catalog facts.
+              {review?.unmatchedCount
+                ? ` ${review.unmatchedCount} cycle(s) are missing or do not align; those charges are not included.`
                 : ""}
-              . No monthly projection or prorating. This difference is not proven savings.
+            </p>
+            <MicroLabel className="mt-5">Difference for this review period</MicroLabel>
+            <p className="mt-2 font-mono text-2xl tabular-nums" data-testid="decision-difference">
+              {review?.difference
+                ? `${dollars(review.difference.low)} – ${dollars(review.difference.high)}`
+                : "Not directly comparable yet"}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Confirmed fixed spend minus published API equivalent. A negative difference means
+              fixed spend is lower. This is not proven savings.
             </p>
           </div>
         </div>
       </section>
+      <section aria-label="What this means" className="border-l-2 border-accent pl-4">
+        <MicroLabel>What this means</MicroLabel>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed" data-testid="review-conclusion">
+          {review?.conclusion ?? "Calculating the recorded workload for this review."}
+        </p>
+      </section>
+      <ReviewSetup
+        choice={choice}
+        review={review}
+        billing={billing}
+        selected={selected}
+        onChange={local.setChoice}
+        names={Object.fromEntries(subscriptions.map((p) => [`plan:${p.id}`, p.name]))}
+        partialScan={partialScan}
+      />
+      {local.saveFailed ? (
+        <p role="alert" className="text-warning">
+          Billing facts could not be saved in this browser. These changes last only until navigation
+          or reload.
+        </p>
+      ) : null}
       <section aria-label="What StackReplay can tell you" className="grid gap-5 sm:grid-cols-2">
         <div>
           <MicroLabel>
@@ -204,23 +347,20 @@ export function MarketDecisionSurface({
               : "API calculation incomplete"}
           </MicroLabel>
           <h3 className="mt-2 font-medium">What we can tell you</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {comparable
-              ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same workload. `
-              : "All imported calls stay in scope. Missing facts remain visible in the calculation below."}
-            {selected.length
-              ? " Your selected plans’ listed fixed prices are shown separately from API usage."
-              : " Add your subscriptions to compare their listed fixed prices with this recorded work."}
+              ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same workload.`
+              : "Missing facts remain visible below. No missing price is treated as zero."}
           </p>
         </div>
         <div>
           <MicroLabel>Subscription capacity unknown</MicroLabel>
-          <h3 className="mt-2 font-medium">What this does not establish</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <h3 className="mt-2 font-medium">What we still cannot prove</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
             Published subscription capacity is not deterministic enough to prove whether these plans
-            would handle your bursts without interruption. API usage may provide a different product
+            would handle every burst without interruption. API usage may provide a different product
             experience. This is not a recommendation to cancel a plan. Taxes, other tools and
-            negotiated prices are not included.
+            negotiated prices are not included in published API economics.
           </p>
         </div>
       </section>
@@ -391,8 +531,7 @@ export function MarketDecisionSurface({
                     const next = e.target.checked
                       ? [...selected, key]
                       : selected.filter((id) => id !== key);
-                    setSelected(next);
-                    writeCurrentStack(next);
+                    local.setSelected(next);
                   }}
                 />
                 <span>{p.name}</span>
@@ -403,6 +542,15 @@ export function MarketDecisionSurface({
                     : "Price unknown"}
                 </span>
               </label>
+              {selected.includes(`plan:${p.id}`) ? (
+                <BillingEditor
+                  key={p.id}
+                  name={p.name}
+                  fact={billing[`plan:${p.id}`]}
+                  synthetic={local.synthetic}
+                  onSave={(fact) => local.saveBilling(`plan:${p.id}`, fact)}
+                />
+              ) : null}
               {p.claims
                 .filter((c) => c.id === "cohort")
                 .map((c) => (
@@ -443,7 +591,7 @@ export function MarketDecisionSurface({
           ))}
         </fieldset>
         <p className="pt-4 font-mono" data-testid="market-current-spend">
-          Selected fixed subscription spend: ${current.toFixed(2)} / month
+          Published subscription price: ${current.toFixed(2)} / month
         </p>
         {unlisted > 0 ? (
           <p className="pt-2 text-muted-foreground">
@@ -455,8 +603,8 @@ export function MarketDecisionSurface({
           Return to your decision ↑
         </a>
         <p className="pt-2 text-muted-foreground">
-          Published sticker-price arithmetic only. Selecting a plan does not establish your
-          eligibility, actual billed price, or that you should cancel it.
+          Billing facts stay in this browser. Published catalog prices and user-entered paid amounts
+          remain separate. Selecting a plan does not establish eligibility or capacity.
         </p>
       </details>
     </section>

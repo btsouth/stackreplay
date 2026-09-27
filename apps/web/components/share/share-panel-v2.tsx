@@ -2,7 +2,7 @@
 
 import { encodeShareTokenV2, type ShareSnapshotV2, suggestedPost } from "@stackreplay/share";
 import { Button, buttonVariants } from "@stackreplay/ui";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareCardV2 } from "@/components/share/share-card-v2";
 import { presentShare } from "@/lib/share-presentation";
 import type { ShareOptions } from "@/lib/share-v2";
@@ -64,11 +64,25 @@ export function SharePanelV2({
     () => (refusal === undefined ? build(options) : undefined),
     [build, options, refusal],
   );
+  // A new period or paid amount invalidates an old link and its suggested post.
+  const snapshotKey = JSON.stringify(snapshot);
+  const currentSnapshot = useRef(snapshotKey);
+  currentSnapshot.current = snapshotKey;
+  useEffect(() => {
+    if (snapshotKey !== currentSnapshot.current) return;
+    setLink(undefined);
+    setUnstored(undefined);
+    setStatus(undefined);
+  }, [snapshotKey]);
   const origin = siteUrl ?? (typeof window === "undefined" ? "" : window.location.origin);
   const url = link === undefined ? undefined : `${origin}/s/${link.id ?? link.token}`;
 
   const choose = (key: keyof ShareOptions, value: boolean) => {
-    setOptions((current) => ({ ...current, [key]: value }));
+    setOptions((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === "includeReview" && !value ? { includePaid: false } : {}),
+    }));
     setLink(undefined);
     setUnstored(undefined);
     setError(undefined);
@@ -93,8 +107,10 @@ export function SharePanelV2({
       return;
     }
     try {
-      setLink({ token, id: await storeShareToken(token) });
+      const id = await storeShareToken(token);
+      if (currentSnapshot.current === snapshotKey) setLink({ token, id });
     } catch {
+      if (currentSnapshot.current !== snapshotKey) return;
       setUnstored(token);
       setError("A short link could not be created right now.");
     } finally {
@@ -187,6 +203,25 @@ export function SharePanelV2({
         </label>
         {kind === "workload" ? (
           <>
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={options.includeReview === true}
+                onChange={(e) => choose("includeReview", e.target.checked)}
+                data-testid="share-include-review"
+              />
+              The review-period and recorded-history dates
+            </label>
+            <label className="flex min-h-11 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                disabled={!options.includeReview}
+                checked={options.includePaid === true}
+                onChange={(e) => choose("includePaid", e.target.checked)}
+                data-testid="share-include-paid"
+              />
+              My locally confirmed paid amount and any same-period difference (public)
+            </label>
             <label className="flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
               <input
                 type="checkbox"

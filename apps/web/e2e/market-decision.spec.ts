@@ -36,7 +36,9 @@ for (const theme of ["dark", "light"] as const) {
     await page.keyboard.press("Space");
     await market.getByRole("checkbox", { name: "ChatGPT Plus", exact: false }).check();
     await expect(market.getByTestId("decision-fixed-spend")).toHaveText("$120.00 / month");
-    await expect(market.getByTestId("decision-difference")).toHaveText("$113.90 – $114.07");
+    await expect(market.getByTestId("decision-difference")).toHaveText(
+      "Not directly comparable yet",
+    );
     await expect(market).toContainText("not proven savings");
     for (let i = 0; i < 6; i++) await market.getByRole("checkbox").nth(i).check();
     expect(await market.getByRole("checkbox", { checked: true }).count()).toBeGreaterThan(4);
@@ -91,7 +93,9 @@ test("the import answer, Workload, Compare and aggregate share use one decision"
   await page.getByTestId("open-workload").click();
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
   await expect(page.getByTestId("share-figure")).toContainText("$5.93 – $6.10");
-  await expect(page.getByTestId("share-headline")).toContainText("900 / 900 calls priced");
+  await expect(page.getByTestId("share-headline")).toContainText(
+    "900 / 900 recorded calls modeled",
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByTestId("workload-compare-cta").click();
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");

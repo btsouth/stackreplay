@@ -90,7 +90,7 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 
 async function openWorkload(page: Page): Promise<void> {
   await page.getByTestId("open-workload").click();
-  await expect(page.getByRole("heading", { name: "How you actually use AI" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your billing-period review" })).toBeVisible();
   // The value block appears once the analysis is in: a figure, or why there is none.
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
@@ -544,9 +544,14 @@ test("a workload share link carries aggregates only and reads as StackReplay in 
     decoded.ok &&
       decoded.snapshot.version === 2 &&
       decoded.snapshot.kind === "workload" &&
-      decoded.snapshot.market
-      ? "exact recorded models · not an actual bill"
-      : "at published API list prices · not what you paid",
+      decoded.snapshot.review?.api
+      ? "published API equivalent · not an actual bill"
+      : decoded.ok &&
+          decoded.snapshot.version === 2 &&
+          decoded.snapshot.kind === "workload" &&
+          decoded.snapshot.market
+        ? "exact recorded models · not an actual bill"
+        : "at published API list prices · not what you paid",
   );
   await expect(page.getByTestId("share-privacy")).toContainText("no times of day");
   await expect(page.locator("main")).not.toContainText(PROJECT_MARKER);

@@ -70,6 +70,61 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
       synthetic: snapshot.synthetic === true,
     };
   }
+  if (snapshot.review) {
+    const r = snapshot.review;
+    const state =
+      r.state === "aligned"
+        ? "Billing-period review"
+        : r.state === "spend-private"
+          ? "Review · spend private"
+          : "Partial review";
+    return {
+      kind: "workload",
+      label: state,
+      context: r.period
+        ? `${r.period.start} → ${r.period.end} (end excluded, UTC)`
+        : "Review dates not shared",
+      ...(r.api
+        ? {
+            figure: {
+              value: `${formatUsd(r.api.low)} – ${formatUsd(r.api.high)}`,
+              caption: "published API equivalent · not an actual bill",
+            },
+          }
+        : {}),
+      ...(r.spend
+        ? {
+            secondary: {
+              value: formatUsd(r.spend.amount) ?? "",
+              caption: "locally confirmed fixed spend",
+            },
+          }
+        : {}),
+      headline: `${r.api?.priced.toLocaleString("en-US") ?? "Unknown"} / ${r.calls.toLocaleString("en-US")} recorded calls modeled. ${r.state === "aligned" ? "Same-period comparison." : r.state === "spend-private" ? "Paid amount not shared; no public spend comparison." : "Not directly comparable yet."}`,
+      weight: "strong",
+      support: [
+        `${r.knownTokens.toLocaleString("en-US")} known processed tokens. Recorded history: ${r.history ? `${r.history.from} to ${r.history.to}` : "dates not shared"}. Event dates do not prove complete logs.`,
+        r.historyConfirmed
+          ? "History coverage confirmed locally by the sharer, not independently verified."
+          : "History coverage not confirmed.",
+        ...(r.difference
+          ? [
+              `Difference for this review period: ${formatUsd(r.difference.low)} to ${formatUsd(r.difference.high)} (fixed spend minus API equivalent). Not proven savings.`,
+            ]
+          : []),
+        r.api
+          ? "Both published cache-write durations calculated; source logs do not record which applied. Subscription capacity and equivalent product experience are not established."
+          : "Full published API equivalent unavailable. Missing prices are not zero. Subscription capacity and equivalent product experience are not established.",
+        r.spend
+          ? "Paid amount is user-supplied local information, not an accepted catalog fact or verified invoice."
+          : "Local paid amounts are not included in this share.",
+        ...(r.api ? [`Catalog: ${r.api.catalog} · price snapshot ${r.api.rulesAsOf}`] : []),
+      ],
+      facts: [],
+      tools: [],
+      synthetic: snapshot.synthetic === true,
+    };
+  }
   if (snapshot.market) {
     const m = snapshot.market;
     return {

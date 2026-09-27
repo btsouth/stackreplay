@@ -26,6 +26,10 @@ function list(items: readonly string[]): string {
 /** A title for the public page and its image: what the result says, in one line. */
 export function shareHeadline(snapshot: ShareSnapshotV2): string {
   if (snapshot.kind === "replay") return firstSentence(composeVerdict(snapshot.verdict).headline);
+  if (snapshot.review) {
+    const r = snapshot.review;
+    return `${r.state === "aligned" ? "Billing-period review" : "Partial or private-spend review"}: ${r.calls.toLocaleString("en-US")} calls${r.period ? `, ${r.period.start} to ${r.period.end} (end excluded)` : ", review dates not shared"}${r.api ? ` · ${formatUsd(r.api.low)}–${formatUsd(r.api.high)} published API equivalent` : " · API total unavailable"}`;
+  }
   if (snapshot.market)
     return `${NUMBER.format(snapshot.market.priced)} / ${NUMBER.format(snapshot.workload.calls)} calls priced · ${formatUsd(snapshot.market.low)}–${formatUsd(snapshot.market.high)} published API equivalent`;
   const total = snapshot.value?.total;
@@ -49,6 +53,8 @@ export function suggestedPost(snapshot: ShareSnapshotV2, url: string): string {
       verdict.figure.kind === "money" ? " Not what I paid: a list-price equivalent." : "";
     return `StackReplay replayed my recorded AI coding work against ${snapshot.verdict.target.name} (${verdict.modeLabel.toLowerCase()}): “${firstSentence(verdict.headline)}”${money}\n\n${url}`;
   }
+  if (snapshot.review)
+    return `${snapshot.synthetic ? "Synthetic demo" : "Recorded workload"}, per StackReplay: ${shareHeadline(snapshot)}. ${snapshot.review.state === "aligned" ? "Same-period comparison using locally confirmed spend." : "No public same-period spend comparison."} No extrapolation, proven savings or subscription-capacity claim.\n\n${url}`;
   if (snapshot.market)
     return `${snapshot.synthetic ? "Synthetic demo" : "Recorded workload"}, per StackReplay: ${shareHeadline(snapshot)}. Both published cache-write durations calculated because source logs do not record which applied. Not an actual bill or proven savings.
 

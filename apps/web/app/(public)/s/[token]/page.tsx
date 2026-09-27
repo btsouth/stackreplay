@@ -379,8 +379,8 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
           className="max-w-3xl border-l-2 border-warning pl-4 text-sm text-warning"
           data-testid="share-synthetic"
         >
-          Demo data. This result comes from a synthetic <code>example-</code> workload or target, so
-          its names, prices and limits are illustrative, not a real-world claim.
+          Synthetic demo data. Workload and any paid amounts are illustrative, not real customer
+          evidence. Published API prices may come from the accepted catalog.
         </p>
       ) : null}
       <ShareCardV2 heading="h1" presentation={presentation} />
@@ -437,6 +437,14 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
               </ul>
             )}
           </>
+        ) : snapshot.review || snapshot.market ? (
+          <p className="text-muted-foreground">
+            The exact recorded models are evaluated through admitted published API routes under both
+            displayed cache-write assumptions. This is a current-market counterfactual at the pinned
+            catalog snapshot, not historical invoice pricing. Any confirmed fixed spend is local
+            user input, shared by explicit choice. The site has not verified the workload, history
+            completeness or paid amount; this link is not proof of authenticity.
+          </p>
         ) : (
           <p className="text-muted-foreground">
             Each model maker&apos;s calls priced by an Exact Direct API replay at that maker&apos;s

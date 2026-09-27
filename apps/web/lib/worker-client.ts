@@ -9,6 +9,7 @@ import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/sc
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import type { MarketDecision } from "./market-decision";
 import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
+import { clearReviewState } from "./review-storage";
 import { browserTimeZone } from "./time-zone";
 import type { OptimizerConfiguration } from "./worker-protocol";
 import {
@@ -408,15 +409,26 @@ export class ReplayWorkerClient {
       requestId,
     }));
   }
-  async apiMarket(importId: string, signal?: AbortSignal): Promise<MarketDecision> {
+  async apiMarket(
+    importId: string,
+    signal?: AbortSignal,
+    period?: import("./review-period").ReviewPeriod,
+  ): Promise<MarketDecision> {
+    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}`;
     if (signal?.aborted) throw new SupersededError();
-    const cached = this.marketSummaries.get(importId);
+    const cached = this.marketSummaries.get(cacheKey);
     if (cached) return cached;
     let generation = 0;
     const pending = this.send(
       (requestId) => {
         generation = requestId;
-        return { protocol: WORKER_PROTOCOL_VERSION, type: "API_MARKET", requestId, importId };
+        return {
+          protocol: WORKER_PROTOCOL_VERSION,
+          type: "API_MARKET",
+          requestId,
+          importId,
+          ...(period ? { period } : {}),
+        };
       },
       undefined,
       "optimizer",
@@ -432,7 +444,7 @@ export class ReplayWorkerClient {
     if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
     const oldest = this.marketSummaries.keys().next().value;
     if (this.marketSummaries.size >= 3 && oldest !== undefined) this.marketSummaries.delete(oldest);
-    this.marketSummaries.set(importId, response.decision);
+    this.marketSummaries.set(cacheKey, response.decision);
     this.optimizerAbortCleanup?.();
     this.optimizerAbortCleanup = undefined;
     return response.decision;
@@ -721,6 +733,7 @@ export class ReplayWorkerClient {
       importId,
     }));
     if (response.type !== "DELETED") throw new Error("unexpected worker response");
+    clearReviewState(importId);
   }
 
   async clearLocalData(): Promise<void> {
@@ -730,6 +743,7 @@ export class ReplayWorkerClient {
       requestId,
     }));
     if (response.type !== "CLEARED") throw new Error("unexpected worker response");
+    clearReviewState();
   }
 }
 

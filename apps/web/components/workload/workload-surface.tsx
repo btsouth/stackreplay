@@ -115,7 +115,8 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
   const client = getWorkerClient();
   const [market, setMarket] = useState<{ id: string; result: MarketDecision }>();
   const onMarket = useCallback(
-    (id: string, result: MarketDecision) => setMarket({ id, result }),
+    (id: string, result: MarketDecision | undefined) =>
+      setMarket(result ? { id, result } : undefined),
     [],
   );
   const [imports, setImports] = useState<ImportRecord[] | undefined>(undefined);
@@ -416,7 +417,7 @@ function WorkloadOpening({
   profile: WorkloadProfile | undefined;
   imports: ImportRecord[];
   onSelect: (id: string) => void;
-  onMarket: (id: string, result: MarketDecision) => void;
+  onMarket: (id: string, result: MarketDecision | undefined) => void;
 }) {
   const { summary } = record;
   const sources =
@@ -469,12 +470,13 @@ function WorkloadOpening({
             {origin === "synthetic demo" ? "Synthetic demo workload" : "Your workload"}
           </MicroLabel>
           <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
-            How you actually use AI
+            Your billing-period review
           </h1>
           <p
             className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
             data-testid="opening-meta"
           >
+            Imported history ({profile?.timeZone ?? "UTC"}) ·{" "}
             {overview === undefined
               ? recordedRange(record)
               : plainRange(overview.firstDate, overview.lastDate)}{" "}
@@ -520,7 +522,7 @@ function WorkloadOpening({
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
       {scanNotice}
-      <MarketDecisionSurface key={record.id} importId={record.id} onResult={onMarket} />
+      <MarketDecisionSurface key={record.id} record={record} onResult={onMarket} />
       <details data-testid="legacy-workload">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Inspect earlier replay valuation

@@ -106,7 +106,10 @@ test("a workload link is short, uploads only its aggregate token and renders fro
   const ogImage = /<meta property="og:image" content="([^"]+)"/u.exec(html)?.[1];
   expect(ogImage).toBe(`https://stackreplay.com/s/${link.id}/image`);
   await page.goto(`/s/${link.id}`);
-  await expect(page.getByTestId("share-card-v2")).toContainText("not what you paid");
+  await expect(page.getByTestId("share-card-v2")).toContainText("Not directly comparable yet");
+  await expect(page.getByTestId("share-card-v2")).toContainText(
+    "Local paid amounts are not included",
+  );
   expectNoMarkers(await page.locator("main").innerText());
 
   // Its image is drawn from the same stored snapshot.

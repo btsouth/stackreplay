@@ -171,18 +171,19 @@ export function WorkloadCompare({
         href={`/app/workload?import=${encodeURIComponent(record.id)}#api-market`}
         className="text-sm text-accent underline underline-offset-4"
       >
-        Full admitted API equivalent · all recorded calls →
+        Full admitted API equivalent · billing-period review →
       </Link>
       <PartialScanNotice record={record} briefing />
-      <MarketDecisionSurface key={record.id} importId={record.id} />
+      <MarketDecisionSurface key={record.id} record={record} />
       <details open={initialDecision !== undefined} data-testid="legacy-compare">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Inspect earlier source-scoped replay comparisons
         </summary>
         <p className="py-3 text-sm text-muted-foreground">
           These historical replay views use separate pricing methods and may use a narrower tool
-          scope. The published market decision above is the common whole-workload answer. Any
-          period-adjusted fixed price below is analytical, not a purchase price.
+          scope. The billing-period review above is the primary same-period answer. These tools do
+          not establish confirmed spend or period completeness. Any period-adjusted fixed price
+          below is analytical, not a purchase price.
         </p>
         <section aria-labelledby="decision-heading">
           <h2 id="decision-heading" className="text-lg font-medium">

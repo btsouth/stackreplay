@@ -862,8 +862,8 @@ export function ImportSurface({
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Start with Moderate week: 900 synthetic calls, published API economics and both
-              cache-write assumptions.
+              Start with Complete billing period: 3,600 synthetic calls, sample paid subscriptions
+              and a same-period API comparison.
             </p>
           </CardContent>
         </Card>
@@ -1194,7 +1194,7 @@ function ReadyDetails({
         </Link>
       </div>
       {partialScan}
-      <MarketDecisionSurface key={record.id} importId={record.id} />
+      <MarketDecisionSurface key={record.id} record={record} />
       <details data-testid="legacy-import">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Inspect earlier replay valuation and usage insights

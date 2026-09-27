@@ -13,6 +13,7 @@ import {
 } from "@stackreplay/share";
 import { marketRange } from "./decision-presentation";
 import type { MarketDecision } from "./market-decision";
+import { daysInPeriod, nextDate } from "./review-period";
 import type { ImportRecord } from "./worker-protocol";
 import { isSyntheticWorkload } from "./workload-kind";
 import type { WorkloadProfile } from "./workload-profile";
@@ -29,6 +30,10 @@ import type { WorkloadProfile } from "./workload-profile";
 export interface ShareOptions {
   /** Publish the recorded date range. Off by default. */
   includePeriod: boolean;
+  /** Explicit opt-in to publishing the billing review dates and aggregates. */
+  includeReview?: boolean;
+  /** Independent opt-in; never included by default or implied by date sharing. */
+  includePaid?: boolean;
   /** Workload only: publish the session count. Off by default. */
   includeSessions?: boolean;
   /** Workload only: publish when each peak happened, and the time zone. Off by default. */
@@ -138,10 +143,68 @@ export function workloadShareV2(
   const value = profile.value;
   const overview = profile.overview;
   const range = marketRange(decision);
+  const reviewHistory = decision?.review?.history;
+  const firstDate = reviewHistory ? reviewHistory.firstDate : overview.firstDate;
+  const lastDate = reviewHistory ? reviewHistory.lastDate : overview.lastDate;
   const snapshot: ShareWorkloadV2 = {
     version: 2,
     kind: "workload",
-    ...(range && range.calls === overview.events
+    ...(decision?.review
+      ? {
+          review: {
+            ...(options.includeReview && decision.review.period
+              ? { period: { start: decision.review.period.start, end: decision.review.period.end } }
+              : {}),
+            ...(options.includeReview &&
+            decision.review.history.firstDate &&
+            decision.review.history.lastDate
+              ? {
+                  history: {
+                    from: decision.review.history.firstDate,
+                    to: decision.review.history.lastDate,
+                  },
+                }
+              : {}),
+            calls: decision.review.history.calls,
+            knownTokens: decision.review.history.knownTokens,
+            historyConfirmed: decision.review.historyConfirmed,
+            state: decision.review.complete
+              ? options.includePaid
+                ? ("aligned" as const)
+                : ("spend-private" as const)
+              : ("partial" as const),
+            ...(range
+              ? {
+                  api: {
+                    low: range.low,
+                    high: range.high,
+                    priced: range.priced,
+                    rulesAsOf: DECISION_MARKET.rulesAt.slice(0, 10),
+                    catalog: DECISION_MARKET.catalogHash,
+                  },
+                }
+              : {}),
+            ...(options.includePaid && decision.review.confirmedSpend !== undefined
+              ? {
+                  spend: {
+                    amount: decision.review.confirmedSpend,
+                    basis: "local-user-confirmed" as const,
+                    subscriptions: decision.review.confirmedCount,
+                  },
+                }
+              : {}),
+            ...(options.includePaid && decision.review.complete && decision.review.difference
+              ? {
+                  difference: {
+                    low: decision.review.difference.low,
+                    high: decision.review.difference.high,
+                  },
+                }
+              : {}),
+          },
+        }
+      : {}),
+    ...(!decision?.review && range && range.calls === overview.events
       ? {
           market: {
             low: range.low,
@@ -155,22 +218,31 @@ export function workloadShareV2(
       : {}),
     ...(isSyntheticWorkload(record) ? { synthetic: true as const } : {}),
     workload: {
-      calls: overview.events,
-      spanDays: overview.spanDays,
-      activeDays: overview.activeDays,
-      knownTokens: overview.knownTokens,
-      ...(options.includeSessions === true ? { sessions: overview.sessions } : {}),
-      tools: [...tools.entries()]
+      calls: decision?.review?.history.calls ?? overview.events,
+      spanDays: reviewHistory
+        ? firstDate && lastDate
+          ? daysInPeriod({ start: firstDate, end: nextDate(lastDate) })
+          : 0
+        : overview.spanDays,
+      activeDays: reviewHistory?.activeDays ?? overview.activeDays,
+      knownTokens: decision?.review?.history.knownTokens ?? overview.knownTokens,
+      ...(options.includeSessions === true &&
+      (!reviewHistory || reviewHistory.calls === overview.events)
+        ? { sessions: overview.sessions }
+        : {}),
+      tools: [
+        ...(decision?.review && decision.review.history.calls !== overview.events
+          ? []
+          : tools.entries()),
+      ]
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8)
         .map(([id, calls]) => ({ id, calls })),
-      ...(options.includePeriod &&
-      overview.firstDate !== undefined &&
-      overview.lastDate !== undefined
-        ? { period: { from: overview.firstDate, to: overview.lastDate } }
+      ...(options.includePeriod && firstDate !== undefined && lastDate !== undefined
+        ? { period: { from: firstDate, to: lastDate } }
         : {}),
     },
-    ...(value === undefined
+    ...(value === undefined || decision?.review !== undefined
       ? {}
       : {
           value: {
@@ -192,7 +264,7 @@ export function workloadShareV2(
             unresolvedCalls: value.unresolvedCalls,
           },
         }),
-    facts: profile.insights.slice(0, 3).map(({ fact }) => {
+    facts: (decision?.review ? [] : profile.insights).slice(0, 3).map(({ fact }) => {
       const { at, zone, ...rest } = fact;
       return options.includeTimes === true
         ? { ...rest, ...(at === undefined ? {} : { at }), ...(zone === undefined ? {} : { zone }) }

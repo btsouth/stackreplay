@@ -439,6 +439,30 @@ describe("optimizer AbortSignal lifetime", () => {
 });
 
 describe("market decision cancellation and generations", () => {
+  it("keys market summaries by exact period and reuses a prior period without another replay", async () => {
+    const client = new ReplayWorkerClient();
+    const periods = [
+      { start: "2026-09-01", end: "2026-10-01" },
+      { start: "2026-09-04", end: "2026-10-04" },
+    ];
+    for (const period of periods) {
+      const run = client.apiMarket("same", undefined, period);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      expect(worker.sent.at(-1)).toMatchObject({ type: "API_MARKET", period });
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+        decision: { scenarios: [] },
+      });
+      await run;
+    }
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const count = worker.sent.length;
+    await client.apiMarket("same", undefined, periods[0]);
+    expect(worker.sent.length).toBe(count);
+    client.dispose();
+  });
+
   it("reuses only completed summaries and releases them on teardown", async () => {
     const client = new ReplayWorkerClient();
     const run = client.apiMarket("a");

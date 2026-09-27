@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+
 import {
   type BrowserCandidate,
   BrowserIntakeBudget,
@@ -33,6 +34,7 @@ import {
 } from "../lib/import-validation";
 import type { MarketDecision } from "../lib/market-decision";
 import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
+import { reviewWorkload } from "../lib/review-workload";
 import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
@@ -81,12 +83,9 @@ async function handleMarket(
     const loaded = await loadWorkloadEvents(request.importId, current);
     if (!loaded.ok) throw new Error("Workload unavailable");
     if (!current()) throw new OptimizerCancelledError();
-    const inputs = marketDecisionInputs(
-      loadBundledCatalog(),
-      DECISION_MARKET,
-      loaded.exported.events,
-    );
-    const decision: MarketDecision = { scenarios: [] };
+    const scoped = reviewWorkload(loaded.exported.events, request.period);
+    const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
+    const decision: MarketDecision = { scenarios: [], history: scoped.history };
     // The existing compiled evaluator retains its one-cycle observation guard.
     // Explain this unsupported input rather than suggesting a retry or clipping calls.
     const period = inputs[0]?.scenario.period;
