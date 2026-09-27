@@ -682,6 +682,146 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
         }
       }
     }
+    const executionVersions = [...(plan.executionVersions ?? [])].sort((a, b) =>
+      a.validity.start < b.validity.start ? -1 : a.validity.start > b.validity.start ? 1 : 0,
+    );
+    const executionIds = new Set<string>();
+    let priorExecutionVersion: (typeof executionVersions)[number] | undefined;
+    for (const version of executionVersions) {
+      const claimIds = new Set(version.claims.map((claim) => claim.id));
+      const add = (code: string, message: string) =>
+        issues.push({
+          severity: "error" as const,
+          code,
+          message: `${plan.id}/${version.id}: ${message}`,
+          file: entry.file,
+        });
+      for (const [kind, rows] of [
+        ["claim", version.claims],
+        ["requirement", version.requirements],
+        ["group", version.groups],
+        ["rate", version.rates],
+        ["meter", version.meters],
+        ["pool", version.pools],
+        ["debit", version.debits],
+        ["window", version.windows],
+        ["constraint", version.constraints],
+        ["route", version.routes],
+      ] as const) {
+        if (new Set(rows.map((row) => row.id)).size !== rows.length)
+          add("EXECUTION_DUPLICATE_ID", `duplicate ${kind} ID`);
+      }
+      if (executionIds.has(version.id))
+        add("EXECUTION_VERSION_DUPLICATE", "duplicate immutable version ID");
+      executionIds.add(version.id);
+      if (
+        version.validity.start >= version.validity.end ||
+        (priorExecutionVersion !== undefined &&
+          priorExecutionVersion.validity.end > version.validity.start)
+      )
+        add("EXECUTION_VERSION_OVERLAP", "invalid or overlapping half-open validity");
+      priorExecutionVersion = version;
+      if (version.validity.basis === "current-market" && !version.publication.catalogActivatedAt)
+        add("EXECUTION_ACTIVATION_UNKNOWN", "current-market version requires catalog activation");
+      const operations = [
+        version.validity,
+        ...(version.purchase.kind === "subscription" ? [version.purchase] : []),
+        ...version.requirements,
+        ...version.groups,
+        ...version.rates,
+        ...version.debits,
+        ...version.windows,
+        ...version.constraints,
+        ...version.routes,
+        version.continuation,
+        ...version.capabilities,
+      ];
+      for (const operation of operations)
+        for (const ref of operation.claimRefs)
+          if (!claimIds.has(ref)) add("EXECUTION_CLAIM_UNKNOWN", `unknown claim ${ref}`);
+      for (const claim of version.claims) {
+        if (claim.reviewedAt < claim.observedAt)
+          add("EXECUTION_REVIEW_TIME", `claim ${claim.id} was reviewed before observation`);
+        if (claim.authority === "provider" && claim.certainty === "synthetic")
+          add("EXECUTION_CLAIM_AUTHORITY", `claim ${claim.id} has contradictory authority`);
+      }
+      for (const route of version.routes) {
+        for (const id of route.requirementIds)
+          if (!version.requirements.some((r) => r.id === id))
+            add(
+              "EXECUTION_REQUIREMENT_UNKNOWN",
+              `route ${route.id} uses unknown requirement ${id}`,
+            );
+      }
+      for (const window of version.windows)
+        if (window.kind === "fixed_partition") {
+          if (
+            !version.requirements.some(
+              (r) => r.id === window.anchorRequirementId && r.kind === "account_reset_anchor",
+            )
+          )
+            add(
+              "EXECUTION_ANCHOR_UNKNOWN",
+              `fixed partition ${window.id} lacks an account reset anchor requirement`,
+            );
+        } else if (window.kind === "calendar" && !isValidTimeZone(window.timezone))
+          add(
+            "EXECUTION_TIMEZONE_INVALID",
+            `calendar window ${window.id} has invalid IANA timezone`,
+          );
+    }
+    if (
+      new Set((plan.executionOverlays ?? []).map((o) => o.id)).size !==
+      (plan.executionOverlays ?? []).length
+    )
+      issues.push({
+        severity: "error",
+        code: "EXECUTION_OVERLAY_DUPLICATE",
+        message: `${plan.id}: duplicate overlay ID`,
+        file: entry.file,
+      });
+    for (const overlay of plan.executionOverlays ?? []) {
+      if (overlay.validFrom >= overlay.validUntil)
+        issues.push({
+          severity: "error",
+          code: "EXECUTION_OVERLAY_INTERVAL",
+          message: `${plan.id}/${overlay.id}: invalid half-open overlay interval`,
+          file: entry.file,
+        });
+      for (const id of overlay.planVersionIds)
+        if (!executionIds.has(id))
+          issues.push({
+            severity: "error",
+            code: "EXECUTION_OVERLAY_VERSION",
+            message: `${plan.id}/${overlay.id}: unknown version ${id}`,
+            file: entry.file,
+          });
+      for (const id of overlay.planVersionIds) {
+        const version = executionVersions.find((v) => v.id === id);
+        if (!version) continue;
+        const claims = new Set(version.claims.map((c) => c.id));
+        const requirements = new Set(version.requirements.map((r) => r.id));
+        for (const ref of [
+          ...overlay.claimRefs,
+          ...overlay.modifications.flatMap((m) => m.claimRefs),
+        ])
+          if (!claims.has(ref))
+            issues.push({
+              severity: "error",
+              code: "EXECUTION_OVERLAY_CLAIM",
+              message: `${plan.id}/${overlay.id}: unknown claim ${ref}`,
+              file: entry.file,
+            });
+        for (const ref of overlay.requirementIds)
+          if (!requirements.has(ref))
+            issues.push({
+              severity: "error",
+              code: "EXECUTION_OVERLAY_REQUIREMENT",
+              message: `${plan.id}/${overlay.id}: unknown requirement ${ref}`,
+              file: entry.file,
+            });
+      }
+    }
     checkLimits(plan, entry.file, modelIds, issues);
   }
 
@@ -697,7 +837,7 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
     checkPricingSemantics(entry.value, entry.file, issues);
     pricingRanges.push({
       file: entry.file,
-      label: `pricing:${entry.value.modelId}:${entry.value.basis}`,
+      label: `pricing:${entry.value.modelId}:${entry.value.basis}:${entry.value.endpointId ?? "legacy"}`,
       range: {
         from: entry.value.effectiveFrom,
         ...(entry.value.effectiveTo !== undefined ? { to: entry.value.effectiveTo } : {}),

@@ -7,6 +7,7 @@ import {
   verificationStatusV1Schema,
 } from "@stackreplay/schema";
 import { z } from "zod";
+import { executionOverlaySchema, executionVersionSchema } from "./execution-authoring.js";
 
 /**
  * Catalog entry schemas (spec points 18-21, decision 6).
@@ -173,13 +174,20 @@ export const planVersionEntryWithLimitsV1Schema = planVersionEntryV1Schema.refin
   { message: "a plan version must state at least one limit" },
 );
 
-export const planV1Schema = z.strictObject({
-  id: catalogIdV1Schema,
-  role: z.literal("plan"),
-  name: z.string().min(1),
-  providerId: catalogIdV1Schema,
-  versions: z.array(planVersionEntryV1Schema).min(1),
-});
+export const planV1Schema = z
+  .strictObject({
+    id: catalogIdV1Schema,
+    role: z.literal("plan"),
+    name: z.string().min(1),
+    providerId: catalogIdV1Schema,
+    versions: z.array(planVersionEntryV1Schema),
+    /** New accepted execution semantics. Legacy `versions` retain their original reader. */
+    executionVersions: z.array(executionVersionSchema).optional(),
+    executionOverlays: z.array(executionOverlaySchema).optional(),
+  })
+  .refine((plan) => plan.versions.length > 0 || (plan.executionVersions?.length ?? 0) > 0, {
+    message: "a plan requires a legacy or accepted execution version",
+  });
 export type PlanV1 = z.infer<typeof planV1Schema>;
 
 export const providerV1Schema = z.strictObject({
@@ -321,6 +329,9 @@ export const pricingV1Schema = z.strictObject({
   currency: z.literal("USD"),
   unit: z.literal("per_1m_tokens"),
   basis: pricingBasisV1Schema,
+  /** Explicit endpoint and immutable rate revision for new execution selectors. */
+  endpointId: catalogIdV1Schema.optional(),
+  rateVersion: catalogIdV1Schema.optional(),
   rates: pricingRateSetV1Schema,
   /** Conditional rate sets that override `rates` when their condition matches. */
   tiers: z.array(pricingTierV1Schema).optional(),

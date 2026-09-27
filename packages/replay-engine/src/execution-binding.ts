@@ -8,8 +8,10 @@ import {
   boundExecutionScenarioV2Schema,
   type CompiledExecutionPlanV2,
   compiledExecutionPlanV2Schema,
+  type ExecutionObservation,
 } from "@stackreplay/schema";
-import { parseInstant } from "./time.js";
+import { Decimal } from "./money.js";
+import { calendarBucketBoundsMs, isoFromEpochMs, parseInstant } from "./time.js";
 
 /** Calendar months preserve wall-clock time, constraining the day to the target month. */
 export function purchaseCycleEnd(
@@ -94,6 +96,117 @@ export type ExecutionScenarioDraftV2 = Omit<
 > & {
   resources: Omit<BoundExecutionResourceV2, "windowInstances">[];
 };
+
+/** Local observations are counter readings, never catalog claims or synthetic calls. */
+export function reconcileInitialObservations(
+  artifacts: readonly CompiledExecutionPlanV2[],
+  scenario: BoundExecutionScenarioV2,
+): ExecutionObservation[] {
+  const resources = new Map(scenario.resources.map((r) => [r.id, r]));
+  const plans = new Map(artifacts.map((p) => [p.artifactHash, p]));
+  const evidence = new Map(scenario.observationEvidence.map((e) => [e.id, e]));
+  if (!evidence.has(scenario.initial.assumptionRef))
+    throw new Error("Missing local initial-state assumption evidence");
+  if (
+    scenario.initial.unlisted === "fresh" &&
+    evidence.get(scenario.initial.assumptionRef)?.kind !== "assumption"
+  )
+    throw new Error("Fresh starting state requires explicit local assumption evidence");
+  const catalogClaims = new Set(artifacts.flatMap((p) => p.claims.map((c) => c.id)));
+  if (scenario.observationEvidence.some((e) => catalogClaims.has(e.id)))
+    throw new Error("Catalog claims and local observations require separate evidence identities");
+  const seen = new Map<string, ExecutionObservation>();
+  for (const o of scenario.initial.observations) {
+    const resource = resources.get(o.resourceInstanceId);
+    const plan = plans.get(o.artifactHash);
+    const rules = plan?.computation;
+    if (
+      !resource ||
+      resource.artifactHash !== o.artifactHash ||
+      !plan ||
+      rules?.kind !== "executable"
+    )
+      throw new Error("Observation resource or artifact mismatch");
+    const constraint = rules.constraints.find(
+      (c) => c.id === o.constraintId && c.poolId === o.poolId,
+    );
+    const window = rules.windows.find((w) => w.id === constraint?.windowId);
+    const at = parseInstant(scenario.period.start).epochNanoseconds;
+    if (
+      !constraint ||
+      !window ||
+      !evidence.has(o.observationRef) ||
+      parseInstant(o.asOf).epochNanoseconds !== at ||
+      parseInstant(o.window.start).epochNanoseconds > at ||
+      parseInstant(o.window.end).epochNanoseconds <= at ||
+      new Decimal(o.consumedUnits).gt(constraint.amount) ||
+      (o.latched && constraint.exceed !== "latch_until_reset")
+    )
+      throw new Error("Invalid local initial observation");
+    let expected: { id: string; start: string; end: string } | undefined;
+    if (window.kind === "fixed_partition") {
+      const bound = resource.windowInstances.find(
+        (i) => i.windowDefinitionId === window.id && i.windowInstanceId === o.window.id,
+      );
+      if (bound) expected = { id: bound.windowInstanceId, start: bound.start, end: bound.end };
+    } else if (window.kind === "first_use_anchored") {
+      const bound = resource.firstUse[window.id];
+      if (bound && bound !== "inactive") expected = bound;
+    } else {
+      const bounds = calendarBucketBoundsMs(
+        Date.parse(scenario.period.start),
+        window.unit,
+        window.timezone,
+      );
+      const start = isoFromEpochMs(bounds.startMs),
+        end = isoFromEpochMs(bounds.endMs);
+      expected = { id: `${window.id}:${start}`, start, end };
+    }
+    if (
+      !expected ||
+      expected.id !== o.window.id ||
+      parseInstant(expected.start).epochNanoseconds !==
+        parseInstant(o.window.start).epochNanoseconds ||
+      parseInstant(expected.end).epochNanoseconds !== parseInstant(o.window.end).epochNanoseconds
+    )
+      throw new Error("Observation targets a different window instance");
+    const key = stableStringify([
+      o.resourceInstanceId,
+      o.artifactHash,
+      o.poolId,
+      o.constraintId,
+      o.window.id,
+    ]);
+    const previous = seen.get(key);
+    if (previous && stableStringify(previous) !== stableStringify(o))
+      throw new Error("Conflicting local observations");
+    seen.set(key, o);
+  }
+  const rows = [...seen.values()].sort((a, b) => {
+    const left = stableStringify([a.resourceInstanceId, a.poolId, a.constraintId, a.window.id]);
+    const right = stableStringify([b.resourceInstanceId, b.poolId, b.constraintId, b.window.id]);
+    return left < right ? -1 : left > right ? 1 : 0;
+  });
+  for (const o of rows) {
+    const plan = plans.get(o.artifactHash);
+    if (!plan) throw new Error("Observation artifact disappeared during reconciliation");
+    if (plan.computation.kind !== "executable") continue;
+    const subset = plan.computation.constraints.find((c) => c.id === o.constraintId);
+    if (!subset?.models) continue;
+    const shared = rows.find(
+      (other) =>
+        other.resourceInstanceId === o.resourceInstanceId &&
+        other.poolId === o.poolId &&
+        other.window.start === o.window.start &&
+        other.window.end === o.window.end &&
+        plan.computation.kind === "executable" &&
+        plan.computation.constraints.some((c) => c.id === other.constraintId && !c.models),
+    );
+    if (shared && new Decimal(o.consumedUnits).gt(shared.consumedUnits))
+      throw new Error("Subset observation exceeds shared counter");
+  }
+  return rows;
+}
 /** Bind local facts without changing or rehashing any immutable catalog artifact. */
 export function bindExecutionScenario(
   artifacts: readonly CompiledExecutionPlanV2[],
@@ -105,6 +218,8 @@ export function bindExecutionScenario(
     resources: draft.resources.map((binding) => ({ ...binding, windowInstances: [] })),
   });
   const plans = artifacts.map((p) => compiledExecutionPlanV2Schema.parse(p));
+  if (new Set(checked.resources.map((r) => r.id)).size !== checked.resources.length)
+    throw new Error("Duplicate local resource instance ID");
   const scenario = boundExecutionScenarioV2Schema.parse({
     ...checked,
     scenarioHash: "pending",
@@ -120,10 +235,31 @@ export function bindExecutionScenario(
             .epochNanoseconds !== parseInstant(binding.cycle.end).epochNanoseconds
         )
           throw new Error("Invalid purchase cycle");
+        if (
+          parseInstant(binding.cycle.start).epochNanoseconds >
+            parseInstant(draft.period.start).epochNanoseconds ||
+          parseInstant(binding.cycle.end).epochNanoseconds <
+            parseInstant(draft.period.end).epochNanoseconds
+        )
+          throw new Error("Observation period crosses the purchased cycle");
+      } else if (binding.cycle) {
+        throw new Error("Independent API resource cannot bind a purchase cycle");
       }
-      return { ...binding, windowInstances: materializeFixedPartitions(artifact, binding) };
+      const required = [
+        ...artifact.requirements,
+        ...(artifact.computation.kind === "executable"
+          ? artifact.computation.routes.flatMap((route) => route.requirements)
+          : []),
+      ];
+      const facts = Object.fromEntries(
+        [...new Set([...Object.keys(binding.facts), ...required.map((r) => r.id)])]
+          .sort()
+          .map((id) => [id, binding.facts[id] ?? "unknown"]),
+      );
+      return { ...binding, facts, windowInstances: materializeFixedPartitions(artifact, binding) };
     }),
   });
+  scenario.initial.observations = reconcileInitialObservations(plans, scenario);
   scenario.scenarioHash = hashBoundExecutionScenario(scenario);
   return scenario;
 }
