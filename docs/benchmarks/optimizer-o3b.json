@@ -7,36 +7,12 @@
       "events": 10000,
       "family": "simple",
       "candidates": 43,
-      "wallMs": [
-        715.6000000238419,
-        748.7000000476837,
-        647.0999999642372
-      ],
-      "peakChildBytes": [
-        28753100,
-        28253976,
-        29664840
-      ],
-      "retainedChildBytes": [
-        3782164,
-        3775340,
-        3776412
-      ],
-      "retainedOwnerBytes": [
-        2691172,
-        2697912,
-        2704556
-      ],
-      "releasedOwnerBytes": [
-        2690616,
-        2697212,
-        2704000
-      ],
-      "peakBrowserRssBytes": [
-        448995328,
-        451657728,
-        449015808
-      ],
+      "wallMs": [715.6000000238419, 748.7000000476837, 647.0999999642372],
+      "peakChildBytes": [28753100, 28253976, 29664840],
+      "retainedChildBytes": [3782164, 3775340, 3776412],
+      "retainedOwnerBytes": [2691172, 2697912, 2704556],
+      "releasedOwnerBytes": [2690616, 2697212, 2704000],
+      "peakBrowserRssBytes": [448995328, 451657728, 449015808],
       "summaryBytes": 20487,
       "mainThreadMaxTickGapMs": 16.100000023841858,
       "cancellation": [
@@ -77,36 +53,12 @@
       "events": 10000,
       "family": "multi",
       "candidates": 1,
-      "wallMs": [
-        266.30000001192093,
-        273,
-        269.19999998807907
-      ],
-      "peakChildBytes": [
-        27015068,
-        28402828,
-        28917636
-      ],
-      "retainedChildBytes": [
-        3529216,
-        3531336,
-        3529500
-      ],
-      "retainedOwnerBytes": [
-        2685280,
-        2692020,
-        2698656
-      ],
-      "releasedOwnerBytes": [
-        2684724,
-        2691320,
-        2698100
-      ],
-      "peakBrowserRssBytes": [
-        441831424,
-        441778176,
-        441044992
-      ],
+      "wallMs": [266.30000001192093, 273, 269.19999998807907],
+      "peakChildBytes": [27015068, 28402828, 28917636],
+      "retainedChildBytes": [3529216, 3531336, 3529500],
+      "retainedOwnerBytes": [2685280, 2692020, 2698656],
+      "releasedOwnerBytes": [2684724, 2691320, 2698100],
+      "peakBrowserRssBytes": [441831424, 441778176, 441044992],
       "summaryBytes": 4475,
       "mainThreadMaxTickGapMs": 16.099999964237213,
       "cancellation": [
@@ -147,36 +99,12 @@
       "events": 10000,
       "family": "pools",
       "candidates": 1,
-      "wallMs": [
-        163.19999998807907,
-        171.60000002384186,
-        176.80000001192093
-      ],
-      "peakChildBytes": [
-        28226228,
-        26549936,
-        28143168
-      ],
-      "retainedChildBytes": [
-        3441992,
-        3441968,
-        3441892
-      ],
-      "retainedOwnerBytes": [
-        2684588,
-        2691328,
-        2697964
-      ],
-      "releasedOwnerBytes": [
-        2684032,
-        2690628,
-        2697408
-      ],
-      "peakBrowserRssBytes": [
-        443760640,
-        442773504,
-        440061952
-      ],
+      "wallMs": [163.19999998807907, 171.60000002384186, 176.80000001192093],
+      "peakChildBytes": [28226228, 26549936, 28143168],
+      "retainedChildBytes": [3441992, 3441968, 3441892],
+      "retainedOwnerBytes": [2684588, 2691328, 2697964],
+      "releasedOwnerBytes": [2684032, 2690628, 2697408],
+      "peakBrowserRssBytes": [443760640, 442773504, 440061952],
       "summaryBytes": 3953,
       "mainThreadMaxTickGapMs": 16.19999998807907,
       "cancellation": [
@@ -217,36 +145,12 @@
       "events": 50000,
       "family": "simple",
       "candidates": 43,
-      "wallMs": [
-        2493,
-        2618.699999988079,
-        2833.300000011921
-      ],
-      "peakChildBytes": [
-        95265152,
-        101822704,
-        101403876
-      ],
-      "retainedChildBytes": [
-        5881284,
-        5875204,
-        5882752
-      ],
-      "retainedOwnerBytes": [
-        11820452,
-        11820724,
-        11828616
-      ],
-      "releasedOwnerBytes": [
-        11819896,
-        11820024,
-        11828052
-      ],
-      "peakBrowserRssBytes": [
-        561414144,
-        556740608,
-        576188416
-      ],
+      "wallMs": [2493, 2618.699999988079, 2833.300000011921],
+      "peakChildBytes": [95265152, 101822704, 101403876],
+      "retainedChildBytes": [5881284, 5875204, 5882752],
+      "retainedOwnerBytes": [11820452, 11820724, 11828616],
+      "releasedOwnerBytes": [11819896, 11820024, 11828052],
+      "peakBrowserRssBytes": [561414144, 556740608, 576188416],
       "summaryBytes": 20543,
       "mainThreadMaxTickGapMs": 16.100000023841858,
       "cancellation": [
@@ -287,36 +191,12 @@
       "events": 50000,
       "family": "multi",
       "candidates": 1,
-      "wallMs": [
-        1099.300000011921,
-        1193.1000000238419,
-        994.3999999761581
-      ],
-      "peakChildBytes": [
-        74935540,
-        75279652,
-        74566608
-      ],
-      "retainedChildBytes": [
-        5619420,
-        5619424,
-        5619108
-      ],
-      "retainedOwnerBytes": [
-        11814448,
-        11814720,
-        11822612
-      ],
-      "releasedOwnerBytes": [
-        11813892,
-        11814020,
-        11822048
-      ],
-      "peakBrowserRssBytes": [
-        531177472,
-        533610496,
-        542400512
-      ],
+      "wallMs": [1099.300000011921, 1193.1000000238419, 994.3999999761581],
+      "peakChildBytes": [74935540, 75279652, 74566608],
+      "retainedChildBytes": [5619420, 5619424, 5619108],
+      "retainedOwnerBytes": [11814448, 11814720, 11822612],
+      "releasedOwnerBytes": [11813892, 11814020, 11822048],
+      "peakBrowserRssBytes": [531177472, 533610496, 542400512],
       "summaryBytes": 5226,
       "mainThreadMaxTickGapMs": 16.19999998807907,
       "cancellation": [
@@ -357,36 +237,12 @@
       "events": 50000,
       "family": "pools",
       "candidates": 1,
-      "wallMs": [
-        583.1000000238419,
-        531.1999999880791,
-        560.6000000238419
-      ],
-      "peakChildBytes": [
-        74689008,
-        69348704,
-        71427756
-      ],
-      "retainedChildBytes": [
-        5526524,
-        5526656,
-        5526616
-      ],
-      "retainedOwnerBytes": [
-        11813840,
-        11814112,
-        11822004
-      ],
-      "releasedOwnerBytes": [
-        11813284,
-        11813412,
-        11821440
-      ],
-      "peakBrowserRssBytes": [
-        542359552,
-        542859264,
-        526712832
-      ],
+      "wallMs": [583.1000000238419, 531.1999999880791, 560.6000000238419],
+      "peakChildBytes": [74689008, 69348704, 71427756],
+      "retainedChildBytes": [5526524, 5526656, 5526616],
+      "retainedOwnerBytes": [11813840, 11814112, 11822004],
+      "releasedOwnerBytes": [11813284, 11813412, 11821440],
+      "peakBrowserRssBytes": [542359552, 542859264, 526712832],
       "summaryBytes": 3965,
       "mainThreadMaxTickGapMs": 16.19999998807907,
       "cancellation": [
@@ -427,36 +283,12 @@
       "events": 100000,
       "family": "simple",
       "candidates": 43,
-      "wallMs": [
-        4793.300000011921,
-        5646.399999976158,
-        5176.699999988079
-      ],
-      "peakChildBytes": [
-        173374884,
-        159418388,
-        167307236
-      ],
-      "retainedChildBytes": [
-        8481528,
-        8481336,
-        8481472
-      ],
-      "retainedOwnerBytes": [
-        23220664,
-        23220936,
-        23228828
-      ],
-      "releasedOwnerBytes": [
-        23220108,
-        23220236,
-        23228264
-      ],
-      "peakBrowserRssBytes": [
-        709853184,
-        684617728,
-        709013504
-      ],
+      "wallMs": [4793.300000011921, 5646.399999976158, 5176.699999988079],
+      "peakChildBytes": [173374884, 159418388, 167307236],
+      "retainedChildBytes": [8481528, 8481336, 8481472],
+      "retainedOwnerBytes": [23220664, 23220936, 23228828],
+      "releasedOwnerBytes": [23220108, 23220236, 23228264],
+      "peakBrowserRssBytes": [709853184, 684617728, 709013504],
       "summaryBytes": 20643,
       "mainThreadMaxTickGapMs": 16.600000023841858,
       "cancellation": [
@@ -497,36 +329,12 @@
       "events": 100000,
       "family": "multi",
       "candidates": 1,
-      "wallMs": [
-        1483.2000000476837,
-        1936.0999999642372,
-        2057.400000035763
-      ],
-      "peakChildBytes": [
-        125792992,
-        128465980,
-        119216376
-      ],
-      "retainedChildBytes": [
-        8222992,
-        8223752,
-        8221836
-      ],
-      "retainedOwnerBytes": [
-        23214656,
-        23214928,
-        23222820
-      ],
-      "releasedOwnerBytes": [
-        23214100,
-        23214228,
-        23222256
-      ],
-      "peakBrowserRssBytes": [
-        592924672,
-        620732416,
-        599121920
-      ],
+      "wallMs": [1483.2000000476837, 1936.0999999642372, 2057.400000035763],
+      "peakChildBytes": [125792992, 128465980, 119216376],
+      "retainedChildBytes": [8222992, 8223752, 8221836],
+      "retainedOwnerBytes": [23214656, 23214928, 23222820],
+      "releasedOwnerBytes": [23214100, 23214228, 23222256],
+      "peakBrowserRssBytes": [592924672, 620732416, 599121920],
       "summaryBytes": 6358,
       "mainThreadMaxTickGapMs": 16.200000047683716,
       "cancellation": [
@@ -567,36 +375,12 @@
       "events": 100000,
       "family": "pools",
       "candidates": 1,
-      "wallMs": [
-        1531.3999999761581,
-        1023.1999999880791,
-        1070.800000011921
-      ],
-      "peakChildBytes": [
-        125216488,
-        126175016,
-        116613096
-      ],
-      "retainedChildBytes": [
-        8128188,
-        8130732,
-        8127500
-      ],
-      "retainedOwnerBytes": [
-        23214048,
-        23214320,
-        23222212
-      ],
-      "releasedOwnerBytes": [
-        23213492,
-        23213620,
-        23221648
-      ],
-      "peakBrowserRssBytes": [
-        597594112,
-        631681024,
-        606101504
-      ],
+      "wallMs": [1531.3999999761581, 1023.1999999880791, 1070.800000011921],
+      "peakChildBytes": [125216488, 126175016, 116613096],
+      "retainedChildBytes": [8128188, 8130732, 8127500],
+      "retainedOwnerBytes": [23214048, 23214320, 23222212],
+      "releasedOwnerBytes": [23213492, 23213620, 23221648],
+      "peakBrowserRssBytes": [597594112, 631681024, 606101504],
       "summaryBytes": 3972,
       "mainThreadMaxTickGapMs": 16.19999998807907,
       "cancellation": [
