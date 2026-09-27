@@ -1,0 +1,22 @@
+id: openai-api-gpt-5-4-mini-current-rate
+role: pricing
+modelId: gpt-5-4-mini
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: openai-responses-standard
+rateVersion: current-20260927
+rates:
+  input: '0.75'
+  output: '4.50'
+  cacheRead: '0.075'
+effectiveFrom: '2026-09-27'
+effectiveFromInstant: '2026-09-27T14:38:00Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+  title: USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and tool
+    charges are outside this route.
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

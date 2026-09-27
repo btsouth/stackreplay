@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098";
+export const BUNDLED_CATALOG_VERSION = "sha256:3ef241ff0b682f8b4a8691f90c574ba7891103e3e9d52edf40a9b89ca077fca1";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
+  "catalogVersion": "sha256:3ef241ff0b682f8b4a8691f90c574ba7891103e3e9d52edf40a9b89ca077fca1",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -119,6 +119,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "kiro": {
+      "id": "kiro",
+      "role": "provider",
+      "name": "Kiro",
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Kiro official pricing",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
     "openai": {
@@ -327,12 +341,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "provider_id",
           "sources": [
             {
-              "url": "https://docs.claude.com/en/docs/about-claude/pricing",
+              "url": "https://platform.claude.com/docs/en/models/haiku-4-5/overview",
               "title": "Claude Haiku 4.5 API model id",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-27"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-27",
           "verificationStatus": "verified"
         }
       ],
@@ -358,7 +372,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
     "claude-haiku": {
@@ -1369,6 +1383,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "aliases": [
         {
+          "id": "glm-5-3-flash-z-ai-api-model-code",
+          "alias": "glm-5.3-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/vlm/glm-5.3-flash",
+              "title": "Z.AI Model API code glm-5.3-flash",
+              "checkedAt": "2026-09-27"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-27",
+          "verificationStatus": "verified"
+        },
+        {
           "id": "glm-5-3-flash-router-z-ai-glm-5-3-flash",
           "alias": "z-ai/glm-5.3-flash",
           "kind": "harness_alias",
@@ -1433,23 +1461,28 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "provider_id",
           "sources": [
             {
-              "url": "https://docs.z.ai/guides/overview/pricing",
-              "title": "GLM 5.3 Flash API model id",
-              "checkedAt": "2026-09-21"
+              "url": "https://docs.z.ai/guides/vlm/glm-5.3-flash",
+              "title": "GLM 5.3 Flash API model code glm-5.3-flash",
+              "checkedAt": "2026-09-27"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-27",
           "verificationStatus": "verified"
         }
       ],
       "sources": [
+        {
+          "url": "https://docs.z.ai/guides/vlm/glm-5.3-flash",
+          "title": "GLM 5.3 Flash model page: API model code glm-5.3-flash",
+          "checkedAt": "2026-09-27"
+        },
         {
           "url": "https://docs.z.ai/guides/overview/pricing",
           "title": "GLM 5.3 Flash model documentation",
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
     "glm-5-3-flashx": {
@@ -1591,7 +1624,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5.4 mini",
       "providerIds": [
-        "github"
+        "github",
+        "openai"
       ],
       "aliases": [
         {
@@ -1600,16 +1634,21 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "kind": "provider_id",
           "sources": [
             {
-              "url": "https://developers.openai.com/api/docs/pricing",
+              "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
               "title": "GPT-5.4 mini API model id",
-              "checkedAt": "2026-09-21"
+              "checkedAt": "2026-09-27"
             }
           ],
-          "lastVerifiedAt": "2026-09-21",
+          "lastVerifiedAt": "2026-09-27",
           "verificationStatus": "verified"
         }
       ],
       "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+          "title": "OpenAI direct API model ID, token rates, and Responses endpoint",
+          "checkedAt": "2026-09-27"
+        },
         {
           "url": "https://github.com/features/copilot/plans",
           "title": "GitHub pricing (official)",
@@ -1621,7 +1660,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
     "gpt-5-4-nano": {
@@ -2394,6 +2433,148 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "plans": {
+    "anthropic-api-haiku-4-5": {
+      "id": "anthropic-api-haiku-4-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Haiku 4.5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-haiku-4-5-current-20260927",
+          "validity": {
+            "start": "2026-09-27T14:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T14:38:00Z",
+            "reviewedAt": "2026-09-27T14:38:00Z",
+            "catalogActivatedAt": "2026-09-27T14:38:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/haiku-4-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "current model or pricing listing",
+              "excerpt": "Model and listed rates were current at review; provider effective date was not established.",
+              "normalizedClaimHash": "sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813",
+              "evidencePackageHash": "sha256:c0e4c76df456d619b2da5c920eb807a2c9832da6b8471a393621fa65c00664ce",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "API endpoint and model request",
+              "excerpt": "Exact claude-haiku-4-5 on anthropic-messages-global through anthropic-messages.",
+              "normalizedClaimHash": "sha256:9bf789622d1884af74e2d24aabd90e527bb21770f572057436d000d0e8a1281d",
+              "evidencePackageHash": "sha256:e21342a3d0e2c8003fc143b18bbe9d9d6ee19e9b2de26e20a60d8109c6aee0b5",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "model price row",
+              "excerpt": "USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes need duration and are unresolved here.",
+              "normalizedClaimHash": "sha256:924080d2ac9cbbf9a199902222292b6b513af75546b29131f763892126ce3d75",
+              "evidencePackageHash": "sha256:6f3d0f70d561478115114c120ca2b7342c994d88b1a80e6acfa8b7be343fb89d",
+              "reviewer": "Codex C2A manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-haiku-4-5-current-rate",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-haiku-4-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ]
+    },
     "anthropic-claude-max-20x": {
       "id": "anthropic-claude-max-20x",
       "role": "plan",
@@ -2963,6 +3144,188 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-claude-max-5x-current-20260927",
+          "validity": {
+            "start": "2026-09-27T14:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T14:38:00Z",
+            "reviewedAt": "2026-09-27T14:38:00Z",
+            "catalogActivatedAt": "2026-09-27T14:38:00Z"
+          },
+          "productId": "claude-max",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "100",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Max pricing and usage",
+              "excerpt": "Max 5x is current at review; no provider effective date for this rule was established.",
+              "normalizedClaimHash": "sha256:fb103f11639da8136806f5feea47ab6b5555ed625ed2706613002ec510dabc52",
+              "evidencePackageHash": "sha256:483808eeb1e1ffada91b6552444e38e0dc4a1d3f181292b25276dd8d742c63b7",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing tiers and billing",
+              "excerpt": "Max 5x web subscription is USD 100 per month; mobile pricing may differ.",
+              "normalizedClaimHash": "sha256:b51ff9be3486393dee73439d9b2b678e2f57743c567d41a542cdc6ee11ba00b4",
+              "evidencePackageHash": "sha256:3a6b0e2c59343eeffbf663cd40bf6db1fd8ccdb857fb94c0955b3b1bbf5e8bfc",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pro and Max Claude Code access",
+              "excerpt": "Active Max subscribers can use Claude Code with subscription credentials, separately from API-key billing.",
+              "normalizedClaimHash": "sha256:337049b441e198f100127b5757a70bd0bf747ec4f8cff925c0a6ff8e7518724d",
+              "evidencePackageHash": "sha256:0ef042f090998055c48300b1fc7f98bf3651cbf8aa7364776f55227d23725e4a",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported models",
+              "excerpt": "Claude Code lists exact Sonnet 5 and Haiku 4.5 model IDs.",
+              "normalizedClaimHash": "sha256:ac8a3946f283e729660eb9968fbaa206e9f033dfc3d3d944a390444503f807a1",
+              "evidencePackageHash": "sha256:dd16a095b466aeff481800bac5f82b4295f5125ffb9bffcafb5185dbce2853bc",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_relative_limit",
+              "locator": "Usage limits",
+              "excerpt": "Max 5x has five times Pro per-session usage, five-hour session resets, account-assigned weekly limits and discretionary limits.",
+              "normalizedClaimHash": "sha256:744122e4fbd4ab7d3e768cff04a06633cead45bf5b59072c37510a9837b55c17",
+              "evidencePackageHash": "sha256:35a93868893ede243b81321e7d9ac48ccc86d5979a199e5bc424ef39d75746d5",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "After limits",
+              "excerpt": "Usage credits are optional after the included limit; API credits are separate from subscription usage.",
+              "normalizedClaimHash": "sha256:3d6289eb8a82a681ed33f18b1c2a9ba42891ae36f8c65bd7aa5da19744465719",
+              "evidencePackageHash": "sha256:a9d67db0e40047eba803a7e3d93535ad85b9c0a90c216949f4a982f802db3aba",
+              "reviewer": "Codex C2A manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-max-web",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-max-web-subscription",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "claude-code-included",
+              "endpointId": "claude-code-subscription",
+              "protocol": "claude-code-login",
+              "harnessIds": [
+                "claude-code"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-haiku-4-5",
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "relative-session-and-weekly-limits",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -6487,6 +6850,353 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "kiro-pro": {
+      "id": "kiro-pro",
+      "role": "plan",
+      "name": "Kiro Pro",
+      "providerId": "kiro",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "kiro-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T14:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T14:38:00Z",
+            "reviewedAt": "2026-09-27T14:38:00Z",
+            "catalogActivatedAt": "2026-09-27T14:38:00Z"
+          },
+          "productId": "kiro-cloud",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "20",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/pricing/",
+              "sourceType": "provider_page",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Kiro Pro card",
+              "excerpt": "Kiro Pro is offered at review; provider effective date for these terms was not established.",
+              "normalizedClaimHash": "sha256:ae85b425cd3bd42ecf34d7add80c2026914633c608557ed08484190acf584666",
+              "evidencePackageHash": "sha256:84b5382b654d694144dcb82e280d9f7a61efdb99d9db86d8b2e29e0eddefb5c4",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/pricing/",
+              "sourceType": "provider_page",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Kiro Pro price and billing",
+              "excerpt": "Kiro Pro costs USD 20 per user per month, excluding applicable taxes.",
+              "normalizedClaimHash": "sha256:ff15cc7348f51814ccfa32d00724f6b02dca62a44f9add33bae0400f62afef91",
+              "evidencePackageHash": "sha256:2b1bbd5a1961c1b4f3ba69d060782af0920af1190cab116af16c7d5f85598323",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "credits",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/pricing/",
+              "sourceType": "provider_page",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Kiro Pro included credits",
+              "excerpt": "Kiro Pro includes 1000 provider credits per month.",
+              "normalizedClaimHash": "sha256:8ff314a96382bf25f867edda207d835ca6b828a78c507036bcfa9550689becca",
+              "evidencePackageHash": "sha256:12df64cef9b9ef33230a443e7064988a2335a6e208e94363e8266154c970ee96",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "model-access",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/docs/models/",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pro column, Claude rows",
+              "excerpt": "Kiro Pro offers Claude Sonnet 5 and Claude Haiku 4.5 in US and EU regions.",
+              "normalizedClaimHash": "sha256:999962b7cd68a1cc35574769439fa1eede559d9dfefb059870b889a5b12255be",
+              "evidencePackageHash": "sha256:0c4ebb4f12d7430d7739e6c37fa7bbc698c9edd93a7ed6dea11f1c0e1295dc04",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "debit",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/pricing/",
+              "sourceType": "provider_page",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "What is a credit",
+              "excerpt": "Task credits vary with complexity and model; model multiplier alone does not establish a model-call debit.",
+              "normalizedClaimHash": "sha256:b2400897d81305c4004a67c6f6ba0c85cc78af4a95c8f7f61a69646d6551400e",
+              "evidencePackageHash": "sha256:178ea737a38d727c412c41102e94074f43ffd8863e8b397d594b730deb8c4fb6",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "kiro.dev",
+              "sourceUrl": "https://kiro.dev/pricing/",
+              "sourceType": "provider_page",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Add-on credits",
+              "excerpt": "Individual paid users can purchase add-on credits at USD 0.04 each; purchased packs are distinct from the base allowance.",
+              "normalizedClaimHash": "sha256:cf93780db1dea1564f74616c4a2121e7694c5dc7aa661d4093d238c0d60f5c2f",
+              "evidencePackageHash": "sha256:499e8d589c404c0f0c8be9f9b7b6301cf11fb082ea402ffaeaa82fe66f4619e8",
+              "reviewer": "Codex C2A manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "supported-region",
+              "scope": "plan",
+              "kind": "region",
+              "value": "US-or-EU",
+              "claimRefs": [
+                "model-access"
+              ]
+            },
+            {
+              "id": "active-kiro-pro",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-subscription",
+              "claimRefs": [
+                "price"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "kiro-native-included",
+              "endpointId": "kiro-native",
+              "protocol": "kiro-native",
+              "harnessIds": [
+                "kiro-ide",
+                "kiro-cli"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-haiku-4-5",
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "model-access"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "purchased_balance",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "included-1000-provider-credits-per-month",
+              "claimRefs": [
+                "credits"
+              ]
+            },
+            {
+              "code": "unknown_debit",
+              "subject": "task-credit-debit",
+              "claimRefs": [
+                "debit"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "openai-api-gpt-5-4-mini": {
+      "id": "openai-api-gpt-5-4-mini",
+      "role": "plan",
+      "name": "OpenAI API: GPT-5.4 Mini",
+      "providerId": "openai",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "openai-api-gpt-5-4-mini-current-20260927",
+          "validity": {
+            "start": "2026-09-27T14:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T14:38:00Z",
+            "reviewedAt": "2026-09-27T14:38:00Z",
+            "catalogActivatedAt": "2026-09-27T14:38:00Z"
+          },
+          "productId": "openai-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "current model or pricing listing",
+              "excerpt": "Model and listed rates were current at review; provider effective date was not established.",
+              "normalizedClaimHash": "sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813",
+              "evidencePackageHash": "sha256:26d35a659591140e12fc1464422992b50640e485d190e91c2854e9aa5011927e",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "API endpoint and model request",
+              "excerpt": "Exact gpt-5-4-mini on openai-responses-standard through openai-responses.",
+              "normalizedClaimHash": "sha256:58f69830e1db77c77ae50137bdcdfea54d00a62f3291899094d35f683cf5d20e",
+              "evidencePackageHash": "sha256:3675003e87541caab7b44f74643d827f2f387fd6959e52816e48e03e6785ebf3",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "model price row",
+              "excerpt": "USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and tool charges are outside this route.",
+              "normalizedClaimHash": "sha256:dfe69957ae09137ca7240a7eac483ff0f65dd5f119c7393a3ceac39302c92d04",
+              "evidencePackageHash": "sha256:a591ecc8fe567dd711889202779fd4fb29db1cd5a61ae8b38832c68bdeaedc25",
+              "reviewer": "Codex C2A manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "openai-api-gpt-5-4-mini-current-rate",
+              "basis": "api_list_price",
+              "endpointId": "openai-responses-standard",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "openai-responses-standard",
+              "protocol": "openai-responses",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "gpt-5-4-mini"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ]
+    },
     "openai-chatgpt-business": {
       "id": "openai-chatgpt-business",
       "role": "plan",
@@ -7394,6 +8104,148 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        }
+      ]
+    },
+    "z-ai-api-glm-5-3-flash": {
+      "id": "z-ai-api-glm-5-3-flash",
+      "role": "plan",
+      "name": "Z.AI API: GLM-5.3-Flash",
+      "providerId": "z-ai",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "z-ai-api-glm-5-3-flash-current-20260927",
+          "validity": {
+            "start": "2026-09-27T14:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T14:38:00Z",
+            "reviewedAt": "2026-09-27T14:38:00Z",
+            "catalogActivatedAt": "2026-09-27T14:38:00Z"
+          },
+          "productId": "z-ai-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "docs.z.ai",
+              "sourceUrl": "https://docs.z.ai/guides/overview/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "current model or pricing listing",
+              "excerpt": "Model and listed rates were current at review; provider effective date was not established.",
+              "normalizedClaimHash": "sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813",
+              "evidencePackageHash": "sha256:b6d0176a7ff970a9f39c4d9a985aa8ac2c74caaf7b32f86e49072cfe99ccafda",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "docs.z.ai",
+              "sourceUrl": "https://docs.z.ai/guides/develop/http/introduction",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "API endpoint and model request",
+              "excerpt": "Exact glm-5-3-flash on z-ai-chat-completions through openai-chat-completions-compatible.",
+              "normalizedClaimHash": "sha256:084ac72c6e105de0345bdde49c18ca7c9fbaaa907ec5985be49535c1e26e25a9",
+              "evidencePackageHash": "sha256:f05d09cf0d6ca918b5d985fc1f8311f5827e57300cf420115e697d8ebacca691",
+              "reviewer": "Codex C2A manual official-source review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "docs.z.ai",
+              "sourceUrl": "https://docs.z.ai/guides/overview/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T14:38:00Z",
+              "reviewedAt": "2026-09-27T14:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "model price row",
+              "excerpt": "USD per 1M uncached input, output and cached-input tokens. Cached-input storage promotion is omitted; cache-write and reasoning billing are unresolved.",
+              "normalizedClaimHash": "sha256:8a5c6f6929cc6ef5ed372157a6d75062acfe3d4d2fb7d844d7b8ba8da6f89e2b",
+              "evidencePackageHash": "sha256:ee4ac294e9b0bf37792ddd3b7846341e2bbf78974f337db95611d92af172231f",
+              "reviewer": "Codex C2A manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "z-ai-api-glm-5-3-flash-current-rate",
+              "basis": "api_list_price",
+              "endpointId": "z-ai-chat-completions",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "z-ai-chat-completions",
+              "protocol": "openai-chat-completions-compatible",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "glm-5-3-flash"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
         }
       ]
     }
@@ -12360,6 +13212,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "pricing": {
+    "anthropic-api-haiku-4-5-current-rate": {
+      "id": "anthropic-api-haiku-4-5-current-rate",
+      "role": "pricing",
+      "modelId": "claude-haiku-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "rates": {
+        "input": "1",
+        "output": "5",
+        "cacheRead": "0.10"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T14:38:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes need duration and are unresolved here.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
     "claude-fable-5-1-github-pricing": {
       "id": "claude-fable-5-1-github-pricing",
       "role": "pricing",
@@ -14983,6 +15862,60 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "openai-api-gpt-5-4-mini-current-rate": {
+      "id": "openai-api-gpt-5-4-mini-current-rate",
+      "role": "pricing",
+      "modelId": "gpt-5-4-mini",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "openai-responses-standard",
+      "rateVersion": "current-20260927",
+      "rates": {
+        "input": "0.75",
+        "output": "4.50",
+        "cacheRead": "0.075"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T14:38:00Z",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+          "title": "USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and tool charges are outside this route.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "z-ai-api-glm-5-3-flash-current-rate": {
+      "id": "z-ai-api-glm-5-3-flash-current-rate",
+      "role": "pricing",
+      "modelId": "glm-5-3-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "z-ai-chat-completions",
+      "rateVersion": "current-20260927",
+      "rates": {
+        "input": "0.15",
+        "output": "0.50",
+        "cacheRead": "0.03"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T14:38:00Z",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "USD per 1M uncached input, output and cached-input tokens. Cached-input storage promotion is omitted; cache-write and reasoning billing are unresolved.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     }
   }

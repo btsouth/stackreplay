@@ -1,0 +1,22 @@
+id: z-ai-api-glm-5-3-flash-current-rate
+role: pricing
+modelId: glm-5-3-flash
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: z-ai-chat-completions
+rateVersion: current-20260927
+rates:
+  input: '0.15'
+  output: '0.50'
+  cacheRead: '0.03'
+effectiveFrom: '2026-09-27'
+effectiveFromInstant: '2026-09-27T14:38:00Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://docs.z.ai/guides/overview/pricing
+  title: USD per 1M uncached input, output and cached-input tokens. Cached-input storage promotion is
+    omitted; cache-write and reasoning billing are unresolved.
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

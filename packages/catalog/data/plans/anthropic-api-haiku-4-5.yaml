@@ -1,0 +1,109 @@
+id: anthropic-api-haiku-4-5
+role: plan
+name: "Anthropic API: Claude Haiku 4.5"
+providerId: anthropic
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-api-haiku-4-5-current-20260927
+  productId: anthropic-direct-api
+  validity:
+    start: '2026-09-27T14:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    catalogActivatedAt: '2026-09-27T14:38:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/haiku-4-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: current model or pricing listing
+    excerpt: Model and listed rates were current at review; provider effective date was not established.
+    normalizedClaimHash: sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813
+    evidencePackageHash: sha256:c0e4c76df456d619b2da5c920eb807a2c9832da6b8471a393621fa65c00664ce
+    reviewer: Codex C2A manual official-source review
+  - id: route
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/api/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: API endpoint and model request
+    excerpt: Exact claude-haiku-4-5 on anthropic-messages-global through anthropic-messages.
+    normalizedClaimHash: sha256:9bf789622d1884af74e2d24aabd90e527bb21770f572057436d000d0e8a1281d
+    evidencePackageHash: sha256:e21342a3d0e2c8003fc143b18bbe9d9d6ee19e9b2de26e20a60d8109c6aee0b5
+    reviewer: Codex C2A manual official-source review
+  - id: rate
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: model price row
+    excerpt: USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes
+      need duration and are unresolved here.
+    normalizedClaimHash: sha256:924080d2ac9cbbf9a199902222292b6b513af75546b29131f763892126ce3d75
+    evidencePackageHash: sha256:6f3d0f70d561478115114c120ca2b7342c994d88b1a80e6acfa8b7be343fb89d
+    reviewer: Codex C2A manual official-source review
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: anthropic-api-haiku-4-5-current-rate
+    basis: api_list_price
+    endpointId: anthropic-messages-global
+    rateVersion: current-20260927
+    denomination: USD
+    claimRefs:
+    - rate
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: anthropic-messages-global
+    protocol: anthropic-messages
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - claude-haiku-4-5
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []

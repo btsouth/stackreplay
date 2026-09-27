@@ -172,3 +172,150 @@ versions:
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-claude-max-5x-current-20260927
+  productId: claude-max
+  validity:
+    start: '2026-09-27T14:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    catalogActivatedAt: '2026-09-27T14:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '100'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Max pricing and usage
+    excerpt: Max 5x is current at review; no provider effective date for this rule was established.
+    normalizedClaimHash: sha256:fb103f11639da8136806f5feea47ab6b5555ed625ed2706613002ec510dabc52
+    evidencePackageHash: sha256:483808eeb1e1ffada91b6552444e38e0dc4a1d3f181292b25276dd8d742c63b7
+    reviewer: Codex C2A manual official-source review
+  - id: price
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pricing tiers and billing
+    excerpt: Max 5x web subscription is USD 100 per month; mobile pricing may differ.
+    normalizedClaimHash: sha256:b51ff9be3486393dee73439d9b2b678e2f57743c567d41a542cdc6ee11ba00b4
+    evidencePackageHash: sha256:3a6b0e2c59343eeffbf663cd40bf6db1fd8ccdb857fb94c0955b3b1bbf5e8bfc
+    reviewer: Codex C2A manual official-source review
+  - id: route
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pro and Max Claude Code access
+    excerpt: Active Max subscribers can use Claude Code with subscription credentials, separately from
+      API-key billing.
+    normalizedClaimHash: sha256:337049b441e198f100127b5757a70bd0bf747ec4f8cff925c0a6ff8e7518724d
+    evidencePackageHash: sha256:0ef042f090998055c48300b1fc7f98bf3651cbf8aa7364776f55227d23725e4a
+    reviewer: Codex C2A manual official-source review
+  - id: models
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11940350-claude-code-model-configuration
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported models
+    excerpt: Claude Code lists exact Sonnet 5 and Haiku 4.5 model IDs.
+    normalizedClaimHash: sha256:ac8a3946f283e729660eb9968fbaa206e9f033dfc3d3d944a390444503f807a1
+    evidencePackageHash: sha256:dd16a095b466aeff481800bac5f82b4295f5125ffb9bffcafb5185dbce2853bc
+    reviewer: Codex C2A manual official-source review
+  - id: capacity
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_relative_limit
+    locator: Usage limits
+    excerpt: Max 5x has five times Pro per-session usage, five-hour session resets, account-assigned weekly
+      limits and discretionary limits.
+    normalizedClaimHash: sha256:744122e4fbd4ab7d3e768cff04a06633cead45bf5b59072c37510a9837b55c17
+    evidencePackageHash: sha256:35a93868893ede243b81321e7d9ac48ccc86d5979a199e5bc424ef39d75746d5
+    reviewer: Codex C2A manual official-source review
+  - id: continuation
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: provider_dynamic
+    locator: After limits
+    excerpt: Usage credits are optional after the included limit; API credits are separate from subscription
+      usage.
+    normalizedClaimHash: sha256:3d6289eb8a82a681ed33f18b1c2a9ba42891ae36f8c65bd7aa5da19744465719
+    evidencePackageHash: sha256:a9d67db0e40047eba803a7e3d93535ad85b9c0a90c216949f4a982f802db3aba
+    reviewer: Codex C2A manual official-source review
+  requirements:
+  - id: active-max-web
+    scope: plan
+    kind: purchase_state
+    value: active-max-web-subscription
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: claude-code-included
+    endpointId: claude-code-subscription
+    protocol: claude-code-login
+    harnessIds:
+    - claude-code
+    models:
+      kind: exact
+      modelIds:
+      - claude-haiku-4-5
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: relative-session-and-weekly-limits
+    claimRefs:
+    - capacity

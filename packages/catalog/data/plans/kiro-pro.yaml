@@ -1,0 +1,161 @@
+id: kiro-pro
+role: plan
+name: Kiro Pro
+providerId: kiro
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: kiro-pro-current-20260927
+  productId: kiro-cloud
+  validity:
+    start: '2026-09-27T14:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    catalogActivatedAt: '2026-09-27T14:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '20'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/pricing/
+    sourceType: provider_page
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Kiro Pro card
+    excerpt: Kiro Pro is offered at review; provider effective date for these terms was not established.
+    normalizedClaimHash: sha256:ae85b425cd3bd42ecf34d7add80c2026914633c608557ed08484190acf584666
+    evidencePackageHash: sha256:84b5382b654d694144dcb82e280d9f7a61efdb99d9db86d8b2e29e0eddefb5c4
+    reviewer: Codex C2A manual official-source review
+  - id: price
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/pricing/
+    sourceType: provider_page
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Kiro Pro price and billing
+    excerpt: Kiro Pro costs USD 20 per user per month, excluding applicable taxes.
+    normalizedClaimHash: sha256:ff15cc7348f51814ccfa32d00724f6b02dca62a44f9add33bae0400f62afef91
+    evidencePackageHash: sha256:2b1bbd5a1961c1b4f3ba69d060782af0920af1190cab116af16c7d5f85598323
+    reviewer: Codex C2A manual official-source review
+  - id: credits
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/pricing/
+    sourceType: provider_page
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Kiro Pro included credits
+    excerpt: Kiro Pro includes 1000 provider credits per month.
+    normalizedClaimHash: sha256:8ff314a96382bf25f867edda207d835ca6b828a78c507036bcfa9550689becca
+    evidencePackageHash: sha256:12df64cef9b9ef33230a443e7064988a2335a6e208e94363e8266154c970ee96
+    reviewer: Codex C2A manual official-source review
+  - id: model-access
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/docs/models/
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pro column, Claude rows
+    excerpt: Kiro Pro offers Claude Sonnet 5 and Claude Haiku 4.5 in US and EU regions.
+    normalizedClaimHash: sha256:999962b7cd68a1cc35574769439fa1eede559d9dfefb059870b889a5b12255be
+    evidencePackageHash: sha256:0c4ebb4f12d7430d7739e6c37fa7bbc698c9edd93a7ed6dea11f1c0e1295dc04
+    reviewer: Codex C2A manual official-source review
+  - id: debit
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/pricing/
+    sourceType: provider_page
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: provider_dynamic
+    locator: What is a credit
+    excerpt: Task credits vary with complexity and model; model multiplier alone does not establish a
+      model-call debit.
+    normalizedClaimHash: sha256:b2400897d81305c4004a67c6f6ba0c85cc78af4a95c8f7f61a69646d6551400e
+    evidencePackageHash: sha256:178ea737a38d727c412c41102e94074f43ffd8863e8b397d594b730deb8c4fb6
+    reviewer: Codex C2A manual official-source review
+  - id: continuation
+    sourceId: kiro.dev
+    sourceUrl: https://kiro.dev/pricing/
+    sourceType: provider_page
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Add-on credits
+    excerpt: Individual paid users can purchase add-on credits at USD 0.04 each; purchased packs are distinct
+      from the base allowance.
+    normalizedClaimHash: sha256:cf93780db1dea1564f74616c4a2121e7694c5dc7aa661d4093d238c0d60f5c2f
+    evidencePackageHash: sha256:499e8d589c404c0f0c8be9f9b7b6301cf11fb082ea402ffaeaa82fe66f4619e8
+    reviewer: Codex C2A manual official-source review
+  requirements:
+  - id: supported-region
+    scope: plan
+    kind: region
+    value: US-or-EU
+    claimRefs:
+    - model-access
+  - id: active-kiro-pro
+    scope: plan
+    kind: purchase_state
+    value: active-paid-subscription
+    claimRefs:
+    - price
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: kiro-native-included
+    endpointId: kiro-native
+    protocol: kiro-native
+    harnessIds:
+    - kiro-ide
+    - kiro-cli
+    models:
+      kind: exact
+      modelIds:
+      - claude-haiku-4-5
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - model-access
+  continuation:
+    kind: purchased_balance
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: included-1000-provider-credits-per-month
+    claimRefs:
+    - credits
+  - code: unknown_debit
+    subject: task-credit-debit
+    claimRefs:
+    - debit

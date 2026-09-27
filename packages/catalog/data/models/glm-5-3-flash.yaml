@@ -5,6 +5,15 @@ developerId: z-ai
 providerIds:
   - z-ai
 aliases:
+  - id: glm-5-3-flash-z-ai-api-model-code
+    alias: "glm-5.3-flash"
+    kind: provider_id
+    sources:
+      - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+        title: "Z.AI Model API code glm-5.3-flash"
+        checkedAt: 2026-09-27
+    lastVerifiedAt: 2026-09-27
+    verificationStatus: verified
   - id: glm-5-3-flash-router-z-ai-glm-5-3-flash
     alias: "z-ai/glm-5.3-flash"
     kind: harness_alias
@@ -48,14 +57,17 @@ aliases:
     alias: "GLM-5.3-Flash"
     kind: provider_id
     sources:
-      - url: https://docs.z.ai/guides/overview/pricing
-        title: "GLM 5.3 Flash API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
+      - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+        title: "GLM 5.3 Flash API model code glm-5.3-flash"
+        checkedAt: 2026-09-27
+    lastVerifiedAt: 2026-09-27
     verificationStatus: verified
 sources:
+  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+    title: "GLM 5.3 Flash model page: API model code glm-5.3-flash"
+    checkedAt: 2026-09-27
   - url: https://docs.z.ai/guides/overview/pricing
     title: "GLM 5.3 Flash model documentation"
     checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+lastVerifiedAt: 2026-09-27
 verificationStatus: verified

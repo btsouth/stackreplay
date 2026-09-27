@@ -1,0 +1,109 @@
+id: openai-api-gpt-5-4-mini
+role: plan
+name: "OpenAI API: GPT-5.4 Mini"
+providerId: openai
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: openai-api-gpt-5-4-mini-current-20260927
+  productId: openai-direct-api
+  validity:
+    start: '2026-09-27T14:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    catalogActivatedAt: '2026-09-27T14:38:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: current model or pricing listing
+    excerpt: Model and listed rates were current at review; provider effective date was not established.
+    normalizedClaimHash: sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813
+    evidencePackageHash: sha256:26d35a659591140e12fc1464422992b50640e485d190e91c2854e9aa5011927e
+    reviewer: Codex C2A manual official-source review
+  - id: route
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: API endpoint and model request
+    excerpt: Exact gpt-5-4-mini on openai-responses-standard through openai-responses.
+    normalizedClaimHash: sha256:58f69830e1db77c77ae50137bdcdfea54d00a62f3291899094d35f683cf5d20e
+    evidencePackageHash: sha256:3675003e87541caab7b44f74643d827f2f387fd6959e52816e48e03e6785ebf3
+    reviewer: Codex C2A manual official-source review
+  - id: rate
+    sourceId: developers.openai.com
+    sourceUrl: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: model price row
+    excerpt: USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and
+      tool charges are outside this route.
+    normalizedClaimHash: sha256:dfe69957ae09137ca7240a7eac483ff0f65dd5f119c7393a3ceac39302c92d04
+    evidencePackageHash: sha256:a591ecc8fe567dd711889202779fd4fb29db1cd5a61ae8b38832c68bdeaedc25
+    reviewer: Codex C2A manual official-source review
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: openai-api-gpt-5-4-mini-current-rate
+    basis: api_list_price
+    endpointId: openai-responses-standard
+    rateVersion: current-20260927
+    denomination: USD
+    claimRefs:
+    - rate
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: openai-responses-standard
+    protocol: openai-responses
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - gpt-5-4-mini
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []
