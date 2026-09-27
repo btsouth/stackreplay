@@ -7,7 +7,11 @@ import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { build } from "vite";
 
-const out = join(tmpdir(), "stackreplay-o3a-runtime-bench");
+const compiled = process.argv.includes("--compiled");
+const out = join(
+  tmpdir(),
+  compiled ? "stackreplay-o3b-runtime-bench" : "stackreplay-o3a-runtime-bench",
+);
 for (const [entry, file] of [
   ["../workers/optimizer.worker.ts", "child.js"],
   ["./optimizer-owner.worker.ts", "owner.js"],
@@ -126,7 +130,11 @@ try {
       ? [100000]
       : [10000, 50000, 100000];
   for (const count of sizes)
-    for (const plans of process.argv.includes("--transfer") ? [6] : [2, 6]) {
+    for (const plans of compiled
+      ? ["simple", "multi", "pools"]
+      : process.argv.includes("--transfer")
+        ? [6]
+        : [2, 6]) {
       await page.evaluate(() => {
         window.owner?.terminate();
         window.owner = new Worker("/owner.js", { type: "module" });
@@ -150,7 +158,7 @@ try {
           });
         window.timer = setInterval(() => window.ticks.push(performance.now()), 16);
       });
-      await request("load", { count, plans });
+      await request("load", { count, plans, compiled });
       const fixture = await memory(true);
       const samples = [];
       for (let i = 0; i < 3; i++) {
@@ -168,6 +176,8 @@ try {
           }
         })();
         const result = await request("run");
+        if (compiled && !result.winnerId)
+          throw new Error("Compiled benchmark lacks a certified winner");
         polling = false;
         await poll;
         const uncollected = await memory();
@@ -207,6 +217,8 @@ try {
           });
         }, phase);
         await new Promise((r) => setTimeout(r, 50));
+        if (cancel.messages.some((m) => m.type === "run"))
+          throw new Error("Cancelled optimization published success");
         cancellation.push({ phase, ...cancel, after: await memory(true), workers: sessions.size });
       }
       const again = await request("run");

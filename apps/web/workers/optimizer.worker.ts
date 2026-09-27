@@ -1,20 +1,31 @@
 /// <reference lib="webworker" />
 import {
+  type CompiledOptimizationInput,
+  type CompiledOptimizationResult,
   type ExactOptimizationInput,
   type ExactOptimizationResult,
+  optimizeCompiledExactModels,
   optimizeExactModels,
 } from "@stackreplay/replay-engine";
-import { optimizationDetail, summarizeOptimization } from "../lib/optimizer-runtime";
+import {
+  compiledOptimizationDetail,
+  optimizationDetail,
+  summarizeCompiledOptimization,
+  summarizeOptimization,
+} from "../lib/optimizer-runtime";
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
-let result: ExactOptimizationResult | undefined;
+type Configuration =
+  | Omit<ExactOptimizationInput, "events">
+  | Omit<CompiledOptimizationInput, "events">;
+let result: ExactOptimizationResult | CompiledOptimizationResult | undefined;
 let buffered:
-  | (Omit<ExactOptimizationInput, "events"> & {
+  | (Configuration & {
       events: ExactOptimizationInput["events"][number][];
     })
   | undefined;
 type Request =
-  | { type: "begin"; configuration: Omit<ExactOptimizationInput, "events"> }
+  | { type: "begin"; configuration: Configuration }
   | { type: "events"; events: ExactOptimizationInput["events"] }
   | { type: "run" }
   | { type: "detail"; id: number; offset: number; limit: number };
@@ -30,15 +41,26 @@ scope.onmessage = ({ data }: MessageEvent<Request>) => {
       if (!buffered) throw new Error("Missing optimizer input");
       const input = buffered;
       buffered = undefined;
-      result = optimizeExactModels(input, {
-        onPhase: (phase) => scope.postMessage({ type: "phase", phase }),
+      const runtime = { onPhase: (phase: string) => scope.postMessage({ type: "phase", phase }) };
+      result =
+        "contract" in input
+          ? optimizeCompiledExactModels(input as CompiledOptimizationInput, runtime)
+          : optimizeExactModels(input as ExactOptimizationInput, runtime);
+      scope.postMessage({
+        type: "done",
+        summary:
+          "contract" in result
+            ? summarizeCompiledOptimization(result)
+            : summarizeOptimization(result),
       });
-      scope.postMessage({ type: "done", summary: summarizeOptimization(result) });
     } else if (result) {
       scope.postMessage({
         type: "detail",
         id: data.id,
-        detail: optimizationDetail(result, data.offset, data.limit),
+        detail:
+          "contract" in result
+            ? compiledOptimizationDetail(result, data.offset, data.limit)
+            : optimizationDetail(result, data.offset, data.limit),
       });
     } else scope.postMessage({ type: "error" });
   } catch {

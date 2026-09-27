@@ -2,7 +2,9 @@ export {
   isSyntheticCatalogId,
   SYNTHETIC_CATALOG_PREFIX,
 } from "./catalog-namespace.js";
+export * from "./compiled-execution.js";
 export { STACKREPLAY_ERROR_CODES, type StackReplayErrorCode } from "./error-codes.js";
+export * from "./execution-rates.js";
 export {
   type ApiModelMappingV1,
   type ApiTargetV1,

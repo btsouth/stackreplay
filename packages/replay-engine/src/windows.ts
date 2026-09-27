@@ -5,7 +5,7 @@ import { type CalendarUnit, calendarBucketBoundsMs, durationToMs, epochMsFromIso
 /**
  * Window slicing (spec point 24). Boundaries are half-open: [start, end).
  *
- * Rolling windows are anchored at first use: a window opens at the first
+ * First-use windows are anchored at first use: a window opens at the first
  * event that arrives after the previous window ended, and the next window
  * opens at the first event at or after its end.
  *
@@ -55,7 +55,7 @@ export function sortTimedEvents(timed: readonly TimedEvent[]): TimedEvent[] {
   });
 }
 
-export function sliceRollingWindows(
+export function sliceFirstUseAnchoredWindows(
   events: readonly TimedEvent[],
   durationMs: number,
 ): WindowSlice[] {
@@ -137,3 +137,6 @@ export function sliceWindows(events: readonly TimedEvent[], window: LimitWindowV
     slices: sliceCalendarWindows(events, window.unit, window.timezone),
   };
 }
+
+/** Legacy v1 API alias: never a trailing/sliding lookback. */
+export const sliceRollingWindows = sliceFirstUseAnchoredWindows;

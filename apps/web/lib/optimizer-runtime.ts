@@ -1,5 +1,62 @@
-import type { ExactOptimizationInput, ExactOptimizationResult } from "@stackreplay/replay-engine";
+import type {
+  CompiledOptimizationInput,
+  CompiledOptimizationResult,
+  ExactOptimizationInput,
+  ExactOptimizationResult,
+} from "@stackreplay/replay-engine";
 
+export type CompiledOptimizerSummary = Omit<CompiledOptimizationResult, "scope" | "explanation"> & {
+  scope: Omit<CompiledOptimizationResult["scope"], "exclusions">;
+  explanation?: Omit<NonNullable<CompiledOptimizationResult["explanation"]>, "assignments">;
+  detailCounts: { exclusions: number; assignments: number };
+};
+export type CompiledOptimizerDetail = {
+  offset: number;
+  exclusions: string[];
+  assignments: NonNullable<CompiledOptimizationResult["explanation"]>["assignments"];
+};
+export function summarizeCompiledOptimization(
+  result: CompiledOptimizationResult,
+): CompiledOptimizerSummary {
+  const { scope, explanation, ...rest } = result;
+  const { exclusions, ...scopeSummary } = scope;
+  const { assignments, ...summary } = explanation ?? { assignments: [] };
+  return {
+    ...rest,
+    scope: scopeSummary,
+    ...(explanation
+      ? { explanation: summary as NonNullable<CompiledOptimizerSummary["explanation"]> }
+      : {}),
+    detailCounts: { exclusions: exclusions.length, assignments: assignments.length },
+  };
+}
+export function compiledOptimizationDetail(
+  result: CompiledOptimizationResult,
+  offset: number,
+  limit: number,
+): CompiledOptimizerDetail {
+  if (
+    !Number.isSafeInteger(offset) ||
+    offset < 0 ||
+    !Number.isSafeInteger(limit) ||
+    limit < 1 ||
+    limit > 1000
+  )
+    throw new Error("Invalid detail page");
+  const page = {
+    offset,
+    exclusions: result.scope.exclusions.slice(offset, offset + limit),
+    assignments: result.explanation?.assignments.slice(offset, offset + limit) ?? [],
+  };
+  if (JSON.stringify(page).length > 1024 * 1024)
+    throw new Error("Detail page exceeds byte budget; request fewer records");
+  return page;
+}
+type RuntimeInput = ExactOptimizationInput | CompiledOptimizationInput;
+type SummaryFor<I> = I extends CompiledOptimizationInput
+  ? CompiledOptimizerSummary
+  : OptimizerSummary;
+type DetailFor<I> = I extends CompiledOptimizationInput ? CompiledOptimizerDetail : OptimizerDetail;
 /** Only aggregates cross to the page. Detailed identities/assignments stay in the child. */
 export type OptimizerSummary = Omit<ExactOptimizationResult, "scope" | "explanation"> & {
   scope: Omit<ExactOptimizationResult["scope"], "events" | "exclusions">;
@@ -22,10 +79,10 @@ export type OptimizerPhase =
   | "enumerating"
   | "assigning"
   | "receipts";
-export type OptimizerChildResponse =
+export type OptimizerChildResponse<I = ExactOptimizationInput> =
   | { type: "phase"; phase: OptimizerPhase }
-  | { type: "done"; summary: OptimizerSummary }
-  | { type: "detail"; id: number; detail: OptimizerDetail }
+  | { type: "done"; summary: SummaryFor<I> }
+  | { type: "detail"; id: number; detail: DetailFor<I> }
   | { type: "error" };
 export class OptimizerCancelledError extends Error {
   constructor() {
@@ -80,7 +137,7 @@ export function optimizationDetail(
  * engine work (including validation, sort, matching and receipts). No cooperative
  * polling or SharedArrayBuffer/cross-origin isolation requirement.
  */
-export class OptimizerRuntime {
+export class OptimizerRuntime<I extends RuntimeInput = ExactOptimizationInput> {
   private worker: Worker | undefined;
   private generation = 0;
   private reject: ((error: Error) => void) | undefined;
@@ -89,7 +146,7 @@ export class OptimizerRuntime {
   private nextDetail = 0;
   private pages = new Map<
     number,
-    { resolve: (value: OptimizerDetail) => void; reject: (error: Error) => void }
+    { resolve: (value: DetailFor<I>) => void; reject: (error: Error) => void }
   >();
   constructor(
     private createWorker = () =>
@@ -114,9 +171,9 @@ export class OptimizerRuntime {
     this.pages.clear();
   }
   run(
-    load: () => Promise<ExactOptimizationInput>,
+    load: () => Promise<I>,
     options: { signal?: AbortSignal; onPhase?: (phase: OptimizerPhase) => void } = {},
-  ): Promise<OptimizerSummary> {
+  ): Promise<SummaryFor<I>> {
     this.cancel();
     const generation = this.generation;
     return new Promise((resolve, reject) => {
@@ -143,7 +200,7 @@ export class OptimizerRuntime {
           this.worker = worker;
           worker.onerror = fail;
           worker.onmessageerror = fail;
-          worker.onmessage = ({ data }: MessageEvent<OptimizerChildResponse>) => {
+          worker.onmessage = ({ data }: MessageEvent<OptimizerChildResponse<I>>) => {
             if (this.generation !== generation || this.worker !== worker) return;
             if (data.type === "phase") options.onPhase?.(data.phase);
             else if (data.type === "done") {
@@ -175,7 +232,7 @@ export class OptimizerRuntime {
       })();
     });
   }
-  detail(offset: number, limit = 100): Promise<OptimizerDetail> {
+  detail(offset: number, limit = 100): Promise<DetailFor<I>> {
     if (!this.worker || this.reject !== undefined)
       return Promise.reject(new Error("No completed optimization."));
     if (

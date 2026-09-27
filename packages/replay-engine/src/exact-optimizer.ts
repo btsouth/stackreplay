@@ -5,6 +5,11 @@ import {
   type TextUsageEventV1,
 } from "@stackreplay/schema";
 import { z } from "zod";
+import {
+  type CompiledOptimizationInput,
+  type CompiledOptimizationResult,
+  optimizeCompiledExactModels,
+} from "./compiled-optimizer.js";
 import { levelFromVerification, worstLevel } from "./confidence.js";
 import { parseCatalog, replay, replayObservingQuotes, replayWithReceipt } from "./engine.js";
 import { ReplayEngineError } from "./errors.js";
@@ -816,13 +821,23 @@ export function explainExactCandidate(
   return explain(prepared, configuration, evaluate(prepared, configuration));
 }
 
+type OptimizerDiagnostics = {
+  onPhase?: (phase: "preparing" | "enumerating" | "assigning" | "receipts") => void;
+};
+export function optimizeExactModels(
+  input: CompiledOptimizationInput,
+  runtime?: OptimizerDiagnostics,
+): CompiledOptimizationResult;
+/** Legacy catalog-v1 compatibility entry; frozen economics and persisted receipt semantics. */
 export function optimizeExactModels(
   input: ExactOptimizationInput,
-  runtime: {
-    /** Diagnostic phase notifications; cancellation belongs to the owning Worker lifecycle. */
-    onPhase?: (phase: "preparing" | "enumerating" | "assigning" | "receipts") => void;
-  } = {},
-): ExactOptimizationResult {
+  runtime?: OptimizerDiagnostics,
+): ExactOptimizationResult;
+export function optimizeExactModels(
+  input: ExactOptimizationInput | CompiledOptimizationInput,
+  runtime: OptimizerDiagnostics = {},
+): ExactOptimizationResult | CompiledOptimizationResult {
+  if ("contract" in input) return optimizeCompiledExactModels(input, runtime);
   runtime.onPhase?.("preparing");
   const prepared = prepare(input);
   runtime.onPhase?.("enumerating");

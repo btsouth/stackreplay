@@ -1,5 +1,9 @@
-import type { PricingRateSetV1, PricingTierConditionV1, PricingV1 } from "@stackreplay/catalog";
-import type { TextUsageV1 } from "@stackreplay/schema";
+import type {
+  ExecutionTokenRateV1,
+  PricingRateSetV1,
+  PricingTierConditionV1,
+  TextUsageV1,
+} from "@stackreplay/schema";
 import { Decimal, parseAmount, ZERO } from "./money.js";
 import { utcWallClock } from "./time.js";
 
@@ -178,7 +182,10 @@ function tierApplies(condition: PricingTierConditionV1, when: PricingSelectionCo
  * validation keeps tier conditions disjoint, so at most one tier can match and
  * selection never depends on declaration order.
  */
-export function selectRateSet(pricing: PricingV1, when: PricingSelectionContext): RateSetSelection {
+export function selectRateSet(
+  pricing: ExecutionTokenRateV1,
+  when: PricingSelectionContext,
+): RateSetSelection {
   for (const tier of pricing.tiers ?? []) {
     if (tierApplies(tier.when, when)) return { rates: tier.rates, tierId: tier.id };
   }
@@ -250,7 +257,7 @@ function rateStringFor(
 
 export function moneyUnitsForUsage(
   usage: TextUsageV1,
-  pricing: PricingV1 | undefined,
+  pricing: ExecutionTokenRateV1 | undefined,
   when: { atMs: number },
   options?: { parts?: boolean },
 ): MoneyConversionOutcome {

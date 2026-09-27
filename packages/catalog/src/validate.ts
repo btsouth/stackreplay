@@ -426,7 +426,7 @@ function checkRateSet(
 }
 
 function checkPricingSemantics(
-  pricing: PricingV1,
+  pricing: Pick<PricingV1, "id" | "rates" | "tiers">,
   file: string,
   issues: CatalogValidationIssue[],
 ): void {
@@ -746,5 +746,14 @@ export function validateLoadedCatalog(catalog: CatalogV1): CatalogValidationIssu
       code: "INDEX_MISMATCH",
       message: "planVersions does not match plans",
     });
+  return issues;
+}
+
+/** The same rate validation for compiled routes, without catalog source records. */
+export function validateExecutionRates(
+  pricing: Pick<PricingV1, "id" | "rates" | "tiers">,
+): CatalogValidationIssue[] {
+  const issues: CatalogValidationIssue[] = [];
+  checkPricingSemantics(pricing, pricing.id, issues);
   return issues;
 }

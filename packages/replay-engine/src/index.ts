@@ -39,6 +39,19 @@ export {
   reconstructListPrice,
   resolutionExpectation,
 } from "./backtest.js";
+export {
+  type CompiledReplay,
+  replayCompiledResource,
+  resourceReadiness,
+} from "./compiled-capacity.js";
+export { migrateLegacyObservation, migrateLegacyWindow } from "./compiled-legacy.js";
+export {
+  type CompiledCandidate,
+  type CompiledOptimizationInput,
+  type CompiledOptimizationResult,
+  compareCompiledCandidates,
+  optimizeCompiledExactModels,
+} from "./compiled-optimizer.js";
 export type { ReplayObservers, SubscriptionEventObservation } from "./engine.js";
 export {
   type ApiPriceabilityCountsV1,
@@ -138,11 +151,12 @@ export {
 export { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
 /**
  * Window slicing, exported so workload analysis reads demand through the same
- * rolling (anchored at first use) and calendar windows Replay applies to limits,
+ * first-use anchored and calendar windows Replay applies to limits,
  * instead of a second implementation of the same arithmetic.
  */
 export {
   sliceCalendarWindows,
+  sliceFirstUseAnchoredWindows,
   sliceRollingWindows,
   sortTimedEvents,
   type TimedEvent,

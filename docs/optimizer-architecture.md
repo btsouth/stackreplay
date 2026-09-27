@@ -177,3 +177,7 @@ prorated subscription cost; bound route enumeration and explain greedy ordering;
 measure Worker memory/cancellation. Sliding quotas, initial account occupancy,
 aggregate-demand eligibility and empirical calibration remain explicitly outside
 this implementation. No real subscription capacity is inferred.
+
+## O3B compiled execution contract
+
+The neutral compiler target, compatibility boundaries, supported capacity domain and Worker lifecycle are documented in [optimizer-o3b.md](optimizer-o3b.md), implementing the locked [contract review](optimizer-catalog-contract-review.md). No real-provider compiler or UI is included.

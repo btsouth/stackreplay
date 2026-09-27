@@ -83,6 +83,7 @@ export {
   type RawCatalogData,
   type RawCatalogFile,
   validateCatalogData,
+  validateExecutionRates,
   validateLoadedCatalog,
 } from "./validate.js";
 export {

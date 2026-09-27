@@ -2,7 +2,7 @@
 
 O2 was reviewed with no unrelated changes, its 357 engine tests passed again,
 and it was committed as `eb2233a525344d9cc277229cb8486ba36e779aef`.
-O3A is uncommitted pending review. This note supersedes O2's fresh-only restriction.
+O3A was committed as `ba36f195cbec6910db56c96994e0dfbf651bb177`. This note supersedes O2's fresh-only restriction.
 No provider catalog, UI, account, network or model-substitution behavior is added.
 
 ## Preserved optimization contract
