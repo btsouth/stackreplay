@@ -59,11 +59,10 @@ test("the workload opens with its value, scope, tool split and comparative facts
     el.open = true;
   });
   await expect(opening.getByTestId("value-figure")).toBeVisible({ timeout: 60_000 });
-  // D0 deliberately makes the admitted market answer the first instrument.
-  // Keep the legacy valuation/insight assertions, and verify the new leading answer.
-  await expect(opening.getByTestId("market-total")).toHaveText("Full total unavailable");
-  await expect(opening.getByTestId("market-coverage")).toContainText("31 days");
-  await expect(opening.getByTestId("market-total")).toBeInViewport();
+  // This fixture exceeds one review period. Lead with an action, not an unavailable total.
+  await expect(opening.getByRole("heading", { name: "Choose a review period" })).toBeInViewport();
+  await expect(opening.getByTestId("review-setup")).toContainText("up to 31 days");
+  await expect(opening.getByTestId("market-total")).toHaveCount(0);
   await opening
     .getByRole("region", { name: "Published API valuation", exact: true })
     .evaluate((section) => section.scrollIntoView({ block: "start" }));
