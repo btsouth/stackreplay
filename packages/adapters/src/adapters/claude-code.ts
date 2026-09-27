@@ -15,7 +15,7 @@ import {
   inWindow,
   listFilesRecursive,
 } from "../files.js";
-import { epochMsFromIso } from "../identity.js";
+import { epochMsFromIso, normalizeProjectKey, sourceRootHash } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
 import {
@@ -66,6 +66,8 @@ function preferResponse(candidate: ResponseCandidate, previous: ResponseCandidat
 }
 
 export function claudeCodeRoots(env: SourceEnvironment): string[] {
+  if (env.env.CLAUDE_CONFIG_DIR)
+    return [joinPath(env.platform, env.env.CLAUDE_CONFIG_DIR, "projects")];
   return CLAUDE_CODE_DISCOVERY.history.map((location) =>
     joinPath(env.platform, env.homeDir, ...location.path),
   );
@@ -173,6 +175,22 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
       let truncated = false;
 
       for (const root of roots) {
+        const rawRoot = env.selectedFiles
+          ? options.sessionRoot
+          : env.fs.realPath
+            ? await env.fs.realPath(root).catch(() => root)
+            : root;
+        const rootHash =
+          rawRoot === undefined
+            ? undefined
+            : sourceRootHash(
+                options.sourceRootSalt ?? options.salt,
+                normalizeProjectKey(rawRoot, env.platform),
+              );
+        const sourceRoot = rootHash
+          ? { resourceInstanceId: `claude-code:${rootHash}`, sessionRoot: rootHash }
+          : undefined;
+        if (sourceRoot && rawRoot) options.onSourceRoot?.(sourceRoot.resourceInstanceId, rawRoot);
         const files = await listFilesRecursive(env, root, {
           maxDepth: CLAUDE_CODE_DISCOVERY.inventory?.maxDepth ?? 8,
           extension: ".jsonl",
@@ -241,7 +259,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             const requestId = readString(record, "requestId");
             const identity =
               messageId !== undefined
-                ? `${messageId}\u0000${requestId ?? ""}`
+                ? messageId
                 : (requestId ?? readString(record, "uuid") ?? `${occurredAtMs}#${lineIndex}`);
             // Browser-selected single files have no established project folder.
             // The synthetic collection root must never become a project identity.
@@ -249,6 +267,8 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               readString(record, "cwd") ?? (env.selectedFiles ? undefined : projectSlug);
             const draft: EventDraft = {
               adapterId: ADAPTER_ID,
+              ...(sourceRoot ? { sourceRoot } : {}),
+              nativeResponse: { final: message.stop_reason != null, duplicateRows: 0 },
               sessionId,
               identity,
               ...(messageId !== undefined || requestId !== undefined
@@ -271,14 +291,24 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               workloadCategory: "coding",
             };
             const candidate = { draft, final: message.stop_reason != null };
-            const previous = responses.get(identity);
-            if (previous === undefined) responses.set(identity, candidate);
+            const responseKey = JSON.stringify([
+              rootHash ?? "unestablished",
+              messageId || requestId ? "global" : sessionId,
+              identity,
+            ]);
+            const previous = responses.get(responseKey);
+            if (previous === undefined) responses.set(responseKey, candidate);
             else {
               warnings.add(
                 "RECORD_DUPLICATE",
                 "Claude Code wrote more than one assistant row for an API response; usage was counted once",
               );
-              if (preferResponse(candidate, previous)) responses.set(identity, candidate);
+              const winner = preferResponse(candidate, previous) ? candidate : previous;
+              winner.draft.nativeResponse = {
+                final: winner.final,
+                duplicateRows: (previous.draft.nativeResponse?.duplicateRows ?? 0) + 1,
+              };
+              responses.set(responseKey, winner);
             }
           }
           stats.sessionsScanned += 1;

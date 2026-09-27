@@ -41,7 +41,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(market.getByTestId("decision-difference")).toHaveText(
       "Not directly comparable yet",
     );
-    await expect(market).toContainText("not proven savings");
+    await expect(market).toContainText("does not establish equivalent product experience");
     for (let i = 0; i < 6; i++) await market.getByRole("checkbox").nth(i).check();
     expect(await market.getByRole("checkbox", { checked: true }).count()).toBeGreaterThan(4);
     await expect(market.getByTestId("market-current-spend")).not.toContainText("$0.00");

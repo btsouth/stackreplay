@@ -10,6 +10,8 @@ import { importDemo, runReplay } from "./helpers";
  */
 
 async function expectNoSeriousViolations(page: Page) {
+  // App Router metadata may finish streaming after the result is visible.
+  await expect(page).toHaveTitle(/StackReplay/u);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
     .analyze();

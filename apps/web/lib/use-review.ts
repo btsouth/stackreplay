@@ -41,7 +41,15 @@ export function useReview(record: ImportRecord) {
             ? { mode: "custom", period: sampleCycle, historyConfirmed: "2026-09-01/2026-10-01" }
             : { mode: "history" }),
       );
-      setBilling(fullDemo ? { ...sampleBilling, ...state.billing } : state.billing);
+      const account = saved?.resourceInstanceId;
+      const accountBilling = account
+        ? Object.fromEntries(
+            Object.entries(state.billing)
+              .filter(([, fact]) => fact.resourceInstanceId === account)
+              .map(([key, fact]) => [key.slice(0, -(account.length + 1)), fact]),
+          )
+        : state.billing;
+      setBilling(fullDemo ? { ...sampleBilling, ...accountBilling } : accountBilling);
       // The complete demo never borrows or overwrites the user's paid amounts/stack.
       setSelected(
         fullDemo && !hasSavedStack(namespace) ? sampleSelected : readCurrentStack(namespace),
@@ -57,9 +65,16 @@ export function useReview(record: ImportRecord) {
     };
   }, [record.id, namespace, fullDemo]);
   const update = (next: ReviewChoice, fact?: { key: string; fact: BillingFact }) => {
-    const saved = saveReview(record.id, next, fact, namespace);
+    const storedFact =
+      fact && next.resourceInstanceId
+        ? {
+            key: `${fact.key}@${next.resourceInstanceId}`,
+            fact: { ...fact.fact, resourceInstanceId: next.resourceInstanceId },
+          }
+        : fact;
+    const saved = saveReview(record.id, next, storedFact, namespace);
     setChoice(next);
-    if (fact) setBilling((old) => ({ ...old, [fact.key]: fact.fact }));
+    if (fact) setBilling((old) => ({ ...old, [fact.key]: storedFact?.fact ?? fact.fact }));
     setSaveFailed(!saved);
   };
   return {

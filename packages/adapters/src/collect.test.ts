@@ -33,7 +33,7 @@ async function withFixtureHome<T>(run: (directory: string) => Promise<T>): Promi
       `${directory}/.claude/projects/${CLAUDE_CODE_PROJECT_DIR}/${CLAUDE_CODE_FILE}`,
       CLAUDE_CODE_SESSION,
     );
-    // The same session reachable through a harness-managed root: must dedupe.
+    // An independent root with copied session identities: must remain separate.
     await writeFixture(
       `${directory}/.t3/commandcode/claude/projects/${CLAUDE_CODE_PROJECT_DIR}/${CLAUDE_CODE_FILE}`,
       CLAUDE_CODE_SESSION,
@@ -83,14 +83,20 @@ describe("collection pipeline", () => {
   it("collects from every detected source without double counting", async () => {
     await withFixtureHome(async (directory) => {
       const result = await runCollect(directory);
-      // 2 Claude Code records + 2 Codex records + 3 Command Code records + 2 Hermes rows
-      expect(result.stats.totalEvents).toBe(9);
+      // 4 Claude Code responses across two roots + 2 Codex + 3 Command Code + 2 Hermes
+      expect(result.stats.totalEvents).toBe(11);
       // Claude responses are grouped by their API identity before generic dedupe.
       expect(result.stats.exactDuplicates).toBe(0);
-      expect(result.warnings.map((warning) => warning.code)).toContain("RECORD_DUPLICATE");
+      expect(
+        new Set(
+          result.events
+            .filter((e) => e.source.adapterId === "claude-code")
+            .map((e) => e.source.resourceInstanceId),
+        ).size,
+      ).toBe(2);
       expect(
         result.events.filter((event) => event.source.adapterId === "claude-code"),
-      ).toHaveLength(2);
+      ).toHaveLength(4);
     });
   });
 

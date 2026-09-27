@@ -41,6 +41,7 @@ export function periodLabel(p: ReviewPeriod): string {
   return `${format(p.start)} – ${format(nextDate(p.end, -1))}`;
 }
 export const billingFactSchema = z.object({
+  resourceInstanceId: z.string().min(1).max(150).optional(),
   cycle: periodSchema.optional(),
   paid: z
     .string()
@@ -50,6 +51,8 @@ export const billingFactSchema = z.object({
 });
 export type BillingFact = z.infer<typeof billingFactSchema>;
 export const reviewChoiceSchema = z.object({
+  resourceInstanceId: z.string().min(1).max(150).optional(),
+  accountLabel: z.string().trim().max(80).optional(),
   mode: z.enum(["history", "custom", "cycle"]),
   period: periodSchema.optional(),
   subscription: z.string().max(150).optional(),
@@ -58,6 +61,7 @@ export const reviewChoiceSchema = z.object({
   historyConfirmation: z
     .object({
       importId: z.string().min(1).max(150),
+      resourceInstanceId: z.string().min(1).max(150).optional(),
       scopeDigest: z.string().min(1).max(150),
       period: periodSchema,
       confirmedAt: z.iso.datetime(),
@@ -76,6 +80,10 @@ export interface ReviewHistory {
   importedCalls: number;
   outsideCalls: number;
   scanGapCodes?: string[];
+  resourceInstanceId?: string;
+  nativeResponses?: number;
+  duplicateRows?: number;
+  accounts?: { resourceInstanceId: string; source: string; calls: number }[];
 }
 export interface ReviewComposition {
   period?: ReviewPeriod;
@@ -134,18 +142,25 @@ export function composeReview(input: {
   const declarationMatches =
     confirmation !== undefined &&
     confirmation.importId === input.importId &&
+    confirmation.resourceInstanceId === choice.resourceInstanceId &&
+    choice.resourceInstanceId === history.resourceInstanceId &&
     confirmation.scopeDigest === decision.scenarios[0]?.summary.scope.digest &&
     !!period &&
     periodKey(confirmation.period) === periodKey(period) &&
     (input.synthetic === true || confirmation.provenance === "local-user");
   const historyConfirmed =
     !!period &&
+    (!history.accounts?.length || !!choice.resourceInstanceId) &&
     periodEnded &&
     !hasScanGaps &&
     (declarationMatches ||
       (input.synthetic === true && choice.historyConfirmed === periodKey(period)));
   const matching = selected.filter(
-    (key) => period && billing[key]?.cycle && periodKey(billing[key].cycle) === periodKey(period),
+    (key) =>
+      period &&
+      billing[key]?.cycle &&
+      periodKey(billing[key].cycle) === periodKey(period) &&
+      billing[key]?.resourceInstanceId === choice.resourceInstanceId,
   );
   const confirmed = matching.filter((key) => billing[key]?.paid !== undefined);
   const confirmedSpend = confirmed.length
@@ -165,28 +180,36 @@ export function composeReview(input: {
   const reason =
     !period || !periodSchema.safeParse(period).success
       ? "Choose a review period of 1 to 31 days."
-      : hasScanGaps
-        ? "This import has scan gaps. Resolve them before confirming a complete period."
-        : !history.calls
-          ? "No recorded calls fall within this review period."
-          : !periodEnded
-            ? "This review period has not ended yet. Its complete history cannot be confirmed."
-            : !historyConfirmed
-              ? "History coverage for this period is not confirmed. Event dates alone do not prove complete logs."
-              : !selected.length
-                ? "Select the subscriptions paid for during this period."
-                : matching.length !== selected.length
-                  ? "Selected subscriptions do not share this full billing period. Review one subscription cycle by selecting only that subscription, or enter matching full-cycle facts. No charges are prorated."
-                  : confirmed.length !== selected.length
-                    ? "Enter the amount actually paid for every selected subscription in this period. Published prices are not confirmed spend."
-                    : !range || range.priced !== history.calls
-                      ? "Some recorded calls lack modeled API pricing. A same-period difference is unavailable."
-                      : "Same period for recorded workload and confirmed fixed subscription spend. History coverage is your local confirmation, not independently verified.";
+      : history.accounts?.length && !choice.resourceInstanceId
+        ? "Choose one local source account for this billing-cycle review. Other accounts remain separate."
+        : hasScanGaps
+          ? "This import has scan gaps. Resolve them before confirming a complete period."
+          : !history.calls
+            ? "No recorded calls fall within this review period."
+            : !periodEnded
+              ? "This review period has not ended yet. Its complete history cannot be confirmed."
+              : !historyConfirmed
+                ? "History coverage for this period is not confirmed. Event dates alone do not prove complete logs."
+                : !selected.length
+                  ? "Select the subscriptions paid for during this period."
+                  : matching.length !== selected.length
+                    ? "Selected subscriptions do not share this full billing period. Review one subscription cycle by selecting only that subscription, or enter matching full-cycle facts. No charges are prorated."
+                    : confirmed.length !== selected.length
+                      ? "Enter the amount actually paid for every selected subscription in this period. Published prices are not confirmed spend."
+                      : !range || range.priced !== history.calls
+                        ? "Some recorded calls lack modeled API pricing. A same-period difference is unavailable."
+                        : "Same period for recorded workload and confirmed fixed subscription spend. History coverage is your local confirmation, not independently verified.";
   const dollars = (s: string) => `$${new Decimal(s).toFixed(2)}`;
   const api = range ? `${dollars(range.low)}–${dollars(range.high)}` : "an unavailable total";
   const conclusion =
     complete && confirmedSpend !== undefined && range
-      ? `${input.synthetic ? "In this synthetic example, you paid" : "You paid"} ${dollars(confirmedSpend)} in confirmed fixed subscriptions during this period. The exact recorded workload would have cost ${api} through the currently modeled published API routes. ${new Decimal(confirmedSpend).lt(range.low) ? "StackReplay cannot prove those subscriptions alone could have handled every burst without interruption because their published capacity is not deterministic." : "That difference does not prove the subscriptions were unnecessary or that API usage would provide an equivalent experience."} This does not establish that API usage provides the same product experience or that the subscriptions could be replaced without interruptions.`
+      ? choice.resourceInstanceId &&
+        history.accounts?.find((a) => a.resourceInstanceId === choice.resourceInstanceId)
+          ?.source === "claude-code" &&
+        selected.length === 1 &&
+        selected[0] === "plan:anthropic-claude-max-5x"
+        ? `You paid ${dollars(confirmedSpend)} for this confirmed Claude billing cycle. The exact recorded workload from the same period would cost ${api} at the currently modeled published API rates. This is an economic comparison, not proof that API usage would provide the same experience or that Max 5x could be replaced without interruption.`
+        : `${input.synthetic ? "In this synthetic example, you paid" : "You paid"} ${dollars(confirmedSpend)} in confirmed fixed subscriptions during this period. The exact recorded workload would have cost ${api} through the currently modeled published API routes. ${new Decimal(confirmedSpend).lt(range.low) ? "StackReplay cannot prove those subscriptions alone could have handled every burst without interruption because their published capacity is not deterministic." : "That difference does not prove the subscriptions were unnecessary or that API usage would provide an equivalent experience."} This does not establish that API usage provides the same product experience or that the subscriptions could be replaced without interruptions.`
       : `Not directly comparable yet. ${reason} ${partialRange ? `Published API equivalent for ${partialRange.priced.toLocaleString()} priced calls only: ${dollars(partialRange.low)}–${dollars(partialRange.high)}. Unpriced calls remain outside this subtotal; their cost is unknown.` : range ? "The published API equivalent describes only the recorded calls, with no extrapolation." : "A full published API equivalent is also unavailable for these recorded calls. No missing usage or prices are estimated."}`;
   return {
     ...(period ? { period } : {}),

@@ -667,6 +667,7 @@ export async function intakeBrowserCandidates(
   options: {
     now: string;
     salt?: string;
+    sourceRootSalt?: string;
     budget?: BrowserIntakeBudget;
     onProgress?: (done: number, total: number, progress: BrowserIntakeProgress) => void;
     /**
@@ -850,6 +851,12 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
+    const rootMatch = candidate.path.replace(/\\/gu, "/").match(/^(.*?(?:^|\/)projects)(?:\/|$)/u);
+    const sessionRoot =
+      rootMatch?.[1] === undefined
+        ? undefined
+        : JSON.stringify([candidate.group ?? "selection", rootMatch[1]]);
+    if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
     if (signature !== undefined && seen.has(signature)) {
       outcomes.push({
         path: display,
@@ -903,8 +910,10 @@ export async function intakeBrowserCandidates(
       result = await adapter.collect(env, {
         now: new Date(options.now),
         salt,
+        ...(options.sourceRootSalt ? { sourceRootSalt: options.sourceRootSalt } : {}),
         mapper,
         roots: ["/selected"],
+        ...(sessionRoot ? { sessionRoot } : {}),
         maxFileBytes: MAX_SOURCE_FILE_BYTES,
         onProjectKey: (hash, key) => projectKeys.set(hash, key),
         ...(id === "ccusage" ? { inputFile: path } : {}),

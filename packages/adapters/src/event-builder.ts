@@ -32,6 +32,8 @@ export const HARNESS_IDS = {
 
 export interface EventDraft {
   adapterId: AdapterId;
+  sourceRoot?: { resourceInstanceId: string; sessionRoot: string };
+  nativeResponse?: { final: boolean; duplicateRows: number };
   /**
    * Raw native session id, hashed before it reaches an export. Omitted when the
    * source describes work without naming a session (a daily or monthly
@@ -155,7 +157,10 @@ function nativeEventIdentity(draft: EventDraft): string {
 
 export function buildEvent(draft: EventDraft, context: EventContext): TextUsageEventV1 {
   const { salt, mapper } = context;
-  const sessionIdentity = nativeEventIdentity(draft);
+  const identity = nativeEventIdentity(draft);
+  const sessionIdentity = draft.sourceRoot
+    ? encodeIdentityTuple([draft.sourceRoot.resourceInstanceId, identity])
+    : identity;
   const nativeHash = nativeEventHash(salt, draft.adapterId, sessionIdentity);
   // The harness is known before the model is resolved so a harness-scoped alias
   // can be applied; attribution overrides the source default, exactly as it does
@@ -177,6 +182,8 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
     occurredAt: isoUtcFromMs(draft.occurredAtMs),
     source: {
       adapterId: draft.adapterId,
+      ...draft.sourceRoot,
+      ...(draft.nativeResponse ? { nativeResponse: draft.nativeResponse } : {}),
       nativeEventHash: nativeHash,
       ...(draft.sessionId !== undefined
         ? {

@@ -232,3 +232,57 @@ it("shares local paid amounts only by explicit opt-in and never changes scope", 
   expect(anonymous.value).toBeUndefined();
   expect(anonymous.market).toBeUndefined();
 });
+
+describe("account-bound billing reviews", () => {
+  it("filters only the selected root and period, including dedup integrity", () => {
+    const events = exported.events.slice(0, 3).map((e, i) => ({
+      ...e,
+      source: {
+        ...e.source,
+        resourceInstanceId: i === 2 ? "other" : "main",
+        nativeResponse: { final: true, duplicateRows: i + 1 },
+      },
+    }));
+    const scoped = reviewWorkload(events, undefined, "main");
+    expect(scoped.events).toHaveLength(2);
+    expect(scoped.history.resourceInstanceId).toBe("main");
+    expect(scoped.history.nativeResponses).toBe(2);
+    expect(scoped.history.duplicateRows).toBe(3);
+    expect(scoped.history.accounts).toHaveLength(2);
+  });
+  it("binds both billing and history to the account, import and period", () => {
+    const scopedDecision = {
+      ...decision,
+      history: {
+        ...history,
+        resourceInstanceId: "main",
+        accounts: [{ resourceInstanceId: "main", source: "claude-code", calls: history.calls }],
+      },
+    };
+    const scopedChoice = {
+      ...choice,
+      resourceInstanceId: "main",
+      historyConfirmation: { ...confirmation, resourceInstanceId: "main" },
+    };
+    const scopedBilling = Object.fromEntries(
+      Object.entries(billing).map(([key, fact]) => [key, { ...fact, resourceInstanceId: "main" }]),
+    );
+    const scopedInput = {
+      ...input,
+      decision: scopedDecision,
+      choice: scopedChoice,
+      billing: scopedBilling,
+    };
+    expect(composeReview(scopedInput).complete).toBe(true);
+    expect(
+      composeReview({ ...scopedInput, choice: { ...scopedChoice, resourceInstanceId: "other" } })
+        .complete,
+    ).toBe(false);
+    expect(composeReview({ ...scopedInput, billing }).confirmedSpend).toBeUndefined();
+    expect(composeReview({ ...scopedInput, importId: "changed" }).historyConfirmed).toBe(false);
+    const one = composeReview({ ...scopedInput, selected: [selected[0] ?? ""] });
+    expect(one.conclusion).toContain("for this confirmed Claude billing cycle");
+    expect(one.conclusion).toContain("currently modeled published API rates");
+    expect(one.conclusion).toContain("Max 5x could be replaced without interruption");
+  });
+});

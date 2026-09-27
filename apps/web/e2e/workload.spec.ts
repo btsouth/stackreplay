@@ -545,7 +545,7 @@ test("a workload share link carries aggregates only and reads as StackReplay in 
       decoded.snapshot.version === 2 &&
       decoded.snapshot.kind === "workload" &&
       decoded.snapshot.review?.api
-      ? "published API equivalent · not an actual bill"
+      ? "current published API equivalent · not a historical API invoice"
       : decoded.ok &&
           decoded.snapshot.version === 2 &&
           decoded.snapshot.kind === "workload" &&

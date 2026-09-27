@@ -9,10 +9,23 @@ import {
 export const REVIEW_STORAGE_KEY = "stackreplay.billing-review.v1";
 const schema = z.object({
   version: z.literal(1),
-  billing: z.record(z.string().max(150), billingFactSchema),
+  billing: z.record(z.string().max(310), billingFactSchema),
   reviews: z.record(z.string().max(150), reviewChoiceSchema),
 });
 export type ReviewState = z.infer<typeof schema>;
+/** Stable root identity across local rescans, cleared with billing/local data. */
+export function localSourceRootSalt(): string {
+  try {
+    const key = `${REVIEW_STORAGE_KEY}.root-salt`;
+    const saved = window.localStorage.getItem(key);
+    if (saved && /^[a-zA-Z0-9-]{32,80}$/u.test(saved)) return saved;
+    const salt = crypto.randomUUID();
+    window.localStorage.setItem(key, salt);
+    return salt;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
 export function readReviewState(namespace = ""): ReviewState {
   try {
     const result = schema.safeParse(

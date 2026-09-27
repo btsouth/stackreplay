@@ -84,7 +84,11 @@ async function handleMarket(
     const loaded = await loadWorkloadEvents(request.importId, current);
     if (!loaded.ok) throw new Error("Workload unavailable");
     if (!current()) throw new OptimizerCancelledError();
-    const scoped = reviewWorkload(loaded.exported.events, request.period);
+    const scoped = reviewWorkload(
+      loaded.exported.events,
+      request.period,
+      request.resourceInstanceId,
+    );
     const gapCodes = new Set([
       "SOURCE_UNREADABLE",
       "SOURCE_TRUNCATED",
@@ -656,6 +660,7 @@ async function handleImportSources(
   try {
     result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
       now,
+      ...(request.sourceRootSalt ? { sourceRootSalt: request.sourceRootSalt } : {}),
       budget,
       signal,
       // Real totals, at most ten times a second: a report per small file cost

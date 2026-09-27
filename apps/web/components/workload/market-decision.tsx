@@ -42,7 +42,7 @@ export function MarketDecisionSurface({
   const selectedPeriod = resolveReviewPeriod(choice, billing);
   const periodStart = selectedPeriod?.start,
     periodEnd = selectedPeriod?.end;
-  const executionKey = `${importId}:${periodStart ?? "history"}:${periodEnd ?? ""}`;
+  const executionKey = `${importId}:${periodStart ?? "history"}:${periodEnd ?? ""}:${choice.resourceInstanceId ?? "all"}`;
   const decision = computed?.key === executionKey ? computed.result : undefined;
   const scan = partialScanOf(record);
   const partialScan = scan.unreadable + scan.other > 0 || !!decision?.history?.scanGapCodes?.length;
@@ -74,6 +74,7 @@ export function MarketDecisionSurface({
         importId,
         controller.signal,
         periodStart && periodEnd ? { start: periodStart, end: periodEnd } : undefined,
+        choice.resourceInstanceId,
       )
       .then((result) => {
         if (!controller.signal.aborted) {
@@ -89,7 +90,7 @@ export function MarketDecisionSurface({
           );
       });
     return () => controller.abort();
-  }, [importId, local.ready, periodStart, periodEnd, executionKey]);
+  }, [importId, executionKey, local.ready, periodStart, periodEnd, choice.resourceInstanceId]);
   const calculatedRange = marketRange(decision);
   const fullRange =
     calculatedRange?.priced === decision?.history?.calls ? calculatedRange : undefined;
@@ -126,11 +127,71 @@ export function MarketDecisionSurface({
       data-testid="market-decision"
     >
       <div className="flex flex-col gap-2">
+        {decision?.history?.accounts?.length ? (
+          <div className="flex flex-wrap items-end gap-3 border-b border-border pb-3">
+            <label className="min-w-0 max-w-full text-sm">
+              Local source account
+              <select
+                aria-label="Local source account"
+                className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
+                value={choice.resourceInstanceId ?? ""}
+                onChange={(e) => {
+                  const {
+                    historyConfirmation: _confirmation,
+                    historyConfirmed: _legacy,
+                    resourceInstanceId: _account,
+                    accountLabel: _label,
+                    ...rest
+                  } = choice;
+                  local.setChoice({
+                    ...rest,
+                    ...(e.target.value ? { resourceInstanceId: e.target.value } : {}),
+                  });
+                }}
+              >
+                <option value="">All imported accounts</option>
+                {decision.history.accounts.map((a, index) => (
+                  <option key={a.resourceInstanceId} value={a.resourceInstanceId}>
+                    {a.source} account {index + 1} · {a.calls.toLocaleString()} responses
+                  </option>
+                ))}
+              </select>
+            </label>
+            {choice.resourceInstanceId ? (
+              <label className="min-w-0 max-w-full text-sm">
+                Local account label
+                <input
+                  aria-label="Local account label"
+                  maxLength={80}
+                  className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
+                  value={choice.accountLabel ?? ""}
+                  onChange={(e) => local.setChoice({ ...choice, accountLabel: e.target.value })}
+                />
+              </label>
+            ) : null}
+          </div>
+        ) : null}
         <MicroLabel className={review?.complete ? "text-accent" : "text-warning"}>
           <span data-testid="review-state">
             {review?.complete ? "Complete billing-period review" : "Partial review"}
           </span>
         </MicroLabel>
+        {choice.resourceInstanceId && selected.length === 1 ? (
+          <p className="text-lg font-medium">
+            {subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ??
+              "Selected subscription"}{" "}
+            · Billing cycle review{choice.accountLabel ? ` · ${choice.accountLabel}` : ""}
+          </p>
+        ) : null}
+        {review?.complete ? (
+          <div className="border-b border-border py-3">
+            <MicroLabel>What you paid</MicroLabel>
+            <p className="font-mono text-4xl">{dollars(review.confirmedSpend ?? "0")}</p>
+            <p className="text-xs text-muted-foreground">
+              Confirmed fixed subscription spend for this cycle
+            </p>
+          </div>
+        ) : null}
         <h2
           id="api-market-heading"
           className="text-2xl font-medium tracking-tight"
@@ -170,10 +231,12 @@ export function MarketDecisionSurface({
               This span does not prove complete logs.
             </p>
             <p>
-              <span className="font-mono">{review.history.calls.toLocaleString()}</span> recorded
-              calls ·{" "}
-              <span className="font-mono">{review.history.knownTokens.toLocaleString()}</span> known
-              processed tokens
+              <span className="font-mono">{review.history.calls.toLocaleString()}</span>{" "}
+              {review.history.nativeResponses === review.history.calls
+                ? "distinct responses"
+                : "recorded calls"}{" "}
+              · <span className="font-mono">{review.history.knownTokens.toLocaleString()}</span>{" "}
+              known processed tokens
               {review.history.unknownTokenCalls
                 ? ` · ${review.history.unknownTokenCalls.toLocaleString()} calls with unknown token totals`
                 : ""}
@@ -181,7 +244,8 @@ export function MarketDecisionSurface({
             {review.history.outsideCalls ? (
               <p className="text-muted-foreground">
                 {review.history.outsideCalls.toLocaleString()} imported calls fall outside this
-                selected period. They remain in your saved workload.
+                selected {choice.resourceInstanceId ? "account or period" : "period"}. They remain
+                in your saved workload.
               </p>
             ) : null}
             <p className="text-muted-foreground">
@@ -203,8 +267,8 @@ export function MarketDecisionSurface({
         ) : null}
         <MicroLabel>
           {partialPricing
-            ? "Published API equivalent for priced workload"
-            : "Published API equivalent"}
+            ? "Current published API equivalent for priced workload"
+            : "Current published API equivalent"}
         </MicroLabel>
         {!decision && !error ? (
           <p role="status" className="text-sm text-muted-foreground">
@@ -366,7 +430,11 @@ export function MarketDecisionSurface({
                 ? ` ${review.unmatchedCount} cycle(s) are missing or do not align; those charges are not included.`
                 : ""}
             </p>
-            <MicroLabel className="mt-5">Difference for this review period</MicroLabel>
+            <MicroLabel className="mt-5">
+              {choice.resourceInstanceId
+                ? "Same-period difference"
+                : "Difference for this review period"}
+            </MicroLabel>
             <p className="mt-2 font-mono text-2xl tabular-nums" data-testid="decision-difference">
               {review?.difference
                 ? `${dollars(review.difference.low)} – ${dollars(review.difference.high)}`
@@ -374,7 +442,7 @@ export function MarketDecisionSurface({
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
               Confirmed fixed spend minus published API equivalent. A negative difference means
-              fixed spend is lower. This is not proven savings.
+              fixed spend is lower. This does not establish equivalent product experience.
             </p>
           </div>
         </div>
@@ -425,6 +493,21 @@ export function MarketDecisionSurface({
           </p>
         </div>
       </section>
+      {review?.history.nativeResponses !== undefined ? (
+        <details className="border-b border-border py-3" data-testid="data-integrity">
+          <summary className="min-h-11 cursor-pointer content-center text-sm">
+            Data integrity
+          </summary>
+          <p className="text-sm">
+            Native responses used: {review.history.nativeResponses.toLocaleString()} · Duplicate
+            rows removed: {(review.history.duplicateRows ?? 0).toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            StackReplay uses native response identity to prevent repeated session records from being
+            counted twice. Separate source roots remain separate local accounts.
+          </p>
+        </details>
+      ) : null}
       {comparable ? (
         <section className="border-y border-border py-3" aria-label="API scenario results">
           {scenarios.map((s) => (
@@ -468,7 +551,12 @@ export function MarketDecisionSurface({
                 >
                   <span>
                     {p.name.replace(/^.* API: /u, "")}{" "}
-                    <span className="text-muted-foreground">· {values[0]?.calls} calls</span>
+                    <span className="text-muted-foreground">
+                      · {values[0]?.calls?.toLocaleString()}{" "}
+                      {review?.history.nativeResponses === review?.history.calls
+                        ? "distinct responses"
+                        : "calls"}
+                    </span>
                   </span>
                   <span className="font-mono tabular-nums">
                     {values

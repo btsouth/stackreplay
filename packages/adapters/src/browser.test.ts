@@ -840,3 +840,66 @@ describe("file signature", () => {
     expect(await sign(new Uint8Array(0), 1)).not.toBe(await sign(new Uint8Array(1), 1));
   });
 });
+
+it("keeps Claude roots separate and prefers final native usage across selected files", async () => {
+  const row = (output: number, final: boolean) =>
+    JSON.stringify({
+      type: "assistant",
+      sessionId: "same-session",
+      timestamp: "2026-09-19T10:00:00Z",
+      message: {
+        id: "same-response",
+        model: "example-medium",
+        stop_reason: final ? "end_turn" : null,
+        usage: {
+          input_tokens: 2,
+          output_tokens: output,
+          cache_read_input_tokens: 0,
+          cache_creation_input_tokens: 0,
+        },
+      },
+    });
+  const result = await intakeBrowserCandidates(
+    [
+      candidate(".claude/projects/p/a.jsonl", row(1, false)),
+      candidate(".claude/projects/p/b.jsonl", row(7, true)),
+      candidate(".claude2/projects/p/a.jsonl", row(7, true)),
+    ],
+    syntheticCatalog(),
+    { now: NOW, salt: FIXTURE_SALT },
+  );
+  const events = result.exported?.events ?? [];
+  expect(events).toHaveLength(2);
+  expect(events.map((e) => e.usage.outputTokens)).toEqual([7, 7]);
+  expect(new Set(events.map((e) => e.source.resourceInstanceId)).size).toBe(2);
+  expect(events.reduce((n, e) => n + (e.source.nativeResponse?.duplicateRows ?? 0), 0)).toBe(1);
+});
+
+it("does not merge same-named projects folders from different connected locations", async () => {
+  const result = await intakeBrowserCandidates(
+    [
+      { ...candidate("projects/p/a.jsonl", CLAUDE_CODE_SESSION), group: "location-one" },
+      { ...candidate("projects/p/a.jsonl", CLAUDE_CODE_SESSION), group: "location-two" },
+    ],
+    syntheticCatalog(),
+    { now: NOW, salt: FIXTURE_SALT },
+  );
+  expect(result.exported?.events).toHaveLength(4);
+  expect(new Set(result.exported?.events.map((e) => e.source.resourceInstanceId)).size).toBe(2);
+});
+
+it("keeps the account identity across rescans with independently salted workload events", async () => {
+  const scan = (salt: string) =>
+    intakeBrowserCandidates(
+      [candidate(".claude/projects/p/a.jsonl", CLAUDE_CODE_SESSION)],
+      syntheticCatalog(),
+      { now: NOW, salt, sourceRootSalt: "local-account-salt" },
+    );
+  const a = await scan("first-import"),
+    b = await scan("second-import");
+  expect(a.exported?.events[0]?.source.resourceInstanceId).toBe(
+    b.exported?.events[0]?.source.resourceInstanceId,
+  );
+  expect(a.exported?.events[0]?.id).not.toBe(b.exported?.events[0]?.id);
+  expect(JSON.stringify(a.exported)).not.toContain("local-account-salt");
+});

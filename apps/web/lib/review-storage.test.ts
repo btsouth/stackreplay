@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import {
   clearReviewState,
+  localSourceRootSalt,
   REVIEW_STORAGE_KEY,
   readReviewState,
   saveReview,
@@ -83,4 +84,14 @@ it("deletes import declarations and clears paid facts through clear-local-data",
   data.set("stackreplay.current-stack.demo.a", "[]");
   clearReviewState();
   expect(data.size).toBe(0);
+});
+
+it("keeps source-root identity stable across rescans and forgets it with all local data", () => {
+  storage();
+  const first = localSourceRootSalt();
+  expect(localSourceRootSalt()).toBe(first);
+  clearReviewState("one-import");
+  expect(localSourceRootSalt()).toBe(first);
+  clearReviewState();
+  expect(localSourceRootSalt()).not.toBe(first);
 });

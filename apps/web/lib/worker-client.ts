@@ -9,7 +9,7 @@ import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/sc
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import type { MarketDecision } from "./market-decision";
 import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
-import { clearReviewState } from "./review-storage";
+import { clearReviewState, localSourceRootSalt } from "./review-storage";
 import { browserTimeZone } from "./time-zone";
 import type { OptimizerConfiguration } from "./worker-protocol";
 import {
@@ -413,8 +413,9 @@ export class ReplayWorkerClient {
     importId: string,
     signal?: AbortSignal,
     period?: import("./review-period").ReviewPeriod,
+    resourceInstanceId?: string,
   ): Promise<MarketDecision> {
-    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}`;
+    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}`;
     if (signal?.aborted) throw new SupersededError();
     const cached = this.marketSummaries.get(cacheKey);
     if (cached) return cached;
@@ -428,6 +429,7 @@ export class ReplayWorkerClient {
           requestId,
           importId,
           ...(period ? { period } : {}),
+          ...(resourceInstanceId ? { resourceInstanceId } : {}),
         };
       },
       undefined,
@@ -578,6 +580,7 @@ export class ReplayWorkerClient {
       (requestId) => ({
         protocol: WORKER_PROTOCOL_VERSION,
         type: "IMPORT_SOURCES",
+        ...(options.saveLocal ? { sourceRootSalt: localSourceRootSalt() } : {}),
         requestId,
         importId: options.importId,
         files,

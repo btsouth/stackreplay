@@ -27,6 +27,10 @@ export function ReviewSetup({
   const [start, setStart] = useState(choice.period?.start ?? review?.period?.start ?? "");
   const [end, setEnd] = useState(choice.period?.end ?? review?.period?.end ?? "");
   const [error, setError] = useState<string>();
+  const account = {
+    ...(choice.resourceInstanceId ? { resourceInstanceId: choice.resourceInstanceId } : {}),
+    ...(choice.accountLabel ? { accountLabel: choice.accountLabel } : {}),
+  };
   return (
     <details id="review-setup" className="border-y border-border py-2" data-testid="review-setup">
       <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
@@ -47,10 +51,11 @@ export function ReviewSetup({
               const value = e.target.value;
               if (value === "history" || value === "custom")
                 onChange({
+                  ...account,
                   mode: value,
                   ...(value === "custom" && choice.period ? { period: choice.period } : {}),
                 });
-              else onChange({ mode: "cycle", subscription: value });
+              else onChange({ ...account, mode: "cycle", subscription: value });
             }}
           >
             <option value="history">Use recorded history span</option>
@@ -77,7 +82,7 @@ export function ReviewSetup({
                 return;
               }
               setError(undefined);
-              onChange({ mode: "custom", period: parsed.data });
+              onChange({ ...account, mode: "custom", period: parsed.data });
             }}
           >
             <label className="min-w-0">
@@ -160,6 +165,7 @@ export function HistoryConfirmation({
         type="checkbox"
         aria-label="Confirm history covers this review period"
         disabled={
+          (!!review.history.accounts?.length && !choice.resourceInstanceId) ||
           !scopeDigest ||
           !review?.period ||
           !periodSchema.safeParse(review.period).success ||
@@ -175,6 +181,9 @@ export function HistoryConfirmation({
               ? {
                   historyConfirmation: {
                     importId,
+                    ...(choice.resourceInstanceId
+                      ? { resourceInstanceId: choice.resourceInstanceId }
+                      : {}),
                     scopeDigest: scopeDigest ?? "",
                     period: review.period,
                     confirmedAt: new Date().toISOString(),
@@ -186,9 +195,11 @@ export function HistoryConfirmation({
         }}
       />
       <span>
-        I have imported the history for this whole review period, including all the sources I want
-        to compare. Days without calls may be idle days. This is my local confirmation, not proof
-        from StackReplay.
+        {choice.resourceInstanceId
+          ? `I believe the available ${choice.accountLabel || "selected account"} history covers this billing cycle.`
+          : "I have imported the history for this whole review period, including all the sources I want to compare."}{" "}
+        Days without calls may be idle days. This is my local confirmation, not proof from
+        StackReplay.
       </span>
     </label>
   );

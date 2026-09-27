@@ -226,6 +226,7 @@ export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "API_MARKET";
+      resourceInstanceId?: string;
       period?: import("./review-period").ReviewPeriod;
       requestId: number;
       importId: string;
@@ -250,6 +251,7 @@ export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "IMPORT_SOURCES";
+      sourceRootSalt?: string;
       requestId: number;
       importId: string;
       /**

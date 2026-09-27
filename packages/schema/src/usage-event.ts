@@ -163,6 +163,16 @@ export const sourceRefV1Schema = z.strictObject({
   adapterId: z.string().min(1),
   nativeEventHash: z.string().min(1).optional(),
   nativeSessionHash: z.string().min(1).optional(),
+  /** Local source-root identity, salted before export. Never a provider account claim. */
+  resourceInstanceId: z.string().min(1).max(150).optional(),
+  sessionRoot: z.string().min(1).max(150).optional(),
+  /** Native response dedup provenance, retained with the winning response. */
+  nativeResponse: z
+    .strictObject({
+      final: z.boolean(),
+      duplicateRows: z.number().int().nonnegative(),
+    })
+    .optional(),
 });
 export type SourceRefV1 = z.infer<typeof sourceRefV1Schema>;
 

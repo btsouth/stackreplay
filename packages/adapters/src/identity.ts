@@ -58,6 +58,10 @@ export function projectHash(salt: string, projectKey: string): string {
   return `ph_${hmac(salt, "project", projectKey)}`;
 }
 
+export function sourceRootHash(salt: string, root: string): string {
+  return `sr_${hmac(salt, "source-root", root)}`;
+}
+
 export function nativeSessionHash(salt: string, sessionId: string): string {
   return `ns_${hmac(salt, "session", sessionId)}`;
 }

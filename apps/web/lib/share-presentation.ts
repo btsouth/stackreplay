@@ -90,8 +90,8 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
               value: `${formatUsd(r.api.low)} – ${formatUsd(r.api.high)}`,
               caption:
                 r.api.priced < r.calls
-                  ? "published API equivalent for priced calls only"
-                  : "published API equivalent · not an actual bill",
+                  ? "current published API equivalent for priced calls only"
+                  : "current published API equivalent · not a historical API invoice",
             },
           }
         : {}),
@@ -142,7 +142,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
     const m = snapshot.market;
     return {
       kind: "workload",
-      label: "Published API equivalent",
+      label: "Current published API equivalent",
       context: `Price snapshot · ${m.rulesAsOf}`,
       figure: {
         value:

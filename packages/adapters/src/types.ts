@@ -118,6 +118,12 @@ export interface CollectOptions {
    * enters an event or an export; a caller must not persist or transmit it.
    */
   onProjectKey?: (projectHash: string, normalizedKey: string) => void;
+  /** Known originating root for browser files; never the synthetic filesystem root. */
+  sessionRoot?: string;
+  /** Stable local account salt, separate from per-import event/project salts. */
+  sourceRootSalt?: string;
+  /** Local-only observer. Raw roots never enter portable events or shares. */
+  onSourceRoot?: (resourceInstanceId: string, sessionRoot: string) => void;
   /** Explicit input file for import adapters (ccusage). */
   inputFile?: string;
   /** Safety bound on files read per adapter. */
@@ -208,6 +214,7 @@ export function isUsageAdapter(
 
 /** Filesystem surface used by adapters. Injected so fixtures are testable. */
 export interface FileSystem {
+  realPath?(path: string): Promise<string>;
   exists(path: string): Promise<boolean>;
   stat(path: string): Promise<{ kind: "file" | "directory"; size: number; mtimeMs: number } | null>;
   listDir(path: string): Promise<string[]>;

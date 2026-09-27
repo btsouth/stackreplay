@@ -75,6 +75,7 @@ test("D2 billing edits are cheap and mismatched cycles remain partial through Co
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$20.00");
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
   await page.getByTestId("workload-compare-cta").click();
+  await expect(page).toHaveURL(/\/app\/compare/u);
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
@@ -250,7 +251,7 @@ test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ 
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
   const market = page.getByTestId("market-decision");
-  await expect(market).toContainText("Published API equivalent for priced workload");
+  await expect(market).toContainText("Current published API equivalent for priced workload");
   await expect(page.getByTestId("market-coverage")).toContainText(
     "1 / 2 recorded calls modeled and priced",
   );
@@ -307,5 +308,97 @@ test("D3 large API ranges fit the share preview and review on mobile", async ({ 
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("market-total")).toHaveText("$2565.00 – $3240.00");
   await expect(page.getByTestId("share-figure")).toContainText("2,565.00");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("D4 separates account billing, binds history and reuses the completed result in Compare", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "stackreplay.current-stack",
+      JSON.stringify(["plan:anthropic-claude-max-5x"]),
+    );
+    const original = Worker.prototype.postMessage;
+    (window as unknown as { runs: number }).runs = 0;
+    Worker.prototype.postMessage = function (message, ...args: unknown[]) {
+      if (message?.type === "API_MARKET") (window as unknown as { runs: number }).runs++;
+      return original.call(this, message, ...(args as [StructuredSerializeOptions]));
+    };
+  });
+  const file = buildDemoExport("moderate");
+  const original = file.events.filter((e) => e.model.rawName.startsWith("claude"));
+  file.events = ["primary", "secondary"].flatMap((root) =>
+    original.map((e) => ({
+      ...e,
+      id: `${root}-${e.id}`,
+      source: {
+        ...e.source,
+        adapterId: "claude-code",
+        resourceInstanceId: root,
+        sessionRoot: `hash-${root}`,
+        nativeResponse: { final: true, duplicateRows: 2 },
+      },
+    })),
+  );
+  file.collectorVersion = "synthetic-account-fixture";
+  file.detectedSources = file.detectedSources.map(({ note: _note, ...source }) => source);
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "synthetic-accounts.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(file)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.getByTestId("open-workload").click();
+  await expect(page.getByLabel("Local source account")).toBeVisible();
+  await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
+  await page.getByLabel("Local source account").selectOption("primary");
+  await expect(page.getByTestId("review-history")).toContainText(
+    `${original.length} distinct responses`,
+  );
+  await page.getByLabel("Local account label").fill("Primary synthetic account");
+  await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
+  const form = page.getByRole("form", { name: /Claude Max 5x billing facts/ });
+  await form.getByLabel(/cycle start/).fill("2026-09-14");
+  await form.getByLabel(/cycle end/).fill("2026-09-21");
+  await form.getByLabel(/amount paid/).fill("87");
+  await form.getByRole("button", { name: "Save local billing facts" }).click();
+  await page.getByTestId("review-setup").locator("summary").click();
+  await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
+  await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$87.00");
+  await page.getByLabel("Confirm history covers this review period").check();
+  await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
+  await expect(page.getByTestId("review-conclusion")).toContainText(
+    "You paid $87.00 for this confirmed Claude billing cycle",
+  );
+  await expect(page.getByTestId("share-preview")).not.toContainText("$87");
+  await page.getByTestId("data-integrity").locator("summary").click();
+  await expect(page.getByTestId("data-integrity")).toContainText(
+    `Duplicate rows removed: ${(original.length * 2).toLocaleString()}`,
+  );
+  const total = await page.getByTestId("market-total").innerText();
+  const runs = await page.evaluate(() => (window as unknown as { runs: number }).runs);
+  await form.getByLabel(/amount paid/).fill("88");
+  await form.getByRole("button", { name: "Save local billing facts" }).click();
+  await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
+  expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
+  await page.getByTestId("workload-compare-cta").click();
+  await expect(page).toHaveURL(/\/app\/compare/u);
+  await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
+  await expect(page.getByTestId("market-total")).toHaveText(total);
+  expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
+  await page.getByLabel("Local source account").selectOption("secondary");
+  await expect(page.getByTestId("review-confirmed-spend")).toHaveText("Not confirmed");
+  await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
+  await page.getByLabel("Local source account").selectOption("primary");
+  await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
+  await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
+  await page.getByLabel("Confirm history covers this review period").check();
+  await page.reload();
+  await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
+  await expect(page.getByTestId("market-total")).toHaveText(total);
+  const axe = await new AxeBuilder({ page }).include('[data-testid="market-decision"]').analyze();
+  expect(axe.violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
