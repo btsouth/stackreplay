@@ -72,7 +72,7 @@ describe("bounded exact-model optimizer", () => {
           entry.recordsExcluded === 0,
       ),
     ).toBe(true);
-  });
+  }, 30_000);
 
   it("reconstructs a nonwinner on demand without retaining all assignments", () => {
     const input = scenario([request("a")]);

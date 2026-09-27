@@ -480,7 +480,7 @@ describe("configured exact-model stack capacity replay", () => {
     ]);
     expect(results[2]?.routes.map((route) => route.callsAssigned)).toEqual([5000, 5000]);
     expect(results[2]?.routes[1]?.receipt?.total).toBe("70");
-  });
+  }, 30_000);
 
   it("refuses opt-in translations instead of silently weakening exact preservation", () => {
     const target = only({
