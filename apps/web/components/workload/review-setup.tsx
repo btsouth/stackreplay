@@ -1,144 +1,170 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   type BillingFact,
+  daysInPeriod,
+  periodLabel,
   periodSchema,
   type ReviewChoice,
   type ReviewComposition,
+  type ReviewPeriod,
+  resolveReviewPeriod,
 } from "@/lib/review-period";
 
 export function ReviewSetup({
   choice,
-  review,
+  recordedPeriod,
   billing,
-  selected,
   onChange,
   names,
-  partialScan,
+  needsPeriod,
 }: {
   choice: ReviewChoice;
-  review?: ReviewComposition | undefined;
+  recordedPeriod: ReviewPeriod | undefined;
   billing: Record<string, BillingFact>;
-  selected: readonly string[];
   onChange: (choice: ReviewChoice) => void;
   names: Record<string, string>;
-  partialScan: boolean;
+  needsPeriod: boolean;
 }) {
-  const [start, setStart] = useState(choice.period?.start ?? review?.period?.start ?? "");
-  const [end, setEnd] = useState(choice.period?.end ?? review?.period?.end ?? "");
+  const applied = resolveReviewPeriod(choice, billing) ?? recordedPeriod;
+  const [start, setStart] = useState(applied?.start ?? "");
+  const [end, setEnd] = useState(applied?.end ?? "");
   const [error, setError] = useState<string>();
+  useEffect(() => {
+    setStart(applied?.start ?? "");
+    setEnd(applied?.end ?? "");
+    setError(undefined);
+  }, [applied?.start, applied?.end]);
   const account = {
     ...(choice.resourceInstanceId ? { resourceInstanceId: choice.resourceInstanceId } : {}),
     ...(choice.accountLabel ? { accountLabel: choice.accountLabel } : {}),
   };
+  const recordedValid = periodSchema.safeParse(recordedPeriod).success;
+  const cycles = Object.keys(billing).filter(
+    (key) =>
+      billing[key]?.resourceInstanceId === choice.resourceInstanceId &&
+      periodSchema.safeParse(billing[key]?.cycle).success,
+  );
   return (
-    <details id="review-setup" className="border-y border-border py-2" data-testid="review-setup">
-      <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-        Review a complete billing period
-      </summary>
-      <div className="flex flex-col gap-4 py-3 text-sm">
-        <p>
-          Choose exact dates, then confirm the history you imported. All review dates use UTC. The
-          end date is the next renewal date and is excluded. Maximum 31 days.
+    <section
+      id="review-setup"
+      aria-label="Review period controls"
+      className="space-y-3 border-b border-border pb-5"
+      data-testid="review-setup"
+    >
+      <h2 id="api-market-heading" className="text-2xl font-medium tracking-tight">
+        {needsPeriod ? "Choose a review period" : "Review period"}
+      </h2>
+      {recordedPeriod ? (
+        <p className="text-sm" data-testid="imported-history-span">
+          Your imported history spans {periodLabel(recordedPeriod)} ({daysInPeriod(recordedPeriod)}{" "}
+          days). StackReplay reviews one period of up to 31 days at a time.
         </p>
-        <label className="flex flex-col gap-1">
-          Review period source
-          <select
-            aria-label="Review period source"
-            className="min-h-11 w-full border border-border bg-background px-3"
-            value={choice.mode === "cycle" ? choice.subscription : choice.mode}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value === "history" || value === "custom")
-                onChange({
-                  ...account,
-                  mode: value,
-                  ...(value === "custom" && choice.period ? { period: choice.period } : {}),
-                });
-              else onChange({ ...account, mode: "cycle", subscription: value });
-            }}
-          >
-            <option value="history">Use recorded history span</option>
-            <option value="custom">Choose a custom period</option>
-            {selected
-              .filter((key) => billing[key]?.cycle)
-              .map((key) => (
-                <option key={key} value={key}>
-                  Use {names[key] ?? "subscription"} billing cycle
-                </option>
-              ))}
-          </select>
-        </label>
-        {choice.mode === "custom" ? (
-          <form
-            className="grid gap-3 sm:grid-cols-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const parsed = periodSchema.safeParse({ start, end });
-              if (!parsed.success) {
-                setError(
-                  "Choose valid dates for a period of 1 to 31 days. The end date is excluded.",
-                );
-                return;
-              }
-              setError(undefined);
-              onChange({ ...account, mode: "custom", period: parsed.data });
-            }}
-          >
-            <label className="min-w-0">
-              Start date
-              <input
-                aria-label="Review start date"
-                type="date"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                className="min-h-11 w-full min-w-0 border border-border bg-background px-3"
-              />
-            </label>
-            <label className="min-w-0">
-              End date (excluded)
-              <input
-                aria-label="Review end date"
-                type="date"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                className="min-h-11 w-full min-w-0 border border-border bg-background px-3"
-              />
-            </label>
-            <button type="submit" className="min-h-11 self-end text-accent underline">
-              Apply review period
-            </button>
-            {error ? (
-              <p role="alert" className="text-warning sm:col-span-3">
-                {error}
-              </p>
-            ) : null}
-          </form>
-        ) : null}
-        {partialScan ? (
-          <p className="text-warning">
-            Resolve the reported scan gaps before confirming history coverage.
-          </p>
-        ) : null}
-        <p className="text-xs text-muted-foreground">
-          A presence of events never establishes complete logs. Different subscription cycles are
-          not prorated; choose one subscription or enter full-cycle facts matching the same dates.
-        </p>
-        <button
-          type="button"
-          className="min-h-11 self-start text-accent underline"
-          onClick={() => {
-            const d = document.getElementById("review-setup") as HTMLDetailsElement | null;
-            if (d) {
-              d.open = false;
-              d.querySelector("summary")?.focus();
-            }
+      ) : null}
+      <p className="text-xs text-muted-foreground">
+        Dates use UTC. Start is included; end is the next renewal date and is excluded. No usage is
+        extrapolated.
+      </p>
+      <label className="flex max-w-xl flex-col gap-1 text-sm">
+        Review period source
+        <select
+          aria-label="Review period source"
+          className="min-h-11 w-full border border-border bg-background px-3"
+          value={
+            choice.mode === "cycle"
+              ? (choice.subscription ?? "")
+              : choice.mode === "history" && !recordedValid
+                ? ""
+                : choice.mode
+          }
+          onChange={(e) => {
+            setError(undefined);
+            const value = e.target.value;
+            if (value === "history") onChange({ ...account, mode: "history" });
+            else if (value === "custom")
+              onChange({
+                ...account,
+                mode: "custom",
+                ...(recordedValid && applied ? { period: applied } : {}),
+              });
+            else onChange({ ...account, mode: "cycle", subscription: value });
           }}
         >
-          Skip for now
+          <option value="" disabled>
+            Choose dates or a billing cycle
+          </option>
+          <option value="history" disabled={!recordedValid}>
+            Use recorded history span{!recordedValid ? " (exceeds 31 days)" : ""}
+          </option>
+          <option value="custom">Choose a custom period</option>
+          {cycles.map((key) => (
+            <option key={key} value={key}>
+              Use {names[key] ?? "subscription"} billing cycle
+            </option>
+          ))}
+        </select>
+      </label>
+      {cycles.length ? (
+        <div className="flex flex-wrap gap-2">
+          {cycles.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className="min-h-11 border border-border px-3 py-2 text-left text-sm text-accent"
+              onClick={() => onChange({ ...account, mode: "cycle", subscription: key })}
+            >
+              Use billing cycle · {names[key] ?? "Subscription"} · {billing[key]?.cycle?.start} →{" "}
+              {billing[key]?.cycle?.end}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <form
+        className="grid gap-3 text-sm sm:grid-cols-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const parsed = periodSchema.safeParse({ start, end });
+          if (!parsed.success) {
+            setError("Choose valid dates for a period of 1 to 31 days. The end date is excluded.");
+            return;
+          }
+          setError(undefined);
+          onChange({ ...account, mode: "custom", period: parsed.data });
+        }}
+      >
+        <label className="min-w-0">
+          Review period start
+          <input
+            aria-label="Review start date"
+            type="date"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            className="min-h-11 w-full min-w-0 border border-border bg-background px-3"
+          />
+        </label>
+        <label className="min-w-0">
+          Review period end (excluded)
+          <input
+            aria-label="Review end date"
+            type="date"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+            className="min-h-11 w-full min-w-0 border border-border bg-background px-3"
+          />
+        </label>
+        <button
+          type="submit"
+          className="min-h-11 self-end bg-accent-solid px-3 text-accent-foreground"
+        >
+          Apply review period
         </button>
-      </div>
-    </details>
+        {error ? (
+          <p role="alert" className="text-warning sm:col-span-3">
+            {error}
+          </p>
+        ) : null}
+      </form>
+    </section>
   );
 }
 

@@ -27,7 +27,6 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("market-decision")).toContainText(
       "Synthetic demo workload and billing data",
     );
-    await page.getByTestId("review-setup").locator("summary").click();
     await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
     const axe = await new AxeBuilder({ page }).include('[data-testid="market-decision"]').analyze();
     expect(axe.violations).toEqual([]);
@@ -89,7 +88,6 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   await importDemo(page, "moderate");
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
-  await page.getByTestId("review-setup").locator("summary").click();
   await page.getByLabel("Review period source").selectOption("custom");
   await page.getByLabel("Review start date").fill("2026-09-01");
   await page.getByLabel("Review end date").fill("2026-10-01");
@@ -185,7 +183,6 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
-  await page.getByTestId("review-setup").locator("summary").click();
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-period")).toHaveText("Aug 1, 2026 – Aug 31, 2026");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
@@ -217,7 +214,6 @@ test("D2 can choose a single offset cycle and preserves calls outside it", async
   await form.getByLabel(/cycle start/).fill("2026-09-04");
   await form.getByLabel(/cycle end/).fill("2026-10-04");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
-  await page.getByTestId("review-setup").locator("summary").click();
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-period")).toHaveText("Sep 4, 2026 – Oct 3, 2026");
   await expect(page.getByTestId("review-history")).toContainText("3,240 recorded calls");
@@ -364,7 +360,6 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await form.getByLabel(/cycle end/).fill("2026-09-21");
   await form.getByLabel(/amount paid/).fill("87");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
-  await page.getByTestId("review-setup").locator("summary").click();
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$87.00");
   await page.getByLabel("Confirm history covers this review period").check();
@@ -389,8 +384,10 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await expect(page.getByTestId("market-total")).toHaveText(total);
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
   await page.getByLabel("Local source account").selectOption("secondary");
-  await expect(page.getByTestId("review-confirmed-spend")).toHaveText("Not confirmed");
-  await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
+  await expect(
+    page.getByRole("heading", { name: "Choose a review period", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Confirm history covers this review period")).toHaveCount(0);
   await page.getByLabel("Local source account").selectOption("primary");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
   await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();

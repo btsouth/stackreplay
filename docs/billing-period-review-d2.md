@@ -164,3 +164,13 @@ The most useful next milestone is one accepted real billing-period result for th
 actual model mix, with targeted missing API pricing, complete history and actual
 paid facts. Answering whether a subscription was "worth it" still requires
 capacity/interruption and product-value evidence beyond this economic comparison.
+
+## Workload period selection correction
+
+Account and review-period controls are always visible before the result. Imports
+longer than 31 days lead with “Choose a review period,” exact history dates and the
+supported limit. They do not display an unavailable API headline or downstream
+differences. Dates can be entered directly, a valid recorded span selected, or a
+locally supplied account billing cycle applied with one button. Invalid date ranges
+are rejected inline. Applying a period or changing account requires the matching
+history confirmation; pricing and D6 episode calculations are unchanged.
