@@ -9,7 +9,7 @@ async function completeDemo(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
-  await expect(page.getByTestId("review-state")).toHaveText("Billing-period review");
+  await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
 }
 
 for (const theme of ["dark", "light"] as const) {
@@ -39,7 +39,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("review-state")).toHaveText("Partial review");
     await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
     await page.keyboard.press("Space");
-    await expect(page.getByTestId("review-state")).toHaveText("Billing-period review");
+    await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
   });
 }
 
@@ -189,11 +189,22 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   await expect(page.getByTestId("review-period")).toHaveText("Aug 1, 2026 – Aug 31, 2026");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await page.getByLabel("Confirm history covers this review period").check();
-  await expect(page.getByTestId("review-state")).toHaveText("Billing-period review");
+  await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
   await expect(page.getByTestId("review-conclusion")).toContainText(
     "You paid $120.00 in confirmed fixed subscriptions",
   );
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39");
+  const confirmation = await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem("stackreplay.billing-review.v1") ?? "{}");
+    return Object.values(state.reviews)
+      .map((r) => (r as { historyConfirmation: unknown }).historyConfirmation)
+      .find(Boolean);
+  });
+  expect(confirmation).toMatchObject({
+    provenance: "local-user",
+    period: { start: "2026-08-01", end: "2026-09-01" },
+  });
+  expect((confirmation as { confirmedAt: string }).confirmedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/u);
   expect(outbound).toEqual([]);
 });
 
@@ -212,4 +223,89 @@ test("D2 can choose a single offset cycle and preserves calls outside it", async
   await expect(page.getByTestId("review-history")).toContainText("360 imported calls fall outside");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
+});
+
+test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ page }) => {
+  const file = buildDemoExport("moderate");
+  const first = file.events[0];
+  if (!first) throw new Error("fixture missing");
+  file.events = [
+    first,
+    {
+      ...first,
+      id: "unknown-heavy",
+      model: { rawName: "unpublished-exact-model" },
+      usage: { ...first.usage, inputTokens: 9000000 },
+    },
+  ];
+  file.collectorVersion = "normal-import-path-test";
+  file.detectedSources = file.detectedSources.map(({ note: _note, ...source }) => source);
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "partial-pricing.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(file)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.getByTestId("open-workload").click();
+  await expect(page).toHaveURL(/\/app\/workload/u);
+  const market = page.getByTestId("market-decision");
+  await expect(market).toContainText("Published API equivalent for priced workload");
+  await expect(page.getByTestId("market-coverage")).toContainText(
+    "1 / 2 recorded calls modeled and priced",
+  );
+  await expect(page.getByTestId("token-coverage")).toContainText("known processed tokens priced");
+  await expect(page.getByTestId("market-total")).not.toHaveText("Full total unavailable");
+  await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
+  await expect(page.getByTestId("share-preview")).toContainText("priced calls only");
+  await expect(page.getByTestId("share-preview")).toContainText("may materially change");
+  await expect(page.getByLabel("Confirm history covers this review period")).toBeVisible();
+});
+
+test("D3 imported collection gaps prevent a history declaration", async ({ page }) => {
+  const file = buildDemoExport("moderate");
+  file.collectionWarnings = [{ code: "SOURCE_TRUNCATED", message: "synthetic test scan gap" }];
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "scan-gap.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(file)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.getByTestId("open-workload").click();
+  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
+  await expect(page.getByTestId("review-conclusion")).toContainText("scan gaps");
+});
+
+test("D3 large API ranges fit the share preview and review on mobile", async ({ page }) => {
+  const file = buildDemoExport("moderate");
+  file.events = file.events.map((event) => ({
+    ...event,
+    model: { rawName: "claude-fable-5" },
+    usage: {
+      inputTokens: 100000,
+      outputTokens: 10000,
+      cacheReadTokens: 100000,
+      cacheWriteTokens: 100000,
+      reasoningTokens: 1000,
+      accounting: {
+        cacheReadIncludedInInput: false,
+        cacheWriteIncludedInInput: false,
+        reasoningIncludedInOutput: true,
+      },
+    },
+  }));
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "large-range.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(file)),
+  });
+  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await page.getByTestId("open-workload").click();
+  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page.getByTestId("market-total")).toHaveText("$2565.00 – $3240.00");
+  await expect(page.getByTestId("share-figure")).toContainText("2,565.00");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

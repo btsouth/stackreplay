@@ -132,6 +132,8 @@ export const shareWorkloadV2Schema = z.strictObject({
       calls: count,
       knownTokens: count,
       historyConfirmed: z.boolean(),
+      pricedKnownTokens: count.optional(),
+      recognizedCalls: count.optional(),
       state: z.enum(["partial", "aligned", "spend-private"]),
       api: z
         .strictObject({
@@ -157,6 +159,8 @@ export const shareWorkloadV2Schema = z.strictObject({
         ? (Date.parse(r.period.end) - Date.parse(r.period.start)) / 86_400_000
         : 1;
       return (
+        (r.pricedKnownTokens === undefined || r.pricedKnownTokens <= r.knownTokens) &&
+        (r.api === undefined || r.api.priced <= r.calls) &&
         days > 0 &&
         days <= 31 &&
         (r.state !== "aligned" ||

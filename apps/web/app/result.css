@@ -166,3 +166,10 @@
 .sr-figure.sr-figure--start {
   text-align: left;
 }
+
+/* Real billing-period ranges can be much wider than the demo's small amount. */
+.sr-verdict-figures .sr-figure--share {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.05;
+}

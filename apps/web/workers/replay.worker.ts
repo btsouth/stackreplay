@@ -19,6 +19,7 @@ import {
 } from "@stackreplay/catalog/bundled";
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import {
+  analyzeMarketCoverage,
   type CompiledOptimizationInput,
   marketDecisionInputs,
   parseInstant,
@@ -84,6 +85,22 @@ async function handleMarket(
     if (!loaded.ok) throw new Error("Workload unavailable");
     if (!current()) throw new OptimizerCancelledError();
     const scoped = reviewWorkload(loaded.exported.events, request.period);
+    const gapCodes = new Set([
+      "SOURCE_UNREADABLE",
+      "SOURCE_TRUNCATED",
+      "RECORD_MALFORMED",
+      "TIMESTAMP_INVALID",
+      "USAGE_MISSING",
+      "ACCOUNTING_UNESTABLISHED",
+    ]);
+    const scanGapCodes = [
+      ...new Set(
+        (loaded.exported.collectionWarnings ?? [])
+          .filter((w) => gapCodes.has(w.code))
+          .map((w) => w.code),
+      ),
+    ];
+    if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
     const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
     const decision: MarketDecision = { scenarios: [], history: scoped.history };
     // The existing compiled evaluator retains its one-cycle observation guard.
@@ -103,6 +120,8 @@ async function handleMarket(
       if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
       return;
     }
+    const analysis = analyzeMarketCoverage(inputs);
+    decision.coverage = analysis.coverage;
     for (const [i, input] of inputs.entries()) {
       if (!current()) throw new OptimizerCancelledError();
       const summary = await marketOptimizer.run(async () => input, {
@@ -113,6 +132,24 @@ async function handleMarket(
       if (!current()) throw new OptimizerCancelledError();
       decision.scenarios.push({ id: DECISION_MARKET.scenarios[i]?.id ?? "unknown", summary });
       marketOptimizer.cancel(); // Keep only durable aggregate receipts between interpretations.
+    }
+    if (analysis.coverage.priced > 0 && analysis.coverage.priced < analysis.coverage.recorded) {
+      const subset = marketDecisionInputs(
+        loadBundledCatalog(),
+        DECISION_MARKET,
+        analysis.pricedEvents,
+      );
+      decision.pricedScope = { scenarios: [] };
+      for (const [i, input] of subset.entries()) {
+        if (!current()) throw new OptimizerCancelledError();
+        const summary = await marketOptimizer.run(async () => input);
+        if (!current()) throw new OptimizerCancelledError();
+        decision.pricedScope.scenarios.push({
+          id: DECISION_MARKET.scenarios[i]?.id ?? "unknown",
+          summary,
+        });
+        marketOptimizer.cancel();
+      }
     }
     if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
   } catch (error) {

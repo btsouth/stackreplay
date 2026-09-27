@@ -74,7 +74,7 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
     const r = snapshot.review;
     const state =
       r.state === "aligned"
-        ? "Billing-period review"
+        ? "Complete billing-period review"
         : r.state === "spend-private"
           ? "Review · spend private"
           : "Partial review";
@@ -88,7 +88,10 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
         ? {
             figure: {
               value: `${formatUsd(r.api.low)} – ${formatUsd(r.api.high)}`,
-              caption: "published API equivalent · not an actual bill",
+              caption:
+                r.api.priced < r.calls
+                  ? "published API equivalent for priced calls only"
+                  : "published API equivalent · not an actual bill",
             },
           }
         : {}),
@@ -103,6 +106,16 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
       headline: `${r.api?.priced.toLocaleString("en-US") ?? "Unknown"} / ${r.calls.toLocaleString("en-US")} recorded calls modeled. ${r.state === "aligned" ? "Same-period comparison." : r.state === "spend-private" ? "Paid amount not shared; no public spend comparison." : "Not directly comparable yet."}`,
       weight: "strong",
       support: [
+        ...(r.pricedKnownTokens !== undefined
+          ? [
+              `${r.pricedKnownTokens.toLocaleString("en-US")} / ${r.knownTokens.toLocaleString("en-US")} known processed tokens priced.`,
+            ]
+          : []),
+        ...(r.api && r.api.priced < r.calls
+          ? [
+              "Unpriced calls have unknown cost and may materially change the result. This is not the full-workload API equivalent.",
+            ]
+          : []),
         `${r.knownTokens.toLocaleString("en-US")} known processed tokens. Recorded history: ${r.history ? `${r.history.from} to ${r.history.to}` : "dates not shared"}. Event dates do not prove complete logs.`,
         r.historyConfirmed
           ? "History coverage confirmed locally by the sharer, not independently verified."

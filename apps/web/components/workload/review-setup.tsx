@@ -2,7 +2,6 @@
 import { useState } from "react";
 import {
   type BillingFact,
-  periodKey,
   periodSchema,
   type ReviewChoice,
   type ReviewComposition,
@@ -111,34 +110,6 @@ export function ReviewSetup({
             ) : null}
           </form>
         ) : null}
-        <label className="flex min-h-11 items-start gap-3">
-          <input
-            className="mt-1"
-            type="checkbox"
-            aria-label="Confirm history covers this review period"
-            disabled={
-              !review?.period ||
-              !periodSchema.safeParse(review.period).success ||
-              (!review.synthetic && review.period.end > new Date().toISOString().slice(0, 10)) ||
-              partialScan
-            }
-            checked={review?.historyConfirmed ?? false}
-            onChange={(e) => {
-              const { historyConfirmed: _old, ...rest } = choice;
-              onChange({
-                ...rest,
-                ...(e.target.checked && review?.period
-                  ? { historyConfirmed: periodKey(review.period) }
-                  : {}),
-              });
-            }}
-          />
-          <span>
-            I have imported the history for this whole review period, including all the sources I
-            want to compare. Days without calls may be idle days. This is my local confirmation, not
-            proof from StackReplay.
-          </span>
-        </label>
         {partialScan ? (
           <p className="text-warning">
             Resolve the reported scan gaps before confirming history coverage.
@@ -163,5 +134,62 @@ export function ReviewSetup({
         </button>
       </div>
     </details>
+  );
+}
+
+/** Primary local assertion, visible next to history rather than hidden in setup. */
+export function HistoryConfirmation({
+  choice,
+  review,
+  importId,
+  scopeDigest,
+  partialScan,
+  onChange,
+}: {
+  choice: ReviewChoice;
+  review: ReviewComposition;
+  importId: string;
+  scopeDigest: string | undefined;
+  partialScan: boolean;
+  onChange: (choice: ReviewChoice) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-start gap-3">
+      <input
+        className="mt-1"
+        type="checkbox"
+        aria-label="Confirm history covers this review period"
+        disabled={
+          !scopeDigest ||
+          !review?.period ||
+          !periodSchema.safeParse(review.period).success ||
+          (!review.synthetic && review.period.end > new Date().toISOString().slice(0, 10)) ||
+          partialScan
+        }
+        checked={review?.historyConfirmed ?? false}
+        onChange={(e) => {
+          const { historyConfirmed: _old, historyConfirmation: _prior, ...rest } = choice;
+          onChange({
+            ...rest,
+            ...(e.target.checked && review?.period
+              ? {
+                  historyConfirmation: {
+                    importId,
+                    scopeDigest: scopeDigest ?? "",
+                    period: review.period,
+                    confirmedAt: new Date().toISOString(),
+                    provenance: review.synthetic ? "synthetic" : "local-user",
+                  } as const,
+                }
+              : {}),
+          });
+        }}
+      />
+      <span>
+        I have imported the history for this whole review period, including all the sources I want
+        to compare. Days without calls may be idle days. This is my local confirmation, not proof
+        from StackReplay.
+      </span>
+    </label>
   );
 }

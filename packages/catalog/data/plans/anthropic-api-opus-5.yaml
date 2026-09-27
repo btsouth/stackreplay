@@ -1,0 +1,218 @@
+id: anthropic-api-opus-5
+role: plan
+name: 'Anthropic API: Claude Opus 5'
+providerId: anthropic
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-api-opus-5-current-20260927-d3
+  productId: anthropic-direct-api
+  validity:
+    start: '2026-09-27T20:39:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    catalogActivatedAt: '2026-09-27T20:39:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/opus-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs; Availability'
+    excerpt: claude-opus-5 is an active Claude API model at review. Current-market admission only; no
+      historical effective-date claim.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:00a0f423d579ddadd7d96028d427d50399ad8d641567afdec955b8931a988136
+    evidencePackageHash: sha256:32f2c1ce7c197417667be3a479baee2ee92d5612e62ae365b311cf39a7b394b8
+  - id: route
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/opus-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs / Claude API'
+    excerpt: Exact Claude API identifier claude-opus-5; standard direct global API execution; paid API
+      credentials required.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:b307c6cadc1a9ab996cff5894434861a1d58417ceb5a20dfbd5cad53a667f0c4
+    evidencePackageHash: sha256:913b9f3bea33dfe85469577a634ee3f8167b0028dfc62880f5168bdb0e141057
+  - id: endpoint
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/api/messages/create
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Create a Message: HTTP method and path'
+    excerpt: POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:854979d0253748e48219f67e347afe173be09d6e64c26f1a65bf6bbe9cc82e68
+    evidencePackageHash: sha256:29c27092f142a88614b42676d43fd8945ed124c66bccb9531fae99c45f061635
+  - id: rate
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/opus-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Pricing'
+    excerpt: 'USD per million: input 5, output 25, cache read 0.5; cache writes require an explicit duration.'
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:6d45178faa3686e2c5fe3309becc3cdb277abcdad6dafac199e8998cc3cd04d9
+    evidencePackageHash: sha256:2855384de878fdd8d694bcfb1d6402cb0b2959552d456466b575a75e46065cd5
+  - id: cache-duration-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/opus-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Pricing / 5m cache write and 1h cache write'
+    excerpt: 'USD per million cache write: five minutes 6.25; one hour 10. Imported duration is not observed.'
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:a1bf8e567410bfb9c1a470dfb013eed05527949e578a673fb0da5b44cef030b7
+    evidencePackageHash: sha256:e2fa2b4d5384bdf9b14e1517139b2a3768e9591b17f87205b41b0a3ca69d22cf
+  - id: thinking-output-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pricing / output_tokens remains inclusive
+    excerpt: Thinking is billed as output. Inclusive output telemetry already includes reasoning, which
+      must not be added again.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:c79f80ce8f7600fba2cffe3141c83baafb6c2c74b1184e6acb38b55557e08e8e
+    evidencePackageHash: sha256:7b044efe5fdd1a240b5d04c55277cb71a58bc5f34a3e5c6cdae18bd68ecf74e1
+  - id: context
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Long context pricing
+    excerpt: Claude 4.6 and later use standard per-token pricing across the full 1M context window; no
+      long-context premium for this route.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:5a49c073266034ee5bb76f5e5cfe618dac613b5a6fcea46da2fbd8c6baebf3ba
+    evidencePackageHash: sha256:2e1b5b463d5068ecb045ec1b1d77dfa2b77632e4ce149a46fad1c5ea3fdc9ab7
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: anthropic-api-opus-5-current-rate-d3
+    basis: api_list_price
+    endpointId: anthropic-messages-global
+    rateVersion: current-20260927-d3
+    denomination: USD
+    claimRefs:
+    - rate
+    - thinking-output-d0
+    - context
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: anthropic-messages-global
+    protocol: anthropic-messages
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - claude-opus-5
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+    - endpoint
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []
+executionOverlays:
+- id: cache-write-5m-d0
+  validFrom: '2026-09-27T20:39:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-opus-5-current-20260927-d3
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-opus-5-cache-5m-d3
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-opus-5-cache-5m-d3
+    claimRefs:
+    - thinking-output-d0
+- id: cache-write-1h-d0
+  validFrom: '2026-09-27T20:39:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-opus-5-current-20260927-d3
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-opus-5-cache-1h-d3
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-opus-5-cache-1h-d3
+    claimRefs:
+    - thinking-output-d0

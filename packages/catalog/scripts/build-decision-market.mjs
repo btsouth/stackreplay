@@ -3,7 +3,7 @@ import { compileExecutionPlan, selectExecutionVersionAt } from "../dist/executio
 import { loadDefaultCatalog } from "../dist/load.js";
 
 const catalog = loadDefaultCatalog();
-const rulesAt = "2026-09-27T18:30:00Z";
+const rulesAt = "2026-09-27T20:39:00Z";
 const reviewUntil = "2026-10-27T00:00:00Z";
 const plans = Object.values(catalog.plans)
   .flatMap((plan) => {

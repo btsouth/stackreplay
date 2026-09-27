@@ -13,8 +13,10 @@ for (const theme of ["dark", "light"] as const) {
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10", {
       timeout: 30_000,
     });
-    await expect(market.getByTestId("market-coverage")).toContainText("900 / 900 calls retained");
-    await expect(market.getByTestId("market-coverage")).toContainText("900 priced calls");
+    await expect(market.getByTestId("market-coverage")).toContainText("900 / 900 calls recognized");
+    await expect(market.getByTestId("market-coverage")).toContainText(
+      "900 / 900 recorded calls modeled and priced",
+    );
     await expect(market).toContainText("261 calls");
     await expect(market).toContainText("not your actual bill");
     await market.getByTestId("market-calculation").locator(":scope > summary").click();
@@ -31,7 +33,7 @@ for (const theme of ["dark", "light"] as const) {
       /openai\.com/,
     );
     await market.getByTestId("market-subscriptions").locator(":scope > summary").click();
-    await expect(market.getByRole("checkbox")).toHaveCount(10);
+    await expect(market.getByTestId("market-subscriptions").getByRole("checkbox")).toHaveCount(10);
     await market.getByRole("checkbox", { name: "Claude Max 5x", exact: false }).focus();
     await page.keyboard.press("Space");
     await market.getByRole("checkbox", { name: "ChatGPT Plus", exact: false }).check();

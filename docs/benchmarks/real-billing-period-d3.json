@@ -1,0 +1,47 @@
+{
+  "basis": "current-market counterfactual; no confirmed personal spend supplied",
+  "reviewPeriod": {
+    "start": "2026-08-24",
+    "end": "2026-09-24",
+    "endExclusive": true
+  },
+  "engine": [
+    {
+      "name": "original",
+      "calls": 65758,
+      "knownTokens": 21924000623,
+      "coverageMs": 461.180768,
+      "elapsedMs": 3640.490385,
+      "apiUsd": ["16035.2647376", "17918.60336135"],
+      "pricedCalls": 65758,
+      "pricedKnownTokens": 21924000623
+    },
+    {
+      "name": "refreshed",
+      "calls": 29174,
+      "knownTokens": 10225819147,
+      "coverageMs": 185.61640299999954,
+      "elapsedMs": 1549.479664,
+      "apiUsd": ["6949.70000195", "7651.28322695"],
+      "pricedCalls": 29174,
+      "pricedKnownTokens": 10225819147
+    }
+  ],
+  "browser": {
+    "dataset": "refreshed native responses",
+    "runs": [
+      {
+        "elapsedMs": 3044.199999999255,
+        "summaryBytes": 43689
+      },
+      {
+        "elapsedMs": 2875.300000000745,
+        "summaryBytes": 43689
+      }
+    ],
+    "postRequests": 0,
+    "horizontalOverflow": false,
+    "historyConfirmed": false,
+    "confirmedSpendSupplied": false
+  }
+}

@@ -97,6 +97,19 @@ describe("claude-code adapter", () => {
     );
   });
 
+  it("collects nested subagent histories using the same depth as discovery", async () => {
+    await withTempDir(async (directory) => {
+      await writeFixture(
+        `${directory}/.claude/projects/demo/session/subagents/workflows/flow/agent.jsonl`,
+        CLAUDE_CODE_SESSION,
+      );
+      const env = createFixtureEnvironment({ homeDir: directory });
+      expect((await adapter.detect(env)).supported).toBe(true);
+      const result = await adapter.collect(env, options());
+      expect(result.events).toHaveLength(2);
+    });
+  });
+
   it("reports cache categories as additional and reasoning as included in output", async () => {
     const result = await collectFrom("$DIR/.claude/projects");
     const [first] = result.events;

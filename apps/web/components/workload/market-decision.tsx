@@ -19,7 +19,7 @@ import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { BillingEditor } from "./billing-editor";
 import { partialScanOf } from "./evidence";
-import { ReviewSetup } from "./review-setup";
+import { HistoryConfirmation, ReviewSetup } from "./review-setup";
 
 const dollars = (value: string) => `$${new Decimal(value).toFixed(2)}`;
 const subscriptions = DECISION_MARKET.plans.filter(
@@ -45,12 +45,13 @@ export function MarketDecisionSurface({
   const executionKey = `${importId}:${periodStart ?? "history"}:${periodEnd ?? ""}`;
   const decision = computed?.key === executionKey ? computed.result : undefined;
   const scan = partialScanOf(record);
-  const partialScan = scan.unreadable + scan.other > 0;
+  const partialScan = scan.unreadable + scan.other > 0 || !!decision?.history?.scanGapCodes?.length;
   const review = useMemo(
     () =>
       decision
         ? composeReview({
             decision,
+            importId,
             choice,
             billing,
             selected,
@@ -58,7 +59,7 @@ export function MarketDecisionSurface({
             synthetic: local.synthetic,
           })
         : undefined,
-    [decision, choice, billing, selected, partialScan, local.synthetic],
+    [decision, importId, choice, billing, selected, partialScan, local.synthetic],
   );
   useEffect(() => {
     onResult?.(importId, decision ? { ...decision, ...(review ? { review } : {}) } : undefined);
@@ -89,9 +90,15 @@ export function MarketDecisionSurface({
       });
     return () => controller.abort();
   }, [importId, local.ready, periodStart, periodEnd, executionKey]);
-  const scenarios = decision?.scenarios ?? [];
+  const calculatedRange = marketRange(decision);
+  const fullRange =
+    calculatedRange?.priced === decision?.history?.calls ? calculatedRange : undefined;
+  const partialRange = marketRange(decision?.pricedScope);
+  const displayDecision = fullRange ? decision : (decision?.pricedScope ?? decision);
+  const scenarios = displayDecision?.scenarios ?? [];
   const first = scenarios[0]?.summary;
-  const range = marketRange(decision);
+  const range = fullRange ?? partialRange;
+  const partialPricing = !!partialRange && !fullRange;
   const comparable = range !== undefined;
   const totals = comparable ? scenarios.map((s) => s.summary.candidates[0]?.totalUsd ?? "0") : [];
   const different = totals.length === 2 && !new Decimal(totals[0] ?? "0").eq(totals[1] ?? "0");
@@ -121,7 +128,7 @@ export function MarketDecisionSurface({
       <div className="flex flex-col gap-2">
         <MicroLabel className={review?.complete ? "text-accent" : "text-warning"}>
           <span data-testid="review-state">
-            {review?.complete ? "Billing-period review" : "Partial review"}
+            {review?.complete ? "Complete billing-period review" : "Partial review"}
           </span>
         </MicroLabel>
         <h2
@@ -184,7 +191,21 @@ export function MarketDecisionSurface({
             </p>
           </div>
         ) : null}
-        <MicroLabel>Published API equivalent</MicroLabel>
+        {review ? (
+          <HistoryConfirmation
+            choice={choice}
+            review={review}
+            importId={importId}
+            scopeDigest={decision?.scenarios[0]?.summary.scope.digest}
+            partialScan={partialScan}
+            onChange={local.setChoice}
+          />
+        ) : null}
+        <MicroLabel>
+          {partialPricing
+            ? "Published API equivalent for priced workload"
+            : "Published API equivalent"}
+        </MicroLabel>
         {!decision && !error ? (
           <p role="status" className="text-sm text-muted-foreground">
             Calculating what your exact models would cost through published APIs…
@@ -226,20 +247,60 @@ export function MarketDecisionSurface({
               </p>
             ) : null}
             {first ? (
-              <p className="text-sm" data-testid="market-coverage">
-                Model coverage:{" "}
-                {comparable
-                  ? first.scope.required.toLocaleString()
-                  : (first.candidates[0]?.modeled ?? 0).toLocaleString()}{" "}
-                / {first.scope.recorded.toLocaleString()} recorded calls modeled.{" "}
-                {first.scope.recorded.toLocaleString()} / {first.scope.recorded.toLocaleString()}{" "}
-                calls retained in the comparison ·{" "}
-                {comparable ? first.scope.required.toLocaleString() : "See unknowns for"} priced
-                calls · {first.scope.excluded.toLocaleString()} unresolved calls excluded from
-                pricing. {comparable ? "Exact models preserved." : ""}
-              </p>
+              <div className="space-y-1 text-sm" data-testid="market-coverage">
+                <p>
+                  API pricing:{" "}
+                  {(
+                    decision.coverage?.priced ?? (comparable ? first.scope.required : 0)
+                  ).toLocaleString()}{" "}
+                  / {(decision.history?.calls ?? first.scope.recorded).toLocaleString()} recorded
+                  calls modeled and priced. Exact models preserved.
+                </p>
+                {decision.coverage ? (
+                  <>
+                    <p>
+                      {decision.coverage.recognized.toLocaleString()} /{" "}
+                      {decision.coverage.recorded.toLocaleString()} calls recognized. All recorded
+                      calls retained in this review.
+                    </p>
+                    <p data-testid="token-coverage">
+                      {decision.coverage.pricedKnownTokens.toLocaleString()} /{" "}
+                      {decision.coverage.knownTokens.toLocaleString()} known processed tokens priced
+                      {decision.coverage.knownTokens
+                        ? ` (${((100 * decision.coverage.pricedKnownTokens) / decision.coverage.knownTokens).toFixed(2)}%)`
+                        : ""}
+                      .
+                      {decision.coverage.unknownTokenCalls
+                        ? ` ${decision.coverage.unknownTokenCalls.toLocaleString()} calls have unknown token totals; no token percentage is claimed for them.`
+                        : ""}
+                    </p>
+                  </>
+                ) : null}
+                {partialPricing ? (
+                  <p className="text-warning">
+                    This subtotal covers only the priced calls. The remaining calls have unknown
+                    cost and may materially change the result. No whole-workload difference is
+                    available.
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </>
+        ) : null}
+        {decision?.coverage?.models.some((m) => m.priced < m.calls) ? (
+          <details className="border-y border-border py-2">
+            <summary className="min-h-11 cursor-pointer content-center text-sm">
+              Unpriced model details
+            </summary>
+            {decision.coverage.models
+              .filter((m) => m.priced < m.calls)
+              .map((m) => (
+                <p className="py-2 text-sm" key={m.model}>
+                  {m.model}: {(m.calls - m.priced).toLocaleString()} unpriced calls ·{" "}
+                  {m.knownTokens.toLocaleString()} known tokens · {m.reasons.join(", ")}
+                </p>
+              ))}
+          </details>
         ) : null}
         <p className="text-xs text-muted-foreground">
           Price snapshot: {DECISION_MARKET.rulesAt.slice(0, 10)} · review due{" "}
@@ -349,7 +410,7 @@ export function MarketDecisionSurface({
           <h3 className="mt-2 font-medium">What we can tell you</h3>
           <p className="mt-2 text-sm text-muted-foreground">
             {comparable
-              ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same workload.`
+              ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same priced scope.`
               : "Missing facts remain visible below. No missing price is treated as zero."}
           </p>
         </div>

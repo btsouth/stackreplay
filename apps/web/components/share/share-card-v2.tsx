@@ -50,7 +50,7 @@ export function ShareCardV2({
         </Heading>
         {presentation.figure === undefined ? null : (
           <div className="sr-verdict-figures">
-            <p className="sr-figure" data-testid="share-figure">
+            <p className="sr-figure sr-figure--share" data-testid="share-figure">
               {presentation.figure.value}
               {presentation.figure.minor === undefined ? null : (
                 <small className="sr-figure-minor">{presentation.figure.minor}</small>

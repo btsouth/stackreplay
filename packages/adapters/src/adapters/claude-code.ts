@@ -131,7 +131,10 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
         const readable = exists && info.kind === "directory";
         let rootSessionCount: number | undefined;
         if (readable) {
-          const files = await listFilesRecursive(env, root, { maxDepth: 2, extension: ".jsonl" });
+          const files = await listFilesRecursive(env, root, {
+            maxDepth: CLAUDE_CODE_DISCOVERY.inventory?.maxDepth ?? 8,
+            extension: ".jsonl",
+          });
           rootSessionCount = files.length;
           sessionCount += files.length;
           if (files.length === 0) supported = false;
@@ -170,7 +173,10 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
       let truncated = false;
 
       for (const root of roots) {
-        const files = await listFilesRecursive(env, root, { maxDepth: 2, extension: ".jsonl" });
+        const files = await listFilesRecursive(env, root, {
+          maxDepth: CLAUDE_CODE_DISCOVERY.inventory?.maxDepth ?? 8,
+          extension: ".jsonl",
+        });
         for (const file of files) {
           if (stats.filesScanned >= maxFiles) {
             truncated = true;

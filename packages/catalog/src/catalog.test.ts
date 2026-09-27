@@ -482,7 +482,7 @@ describe("launch catalog: model identity", () => {
       ["glm-5-3-flash", "0.15", "0.50"],
     ];
     for (const [modelId, input, output] of priced) {
-      const record = Object.values(catalog.pricing).find((entry) => entry.modelId === modelId);
+      const record = catalog.pricing[`${modelId}-pricing`];
       expect(record, modelId).toBeDefined();
       expect(record?.rates.input, modelId).toBe(input);
       expect(record?.rates.output, modelId).toBe(output);

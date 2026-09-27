@@ -10,7 +10,6 @@ import {
   billingFactSchema,
   composeReview,
   daysInPeriod,
-  periodKey,
   periodSchema,
   type ReviewChoice,
 } from "./review-period";
@@ -39,7 +38,14 @@ const billing: Record<string, BillingFact> = Object.fromEntries(
   ]),
 );
 const choice: ReviewChoice = { mode: "custom", period };
-const input = { decision, choice, billing, selected, asOf: "2026-10-01" };
+const confirmation = {
+  importId: "test-import",
+  scopeDigest: decision.scenarios[0]?.summary.scope.digest ?? "",
+  period,
+  confirmedAt: "2026-10-01T00:00:00Z",
+  provenance: "local-user" as const,
+};
+const input = { importId: "test-import", decision, choice, billing, selected, asOf: "2026-10-01" };
 
 describe("billing-period composition", () => {
   it("never infers complete history from boundary events or published monthly fees", () => {
@@ -54,7 +60,7 @@ describe("billing-period composition", () => {
   it("compares only a locally confirmed common period, using exact existing API receipts", () => {
     const result = composeReview({
       ...input,
-      choice: { ...choice, historyConfirmed: periodKey(period) },
+      choice: { ...choice, historyConfirmation: confirmation },
     });
     expect(result.complete).toBe(true);
     expect(result.difference).toEqual({ low: "113.9037333", high: "114.06641355" });
@@ -72,7 +78,7 @@ describe("billing-period composition", () => {
     };
     const result = composeReview({
       ...input,
-      choice: { ...choice, historyConfirmed: periodKey(period) },
+      choice: { ...choice, historyConfirmation: confirmation },
       billing: facts,
     });
     expect(result.confirmedSpend).toBe("100");
@@ -88,7 +94,7 @@ describe("billing-period composition", () => {
     );
     const result = composeReview({
       ...input,
-      choice: { ...choice, historyConfirmed: periodKey(period) },
+      choice: { ...choice, historyConfirmation: confirmation },
       billing: facts,
     });
     expect(result.complete).toBe(true);
@@ -96,7 +102,7 @@ describe("billing-period composition", () => {
     expect(result.conclusion).toContain("every burst without interruption");
   });
   it("invalidates confirmation on date changes and withholds comparison for scan gaps or unknown pricing", () => {
-    const confirmed = { ...choice, historyConfirmed: periodKey(period) };
+    const confirmed = { ...choice, historyConfirmation: confirmation };
     expect(
       composeReview({
         ...input,
@@ -113,11 +119,33 @@ describe("billing-period composition", () => {
     const result = composeReview({
       ...input,
       asOf: "2026-09-27",
-      choice: { ...choice, historyConfirmed: periodKey(period) },
+      choice: { ...choice, historyConfirmation: confirmation },
     });
     expect(result.complete).toBe(false);
     expect(result.historyConfirmed).toBe(false);
     expect(result.reason).toContain("has not ended");
+  });
+  it("requires a fresh dated declaration for this import and workload", () => {
+    expect(
+      composeReview({ ...input, choice: { ...choice, historyConfirmed: "2026-09-01/2026-10-01" } })
+        .historyConfirmed,
+    ).toBe(false);
+    expect(
+      composeReview({
+        ...input,
+        importId: "another-import",
+        choice: { ...choice, historyConfirmation: confirmation },
+      }).historyConfirmed,
+    ).toBe(false);
+    expect(
+      composeReview({
+        ...input,
+        choice: {
+          ...choice,
+          historyConfirmation: { ...confirmation, scopeDigest: "changed-workload" },
+        },
+      }).historyConfirmed,
+    ).toBe(false);
   });
   it("rejects invalid dates, too-long cycles, negative or ambiguous amounts", () => {
     for (const cycle of [
@@ -162,7 +190,7 @@ describe("billing-period composition", () => {
 it("shares local paid amounts only by explicit opt-in and never changes scope", () => {
   const review = composeReview({
     ...input,
-    choice: { ...choice, historyConfirmed: periodKey(period) },
+    choice: { ...choice, historyConfirmation: confirmation },
   });
   const profile = buildWorkloadProfile(exported.events, {
     catalog,

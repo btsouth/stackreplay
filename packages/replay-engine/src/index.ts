@@ -77,6 +77,7 @@ export {
   purchaseCycleEnd,
 } from "./execution-binding.js";
 export type { InitialCapacityEntry, SubscriptionInitialCapacity } from "./initial-capacity.js";
+export { analyzeMarketCoverage, type MarketCoverage } from "./market-coverage.js";
 export { marketDecisionInputs } from "./market-decision.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {

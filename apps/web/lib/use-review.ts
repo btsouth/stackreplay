@@ -70,7 +70,18 @@ export function useReview(record: ImportRecord) {
     synthetic,
     saveFailed,
     setChoice: (next: ReviewChoice) => update(next),
-    saveBilling: (key: string, fact: BillingFact) => update(choice, { key, fact }),
+    saveBilling: (key: string, fact: BillingFact) => {
+      const {
+        historyConfirmed: _legacy,
+        historyConfirmation: _confirmation,
+        ...unconfirmed
+      } = choice;
+      const cycleChanged =
+        choice.mode === "cycle" &&
+        choice.subscription === key &&
+        JSON.stringify(billing[key]?.cycle) !== JSON.stringify(fact.cycle);
+      update(cycleChanged ? unconfirmed : choice, { key, fact });
+    },
     setSelected: (next: TargetKey[]) => {
       writeCurrentStack(next, namespace);
       // Explicit empty selection must not reset a synthetic default on navigation.

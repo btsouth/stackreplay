@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:6e26ff4332ef8b0f225ba72cd514910bb45a1263461b6df7ef83b1de401ad81f";
+export const BUNDLED_CATALOG_VERSION = "sha256:5f104453c7813d643d78ef3c381901406f0f6589e71579c73b6c79ef2e00c894";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:6e26ff4332ef8b0f225ba72cd514910bb45a1263461b6df7ef83b1de401ad81f",
+  "catalogVersion": "sha256:5f104453c7813d643d78ef3c381901406f0f6589e71579c73b6c79ef2e00c894",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -2493,6 +2493,564 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "plans": {
+    "anthropic-api-fable-5-1": {
+      "id": "anthropic-api-fable-5-1",
+      "role": "plan",
+      "name": "Anthropic API: Claude Fable 5.1",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-fable-5-1-current-20260927-d3",
+          "validity": {
+            "start": "2026-09-27T20:39:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T20:39:00Z",
+            "reviewedAt": "2026-09-27T20:39:00Z",
+            "catalogActivatedAt": "2026-09-27T20:39:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-fable-5-1 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:cdc05b6fbcbea667b10557aa0c3be84233b85bee4f7649caae6590ce5144de63",
+              "evidencePackageHash": "sha256:80c08c60631e760dd97f338ceece2447e06a7970ec1800ecdc5a1c4d94933b56",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-fable-5-1; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:902f2d5993aa4369f1a5d8c72d6ec70e72e2e59d1d0b268b144deef68c2c69ba",
+              "evidencePackageHash": "sha256:aa452cbbf903de39f6f2935c846fbf08cedbc2e1048e6d38e0b675672584dda2",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:df8c609e5b2eb59775cb359006d9dbc42815ca5e3e9519d613ea139199036ad2",
+              "evidencePackageHash": "sha256:ea2a8d9da5e8a31b2817aac22d4f9ac1991c2ff0c1bfca75ee03507e18fa61a0",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing",
+              "excerpt": "USD per million: input 10, output 50, cache read 0.25; cache writes require an explicit duration.",
+              "normalizedClaimHash": "sha256:7c3c735ad4c61cce9d23593035f2c5d67e5554e7b5181d2468ca6f20d8e1b939",
+              "evidencePackageHash": "sha256:3d0dc130d56bd5c4fa669eac0c63615c4189c095dcff99a2312645949da97d40",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing / 5m cache write and 1h cache write",
+              "excerpt": "USD per million cache write: five minutes 12.5; one hour 20. Imported duration is not observed.",
+              "normalizedClaimHash": "sha256:f2553ea82c88bdc65e9483b158f7f8547e9a73afdfc334617e0a8b41ee36a248",
+              "evidencePackageHash": "sha256:f88a5b1c3923d74925703447e0c37b146005d53ab5dbd5e4e62c0b67d8bd3d5b",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:4a179770dd6703a0de4d6e11ee5509e0f7ed629d7e0ed5790d113d54f70af89d",
+              "evidencePackageHash": "sha256:22abc203efbae839f43c818beff77a018b1077cde20967885bca11c1081fed8e",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:842c08f3ee38110ca54949c94f516a73dc20c85d08e07d117fef0bba65003e5a",
+              "evidencePackageHash": "sha256:f1cb4c34fb8e913cf3761553a4290dc0c89451bf3dd973de16074495d38a5cdd",
+              "reviewer": "Codex D3 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-fable-5-1-current-rate-d3",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927-d3",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-fable-5-1"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-fable-5-1-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-fable-5-1-cache-5m-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-fable-5-1-cache-5m-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-fable-5-1-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-fable-5-1-cache-1h-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-fable-5-1-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "anthropic-api-fable-5": {
+      "id": "anthropic-api-fable-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Fable 5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-fable-5-current-20260927-d3",
+          "validity": {
+            "start": "2026-09-27T20:39:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T20:39:00Z",
+            "reviewedAt": "2026-09-27T20:39:00Z",
+            "catalogActivatedAt": "2026-09-27T20:39:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-fable-5 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:3a7ec897aac70f33cd03adfbd747381c4313e6f92c933534e20d4d2d3e13f507",
+              "evidencePackageHash": "sha256:5ab9316393239d7fe7409beaab230d2ccb41ae5e79a32638a0b8acae5a002aaa",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-fable-5; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:6c5b6583d00fbf4057136df8d4205cb9b2b07c791be32360183c91e1cce85494",
+              "evidencePackageHash": "sha256:c451bdb634966db08faea8928d4571a4fb8f8233224110bc8aca1633fbbfd051",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:459adf3efdb1e6153c2a4afa8ca69129b9e56e9922b13f6d0409e951d3aac0cf",
+              "evidencePackageHash": "sha256:19a835e7351e3e9d8b6a66af04669b6a050f04e11ae265284d83e9734598b509",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing",
+              "excerpt": "USD per million: input 10, output 50, cache read 1; cache writes require an explicit duration.",
+              "normalizedClaimHash": "sha256:3c8ca3aa11d29767d1b2e3cfe50e0b20b15d473fe0a249ad0f4d70e24b0999b4",
+              "evidencePackageHash": "sha256:1d2c01bdf491514c011d02597e69df41ce88498ba2295896e10b4e702696e39d",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/fable-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing / 5m cache write and 1h cache write",
+              "excerpt": "USD per million cache write: five minutes 12.5; one hour 20. Imported duration is not observed.",
+              "normalizedClaimHash": "sha256:35fb43f08fadf3c8e6ab3fc8fc9bfa42a9b45825bba54570a1ceec2bb0488468",
+              "evidencePackageHash": "sha256:a620fa2faa38c3db4aaba34c26bd8c18e4107610a811bd02c7ded6a799fbcc58",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:5bfb0bd9881e778a80e63e47f91f90aa6ecfb24ed644d47b996fd2ec2969bd32",
+              "evidencePackageHash": "sha256:dbcb0b81f86331de4bf359cb6f3eb2a82d368512b0ee4aca7ec591b17ec5cd03",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:9231f14bad63fdb7941a97eb0897d69d281838cf45738c4576d7fcf8ab4745c1",
+              "evidencePackageHash": "sha256:6697a10ace3f8cbec33f96cf9e7f9257ae6ba0271634fadba0e923ac9a380f20",
+              "reviewer": "Codex D3 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-fable-5-current-rate-d3",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927-d3",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-fable-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-fable-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-fable-5-cache-5m-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-fable-5-cache-5m-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-fable-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-fable-5-cache-1h-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-fable-5-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "anthropic-api-haiku-4-5": {
       "id": "anthropic-api-haiku-4-5",
       "role": "plan",
@@ -2694,6 +3252,843 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "pricingRef": "anthropic-api-haiku-4-5-cache-1h-d0",
               "claimRefs": [
                 "cache-duration-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "anthropic-api-opus-4-8": {
+      "id": "anthropic-api-opus-4-8",
+      "role": "plan",
+      "name": "Anthropic API: Claude Opus 4.8",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-opus-4-8-current-20260927-d3",
+          "validity": {
+            "start": "2026-09-27T20:39:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T20:39:00Z",
+            "reviewedAt": "2026-09-27T20:39:00Z",
+            "catalogActivatedAt": "2026-09-27T20:39:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-opus-4-8 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:c417fc323c06847411308447c12197a3d1b05ac8fe1a37908f49057a49873ddc",
+              "evidencePackageHash": "sha256:5aa2f41f1332a285d647f22b14192193d284c86730eb6bd470e6ad8c050914d2",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-opus-4-8; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:1d019a7213cb80cfa72e005678db0b1fa72c9f4600c4119352f0d8672ecf9b59",
+              "evidencePackageHash": "sha256:626c2c0dee22a5053e33eeb015b11c6303b4ca5f7a5a2ff7976ee401c9faf9a7",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:177fbf2b2380f81785e740689cb85cbc214645cd1a09b226c52bb9d71f29583f",
+              "evidencePackageHash": "sha256:d66c37b9688b3d5e956e197d7127039d9a969d8bfd1ffcb4cc8893f22653394e",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing",
+              "excerpt": "USD per million: input 5, output 25, cache read 0.5; cache writes require an explicit duration.",
+              "normalizedClaimHash": "sha256:c3f594b311fc6131bef6edeb2c2f656b5cfb2ef9e9c08fdcbbb360f2398029de",
+              "evidencePackageHash": "sha256:550b3ce995d9e24d493576dd3bee4295784cdaba588eb3df1ca04d9483842966",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing / 5m cache write and 1h cache write",
+              "excerpt": "USD per million cache write: five minutes 6.25; one hour 10. Imported duration is not observed.",
+              "normalizedClaimHash": "sha256:28c4f76825645987c3efe42bb94ff6bac12ecf2e3ecd9ec07158c62b52ef71e1",
+              "evidencePackageHash": "sha256:2cb079d8c68cb4f73039831c1a574ce1f6f0848a063afed782e831959b0241a1",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:d360a7e8e2ec7fb4b52308a150e7a9e6c974ed2e8d24934ce9fa7c7c2b9ecfd7",
+              "evidencePackageHash": "sha256:ad9ceb46c21deec14b2a750cc5a2282036d0c932c4e52867c9f67cb0f818e531",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:39acb4e7ba352be2ea8e58e1767d472181f8315021fd83360c00ad70db2b5975",
+              "evidencePackageHash": "sha256:c0aeb644140234482bcb57df2e2ee430de5ba136a93673021b71c2ec0d3833d2",
+              "reviewer": "Codex D3 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-opus-4-8-current-rate-d3",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927-d3",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-opus-4-8"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-4-8-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-4-8-cache-5m-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-4-8-cache-5m-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-4-8-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-4-8-cache-1h-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-4-8-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "anthropic-api-opus-5-5": {
+      "id": "anthropic-api-opus-5-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Opus 5.5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-opus-5-5-current-20260927-d3",
+          "validity": {
+            "start": "2026-09-27T20:39:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T20:39:00Z",
+            "reviewedAt": "2026-09-27T20:39:00Z",
+            "catalogActivatedAt": "2026-09-27T20:39:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-opus-5-5 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:e5ece12faa90d96ea4bfb1a27d2fd4b90ad7251616272fda6a865b15e45b3600",
+              "evidencePackageHash": "sha256:2e68c622e9b6f6e6f4402430c189d8f76757fe83fda8e1bfed7c995f032af851",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-opus-5-5; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:e7ea5c79f27b3417d95fd2c99e479ea12d765b7765bd180e861fcc7c567e85d2",
+              "evidencePackageHash": "sha256:444951a1abbc88ed664b2db12ff80c7c8c83158921776386e06ad8e539c97191",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:ac3ae5db5714a0140297b674a2b4c7a23256fa31fe77f83c93038b6bf79361cc",
+              "evidencePackageHash": "sha256:60f5da92587ddcecb70ea513a86764ecbebf26afdd15b770f0c78cab69d456cd",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing",
+              "excerpt": "USD per million: input 4, output 20, cache read 0.2; cache writes require an explicit duration.",
+              "normalizedClaimHash": "sha256:228a374038bebe46c1e46499d200e8e66e72cd076f8e54306c9b8ac8e71ebbe5",
+              "evidencePackageHash": "sha256:6010ebdb80a7f6443956adf22e96e6028d6d05513586d1d1d74494567f857315",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing / 5m cache write and 1h cache write",
+              "excerpt": "USD per million cache write: five minutes 5; one hour 8. Imported duration is not observed.",
+              "normalizedClaimHash": "sha256:f2611abcc207cf806f9202ee75c9a7fc2f6d02e187bf29535c7ecab6ab2e6743",
+              "evidencePackageHash": "sha256:a1d26d6b85e4f7aa76092aab93f9d49308d556ccb96d629ce6bce26fddd6a110",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:df822a69fd06745cd7fbeabe932ad8bbb19888093101cfb658bd9eed4bf22eba",
+              "evidencePackageHash": "sha256:8eacf5b9a142d7606eeeb654dea6cfe965b08676f82544d4b40dba4690e5189f",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:dc9998b9d4a7901bb93ac5a6420113dd7d12e028973964f03f5b8c49ad9bfba3",
+              "evidencePackageHash": "sha256:904d9fa22fd78fb75bbe6e862977ff6abb86670b3f579e59f9890b921faf9da6",
+              "reviewer": "Codex D3 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-opus-5-5-current-rate-d3",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927-d3",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-opus-5-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-5-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-5-5-cache-5m-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-5-5-cache-5m-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-5-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-5-5-cache-1h-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-5-5-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "anthropic-api-opus-5": {
+      "id": "anthropic-api-opus-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Opus 5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-opus-5-current-20260927-d3",
+          "validity": {
+            "start": "2026-09-27T20:39:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T20:39:00Z",
+            "reviewedAt": "2026-09-27T20:39:00Z",
+            "catalogActivatedAt": "2026-09-27T20:39:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-opus-5 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:00a0f423d579ddadd7d96028d427d50399ad8d641567afdec955b8931a988136",
+              "evidencePackageHash": "sha256:32f2c1ce7c197417667be3a479baee2ee92d5612e62ae365b311cf39a7b394b8",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-opus-5; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:b307c6cadc1a9ab996cff5894434861a1d58417ceb5a20dfbd5cad53a667f0c4",
+              "evidencePackageHash": "sha256:913b9f3bea33dfe85469577a634ee3f8167b0028dfc62880f5168bdb0e141057",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:854979d0253748e48219f67e347afe173be09d6e64c26f1a65bf6bbe9cc82e68",
+              "evidencePackageHash": "sha256:29c27092f142a88614b42676d43fd8945ed124c66bccb9531fae99c45f061635",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing",
+              "excerpt": "USD per million: input 5, output 25, cache read 0.5; cache writes require an explicit duration.",
+              "normalizedClaimHash": "sha256:6d45178faa3686e2c5fe3309becc3cdb277abcdad6dafac199e8998cc3cd04d9",
+              "evidencePackageHash": "sha256:2855384de878fdd8d694bcfb1d6402cb0b2959552d456466b575a75e46065cd5",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/opus-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Pricing / 5m cache write and 1h cache write",
+              "excerpt": "USD per million cache write: five minutes 6.25; one hour 10. Imported duration is not observed.",
+              "normalizedClaimHash": "sha256:a1bf8e567410bfb9c1a470dfb013eed05527949e578a673fb0da5b44cef030b7",
+              "evidencePackageHash": "sha256:e2fa2b4d5384bdf9b14e1517139b2a3768e9591b17f87205b41b0a3ca69d22cf",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:c79f80ce8f7600fba2cffe3141c83baafb6c2c74b1184e6acb38b55557e08e8e",
+              "evidencePackageHash": "sha256:7b044efe5fdd1a240b5d04c55277cb71a58bc5f34a3e5c6cdae18bd68ecf74e1",
+              "reviewer": "Codex D3 manual first-party review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T20:39:00Z",
+              "reviewedAt": "2026-09-27T20:39:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:5a49c073266034ee5bb76f5e5cfe618dac613b5a6fcea46da2fbd8c6baebf3ba",
+              "evidencePackageHash": "sha256:2e1b5b463d5068ecb045ec1b1d77dfa2b77632e4ce149a46fad1c5ea3fdc9ab7",
+              "reviewer": "Codex D3 manual first-party review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-opus-5-current-rate-d3",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927-d3",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-opus-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-5-cache-5m-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-5-cache-5m-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-27T20:39:00Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-opus-5-current-20260927-d3"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-opus-5-cache-1h-d3",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-opus-5-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
               ]
             }
           ]
@@ -15487,6 +16882,254 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "pricing": {
+    "anthropic-api-fable-5-1-cache-1h-d3": {
+      "id": "anthropic-api-fable-5-1-cache-1h-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "0.25",
+        "cacheWrite": "20",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+          "title": "Exact claude-fable-5-1 identity and standard token/category prices; explicit 1h write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-fable-5-1-cache-5m-d3": {
+      "id": "anthropic-api-fable-5-1-cache-5m-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "0.25",
+        "cacheWrite": "12.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+          "title": "Exact claude-fable-5-1 identity and standard token/category prices; explicit 5m write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-fable-5-1-current-rate-d3": {
+      "id": "anthropic-api-fable-5-1-current-rate-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "0.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+          "title": "Exact claude-fable-5-1 identity and standard token/category prices; undifferentiated writes remain unknown",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-fable-5-cache-1h-d3": {
+      "id": "anthropic-api-fable-5-cache-1h-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "1",
+        "cacheWrite": "20",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5/overview",
+          "title": "Exact claude-fable-5 identity and standard token/category prices; explicit 1h write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-fable-5-cache-5m-d3": {
+      "id": "anthropic-api-fable-5-cache-5m-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "1",
+        "cacheWrite": "12.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5/overview",
+          "title": "Exact claude-fable-5 identity and standard token/category prices; explicit 5m write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-fable-5-current-rate-d3": {
+      "id": "anthropic-api-fable-5-current-rate-d3",
+      "role": "pricing",
+      "modelId": "claude-fable-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "rates": {
+        "input": "10",
+        "output": "50",
+        "cacheRead": "1",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5/overview",
+          "title": "Exact claude-fable-5 identity and standard token/category prices; undifferentiated writes remain unknown",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
     "anthropic-api-haiku-4-5-cache-1h-d0": {
       "id": "anthropic-api-haiku-4-5-cache-1h-d0",
       "role": "pricing",
@@ -15566,6 +17209,378 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://platform.claude.com/docs/en/about-claude/pricing",
           "title": "USD per 1M base input, output and cache-read tokens; standard global Claude API. Cache writes need duration and are unresolved here.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-4-8-cache-1h-d3": {
+      "id": "anthropic-api-opus-4-8-cache-1h-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "10",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+          "title": "Exact claude-opus-4-8 identity and standard token/category prices; explicit 1h write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-4-8-cache-5m-d3": {
+      "id": "anthropic-api-opus-4-8-cache-5m-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+          "title": "Exact claude-opus-4-8 identity and standard token/category prices; explicit 5m write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-4-8-current-rate-d3": {
+      "id": "anthropic-api-opus-4-8-current-rate-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-4-8",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+          "title": "Exact claude-opus-4-8 identity and standard token/category prices; undifferentiated writes remain unknown",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-5-cache-1h-d3": {
+      "id": "anthropic-api-opus-5-5-cache-1h-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "4",
+        "output": "20",
+        "cacheRead": "0.2",
+        "cacheWrite": "8",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+          "title": "Exact claude-opus-5-5 identity and standard token/category prices; explicit 1h write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-5-cache-5m-d3": {
+      "id": "anthropic-api-opus-5-5-cache-5m-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "4",
+        "output": "20",
+        "cacheRead": "0.2",
+        "cacheWrite": "5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+          "title": "Exact claude-opus-5-5 identity and standard token/category prices; explicit 5m write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-5-current-rate-d3": {
+      "id": "anthropic-api-opus-5-5-current-rate-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "rates": {
+        "input": "4",
+        "output": "20",
+        "cacheRead": "0.2",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5-5/overview",
+          "title": "Exact claude-opus-5-5 identity and standard token/category prices; undifferentiated writes remain unknown",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-cache-1h-d3": {
+      "id": "anthropic-api-opus-5-cache-1h-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "10",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5/overview",
+          "title": "Exact claude-opus-5 identity and standard token/category prices; explicit 1h write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-cache-5m-d3": {
+      "id": "anthropic-api-opus-5-cache-5m-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5/overview",
+          "title": "Exact claude-opus-5 identity and standard token/category prices; explicit 5m write scenario",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-opus-5-current-rate-d3": {
+      "id": "anthropic-api-opus-5-current-rate-d3",
+      "role": "pricing",
+      "modelId": "claude-opus-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927-d3",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T20:39:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-5/overview",
+          "title": "Exact claude-opus-5 identity and standard token/category prices; undifferentiated writes remain unknown",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-27"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
           "checkedAt": "2026-09-27"
         }
       ],

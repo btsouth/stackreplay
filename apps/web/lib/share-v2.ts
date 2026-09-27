@@ -142,7 +142,7 @@ export function workloadShareV2(
     }
   const value = profile.value;
   const overview = profile.overview;
-  const range = marketRange(decision);
+  const range = marketRange(decision) ?? marketRange(decision?.pricedScope);
   const reviewHistory = decision?.review?.history;
   const firstDate = reviewHistory ? reviewHistory.firstDate : overview.firstDate;
   const lastDate = reviewHistory ? reviewHistory.lastDate : overview.lastDate;
@@ -168,6 +168,12 @@ export function workloadShareV2(
             calls: decision.review.history.calls,
             knownTokens: decision.review.history.knownTokens,
             historyConfirmed: decision.review.historyConfirmed,
+            ...(decision.coverage
+              ? {
+                  pricedKnownTokens: decision.coverage.pricedKnownTokens,
+                  recognizedCalls: decision.coverage.recognized,
+                }
+              : {}),
             state: decision.review.complete
               ? options.includePaid
                 ? ("aligned" as const)
