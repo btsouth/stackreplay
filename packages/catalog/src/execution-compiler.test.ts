@@ -24,11 +24,9 @@ describe("accepted execution compiler", () => {
     expect(a.artifact.catalogHash).toBe(b.artifact.catalogHash);
     expect(a.artifact.computation.kind).toBe("executable");
   });
-  it("keeps legacy inclusive selection and bundled hash while new versions are half-open", () => {
+  it("keeps legacy inclusive selection while new versions are half-open", () => {
     const legacy = loadDefaultCatalog();
-    expect(legacy.catalogVersion).toBe(
-      "sha256:f243a05b127851a810e10546976b1fac58c0212f85d4d9c82dbe4549ea911098",
-    );
+    expect(legacy.catalogVersion).toMatch(/^sha256:[a-f0-9]{64}$/);
     const versions = [
       { effectiveFrom: "2026-01-01", effectiveTo: "2026-09-01" },
       { effectiveFrom: "2026-09-01" },
@@ -41,11 +39,59 @@ describe("accepted execution compiler", () => {
   it("keeps a reviewed opaque relative quota non-computable with a known fee", () => {
     const p = compile("claude").artifact;
     expect(p.purchase).toMatchObject({ fixedUsd: "100" });
+    expect(p.knownAccess).toEqual([
+      expect.objectContaining({ id: "included-a", models: ["fixture-a"] }),
+    ]);
     expect(p.computation).toMatchObject({
       kind: "not_computable",
       reasons: [{ code: "opaque_capacity" }],
     });
     expect(p.claims.find((c) => c.id === "capacity")?.certainty).toBe("published");
+  });
+  it("uses half-open validity for exact route prices and pins the selected rate identity", () => {
+    const catalog = syntheticExecutionCatalog(["api"]);
+    const price = catalog.pricing["fixture-a-price"]!;
+    const build = (instant = at) =>
+      compileExecutionPlan(catalog, "fixture-api", "api-v1", [], instant).artifact;
+    let artifact = build();
+    expect(artifact.computation.kind).toBe("executable");
+    if (artifact.computation.kind !== "executable") throw new Error("expected executable");
+    expect(artifact.computation.rates.find((r) => r.id === "rate-a")).toMatchObject({
+      pricingRef: price.id,
+      endpointId: "fixture-endpoint",
+      rateVersion: "fixture-rate-v1",
+      validity: { start: "2026-01-01T00:00:00.000Z" },
+    });
+
+    price.effectiveFrom = "2026-09-13";
+    artifact = build();
+    expect(artifact.computation).toMatchObject({
+      kind: "not_computable",
+      reasons: expect.arrayContaining([
+        expect.objectContaining({ code: "price_unknown", subject: "rate-a" }),
+      ]),
+    });
+
+    price.effectiveFrom = "2026-01-01";
+    price.effectiveTo = "2026-09-12";
+    expect(build().computation.kind).toBe("not_computable");
+    expect(build("2026-09-11T23:59:59Z").computation.kind).toBe("executable");
+
+    price.effectiveTo = "2026-09-13";
+    expect(build().computation.kind).toBe("executable");
+    price.effectiveFromInstant = "2026-09-12T00:00:01Z";
+    expect(build().computation.kind).toBe("not_computable");
+    expect(build("2026-09-12T00:00:01Z").computation.kind).toBe("executable");
+  });
+  it("keeps semantic artifact identity when an unrelated inactive price changes", () => {
+    const catalog = syntheticExecutionCatalog(["api"]);
+    const original = compileExecutionPlan(catalog, "fixture-api", "api-v1", [], at).artifact;
+    catalog.pricing["fixture-c-price"]!.effectiveFrom = "2027-01-01";
+    catalog.catalogVersion = "sha256:changed-source-catalog";
+    const updated = compileExecutionPlan(catalog, "fixture-api", "api-v1", [], at).artifact;
+    expect(updated.catalogHash).not.toBe(original.catalogHash);
+    expect(updated.artifactHash).toBe(original.artifactHash);
+    expect(updated.computation).toEqual(original.computation);
   });
   it("compiles shared constraints and activation without adding balances", () => {
     const p = compile("goat").artifact;

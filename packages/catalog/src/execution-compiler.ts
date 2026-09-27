@@ -15,11 +15,20 @@ import {
   executionVersionSchema,
 } from "./execution-authoring.js";
 
-export const EXECUTION_COMPILER_VERSION = "catalog-execution-c1-v2";
+export const EXECUTION_COMPILER_VERSION = "catalog-execution-c2a-v2";
 const lexical = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 const sorted = (values: string[]) => [...new Set(values)].sort(lexical);
 const hash = (value: unknown) =>
   `sha256:${createHash("sha256").update(stableStringify(value)).digest("hex")}`;
+
+/** C1 execution pricing references use half-open UTC validity, unlike legacy lookups. */
+function pricingValidAt(price: CatalogV1["pricing"][string] | undefined, rulesAt: string): boolean {
+  if (!price) return false;
+  const at = Date.parse(rulesAt);
+  const start = Date.parse(price.effectiveFromInstant ?? `${price.effectiveFrom}T00:00:00Z`);
+  const end = price.effectiveTo ? Date.parse(`${price.effectiveTo}T00:00:00Z`) : Infinity;
+  return Number.isFinite(at) && Number.isFinite(start) && at >= start && at < end;
+}
 
 function decimalParts(value: string): { n: bigint; scale: number } {
   const [whole, fraction = ""] = value.split(".");
@@ -218,8 +227,7 @@ export function compileExecutionPlan(
             p.currency !== selector.currency ||
             p.endpointId !== selector.endpointId ||
             p.rateVersion !== selector.rateVersion ||
-            p.effectiveFrom > rulesAt.slice(0, 10) ||
-            (p.effectiveTo && p.effectiveTo < rulesAt.slice(0, 10))
+            !pricingValidAt(p, rulesAt)
           ) {
             unresolved = `unverified or mismatched rate ${ref}`;
             break;
@@ -280,13 +288,21 @@ export function compileExecutionPlan(
         p?.verificationStatus !== "verified" ||
         p.basis !== r.basis ||
         p.endpointId !== r.endpointId ||
-        p.rateVersion !== r.rateVersion
+        p.rateVersion !== r.rateVersion ||
+        !pricingValidAt(p, rulesAt)
       ) {
         block("price_unknown", r.id, r.claimRefs);
         return undefined;
       }
       return {
         id: r.id,
+        pricingRef: r.pricingRef,
+        endpointId: r.endpointId,
+        rateVersion: r.rateVersion,
+        validity: {
+          start: new Date(p.effectiveFromInstant ?? `${p.effectiveFrom}T00:00:00Z`).toISOString(),
+          ...(p.effectiveTo ? { end: `${p.effectiveTo}T00:00:00Z` } : {}),
+        },
         denomination: r.denomination,
         rates: normalizeRateSet(p.rates),
         ...(p.tiers
@@ -439,8 +455,11 @@ export function compileExecutionPlan(
   }
   for (const r of v.routes) {
     const seen = new Set<string>();
-    if (v.purchase.kind === "subscription" && !r.debitIds.length)
-      throw new Error(`Included route ${r.id} has no debit`);
+    if (v.purchase.kind === "subscription" && !r.debitIds.length) {
+      if (!v.capabilities.some((capability) => capability.code === "opaque_capacity"))
+        throw new Error(`Included route ${r.id} has no debit`);
+      block("opaque_capacity", r.id, r.claimRefs);
+    }
     if (
       v.purchase.kind === "api" &&
       (!r.cash || r.debitIds.length || v.pools.length || v.constraints.length)
@@ -585,6 +604,19 @@ export function compileExecutionPlan(
       operationIds: sorted([...(operations.get(c.id) ?? [])]),
     }))
     .sort((a, b) => lexical(a.id, b.id));
+  const knownAccess = routes
+    .filter(
+      (route) =>
+        route.models.length > 0 &&
+        !trace.some((item) => item.subject === route.id && item.unresolved) &&
+        route.claimRefs.every((ref) =>
+          ["published_deterministic", "published_hard_limit", "synthetic"].includes(
+            claims.get(ref)?.certainty ?? "inferred",
+          ),
+        ),
+    )
+    .map(({ id, models, requirements, claimRefs }) => ({ id, models, requirements, claimRefs }))
+    .sort((a, b) => lexical(a.id, b.id));
   const computation: CompiledExecutionPlanV2["computation"] = reasons.length
     ? {
         kind: "not_computable",
@@ -616,9 +648,16 @@ export function compileExecutionPlan(
     validity: { start: v.validity.start, end: v.validity.end, basis: v.validity.basis },
     purchase,
     requirements: requirements.sort((a, b) => lexical(a.id, b.id)),
+    knownAccess,
     computation,
     claims: usedClaimRows,
   };
-  const artifact = compiledExecutionPlanV2Schema.parse({ ...content, artifactHash: hash(content) });
+  // The source catalog hash is provenance, not an executable dependency. An unrelated
+  // inactive rate may change it without changing this plan's semantic identity.
+  const { catalogHash: _sourceCatalogHash, ...semanticContent } = content;
+  const artifact = compiledExecutionPlanV2Schema.parse({
+    ...content,
+    artifactHash: hash(semanticContent),
+  });
   return { artifact, resolutionTrace: trace.sort((a, b) => lexical(a.subject, b.subject)) };
 }

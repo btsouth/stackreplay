@@ -135,6 +135,14 @@ describe("C1 compiler to O3B.1", () => {
     expect(result.candidates.find((c) => c.id === "fixture-claude")?.status).toBe("not_computable");
     expect(input.plan.purchase).toMatchObject({ fixedUsd: "100" });
     expect(result.candidates.find((c) => c.id === "api")?.status).toBe("feasible");
+    expect(result.artifacts.find((a) => a.planId === "fixture-claude")).toMatchObject({
+      purchase: { kind: "subscription", fixedUsd: "100", term: "month" },
+      knownAccess: [{ id: "included-a", models: ["fixture-a"] }],
+      nonComputableReasons: [{ code: "opaque_capacity" }],
+    });
+    expect(
+      result.explanation?.assignments.every((a) => a.resourceInstanceId !== "fixture-claude"),
+    ).toBe(true);
   });
   it("GOAT-like: one pool, four simultaneous views and local initial state", () => {
     const input = fixture("goat", { start: monthStart, end: "2026-09-13T00:00:00Z" });

@@ -82,6 +82,11 @@ export interface CompiledOptimizationResult {
     planVersionId: string;
     claims: CompiledExecutionPlan["claims"];
     meters: unknown[];
+    knownAccess?: NonNullable<
+      Extract<CompiledExecutionPlan, { contractVersion: 2 }>["knownAccess"]
+    >;
+    nonComputableReasons?: ExecutionReason[];
+    purchase?: CompiledExecutionPlan["purchase"];
   }[];
   candidates: CompiledCandidate[];
   search: {
@@ -687,6 +692,15 @@ export function optimizeCompiledExactModels(
       planVersionId: a.planVersionId,
       claims: a.claims,
       meters: a.computation.kind === "executable" ? a.computation.meters : [],
+      ...(a.contractVersion === 2
+        ? {
+            purchase: a.purchase,
+            knownAccess: a.knownAccess ?? [],
+            ...(a.computation.kind === "not_computable"
+              ? { nonComputableReasons: a.computation.reasons }
+              : {}),
+          }
+        : {}),
     })),
     candidates: candidates.sort(compareCompiledCandidates),
     search: {

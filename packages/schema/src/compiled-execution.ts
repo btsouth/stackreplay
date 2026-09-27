@@ -249,9 +249,31 @@ export const executionWindowV2Schema = z.discriminatedUnion("kind", [
 ]);
 export const compiledExecutionPlanV2Schema = compiledExecutionPlanV1Schema.extend({
   contractVersion: z.literal(2),
+  /** Descriptive, evidenced access only. This never supplies executable capacity. */
+  knownAccess: z
+    .array(
+      z.strictObject({
+        id,
+        models: z.array(id).min(1).max(256),
+        requirements: z.array(requirement).max(64),
+        claimRefs: refs,
+      }),
+    )
+    .max(256)
+    .optional(), // Older v2 artifacts remain valid and retain their original hashes.
   computation: z.discriminatedUnion("kind", [
     compiledExecutionPlanV1Schema.shape.computation.options[0],
     compiledExecutionPlanV1Schema.shape.computation.options[1].extend({
+      rates: z
+        .array(
+          compiledExecutionPlanV1Schema.shape.computation.options[1].shape.rates.element.extend({
+            pricingRef: id.optional(),
+            endpointId: id.optional(),
+            rateVersion: id.optional(),
+            validity: z.strictObject({ start: instant, end: instant.optional() }).optional(),
+          }),
+        )
+        .max(256),
       windows: z.array(executionWindowV2Schema).max(32),
     }),
   ]),
