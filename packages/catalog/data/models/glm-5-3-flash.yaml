@@ -4,7 +4,29 @@ name: "GLM 5.3 Flash"
 developerId: z-ai
 providerIds:
   - z-ai
+  - command-code
+  - ollama
 aliases:
+  - id: glm-5-3-flash-ollama-cloud-model-code
+    alias: "glm-5.3-flash:cloud"
+    kind: harness_alias
+    harness: ollama
+    sources:
+      - url: https://registry.ollama.com/library/glm-5.3-flash
+        title: "Ollama Cloud exact model code glm-5.3-flash:cloud"
+        checkedAt: 2026-09-27
+    lastVerifiedAt: 2026-09-27
+    verificationStatus: verified
+  - id: glm-5-3-flash-command-code-model-code
+    alias: "z-ai/glm-5.3-flash"
+    kind: harness_alias
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/models/glm-5-3-flash
+        title: "Command Code exact model code z-ai/glm-5.3-flash"
+        checkedAt: 2026-09-27
+    lastVerifiedAt: 2026-09-27
+    verificationStatus: verified
   - id: glm-5-3-flash-z-ai-api-model-code
     alias: "glm-5.3-flash"
     kind: provider_id

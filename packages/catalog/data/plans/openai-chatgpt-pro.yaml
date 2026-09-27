@@ -148,3 +148,150 @@ versions:
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: openai-chatgpt-pro-current-20260927
+  productId: chatgpt-pro-100
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '100'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: help.openai.com
+    sourceUrl: https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: ChatGPT Pro $100 with Codex current at review; historical effective date not established.
+    normalizedClaimHash: sha256:07739df8ba3f026061f6773b633a953d8142cc648895aa6faa6ab496bbb09e97
+    evidencePackageHash: sha256:0d0f77ba99eacdb9fe54aecaadf163b9fb7406a9ab3b62efb2d935352fef4965
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: help.openai.com
+    sourceUrl: https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: ChatGPT Pro $100 with Codex web individual subscription is USD 100 per month.
+    normalizedClaimHash: sha256:9a54ba717c3090ff9c434ce473a368f55647589a78f16d7ea9dd6c88bcc856a3
+    evidencePackageHash: sha256:1dde50cc56f632376958b1abebe321068f9c8b0f1188b3a9cb2941646d9f68b4
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: learn.chatgpt.com
+    sourceUrl: https://learn.chatgpt.com/docs/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active ChatGPT Pro $100 with Codex includes openai-codex-subscription access; this is not a direct
+      API entitlement.
+    normalizedClaimHash: sha256:00b6b9bd6ee8b751722264238ad6fcde9fad8a6c65f8a731a45d75142e00560b
+    evidencePackageHash: sha256:3ca32021642fe5ebb02ff225cfd9de25f0144f4d70d5aff77ca945cf0a21f4ba
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: learn.chatgpt.com
+    sourceUrl: https://learn.chatgpt.com/docs/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for openai-codex-subscription: gpt-6-sol, gpt-6-luna.'
+    normalizedClaimHash: sha256:8a019b1efbc6cf20af83ee93af2d3d14f0b5c35656466bb0c8de313172f9ed0f
+    evidencePackageHash: sha256:d66e8b2bedef134080c991c05867856f6cfe3717414e40db739d0a0b7e806652
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: help.openai.com
+    sourceUrl: https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_relative_limit
+    locator: Usage or capacity mechanics
+    excerpt: Pro $100 is currently purchasable and offers five times Plus usage, but per-model and shared Codex
+      limits are dynamic and unquantified.
+    normalizedClaimHash: sha256:a99148908ae697852ae4ae1b8b370f87aed0dd1dac3b019265b125ce717e8d21
+    evidencePackageHash: sha256:f25ccdf22c057273f05deab776a113544a8268e2b37a79af5968881aeec9026e
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: help.openai.com
+    sourceUrl: https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for ChatGPT Pro $100 with Codex depends on optional purchase, changing limits, or account
+      state and is not established for deterministic replay.
+    normalizedClaimHash: sha256:9570d6d358312c320e1732da8c1b71ea8e349bbcb6f4c6e4412af8811001213e
+    evidencePackageHash: sha256:21e43bb56fbefed6d5da3b651ab4548e6baa3d077740d876f12dde58418c4794
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-openai-chatgpt-pro-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: openai-codex-subscription
+    protocol: codex-login
+    harnessIds:
+    - codex
+    models:
+      kind: exact
+      modelIds:
+      - gpt-6-sol
+      - gpt-6-luna
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: relative-shared-codex-allowance
+    claimRefs:
+    - capacity

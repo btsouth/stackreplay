@@ -166,3 +166,148 @@ versions:
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-claude-max-20x-current-20260927
+  productId: claude-max
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '200'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: Claude Max 20x current at review; historical effective date not established.
+    normalizedClaimHash: sha256:ce3605c0e2b85748a82f407f93502dd1642de3a3e8e5f210224c25b68a318864
+    evidencePackageHash: sha256:74a678adbdcadc1357629084feb8d99e528e86600adf52610f4149d49168e254
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: Claude Max 20x web individual subscription is USD 200 per month.
+    normalizedClaimHash: sha256:3609fbc1188f5bca65e713f2f21a475d1396549a6488d27f15681f2f9c33226f
+    evidencePackageHash: sha256:197654340ae10da9c23251b0d5f20b30c2058f518504e4781f8ce133c07dd0e1
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active Claude Max 20x includes claude-code-subscription access; this is not a direct API entitlement.
+    normalizedClaimHash: sha256:02e569a824de45bed7bbb8ec014d50380efdb653081b5b40768d1d203eae9a50
+    evidencePackageHash: sha256:7aaf6f40441c295450835241561d10986e31fef06c40558904cd52f3d7d82fd6
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11940350-claude-code-model-configuration
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for claude-code-subscription: claude-haiku-4-5, claude-sonnet-5.'
+    normalizedClaimHash: sha256:2eb766f30b5a69d67cda11ed10e052b372da23690320367b57786407e0f3a9e9
+    evidencePackageHash: sha256:36f4a63534ce7233af15748a048531f79b3fdd730253242b3c92b3d092150112
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_relative_limit
+    locator: Usage or capacity mechanics
+    excerpt: Twenty times Pro session usage is relative; weekly and discretionary limits lack deterministic values.
+    normalizedClaimHash: sha256:0ba0cdab13e25bed7832cba93104c6bd7d35253420f2ff640a65ea26559ca94f
+    evidencePackageHash: sha256:4ba5d29b424c9834b9c5628e681e7feb26c910d5b0b9265cd64b9d3b09a3f971
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for Claude Max 20x depends on optional purchase, changing limits, or account state and
+      is not established for deterministic replay.
+    normalizedClaimHash: sha256:177dcda2601d522771059a25f56c8aeece46659d56bd92f89fade2c8fb27f5e7
+    evidencePackageHash: sha256:0d5c58c4a1acb8b4bccbdfec88e3ba4e25085bbdf143d0e35be414d4ea511ba4
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-anthropic-claude-max-20x-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: claude-code-subscription
+    protocol: claude-code-login
+    harnessIds:
+    - claude-code
+    models:
+      kind: exact
+      modelIds:
+      - claude-haiku-4-5
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: relative-session-and-weekly-capacity
+    claimRefs:
+    - capacity

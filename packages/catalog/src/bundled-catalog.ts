@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:3ef241ff0b682f8b4a8691f90c574ba7891103e3e9d52edf40a9b89ca077fca1";
+export const BUNDLED_CATALOG_VERSION = "sha256:7bae27ce2f09c6f2de52e5db0bddd009bb38b1868c1bb2943a6069c83c35e1c4";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:3ef241ff0b682f8b4a8691f90c574ba7891103e3e9d52edf40a9b89ca077fca1",
+  "catalogVersion": "sha256:7bae27ce2f09c6f2de52e5db0bddd009bb38b1868c1bb2943a6069c83c35e1c4",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -30,6 +30,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "command-code": {
+      "id": "command-code",
+      "role": "provider",
+      "name": "Command Code",
+      "sources": [
+        {
+          "url": "https://commandcode.ai/docs/resources/pricing-limits",
+          "title": "Official current pricing and plans",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
     "cursor": {
@@ -129,6 +143,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://kiro.dev/pricing/",
           "title": "Kiro official pricing",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "ollama": {
+      "id": "ollama",
+      "role": "provider",
+      "name": "Ollama",
+      "sources": [
+        {
+          "url": "https://ollama.com/pricing",
+          "title": "Official current pricing and plans",
           "checkedAt": "2026-09-27"
         }
       ],
@@ -1379,9 +1407,41 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "GLM 5.3 Flash",
       "developerId": "z-ai",
       "providerIds": [
-        "z-ai"
+        "z-ai",
+        "command-code",
+        "ollama"
       ],
       "aliases": [
+        {
+          "id": "glm-5-3-flash-ollama-cloud-model-code",
+          "alias": "glm-5.3-flash:cloud",
+          "kind": "harness_alias",
+          "harness": "ollama",
+          "sources": [
+            {
+              "url": "https://registry.ollama.com/library/glm-5.3-flash",
+              "title": "Ollama Cloud exact model code glm-5.3-flash:cloud",
+              "checkedAt": "2026-09-27"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-27",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-3-flash-command-code-model-code",
+          "alias": "z-ai/glm-5.3-flash",
+          "kind": "harness_alias",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/models/glm-5-3-flash",
+              "title": "Command Code exact model code z-ai/glm-5.3-flash",
+              "checkedAt": "2026-09-27"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-27",
+          "verificationStatus": "verified"
+        },
         {
           "id": "glm-5-3-flash-z-ai-api-model-code",
           "alias": "glm-5.3-flash",
@@ -2575,6 +2635,148 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "anthropic-api-sonnet-5": {
+      "id": "anthropic-api-sonnet-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Sonnet 5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-sonnet-5-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current model listing",
+              "excerpt": "Anthropic API: Claude Sonnet 5 current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:8b8d053abbce04740ef770ff20474cfd90360c6000879842e121480667638b7b",
+              "evidencePackageHash": "sha256:044ed2f7043f01946b576f0491771b00fbc9a18176c2979a4e2078e2a4eda65d",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "API model and endpoint",
+              "excerpt": "Exact claude-sonnet-5 served through anthropic-messages-global using anthropic-messages; separate paid API credentials required.",
+              "normalizedClaimHash": "sha256:b537c273eb1364304034f1b4ecfd4e423ea378c5be3e9a985524133fe5e98a13",
+              "evidencePackageHash": "sha256:ec8560c62d8f6f728ee41dc65810b1f430cf1c21ea37c71973ad8774e4d668ff",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Standard text pricing",
+              "excerpt": "USD per 1M token categories {\"cacheRead\": \"0.20\", \"input\": \"2\", \"output\": \"10\"}; any separate categories or modes remain outside this route.",
+              "normalizedClaimHash": "sha256:b8a7721c939e75663ed36fa99bfb0d939dc0a333b9ec398fdc5ea317d8da69e5",
+              "evidencePackageHash": "sha256:0805cdb05e5cc19380a81219a3003877caf7cbd14565fb38172b4945df26d7db",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-sonnet-5-current-rate",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ]
+    },
     "anthropic-claude-max-20x": {
       "id": "anthropic-claude-max-20x",
       "role": "plan",
@@ -2853,6 +3055,188 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-claude-max-20x-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "claude-max",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "200",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "Claude Max 20x current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:ce3605c0e2b85748a82f407f93502dd1642de3a3e8e5f210224c25b68a318864",
+              "evidencePackageHash": "sha256:74a678adbdcadc1357629084feb8d99e528e86600adf52610f4149d49168e254",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "Claude Max 20x web individual subscription is USD 200 per month.",
+              "normalizedClaimHash": "sha256:3609fbc1188f5bca65e713f2f21a475d1396549a6488d27f15681f2f9c33226f",
+              "evidencePackageHash": "sha256:197654340ae10da9c23251b0d5f20b30c2058f518504e4781f8ce133c07dd0e1",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active Claude Max 20x includes claude-code-subscription access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:02e569a824de45bed7bbb8ec014d50380efdb653081b5b40768d1d203eae9a50",
+              "evidencePackageHash": "sha256:7aaf6f40441c295450835241561d10986e31fef06c40558904cd52f3d7d82fd6",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for claude-code-subscription: claude-haiku-4-5, claude-sonnet-5.",
+              "normalizedClaimHash": "sha256:2eb766f30b5a69d67cda11ed10e052b372da23690320367b57786407e0f3a9e9",
+              "evidencePackageHash": "sha256:36f4a63534ce7233af15748a048531f79b3fdd730253242b3c92b3d092150112",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_relative_limit",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Twenty times Pro session usage is relative; weekly and discretionary limits lack deterministic values.",
+              "normalizedClaimHash": "sha256:0ba0cdab13e25bed7832cba93104c6bd7d35253420f2ff640a65ea26559ca94f",
+              "evidencePackageHash": "sha256:4ba5d29b424c9834b9c5628e681e7feb26c910d5b0b9265cd64b9d3b09a3f971",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for Claude Max 20x depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:177dcda2601d522771059a25f56c8aeece46659d56bd92f89fade2c8fb27f5e7",
+              "evidencePackageHash": "sha256:0d5c58c4a1acb8b4bccbdfec88e3ba4e25085bbdf143d0e35be414d4ea511ba4",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-anthropic-claude-max-20x-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "claude-code-subscription",
+              "protocol": "claude-code-login",
+              "harnessIds": [
+                "claude-code"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-haiku-4-5",
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "relative-session-and-weekly-capacity",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -3602,6 +3986,393 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "lastVerifiedAt": "2026-09-24",
           "verificationStatus": "verified"
         }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-claude-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "claude-pro",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "20",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "Claude Pro current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:125aec231f013036bb3f8b018609928fe32021e17c221309fd92e6288b85a8c2",
+              "evidencePackageHash": "sha256:24e4d12cf9357570cb5b0d8274cf37afba1b921c85d31f16e02e7540930a312f",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "Claude Pro web individual subscription is USD 20 per month.",
+              "normalizedClaimHash": "sha256:fdecf994e9a28a2ad8979644c4cbd6fdc1acea30774541c679a186846daf602d",
+              "evidencePackageHash": "sha256:43c6040f62147c8e1340f2a7c3a56065e39eb7fec53e05ff1d234ada6970a32c",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active Claude Pro includes claude-code-subscription access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:fb5d9f3f659785a7f03105b318dc2ab739e363f2dd5895e8c8aded94e428a19c",
+              "evidencePackageHash": "sha256:c080717438a5645ebabd74038c38c19159ac9af6ab96dd143eaab001c7c4e0ab",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for claude-code-subscription: claude-haiku-4-5, claude-sonnet-5.",
+              "normalizedClaimHash": "sha256:2eb766f30b5a69d67cda11ed10e052b372da23690320367b57786407e0f3a9e9",
+              "evidencePackageHash": "sha256:36f4a63534ce7233af15748a048531f79b3fdd730253242b3c92b3d092150112",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Five-hour and account-assigned weekly usage limits vary by model and usage; no deterministic allowance is published.",
+              "normalizedClaimHash": "sha256:dd0654333d7e5e97cde342168756e5bdf614dc9dc0c36f175dbf23f20e54d18c",
+              "evidencePackageHash": "sha256:1b254a8b572dff6f16049eb96d2222d891c107f1c1f083cc572b2d5ce09d11fd",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "support.claude.com",
+              "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for Claude Pro depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:1a4241bff97dbed4c1788b15cd747d4cd2499235df7f1fc72169717333b8e604",
+              "evidencePackageHash": "sha256:4dd3a38c69585bb9ac3fb388290d7fadaaa9fcc28a8ea7b899d125164cadd6a8",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-anthropic-claude-pro-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "claude-code-subscription",
+              "protocol": "claude-code-login",
+              "harnessIds": [
+                "claude-code"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-haiku-4-5",
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "dynamic-session-and-weekly-capacity",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "command-code-goat": {
+      "id": "command-code-goat",
+      "role": "plan",
+      "name": "Command Code GOAT",
+      "providerId": "command-code",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "command-code-goat-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "command-code-goat",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "10",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "Command Code GOAT current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:cf984cb10e7f7851e98fe255fb7066608026e446a24e4df60131e95a59058315",
+              "evidencePackageHash": "sha256:e4aa74e748f68c92e198ff51332f1c50618836582335b6ab58b1ee06962ca944",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "Command Code GOAT web individual subscription is USD 10 per month.",
+              "normalizedClaimHash": "sha256:cb30d6e23e590bff6c48b766d06bd955d7ff6bbe2f7aec2fb14cfb607918e220",
+              "evidencePackageHash": "sha256:d5932348c3e799a280825a7a97cda5442126189dda4d0a1ac4829ae7e6e4a86f",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/models/glm-5-3-flash",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active Command Code GOAT includes command-code-goat access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:25a2ac77731a1ff3aff4f5eeed506d6e8b7a070e4b4cb004898c70866ba2a023",
+              "evidencePackageHash": "sha256:5182cf9e2f744324558bfde5df067d0ce74d8defb879a4ac124b86f6f605f63c",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/plans/goat",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for command-code-goat: glm-5-3-flash.",
+              "normalizedClaimHash": "sha256:ed74f3a341ed206d8b9a3bf5c88b5db62c634ba9f499a3f2a35e7a6596487441",
+              "evidencePackageHash": "sha256:1ac7aae290feb2e8e36f051d8763ed043859918a2c32f97ddafec9c0b3a49f27",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "GOAT publishes USD 70 monthly usage value, USD 14 five-hour and USD 35 weekly slices, model-specific allowances, and first-use-anchored windows.",
+              "normalizedClaimHash": "sha256:2ac4b3a5a61a31397d5bb8d822a7655a5e1df0b246480ee27f916b0e816bbe79",
+              "evidencePackageHash": "sha256:214de24d3588198c35b5546655b5ccffae52327da51794fd6b3bc5269a1b3759",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for Command Code GOAT depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:8984b28d7a1f5e5ada34136a8612f4ae9616496381531cd9fb42b4ac9e3869d2",
+              "evidencePackageHash": "sha256:6d5e9b0c6c41467ee98a22a36b612ab4023c31c1a56bfd04bf445f7a4c7a4d27",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "allowance",
+              "sourceId": "commandcode.ai",
+              "sourceUrl": "https://commandcode.ai/docs/plans/goat",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "GOAT model allowance",
+              "excerpt": "GLM-5.3 Flash has a USD 40 model-specific monthly allowance within GOAT; token rates are USD 0.15 input, 0.50 output, and 0.03 cache read per million.",
+              "normalizedClaimHash": "sha256:638e073eb32dfc711a6dc912988ad8144c3f4df4376da4717dbff86a1c5e48bf",
+              "evidencePackageHash": "sha256:d077d9c0d10f5c3ddf0bc248743c1c4fe2b391729f1260e6941fe32415b0b062",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-command-code-goat-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "command-code-goat",
+              "protocol": "command-code-cli",
+              "harnessIds": [
+                "command-code"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "glm-5-3-flash"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "first-use-model-ceilings-and-purchased-continuation",
+              "claimRefs": [
+                "capacity",
+                "allowance"
+              ]
+            }
+          ]
+        }
       ]
     },
     "cursor-hobby": {
@@ -4000,6 +4771,187 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "cursor-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "cursor-pro",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "20",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "Cursor Pro current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:ae50426ab2ee54ec4cf29046caf8f46292646c4fa0a79f2afba38aeaaac7b86b",
+              "evidencePackageHash": "sha256:284f0ef1bb947d6ab09a203c81da0f49c47b432575e532618d055321c71494db",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "Cursor Pro web individual subscription is USD 20 per month.",
+              "normalizedClaimHash": "sha256:cafefeb045041467d2199262915a5966bd2f36f9ce4875ff6fd802777afb24a0",
+              "evidencePackageHash": "sha256:ed3fbd4db207dc026b5dfaedfabab70cb7738c55688e2e3e08078607664d9fe1",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active Cursor Pro includes cursor-pro-agent access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:4af7c30cbe5de2beea990555dbbb8fe06c26645d20df3f82300336be745bee76",
+              "evidencePackageHash": "sha256:f34db090b013be8913396d5adbed53c4e5205417e376c031cbcc398a1304ed23",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for cursor-pro-agent: claude-sonnet-5.",
+              "normalizedClaimHash": "sha256:6bd59a5c691759f4ddd45e7433abcc091175c0e2bcd4b481390ba1022bce934a",
+              "evidencePackageHash": "sha256:3f914aaeb7131c2f7b026a61ac81753f4fefc7a0d7bf496aa15b4db7877917ab",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Pro has separate Cursor Models and Other Models pools, but current official documentation does not publish a fixed dollar amount for each pool. On-demand usage is optional.",
+              "normalizedClaimHash": "sha256:06f19f53616a608c815b57ae3623d9dc6e132be2eb0011f25acbe13397a3707c",
+              "evidencePackageHash": "sha256:d2877ce637c644d01ac704830472a295c1b6cc821c37df1f00e1db31fd225abb",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "cursor.com",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for Cursor Pro depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:0d49f0d6ac394c75ef39f6bec7fd83b8089930bc14565ef6980d2ce6d7050988",
+              "evidencePackageHash": "sha256:4e90cbe93b0257eec3847fe9d3f08a15a5192bea708141dddb33193ec85880ba",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-cursor-pro-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "cursor-pro-agent",
+              "protocol": "cursor-agent",
+              "harnessIds": [
+                "cursor"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "unpublished-named-pool-amounts",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -6497,6 +7449,204 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "github-copilot-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "github-copilot-pro",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "10",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "GitHub Copilot Pro current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:e6978503ea77558c4930eb5689e242a0b392f8ee8e1824f08b35326b27c39f44",
+              "evidencePackageHash": "sha256:0f47c9772899dd0a365ddd416e6590be99af04d61caaa3aa4c6bc34215aba690",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "GitHub Copilot Pro web individual subscription is USD 10 per month.",
+              "normalizedClaimHash": "sha256:2c32c1e9022e7de78cac3fb1397ad8da14cb5479fa9eb1c0e524700262c8cd82",
+              "evidencePackageHash": "sha256:21ea2128767dca2a7b9ce8d76689ca178d2aea41d4faf6c6ce452da3d22c7cd7",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active GitHub Copilot Pro includes github-copilot-individual access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:66d834e04cde925ee0e7699924f5515376e29bdb36727790e0ecebb7d8ce78c8",
+              "evidencePackageHash": "sha256:22b80c3ac72d0844f31f99047fe46fb21364a05c685d404982d799b4b30a6ded",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "raw.githubusercontent.com",
+              "sourceUrl": "https://raw.githubusercontent.com/github/docs/main/data/tables/copilot/model-supported-plans.yml",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for github-copilot-individual: claude-sonnet-5.",
+              "normalizedClaimHash": "sha256:17d29791005ff95c16a529c7afa84a5856c87bbbbe9fe4a83c31abc4b3599181",
+              "evidencePackageHash": "sha256:411f9ed689995fc6e52f10130a5eff14e6c3c64a05f25f6e3045bab001d292a3",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Current Pro has 1000 base and 500 flex GitHub AI Credits per month, reset on the first UTC; the flex allotment is variable, feature charges differ, and purchased overage is separate.",
+              "normalizedClaimHash": "sha256:8f1f6569d3874f17500d05aeb2304e544ff52dc493e16ca9130032a19d75fb9d",
+              "evidencePackageHash": "sha256:7c88984df06d2c3e768e9b1e6ce0d6dedb61d878cd31734482b82f056df4195a",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for GitHub Copilot Pro depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:88895bcecff7a64648e14b6442738a23b5c93e1079d583a8901547cd6003e28f",
+              "evidencePackageHash": "sha256:77977fd41a2eedd063efefcd3372f2c4cec15a42b4bf516de23af7cec4f57c1f",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "credits",
+              "sourceId": "docs.github.com",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "AI Credits allowance",
+              "excerpt": "Current Pro states 1000 base plus 500 flexible GitHub AI Credits per calendar month; 1 credit = USD 0.01.",
+              "normalizedClaimHash": "sha256:ffa77b75d359c1400ef0a4d89f99eedaab72d5d017546d3d7f5263ac6d43dd54",
+              "evidencePackageHash": "sha256:435a15dc22d2ae92ea8924d7fa8664016355b29b1a2e9ff2cc34566e824b811a",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-github-copilot-pro-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "github-copilot-individual",
+              "protocol": "copilot-cli",
+              "harnessIds": [
+                "copilot-cli"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-sonnet-5"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "variable-flex-and-feature-debit",
+              "claimRefs": [
+                "capacity",
+                "credits"
+              ]
+            }
+          ]
+        }
       ]
     },
     "google-ai-pro": {
@@ -7055,6 +8205,211 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "ollama-cloud-pro": {
+      "id": "ollama-cloud-pro",
+      "role": "plan",
+      "name": "Ollama Cloud Pro",
+      "providerId": "ollama",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "ollama-cloud-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "ollama-cloud-pro",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "20",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "Ollama Cloud Pro current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:85223b7ea28f637bd413d4279e4124da0e568adff965fc74a3a3170fb7eaf19e",
+              "evidencePackageHash": "sha256:7264dc2885a945d9b978af6b7aecdf37c391eb192924a8f00837683e276b28ff",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "Ollama Cloud Pro web individual subscription is USD 20 per month.",
+              "normalizedClaimHash": "sha256:ffc7acd5778302820ddc293bb781f4922e6b22db301fd889c0d8038fd1185d79",
+              "evidencePackageHash": "sha256:df7dcc2ae5bf5df0efe6eca6439bd4727919b6fcdfc82d40cbf4c76e3b916581",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/blog/transparent-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active Ollama Cloud Pro includes ollama-cloud-subscription access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:b4dd6467643e49e0aad33e1a385d9bb1feb64518ec18efe1f6a97c032124886b",
+              "evidencePackageHash": "sha256:cd5598aa12d60e03fed0ef115eec3c47b9d85270deb80502ae48fed4e15a7745",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "registry.ollama.com",
+              "sourceUrl": "https://registry.ollama.com/library/glm-5.3-flash",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for ollama-cloud-subscription: glm-5-3-flash.",
+              "normalizedClaimHash": "sha256:a1b9fcff050528f5528d83b1cb32ba848c9839f7338a7d35978c26f5f491876f",
+              "evidencePackageHash": "sha256:8b2a7ab30c46c404ba29a12608524f441fdd683ac8d85b9f93aea1da2fcd3ea7",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/blog/transparent-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "New Pro has USD 60 monthly included usage credits at per-token rates with billing-date resets; subscribers can continue after the allowance at the same rate.",
+              "normalizedClaimHash": "sha256:4a65788c77a9d443cdd4b89ebc1117c4e9e326c9c1a9a71eb0f250aed76ae6b0",
+              "evidencePackageHash": "sha256:917ebe96e49d09fee53e4fb214dd4e4b0dec2f722e99af5c05b9613be15fc90e",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/blog/transparent-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for Ollama Cloud Pro depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:4a096d404a279bdebda35e0082cf7cead5a606194159ce2fcb17b1bc230a9b58",
+              "evidencePackageHash": "sha256:a1c9fae3aab12e3f2bd31ed38c92956d2838d2575433b556dc4444c977bb7ba8",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "cohort",
+              "sourceId": "ollama.com",
+              "sourceUrl": "https://ollama.com/blog/transparent-pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "New versus legacy plans",
+              "excerpt": "New signups use the August 31 2026 token-priced plan; legacy subscribers can remain on prior terms.",
+              "normalizedClaimHash": "sha256:9830113830db5858c7655bdd1a549f4b1ab73a7e8184ca51aa0554ab2763b729",
+              "evidencePackageHash": "sha256:34a326ff5ad5374abf096754c6c0324a8ed813abe8938497fc38ccd347f1eb54",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-ollama-cloud-pro-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "ollama-cloud-subscription",
+              "protocol": "ollama-cloud",
+              "harnessIds": [
+                "ollama"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "glm-5-3-flash"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "purchased-usage-credit-continuation",
+              "claimRefs": [
+                "capacity",
+                "cohort"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "openai-api-gpt-5-4-mini": {
       "id": "openai-api-gpt-5-4-mini",
       "role": "plan",
@@ -7174,6 +8529,165 @@ export const BUNDLED_CATALOG: CatalogV1 = {
                 "kind": "exact",
                 "modelIds": [
                   "gpt-5-4-mini"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ]
+    },
+    "openai-api-gpt-6-sol": {
+      "id": "openai-api-gpt-6-sol",
+      "role": "plan",
+      "name": "OpenAI API: GPT-6 Sol",
+      "providerId": "openai",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "openai-api-gpt-6-sol-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "openai-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current model listing",
+              "excerpt": "OpenAI API: GPT-6 Sol current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:5c3d7993d6dda2806b52a783dfcb4e1dbdd931871c3cbef05a91bbda2de975e4",
+              "evidencePackageHash": "sha256:aeed2093878e5e6a6fded5a2ac1d6f1e671be13fb71f7b5b76bca170c6c70396",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "API model and endpoint",
+              "excerpt": "Exact gpt-6-sol served through openai-responses-standard using openai-responses; separate paid API credentials required.",
+              "normalizedClaimHash": "sha256:ac065df3a874a3f6a6df0752256ed855bf192d42fcf26920366d8f3e4412401f",
+              "evidencePackageHash": "sha256:c049e65f482a877b254f87ee35f852e97e17c07c3d295945d37b812b15e5602b",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Standard text pricing",
+              "excerpt": "USD per 1M token categories {\"cacheRead\": \"0.20\", \"cacheWrite\": \"2.50\", \"input\": \"2\", \"output\": \"10\", \"reasoning\": {\"billedAs\": \"output\"}}; any separate categories or modes remain outside this route.",
+              "normalizedClaimHash": "sha256:1ee840f22086e7cbfe91b3a8a5f7b8fa050659ec3d5a2037ecebada78f5ec42f",
+              "evidencePackageHash": "sha256:cb287db38a5aaac5365114f7c66e39547f55179c4474bf28b549570dc472982f",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "tier",
+              "sourceId": "developers.openai.com",
+              "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long-context pricing",
+              "excerpt": "Above 272000 input tokens, the published long-context rate applies to the whole request.",
+              "normalizedClaimHash": "sha256:8070861d733e6901a5fb1064b58738d37508450e215caa9e541ff11a3901b778",
+              "evidencePackageHash": "sha256:395b4e1738dd9aa1554831d2a496aa6f66c9ed361104c8fa292962cd7dff01c0",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "openai-api-gpt-6-sol-current-rate",
+              "basis": "api_list_price",
+              "endpointId": "openai-responses-standard",
+              "rateVersion": "current-20260927",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "tier"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "openai-responses-standard",
+              "protocol": "openai-responses",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "gpt-6-sol"
                 ]
               },
               "debitIds": [],
@@ -7671,6 +9185,188 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
         }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "openai-chatgpt-plus-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "chatgpt-plus",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "20",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "ChatGPT Plus with Codex current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:d4ba2ddc4d874a05f3520a0ee43bc961b513aa5b0e273c3f4c22fc1d73546a13",
+              "evidencePackageHash": "sha256:163255f739327e177b8e75c137eda3aecb08fad3f36f17167c1bb22e6cfd8b2a",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "ChatGPT Plus with Codex web individual subscription is USD 20 per month.",
+              "normalizedClaimHash": "sha256:b2d5331a91be8cb8a21b05a4fb0ff47b00ed9e8497ea84a95215c90bfcfdc753",
+              "evidencePackageHash": "sha256:0a485266aec45e286411092ce065fefb5a2e4d13fc9201b3d3f1f5ab57a964e2",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active ChatGPT Plus with Codex includes openai-codex-subscription access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:ddebe2f76cb16f24b0f1bbecb1c6d5806c064b7be93924e902406111cd367315",
+              "evidencePackageHash": "sha256:8b0875c2f4a297ce16e23549f5578610190b6ec43b98d348a3af38f240cfbf52",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for openai-codex-subscription: gpt-6-sol, gpt-6-luna.",
+              "normalizedClaimHash": "sha256:8a019b1efbc6cf20af83ee93af2d3d14f0b5c35656466bb0c8de313172f9ed0f",
+              "evidencePackageHash": "sha256:d66e8b2bedef134080c991c05867856f6cfe3717414e40db739d0a0b7e806652",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "provider_dynamic",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Codex and ChatGPT Work share usage; task size and model selection alter usage, with no published deterministic model-call allowance.",
+              "normalizedClaimHash": "sha256:732d33357a8e6e869c494aa92da1bdea67e3aaedd8b79934dc34643d29551242",
+              "evidencePackageHash": "sha256:d8d01f20e418553c0f586875acf3012def7a14f62ab1146afcaa6657523e53b1",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for ChatGPT Plus with Codex depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:49366acc48780ab4b8755f440e4dbdb6b62c7eb8f1a17491504fe3d93b1b0b2b",
+              "evidencePackageHash": "sha256:d61c070e0449083b7b595f49929c0ab0843947d164c55db1a62eea52f7e7c939",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-openai-chatgpt-plus-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "openai-codex-subscription",
+              "protocol": "codex-login",
+              "harnessIds": [
+                "codex"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "gpt-6-sol",
+                  "gpt-6-luna"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "shared-dynamic-codex-allowance",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
+        }
       ]
     },
     "openai-chatgpt-pro-20x": {
@@ -8104,6 +9800,188 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        }
+      ],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "openai-chatgpt-pro-current-20260927",
+          "validity": {
+            "start": "2026-09-27T17:38:00Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-27T17:38:00Z",
+            "reviewedAt": "2026-09-27T17:38:00Z",
+            "catalogActivatedAt": "2026-09-27T17:38:00Z"
+          },
+          "productId": "chatgpt-pro-100",
+          "purchase": {
+            "kind": "subscription",
+            "term": "month",
+            "fixedUsd": "100",
+            "claimRefs": [
+              "price"
+            ]
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "help.openai.com",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Current plan listing",
+              "excerpt": "ChatGPT Pro $100 with Codex current at review; historical effective date not established.",
+              "normalizedClaimHash": "sha256:07739df8ba3f026061f6773b633a953d8142cc648895aa6faa6ab496bbb09e97",
+              "evidencePackageHash": "sha256:0d0f77ba99eacdb9fe54aecaadf163b9fb7406a9ab3b62efb2d935352fef4965",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "price",
+              "sourceId": "help.openai.com",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Monthly price",
+              "excerpt": "ChatGPT Pro $100 with Codex web individual subscription is USD 100 per month.",
+              "normalizedClaimHash": "sha256:9a54ba717c3090ff9c434ce473a368f55647589a78f16d7ea9dd6c88bcc856a3",
+              "evidencePackageHash": "sha256:1dde50cc56f632376958b1abebe321068f9c8b0f1188b3a9cb2941646d9f68b4",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "route",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Execution entitlement",
+              "excerpt": "Active ChatGPT Pro $100 with Codex includes openai-codex-subscription access; this is not a direct API entitlement.",
+              "normalizedClaimHash": "sha256:00b6b9bd6ee8b751722264238ad6fcde9fad8a6c65f8a731a45d75142e00560b",
+              "evidencePackageHash": "sha256:3ca32021642fe5ebb02ff225cfd9de25f0144f4d70d5aff77ca945cf0a21f4ba",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "models",
+              "sourceId": "learn.chatgpt.com",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Supported model access",
+              "excerpt": "Exact canonical models established for openai-codex-subscription: gpt-6-sol, gpt-6-luna.",
+              "normalizedClaimHash": "sha256:8a019b1efbc6cf20af83ee93af2d3d14f0b5c35656466bb0c8de313172f9ed0f",
+              "evidencePackageHash": "sha256:d66e8b2bedef134080c991c05867856f6cfe3717414e40db739d0a0b7e806652",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "capacity",
+              "sourceId": "help.openai.com",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_relative_limit",
+              "locator": "Usage or capacity mechanics",
+              "excerpt": "Pro $100 is currently purchasable and offers five times Plus usage, but per-model and shared Codex limits are dynamic and unquantified.",
+              "normalizedClaimHash": "sha256:a99148908ae697852ae4ae1b8b370f87aed0dd1dac3b019265b125ce717e8d21",
+              "evidencePackageHash": "sha256:f25ccdf22c057273f05deab776a113544a8268e2b37a79af5968881aeec9026e",
+              "reviewer": "Codex C2B manual official-source review"
+            },
+            {
+              "id": "continuation",
+              "sourceId": "help.openai.com",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-what-is-chatgpt-pro/",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-27T17:38:00Z",
+              "reviewedAt": "2026-09-27T17:38:00Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "reviewer",
+              "certainty": "inferred",
+              "locator": "After allowance",
+              "excerpt": "Continuation for ChatGPT Pro $100 with Codex depends on optional purchase, changing limits, or account state and is not established for deterministic replay.",
+              "normalizedClaimHash": "sha256:9570d6d358312c320e1732da8c1b71ea8e349bbcb6f4c6e4412af8811001213e",
+              "evidencePackageHash": "sha256:21e43bb56fbefed6d5da3b651ab4548e6baa3d077740d876f12dde58418c4794",
+              "reviewer": "Codex C2B manual official-source review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "active-subscription",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-openai-chatgpt-pro-monthly-web",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "included-access",
+              "endpointId": "openai-codex-subscription",
+              "protocol": "codex-login",
+              "harnessIds": [
+                "codex"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "gpt-6-sol",
+                  "gpt-6-luna"
+                ]
+              },
+              "debitIds": [],
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "models"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "unknown",
+            "claimRefs": [
+              "continuation"
+            ]
+          },
+          "capabilities": [
+            {
+              "code": "opaque_capacity",
+              "subject": "relative-shared-codex-allowance",
+              "claimRefs": [
+                "capacity"
+              ]
+            }
+          ]
         }
       ]
     },
@@ -13239,6 +15117,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
+    "anthropic-api-sonnet-5-current-rate": {
+      "id": "anthropic-api-sonnet-5-current-rate",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260927",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.20"
+      },
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T17:38:00Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Current standard text token prices and exact model route",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
     "claude-fable-5-1-github-pricing": {
       "id": "claude-fable-5-1-github-pricing",
       "role": "pricing",
@@ -15885,6 +17790,55 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
           "title": "USD per 1M standard text input, output and cached-input tokens; regional, batch, fast and tool charges are outside this route.",
+          "checkedAt": "2026-09-27"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "openai-api-gpt-6-sol-current-rate": {
+      "id": "openai-api-gpt-6-sol-current-rate",
+      "role": "pricing",
+      "modelId": "gpt-6-sol",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "openai-responses-standard",
+      "rateVersion": "current-20260927",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.20",
+        "cacheWrite": "2.50",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 272K input tokens; higher rates apply to the full request",
+          "when": {
+            "inputTokensAbove": 272000
+          },
+          "rates": {
+            "input": "4",
+            "output": "15",
+            "cacheRead": "0.40",
+            "cacheWrite": "5",
+            "reasoning": {
+              "billedAs": "output"
+            }
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-27",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-27T17:38:00Z",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+          "title": "Current standard text token prices and exact model route",
           "checkedAt": "2026-09-27"
         }
       ],

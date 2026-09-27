@@ -1,0 +1,9 @@
+id: ollama
+role: provider
+name: Ollama
+sources:
+- url: https://ollama.com/pricing
+  title: Official current pricing and plans
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

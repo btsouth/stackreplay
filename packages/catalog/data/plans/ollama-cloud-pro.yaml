@@ -1,0 +1,165 @@
+id: ollama-cloud-pro
+role: plan
+name: Ollama Cloud Pro
+providerId: ollama
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: ollama-cloud-pro-current-20260927
+  productId: ollama-cloud-pro
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '20'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: Ollama Cloud Pro current at review; historical effective date not established.
+    normalizedClaimHash: sha256:85223b7ea28f637bd413d4279e4124da0e568adff965fc74a3a3170fb7eaf19e
+    evidencePackageHash: sha256:7264dc2885a945d9b978af6b7aecdf37c391eb192924a8f00837683e276b28ff
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: Ollama Cloud Pro web individual subscription is USD 20 per month.
+    normalizedClaimHash: sha256:ffc7acd5778302820ddc293bb781f4922e6b22db301fd889c0d8038fd1185d79
+    evidencePackageHash: sha256:df7dcc2ae5bf5df0efe6eca6439bd4727919b6fcdfc82d40cbf4c76e3b916581
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/blog/transparent-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active Ollama Cloud Pro includes ollama-cloud-subscription access; this is not a direct API entitlement.
+    normalizedClaimHash: sha256:b4dd6467643e49e0aad33e1a385d9bb1feb64518ec18efe1f6a97c032124886b
+    evidencePackageHash: sha256:cd5598aa12d60e03fed0ef115eec3c47b9d85270deb80502ae48fed4e15a7745
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: registry.ollama.com
+    sourceUrl: https://registry.ollama.com/library/glm-5.3-flash
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for ollama-cloud-subscription: glm-5-3-flash.'
+    normalizedClaimHash: sha256:a1b9fcff050528f5528d83b1cb32ba848c9839f7338a7d35978c26f5f491876f
+    evidencePackageHash: sha256:8b2a7ab30c46c404ba29a12608524f441fdd683ac8d85b9f93aea1da2fcd3ea7
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/blog/transparent-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Usage or capacity mechanics
+    excerpt: New Pro has USD 60 monthly included usage credits at per-token rates with billing-date resets; subscribers
+      can continue after the allowance at the same rate.
+    normalizedClaimHash: sha256:4a65788c77a9d443cdd4b89ebc1117c4e9e326c9c1a9a71eb0f250aed76ae6b0
+    evidencePackageHash: sha256:917ebe96e49d09fee53e4fb214dd4e4b0dec2f722e99af5c05b9613be15fc90e
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/blog/transparent-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for Ollama Cloud Pro depends on optional purchase, changing limits, or account state and
+      is not established for deterministic replay.
+    normalizedClaimHash: sha256:4a096d404a279bdebda35e0082cf7cead5a606194159ce2fcb17b1bc230a9b58
+    evidencePackageHash: sha256:a1c9fae3aab12e3f2bd31ed38c92956d2838d2575433b556dc4444c977bb7ba8
+    reviewer: Codex C2B manual official-source review
+  - id: cohort
+    sourceId: ollama.com
+    sourceUrl: https://ollama.com/blog/transparent-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: New versus legacy plans
+    excerpt: New signups use the August 31 2026 token-priced plan; legacy subscribers can remain on prior terms.
+    normalizedClaimHash: sha256:9830113830db5858c7655bdd1a549f4b1ab73a7e8184ca51aa0554ab2763b729
+    evidencePackageHash: sha256:34a326ff5ad5374abf096754c6c0324a8ed813abe8938497fc38ccd347f1eb54
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-ollama-cloud-pro-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: ollama-cloud-subscription
+    protocol: ollama-cloud
+    harnessIds:
+    - ollama
+    models:
+      kind: exact
+      modelIds:
+      - glm-5-3-flash
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: purchased-usage-credit-continuation
+    claimRefs:
+    - capacity
+    - cohort
