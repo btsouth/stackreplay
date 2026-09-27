@@ -106,15 +106,8 @@ function unsupported(message: string): never {
   throw new ReplayEngineError("TARGET_NOT_IMPLEMENTED", message);
 }
 
-/**
- * Evaluate a configured priority strategy, NOT an optimizer/search or a monthly forecast.
- * Each route reuses one whole replay pass. Rejected/unpriced calls continue to the next
- * route, and a successful call leaves the pending set exactly once. O(R * N log N),
- * bounded to 16 routes; no event-by-event replays or duplicate quota/price arithmetic.
- */
-export function evaluateStackCandidate(input: StackCandidateInput): StackCandidateResult {
-  const target = hybridTargetV1Schema.parse(input.target);
-  const context = replayContextV1Schema.parse(input.context);
+/** Shared validation for O1 evaluation and O2's single common scope. */
+export function prepareCandidateDemand(input: Pick<StackCandidateInput, "events" | "period">) {
   const period = periodSchema.parse(input.period);
   const start = parseInstant(period.start);
   const end = parseInstant(period.end);
@@ -123,17 +116,6 @@ export function evaluateStackCandidate(input: StackCandidateInput): StackCandida
     end.epochNanoseconds - start.epochNanoseconds > 31n * 24n * 60n * 60n * 1_000_000_000n
   )
     unsupported("A candidate requires a positive observation period of at most 31 days.");
-  if (target.routes.length > 16) unsupported("A candidate supports at most 16 routes.");
-  const ordered = [...target.routes].sort((a, b) => a.priority - b.priority);
-  const priorities = new Set<number>();
-  for (const route of ordered) {
-    if (priorities.has(route.priority)) unsupported("Route priorities must be unique.");
-    priorities.add(route.priority);
-    if (route.conditions !== undefined) unsupported("Conditional routes are not implemented.");
-    if (route.target.type === "local") unsupported("Local execution is not implemented.");
-    if (route.target.modelTranslation !== undefined)
-      unsupported("Stack candidates must preserve exact models.");
-  }
   const timed = sortTimedEvents(toTimedEvents(validateEvents(input.events)));
   // Reuse replay's lossless timestamps instead of allocating another Temporal
   // instant per event in a large workload.
@@ -151,6 +133,30 @@ export function evaluateStackCandidate(input: StackCandidateInput): StackCandida
       unsupported("Every event must lie inside the observation period.");
   }
   const events = timed.map(({ event }) => event);
+  return { events, timed, period };
+}
+
+/**
+ * Evaluate a configured priority strategy, NOT an optimizer/search or a monthly forecast.
+ * Each route reuses one whole replay pass. Rejected/unpriced calls continue to the next
+ * route, and a successful call leaves the pending set exactly once. O(R * N log N),
+ * bounded to 16 routes; no event-by-event replays or duplicate quota/price arithmetic.
+ */
+export function evaluateStackCandidate(input: StackCandidateInput): StackCandidateResult {
+  const target = hybridTargetV1Schema.parse(input.target);
+  const context = replayContextV1Schema.parse(input.context);
+  const { events, period } = prepareCandidateDemand(input);
+  if (target.routes.length > 16) unsupported("A candidate supports at most 16 routes.");
+  const ordered = [...target.routes].sort((a, b) => a.priority - b.priority);
+  const priorities = new Set<number>();
+  for (const route of ordered) {
+    if (priorities.has(route.priority)) unsupported("Route priorities must be unique.");
+    priorities.add(route.priority);
+    if (route.conditions !== undefined) unsupported("Conditional routes are not implemented.");
+    if (route.target.type === "local") unsupported("Local execution is not implemented.");
+    if (route.target.modelTranslation !== undefined)
+      unsupported("Stack candidates must preserve exact models.");
+  }
   const assignments = events.map(
     (event): StackAssignment => ({
       eventId: event.id,

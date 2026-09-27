@@ -18,7 +18,7 @@
  * ExecutionReplayResult. API, local and hybrid targets are schema-only.
  */
 
-export type { ApiEventPriceability } from "./api-replay.js";
+export type { ApiEventPriceability, ApiEventQuote } from "./api-replay.js";
 export {
   type BacktestAmountV1,
   type BacktestCaseInputV1,
@@ -46,9 +46,15 @@ export {
   type ReplayOptions,
   replay,
   replayObservingPriceability,
+  replayObservingQuotes,
   replayWithReceipt,
 } from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
+export {
+  compareExactCandidates,
+  explainExactCandidate,
+  optimizeExactModels,
+} from "./exact-optimizer.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
 export {
   type CapacityEvidenceV1,
@@ -60,6 +66,16 @@ export {
   type StackCandidateResult,
   type StackRouteEvaluation,
 } from "./optimizer.js";
+export type {
+  DemandGranularity,
+  ExactCandidateExplanation,
+  ExactCandidateSummary,
+  ExactExecutionResource,
+  ExactOptimizationInput,
+  ExactOptimizationResult,
+  InitialAllowanceState,
+  OptimizationScope,
+} from "./optimizer-types.js";
 export {
   crossingCount,
   dispositionCount,

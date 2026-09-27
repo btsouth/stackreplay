@@ -38,7 +38,7 @@ import {
   type WorkloadScopeKindV1,
   type WorkloadSummaryV1,
 } from "@stackreplay/schema";
-import { type ApiEventPriceability, replayApiTarget } from "./api-replay.js";
+import { type ApiEventPriceability, type ApiEventQuote, replayApiTarget } from "./api-replay.js";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
@@ -215,11 +215,28 @@ export function replayObservingPriceability(
   return replayWith(input, { observe });
 }
 
+/** Read exact event prices from the API replay pass without allocating receipt parts. */
+export function replayObservingQuotes(
+  input: ReplayInput,
+  observeQuote: (
+    event: TextUsageEventV1,
+    outcome: ApiEventPriceability,
+    quote: ApiEventQuote,
+  ) => void,
+): ExecutionReplayResultV1 {
+  return replayWith(input, { observeQuote });
+}
+
 function replayWith(
   input: ReplayInput,
   extras: {
     receipt?: PriceReceiptBuilder;
     observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+    observeQuote?: (
+      event: TextUsageEventV1,
+      outcome: ApiEventPriceability,
+      quote: ApiEventQuote,
+    ) => void;
     /** Subscription targets: told when each undecided event occurred. */
     onUndecided?: (occurredAt: string) => void;
     onSubscription?: ReplayObservers["subscription"];
@@ -245,7 +262,7 @@ function replayWith(
       extras,
     );
   }
-  if (extras.observe !== undefined)
+  if (extras.observe !== undefined || extras.observeQuote !== undefined)
     throw new ReplayEngineError(
       "TARGET_NOT_IMPLEMENTED",
       "Per-event priceability is reported for Direct API targets only.",
@@ -470,7 +487,7 @@ function dispositionOf(preparedEvent: PreparedEvent): ReplayDispositionKindV1 {
   }
 }
 
-function parseCatalog(catalog: CatalogV1): CatalogV1 {
+export function parseCatalog(catalog: CatalogV1): CatalogV1 {
   const parsed = catalogV1Schema.safeParse(catalog);
   if (!parsed.success) {
     throw new ReplayEngineError(

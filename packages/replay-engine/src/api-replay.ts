@@ -21,7 +21,7 @@ import type {
 } from "@stackreplay/schema";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
-import { type Decimal, ZERO } from "./money.js";
+import { type Decimal, toUnitString, ZERO } from "./money.js";
 import type { PriceReceiptBuilder } from "./receipt.js";
 import {
   buildWarnings,
@@ -109,6 +109,18 @@ export interface ApiReplayExtras {
   receipt?: PriceReceiptBuilder;
   /** Told how each event fared, so a caller can state a scope from the same pass. */
   observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+  observeQuote?: (
+    event: TextUsageEventV1,
+    outcome: ApiEventPriceability,
+    quote: ApiEventQuote,
+  ) => void;
+}
+
+/** Same per-event conversion used by replay and receipts; never a second calculator. */
+export interface ApiEventQuote {
+  modelId: string | undefined;
+  pricingId: string | undefined;
+  amount: string | undefined;
 }
 
 /**
@@ -351,23 +363,27 @@ export function replayApiTarget(
       if (pendingReceipt !== undefined)
         extras.receipt?.add({ ...pendingReceipt, multiplier: undefined });
     }
-    if (extras.observe !== undefined)
-      extras.observe(
-        event,
-        !identityEstablished
-          ? "unresolved"
-          : availability === "not-offered"
-            ? "not_offered"
-            : availability === "offering-unestablished"
-              ? "offering_unestablished"
-              : !tokens.known
-                ? "usage_incomplete"
-                : pricing.kind !== "selected"
-                  ? "price_not_recorded"
-                  : moneyUnits === undefined
-                    ? "price_category_undocumented"
-                    : "priced",
-      );
+    if (extras.observe !== undefined || extras.observeQuote !== undefined) {
+      const outcome: ApiEventPriceability = !identityEstablished
+        ? "unresolved"
+        : availability === "not-offered"
+          ? "not_offered"
+          : availability === "offering-unestablished"
+            ? "offering_unestablished"
+            : !tokens.known
+              ? "usage_incomplete"
+              : pricing.kind !== "selected"
+                ? "price_not_recorded"
+                : moneyUnits === undefined
+                  ? "price_category_undocumented"
+                  : "priced";
+      extras.observe?.(event, outcome);
+      extras.observeQuote?.(event, outcome, {
+        modelId: effectiveModelId,
+        pricingId: pricing.kind === "selected" ? pricing.pricing.id : undefined,
+        amount: moneyUnits === undefined ? undefined : toUnitString(moneyUnits),
+      });
+    }
 
     const needsPrice = availability === "offered";
     /**
