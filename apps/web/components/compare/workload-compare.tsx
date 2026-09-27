@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MissingWorkload } from "@/components/missing-workload";
+import { PartialScanNotice } from "@/components/workload/evidence";
 import { count, plainRange } from "@/components/workload/format";
+import { MarketDecisionSurface } from "@/components/workload/market-decision";
 import type { CompareDecision } from "@/lib/compare-decision";
-import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { browserTimeZone } from "@/lib/time-zone";
@@ -49,6 +51,7 @@ export function WorkloadCompare({
     if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
   }, [decision, importId, pathname, router]);
   const [rulesAsOf] = useState(defaultRulesDate);
+  useEffect(() => subscribeCurrentStack(() => setCurrent(readCurrentStack())), []);
 
   useEffect(() => {
     setCurrent(readCurrentStack());
@@ -170,69 +173,81 @@ export function WorkloadCompare({
       >
         Full admitted API equivalent · all recorded calls →
       </Link>
-      <section aria-labelledby="decision-heading">
-        <h2 id="decision-heading" className="text-lg font-medium">
-          What are you deciding?
-        </h2>
-        <p className="mt-1 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
-          Each choice compares the ways to buy one part of this work, using the same recorded calls
-          on both sides.
+      <PartialScanNotice record={record} briefing />
+      <MarketDecisionSurface key={record.id} importId={record.id} />
+      <details open={initialDecision !== undefined} data-testid="legacy-compare">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Inspect earlier source-scoped replay comparisons
+        </summary>
+        <p className="py-3 text-sm text-muted-foreground">
+          These historical replay views use separate pricing methods and may use a narrower tool
+          scope. The published market decision above is the common whole-workload answer. Any
+          period-adjusted fixed price below is analytical, not a purchase price.
         </p>
-        <div
-          className="mt-4 grid border-y border-border sm:grid-cols-2 lg:grid-cols-3"
-          data-testid="compare-decisions"
-        >
-          {choices.map((choice) => (
-            <button
-              key={choice.id}
-              type="button"
-              className={`min-h-24 border-b border-border border-l-2 px-3 py-4 text-left hover:bg-surface-2/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 ${decision === choice.id ? "border-l-accent bg-surface-2/60" : "border-l-transparent"}`}
-              onClick={() => setDecision(choice.id)}
-              disabled={choice.calls === 0}
-              aria-pressed={decision === choice.id}
-              data-testid={`compare-decision-${choice.id}`}
-            >
-              <span className="block text-sm font-medium">{choice.label}</span>
-              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-                {choice.description}
-              </span>
-              <span className="mt-2 block font-mono text-[11px] text-muted-foreground">
-                {choice.calls === 0 ? "none recorded" : `${count(choice.calls)} recorded calls`}
-              </span>
-            </button>
-          ))}
-        </div>
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          Thinking of moving work to other models? That is a Replay question: choose the work, then
-          the destination and your substitutions.{" "}
-          <Link
-            className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline sm:min-h-0"
-            href={`/app/replay?import=${record.id}`}
-            data-testid="compare-move-link"
+        <section aria-labelledby="decision-heading">
+          <h2 id="decision-heading" className="text-lg font-medium">
+            What are you deciding?
+          </h2>
+          <p className="mt-1 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
+            Each choice compares the ways to buy one part of this work, using the same recorded
+            calls on both sides.
+          </p>
+          <div
+            className="mt-4 grid border-y border-border sm:grid-cols-2 lg:grid-cols-3"
+            data-testid="compare-decisions"
           >
-            Move work in Replay →
-          </Link>
-        </p>
-      </section>
-      {decision === "claude" || decision === "codex" ? (
-        <PurchaseComparison
-          key={decision}
-          decision={decision}
-          record={record}
-          profile={profile}
-          current={current}
-          rulesAsOf={rulesAsOf}
-        />
-      ) : null}
-      {decision === "stack" ? (
-        <StackComparison
-          record={record}
-          profile={profile}
-          current={current}
-          rulesAsOf={rulesAsOf}
-          onCurrentChange={setStack}
-        />
-      ) : null}
+            {choices.map((choice) => (
+              <button
+                key={choice.id}
+                type="button"
+                className={`min-h-24 border-b border-border border-l-2 px-3 py-4 text-left hover:bg-surface-2/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 ${decision === choice.id ? "border-l-accent bg-surface-2/60" : "border-l-transparent"}`}
+                onClick={() => setDecision(choice.id)}
+                disabled={choice.calls === 0}
+                aria-pressed={decision === choice.id}
+                data-testid={`compare-decision-${choice.id}`}
+              >
+                <span className="block text-sm font-medium">{choice.label}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                  {choice.description}
+                </span>
+                <span className="mt-2 block font-mono text-[11px] text-muted-foreground">
+                  {choice.calls === 0 ? "none recorded" : `${count(choice.calls)} recorded calls`}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            Thinking of moving work to other models? That is a Replay question: choose the work,
+            then the destination and your substitutions.{" "}
+            <Link
+              className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline sm:min-h-0"
+              href={`/app/replay?import=${record.id}`}
+              data-testid="compare-move-link"
+            >
+              Move work in Replay →
+            </Link>
+          </p>
+        </section>
+        {decision === "claude" || decision === "codex" ? (
+          <PurchaseComparison
+            key={decision}
+            decision={decision}
+            record={record}
+            profile={profile}
+            current={current}
+            rulesAsOf={rulesAsOf}
+          />
+        ) : null}
+        {decision === "stack" ? (
+          <StackComparison
+            record={record}
+            profile={profile}
+            current={current}
+            rulesAsOf={rulesAsOf}
+            onCurrentChange={setStack}
+          />
+        ) : null}
+      </details>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import { useEffect, useState } from "react";
 import { MicroLabel } from "@/components/instrument/primitives";
-import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import { fixedDifference, marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient, SupersededError } from "@/lib/worker-client";
@@ -15,11 +16,21 @@ const subscriptions = DECISION_MARKET.plans.filter(
 );
 
 /** Presentation of durable engine receipts. Never prices or assigns workload events. */
-export function MarketDecisionSurface({ importId }: { importId: string }) {
+export function MarketDecisionSurface({
+  importId,
+  onResult,
+}: {
+  importId: string;
+  onResult?: (id: string, result: MarketDecision) => void;
+}) {
   const [decision, setDecision] = useState<MarketDecision>();
   const [error, setError] = useState<string>();
   const [selected, setSelected] = useState<TargetKey[]>([]);
-  useEffect(() => setSelected(readCurrentStack()), []);
+  useEffect(() => {
+    const refresh = () => setSelected(readCurrentStack());
+    refresh();
+    return subscribeCurrentStack(refresh);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     setDecision(undefined);
@@ -27,31 +38,35 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
     getWorkerClient()
       .apiMarket(importId, controller.signal)
       .then((result) => {
-        if (!controller.signal.aborted) setDecision(result);
+        if (!controller.signal.aborted) {
+          setDecision(result);
+          onResult?.(importId, result);
+        }
       })
       .catch((e: unknown) => {
-        if (!controller.signal.aborted && !(e instanceof SupersededError))
+        if (!controller.signal.aborted)
           setError(
-            "The published API calculation could not complete. Reopen this workload to retry.",
+            e instanceof SupersededError
+              ? "A newer analysis interrupted this calculation. Reopen this workload to calculate its published API equivalent."
+              : "The published API calculation could not complete. Reopen this workload to retry.",
           );
       });
     return () => controller.abort();
-  }, [importId]);
+  }, [importId, onResult]);
   const scenarios = decision?.scenarios ?? [];
   const first = scenarios[0]?.summary;
-  const comparable =
-    scenarios.length === 2 &&
-    scenarios.every(
-      (s) =>
-        s.summary.scope.digest === first?.scope.digest &&
-        s.summary.candidates[0]?.status === "feasible",
-    );
+  const range = marketRange(decision);
+  const comparable = range !== undefined;
   const totals = comparable ? scenarios.map((s) => s.summary.candidates[0]?.totalUsd ?? "0") : [];
   const different = totals.length === 2 && !new Decimal(totals[0] ?? "0").eq(totals[1] ?? "0");
-  const unlisted = selected.filter(
-    (key) => !subscriptions.some((p) => key === `plan:${p.id}`),
-  ).length;
-  const current = subscriptions.reduce(
+  const monthly = subscriptions.filter(
+    (p) =>
+      p.artifact.purchase.kind === "subscription" &&
+      p.artifact.purchase.term === "month" &&
+      p.artifact.purchase.fixedUsd !== null,
+  );
+  const unlisted = selected.filter((key) => !monthly.some((p) => key === `plan:${p.id}`)).length;
+  const current = monthly.reduce(
     (sum, p) =>
       sum.add(
         selected.includes(`plan:${p.id}`) && p.artifact.purchase.kind === "subscription"
@@ -70,11 +85,11 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
       <div className="flex flex-col gap-2">
         <MicroLabel>Published API equivalent</MicroLabel>
         <h2 id="api-market-heading" className="text-xl font-medium tracking-tight">
-          What would this workload cost?
+          What would your recorded work cost?
         </h2>
         {!decision && !error ? (
           <p role="status" className="text-sm text-muted-foreground">
-            Calculating the admitted direct API market locally…
+            Calculating what your exact models would cost through published APIs…
           </p>
         ) : null}
         {error ? (
@@ -100,10 +115,11 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
             <p className="max-w-3xl text-sm text-muted-foreground">
               {comparable
                 ? different
-                  ? "At published API prices, depending on cache-write duration, which this source does not record."
+                  ? "At published API prices. Claude cache-write duration is not recorded by this source, so StackReplay calculated both published possibilities."
                   : "At published API prices for the recorded workload."
                 : "Some required execution or pricing facts remain unknown. No missing price is treated as zero."}{" "}
-              This is an API counterfactual, not your actual bill or a subscription savings claim.
+              This is a published-price comparison, not your actual bill or a subscription savings
+              claim.
             </p>
             {decision.unavailable ? (
               <p className="text-sm" data-testid="market-coverage">
@@ -128,6 +144,86 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
           only. Tools, tax and negotiated rates excluded.
         </p>
       </div>
+      <section aria-label="Your current stack" className="border-y border-border-strong py-5">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <MicroLabel>Your current stack</MicroLabel>
+            <p className="mt-2 font-mono text-3xl tabular-nums" data-testid="decision-fixed-spend">
+              {selected.length ? `${dollars(current.toString())} / month` : "Not selected"}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Selected fixed subscriptions at listed monthly prices.
+              {unlisted > 0
+                ? ` ${unlisted} selection(s) have no admitted monthly price in this subtotal; the difference is withheld.`
+                : ""}
+            </p>
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center text-sm text-accent underline"
+              onClick={() => {
+                const element = document.getElementById("current-stack");
+                if (element instanceof HTMLDetailsElement) {
+                  element.open = true;
+                  element.scrollIntoView({ block: "start" });
+                  element.querySelector("summary")?.focus();
+                }
+              }}
+            >
+              Select or edit your subscriptions →
+            </button>
+            {subscriptions
+              .filter((p) => selected.includes(`plan:${p.id}`))
+              .map((p) => (
+                <p className="text-sm" key={p.id}>
+                  {p.name}
+                </p>
+              ))}
+          </div>
+          <div>
+            <MicroLabel>Difference versus published API equivalent</MicroLabel>
+            <p className="mt-2 font-mono text-2xl tabular-nums" data-testid="decision-difference">
+              {selected.length && range && !unlisted
+                ? `${dollars(fixedDifference(current.toString(), range).low)} – ${dollars(fixedDifference(current.toString(), range).high)}`
+                : "Select your stack to compare"}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              One monthly subscription bill versus this recorded workload
+              {first
+                ? ` (${first.scope.period.start.slice(0, 10)} to ${first.scope.period.end.slice(0, 10)})`
+                : ""}
+              . No monthly projection or prorating. This difference is not proven savings.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section aria-label="What StackReplay can tell you" className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <MicroLabel>
+            {comparable
+              ? "API cost known · under displayed assumptions"
+              : "API calculation incomplete"}
+          </MicroLabel>
+          <h3 className="mt-2 font-medium">What we can tell you</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {comparable
+              ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same workload. `
+              : "All imported calls stay in scope. Missing facts remain visible in the calculation below."}
+            {selected.length
+              ? " Your selected plans’ listed fixed prices are shown separately from API usage."
+              : " Add your subscriptions to compare their listed fixed prices with this recorded work."}
+          </p>
+        </div>
+        <div>
+          <MicroLabel>Subscription capacity unknown</MicroLabel>
+          <h3 className="mt-2 font-medium">What this does not establish</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Published subscription capacity is not deterministic enough to prove whether these plans
+            would handle your bursts without interruption. API usage may provide a different product
+            experience. This is not a recommendation to cancel a plan. Taxes, other tools and
+            negotiated prices are not included.
+          </p>
+        </div>
+      </section>
       {comparable ? (
         <section className="border-y border-border py-3" aria-label="API scenario results">
           {scenarios.map((s) => (
@@ -142,7 +238,7 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
       ) : null}
       {first?.explanation ? (
         <section aria-label="Current API market" className="flex flex-col gap-2">
-          <MicroLabel>Current API market · same workload</MicroLabel>
+          <MicroLabel>Exact models · published API routes</MicroLabel>
           {DECISION_MARKET.plans
             .filter((p) => p.artifact.purchase.kind === "api")
             .map((p) => {
@@ -170,7 +266,7 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
                   className="flex flex-wrap justify-between gap-2 border-b border-border py-2 text-sm"
                 >
                   <span>
-                    {p.name}{" "}
+                    {p.name.replace(/^.* API: /u, "")}{" "}
                     <span className="text-muted-foreground">· {values[0]?.calls} calls</span>
                   </span>
                   <span className="font-mono tabular-nums">
@@ -271,9 +367,9 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
             ))}
         </div>
       </details>
-      <details data-testid="market-subscriptions" className="text-sm">
+      <details id="current-stack" data-testid="market-subscriptions" className="text-sm">
         <summary className="cursor-pointer py-2 text-accent">
-          Known subscriptions · capacity cannot yet be compared exactly
+          Edit current stack · subscription prices, access and evidence
         </summary>
         <p className="py-3 text-muted-foreground">
           These commercial facts do not establish that a subscription could handle this workload.
@@ -282,7 +378,7 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
         </p>
         <fieldset>
           <legend className="py-2 font-medium">
-            Current subscriptions (up to four, saved only in this browser)
+            Select the subscriptions you pay for · saved only in this browser
           </legend>
           {subscriptions.map((p) => (
             <div key={p.id} className="border-b border-border py-3">
@@ -290,11 +386,10 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
                 <input
                   type="checkbox"
                   checked={selected.includes(`plan:${p.id}`)}
-                  disabled={selected.length >= 4 && !selected.includes(`plan:${p.id}`)}
                   onChange={(e) => {
                     const key: TargetKey = `plan:${p.id}`;
                     const next = e.target.checked
-                      ? [...selected, key].slice(0, 4)
+                      ? [...selected, key]
                       : selected.filter((id) => id !== key);
                     setSelected(next);
                     writeCurrentStack(next);
@@ -308,9 +403,16 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
                     : "Price unknown"}
                 </span>
               </label>
+              {p.claims
+                .filter((c) => c.id === "cohort")
+                .map((c) => (
+                  <p key={c.id} className="pb-2 pl-6 text-xs text-muted-foreground">
+                    Account terms: {c.excerpt}
+                  </p>
+                ))}
               <details className="pl-6">
                 <summary className="cursor-pointer py-1 text-muted-foreground">
-                  Why capacity is not computable · access and evidence
+                  Capacity not deterministically published · access and evidence
                 </summary>
                 <p>
                   {p.artifact.computation.kind === "not_computable"
@@ -341,14 +443,17 @@ export function MarketDecisionSurface({ importId }: { importId: string }) {
           ))}
         </fieldset>
         <p className="pt-4 font-mono" data-testid="market-current-spend">
-          Selected admitted subscription spend: ${current.toFixed(2)} per listed billing cycle
+          Selected fixed subscription spend: ${current.toFixed(2)} / month
         </p>
         {unlisted > 0 ? (
           <p className="pt-2 text-muted-foreground">
             {unlisted} previously selected target(s) are outside this admitted subscription list and
-            are not included in this subtotal. Edit those selections in Compare.
+            are not included in this subtotal. They do not count toward the displayed monthly spend.
           </p>
         ) : null}
+        <a href="#api-market" className="inline-flex min-h-11 items-center text-accent underline">
+          Return to your decision ↑
+        </a>
         <p className="pt-2 text-muted-foreground">
           Published sticker-price arithmetic only. Selecting a plan does not establish your
           eligibility, actual billed price, or that you should cancel it.

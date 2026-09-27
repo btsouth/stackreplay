@@ -105,6 +105,9 @@ test("a configured stack compares the whole workload with its published API equi
 }) => {
   const importId = await importMixed(page);
   await page.goto(`/app/compare?import=${importId}`);
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await expect(page.getByTestId("comparison-object")).toContainText("5,000 calls");
   await expect(page.getByTestId("comparison-object")).toContainText("Models as recorded");
@@ -115,6 +118,9 @@ test("a configured stack compares the whole workload with its published API equi
   await expect(page.getByTestId("stack-tool-breakdown")).toContainText("Command Code");
   await expect(page.getByTestId("stack-tool-breakdown")).toContainText("150 outside plans");
   await page.reload();
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await expect(page.getByTestId("compare-price")).toContainText("$300.00/month");
   await page.getByTestId("stack-plan-picker").locator("summary").click();

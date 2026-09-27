@@ -9,6 +9,7 @@ import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import { MissingWorkload } from "@/components/missing-workload";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
+import type { MarketDecision } from "@/lib/market-decision";
 import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { type ShareOptions, workloadShareV2 } from "@/lib/share-v2";
@@ -112,6 +113,11 @@ function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: 
  */
 export function WorkloadSurface({ initialImportId }: { initialImportId?: string | undefined }) {
   const client = getWorkerClient();
+  const [market, setMarket] = useState<{ id: string; result: MarketDecision }>();
+  const onMarket = useCallback(
+    (id: string, result: MarketDecision) => setMarket({ id, result }),
+    [],
+  );
   const [imports, setImports] = useState<ImportRecord[] | undefined>(undefined);
   const [importsError, setImportsError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
@@ -119,7 +125,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     typeof window === "undefined" ? "UTC" : browserTimeZone(),
   );
   const [useUtc, setUseUtc] = useState(false);
-  const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
+  const [profileState, setProfileState] = useState<{ id: string; profile: WorkloadProfile }>();
   const [error, setError] = useState<SafeError | undefined>(undefined);
   const [measure, setMeasure] = useState<Measure>("events");
 
@@ -150,6 +156,10 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     [imports, selectedId],
   );
   const timeZone = useUtc ? "UTC" : localZone;
+  const profile =
+    profileState?.id === record?.id && profileState?.profile.timeZone === timeZone
+      ? profileState.profile
+      : undefined;
 
   // A workload chosen here replaces a stale id in the address, so a reload or
   // Back returns to what is on screen rather than to the missing one.
@@ -165,7 +175,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     setError(undefined);
     try {
       const next = await loadWorkloadProfile(importId, zone);
-      if (!cancelled()) setProfile(next);
+      if (!cancelled()) setProfileState({ id: importId, profile: next });
     } catch (failure) {
       if (failure instanceof SupersededError || cancelled()) return;
       setError(describeWorkerFailure(failure));
@@ -175,7 +185,6 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
   useEffect(() => {
     if (record === undefined) return;
     let cancelled = false;
-    setProfile((current) => (current?.timeZone === timeZone ? current : undefined));
     void analyze(record.id, timeZone, () => cancelled);
     return () => {
       cancelled = true;
@@ -228,6 +237,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
   return (
     <div className="flex min-w-0 flex-col gap-8" data-testid="workload-surface">
       <WorkloadOpening
+        onMarket={onMarket}
         record={record}
         profile={profile}
         imports={imports}
@@ -254,6 +264,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         ) : null
       ) : (
         <WorkloadBody
+          decision={market?.id === record.id ? market.result : undefined}
           measure={measure}
           onMeasure={setMeasure}
           onUtc={setUseUtc}
@@ -395,6 +406,7 @@ function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
 }
 
 function WorkloadOpening({
+  onMarket,
   record,
   profile,
   imports,
@@ -404,6 +416,7 @@ function WorkloadOpening({
   profile: WorkloadProfile | undefined;
   imports: ImportRecord[];
   onSelect: (id: string) => void;
+  onMarket: (id: string, result: MarketDecision) => void;
 }) {
   const { summary } = record;
   const sources =
@@ -506,27 +519,30 @@ function WorkloadOpening({
         </div>
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
-      <MarketDecisionSurface key={record.id} importId={record.id} />
-      <section
-        className="flex min-w-0 flex-col gap-2 border-t border-border pt-5"
-        aria-label="Published API valuation"
-      >
-        <MicroLabel>Recorded provider valuation</MicroLabel>
-        <p className="text-xs text-muted-foreground">
-          Historical replay pricing view. The admitted market calculation above uses its own pinned
-          evidence and explicit cache assumptions; these are distinct pricing methods.
-        </p>
-        {profile?.value === undefined ? (
-          <>
+      {scanNotice}
+      <MarketDecisionSurface key={record.id} importId={record.id} onResult={onMarket} />
+      <details data-testid="legacy-workload">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Inspect earlier replay valuation
+        </summary>
+        <section
+          className="flex min-w-0 flex-col gap-2 border-t border-border pt-5"
+          aria-label="Published API valuation"
+        >
+          <MicroLabel>Recorded provider valuation</MicroLabel>
+          <p className="text-xs text-muted-foreground">
+            Historical replay pricing view. The admitted market calculation above uses its own
+            pinned evidence and explicit cache assumptions; these are distinct pricing methods.
+          </p>
+          {profile?.value === undefined ? (
             <p className="text-sm text-muted-foreground" role="status" data-testid="value-pending">
               Pricing each maker&apos;s calls at its own published API rates, in this browser…
             </p>
-            {scanNotice}
-          </>
-        ) : (
-          <WorkloadValueFigure value={profile.value} briefing afterScope={scanNotice} />
-        )}
-      </section>
+          ) : (
+            <WorkloadValueFigure value={profile.value} briefing />
+          )}
+        </section>
+      </details>
       <section
         className="grid min-w-0 gap-6 border-t border-border pt-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10"
         aria-label="What produced this workload and value"
@@ -575,6 +591,7 @@ function WorkloadOpening({
 }
 
 function WorkloadBody({
+  decision,
   profile,
   record,
   measure,
@@ -590,6 +607,7 @@ function WorkloadBody({
   useUtc: boolean;
   onUtc: (value: boolean) => void;
   localZone: string;
+  decision: MarketDecision | undefined;
 }) {
   // Every suggestion is chosen from how much of this workload the target runs
   // (lib/routes.ts), never from a fixed list.
@@ -602,8 +620,8 @@ function WorkloadBody({
     });
   }, [profile.sources, record]);
   const shareBuild = useCallback(
-    (options: ShareOptions) => workloadShareV2(record, profile, options),
-    [profile, record],
+    (options: ShareOptions) => workloadShareV2(record, profile, options, decision),
+    [profile, record, decision],
   );
   const apiRoute = routes.find((route) => route.id === "api-value");
   const numericRoute = routes.find((route) => route.id === "numeric-limits");
@@ -925,7 +943,16 @@ function WorkloadBody({
       </section>
 
       <div className="scroll-mt-36" id="share">
-        <SharePanelV2 build={shareBuild} kind="workload" />
+        <SharePanelV2
+          key={`${record.id}:${decision ? "ready" : "pending"}`}
+          build={shareBuild}
+          kind="workload"
+          refusal={
+            decision === undefined
+              ? "The published market calculation must finish before creating this share."
+              : undefined
+          }
+        />
       </div>
 
       <p

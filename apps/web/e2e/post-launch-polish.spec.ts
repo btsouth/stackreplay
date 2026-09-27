@@ -33,9 +33,18 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   page,
 }) => {
   await importDemo(page, "moderate");
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview")).toContainText("published API list prices");
   await page.getByTestId("open-workload").click();
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("workload-opening").getByTestId("value-figure")).toBeVisible();
   await expect(page.getByTestId("workload-opening")).toContainText(/demo|synthetic/iu);
 });

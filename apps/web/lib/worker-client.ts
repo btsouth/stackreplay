@@ -175,6 +175,7 @@ export class ReplayWorkerClient {
    * the next request starts a fresh Worker instead of queueing behind a dead one.
    */
   private failWorker(error: SafeError): void {
+    this.marketSummaries.clear();
     this.invalidateOptimizer();
     this.clearReadyTimer();
     const worker = this.worker;
@@ -351,6 +352,16 @@ export class ReplayWorkerClient {
         "IMPORT_FILE",
         "IMPORT_SOURCES",
         "IMPORT_DEMO",
+        "CLEAR_LOCAL_DATA",
+        "DELETE_LOCAL_IMPORT",
+      ].includes(request.type)
+    )
+      this.marketSummaries.clear();
+    if (
+      [
+        "IMPORT_FILE",
+        "IMPORT_SOURCES",
+        "IMPORT_DEMO",
         "CANCEL_IMPORT",
         "CLEAR_LOCAL_DATA",
         "DELETE_LOCAL_IMPORT",
@@ -376,6 +387,8 @@ export class ReplayWorkerClient {
     });
   }
 
+  private marketSummaries = new Map<string, MarketDecision>();
+
   private invalidateOptimizer(): void {
     this.optimizerAbortCleanup?.();
     this.optimizerAbortCleanup = undefined;
@@ -397,6 +410,8 @@ export class ReplayWorkerClient {
   }
   async apiMarket(importId: string, signal?: AbortSignal): Promise<MarketDecision> {
     if (signal?.aborted) throw new SupersededError();
+    const cached = this.marketSummaries.get(importId);
+    if (cached) return cached;
     let generation = 0;
     const pending = this.send(
       (requestId) => {
@@ -414,6 +429,12 @@ export class ReplayWorkerClient {
     this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
     const response = await pending;
     if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
+    if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
+    const oldest = this.marketSummaries.keys().next().value;
+    if (this.marketSummaries.size >= 3 && oldest !== undefined) this.marketSummaries.delete(oldest);
+    this.marketSummaries.set(importId, response.decision);
+    this.optimizerAbortCleanup?.();
+    this.optimizerAbortCleanup = undefined;
     return response.decision;
   }
   async optimize(
@@ -468,6 +489,7 @@ export class ReplayWorkerClient {
   }
   /** End all activity owned by this client, including child optimization, on owner teardown. */
   dispose(): void {
+    this.marketSummaries.clear();
     this.invalidateOptimizer();
     this.clearReadyTimer();
     this.worker?.terminate();

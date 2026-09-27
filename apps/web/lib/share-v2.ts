@@ -1,4 +1,5 @@
 import type { CatalogV1 } from "@stackreplay/catalog";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import {
   assertNoForbiddenFields,
@@ -10,6 +11,8 @@ import {
   shareableToolId,
   type VerdictFactsV1,
 } from "@stackreplay/share";
+import { marketRange } from "./decision-presentation";
+import type { MarketDecision } from "./market-decision";
 import type { ImportRecord } from "./worker-protocol";
 import { isSyntheticWorkload } from "./workload-kind";
 import type { WorkloadProfile } from "./workload-profile";
@@ -124,6 +127,7 @@ export function workloadShareV2(
   record: ImportRecord,
   profile: WorkloadProfile,
   options: ShareOptions,
+  decision?: MarketDecision,
 ): ShareWorkloadV2 {
   const tools = new Map<ShareableToolId, number>();
   for (const source of record.summary.usageSources)
@@ -133,9 +137,22 @@ export function workloadShareV2(
     }
   const value = profile.value;
   const overview = profile.overview;
+  const range = marketRange(decision);
   const snapshot: ShareWorkloadV2 = {
     version: 2,
     kind: "workload",
+    ...(range && range.calls === overview.events
+      ? {
+          market: {
+            low: range.low,
+            high: range.high,
+            priced: range.priced,
+            rulesAsOf: DECISION_MARKET.rulesAt.slice(0, 10),
+            catalog: DECISION_MARKET.catalogHash,
+            assumption: "cache-write-5m-or-1h" as const,
+          },
+        }
+      : {}),
     ...(isSyntheticWorkload(record) ? { synthetic: true as const } : {}),
     workload: {
       calls: overview.events,

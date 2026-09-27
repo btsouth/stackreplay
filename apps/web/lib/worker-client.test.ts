@@ -439,6 +439,62 @@ describe("optimizer AbortSignal lifetime", () => {
 });
 
 describe("market decision cancellation and generations", () => {
+  it("reuses only completed summaries and releases them on teardown", async () => {
+    const client = new ReplayWorkerClient();
+    const run = client.apiMarket("a");
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    worker.reply({
+      type: "API_MARKET_OK",
+      requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+      decision: { scenarios: [] },
+    });
+    const result = await run;
+    const messages = worker.sent.length;
+    expect(await client.apiMarket("a")).toBe(result);
+    expect(worker.sent.length).toBe(messages);
+    await expect(client.apiMarket("a", AbortSignal.abort())).rejects.toBeInstanceOf(
+      SupersededError,
+    );
+    client.dispose();
+    const fresh = client.apiMarket("a");
+    const nextWorker = FakeWorker.instances.at(-1) as FakeWorker;
+    expect(nextWorker).not.toBe(worker);
+    nextWorker.reply({
+      type: "API_MARKET_OK",
+      requestId: (nextWorker.sent.at(-1) as WorkerRequest).requestId,
+      decision: { scenarios: [] },
+    });
+    await fresh;
+    client.dispose();
+  });
+  it("bounds summary retention and invalidates it when local data is cleared", async () => {
+    const client = new ReplayWorkerClient();
+    async function finish(id: string) {
+      const pending = client.apiMarket(id);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+        decision: { scenarios: [] },
+      });
+      await pending;
+      return worker;
+    }
+    await finish("a");
+    await finish("b");
+    await finish("c");
+    const worker = await finish("d");
+    const messages = worker.sent.length;
+    await finish("a");
+    expect(worker.sent.length).toBe(messages + 1);
+    const cleared = client.clearLocalData();
+    worker.reply({ type: "CLEARED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await cleared;
+    const afterClear = worker.sent.length;
+    await finish("a");
+    expect(worker.sent.length).toBe(afterClear + 1);
+    client.dispose();
+  });
   it("never launches a pre-aborted market run", async () => {
     const client = new ReplayWorkerClient();
     const before = FakeWorker.instances.length;

@@ -92,6 +92,9 @@ async function openWorkload(page: Page): Promise<void> {
   await page.getByTestId("open-workload").click();
   await expect(page.getByRole("heading", { name: "How you actually use AI" })).toBeVisible();
   // The value block appears once the analysis is in: a figure, or why there is none.
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
     timeout: 30_000,
   });
@@ -101,8 +104,17 @@ test("the workload page stands on its own after a scan, with local project names
   page,
 }) => {
   await scanFixtures(page);
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview")).toContainText("not what you paid");
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview").getByTestId("ready-insight")).toBeVisible();
   await openWorkload(page);
 
@@ -331,6 +343,9 @@ test("Compare asks for a decision before showing Codex subscription and API fact
   await page.getByTestId("workload-compare-cta").click();
   await expect(page.getByRole("heading", { name: "Compare this workload" })).toBeVisible();
   await expect(page.getByTestId("compare-results")).toHaveCount(0);
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-codex").click();
   await expect(page.getByTestId("comparison-object")).toContainText("Codex work");
   await expect(page.getByTestId("comparison-object")).toContainText("Models as recorded");
@@ -392,6 +407,9 @@ for (const theme of ["dark", "light"] as const) {
 
     await page.getByTestId("strip-workload-link").click();
     await page.getByTestId("workload-compare-cta").click();
+    await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+      el.open = true;
+    });
     await page.getByTestId("compare-decision-codex").click();
     await expect(page.getByTestId("compare-results")).toBeVisible({ timeout: 60_000 });
     await expectNoSeriousViolations(page);
@@ -419,6 +437,9 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("not-saved-notice")).toHaveCount(0);
   await openWorkload(page);
   await page.reload();
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
     timeout: 30_000,
   });
@@ -426,6 +447,9 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   // The app entry opens the stored workload and its value directly.
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/workload$/);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toContainText(
     "not what you paid",
     { timeout: 30_000 },
@@ -466,7 +490,8 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   });
   await page.goto(href ?? "/app/workload");
   const notice = page.getByTestId("partial-scan");
-  await expect(notice).toContainText("Partial scan", { timeout: 30_000 });
+  await expect(notice).toBeVisible({ timeout: 30_000 });
+  await expect(notice).toContainText("Partial scan");
   await expect(notice).toContainText(
     "source file was incomplete; missing usage is outside these totals",
   );
@@ -476,7 +501,7 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   const scopeOrder = await opening
     .locator('[data-testid="value-scope"], [data-testid="partial-scan"]')
     .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
-  expect(scopeOrder).toEqual(["value-scope", "partial-scan"]);
+  expect(scopeOrder).toEqual(["partial-scan", "value-scope"]);
   await expect(page.getByTestId("workload-rescan")).toHaveAttribute("href", "/app/import");
   await page.getByTestId("scan-evidence-details").evaluate((element: HTMLDetailsElement) => {
     element.open = true;
@@ -516,7 +541,12 @@ test("a workload share link carries aggregates only and reads as StackReplay in 
   await page.goto(`/s/${token}`);
   await expect(page.getByTestId("share-card-v2")).toHaveAttribute("data-kind", "workload");
   await expect(page.getByTestId("share-figure-caption")).toHaveText(
-    "at published API list prices · not what you paid",
+    decoded.ok &&
+      decoded.snapshot.version === 2 &&
+      decoded.snapshot.kind === "workload" &&
+      decoded.snapshot.market
+      ? "exact recorded models · not an actual bill"
+      : "at published API list prices · not what you paid",
   );
   await expect(page.getByTestId("share-privacy")).toContainText("no times of day");
   await expect(page.locator("main")).not.toContainText(PROJECT_MARKER);

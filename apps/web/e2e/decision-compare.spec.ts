@@ -16,6 +16,9 @@ test("a missing saved workload is identified instead of shown as an empty browse
   );
   // The next step is offered, never substituted silently.
   await page.getByTestId("open-latest-workload").click();
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("compare-decisions")).toBeVisible({ timeout: 30_000 });
 });
 
@@ -51,9 +54,15 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   });
   await page.getByTestId("open-workload").click();
   await page.getByTestId("workload-compare-cta").click();
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("compare-decisions")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("compare-results")).toHaveCount(0);
 
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-claude").click();
   await expect(page.getByTestId("comparison-object")).toContainText("Claude Code work");
   await expect(page.getByTestId("comparison-object")).toContainText("2 calls");
@@ -66,6 +75,9 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   });
   await expect(page.getByTestId("compare-price")).not.toContainText("savings");
 
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-codex").click();
   await expect(page.getByTestId("comparison-object")).toContainText("Codex work");
   await expect(page.getByTestId("compare-plan")).toHaveValue("openai-chatgpt-pro");
@@ -73,6 +85,9 @@ test("a mixed workload compares one purchase decision and moves work through Rep
     timeout: 60_000,
   });
 
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await expect(page.getByTestId("stack-configure")).toContainText(
     "Imported history does not identify your subscriptions",
@@ -83,6 +98,9 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   await expect(page.getByTestId("stack-tool-breakdown")).toContainText("Command Code");
   await expect(page.getByTestId("compare-gaps")).toContainText("excluded from the API equivalent");
   await page.reload();
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await expect(page.getByTestId("stack-plan-anthropic-claude-max-20x")).toBeChecked();
   await expect(page.getByTestId("stack-plan-openai-chatgpt-pro")).toBeChecked();

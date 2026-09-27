@@ -50,6 +50,9 @@ async function replayCopilot(page: Page): Promise<string> {
 
 async function compareConfiguredStack(page: Page, unresolved: number): Promise<void> {
   await page.goto("/app/compare");
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await page.getByTestId("stack-plan-github-copilot-pro-plus").check();
   await expect(page.getByTestId("comparison-object")).toContainText("3,200 calls");
@@ -115,10 +118,16 @@ test("a giant unresolved call qualifies the run-out and the price across relevan
 test("resolving that call makes every surface exact", async ({ page }) => {
   test.setTimeout(240_000);
   await importGiant(page, true);
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview").getByTestId("value-scope")).toContainText(
     "All 3,200 calls",
     { timeout: 60_000 },
   );
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("ready-preview").getByTestId("value-token-scope")).toHaveCount(0);
 
   const replay = await replayCopilot(page);

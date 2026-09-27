@@ -70,6 +70,31 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
       synthetic: snapshot.synthetic === true,
     };
   }
+  if (snapshot.market) {
+    const m = snapshot.market;
+    return {
+      kind: "workload",
+      label: "Published API equivalent",
+      context: `Price snapshot · ${m.rulesAsOf}`,
+      figure: {
+        value:
+          m.low === m.high
+            ? (formatUsd(m.low) ?? "Unavailable")
+            : `${formatUsd(m.low)} – ${formatUsd(m.high)}`,
+        caption: "exact recorded models · not an actual bill",
+      },
+      headline: `${NUMBER.format(m.priced)} / ${NUMBER.format(snapshot.workload.calls)} calls priced.`,
+      weight: "strong",
+      support: [
+        "Both published cache-write durations calculated; source logs do not record which applied.",
+        "Subscription capacity and equivalent product experience are not established. Current subscriptions are not included in this share.",
+        `Catalog: ${m.catalog}`,
+      ],
+      facts: [],
+      tools: [],
+      synthetic: snapshot.synthetic === true,
+    };
+  }
   const { workload, value } = snapshot;
   const total = value?.total === undefined ? undefined : formatUsd(value.total);
   const [whole, cents] = total?.split(".") ?? [];

@@ -71,7 +71,7 @@ export function ShareCardV2({
         )}
       </div>
       {presentation.support.length === 0 ? null : (
-        <ul className="sr-verdict-support" data-testid="share-support">
+        <ul className="sr-verdict-support [overflow-wrap:anywhere]" data-testid="share-support">
           {presentation.support.map((line) => (
             <li key={line}>{line}</li>
           ))}

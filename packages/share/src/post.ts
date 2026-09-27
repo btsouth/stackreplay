@@ -26,6 +26,8 @@ function list(items: readonly string[]): string {
 /** A title for the public page and its image: what the result says, in one line. */
 export function shareHeadline(snapshot: ShareSnapshotV2): string {
   if (snapshot.kind === "replay") return firstSentence(composeVerdict(snapshot.verdict).headline);
+  if (snapshot.market)
+    return `${NUMBER.format(snapshot.market.priced)} / ${NUMBER.format(snapshot.workload.calls)} calls priced · ${formatUsd(snapshot.market.low)}–${formatUsd(snapshot.market.high)} published API equivalent`;
   const total = snapshot.value?.total;
   const calls = `${NUMBER.format(snapshot.workload.calls)} recorded AI coding calls`;
   return total === undefined
@@ -47,6 +49,10 @@ export function suggestedPost(snapshot: ShareSnapshotV2, url: string): string {
       verdict.figure.kind === "money" ? " Not what I paid: a list-price equivalent." : "";
     return `StackReplay replayed my recorded AI coding work against ${snapshot.verdict.target.name} (${verdict.modeLabel.toLowerCase()}): “${firstSentence(verdict.headline)}”${money}\n\n${url}`;
   }
+  if (snapshot.market)
+    return `${snapshot.synthetic ? "Synthetic demo" : "Recorded workload"}, per StackReplay: ${shareHeadline(snapshot)}. Both published cache-write durations calculated because source logs do not record which applied. Not an actual bill or proven savings.
+
+${url}`;
   const tools = shareTools(snapshot);
   const total = snapshot.value?.total;
   const fact = snapshot.facts[0];

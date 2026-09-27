@@ -54,6 +54,9 @@ async function scanMarkedHistory(page: Page): Promise<void> {
     timeout: 60_000,
   });
   await page.getByTestId("open-workload").click();
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
     timeout: 60_000,
   });

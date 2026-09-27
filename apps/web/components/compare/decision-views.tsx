@@ -539,7 +539,7 @@ export function StackComparison({
       >
         <summary className="min-h-11 cursor-pointer text-sm font-medium">
           {plans.length === 0 ? "Choose your plans" : "Change configured plans"}{" "}
-          <span className="text-xs font-normal text-muted-foreground">· up to four</span>
+          <span className="text-xs font-normal text-muted-foreground">· saved locally</span>
         </summary>
         <fieldset className="mt-3 grid max-h-64 gap-x-5 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
           <legend className="mb-2 text-xs text-muted-foreground">
@@ -553,7 +553,6 @@ export function StackComparison({
                   type="checkbox"
                   checked={current.includes(key)}
                   onChange={() => toggle(key)}
-                  disabled={!current.includes(key) && current.length >= 4}
                   data-testid={`stack-plan-${plan.id}`}
                 />
                 <span className="min-w-0 flex-1">{plan.name}</span>

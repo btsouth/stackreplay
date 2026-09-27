@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
-import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
 import type { SourceSummary } from "@/lib/worker-protocol";
 import type { Insight, WorkloadProfile } from "@/lib/workload-profile";
@@ -306,7 +306,11 @@ export function CurrentSpend({
   rulesAsOf: string;
 }) {
   const [stack, setStack] = useState<TargetKey[]>([]);
-  useEffect(() => setStack(readCurrentStack()), []);
+  useEffect(() => {
+    const refresh = () => setStack(readCurrentStack());
+    refresh();
+    return subscribeCurrentStack(refresh);
+  }, []);
   const plans = useMemo(
     () => bundledPlansAt(rulesAsOf).filter((plan) => !isSyntheticCatalogId(plan.id)),
     [rulesAsOf],
@@ -326,7 +330,7 @@ export function CurrentSpend({
   return (
     <details className="border-t border-border pt-3 text-sm" data-testid="current-spend">
       <summary className="min-h-11 cursor-pointer content-center text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
-        What you pay today{" "}
+        Earlier period-adjusted analysis{" "}
         <span className="text-foreground">
           ·{" "}
           {chosen.length === 0
@@ -337,11 +341,13 @@ export function CurrentSpend({
       <div className="mt-3 flex flex-col gap-3">
         {chosen.length === 0 || !complete ? null : (
           <p className="max-w-[70ch] leading-relaxed" data-testid="current-spend-sentence">
-            {chosen.length === 1 ? "Your plan costs" : "Your plans cost"} {formatCents(totalCents)}{" "}
-            for the {count(periodDays)} days this workload covers
+            Analytical fixed-price allocation: {formatCents(totalCents)} for the {count(periodDays)}{" "}
+            days this workload covers
             {value?.total === undefined
               ? "."
               : `; at published API list prices the same work is worth ${formatUsd(value.total)}, which is not what you paid.`}{" "}
+            This prorated view is not a purchase price. The current-market decision above uses full
+            monthly listed prices.
             <span className="text-muted-foreground" data-testid="current-spend-arithmetic">
               {rows
                 .map(

@@ -124,6 +124,17 @@ export const shareWorkloadV2Schema = z.strictObject({
       unresolvedCalls: count,
     })
     .optional(),
+  /** Optional D1 decision aggregates. No local stack or event data. */
+  market: z
+    .strictObject({
+      low: amount,
+      high: amount,
+      priced: count,
+      rulesAsOf: isoDateV1Schema,
+      catalog: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+      assumption: z.literal("cache-write-5m-or-1h"),
+    })
+    .optional(),
   facts: z.array(workloadFactV1Schema).max(3),
   versions: z.strictObject({ catalog: z.string().min(1).max(80) }),
 });

@@ -19,6 +19,7 @@ import {
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
 import { plainRange } from "@/components/workload/format";
+import { MarketDecisionSurface } from "@/components/workload/market-decision";
 import { ReadyPreview } from "@/components/workload/value";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
@@ -860,7 +861,10 @@ export function ImportSurface({
                 </Button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">{demoWorkloadPresets.heavy.description}</p>
+            <p className="text-xs text-muted-foreground">
+              Start with Moderate week: 900 synthetic calls, published API economics and both
+              cache-write assumptions.
+            </p>
           </CardContent>
         </Card>
       </DiscoveryPanel>
@@ -1173,23 +1177,13 @@ function ReadyDetails({
   );
   return (
     <div className="mt-5 flex min-w-0 flex-col gap-5">
-      {profile === undefined ? (
-        partialScan
-      ) : (
-        <ReadyPreview
-          afterScope={partialScan}
-          importId={record.id}
-          profile={profile}
-          sources={record.summary.usageSources}
-        />
-      )}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <Link
           href={`/app/workload?import=${record.id}`}
           data-testid="open-workload"
           className={buttonVariants({ size: "lg" })}
         >
-          Open workload →
+          See your decision →
         </Link>
         <Link
           href={replayHref(record.id, initialTarget)}
@@ -1199,6 +1193,20 @@ function ReadyDetails({
           Or test it against a plan in Replay
         </Link>
       </div>
+      {partialScan}
+      <MarketDecisionSurface key={record.id} importId={record.id} />
+      <details data-testid="legacy-import">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Inspect earlier replay valuation and usage insights
+        </summary>
+        {profile === undefined ? null : (
+          <ReadyPreview
+            importId={record.id}
+            profile={profile}
+            sources={record.summary.usageSources}
+          />
+        )}
+      </details>
       <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
         {record.label} ·{" "}
         {record.savedLocally === false

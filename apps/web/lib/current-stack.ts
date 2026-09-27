@@ -8,7 +8,6 @@ import type { TargetKey } from "./routes";
  * of one.
  */
 const CURRENT_STACK_KEY = "stackreplay.current-stack";
-const MAX_CURRENT = 4;
 
 function isTargetKey(value: unknown): value is TargetKey {
   return typeof value === "string" && (value.startsWith("plan:") || value.startsWith("api:"));
@@ -20,7 +19,7 @@ export function readCurrentStack(): TargetKey[] {
     if (value === null) return [];
     if (isTargetKey(value)) return [value];
     const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter(isTargetKey).slice(0, MAX_CURRENT) : [];
+    return Array.isArray(parsed) ? [...new Set(parsed.filter(isTargetKey))] : [];
   } catch {
     return [];
   }
@@ -29,9 +28,19 @@ export function readCurrentStack(): TargetKey[] {
 export function writeCurrentStack(value: readonly TargetKey[]): void {
   try {
     if (value.length === 0) window.localStorage.removeItem(CURRENT_STACK_KEY);
-    else
-      window.localStorage.setItem(CURRENT_STACK_KEY, JSON.stringify(value.slice(0, MAX_CURRENT)));
+    else window.localStorage.setItem(CURRENT_STACK_KEY, JSON.stringify([...new Set(value)]));
+    window.dispatchEvent?.(new Event("stackreplay-current-stack"));
   } catch {
     // A convenience only: nothing depends on it.
   }
+}
+
+/** Keep all open decision surfaces consistent, including changes from another tab. */
+export function subscribeCurrentStack(listener: () => void): () => void {
+  window.addEventListener("stackreplay-current-stack", listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener("stackreplay-current-stack", listener);
+    window.removeEventListener("storage", listener);
+  };
 }

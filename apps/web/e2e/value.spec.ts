@@ -24,6 +24,9 @@ test("Workload Ready leads with the published-rate value and the strongest fact"
   page,
 }) => {
   await importArchetype(page, "mixed");
+  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   const preview = page.getByTestId("ready-preview");
   await expect(preview.getByTestId("value-figure")).toHaveText(/^\$[\d,]+\.\d\d$/u, {
     timeout: 60_000,
@@ -52,6 +55,9 @@ test("the workload opens with its value, scope, tool split and comparative facts
   await importArchetype(page, "mixed");
   await page.goto("/app/workload");
   const opening = page.getByTestId("workload-opening");
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await expect(opening.getByTestId("value-figure")).toBeVisible({ timeout: 60_000 });
   // D0 deliberately makes the admitted market answer the first instrument.
   // Keep the legacy valuation/insight assertions, and verify the new leading answer.
@@ -125,7 +131,7 @@ test("a Claude-only value is exactly its Direct API replay", async ({ page }) =>
   await expect(page.getByTestId("verdict-figure")).toHaveText(value, { timeout: 60_000 });
 });
 
-test("what you pay today is pro-rated to the recorded days, with the arithmetic", async ({
+test("earlier analytical pricing remains explicitly prorated, with the arithmetic", async ({
   page,
 }) => {
   await importArchetype(page, "mixed");
@@ -136,7 +142,7 @@ test("what you pay today is pro-rated to the recorded days, with the arithmetic"
   await page.getByTestId("spend-plan:anthropic-claude-max-20x").check();
   await page.getByTestId("spend-plan:openai-chatgpt-pro").check();
   await expect(page.getByTestId("current-spend-sentence")).toContainText(
-    /^Your plans cost \$[\d,]+\.\d\d for the \d+ days this workload covers; at published API list prices the same work is worth \$[\d,]+\.\d\d, which is not what you paid\./u,
+    /^Analytical fixed-price allocation: \$[\d,]+\.\d\d for the \d+ days this workload covers; at published API list prices the same work is worth \$[\d,]+\.\d\d, which is not what you paid\./u,
   );
   await expect(page.getByTestId("current-spend-arithmetic")).toContainText(
     "Claude Max 20x: $200.00 per month ×",
@@ -146,6 +152,9 @@ test("what you pay today is pro-rated to the recorded days, with the arithmetic"
     (await page.getByTestId("workload-opening").getByTestId("value-figure").textContent()) ?? "";
   // The whole-stack decision reuses the configured plans and the canonical API value.
   await page.goto("/app/compare");
+  await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   await page.getByTestId("compare-decision-stack").click();
   await expect(page.getByTestId("compare-price")).toContainText("Claude Max 20x");
   await expect(page.getByTestId("compare-price")).toContainText("ChatGPT Pro");
