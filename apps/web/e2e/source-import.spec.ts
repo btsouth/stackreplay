@@ -7,7 +7,14 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, gotoReplayImport, openConnectIndividually } from "./helpers";
+import {
+  captureRequests,
+  gotoReplayImport,
+  inspectLatestImport,
+  openConnectIndividually,
+  visitImportManager,
+  waitForWorkload,
+} from "./helpers";
 
 const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   type: "response_item",
@@ -35,11 +42,17 @@ test("Connect Claude Code scans a chosen history tree and reports unrelated file
   await writeFile(`${projects}/project-a/README.md`, "not a session");
   await gotoReplayImport(page);
   await chooseFromCard(page, "claude-code", projects);
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready");
-  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
-  await expect(page.getByTestId("intake-review")).toContainText("README.md");
-  await expect(page.getByTestId("continue-to-replay")).toBeVisible();
-  await expect(page.getByTestId("import-summary")).toBeInViewport({ ratio: 0.1 });
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("saved-import-summary").first()).toContainText("Calls");
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Claude Code");
+  await expect(page.getByTestId("intake-review").first()).toContainText("README.md");
+  await expect(
+    page
+      .getByTestId("stored-imports")
+      .getByRole("link", { name: /^Replay /u })
+      .first(),
+  ).toBeVisible();
+  await expect(page.getByTestId("saved-import-summary").first()).toBeInViewport({ ratio: 0.1 });
 });
 
 test("Claude Code card reads a symlinked history folder without the directory-access picker", async ({
@@ -63,8 +76,9 @@ test("Claude Code card reads a symlinked history folder without the directory-ac
   const requests = captureRequests(page);
   await gotoReplayImport(page);
   await chooseFromCard(page, "claude-code", link);
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready");
-  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("saved-import-summary").first()).toContainText("Calls");
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Claude Code");
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   expect(requests.filter((request) => request.body !== null && request.body.length > 0)).toEqual(
     [],
@@ -112,12 +126,15 @@ test("Claude assistant content blocks count usage once in the browser import", a
       ),
     },
   ]);
-  await expect(page.getByTestId("import-summary")).toContainText("1 call");
-  await expect(page.getByTestId("import-summary")).toContainText("Exact known tokens: 110");
-  await expect(page.getByTestId("import-summary")).toContainText(
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("stored-imports")).toContainText("1 call");
+  await expect(page.getByTestId("saved-import-summary").first()).toContainText(
+    "Exact known tokens: 110",
+  );
+  await expect(page.getByTestId("saved-import-summary").first()).toContainText(
     "Reused context read from cache: 100",
   );
-  await expect(page.getByTestId("intake-review")).toContainText("RECORD_DUPLICATE");
+  await expect(page.getByTestId("intake-review").first()).toContainText("RECORD_DUPLICATE");
 });
 
 test("repeated filenames from separate projects stay readable without duplicate React keys", async ({
@@ -136,8 +153,9 @@ test("repeated filenames from separate projects stay readable without duplicate 
   });
   await gotoReplayImport(page);
   await chooseFromCard(page, "claude-code", projects);
-  await expect(page.getByTestId("import-summary")).toBeVisible();
-  await expect(page.getByTestId("intake-review")).toContainText("2 matching files");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("saved-import-summary").first()).toBeVisible();
+  await expect(page.getByTestId("intake-review").first()).toContainText("2 matching files");
   expect(keyErrors).toEqual([]);
 });
 
@@ -151,9 +169,15 @@ test("Connect Codex scans dated rollout folders and keeps a malformed sibling vi
   await writeFile(`${sessions}/2026/09/22/rollout-bad.jsonl`, "{broken jsonl");
   await gotoReplayImport(page);
   await chooseFromCard(page, "codex", sessions);
-  await expect(page.getByTestId("detected-sources")).toContainText("Codex");
-  await expect(page.getByTestId("intake-review")).toContainText("rollout-bad.jsonl");
-  await expect(page.getByTestId("continue-to-replay")).toBeVisible();
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Codex");
+  await expect(page.getByTestId("intake-review").first()).toContainText("rollout-bad.jsonl");
+  await expect(
+    page
+      .getByTestId("stored-imports")
+      .getByRole("link", { name: /^Replay /u })
+      .first(),
+  ).toBeVisible();
 });
 
 test("folder intake sends no raw session content to application endpoints", async ({
@@ -169,7 +193,8 @@ test("folder intake sends no raw session content to application endpoints", asyn
   const requests = captureRequests(page);
   await gotoReplayImport(page);
   await chooseFromCard(page, "codex", sessions);
-  await expect(page.getByTestId("intake-review")).toBeVisible();
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("intake-review").first()).toBeVisible();
   expect(requests.filter((request) => request.body !== null && request.body.length > 0)).toEqual(
     [],
   );
@@ -189,9 +214,9 @@ test("selected source stays local, can be saved, exported and replayed", async (
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(raw),
   });
-  await expect(page.getByTestId("import-dropzone")).toContainText("rollout-fixture.jsonl");
-  await expect(page.getByTestId("intake-review")).toContainText("Codex");
-  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("intake-review").first()).toContainText("Codex");
+  await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(JSON.stringify(requests)).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
   expect(JSON.stringify(requests)).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
@@ -216,7 +241,11 @@ test("selected source stays local, can be saved, exported and replayed", async (
   expect(persisted).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
   expect(persisted).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export portable workload" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("button", { name: /^Export /u })
+    .first()
+    .click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
@@ -257,7 +286,8 @@ test("custom file controls retain native labels and mobile saved actions reflow"
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(CODEX_ROLLOUT),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible();
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("saved-import-summary").first()).toBeVisible();
   const row = page.getByTestId("stored-imports").locator("li").first();
   await expect(row).toContainText(
     "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
@@ -281,34 +311,24 @@ test("custom file controls retain native labels and mobile saved actions reflow"
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("portable workload picker accepts the same file twice", async ({ page }) => {
+test("portable workload picker accepts the same file twice and opens the new snapshot", async ({
+  page,
+}) => {
   await gotoReplayImport(page);
-  const input = page.getByTestId("import-file-input");
   const file = {
     name: "repeat.stackreplay.json",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
   };
-  await input.setInputFiles(file);
-  await expect(page.getByTestId("import-summary")).toBeVisible();
-  await expect(input).toHaveValue("");
-  await expect(page.getByTestId("import-dropzone")).toContainText(file.name);
-  const firstId = new URL(
-    (await page.getByTestId("continue-to-replay").getAttribute("href")) ?? "",
-    "http://localhost",
-  ).searchParams.get("import");
-  await input.setInputFiles(file);
-  await expect(page.getByTestId("import-summary")).toBeVisible();
-  await expect(input).toHaveValue("");
-  await expect(page.getByTestId("import-dropzone")).toContainText(file.name);
-  await expect
-    .poll(async () =>
-      new URL(
-        (await page.getByTestId("continue-to-replay").getAttribute("href")) ?? "",
-        "http://localhost",
-      ).searchParams.get("import"),
-    )
-    .not.toBe(firstId);
+  await page.getByTestId("import-file-input").setInputFiles(file);
+  await waitForWorkload(page);
+  const firstId = new URL(page.url()).searchParams.get("import");
+  await visitImportManager(page);
+  await page.getByTestId("import-file-input").setInputFiles(file);
+  await waitForWorkload(page);
+  expect(new URL(page.url()).searchParams.get("import")).not.toBe(firstId);
+  await visitImportManager(page);
+  await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(2);
 });
 
 test("unsupported selected source reports its reason", async ({ page }) => {
@@ -333,11 +353,12 @@ test("selected folder is scanned without implying a whole computer scan", async 
   await writeFile(`${directory}/other.json`, '{"messages":[]}');
   await gotoReplayImport(page);
   await chooseFromCard(page, "folder", directory);
-  await expect(page.getByTestId("intake-review")).toContainText("Codex");
-  await expect(page.getByTestId("intake-review")).toContainText(
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("intake-review").first()).toContainText("Codex");
+  await expect(page.getByTestId("intake-review").first()).toContainText(
     "No supported source structure found",
   );
-  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
+  await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
 });
 
 test("an unsaved source can replay in this session without IndexedDB persistence", async ({
@@ -351,10 +372,8 @@ test("an unsaved source can replay in this session without IndexedDB persistence
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(CODEX_ROLLOUT),
   });
-  await expect(page.getByTestId("import-summary")).toContainText(
-    "scan results available until reload",
-  );
-  await expect(page.getByTestId("not-saved-notice")).toContainText("You chose not to save");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("stored-imports")).toContainText("Temporary");
   const payloadCount = await page.evaluate(async () => {
     const request = indexedDB.open("stackreplay");
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -371,7 +390,11 @@ test("an unsaved source can replay in this session without IndexedDB persistence
     return result;
   });
   expect(payloadCount).toBe(0);
-  await page.getByTestId("continue-to-replay").click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: /^Replay /u })
+    .first()
+    .click();
   await expect(page.getByTestId("workload-strip")).toBeVisible();
 });
 
@@ -386,8 +409,11 @@ test("ZIP selection expands supported members and reports unsafe paths", async (
     mimeType: "application/zip",
     buffer: Buffer.from(zip),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
-  await expect(page.getByTestId("intake-review")).toContainText("Unsafe archive member path");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
+  await expect(page.getByTestId("intake-review").first()).toContainText(
+    "Unsafe archive member path",
+  );
 });
 
 test("corrupt ZIP is a precise failed candidate", async ({ page }) => {
@@ -416,10 +442,16 @@ test("malformed ZIP does not discard valid siblings", async ({ page }) => {
       buffer: Buffer.from(CLAUDE_CODE_SESSION),
     },
   ]);
-  await expect(page.getByTestId("intake-review")).toContainText("bad.zip");
-  await expect(page.getByTestId("intake-review")).toContainText("Codex");
-  await expect(page.getByTestId("intake-review")).toContainText("Claude Code");
-  await expect(page.getByTestId("continue-to-replay")).toBeVisible();
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("intake-review").first()).toContainText("bad.zip");
+  await expect(page.getByTestId("intake-review").first()).toContainText("Codex");
+  await expect(page.getByTestId("intake-review").first()).toContainText("Claude Code");
+  await expect(
+    page
+      .getByTestId("stored-imports")
+      .getByRole("link", { name: /^Replay /u })
+      .first(),
+  ).toBeVisible();
 });
 
 test("archive hierarchy is absent from both stores and portable export", async ({ page }) => {
@@ -433,7 +465,8 @@ test("archive hierarchy is absent from both stores and portable export", async (
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "history.zip", mimeType: "application/zip", buffer: Buffer.from(zip) });
-  await expect(page.getByTestId("intake-review")).toContainText("session.jsonl");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("intake-review").first()).toContainText("session.jsonl");
   const stored = await page.evaluate(async () => {
     const open = indexedDB.open("stackreplay");
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -452,7 +485,11 @@ test("archive hierarchy is absent from both stores and portable export", async (
     return JSON.stringify(rows);
   });
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export portable workload" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("button", { name: /^Export /u })
+    .first()
+    .click();
   const stream = await (await downloadPromise).createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
@@ -474,9 +511,14 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
     mimeType: "application/x-ndjson",
     buffer: Buffer.from(CODEX_ROLLOUT),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export portable workload" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("button", { name: /^Export /u })
+    .first()
+    .click();
   const stream = await (await downloadPromise).createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(Buffer.from(chunk));
@@ -485,13 +527,14 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
     true,
   );
   // The ways in fold away under Workload ready; a second import opens them.
-  await page.getByTestId("discovery-after-ready").locator(":scope > summary").click();
+  // Import is already open as a source manager.
   await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "usage.json", mimeType: "application/json", buffer: portable });
-  await expect(page.getByTestId("import-summary")).toContainText("2 calls");
-  await expect(page.getByTestId("import-summary")).toContainText("saved on this browser");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
+  await expect(page.getByTestId("stored-imports")).toContainText("Saved");
   await page.reload();
   await page.goto("/app/import");
   await expect(page.getByTestId("stored-imports")).toContainText("usage.json");

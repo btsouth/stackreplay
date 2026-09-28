@@ -49,11 +49,41 @@ export async function gotoReplayImport(page: Page): Promise<void> {
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
 
-/** Imports a deterministic demo workload and waits for the summary. */
+/** Imports a deterministic demo workload and follows the automatic handoff. */
 export async function importDemo(page: Page, preset: DemoPreset): Promise<void> {
   await gotoImport(page);
   await page.getByTestId(`demo-${preset}`).click();
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await waitForWorkload(page);
+}
+
+/** A successful scan requires no follow-up click. */
+export async function waitForWorkload(page: Page): Promise<void> {
+  await expect(page).toHaveURL(/\/app\/workload\?import=/u, { timeout: 60_000 });
+  await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
+}
+
+/** Client navigation preserves intentionally temporary workloads in the worker. */
+export async function visitImportManager(page: Page): Promise<void> {
+  await page
+    .locator('a[href="/app/import"]')
+    .first()
+    .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+}
+
+export async function inspectLatestImport(page: Page): Promise<void> {
+  await waitForWorkload(page);
+  await visitImportManager(page);
+  await page.getByTestId("import-details").first().locator(":scope > summary").click();
+}
+
+export async function visitReplay(page: Page): Promise<void> {
+  await waitForWorkload(page);
+  await page
+    .locator('a[href="/app/replay"]')
+    .first()
+    .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page.getByTestId("run-replay")).toBeVisible();
 }
 
 /** Runs a replay for a plan and waits for the result. */

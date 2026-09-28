@@ -14,6 +14,8 @@ import {
   openReplayDetails,
   openReviewEvidence,
   setRulesAsOf,
+  visitReplay,
+  waitForWorkload,
 } from "./helpers";
 
 /**
@@ -85,13 +87,11 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
       buffer: Buffer.from(file.text),
     })),
   );
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 30_000,
-  });
+  await waitForWorkload(page);
 }
 
 async function openWorkload(page: Page): Promise<void> {
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
   // The value block appears once the analysis is in: a figure, or why there is none.
   await openReviewEvidence(page);
@@ -107,18 +107,6 @@ test("the workload page stands on its own after a scan, with local project names
   page,
 }) => {
   await scanFixtures(page);
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("ready-preview")).toContainText("not what you paid");
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("ready-preview").getByTestId("ready-insight")).toBeVisible();
   await openWorkload(page);
 
   await expect(page.getByTestId("opening-events")).toContainText("6");
@@ -238,7 +226,7 @@ test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
     mimeType: "application/jsonl",
     buffer: Buffer.from(claude({ model: "claude-opus-5-5", project: "atlas" })),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await waitForWorkload(page);
   await openWorkload(page);
   await page.getByTestId("next-cross-provider").click();
   await expect(page.getByTestId("translation-required")).toBeVisible();
@@ -294,7 +282,7 @@ test("a numeric limit crossing states when the allowance ran out and opens its w
   page,
 }) => {
   await importDemo(page, "heavy");
-  await page.getByTestId("continue-to-replay").click();
+  await visitReplay(page);
   await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
@@ -362,7 +350,7 @@ test("Compare asks for a decision before showing Codex subscription and API fact
 
 test("a mixed workload keeps its selected slice in the Replay result", async ({ page }) => {
   await importDemo(page, "multistack");
-  await page.getByTestId("continue-to-replay").click();
+  await visitReplay(page);
   await expect(page.getByTestId("replay-scope-picker")).toContainText("All recorded work");
   for (const tool of ["claude-code", "codex", "command-code"]) {
     await expect(page.getByTestId(`scope-${tool}`)).toBeVisible();
@@ -436,9 +424,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
       codex(1, { model: "gpt-5.6-sol", project: "atlas", day: "18", hour: "20" }),
     ),
   });
-  await expect(page.getByTestId("import-summary")).toContainText("saved on this browser", {
-    timeout: 30_000,
-  });
+  await waitForWorkload(page);
   await expect(page.getByTestId("not-saved-notice")).toHaveCount(0);
   await openWorkload(page);
   await page.reload();
@@ -465,7 +451,8 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
 
 test("a partial scan says so beside the totals and offers a rescan", async ({ page }) => {
   await scanFixtures(page);
-  const href = await page.getByTestId("open-workload").getAttribute("href");
+  await waitForWorkload(page);
+  const href = page.url();
   // A browser File cannot be made to fail a read on demand, so the stored scan
   // record is given the outcome the intake writes for an unreadable file.
   await page.evaluate(async () => {
@@ -523,7 +510,7 @@ test.describe("rules date default", () => {
     // 11:30 PM Sep 23 in New York is already Sep 24 in UTC.
     await page.clock.setFixedTime(new Date("2026-09-24T03:30:00Z"));
     await importDemo(page, "moderate");
-    await page.getByTestId("continue-to-replay").click();
+    await visitReplay(page);
     await expect(page.getByTestId("rules-as-of")).toHaveValue("2026-09-23");
   });
 });

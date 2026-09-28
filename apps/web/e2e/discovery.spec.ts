@@ -9,7 +9,10 @@ import {
   dropFolders,
   gotoImport,
   importDemo,
+  inspectLatestImport,
   openConnectIndividually,
+  visitImportManager,
+  waitForWorkload,
 } from "./helpers";
 
 /**
@@ -121,11 +124,9 @@ test("finds histories in a dropped home folder and builds only what is selected"
   await page.getByTestId("select-codex").uncheck();
   await expect(page.getByTestId("selection-count")).toContainText("1 selected");
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
-  await expect(page.getByTestId("detected-sources")).not.toContainText("Codex");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Claude Code");
+  await expect(page.getByTestId("detected-sources").first()).not.toContainText("Codex");
 });
 
 test("the happy path runs from discovery through the scan instrument into the workload", async ({
@@ -138,14 +139,16 @@ test("the happy path runs from discovery through the scan instrument into the wo
   await expect(page.getByTestId("select-codex")).toBeChecked();
   await page.getByTestId("build-workload").click();
   await expect(page.getByTestId("scan-instrument")).toBeVisible();
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  const sources = page.getByTestId("detected-sources");
+  await inspectLatestImport(page);
+  const sources = page.getByTestId("detected-sources").first();
   await expect(sources).toContainText("Claude Code");
   await expect(sources).toContainText("Codex");
   await expect(page.getByTestId("stored-imports")).toContainText("Claude Code + Codex");
-  await page.getByTestId("open-workload").click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: "Open workload", exact: true })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/app\/workload\?import=/u);
 });
 
@@ -177,11 +180,9 @@ test("a linked history needs additional access and connects without disturbing t
   await expect(page.getByTestId("selection-count")).toContainText("2 selected");
 
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  await expect(page.getByTestId("detected-sources")).toContainText("Claude Code");
-  await expect(page.getByTestId("detected-sources")).toContainText("Codex");
+  await inspectLatestImport(page);
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Claude Code");
+  await expect(page.getByTestId("detected-sources").first()).toContainText("Codex");
 });
 
 test("another location joins the same list", async ({ page }, testInfo) => {
@@ -282,25 +283,32 @@ test("a file that disappears before Build is reported, and the workload says it 
   const [session] = await readdir(join(home, ".claude", "projects", project as string));
   await rm(join(home, ".claude", "projects", project as string, session as string));
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
+  await inspectLatestImport(page);
   // Once the workload is ready, discovery folds away: no live Build button
   // under "Workload ready".
-  await expect(page.getByTestId("discovery-after-ready")).not.toHaveAttribute("open");
-  await expect(page.getByTestId("build-workload")).toBeHidden();
   const partial = page.getByTestId("partial-scan");
   await expect(partial).toContainText("1 source file could not be read");
-  await page.getByTestId("intake-review").locator("summary").click();
   await expect(page.getByTestId("intake-review")).toContainText(session as string);
   // The totals are what was read: the same as a home that only ever had two sessions.
-  const facts = await page.getByTestId("scan-ready-facts").innerText();
+  const facts = await page
+    .getByTestId("stored-imports")
+    .locator(":scope > li")
+    .first()
+    .locator("p")
+    .nth(1)
+    .innerText();
   await discover(page, full);
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  expect(await page.getByTestId("scan-ready-facts").innerText()).toBe(facts);
+  await inspectLatestImport(page);
+  expect(
+    await page
+      .getByTestId("stored-imports")
+      .locator(":scope > li")
+      .first()
+      .locator("p")
+      .nth(1)
+      .innerText(),
+  ).toBe(facts);
 });
 
 test("a dropped file is explained instead of scanned", async ({ page }, testInfo) => {
@@ -317,8 +325,9 @@ test("Cancel scan stops the scan and leaves saved workloads alone", async ({ pag
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 600, codexRollouts: 400 });
   await importDemo(page, "moderate");
+  await visitImportManager(page);
   await page.reload();
-  await expect(page.getByTestId("stored-imports").locator("li")).toHaveCount(1);
+  await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(1);
   await page.getByTestId("find-histories").click();
   await dropFolders(page, [home]);
   await expect(page.getByTestId("discovery-selection")).toBeVisible();
@@ -334,7 +343,7 @@ test("Cancel scan stops the scan and leaves saved workloads alone", async ({ pag
   // The demo is still saved, and the cancelled scan never lands.
   await page.waitForTimeout(1500);
   await page.reload();
-  await expect(page.getByTestId("stored-imports").locator("li")).toHaveCount(1);
+  await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(1);
   await expect(page.getByTestId("stored-imports")).toContainText("Demo");
 });
 
@@ -345,8 +354,8 @@ test("connected histories are remembered by name and refresh asks for the folder
   await buildHome(home);
   await discover(page, home);
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
-
+  await waitForWorkload(page);
+  await visitImportManager(page);
   await page.reload();
   const connected = page.getByTestId("connected-histories");
   await expect(connected).toContainText("Claude Code · Codex");
@@ -398,7 +407,7 @@ test("privacy: discovery opens only registered locations, reads nothing, and sen
   expect(access.filter((entry) => entry.op === "read")).toEqual([]);
 
   await page.getByTestId("build-workload").click();
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
+  await waitForWorkload(page);
 
   // Nothing about the folder or its history crosses the network: no bodies at
   // all, and no folder, file or project name in any URL or header.
@@ -438,7 +447,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
   const build = page.getByRole("button", { name: "Build my workload from 1 selected history" });
   await build.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
+  await waitForWorkload(page);
 });
 
 test("the manual chooser stays one keyboard step away", async ({ page }) => {

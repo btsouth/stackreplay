@@ -14,9 +14,10 @@ export const metadata: Metadata = {
 export default async function WorkloadPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string }>;
+  searchParams: Promise<{ import?: string; target?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
-  return <WorkloadSurface initialImportId={importId} />;
+  const target = typeof params.target === "string" ? params.target : undefined;
+  return <WorkloadSurface initialImportId={importId} initialTarget={target} />;
 }

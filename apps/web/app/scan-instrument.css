@@ -203,20 +203,20 @@
   color: var(--muted-foreground);
 }
 
-/* Scale of the finished scan: one quiet line of context under the title. */
+/* The finished readings lead directly into the Workload instrument. */
 .sr-scan-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 20px;
-  margin: 6px 0 0;
+  gap: 24px 48px;
+  margin: 28px 0 0;
   font-size: 12px;
   color: var(--muted-foreground);
 }
 
 .sr-scan-facts > div {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .sr-scan-readings dd {
@@ -249,6 +249,9 @@
 
 .sr-scan-facts dd {
   margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
   font-family: var(--font-mono);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -471,5 +474,15 @@
   }
   50% {
     box-shadow: 0 0 0 6px color-mix(in oklab, var(--sr-signal) 8%, transparent);
+  }
+}
+
+/* Once all stages finish, leave room for the answer on a narrow screen. */
+@media (max-width: 767px) {
+  .sr-scan[data-stage="ready"] .sr-scan-rail {
+    --sr-row: 28px;
+  }
+  .sr-scan[data-stage="ready"] .sr-scan-node small {
+    display: none;
   }
 }

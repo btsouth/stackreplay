@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, openReviewEvidence } from "./helpers";
+import { importDemo, openReviewEvidence, waitForWorkload } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
@@ -33,15 +33,17 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   page,
 }) => {
   await importDemo(page, "moderate");
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
-  await expect(page.getByTestId("ready-preview").getByTestId("value-figure")).toBeVisible();
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+  await expect(page.getByTestId("workload-opening").getByTestId("value-figure")).toBeVisible();
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
-  await expect(page.getByTestId("ready-preview")).toContainText("published API list prices");
-  await page.getByTestId("open-workload").click();
+  await expect(page.getByTestId("workload-opening")).toContainText("published API list prices");
+  await waitForWorkload(page);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
@@ -53,7 +55,7 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
 test("mobile analysis control ends before the Share section", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await importDemo(page, "moderate");
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openReviewEvidence(page);
   await expect(page.getByTestId("measure-bar")).toBeVisible();
   await page.getByTestId("section-pressure").scrollIntoViewIfNeeded();

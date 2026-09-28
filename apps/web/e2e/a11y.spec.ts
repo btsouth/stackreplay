@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { encodeShareToken } from "@stackreplay/share";
-import { importDemo, runReplay } from "./helpers";
+import { importDemo, runReplay, waitForWorkload } from "./helpers";
 
 /**
  * Accessibility (M3 brief): WCAG 2.2 AA target on the new surfaces, in both
@@ -43,7 +43,7 @@ test.describe("import surface accessibility", () => {
     await demo.focus();
     await expect(demo).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+    await waitForWorkload(page);
   });
 
   test("import errors are announced", async ({ page }) => {

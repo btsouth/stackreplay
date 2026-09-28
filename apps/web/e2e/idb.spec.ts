@@ -141,7 +141,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
   await importDemo(page, "multistack");
   await page.goto("/app/import");
 
-  const rows = page.getByTestId("stored-imports").locator("li");
+  const rows = page.getByTestId("stored-imports").locator(":scope > li");
   await expect(rows).toHaveCount(2);
   await expect(page.getByTestId("stored-imports")).toContainText("Demo: moderate");
   await expect(page.getByTestId("stored-imports")).toContainText("Demo: multistack");
@@ -150,7 +150,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
 test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
   // Corrupt after the automatic import analysis has finished reading the payload.
-  await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
+  await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
 
   // Replace the stored payload with something incompatible, as an older or
   // broken writer would have left behind.
@@ -249,9 +249,10 @@ test("clearing local data during an import leaves nothing stored", async ({ page
 
     // The clear takes effect, and the import that was running when the user asked
     // for the store to be cleared is cancelled rather than allowed to write after it.
-    const failure = page.getByTestId("import-error");
-    await expect(failure).toBeVisible({ timeout: 60_000 });
-    await expect(failure).toContainText(/cancelled/i);
+    await expect(page.getByTestId("scan-instrument")).toHaveCount(0);
+    await expect(page.getByTestId("import-error")).toHaveCount(0);
+    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/\/app\/import$/u);
     await expect(page.getByTestId("no-stored-imports")).toBeVisible();
 
     const counts = await readStoreCounts(page);

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay, setRulesAsOf } from "./helpers";
+import { gotoImport, importDemo, runReplay, setRulesAsOf, waitForWorkload } from "./helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -375,7 +375,7 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(mutated)),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await waitForWorkload(page);
   await page.goto("/app/replay");
 
   // The strip says unmapped IDs exist; the raw map is one step down.
@@ -406,7 +406,7 @@ test("never reads as served while part of the demand is unavailable or undecided
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(mutated)),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await waitForWorkload(page);
   await page.goto("/app/replay");
   await runReplay(page, "example-cloud-pro");
 
@@ -515,10 +515,12 @@ test("plan picker is searchable and keyboard operable", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/replay");
 
+  await expect(page.getByTestId("plan-coverage-example-cloud-pro")).toContainText("Offers");
   await page.getByTestId("plan-search").fill("example-cloud-pro");
   await expect(page.getByTestId("plan-list").getByRole("button")).toHaveCount(1);
 
   await page.getByTestId("plan-search").fill("");
+  await expect(page.getByTestId("plan-list").getByRole("button").nth(1)).toBeVisible();
   const firstOption = page.getByTestId("plan-list").getByRole("button").first();
   await firstOption.focus();
   await page.keyboard.press("ArrowDown");

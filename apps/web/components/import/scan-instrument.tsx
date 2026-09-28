@@ -26,7 +26,7 @@ export const SCAN_STAGES: readonly {
     label: "Reconstruct",
     note: "Removing duplicates, rebuilding sessions and chronology",
   },
-  { phase: "ready", stage: "ready", label: "Workload", note: "Normalized usage, ready to read" },
+  { phase: "ready", stage: "ready", label: "Workload", note: "Your work, ready to explore" },
 ];
 
 const count = new Intl.NumberFormat("en-US");
@@ -110,10 +110,6 @@ export function ScanInstrument({
       : Math.min(1, (activeIndex + 1 + (stage === "resolve" ? fileShare : 0)) / SCAN_STAGES.length);
   const running = stage !== "idle" && stage !== "ready";
   const summary = record?.summary;
-  const cacheShare =
-    summary !== undefined && summary.tokens.known > 0
-      ? (summary.tokens.buckets.cacheReadTokens / summary.tokens.known) * 100
-      : undefined;
 
   return (
     <section
@@ -132,7 +128,7 @@ export function ScanInstrument({
           {stage === "ready"
             ? "Workload ready"
             : stage === "finishing"
-              ? "Finishing value and insight analysis"
+              ? "Finishing your workload"
               : running
                 ? `Reading ${sourceName ?? "your selection"} on this device`
                 : "Waiting for a folder"}
@@ -143,7 +139,7 @@ export function ScanInstrument({
         {stage === "ready"
           ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} ${summary.eventCount === 1 ? "call" : "calls"}`}`
           : stage === "finishing"
-            ? "Finishing the published API value and strongest insight."
+            ? "Finishing your workload."
             : running
               ? `Scan stage: ${SCAN_STAGES[activeIndex]?.label ?? "Discover"}. ${SCAN_STAGES[activeIndex]?.note ?? ""}`
               : ""}
@@ -179,7 +175,7 @@ export function ScanInstrument({
                 <span className="sr-micro">{entry.label}</span>
                 <small>
                   {stage === "finishing" && index === SCAN_STAGES.length - 1
-                    ? "Pricing and finding insights"
+                    ? "Preparing your workload"
                     : entry.note}
                 </small>
               </li>
@@ -190,8 +186,7 @@ export function ScanInstrument({
 
       {stage === "ready" && summary !== undefined ? (
         <div className="sr-scan-body">
-          {/* The value and the strongest finding lead (in `ready`); the scale of
-              the scan is context, so it reads as one quiet line. */}
+          {/* These same recorded facts lead the Workload hero after handoff. */}
           <h2 className="sr-scan-title">Workload ready</h2>
           <p className="sr-scan-range">
             {shortDate(summary.firstEventAt) === undefined
@@ -202,19 +197,11 @@ export function ScanInstrument({
               : ""}
           </p>
           <dl className="sr-scan-facts" data-testid="scan-ready-facts">
-            <Fact label="calls" value={count.format(summary.eventCount)} />
-            <Fact
-              label="sessions"
-              value={summary.sessionCount === 0 ? "N/A" : count.format(summary.sessionCount)}
-            />
+            <Fact label="distinct responses / calls" value={count.format(summary.eventCount)} />
+            <Fact label="known tokens" value={tokens(summary.tokens.known)} />
             <Fact
               label="projects"
               value={summary.projectCount === 0 ? "N/A" : count.format(summary.projectCount)}
-            />
-            <Fact
-              label="known tokens"
-              note={cacheShare === undefined ? undefined : `${cacheShare.toFixed(1)}% cache reads`}
-              value={tokens(summary.tokens.known)}
             />
           </dl>
           {ready}
@@ -236,15 +223,7 @@ export function ScanInstrument({
                 value={count.format(scan.events)}
               />
               <Reading label="Projects" value={count.format(scan.projects)} />
-              <Reading
-                label="Examined"
-                note={
-                  scan.skipped === 0
-                    ? undefined
-                    : `${count.format(scan.skipped)} skipped, listed after the scan`
-                }
-                value={megabytes(scan.examinedBytes)}
-              />
+              <Reading label="Examined" value={megabytes(scan.examinedBytes)} />
             </dl>
           ) : null}
           {histories !== undefined && histories.length > 1 ? (

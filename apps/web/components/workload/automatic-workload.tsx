@@ -226,41 +226,6 @@ function useAutomaticMarket(record: ImportRecord) {
   return { overview, error };
 }
 
-/** The import answer uses the same full-history calculation as Workload. */
-export function AutomaticImportAnswer({ record }: { record: ImportRecord }) {
-  const { overview, error } = useAutomaticMarket(record);
-  const range = marketRange(overview) ?? marketRange(overview?.pricedScope);
-  return (
-    <section className="border-y border-border py-5 space-y-2" aria-label="Automatic API analysis">
-      <MicroLabel>
-        Current published API equivalent
-        {range && range.priced < record.eventCount ? " · priced calls only" : ""}
-      </MicroLabel>
-      <p
-        data-testid="market-total"
-        className={range ? "font-mono text-3xl tabular-nums" : "text-sm text-muted-foreground"}
-      >
-        {range
-          ? rangeText(range)
-          : error
-            ? "Pricing could not finish"
-            : overview
-              ? "No applicable API prices"
-              : "Pricing recorded work…"}
-      </p>
-      <p className="text-xs text-muted-foreground">
-        {range
-          ? `${n(range.priced)} / ${n(record.eventCount)} recorded calls priced. Full imported history at current rates.`
-          : "Your workload overview needs no billing or date setup."}
-      </p>
-      <p className="text-xs text-muted-foreground">
-        Exact recorded models. No extrapolation or subscription-capacity assumption.
-      </p>
-    </section>
-  );
-}
-
-/** Workload is everything imported. Billing is a separate, optional scoped result. */
 export function AutomaticWorkload({
   record,
   profile,

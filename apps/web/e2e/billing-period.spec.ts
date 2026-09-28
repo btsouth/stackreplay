@@ -7,13 +7,14 @@ import {
   openBillingReview,
   openReviewEditor,
   openReviewEvidence,
+  waitForWorkload,
 } from "./helpers";
 
 async function completeDemo(page: import("@playwright/test").Page) {
   await gotoImport(page);
   await page.getByTestId("demo-billing").click();
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
@@ -97,7 +98,7 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   page,
 }) => {
   await importDemo(page, "moderate");
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await openReviewEditor(page);
@@ -201,7 +202,7 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
     buffer: Buffer.from(JSON.stringify(file)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await openReviewEditor(page);
@@ -268,7 +269,7 @@ test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ 
     buffer: Buffer.from(JSON.stringify(file)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   const market = page.getByTestId("market-decision");
@@ -296,7 +297,7 @@ test("D3 imported collection gaps prevent a history declaration", async ({ page 
     buffer: Buffer.from(JSON.stringify(file)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
@@ -328,7 +329,7 @@ test("D3 large API ranges fit the share preview and review on mobile", async ({ 
     buffer: Buffer.from(JSON.stringify(file)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("market-total")).toHaveText("$2,565.00 – $3,240.00");
@@ -375,7 +376,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
     buffer: Buffer.from(JSON.stringify(file)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page.getByLabel("Local source account")).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
@@ -490,7 +491,7 @@ for (const theme of ["dark", "light"] as const) {
       buffer: Buffer.from(JSON.stringify(file)),
     });
     await expect(page.getByTestId("import-summary")).toBeVisible();
-    await page.getByTestId("open-workload").click();
+    await waitForWorkload(page);
     await openBillingReview(page);
     await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("main");

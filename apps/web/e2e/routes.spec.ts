@@ -1,6 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport, openReviewEvidence } from "./helpers";
+import { createShareToken, gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+
+// These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-27T12:00:00Z"));
+});
 
 /**
  * Phase 3: every suggested route answers for the work it is scoped to, tool
@@ -16,7 +21,7 @@ async function importMixed(page: Page): Promise<string> {
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(buildArchetypeExport("mixed"))),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
+  await waitForWorkload(page);
   await page.goto("/app/workload");
   await openReviewEvidence(page);
   await expect(page.getByTestId("suggested-routes")).toBeVisible({ timeout: 60_000 });

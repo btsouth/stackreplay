@@ -5,6 +5,7 @@ import {
   PRIVATE_MARKERS,
   runReplay,
   WORKLOAD_MARKERS,
+  waitForWorkload,
 } from "./helpers";
 
 /**
@@ -78,7 +79,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
   await page.goto("/app/import");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("import-file-input").setInputFiles(path);
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 150_000 });
+  await waitForWorkload(page);
 
   const offenders = requests.filter((request) => {
     if (request.body === null || request.body.length === 0) return false;

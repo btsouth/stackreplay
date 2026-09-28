@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ensureLargeExport } from "./fixtures/large-export";
-import { setRulesAsOf } from "./helpers";
+import { setRulesAsOf, visitReplay } from "./helpers";
 
 /**
  * Large import measurement (M3 brief).
@@ -121,7 +121,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   // Replay the same large workload. The replay controls live on /app/replay, so
   // the run is reached through the product's own link from the import summary:
   // looking for the plan list on the import page would wait forever.
-  await page.getByTestId("continue-to-replay").click();
+  await visitReplay(page);
   await expect(page.getByTestId("workload-strip")).toBeVisible({ timeout: 60_000 });
   await page.getByTestId("plan-example-cloud-pro").click();
   await setRulesAsOf(page, "2026-09-15");

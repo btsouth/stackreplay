@@ -111,7 +111,13 @@ function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: 
  * own, before any target is chosen. Replay is the second question, offered at
  * the end and from the sections that naturally raise it.
  */
-export function WorkloadSurface({ initialImportId }: { initialImportId?: string | undefined }) {
+export function WorkloadSurface({
+  initialImportId,
+  initialTarget,
+}: {
+  initialImportId?: string | undefined;
+  initialTarget?: string | undefined;
+}) {
   const client = getWorkerClient();
   const [market, setMarket] = useState<{ id: string; result: MarketDecision }>();
   const onMarket = useCallback(
@@ -245,7 +251,15 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         onSelect={setSelectedId}
         detailContent={
           <>
-            {" "}
+            {initialTarget === undefined ? null : (
+              <Link
+                className={ACTION_LINK}
+                href={replayLink(record.id, { plan: initialTarget })}
+                data-testid="selected-plan-replay"
+              >
+                Continue with your selected plan in Replay →
+              </Link>
+            )}
             {profile === undefined ? (
               error === undefined ? (
                 <div

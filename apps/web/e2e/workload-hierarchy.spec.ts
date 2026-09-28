@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { gotoImport, importDemo, openReviewEditor } from "./helpers";
+import { gotoImport, importDemo, openReviewEditor, waitForWorkload } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`automatic overview delivers economics before any setup in ${theme}`, async ({
@@ -9,7 +9,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
     await importDemo(page, "moderate");
-    await page.getByTestId("open-workload").click();
+    await waitForWorkload(page);
     await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
     await expect(page.getByTestId("overview-scale")).toContainText("900");
     await expect(page.getByTestId("overview-scale")).toContainText("100%");
@@ -49,7 +49,7 @@ test("saved complete billing augments the overview without taking over its scope
   await gotoImport(page);
   await page.getByTestId("demo-billing").click();
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39");
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await expect(page.getByTestId("billing-summary-bar")).toContainText("$120.00 confirmed");
   await expect(page.getByTestId("billing-panel")).not.toBeVisible();
   await expect(page.getByTestId("overview-api-total")).toHaveText("$23.73 – $24.39");

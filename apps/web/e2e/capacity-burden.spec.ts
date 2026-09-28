@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, openReviewEditor, openReviewEvidence } from "./helpers";
+import { gotoImport, openReviewEditor, openReviewEvidence, waitForWorkload } from "./helpers";
 
 async function upload(page: Page, file: ReturnType<typeof buildDemoExport>, name: string) {
   await gotoImport(page);
@@ -83,7 +83,7 @@ for (const theme of ["dark", "light"] as const)
       ],
     };
     await upload(page, file, "d6-main.json");
-    await page.getByTestId("open-workload").click();
+    await waitForWorkload(page);
     await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("main");
     const burden = page.getByTestId("capacity-burden");

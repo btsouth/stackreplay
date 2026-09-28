@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { ensureLargeExport } from "./fixtures/large-export";
-import { gotoImport, importDemo } from "./helpers";
+import { gotoImport, importDemo, visitImportManager, waitForWorkload } from "./helpers";
 
 /**
  * Import route states (M3 brief): empty, drag-over, importing, invalid file,
@@ -35,6 +35,9 @@ test("imports a demo workload and reports usage sources and orchestration separa
 }) => {
   await importDemo(page, "moderate");
 
+  await visitImportManager(page);
+  await page.getByTestId("import-details").first().locator(":scope > summary").click();
+  await page.getByTestId("import-sources-details").first().locator(":scope > summary").click();
   const sources = page.getByTestId("usage-sources");
   await expect(sources).toContainText("Claude Code");
   await expect(sources).toContainText("Codex");
@@ -44,7 +47,7 @@ test("imports a demo workload and reports usage sources and orchestration separa
   const orchestration = page.getByTestId("orchestration");
   await expect(orchestration).toContainText("T3 Code");
   await expect(orchestration).toContainText(/sessions attributed|attribution available/);
-  await expect(page.getByTestId("import-summary")).not.toContainText("T3 Code\n0 calls");
+  await expect(page.getByTestId("saved-import-summary")).not.toContainText("T3 Code\n0 calls");
 });
 
 test("rejects a file that is not a StackReplay export without quoting it", async ({ page }) => {
@@ -87,7 +90,7 @@ test("accepts a valid export with an unexpected filename", async ({ page }) => {
     mimeType: "text/plain",
     buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
+  await waitForWorkload(page);
 });
 
 test("imports a ~100k-event export without blocking the interface", async ({ page }, testInfo) => {
@@ -115,10 +118,11 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
 
   // A second import, from the folded panel under Workload ready, replaces the
   // first: the visible summary is the newest request, never the stale one.
-  await page.getByTestId("discovery-after-ready").locator(":scope > summary").click();
+  await waitForWorkload(page);
+  await visitImportManager(page);
   await page.getByTestId("demo-moderate").click();
-  await expect(summary).not.toContainText(events.toLocaleString("en-US"), { timeout: 60_000 });
-  await expect(summary).toContainText("Calls");
+  await waitForWorkload(page);
+  await expect(page.getByTestId("overview-scale")).toContainText("900");
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   await expect(page.getByTestId("import-working")).toHaveCount(0);
 

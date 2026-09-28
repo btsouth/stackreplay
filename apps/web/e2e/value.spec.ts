@@ -1,6 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
-import { gotoImport, openReviewEvidence } from "./helpers";
+import { gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+
+// These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-27T12:00:00Z"));
+});
 
 /**
  * Phase 4: from Workload Ready and the workload's first screen, a person sees
@@ -17,36 +22,34 @@ async function importArchetype(page: Page, archetype: WorkloadArchetypeId): Prom
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(buildArchetypeExport(archetype))),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
+  await waitForWorkload(page);
 }
 
-test("Workload Ready leads with the published-rate value and the strongest fact", async ({
+test("automatic handoff opens Workload with economics and inspectable valuation", async ({
   page,
 }) => {
   await importArchetype(page, "mixed");
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
-  const preview = page.getByTestId("ready-preview");
+  const preview = page.getByTestId("workload-opening");
   await expect(preview.getByTestId("value-figure")).toHaveText(/^\$[\d,]+\.\d\d$/u, {
     timeout: 60_000,
   });
   await expect(preview.getByTestId("value-caption")).toHaveText(
     "at published API list prices · not what you paid",
   );
-  await expect(preview.getByTestId("value-scope")).toContainText("of 5,000 calls");
+  await expect(preview.getByTestId("value-scope")).toContainText("of 5,000 included calls");
   await expect(preview.getByTestId("value-left-out")).toContainText("DeepSeek");
   await expect(preview.getByTestId("value-left-out")).toContainText(
     "model IDs StackReplay couldn't resolve",
   );
   await expect(preview.getByTestId("tool-split")).toContainText("Claude Code");
   await expect(preview.getByTestId("tool-split")).toContainText("Command Code");
-  const fact = preview.getByTestId("ready-insight").locator("li").first();
+  const fact = preview.getByTestId("workload-insights").locator("li").first();
   await expect(fact).toContainText("×");
-  await expect(fact.getByRole("link")).toHaveAttribute(
-    "href",
-    /\/app\/workload\?import=.+#[a-z]+$/u,
-  );
+  await expect(fact.getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
 });
 
 test("the workload opens with its value, scope, tool split and comparative facts", async ({

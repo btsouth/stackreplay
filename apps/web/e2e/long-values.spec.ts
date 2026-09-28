@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport } from "./helpers";
+import { gotoImport, inspectLatestImport } from "./helpers";
 
 const modelId = `provider/${"long-model-id-".repeat(14)}`;
 const workloadNames = [
@@ -38,17 +38,19 @@ test("schema-valid long workload and model identities remain usable at 390px", a
       mimeType: "application/json",
       buffer: file,
     });
-    await expect(page.getByTestId("import-summary")).toContainText(modelId);
-    await expect(page.getByTestId("intake-models")).toContainText(modelId);
+    await inspectLatestImport(page);
+    await page.getByTestId("import-sources-details").first().locator(":scope > summary").click();
+    await expect(page.getByTestId("saved-import-summary").first()).toContainText(modelId);
+    await expect(page.getByTestId("intake-models").first()).toContainText(modelId);
     await expect(page.getByTestId("stored-imports")).toContainText(name.replace(/\.json$/u, ""));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    await expectInsideViewport(page, "import-summary");
+    await expectInsideViewport(page, "saved-import-summary");
     await expectInsideViewport(page, "stored-import-actions");
   }
 
-  const rows = page.getByTestId("stored-imports").getByRole("listitem");
+  const rows = page.getByTestId("stored-imports").locator(":scope > li");
   await expect(rows).toHaveCount(2);
   await expect(rows.getByRole("link", { name: /^Replay first-observed-workload/u })).toBeVisible();
   const second = rows.filter({ hasText: "second-observed-workload" });

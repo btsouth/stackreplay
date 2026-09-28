@@ -4,7 +4,7 @@ import {
   CODEX_ROLLOUT,
   COMMAND_CODE_SESSION,
 } from "../../../packages/adapters/src/fixtures/content";
-import { gotoImport, importDemo, openBillingReview } from "./helpers";
+import { gotoImport, importDemo, openBillingReview, waitForWorkload } from "./helpers";
 
 test("a missing saved workload is identified instead of shown as an empty browser", async ({
   page,
@@ -49,10 +49,8 @@ test("a mixed workload compares one purchase decision and moves work through Rep
       ),
     },
   ]);
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
+  await waitForWorkload(page);
   await openBillingReview(page);
   await page.getByTestId("workload-compare-cta").click();
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {

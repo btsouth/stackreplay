@@ -8,19 +8,18 @@ import {
 } from "@stackreplay/test-fixtures";
 import { Button, buttonVariants, Card, CardContent, Metric } from "@stackreplay/ui";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { HistoryDiscovery } from "@/components/import/history-discovery";
 import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
 import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
 import { formatTokens } from "@/components/instrument/format";
-import { AutomaticImportAnswer } from "@/components/workload/automatic-workload";
 import {
   IntakeFileReview,
   PartialScanNotice,
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
 import { plainRange } from "@/components/workload/format";
-import { ReadyPreview } from "@/components/workload/value";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
@@ -28,10 +27,8 @@ import { importSizeAdvice } from "@/lib/import-validation";
 import { forgetSources } from "@/lib/remembered-sources";
 import { browserTimeZone } from "@/lib/time-zone";
 import { localDayOf } from "@/lib/timeline";
-import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protocol";
-import type { WorkloadProfile } from "@/lib/workload-profile";
 
 /**
  * Import surface (M3 brief).
@@ -96,14 +93,14 @@ export function ImportSurface({
   initialTarget?: string | undefined;
 }) {
   const client = getWorkerClient();
+  const router = useRouter();
+  const generation = useRef(0);
   const inputId = useId();
   const sourceInputId = useId();
   const folderInputRef = useRef<HTMLInputElement>(null);
   const sourceInputRef = useRef<HTMLInputElement>(null);
   /** The source card that opened the folder chooser, so the scan names the tool. */
   const folderSourceRef = useRef<string | undefined>(undefined);
-  /** Which path started the last scan, so Rescan can repeat it. */
-  const [lastScan, setLastScan] = useState<"folder" | "files" | "histories" | undefined>(undefined);
   const [folderSupported, setFolderSupported] = useState(true);
   /**
    * Saving is the default: a scan can take a minute, and losing it to a reload
@@ -112,8 +109,6 @@ export function ImportSurface({
    * raw session files are never copied.
    */
   const [saveLocal, setSaveLocal] = useState(true);
-  /** Whether the scan being shown asked to be saved, so a refused save is visible. */
-  const [requestedSave, setRequestedSave] = useState(true);
   const [phase, setPhase] = useState<Phase>("idle");
   const [detail, setDetail] = useState<string | undefined>(undefined);
   const [dragActive, setDragActive] = useState(false);
@@ -121,9 +116,6 @@ export function ImportSurface({
   /** A large-but-allowed file: said out loud before the work starts. */
   const [notice, setNotice] = useState<string | undefined>(undefined);
   const [record, setRecord] = useState<ImportRecord | undefined>(undefined);
-  const [activationProfile, setActivationProfile] = useState<WorkloadProfile | undefined>(
-    undefined,
-  );
   const [imports, setImports] = useState<ImportRecord[]>(initialImports);
   const [importsState, setImportsState] = useState<"loading" | "loaded" | "error">("loading");
   const [busy, setBusy] = useState(false);
@@ -194,12 +186,11 @@ export function ImportSurface({
         onProgress: (next: Phase, nextDetail?: string, nextScan?: ScanProgress) => void,
       ) => Promise<ImportRecord>,
     ) => {
-      setRequestedSave(saveLocal);
+      const request = ++generation.current;
       setBusy(true);
       setCanceled(false);
       setError(undefined);
       setRecord(undefined);
-      setActivationProfile(undefined);
       setPhase("reading");
       setDetail(undefined);
       setScan(undefined);
@@ -208,31 +199,50 @@ export function ImportSurface({
       let superseded = false;
       try {
         const imported = await run((next, nextDetail, nextScan) => {
+          if (request !== generation.current) return;
           setPhase(next);
           setDetail(nextDetail);
           if (nextScan !== undefined) setScan(nextScan);
         });
-        setPhase("finishing");
-        setDetail("Finishing the published API value and strongest insight");
-        await refreshImports();
-        const profile = await loadWorkloadProfile(imported.id, browserTimeZone());
-        setActivationProfile(profile);
+        if (request !== generation.current) return;
+        // The worker has finished normalization and the requested local save.
+        // Analysis belongs to Workload and must not delay this handoff.
         setRecord(imported);
+        setNotice(undefined);
         setPhase("ready");
+        void refreshImports();
         return imported;
       } catch (failure) {
-        if (failure instanceof SupersededError) {
+        if (request !== generation.current || failure instanceof SupersededError) {
           superseded = true;
           return;
         }
         setError(describeWorkerFailure(failure));
         setPhase("idle");
       } finally {
-        if (!superseded) setBusy(false);
+        if (!superseded && request === generation.current) setBusy(false);
       }
     },
-    [refreshImports, saveLocal],
+    [refreshImports],
   );
+
+  useEffect(
+    () => () => {
+      generation.current += 1;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (record === undefined || phase !== "ready") return;
+    const request = generation.current;
+    const href = `/app/workload?import=${encodeURIComponent(record.id)}${initialTarget === undefined ? "" : `&target=${encodeURIComponent(initialTarget)}`}`;
+    router.prefetch(href);
+    const timer = window.setTimeout(() => {
+      if (generation.current === request) router.replace(href);
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [record, phase, router, initialTarget]);
 
   /**
    * A file larger than the browser can realistically parse is refused here with a
@@ -245,6 +255,7 @@ export function ImportSurface({
     (file: File) => {
       const advice = importSizeAdvice(file.size);
       if (advice.level === "refused") {
+        generation.current += 1;
         void client.cancelImport().catch(() => undefined);
         setBusy(false);
         setRecord(undefined);
@@ -343,7 +354,6 @@ export function ImportSurface({
         });
         return;
       }
-      setLastScan("histories");
       setScanSource(selection.label);
       setScanHistories(selection.histories);
       setLargeBytes(selection.bytes > LARGE_HISTORY_BYTES ? selection.bytes : undefined);
@@ -369,6 +379,7 @@ export function ImportSurface({
    * nothing from it is kept, and the page returns to the sources it came from.
    */
   const cancelScan = useCallback(() => {
+    generation.current += 1;
     void client.cancelImport().catch(() => undefined);
     setBusy(false);
     setPhase("idle");
@@ -384,21 +395,6 @@ export function ImportSurface({
     folderSourceRef.current = sourceName;
     folderInputRef.current?.click();
   }, []);
-
-  /**
-   * Repeats the last scan by reopening the same chooser, because the browser's
-   * earlier file snapshot cannot be read again.
-   */
-  const rescan = useCallback(() => {
-    if (lastScan === "histories") {
-      // Dropped folders stay readable while this page is open, so the same
-      // list is one Build away.
-      const discovery = document.querySelector<HTMLElement>('[data-testid="history-discovery"]');
-      discovery?.scrollIntoView({ block: "start" });
-      discovery?.querySelector<HTMLElement>('[data-testid="build-workload"]')?.focus();
-    } else if (lastScan === "folder") folderInputRef.current?.click();
-    else sourceInputRef.current?.click();
-  }, [lastScan]);
 
   const exportWorkload = useCallback(
     async (importId: string) => {
@@ -445,6 +441,9 @@ export function ImportSurface({
       setError(describeWorkerFailure(failure));
       return;
     }
+    generation.current += 1;
+    setBusy(false);
+    setError(undefined);
     setRecord(undefined);
     setPhase("idle");
     forgetConnections();
@@ -466,7 +465,6 @@ export function ImportSurface({
       if (files.length === 1 && files[0]?.name.endsWith(".stackreplay.json"))
         void importFile(files[0]);
       else {
-        setLastScan("files");
         setScanSource(
           files.length === 1
             ? (files[0]?.name ?? "the dropped file")
@@ -495,7 +493,6 @@ export function ImportSurface({
         : record !== undefined
           ? "ready"
           : "idle";
-  const skippedOutcomes = record === undefined ? [] : skippedOutcomesOf(record);
 
   return (
     <div
@@ -515,18 +512,9 @@ export function ImportSurface({
               detail={detail}
               record={scanStage === "ready" ? record : undefined}
               ready={
-                record === undefined ? null : (
-                  <ReadyDetails
-                    busy={busy}
-                    initialTarget={initialTarget}
-                    onExport={() => void exportWorkload(record.id)}
-                    onRescan={rescan}
-                    record={record}
-                    profile={activationProfile}
-                    requestedSave={requestedSave}
-                    skippedCount={skippedOutcomes.length}
-                  />
-                )
+                <p className="mt-6 text-sm text-accent" role="status">
+                  Opening your workload…
+                </p>
               }
               scan={scan}
               sourceName={scanSource}
@@ -605,7 +593,7 @@ export function ImportSurface({
           </Card>
         ) : null}
       </div>
-      <DiscoveryPanel collapsed={scanStage === "ready"} hidden={scanActive}>
+      <div className="flex min-w-0 flex-col gap-5" hidden={scanShown}>
         <HistoryDiscovery
           busy={busy}
           ready={ready}
@@ -692,7 +680,6 @@ export function ImportSurface({
           data-testid="source-folder-input"
           onChange={(event) => {
             const files = Array.from(event.target.files ?? []);
-            setLastScan("folder");
             setScanSource(
               folderSourceRef.current ??
                 (files[0]?.webkitRelativePath.split("/")[0] || "the selected folder"),
@@ -763,7 +750,6 @@ export function ImportSurface({
                             ? (files[0]?.name ?? "")
                             : `${files.length} files selected`,
                       }));
-                      setLastScan("files");
                       setScanSource(
                         files.length === 1
                           ? (files[0]?.name ?? "the selected file")
@@ -867,9 +853,9 @@ export function ImportSurface({
             </p>
           </CardContent>
         </Card>
-      </DiscoveryPanel>
+      </div>
 
-      {!scanActive ? (
+      {!scanShown ? (
         <div className="flex min-w-0 flex-col gap-5">
           {showIntro ? (
             <section
@@ -1024,6 +1010,29 @@ export function ImportSurface({
                         </Button>
                       </details>
                     </div>
+                    <details className="border-t border-border pt-2" data-testid="import-details">
+                      <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground">
+                        Import details
+                      </summary>
+                      <div className="space-y-4 py-3" data-testid="saved-import-summary">
+                        <PartialScanNotice record={entry} />
+                        <ImportSummaryGrid record={entry} />
+                        {entry.intake === undefined ? null : (
+                          <div data-testid="intake-review">
+                            <p
+                              className="text-xs text-muted-foreground"
+                              data-testid="detected-sources"
+                            >
+                              {entry.summary.usageSources.map((source) => source.name).join(" · ")}
+                              {" · "}
+                              {skippedOutcomesOf(entry).length.toLocaleString("en-US")} files
+                              ignored or not included
+                            </p>
+                            <IntakeFileReview record={entry} />
+                          </div>
+                        )}
+                      </div>
+                    </details>
                   </li>
                 ))}
               </ul>
@@ -1096,191 +1105,6 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
         Keep my workloads
       </Button>
     </fieldset>
-  );
-}
-
-/**
- * Discovery and the other ways in. Once a workload is ready it folds away:
- * the result's own next steps lead, and a live Build button under "Workload
- * ready" read as unfinished work.
- */
-function DiscoveryPanel({
-  collapsed,
-  hidden,
-  children,
-}: {
-  collapsed: boolean;
-  hidden: boolean;
-  children: React.ReactNode;
-}) {
-  if (!collapsed)
-    return (
-      <div className="flex min-w-0 flex-col gap-5" hidden={hidden}>
-        {children}
-      </div>
-    );
-  return (
-    <details
-      className="min-w-0 border-t border-border pt-4"
-      data-testid="discovery-after-ready"
-      hidden={hidden}
-    >
-      <summary className="min-h-11 cursor-pointer content-center text-sm text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
-        Scan another history or add a folder
-      </summary>
-      <div className="mt-4 flex min-w-0 flex-col gap-5">{children}</div>
-    </details>
-  );
-}
-
-/**
- * What a completed scan offers under its resolved facts: the next step first,
- * then anything that qualifies the totals (a partial scan, an unsaved result),
- * then the evidence behind them.
- */
-function ReadyDetails({
-  record,
-  profile,
-  requestedSave,
-  busy,
-  onRescan,
-  onExport,
-  initialTarget,
-  skippedCount,
-}: {
-  record: ImportRecord;
-  profile: WorkloadProfile | undefined;
-  requestedSave: boolean;
-  busy: boolean;
-  onRescan: () => void;
-  onExport: () => void;
-  initialTarget?: string | undefined;
-  skippedCount: number;
-}) {
-  // An incomplete source file qualifies the value, so it sits with it.
-  const partialScan = (
-    <PartialScanNotice
-      record={record}
-      action={
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={onRescan}
-          disabled={busy}
-          data-testid="rescan"
-        >
-          Rescan
-        </Button>
-      }
-    />
-  );
-  return (
-    <div className="mt-5 flex min-w-0 flex-col gap-5">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <Link
-          href={`/app/workload?import=${record.id}`}
-          data-testid="open-workload"
-          className={buttonVariants({ size: "lg" })}
-        >
-          See your workload →
-        </Link>
-        <Link
-          href={replayHref(record.id, initialTarget)}
-          data-testid="continue-to-replay"
-          className="inline-flex min-h-11 items-center text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          Or test it against a plan in Replay
-        </Link>
-      </div>
-      {partialScan}
-      <AutomaticImportAnswer key={record.id} record={record} />
-      <details data-testid="legacy-import">
-        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-          Inspect earlier replay valuation and usage insights
-        </summary>
-        {profile === undefined ? null : (
-          <ReadyPreview
-            importId={record.id}
-            profile={profile}
-            sources={record.summary.usageSources}
-          />
-        )}
-      </details>
-      <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
-        {record.label} ·{" "}
-        {record.savedLocally === false
-          ? "scan results available until reload"
-          : "saved on this browser"}
-      </p>
-      {record.savedLocally === false ? (
-        <p
-          className="border-l-2 border-warning bg-surface-2 px-3 py-2.5 text-sm leading-relaxed"
-          data-testid="not-saved-notice"
-          role="status"
-        >
-          <span className="font-mono text-[11px] tracking-[0.12em] text-warning uppercase">
-            Not saved
-          </span>{" "}
-          {requestedSave
-            ? "This browser did not accept the save (storage unavailable or full), so this workload is available only until the page reloads. Export a portable workload to keep it."
-            : "You chose not to save this workload, so it is available only until the page reloads."}
-        </p>
-      ) : null}
-      <details className="min-w-0 border-t border-border pt-3" data-testid="scan-details">
-        <summary className="min-h-11 cursor-pointer content-center text-sm text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
-          Scan details: sources and token categories
-        </summary>
-        <div className="mt-4 flex min-w-0 flex-col gap-5">
-          <ImportSummaryGrid compact record={record} />
-          {record.intake !== undefined ? (
-            <div
-              className="grid gap-3 border-y border-border py-4 text-sm sm:grid-cols-3"
-              data-testid="detected-sources"
-            >
-              <div>
-                <p className="text-xs text-muted-foreground">Detected sources</p>
-                <p className="mt-1 font-medium">
-                  {[
-                    ...new Set(
-                      record.intake.outcomes
-                        .filter((item) => item.status === "imported")
-                        .map((item) => item.source ?? "Source"),
-                    ),
-                  ].join(" · ") || "Portable workload"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Files skipped or unsupported</p>
-                <p className="mt-1 font-medium">{skippedCount.toLocaleString("en-US")}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Evidence</p>
-                <p className="mt-1 font-medium">
-                  {record.summary.tokens.unknownEvents > 0
-                    ? `${record.summary.tokens.unknownEvents.toLocaleString("en-US")} included calls have unknown usage`
-                    : "Token totals known for included calls"}
-                </p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </details>
-      {record.intake !== undefined ? (
-        <details data-testid="intake-review" className="border-b border-border pb-4">
-          <summary className="min-h-11 content-center cursor-pointer text-xs font-medium uppercase tracking-wide focus-visible:outline-2 focus-visible:outline-ring">
-            File review and parser notes
-            {skippedCount > 0 ? ` · ${skippedCount.toLocaleString("en-US")} skipped` : ""}
-          </summary>
-          <div className="mt-2">
-            <IntakeFileReview record={record} />
-          </div>
-        </details>
-      ) : null}
-      <Button type="button" variant="secondary" size="sm" className="self-start" onClick={onExport}>
-        Export portable workload
-      </Button>
-    </div>
   );
 }
 

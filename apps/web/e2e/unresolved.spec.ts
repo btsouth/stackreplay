@@ -1,7 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 import type { UsageEventV1 } from "@stackreplay/schema";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport } from "./helpers";
+import { createShareToken, gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+
+// These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-27T12:00:00Z"));
+});
 
 /**
  * One unresolved call carrying a billion input tokens, early in a 3,200-call
@@ -37,7 +42,7 @@ async function importGiant(page: Page, resolved: boolean): Promise<void> {
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(giantExport(resolved))),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
+  await waitForWorkload(page);
 }
 
 async function replayCopilot(page: Page): Promise<string> {
@@ -73,10 +78,13 @@ test("a giant unresolved call qualifies the run-out and the price across relevan
 
   // Workload Ready and the workload page: the price scope never reads complete
   // and names the demand it leaves out.
-  const ready = page.getByTestId("ready-preview");
-  await expect(ready.getByTestId("value-scope")).toContainText("3,199 of 3,200 calls (99.97%)", {
-    timeout: 60_000,
-  });
+  const ready = page.getByTestId("workload-opening");
+  await expect(ready.getByTestId("value-scope")).toContainText(
+    "3,199 of 3,200 included calls priced (99.97%)",
+    {
+      timeout: 60_000,
+    },
+  );
   await expect(ready.getByTestId("value-token-scope")).toContainText(
     /the 1 left out carries 64\.\d%/u,
   );
@@ -118,17 +126,21 @@ test("a giant unresolved call qualifies the run-out and the price across relevan
 test("resolving that call makes every surface exact", async ({ page }) => {
   test.setTimeout(240_000);
   await importGiant(page, true);
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
-  await expect(page.getByTestId("ready-preview").getByTestId("value-scope")).toContainText(
-    "All 3,200 calls",
+  await expect(page.getByTestId("workload-opening").getByTestId("value-scope")).toContainText(
+    "All 3,200 included calls",
     { timeout: 60_000 },
   );
-  await page.getByTestId("legacy-import").evaluate((el: HTMLDetailsElement) => {
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
-  await expect(page.getByTestId("ready-preview").getByTestId("value-token-scope")).toHaveCount(0);
+  await expect(page.getByTestId("workload-opening").getByTestId("value-token-scope")).toHaveCount(
+    0,
+  );
 
   const replay = await replayCopilot(page);
   expect(replay).toBe(

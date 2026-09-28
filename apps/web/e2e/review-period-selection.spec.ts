@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, openReviewEditor } from "./helpers";
+import { gotoImport, openReviewEditor, waitForWorkload } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`35-day import prices the full import before optional billing in ${theme}`, async ({
@@ -32,7 +32,7 @@ for (const theme of ["dark", "light"] as const) {
       buffer: Buffer.from(JSON.stringify(file)),
     });
     await expect(page.getByTestId("import-summary")).toBeVisible();
-    await page.getByTestId("open-workload").click();
+    await waitForWorkload(page);
     await expect(page.getByTestId("overview-api-total")).toContainText("$");
     await expect(page.getByTestId("overview-period")).toContainText("35 days");
     await expect(page.getByLabel("Review start date")).not.toBeVisible();

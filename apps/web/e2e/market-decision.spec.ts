@@ -1,14 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { importDemo, openBillingReview, openReviewEditor, openReviewEvidence } from "./helpers";
+import {
+  importDemo,
+  openBillingReview,
+  openReviewEditor,
+  openReviewEvidence,
+  waitForWorkload,
+} from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`D1 same-scope API decision, receipts and subscriptions in ${theme}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
     await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
     await importDemo(page, "moderate");
-    await expect(page.getByTestId("legacy-cache-assumption")).toContainText("5-minute assumption");
-    await page.getByTestId("open-workload").click();
+    await waitForWorkload(page);
     await openBillingReview(page);
     const market = page.getByTestId("market-decision");
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10", {
@@ -74,12 +79,12 @@ for (const theme of ["dark", "light"] as const) {
 
 test("replacing a workload cannot publish the previous market result", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await page.goto("/app/import");
   await page.getByTestId("demo-multistack").click();
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page.getByTestId("market-total")).toHaveText(
     "Pricing incomplete for this workload",
@@ -90,9 +95,7 @@ test("replacing a workload cannot publish the previous market result", async ({ 
   await expect(page.getByTestId("market-coverage")).not.toContainText("900 / 900");
 });
 
-test("the import answer, Workload, Compare and aggregate share use one decision", async ({
-  page,
-}) => {
+test("automatic Workload, Compare and aggregate share use one decision", async ({ page }) => {
   await page.addInitScript(() => {
     const original = Worker.prototype.postMessage;
     (window as unknown as { marketRuns: number }).marketRuns = 0;
@@ -103,9 +106,9 @@ test("the import answer, Workload, Compare and aggregate share use one decision"
     };
   });
   await importDemo(page, "moderate");
-  await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
-  await expect(page.getByTestId("legacy-import")).not.toHaveAttribute("open", "");
-  await page.getByTestId("open-workload").click();
+  await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
+  await expect(page.getByTestId("legacy-workload")).not.toHaveAttribute("open", "");
+  await waitForWorkload(page);
   await openBillingReview(page);
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
   await expect(page.getByTestId("share-figure")).toContainText("$5.93 – $6.10");

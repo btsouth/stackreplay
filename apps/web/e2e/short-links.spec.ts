@@ -4,7 +4,13 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, createShareLink, gotoImport, openReviewEvidence } from "./helpers";
+import {
+  captureRequests,
+  createShareLink,
+  gotoImport,
+  openReviewEvidence,
+  waitForWorkload,
+} from "./helpers";
 
 /**
  * Short share links, end to end in a real browser.
@@ -50,10 +56,8 @@ async function scanMarkedHistory(page: Page): Promise<void> {
     { name: MARKERS.file, mimeType: "application/jsonl", buffer: Buffer.from(markedClaude()) },
     { name: "rollout-zz.jsonl", mimeType: "application/jsonl", buffer: Buffer.from(markedCodex()) },
   ]);
-  await expect(page.getByTestId("import-summary")).toContainText("Workload ready", {
-    timeout: 60_000,
-  });
-  await page.getByTestId("open-workload").click();
+  await waitForWorkload(page);
+  await waitForWorkload(page);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
