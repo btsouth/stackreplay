@@ -56,6 +56,8 @@ export const reviewChoiceSchema = z.object({
   mode: z.enum(["history", "custom", "cycle"]),
   period: periodSchema.optional(),
   subscription: z.string().max(150).optional(),
+  /** Optional single-plan review focus. Does not replace the user's saved current stack. */
+  focusedSubscription: z.string().startsWith("plan:").max(150).optional(),
   /** Explicit declaration, tied to this import and exact dates. Never inferred from events. */
   historyConfirmed: z.string().max(30).optional(), // Legacy D2 declaration; real reviews must reconfirm.
   historyConfirmation: z

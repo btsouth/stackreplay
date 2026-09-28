@@ -11,7 +11,7 @@ export interface ActivityPoint {
 export interface ObservedCapacityEpisode {
   episodeId: string;
   resourceInstanceId: string;
-  planId: string;
+  planId: string | undefined;
   firstBlockedAt: string;
   lastBlockedAt: string;
   resetAt?: string;
@@ -128,7 +128,7 @@ export function composeCapacityBurden(input: {
   mainActivity: ActivityPoint[];
   contextActivity: ActivityPoint[];
   resourceInstanceId: string;
-  planId: string;
+  planId: string | undefined;
   period: ReviewPeriod;
   mainSource: string;
   excludedActivityRecords?: number;

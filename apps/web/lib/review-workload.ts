@@ -1,6 +1,31 @@
 import { tokenAccountingOf } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-import { periodSchema, type ReviewHistory, type ReviewPeriod } from "./review-period";
+import { dateSchema, periodSchema, type ReviewHistory, type ReviewPeriod } from "./review-period";
+
+/** Chronological filtering has no billing-cycle length limit. Returns original event references. */
+export function recordedEventsInPeriod(
+  events: readonly TextUsageEventV1[],
+  period?: ReviewPeriod,
+  resourceInstanceId?: string,
+) {
+  if (period) {
+    dateSchema.parse(period.start);
+    dateSchema.parse(period.end);
+    if (period.end <= period.start) throw new Error("End must be after start");
+  }
+  const start = period ? Date.parse(`${period.start}T00:00:00Z`) : -Infinity;
+  const end = period ? Date.parse(`${period.end}T00:00:00Z`) : Infinity;
+  return period || resourceInstanceId
+    ? events.filter((event) => {
+        const at = Date.parse(event.occurredAt);
+        return (
+          at >= start &&
+          at < end &&
+          (!resourceInstanceId || event.source.resourceInstanceId === resourceInstanceId)
+        );
+      })
+    : events;
+}
 
 /** Worker-only scope selection. Retain original events; return references, never clone usage. */
 export function reviewWorkload(
@@ -9,19 +34,7 @@ export function reviewWorkload(
   resourceInstanceId?: string,
 ) {
   if (period) periodSchema.parse(period);
-  const start = period ? Date.parse(`${period.start}T00:00:00Z`) : -Infinity;
-  const end = period ? Date.parse(`${period.end}T00:00:00Z`) : Infinity;
-  const scoped =
-    period || resourceInstanceId
-      ? events.filter((event) => {
-          const at = Date.parse(event.occurredAt);
-          return (
-            at >= start &&
-            at < end &&
-            (!resourceInstanceId || event.source.resourceInstanceId === resourceInstanceId)
-          );
-        })
-      : events;
+  const scoped = recordedEventsInPeriod(events, period, resourceInstanceId);
   const history: ReviewHistory = {
     calls: scoped.length,
     knownTokens: 0,

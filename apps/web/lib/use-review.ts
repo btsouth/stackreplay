@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "./current-stack";
 import type { BillingFact, ReviewChoice } from "./review-period";
 import { readReviewState, saveReview, subscribeReview } from "./review-storage";
@@ -77,14 +77,20 @@ export function useReview(record: ImportRecord) {
     if (fact) setBilling((old) => ({ ...old, [fact.key]: storedFact?.fact ?? fact.fact }));
     setSaveFailed(!saved);
   };
+  const reviewSelected = useMemo(
+    () => (choice.focusedSubscription ? [choice.focusedSubscription as TargetKey] : selected),
+    [choice.focusedSubscription, selected],
+  );
   return {
     ready,
     choice,
     billing,
     selected,
+    reviewSelected,
     synthetic,
     saveFailed,
     setChoice: (next: ReviewChoice) => update(next),
+    saveSetup: (next: ReviewChoice, key: string, fact: BillingFact) => update(next, { key, fact }),
     saveBilling: (key: string, fact: BillingFact) => {
       const {
         historyConfirmed: _legacy,

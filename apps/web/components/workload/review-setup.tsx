@@ -224,8 +224,9 @@ export function HistoryConfirmation({
         {choice.resourceInstanceId
           ? `I believe the available ${choice.accountLabel || "selected account"} history covers this billing cycle.`
           : "I have imported the history for this whole review period, including all the sources I want to compare."}{" "}
-        Days without calls may be idle days. This is my local confirmation, not proof from
-        StackReplay.
+        <span className="mt-1 block text-xs text-muted-foreground">
+          Your local assertion, not independently verified. Days without calls may be idle days.
+        </span>
       </span>
     </label>
   );

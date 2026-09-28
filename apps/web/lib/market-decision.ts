@@ -7,7 +7,13 @@ export interface MarketDecision {
   history?: ReviewHistory;
   capacity?: CapacitySummary;
   /** Direct imported evidence only, across explicitly identified local accounts. */
-  capacitySignal?: { blockedAttempts: number; warnings: number; days: number; accounts: number };
+  capacitySignal?: {
+    blockedAttempts: number;
+    warnings: number;
+    days: number;
+    accounts: number;
+    resourceInstanceIds?: string[];
+  };
   coverage?: MarketCoverage;
   /** Separate explicitly priced subset, never a whole-workload total. */
   pricedScope?: { scenarios: MarketDecision["scenarios"] };

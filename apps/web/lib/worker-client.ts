@@ -420,7 +420,7 @@ export class ReplayWorkerClient {
   async capacityBurden(input: {
     importId: string;
     resourceInstanceId: string;
-    planId: string;
+    planId: string | undefined;
     period: import("./review-period").ReviewPeriod;
     contextImportIds: string[];
   }): Promise<CapacityBurden> {

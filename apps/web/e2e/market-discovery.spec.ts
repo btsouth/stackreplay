@@ -17,8 +17,9 @@ test("featured rates keep deliberate Claude and OpenAI pairs on the same price s
   await expect(pairs.nth(2)).toContainText("GPT-5.6 Terra");
   await expect(pairs.nth(3)).toContainText("Claude Haiku 4.5");
   await expect(pairs.nth(3)).toContainText("GPT-6 Luna");
-  await expect(chart.getByRole("link")).toHaveCount(10);
-  await expect(chart).not.toContainText("Gemini");
+  await expect(chart.getByRole("link")).toHaveCount(14);
+  for (const model of ["Grok 4.7", "Gemini 3.8 Flash", "GLM 5.3 Flash", "Kimi K3"])
+    await expect(chart).toContainText(model);
   await expect(chart).not.toContainText("Composer");
   await expect(chart).toContainText("GLM 5.3");
   await expect(chart).toContainText("DeepSeek-V4.1-Flash");
@@ -44,13 +45,13 @@ test("the model library leads with the coding shortlist but keeps every model di
   await expect(rows.nth(1)).toContainText("GPT-6 Sol");
   await expect(rows.nth(2)).toContainText("Claude Sonnet 5.5");
   await expect(rows.nth(3)).toContainText("GPT-5.6 Terra");
-  await expect(page.getByTestId("model-table")).not.toContainText("Gemini");
+  await expect(rows.nth(0)).not.toContainText("Gemini");
   await expect(page.getByTestId("model-table")).not.toContainText("Composer");
   await page.getByLabel("Find a model, family name or exact alias").fill("Gemini");
   await expect(rows.first()).toContainText("Gemini");
   // Searching the library does not unexpectedly replace the featured comparison.
-  await expect(page.getByRole("group", { name: "output price comparison" })).not.toContainText(
-    "Gemini",
+  await expect(page.getByRole("group", { name: "output price comparison" })).toContainText(
+    "Gemini 3.8 Flash",
   );
   await page.getByLabel("Find a model, family name or exact alias").fill("Composer 2.5");
   await expect(rows).toHaveCount(1);

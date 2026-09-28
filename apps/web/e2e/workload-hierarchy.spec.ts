@@ -65,7 +65,7 @@ for (const theme of ["dark", "light"] as const) {
     );
     await page.getByTestId("billing-action").focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByLabel("Review start date")).toBeVisible();
+    await expect(page.getByLabel("Billing cycle start")).toBeVisible();
     await page.getByRole("button", { name: "Back to workload overview" }).click();
     await expect(page.getByTestId("billing-action")).toBeFocused();
   });

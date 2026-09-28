@@ -22,6 +22,7 @@ import { useReview } from "@/lib/use-review";
 import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { BillingEditor } from "./billing-editor";
+import { BillingSetup } from "./billing-setup";
 import { partialScanOf } from "./evidence";
 import { ObservedCapacity } from "./observed-capacity";
 import { HistoryConfirmation, ReviewSetup } from "./review-setup";
@@ -56,7 +57,7 @@ export function MarketDecisionSurface({
   const [error, setError] = useState<string>();
   const importId = record.id;
   const local = useReview(record);
-  const { selected, choice, billing } = local;
+  const { reviewSelected: selected, choice, billing } = local;
   const selectedPeriod = resolveReviewPeriod(choice, billing);
   const periodStart = selectedPeriod?.start,
     periodEnd = selectedPeriod?.end;
@@ -278,16 +279,6 @@ export function MarketDecisionSurface({
               </p>
             </div>
           ) : null}
-          {review ? (
-            <HistoryConfirmation
-              choice={choice}
-              review={review}
-              importId={importId}
-              scopeDigest={decision?.scenarios[0]?.summary.scope.digest}
-              partialScan={partialScan}
-              onChange={local.setChoice}
-            />
-          ) : null}
         </>
       ) : null}
       <details id="current-stack" data-testid="market-subscriptions" className="text-sm">
@@ -314,6 +305,8 @@ export function MarketDecisionSurface({
                     const next = e.target.checked
                       ? [...selected, key]
                       : selected.filter((id) => id !== key);
+                    const { focusedSubscription: _focus, ...rest } = choice;
+                    local.setChoice(rest);
                     local.setSelected(next);
                   }}
                 />
@@ -414,7 +407,36 @@ export function MarketDecisionSurface({
           {configured ? (editing ? "Done" : "Edit") : "Account, dates & billing"}
         </span>
       </summary>
-      <div className="space-y-4 py-3">{controls}</div>
+      <div className="space-y-5 py-3">
+        <BillingSetup
+          key={`${choice.resourceInstanceId ?? "all"}:${selected.join(",")}`}
+          local={local}
+          accounts={accounts}
+          onSaved={() => setEditing(false)}
+        />
+        {!needsPeriod && review ? (
+          <div className="border-t border-border pt-4" data-testid="billing-history-confirmation">
+            <p className="mb-3 text-sm">
+              {review.history.calls.toLocaleString()} responses in this cycle ·{" "}
+              {formatTokens(review.history.knownTokens)} known tokens
+            </p>
+            <HistoryConfirmation
+              choice={choice}
+              review={review}
+              importId={importId}
+              scopeDigest={decision?.scenarios[0]?.summary.scope.digest}
+              partialScan={partialScan}
+              onChange={local.setChoice}
+            />
+          </div>
+        ) : null}
+        <details data-testid="advanced-review-controls" className="border-t border-border pt-2">
+          <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground">
+            Advanced: custom periods &amp; multiple subscriptions
+          </summary>
+          <div className="space-y-4 pt-3">{controls}</div>
+        </details>
+      </div>
     </details>
   );
   const render = (capacity?: {

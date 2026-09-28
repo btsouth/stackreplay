@@ -26,7 +26,14 @@ export const FEATURED_MODEL_PAIRS = [
   ["claude-sonnet-5-5", "gpt-5-6-terra"],
   ["claude-haiku-4-5", "gpt-6-luna"],
 ] as const;
-export const FEATURED_ALTERNATIVE_MODELS = ["glm-5-3", "deepseek-v4-1-flash"] as const;
+export const FEATURED_ALTERNATIVE_MODELS = [
+  "glm-5-3",
+  "deepseek-v4-1-flash",
+  "grok-4-7",
+  "gemini-3-8-flash",
+  "glm-5-3-flash",
+  "kimi-k3",
+] as const;
 
 // A deliberate coding shortlist, not a measured popularity ranking. Every other
 // catalog entry remains accessible through search, filters and the full list.

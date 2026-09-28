@@ -230,7 +230,7 @@ export type WorkerRequest =
       requestId: number;
       importId: string;
       resourceInstanceId: string;
-      planId: string;
+      planId: string | undefined;
       period: import("./review-period").ReviewPeriod;
       contextImportIds: string[];
     }

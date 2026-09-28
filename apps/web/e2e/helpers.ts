@@ -208,6 +208,10 @@ export async function openReviewEditor(page: Page): Promise<void> {
   await expect(editor).toBeVisible();
   if (!(await editor.evaluate((el) => (el as HTMLDetailsElement).open)))
     await page.getByTestId("review-bar").click();
+  // Legacy custom/multi-plan scenarios intentionally exercise the advanced path.
+  const advanced = page.getByTestId("advanced-review-controls");
+  if (!(await advanced.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await advanced.locator(":scope > summary").click();
 }
 export async function openReviewEvidence(page: Page): Promise<void> {
   await expect(

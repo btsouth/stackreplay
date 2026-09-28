@@ -379,7 +379,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
-  await openBillingReview(page);
+  await openReviewEditor(page);
   await expect(page.getByLabel("Local source account")).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
   await openReviewEditor(page);

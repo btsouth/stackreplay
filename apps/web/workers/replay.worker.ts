@@ -37,7 +37,7 @@ import {
 import type { MarketDecision } from "../lib/market-decision";
 import { summarizeCapacity } from "../lib/observed-capacity";
 import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
-import { reviewWorkload } from "../lib/review-workload";
+import { recordedEventsInPeriod, reviewWorkload } from "../lib/review-workload";
 import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
@@ -84,7 +84,13 @@ async function handleCapacityEpisodes(
     post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
     return;
   }
-  const scoped = reviewWorkload(loaded.exported.events, request.period, request.resourceInstanceId);
+  const scoped = {
+    events: recordedEventsInPeriod(
+      loaded.exported.events,
+      request.period,
+      request.resourceInstanceId,
+    ),
+  };
   const source = scoped.events[0]?.source.adapterId ?? "unknown";
   const context: ActivityPoint[] = [];
   const unavailable: string[] = [];
@@ -208,6 +214,7 @@ async function handleMarket(
         warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,
         days: new Set(blocked.map((event) => event.timestamp.slice(0, 10))).size,
         accounts: new Set(blocked.map((event) => event.resourceInstanceId)).size,
+        resourceInstanceIds: [...new Set(blocked.map((event) => event.resourceInstanceId))],
       };
     const analysis = analyzeMarketCoverage(inputs);
     decision.coverage = analysis.coverage;

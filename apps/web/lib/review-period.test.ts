@@ -13,7 +13,7 @@ import {
   periodSchema,
   type ReviewChoice,
 } from "./review-period";
-import { reviewWorkload } from "./review-workload";
+import { recordedEventsInPeriod, reviewWorkload } from "./review-workload";
 import { presentShare } from "./share-presentation";
 import { workloadShareV2 } from "./share-v2";
 import { buildWorkloadProfile } from "./workload-profile";
@@ -285,4 +285,46 @@ describe("account-bound billing reviews", () => {
     expect(one.conclusion).toContain("currently modeled published API rates");
     expect(one.conclusion).toContain("Max 5x could be replaced without interruption");
   });
+});
+
+it("capacity chronology accepts long spans while billing stays within one cycle", () => {
+  const base = exported.events[0];
+  if (!base) throw new Error("Fixture requires a response");
+  const events = [
+    {
+      ...base,
+      id: "first",
+      occurredAt: "2026-08-24T00:00:00Z",
+      source: { ...base.source, resourceInstanceId: "main" },
+    },
+    {
+      ...base,
+      id: "last",
+      occurredAt: "2026-09-27T23:59:59Z",
+      source: { ...base.source, resourceInstanceId: "main" },
+    },
+    {
+      ...base,
+      id: "excluded",
+      occurredAt: "2026-09-28T00:00:00Z",
+      source: { ...base.source, resourceInstanceId: "main" },
+    },
+    {
+      ...base,
+      id: "other",
+      occurredAt: "2026-09-17T00:00:00Z",
+      source: { ...base.source, resourceInstanceId: "other" },
+    },
+  ];
+  const period = { start: "2026-08-24", end: "2026-09-28" };
+  const result = recordedEventsInPeriod(events, period, "main");
+  expect(result.map((e) => e.id)).toEqual(["first", "last"]);
+  expect(result[0]).toBe(events[0]);
+  expect(() => reviewWorkload(events, period, "main")).toThrow();
+  expect(() =>
+    recordedEventsInPeriod(events, { start: "2026-09-28", end: "2026-08-24" }, "main"),
+  ).toThrow();
+  expect(() =>
+    recordedEventsInPeriod(events, { start: "2026-02-30", end: "2026-03-01" }, "main"),
+  ).toThrow();
 });

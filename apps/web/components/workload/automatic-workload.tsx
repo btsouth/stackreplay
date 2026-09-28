@@ -13,6 +13,7 @@ import { useReview } from "@/lib/use-review";
 import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import type { WorkloadProfile } from "@/lib/workload-profile";
+import { CapacityInspector } from "./capacity-inspector";
 import { MarketDecisionSurface } from "./market-decision";
 import { WorkloadSection } from "./section";
 
@@ -166,7 +167,9 @@ export function AutomaticWorkload({
   const { overview, error } = useAutomaticMarket(record);
   const [billingOpen, setBillingOpen] = useState(false);
   const [billingLoaded, setBillingLoaded] = useState(false);
-  const [billingIntent, setBillingIntent] = useState<"edit" | "timeline">("edit");
+  const [capacityOpen, setCapacityOpen] = useState(false);
+  const capacityAction = useRef<HTMLButtonElement>(null);
+  const capacityPanel = useRef<HTMLDivElement>(null);
   const collapseOnCompletion = useRef(false);
   const [billing, setBilling] = useState<MarketDecision>();
   const [burden, setBurden] = useState<CapacityBurden>();
@@ -202,7 +205,7 @@ export function AutomaticWorkload({
           return value.toFixed(value.lt(1) ? 2 : 0);
         })
       : undefined;
-  const plans = local.selected
+  const plans = local.reviewSelected
     .map((key) => DECISION_MARKET.plans.find((plan) => `plan:${plan.id}` === key)?.name)
     .filter(Boolean)
     .join(" + ");
@@ -230,19 +233,19 @@ export function AutomaticWorkload({
   const signal = overview?.capacitySignal;
   const openBilling = () => {
     collapseOnCompletion.current = billing?.review ? !billing.review.complete : !hasSavedReview;
-    setBillingIntent("edit");
     setBillingLoaded(true);
     setBillingOpen(true);
   };
   useEffect(() => {
     if (billingOpen) panel.current?.focus();
   }, [billingOpen]);
-  const openTimeline = () => {
-    collapseOnCompletion.current = false;
-    setBillingIntent("timeline");
-    setBillingLoaded(true);
-    setBillingOpen(true);
-  };
+  const openTimeline = () => setCapacityOpen(true);
+  useEffect(() => {
+    if (capacityOpen) {
+      capacityPanel.current?.focus();
+      capacityPanel.current?.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+  }, [capacityOpen]);
   useLayoutEffect(() => {
     // Finishing new setup collapses it. Loading or explicitly editing a saved review does not.
     if (complete && billingOpen && collapseOnCompletion.current) {
@@ -251,16 +254,6 @@ export function AutomaticWorkload({
       action.current?.focus();
     }
   }, [complete, billingOpen]);
-  useEffect(() => {
-    if (billingOpen && billingIntent === "timeline" && burden) {
-      const timeline = document.getElementById("capacity-timeline");
-      if (timeline instanceof HTMLDetailsElement) {
-        timeline.open = true;
-        timeline.scrollIntoView({ block: "start" });
-        timeline.querySelector("summary")?.focus();
-      }
-    }
-  }, [billingOpen, billingIntent, burden]);
   const closeBilling = () => {
     setBillingOpen(false);
     action.current?.focus();
@@ -470,7 +463,7 @@ export function AutomaticWorkload({
             record={record}
             onResult={receiveBilling}
             onBurden={setBurden}
-            editOpen={billingOpen && billingIntent === "edit"}
+            editOpen={billingOpen}
           />
         ) : (
           <p className="text-sm">Preparing local review controls…</p>
@@ -512,11 +505,34 @@ export function AutomaticWorkload({
               retries are not independent outages.
             </p>
           )}
-          <button type="button" onClick={openTimeline} className="min-h-11 text-sm text-accent">
-            {complete
-              ? "Review interruption timeline →"
-              : "Inspect capacity evidence in a focused review →"}
+          <button
+            ref={capacityAction}
+            type="button"
+            onClick={openTimeline}
+            className="min-h-11 text-sm text-accent"
+            aria-expanded={capacityOpen}
+            aria-controls="interruption-review"
+          >
+            Review interruptions →
           </button>
+          {capacityOpen && overview?.history ? (
+            <div
+              ref={capacityPanel}
+              id="interruption-review"
+              tabIndex={-1}
+              className="scroll-mt-24 border-t border-border pt-6 outline-none"
+            >
+              <CapacityInspector
+                record={record}
+                history={overview.history}
+                initialAccount={local.choice.resourceInstanceId ?? signal?.resourceInstanceIds?.[0]}
+                onClose={() => {
+                  setCapacityOpen(false);
+                  capacityAction.current?.focus();
+                }}
+              />
+            </div>
+          ) : null}
         </WorkloadSection>
       ) : null}
       {tools}
