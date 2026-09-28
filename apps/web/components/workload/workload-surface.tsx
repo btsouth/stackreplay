@@ -380,9 +380,15 @@ function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
             ? "Largest session versus median session"
             : insight.id === "projects"
               ? "of known processed tokens came from three projects"
-              : insight.id === "peak-5h"
-                ? "Busiest five hours versus a median active window"
-                : undefined;
+              : insight.id === "peak-hour"
+                ? "Busiest hour versus a median active hour"
+                : insight.id === "peak-day"
+                  ? "Busiest day versus a median active day"
+                  : insight.id === "late-night"
+                    ? "of calls came between 10 PM and 4 AM"
+                    : insight.id === "peak-5h"
+                      ? "Busiest five hours versus a median active window"
+                      : undefined;
         const detail = insight.id === "projects" ? insight.comparison : insight.text;
         return (
           <li
