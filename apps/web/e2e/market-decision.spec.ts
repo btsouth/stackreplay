@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { importDemo, openReviewEvidence } from "./helpers";
+import { importDemo, openBillingReview, openReviewEditor, openReviewEvidence } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`D1 same-scope API decision, receipts and subscriptions in ${theme}`, async ({ page }) => {
@@ -9,6 +9,7 @@ for (const theme of ["dark", "light"] as const) {
     await importDemo(page, "moderate");
     await expect(page.getByTestId("legacy-cache-assumption")).toContainText("5-minute assumption");
     await page.getByTestId("open-workload").click();
+    await openBillingReview(page);
     const market = page.getByTestId("market-decision");
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10", {
       timeout: 30_000,
@@ -33,6 +34,7 @@ for (const theme of ["dark", "light"] as const) {
       "href",
       /openai\.com/,
     );
+    await openReviewEditor(page);
     await market.getByTestId("market-subscriptions").locator(":scope > summary").click();
     await expect(market.getByTestId("market-subscriptions").getByRole("checkbox")).toHaveCount(10);
     await market.getByRole("checkbox", { name: "Claude Max 5x", exact: false }).focus();
@@ -55,7 +57,7 @@ for (const theme of ["dark", "light"] as const) {
     );
     await page.getByTestId("review-evidence").locator(":scope > summary").click();
     await page.getByTestId("workload-insights").locator('a[href="#pressure"]').click();
-    await expect(page.getByTestId("review-evidence")).toHaveAttribute("open", "");
+    await expect(page.getByTestId("overview-evidence")).toHaveAttribute("open", "");
     await expect(page.locator("#pressure")).toBeVisible();
     // Reload via Compare: the saved synthetic workload and current stack remain browser-local.
     await page.goto("/app/compare");
@@ -64,6 +66,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10", {
       timeout: 30_000,
     });
+    await openReviewEditor(page);
     await market.getByTestId("market-subscriptions").locator(":scope > summary").click();
     await expect(market.getByTestId("market-current-spend")).toHaveText(amount ?? "");
   });
@@ -72,10 +75,12 @@ for (const theme of ["dark", "light"] as const) {
 test("replacing a workload cannot publish the previous market result", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await page.goto("/app/import");
   await page.getByTestId("demo-multistack").click();
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page.getByTestId("market-total")).toHaveText(
     "Pricing incomplete for this workload",
     {
@@ -101,6 +106,7 @@ test("the import answer, Workload, Compare and aggregate share use one decision"
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
   await expect(page.getByTestId("legacy-import")).not.toHaveAttribute("open", "");
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
   await expect(page.getByTestId("share-figure")).toContainText("$5.93 – $6.10");
   await expect(page.getByTestId("share-headline")).toContainText(

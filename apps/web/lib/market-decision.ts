@@ -6,6 +6,8 @@ import type { ReviewComposition, ReviewHistory } from "./review-period";
 export interface MarketDecision {
   history?: ReviewHistory;
   capacity?: CapacitySummary;
+  /** Direct imported evidence only, across explicitly identified local accounts. */
+  capacitySignal?: { blockedAttempts: number; warnings: number; days: number; accounts: number };
   coverage?: MarketCoverage;
   /** Separate explicitly priced subset, never a whole-workload total. */
   pricedScope?: { scenarios: MarketDecision["scenarios"] };

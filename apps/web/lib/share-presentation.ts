@@ -142,20 +142,31 @@ export function presentShare(snapshot: ShareSnapshotV2): SharePresentation {
     const m = snapshot.market;
     return {
       kind: "workload",
-      label: "Current published API equivalent",
+      label:
+        m.priced < snapshot.workload.calls
+          ? "Current published API equivalent for priced workload"
+          : "Current published API equivalent",
       context: `Price snapshot · ${m.rulesAsOf}`,
       figure: {
         value:
           m.low === m.high
             ? (formatUsd(m.low) ?? "Unavailable")
             : `${formatUsd(m.low)} – ${formatUsd(m.high)}`,
-        caption: "exact recorded models · not an actual bill",
+        caption:
+          m.priced < snapshot.workload.calls
+            ? "priced calls only · remaining costs unknown"
+            : "exact recorded models · not an actual bill",
       },
       headline: `${NUMBER.format(m.priced)} / ${NUMBER.format(snapshot.workload.calls)} calls priced.`,
       weight: "strong",
       support: [
         "Both published cache-write durations calculated; source logs do not record which applied.",
         "Subscription capacity and equivalent product experience are not established. Current subscriptions are not included in this share.",
+        ...(m.priced < snapshot.workload.calls
+          ? [
+              "Unpriced calls may materially change the result. This is not the full-workload API equivalent.",
+            ]
+          : []),
         `Catalog: ${m.catalog}`,
       ],
       facts: [],

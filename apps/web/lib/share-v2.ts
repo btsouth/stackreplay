@@ -210,7 +210,7 @@ export function workloadShareV2(
           },
         }
       : {}),
-    ...(!decision?.review && range && range.calls === overview.events
+    ...(!decision?.review && range && range.calls <= overview.events
       ? {
           market: {
             low: range.low,
@@ -248,7 +248,7 @@ export function workloadShareV2(
         ? { period: { from: firstDate, to: lastDate } }
         : {}),
     },
-    ...(value === undefined || decision?.review !== undefined
+    ...(value === undefined || decision !== undefined
       ? {}
       : {
           value: {
@@ -270,12 +270,21 @@ export function workloadShareV2(
             unresolvedCalls: value.unresolvedCalls,
           },
         }),
-    facts: (decision?.review ? [] : profile.insights).slice(0, 3).map(({ fact }) => {
-      const { at, zone, ...rest } = fact;
-      return options.includeTimes === true
-        ? { ...rest, ...(at === undefined ? {} : { at }), ...(zone === undefined ? {} : { zone }) }
-        : rest;
-    }),
+    facts: (decision?.review
+      ? []
+      : profile.insights.filter(({ id }) => !decision || id !== "cache-value")
+    )
+      .slice(0, 3)
+      .map(({ fact }) => {
+        const { at, zone, ...rest } = fact;
+        return options.includeTimes === true
+          ? {
+              ...rest,
+              ...(at === undefined ? {} : { at }),
+              ...(zone === undefined ? {} : { zone }),
+            }
+          : rest;
+      }),
     versions: { catalog: record.summary.catalogVersion },
   };
   assertNoForbiddenFields(snapshot);

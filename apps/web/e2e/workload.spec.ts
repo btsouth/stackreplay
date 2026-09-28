@@ -10,6 +10,7 @@ import {
   createShareToken,
   gotoImport,
   importDemo,
+  openBillingReview,
   openReplayDetails,
   openReviewEvidence,
   setRulesAsOf,
@@ -342,6 +343,7 @@ test("Compare asks for a decision before showing Codex subscription and API fact
 }) => {
   await scanFixtures(page);
   await openWorkload(page);
+  await openBillingReview(page);
   await page.getByTestId("workload-compare-cta").click();
   await expect(page.getByRole("heading", { name: "Compare this workload" })).toBeVisible();
   await expect(page.getByTestId("compare-results")).toHaveCount(0);
@@ -408,6 +410,7 @@ for (const theme of ["dark", "light"] as const) {
     await expectNoSeriousViolations(page);
 
     await page.getByTestId("strip-workload-link").click();
+    await openBillingReview(page);
     await page.getByTestId("workload-compare-cta").click();
     await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
       el.open = true;

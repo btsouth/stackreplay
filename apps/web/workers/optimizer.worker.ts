@@ -6,6 +6,7 @@ import {
   type ExactOptimizationResult,
   optimizeCompiledExactModels,
   optimizeExactModels,
+  repriceCompiledApiWorkload,
 } from "@stackreplay/replay-engine";
 import {
   compiledOptimizationDetail,
@@ -18,6 +19,7 @@ const scope = self as unknown as DedicatedWorkerGlobalScope;
 type Configuration =
   | Omit<ExactOptimizationInput, "events">
   | Omit<CompiledOptimizationInput, "events">;
+let operation: "api-repricing" | undefined;
 let result: ExactOptimizationResult | CompiledOptimizationResult | undefined;
 let buffered:
   | (Configuration & {
@@ -25,7 +27,7 @@ let buffered:
     })
   | undefined;
 type Request =
-  | { type: "begin"; configuration: Configuration }
+  | { type: "begin"; configuration: Configuration; operation?: "api-repricing" }
   | { type: "events"; events: ExactOptimizationInput["events"] }
   | { type: "run" }
   | { type: "detail"; id: number; offset: number; limit: number };
@@ -33,6 +35,7 @@ scope.onmessage = ({ data }: MessageEvent<Request>) => {
   try {
     if (data.type === "begin") {
       result = undefined;
+      operation = data.operation;
       buffered = { ...data.configuration, events: [] };
     } else if (data.type === "events") {
       if (!buffered || data.events.length > 5000) throw new Error("Invalid optimizer batch");
@@ -44,7 +47,9 @@ scope.onmessage = ({ data }: MessageEvent<Request>) => {
       const runtime = { onPhase: (phase: string) => scope.postMessage({ type: "phase", phase }) };
       result =
         "contract" in input
-          ? optimizeCompiledExactModels(input as CompiledOptimizationInput, runtime)
+          ? (operation === "api-repricing"
+              ? repriceCompiledApiWorkload
+              : optimizeCompiledExactModels)(input as CompiledOptimizationInput, runtime)
           : optimizeExactModels(input as ExactOptimizationInput, runtime);
       scope.postMessage({
         type: "done",

@@ -60,10 +60,9 @@ test("the workload opens with its value, scope, tool split and comparative facts
     el.open = true;
   });
   await expect(opening.getByTestId("value-figure")).toBeVisible({ timeout: 60_000 });
-  // This fixture exceeds one review period. Lead with an action, not an unavailable total.
-  await expect(opening.getByRole("heading", { name: "Choose a review period" })).toBeInViewport();
-  await expect(opening.getByTestId("review-setup")).toContainText("up to 31 days");
-  await expect(opening.getByTestId("market-total")).toHaveCount(0);
+  // Longer imports now price automatically; billing is optional.
+  await expect(opening.getByTestId("overview-api-total")).toContainText("$");
+  await expect(opening.getByLabel("Review start date")).not.toBeVisible();
   await opening
     .getByRole("region", { name: "Published API valuation", exact: true })
     .evaluate((section) => section.scrollIntoView({ block: "start" }));
@@ -79,11 +78,13 @@ test("the workload opens with its value, scope, tool split and comparative facts
     await expect(facts.nth(index).getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
   }
   await expect(
-    page.getByTestId("review-evidence").getByRole("link", { name: "Replay part of this workload" }),
+    page
+      .getByTestId("overview-evidence")
+      .getByRole("link", { name: "Replay part of this workload" }),
   ).toHaveCount(1);
   await expect(
     page
-      .getByTestId("review-evidence")
+      .getByTestId("overview-evidence")
       .getByRole("link", { name: /Compare ways to buy this work/u }),
   ).toHaveCount(1);
   const decision = page.getByTestId("replay-transition");

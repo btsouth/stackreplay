@@ -65,3 +65,37 @@ it("shares bounded decision aggregates and renders the same range without local 
     /private-id|private label|currentStack|assignments|scenarioHash/,
   );
 });
+
+it("shares partial API economics as priced scope without a legacy total", () => {
+  const identity = bundledModelIdentity();
+  const first = exported.events[0];
+  if (!first) throw new Error("fixture missing");
+  const extra = { ...first, id: "unknown-extra", model: { rawName: "unknown-unpublished" } };
+  const combined = { ...exported, events: [...exported.events, extra] };
+  const profile = buildWorkloadProfile(combined.events, {
+    catalog,
+    identity,
+    timeZone: "UTC",
+    rulesAsOf: "2026-09-27",
+  });
+  const record = {
+    id: "private",
+    label: "local",
+    createdAt: "2026-09-27T00:00:00Z",
+    eventCount: 901,
+    summary: summarizeExport(combined, catalog.catalogVersion, identity),
+  };
+  const snapshot = workloadShareV2(
+    record,
+    profile,
+    { includePeriod: false },
+    { scenarios: [], pricedScope: decision },
+  );
+  expect(snapshot.workload.calls).toBe(901);
+  expect(snapshot.market?.priced).toBe(900);
+  expect(snapshot.value).toBeUndefined();
+  expect(snapshot.review).toBeUndefined();
+  expect(snapshot.facts.some((fact) => fact.id === "cache-value")).toBe(false);
+  expect(presentShare(snapshot).figure?.caption).toContain("priced calls only");
+  expect(presentShare(snapshot).support.join(" ")).toContain("not the full-workload");
+});

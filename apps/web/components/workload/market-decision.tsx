@@ -3,7 +3,7 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import Link from "next/link";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import type { CapacityBurden } from "@/lib/capacity-episodes";
@@ -42,7 +42,11 @@ export function MarketDecisionSurface({
   onResult,
   workloadContent,
   evidenceContent,
+  onBurden,
+  editOpen,
 }: {
+  onBurden?: ((burden: CapacityBurden | undefined) => void) | undefined;
+  editOpen?: boolean;
   record: ImportRecord;
   workloadContent?: ReactNode;
   evidenceContent?: ReactNode;
@@ -87,7 +91,7 @@ export function MarketDecisionSurface({
   const accounts = computed?.key.startsWith(`${importId}:`)
     ? computed.result.history?.accounts
     : undefined;
-  useEffect(() => {
+  useLayoutEffect(() => {
     onResult?.(
       importId,
       decision && !needsPeriod ? { ...decision, ...(review ? { review } : {}) } : undefined,
@@ -156,6 +160,9 @@ export function MarketDecisionSurface({
     selected.length > 0 &&
     !needsPeriod;
   const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (editOpen) setEditing(true);
+  }, [editOpen]);
   const planName =
     selected.length === 1
       ? (subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ?? "Selected subscription")
@@ -385,40 +392,37 @@ export function MarketDecisionSurface({
       </details>
     </>
   );
+  const reviewControls = (
+    <details
+      open={!configured || editing}
+      onToggle={(event) => {
+        if (configured) setEditing(event.currentTarget.open);
+      }}
+      className="border-y border-border py-2"
+      data-testid="review-editor"
+    >
+      <summary
+        className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-2 text-sm"
+        data-testid="review-bar"
+      >
+        <span>
+          {configured
+            ? `${choice.accountLabel || "Selected account"} · ${planName} · ${cycleLabel} · ${dollars(review?.confirmedSpend ?? "0")} confirmed`
+            : "Set up your review"}
+        </span>
+        <span className="text-accent">
+          {configured ? (editing ? "Done" : "Edit") : "Account, dates & billing"}
+        </span>
+      </summary>
+      <div className="space-y-4 py-3">{controls}</div>
+    </details>
+  );
   const render = (capacity?: {
     summary: ReactNode;
     evidence: ReactNode;
     burden: CapacityBurden | undefined;
   }) => (
-    <section
-      id="api-market"
-      aria-label="Billing-period review"
-      className="min-w-0 space-y-4"
-      data-testid="market-decision"
-    >
-      <details
-        open={!configured || editing}
-        onToggle={(event) => {
-          if (configured) setEditing(event.currentTarget.open);
-        }}
-        className="border-y border-border py-2"
-        data-testid="review-editor"
-      >
-        <summary
-          className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-2 text-sm"
-          data-testid="review-bar"
-        >
-          <span>
-            {configured
-              ? `${choice.accountLabel || "Selected account"} · ${planName} · ${cycleLabel} · ${dollars(review?.confirmedSpend ?? "0")} confirmed`
-              : "Set up your review"}
-          </span>
-          <span className="text-accent">
-            {configured ? (editing ? "Done" : "Edit") : "Account, dates & billing"}
-          </span>
-        </summary>
-        <div className="space-y-4 py-3">{controls}</div>
-      </details>
+    <>
       {local.saveFailed ? (
         <p role="alert" className="text-sm text-warning">
           Billing facts could not be saved in this browser. These changes last only until navigation
@@ -860,26 +864,37 @@ export function MarketDecisionSurface({
           {evidenceContent}
         </div>
       </details>
-    </section>
+    </>
   );
-  return decision?.capacity &&
-    choice.resourceInstanceId &&
-    review?.period &&
-    selected.length === 1 &&
-    selected[0] &&
-    decision.scenarios[0]?.summary.scope.digest ? (
-    <ObservedCapacity
-      key={`${executionKey}:${selected[0]}:${decision.capacity.digest}`}
-      summary={decision.capacity}
-      importId={importId}
-      resourceInstanceId={choice.resourceInstanceId}
-      planId={selected[0]}
-      period={review.period}
-      workloadDigest={decision.scenarios[0].summary.scope.digest}
+  return (
+    <section
+      id="api-market"
+      aria-label="Billing-period review"
+      className="min-w-0 space-y-4"
+      data-testid="market-decision"
     >
-      {render}
-    </ObservedCapacity>
-  ) : (
-    render()
+      {reviewControls}
+      {decision?.capacity &&
+      choice.resourceInstanceId &&
+      review?.period &&
+      selected.length === 1 &&
+      selected[0] &&
+      decision.scenarios[0]?.summary.scope.digest ? (
+        <ObservedCapacity
+          onBurden={onBurden}
+          key={`${executionKey}:${selected[0]}:${decision.capacity.digest}`}
+          summary={decision.capacity}
+          importId={importId}
+          resourceInstanceId={choice.resourceInstanceId}
+          planId={selected[0]}
+          period={review.period}
+          workloadDigest={decision.scenarios[0].summary.scope.digest}
+        >
+          {render}
+        </ObservedCapacity>
+      ) : (
+        render()
+      )}
+    </section>
   );
 }

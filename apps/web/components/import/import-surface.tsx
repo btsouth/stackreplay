@@ -13,13 +13,13 @@ import { HistoryDiscovery } from "@/components/import/history-discovery";
 import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
 import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
 import { formatTokens } from "@/components/instrument/format";
+import { AutomaticImportAnswer } from "@/components/workload/automatic-workload";
 import {
   IntakeFileReview,
   PartialScanNotice,
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
 import { plainRange } from "@/components/workload/format";
-import { MarketDecisionSurface } from "@/components/workload/market-decision";
 import { ReadyPreview } from "@/components/workload/value";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
@@ -1183,7 +1183,7 @@ function ReadyDetails({
           data-testid="open-workload"
           className={buttonVariants({ size: "lg" })}
         >
-          See your decision →
+          See your workload →
         </Link>
         <Link
           href={replayHref(record.id, initialTarget)}
@@ -1194,7 +1194,7 @@ function ReadyDetails({
         </Link>
       </div>
       {partialScan}
-      <MarketDecisionSurface key={record.id} record={record} />
+      <AutomaticImportAnswer key={record.id} record={record} />
       <details data-testid="legacy-import">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Inspect earlier replay valuation and usage insights

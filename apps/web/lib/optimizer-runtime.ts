@@ -172,7 +172,11 @@ export class OptimizerRuntime<I extends RuntimeInput = ExactOptimizationInput> {
   }
   run(
     load: () => Promise<I>,
-    options: { signal?: AbortSignal; onPhase?: (phase: OptimizerPhase) => void } = {},
+    options: {
+      signal?: AbortSignal;
+      onPhase?: (phase: OptimizerPhase) => void;
+      operation?: "api-repricing";
+    } = {},
   ): Promise<SummaryFor<I>> {
     this.cancel();
     const generation = this.generation;
@@ -219,7 +223,7 @@ export class OptimizerRuntime<I extends RuntimeInput = ExactOptimizationInput> {
           const { events, ...configuration } = input;
           options.onPhase?.("transferring");
           if (this.generation !== generation) return;
-          worker.postMessage({ type: "begin", configuration });
+          worker.postMessage({ type: "begin", configuration, operation: options.operation });
           for (let offset = 0; offset < events.length; offset += 5000) {
             if (this.generation !== generation) return;
             worker.postMessage({ type: "events", events: events.slice(offset, offset + 5000) });

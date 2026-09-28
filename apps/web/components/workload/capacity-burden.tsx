@@ -215,7 +215,9 @@ export function CapacityBurdenSurface({
   period,
   workloadDigest,
   children,
+  onBurden,
 }: {
+  onBurden?: ((burden: CapacityBurden | undefined) => void) | undefined;
   importId: string;
   resourceInstanceId: string;
   planId: string;
@@ -230,6 +232,9 @@ export function CapacityBurdenSurface({
   const [ids, setIds] = useState<string[]>();
   const [imports, setImports] = useState<ImportRecord[]>([]);
   const [burden, setBurden] = useState<CapacityBurden>();
+  useEffect(() => {
+    onBurden?.(burden);
+  }, [burden, onBurden]);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [impacts, setImpacts] = useState<Record<string, EpisodeImpact>>({});

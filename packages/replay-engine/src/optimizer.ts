@@ -129,6 +129,16 @@ export function prepareCandidateDemand(
       end.epochNanoseconds - start.epochNanoseconds > 31n * 24n * 60n * 60n * 1_000_000_000n)
   )
     unsupported("A candidate requires a positive observation period of at most 31 days.");
+  return prepareRecordedDemand(input);
+}
+
+/** Recorded API demand has no purchase-cycle length. Dates remain lossless and scoped. */
+export function prepareRecordedDemand(input: Pick<StackCandidateInput, "events" | "period">) {
+  const period = periodSchema.parse(input.period);
+  const start = parseInstant(period.start);
+  const end = parseInstant(period.end);
+  if (end.epochNanoseconds <= start.epochNanoseconds)
+    unsupported("Recorded demand requires a positive observation period.");
   const timed = sortTimedEvents(toTimedEvents(validateEvents(input.events)));
   // Reuse replay's lossless timestamps instead of allocating another Temporal
   // instant per event in a large workload.

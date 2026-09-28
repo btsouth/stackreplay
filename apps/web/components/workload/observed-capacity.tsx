@@ -24,7 +24,9 @@ export function ObservedCapacity({
   period,
   workloadDigest,
   children,
+  onBurden,
 }: {
+  onBurden?: ((burden: CapacityBurden | undefined) => void) | undefined;
   summary: CapacitySummary;
   importId: string;
   resourceInstanceId: string;
@@ -299,6 +301,7 @@ export function ObservedCapacity({
   );
   return (
     <CapacityBurdenSurface
+      onBurden={onBurden}
       importId={importId}
       resourceInstanceId={resourceInstanceId}
       planId={planId}

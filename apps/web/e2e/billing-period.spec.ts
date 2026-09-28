@@ -1,15 +1,23 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, importDemo, openReviewEditor, openReviewEvidence } from "./helpers";
+import {
+  gotoImport,
+  importDemo,
+  openBillingReview,
+  openReviewEditor,
+  openReviewEvidence,
+} from "./helpers";
 
 async function completeDemo(page: import("@playwright/test").Page) {
   await gotoImport(page);
   await page.getByTestId("demo-billing").click();
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
+  await openBillingReview(page);
 }
 
 for (const theme of ["dark", "light"] as const) {
@@ -90,6 +98,7 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
 }) => {
   await importDemo(page, "moderate");
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("custom");
@@ -193,6 +202,7 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
@@ -259,6 +269,7 @@ test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ 
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   const market = page.getByTestId("market-decision");
   await expect(market).toContainText("Current published API equivalent for priced workload");
@@ -286,6 +297,7 @@ test("D3 imported collection gaps prevent a history declaration", async ({ page 
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
   await expect(page.getByTestId("review-conclusion")).toContainText("scan gaps");
@@ -317,6 +329,7 @@ test("D3 large API ranges fit the share preview and review on mobile", async ({ 
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("market-total")).toHaveText("$2,565.00 – $3,240.00");
   await expect(page.getByTestId("share-figure")).toContainText("2,565.00");
@@ -363,6 +376,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
+  await openBillingReview(page);
   await expect(page.getByLabel("Local source account")).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
   await openReviewEditor(page);
@@ -477,6 +491,7 @@ for (const theme of ["dark", "light"] as const) {
     });
     await expect(page.getByTestId("import-summary")).toBeVisible();
     await page.getByTestId("open-workload").click();
+    await openBillingReview(page);
     await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("main");
     const capacity = page.getByTestId("capacity-evidence");

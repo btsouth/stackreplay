@@ -189,28 +189,32 @@ async function handleMarket(
         request.resourceInstanceId,
       ),
     };
-    // The existing compiled evaluator retains its one-cycle observation guard.
-    // Explain this unsupported input rather than suggesting a retry or clipping calls.
-    const period = inputs[0]?.scenario.period;
-    if (
-      period &&
-      parseInstant(period.end).epochNanoseconds - parseInstant(period.start).epochNanoseconds >
-        31n * 86400n * 1_000_000_000n
-    ) {
-      decision.unavailable = {
-        code: "observation_scope_unsupported",
-        calls: loaded.exported.events.length,
-        message:
-          "This market instrument currently supports observation spans up to 31 days. This workload is longer; no calls were removed to force a total. The recorded-provider valuation remains available below.",
+    const capacityEvents = (loaded.exported.capacityObservations?.events ?? []).filter((event) => {
+      const day = event.timestamp.slice(0, 10);
+      return (
+        (!request.resourceInstanceId || event.resourceInstanceId === request.resourceInstanceId) &&
+        (request.period
+          ? day >= request.period.start && day < request.period.end
+          : !!scoped.history.firstDate &&
+            !!scoped.history.lastDate &&
+            day >= scoped.history.firstDate &&
+            day <= scoped.history.lastDate)
+      );
+    });
+    const blocked = capacityEvents.filter((event) => event.eventType === "hard_limit_reached");
+    if (loaded.exported.capacityObservations)
+      decision.capacitySignal = {
+        blockedAttempts: blocked.length,
+        warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,
+        days: new Set(blocked.map((event) => event.timestamp.slice(0, 10))).size,
+        accounts: new Set(blocked.map((event) => event.resourceInstanceId)).size,
       };
-      if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
-      return;
-    }
     const analysis = analyzeMarketCoverage(inputs);
     decision.coverage = analysis.coverage;
     for (const [i, input] of inputs.entries()) {
       if (!current()) throw new OptimizerCancelledError();
       const summary = await marketOptimizer.run(async () => input, {
+        operation: "api-repricing",
         onPhase: (phase) => {
           if (current()) post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase });
         },
@@ -228,7 +232,9 @@ async function handleMarket(
       decision.pricedScope = { scenarios: [] };
       for (const [i, input] of subset.entries()) {
         if (!current()) throw new OptimizerCancelledError();
-        const summary = await marketOptimizer.run(async () => input);
+        const summary = await marketOptimizer.run(async () => input, {
+          operation: "api-repricing",
+        });
         if (!current()) throw new OptimizerCancelledError();
         decision.pricedScope.scenarios.push({
           id: DECISION_MARKET.scenarios[i]?.id ?? "unknown",

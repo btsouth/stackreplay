@@ -20,11 +20,11 @@ import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
 import { cacheReadShareOf } from "@/lib/workload-facts";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { Insight, Measure, WorkloadProfile } from "@/lib/workload-profile";
+import { AutomaticWorkload } from "./automatic-workload";
 import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
 import { PartialScanNotice, ScanEvidence } from "./evidence";
 import { count, percent, plainDay, plainRange } from "./format";
-import { MarketDecisionSurface } from "./market-decision";
 import { ModelMix } from "./models";
 import { HistoricalPressure } from "./pressure";
 import { ProjectLedger } from "./projects";
@@ -243,7 +243,6 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         profile={profile}
         imports={imports}
         onSelect={setSelectedId}
-        decision={market?.id === record.id ? market.result : undefined}
         detailContent={
           <>
             {" "}
@@ -432,7 +431,6 @@ function WorkloadOpening({
   imports,
   onSelect,
   onMarket,
-  decision,
   detailContent,
 }: {
   record: ImportRecord;
@@ -440,7 +438,6 @@ function WorkloadOpening({
   imports: ImportRecord[];
   onSelect: (id: string) => void;
   onMarket: (id: string, result: MarketDecision | undefined) => void;
-  decision: MarketDecision | undefined;
   detailContent: ReactNode;
 }) {
   const insights = profile?.insights.filter((i) => i.id !== "cache-value").slice(0, 3) ?? [];
@@ -464,39 +461,43 @@ function WorkloadOpening({
           </Link>
         }
       />
-      <MarketDecisionSurface
+      <AutomaticWorkload
         key={record.id}
         record={record}
+        profile={profile}
         onResult={onMarket}
-        workloadContent={
+        projects={
           profile ? (
             <section
-              className="space-y-5"
-              aria-label="Where the work went"
-              data-testid="work-destination"
+              id="projects"
+              data-testid="section-projects"
+              className="scroll-mt-24 space-y-3"
             >
-              <section id="projects" data-testid="section-projects" className="scroll-mt-24">
-                <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-xl font-medium tracking-tight">Where the work went</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {decision?.history?.calls === profile.overview.events &&
-                    !decision?.history?.outsideCalls
-                      ? "Reviewed workload"
-                      : "Full saved import, including work outside the review"}{" "}
-                    · {count(profile.overview.events)} calls
-                  </span>
-                </div>
-                <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
-              </section>
-              {insights.length ? <BriefingInsights insights={insights} /> : null}
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-xl font-medium tracking-tight">Where your work went</h2>
+                <span className="text-xs text-muted-foreground">
+                  Full imported workload · {count(profile.overview.events)} calls
+                </span>
+              </div>
+              <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
             </section>
           ) : (
-            <p role="status" className="text-sm">
-              Loading project and workload highlights…
-            </p>
+            <p className="text-sm text-muted-foreground">Reading project distribution…</p>
           )
         }
-        evidenceContent={
+        highlights={
+          insights.length ? (
+            <section
+              aria-label="Workload highlights"
+              data-testid="overview-highlights"
+              className="space-y-3"
+            >
+              <h2 className="text-xl font-medium tracking-tight">Workload highlights</h2>
+              <BriefingInsights insights={insights} />
+            </section>
+          ) : null
+        }
+        evidence={
           <>
             <ImportedWorkloadEvidence record={record} profile={profile} />
             {detailContent}

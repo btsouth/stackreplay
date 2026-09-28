@@ -4,7 +4,9 @@ import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-worklo
 import { gotoImport, openReviewEditor } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
-  test(`35-day import offers review dates before economics in ${theme}`, async ({ page }) => {
+  test(`35-day import prices the full import before optional billing in ${theme}`, async ({
+    page,
+  }) => {
     await page.addInitScript((theme) => {
       localStorage.setItem("stackreplay-theme", theme);
       localStorage.setItem(
@@ -31,6 +33,10 @@ for (const theme of ["dark", "light"] as const) {
     });
     await expect(page.getByTestId("import-summary")).toBeVisible();
     await page.getByTestId("open-workload").click();
+    await expect(page.getByTestId("overview-api-total")).toContainText("$");
+    await expect(page.getByTestId("overview-period")).toContainText("35 days");
+    await expect(page.getByLabel("Review start date")).not.toBeVisible();
+    await openReviewEditor(page);
     const market = page.getByTestId("market-decision");
     await expect(
       market.getByRole("heading", { name: "Choose a review period", exact: true }),
@@ -48,6 +54,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(market).not.toContainText("Full total unavailable");
     await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("primary");
+    await expect(page.getByLabel("Local account label")).toBeVisible();
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(market.getByRole("alert")).toContainText("1 to 31 days");
     await openReviewEditor(page);
@@ -68,6 +75,7 @@ for (const theme of ["dark", "light"] as const) {
     await form.getByRole("button", { name: "Save local billing facts" }).click();
     await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
     await page.reload();
+    await openReviewEditor(page);
     await expect(
       page.getByRole("button", { name: /Use billing cycle.*Claude Max 5x/ }),
     ).toBeVisible();

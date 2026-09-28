@@ -22,7 +22,7 @@ import {
 } from "./compiled-capacity.js";
 import { hashBoundExecutionScenario, purchaseCycleEnd } from "./execution-binding.js";
 import { Decimal, toUnitString, ZERO } from "./money.js";
-import { prepareCandidateDemand } from "./optimizer.js";
+import { prepareCandidateDemand, prepareRecordedDemand } from "./optimizer.js";
 import {
   matchRequestPools,
   type PoolMembership,
@@ -61,7 +61,7 @@ export interface CompiledCandidate {
 export interface CompiledOptimizationResult {
   contract: "compiled-v1" | "compiled-v2";
   engineVersion: string;
-  methodology: "compiled-offline-v1" | "compiled-offline-v2";
+  methodology: "compiled-offline-v1" | "compiled-offline-v2" | "compiled-api-repricing-v1";
   status: "optimal" | "incomplete" | "infeasible" | "empty";
   winnerId?: string;
   bestKnownId?: string;
@@ -158,14 +158,38 @@ function fingerprint(
     add(JSON.stringify([e.event.id, e.modelId, e.event.occurredAt, e.event.usage, e.event.source]));
   return `scope-fnv64-v1:${(a >>> 0).toString(16)}${(b >>> 0).toString(16)}`;
 }
+type CompiledRuntime = {
+  onPhase?: (phase: "preparing" | "enumerating" | "assigning" | "receipts") => void;
+};
+
 export function optimizeCompiledExactModels(
   input: CompiledOptimizationInput,
-  runtime?: { onPhase?: (phase: "preparing" | "enumerating" | "assigning" | "receipts") => void },
+  runtime?: CompiledRuntime,
+): CompiledOptimizationResult {
+  return evaluateCompiled(input, runtime, false);
+}
+
+/** Exact recorded calls at pinned current API rates. No subscription purchase simulation. */
+export function repriceCompiledApiWorkload(
+  input: CompiledOptimizationInput,
+  runtime?: CompiledRuntime,
+): CompiledOptimizationResult {
+  return evaluateCompiled(input, runtime, true);
+}
+
+function evaluateCompiled(
+  input: CompiledOptimizationInput,
+  runtime: CompiledRuntime | undefined,
+  apiRepricing: boolean,
 ): CompiledOptimizationResult {
   runtime?.onPhase?.("preparing");
   const scenario = boundExecutionScenarioSchema.parse(input.scenario);
   if (input.artifacts.length > 14) throw new Error("Compiled artifact bound exceeded");
   const artifacts = input.artifacts.map((p) => compiledExecutionPlanSchema.parse(p));
+  if (apiRepricing && artifacts.some((p) => p.purchase.kind !== "api"))
+    throw new Error(
+      "API repricing accepts only API artifacts; subscription billing retains its cycle limit.",
+    );
   if (
     input.contract !== `compiled-v${scenario.version}` ||
     artifacts.some((p) => p.contractVersion !== scenario.version)
@@ -229,12 +253,14 @@ export function optimizeCompiledExactModels(
           }
         })
       : undefined;
-  const demand = prepareCandidateDemand(
-    { events: input.events, period: scenario.period },
-    calendarMonth?.cycle && calendarMonth.billingTimezone
-      ? { start: calendarMonth.cycle.start, billingTimezone: calendarMonth.billingTimezone }
-      : undefined,
-  );
+  const demand = apiRepricing
+    ? prepareRecordedDemand({ events: input.events, period: scenario.period })
+    : prepareCandidateDemand(
+        { events: input.events, period: scenario.period },
+        calendarMonth?.cycle && calendarMonth.billingTimezone
+          ? { start: calendarMonth.cycle.start, billingTimezone: calendarMonth.billingTimezone }
+          : undefined,
+      );
   const identity = createModelIdentityIndex(input.catalog);
   const events: Event[] = [],
     excluded: string[] = [];
@@ -665,7 +691,11 @@ export function optimizeCompiledExactModels(
   const result: CompiledOptimizationResult = {
     contract: input.contract,
     engineVersion: ENGINE_VERSION,
-    methodology: scenario.version === 2 ? "compiled-offline-v2" : "compiled-offline-v1",
+    methodology: apiRepricing
+      ? "compiled-api-repricing-v1"
+      : scenario.version === 2
+        ? "compiled-offline-v2"
+        : "compiled-offline-v1",
     status: !events.length
       ? "empty"
       : certified
@@ -712,9 +742,13 @@ export function optimizeCompiledExactModels(
     },
     assumptions: [
       "Retrospective assignment uses the complete recorded workload; this is not a live routing policy.",
-      "One explicit full-price billing cycle per purchased resource; no unobserved concurrent activity.",
+      apiRepricing
+        ? "Current pinned API prices apply to the exact recorded calls, regardless of imported date span; no billing-cycle extrapolation."
+        : "One explicit full-price billing cycle per purchased resource; no unobserved concurrent activity.",
       `Unlisted initial state: ${scenario.initial.unlisted}; first-use activation is separately bound.`,
-      "Optimality is confined to the bounded singleton/pair candidate family.",
+      apiRepricing
+        ? "Only admitted exact-model API routes participate; no subscription capacity or purchase is modeled."
+        : "Optimality is confined to the bounded singleton/pair candidate family.",
       "After child teardown, chronological verification requires original workload and pinned artifacts/scenario; summary verifies aggregate arithmetic only.",
     ],
   };

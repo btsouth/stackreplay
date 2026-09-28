@@ -51,6 +51,7 @@ export {
   type CompiledOptimizationResult,
   compareCompiledCandidates,
   optimizeCompiledExactModels,
+  repriceCompiledApiWorkload,
 } from "./compiled-optimizer.js";
 export type { ReplayObservers, SubscriptionEventObservation } from "./engine.js";
 export {

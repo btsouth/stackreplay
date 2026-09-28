@@ -149,6 +149,8 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
 
 test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
+  // Corrupt after the automatic import analysis has finished reading the payload.
+  await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
 
   // Replace the stored payload with something incompatible, as an older or
   // broken writer would have left behind.
@@ -177,7 +179,10 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
   // when opened, without cloning every saved workload merely to list them.
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await page.getByRole("link", { name: "Open workload" }).click();
-  await expect(page.getByTestId("workload-error")).toContainText("stored workload cannot be read");
+  // Automatic analysis may reject and remove it before the explicit open resolves.
+  await expect(page.getByTestId("workload-error")).toContainText(
+    /stored workload cannot be read|no longer stored in this browser/,
+  );
   await page.goto("/app/import");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   const count = () =>

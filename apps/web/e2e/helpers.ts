@@ -172,14 +172,39 @@ export async function createShareToken(page: Page): Promise<string> {
 
 /** Review controls and evidence are progressive disclosures after setup. */
 export async function openReviewEditor(page: Page): Promise<void> {
+  await openBillingReview(page);
   const editor = page.getByTestId("review-editor");
   await expect(editor).toBeVisible();
   if (!(await editor.evaluate((el) => (el as HTMLDetailsElement).open)))
     await page.getByTestId("review-bar").click();
 }
 export async function openReviewEvidence(page: Page): Promise<void> {
+  await expect(
+    page
+      .locator('[data-testid="overview-evidence"]:visible, [data-testid="review-evidence"]:visible')
+      .first(),
+  ).toBeVisible();
+  const overview = page.getByTestId("overview-evidence");
+  if (await overview.count())
+    await overview.evaluate((el: HTMLDetailsElement) => {
+      el.open = true;
+    });
   const evidence = page.getByTestId("review-evidence");
+  if (!(await evidence.count())) return;
+  if (!(await evidence.isVisible())) await openBillingReview(page);
   await expect(evidence).toBeVisible();
   if (!(await evidence.evaluate((el) => (el as HTMLDetailsElement).open)))
     await evidence.locator(":scope > summary").click();
+}
+
+export async function openBillingReview(page: Page): Promise<void> {
+  await expect(
+    page.getByTestId("automatic-workload").or(page.getByTestId("review-editor")).first(),
+  ).toBeVisible();
+  if (await page.getByTestId("automatic-workload").count()) {
+    await expect(page.getByTestId("overview-api-total")).not.toContainText("Pricing recorded work");
+    if (!(await page.getByTestId("billing-panel").isVisible()))
+      await page.getByTestId("billing-action").click();
+    await expect(page.getByTestId("review-editor")).toBeVisible();
+  }
 }
