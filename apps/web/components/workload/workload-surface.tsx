@@ -759,7 +759,7 @@ function WorkloadBody({
             Replay part of this workload
           </Link>
           <Link
-            href={`/app/compare?import=${record.id}`}
+            href={`/app/compare?view=billing&import=${record.id}`}
             className={ACTION_LINK}
             data-testid="legacy-workload-compare-cta"
           >

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { COMPLETED_REPLAYS_KEY, readCompletedReplays } from "./completed-replays";
 import {
   type BillingFact,
   billingFactSchema,
@@ -74,6 +75,10 @@ export function subscribeReview(listener: () => void): () => void {
 export function clearReviewState(importId?: string): void {
   try {
     if (importId) {
+      window.localStorage.setItem(
+        COMPLETED_REPLAYS_KEY,
+        JSON.stringify(readCompletedReplays().filter((r) => r.importId !== importId)),
+      );
       const state = readReviewState();
       delete state.reviews[importId];
       window.localStorage.removeItem(`${REVIEW_STORAGE_KEY}.burden-context.${importId}`);
@@ -85,12 +90,17 @@ export function clearReviewState(importId?: string): void {
     } else {
       for (let i = window.localStorage.length - 1; i >= 0; i--) {
         const key = window.localStorage.key(i);
-        if (key?.startsWith(REVIEW_STORAGE_KEY) || key?.startsWith("stackreplay.current-stack"))
+        if (
+          key?.startsWith(REVIEW_STORAGE_KEY) ||
+          key?.startsWith("stackreplay.current-stack") ||
+          key === COMPLETED_REPLAYS_KEY
+        )
           window.localStorage.removeItem(key);
       }
     }
     window.dispatchEvent(new Event("stackreplay-billing-review"));
     window.dispatchEvent(new Event("stackreplay-current-stack"));
+    window.dispatchEvent(new Event("stackreplay-completed-replays"));
   } catch {
     /* Storage may be unavailable. */
   }

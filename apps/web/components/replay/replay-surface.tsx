@@ -62,6 +62,7 @@ import {
 } from "@/lib/worker-client";
 import type { ImportRecord, ModelSummary, SafeError } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
+import { SaveCustomReplay } from "./save-custom-replay";
 
 /** Styling for the execution-target switch (M4C). */
 function segmentedClass(active: boolean): string {
@@ -462,7 +463,7 @@ export function ReplaySurface({
   const pathname = usePathname();
   useEffect(() => {
     if (workload === undefined) return;
-    const params = new URLSearchParams({ import: workload.id });
+    const params = new URLSearchParams({ import: workload.id, mode: "custom" });
     if (targetKind === "api") {
       if (providerId !== undefined) params.set("api", providerId);
     } else if (planId !== undefined) params.set("target", planId);
@@ -1198,6 +1199,13 @@ export function ReplaySurface({
         </section>
       ) : null}
 
+      {outcome && workload ? (
+        <SaveCustomReplay
+          key={`${outcome.result.versions.rulesAsOf}:${outcomeSelection?.target}`}
+          outcome={outcome}
+          record={workload}
+        />
+      ) : null}
       {outcome !== undefined ? (
         <ReplayResult
           outcome={outcome}

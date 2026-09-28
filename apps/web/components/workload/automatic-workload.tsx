@@ -476,7 +476,7 @@ export function AutomaticWorkload({
           <p className="text-sm">Preparing local review controls…</p>
         )}
         <Link
-          href={`/app/compare?import=${record.id}`}
+          href={`/app/compare?view=billing&import=${record.id}`}
           className="inline-flex min-h-11 items-center text-sm text-accent"
           data-testid="workload-compare-cta"
         >

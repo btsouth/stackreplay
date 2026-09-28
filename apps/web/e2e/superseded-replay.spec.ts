@@ -12,7 +12,7 @@ import { importDemo, setRulesAsOf } from "./helpers";
 
 test("a superseded replay is never reported as a failure", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await expect(page.getByTestId("workload-strip")).toBeVisible();
   await page.getByTestId("plan-example-cloud-pro").click();
   await setRulesAsOf(page, "2026-09-15");

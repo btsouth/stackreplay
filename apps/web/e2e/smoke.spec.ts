@@ -90,7 +90,7 @@ test("mobile drawer navigation works and closes on navigate", async ({ page }, t
 
   await dialog.getByRole("link", { name: "Replay", exact: true }).click();
   await expect(page).toHaveURL(/\/app\/replay$/);
-  await expect(page.getByRole("heading", { name: "Replay" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start with your recorded work" })).toBeVisible();
   await expect(page.getByRole("dialog")).toBeHidden();
 
   // Reopen: the drawer marks the current section.
@@ -102,7 +102,7 @@ test("mobile drawer navigation works and closes on navigate", async ({ page }, t
 
 test("desktop keeps the workspace navigation", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "desktop viewport only");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav.getByRole("link", { name: "Replay" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("button", { name: "Open navigation" })).toBeHidden();
@@ -162,7 +162,12 @@ test("all workspace routes have a matching heading and navigation state", async 
     await page.goto(`/app/${label.toLowerCase()}`);
     await expect(
       page.getByRole("heading", {
-        name: label === "Compare" ? "Compare this workload" : label,
+        name:
+          label === "Compare"
+            ? "Compare replays"
+            : label === "Replay"
+              ? "Start with your recorded work"
+              : label,
         exact: true,
       }),
     ).toBeVisible();

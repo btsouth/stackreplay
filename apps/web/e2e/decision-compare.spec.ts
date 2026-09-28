@@ -10,7 +10,7 @@ test("a missing saved workload is identified instead of shown as an empty browse
   page,
 }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/compare?import=missing-snapshot");
+  await page.goto("/app/compare?view=billing&import=missing-snapshot");
   await expect(page.getByTestId("compare-missing")).toContainText(
     "That workload is no longer stored in this browser",
   );

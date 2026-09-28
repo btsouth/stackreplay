@@ -45,7 +45,7 @@ export async function dropFolders(page: Page, paths: string[]): Promise<void> {
 
 /** Waits until the Replay route's embedded intake can accept the first action. */
 export async function gotoReplayImport(page: Page): Promise<void> {
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
 
@@ -83,6 +83,7 @@ export async function visitReplay(page: Page): Promise<void> {
     .locator('a[href="/app/replay"]')
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
+  await page.getByTestId("build-own").click();
   await expect(page.getByTestId("run-replay")).toBeVisible();
 }
 

@@ -22,7 +22,7 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   const requests = captureRequests(page);
 
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   const offenders = requests.filter((request) => {

@@ -45,7 +45,7 @@ export function WorkloadCompare({
   const pathname = usePathname();
   useEffect(() => {
     if (importId === undefined) return;
-    const params = new URLSearchParams({ import: importId });
+    const params = new URLSearchParams({ import: importId, view: "billing" });
     if (decision !== undefined) params.set("decision", decision);
     const next = `?${params.toString()}`;
     if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
@@ -222,7 +222,7 @@ export function WorkloadCompare({
             then the destination and your substitutions.{" "}
             <Link
               className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline sm:min-h-0"
-              href={`/app/replay?import=${record.id}`}
+              href={`/app/replay?mode=custom&import=${record.id}`}
               data-testid="compare-move-link"
             >
               Move work in Replay →

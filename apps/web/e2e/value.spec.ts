@@ -123,7 +123,7 @@ test("earlier analytical pricing remains explicitly prorated, with the arithmeti
   const apiValue =
     (await page.getByTestId("workload-opening").getByTestId("value-figure").textContent()) ?? "";
   // The whole-stack decision reuses the configured plans and the canonical API value.
-  await page.goto("/app/compare");
+  await page.goto("/app/compare?view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

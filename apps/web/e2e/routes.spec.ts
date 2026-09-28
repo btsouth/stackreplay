@@ -92,7 +92,7 @@ test("pickers put the targets that run this work first and never list demo targe
   page,
 }) => {
   await importMixed(page);
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   const plans = page.getByTestId("plan-list");
   await expect(plans.locator("[data-plan-option]").first()).toHaveAttribute(
     "data-plan-option",
@@ -119,7 +119,7 @@ test("a configured stack compares the whole workload with its published API equi
   page,
 }) => {
   const importId = await importMixed(page);
-  await page.goto(`/app/compare?import=${importId}`);
+  await page.goto(`/app/compare?view=billing&import=${importId}`);
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

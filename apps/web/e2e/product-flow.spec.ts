@@ -11,11 +11,11 @@ test("Back and Forward return to the same Replay target and Compare decision", a
   page,
 }, info) => {
   await importDemo(page, "multistack");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await page.getByTestId("plan-example-cloud-pro").click();
   await expect(page).toHaveURL(/target=example-cloud-pro/u);
 
-  await page.goto("/app/compare");
+  await page.goto("/app/compare?view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -43,7 +43,7 @@ test("plans chosen in Settings are the stack Compare uses", async ({ page }) => 
   await page.goto("/app/settings");
   await page.getByTestId("settings-plan-anthropic-claude-max-20x").check();
   await expect(page.getByTestId("settings-plans-summary")).toHaveText("Claude Max 20x");
-  await page.goto("/app/compare");
+  await page.goto("/app/compare?view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

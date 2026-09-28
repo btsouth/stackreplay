@@ -261,7 +261,7 @@ test("selected source stays local, can be saved, exported and replayed", async (
     .getByTestId("stored-imports")
     .getByRole("link", { name: /^Replay /u })
     .click();
-  await expect(page.getByTestId("run-replay")).toBeVisible();
+  await expect(page.getByTestId("build-own")).toBeVisible();
 });
 
 test("custom file controls retain native labels and mobile saved actions reflow", async ({
@@ -395,7 +395,7 @@ test("an unsaved source can replay in this session without IndexedDB persistence
     .getByRole("link", { name: /^Replay /u })
     .first()
     .click();
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
+  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
 });
 
 test("ZIP selection expands supported members and reports unsafe paths", async ({ page }) => {
@@ -542,7 +542,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
     .getByTestId("stored-imports")
     .getByRole("link", { name: /^Replay /u })
     .click();
-  await expect(page.getByTestId("run-replay")).toBeVisible();
+  await expect(page.getByTestId("build-own")).toBeVisible();
 });
 
 test("future portable version gets a version error through source selection", async ({ page }) => {

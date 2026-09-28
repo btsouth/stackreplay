@@ -489,7 +489,7 @@ test.describe("share links", () => {
   }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
-    await page.goto("/app/replay");
+    await page.goto("/app/replay?mode=custom");
     await runReplay(page, "example-cloud-pro");
 
     await expect(page.getByTestId("share-panel")).toBeVisible();

@@ -41,7 +41,7 @@ test.describe("the homepage replay instrument", () => {
     ]);
 
     await importDemo(page, "moderate");
-    await page.goto("/app/replay");
+    await page.goto("/app/replay?mode=custom");
     await runReplay(page, "example-cloud-pro");
     expect(
       await page
@@ -166,7 +166,7 @@ test.describe("the homepage replay instrument", () => {
 test.describe("the instrument in the application", () => {
   test("renders the one result composition from a live import", async ({ page }) => {
     await importDemo(page, "moderate");
-    await page.goto("/app/replay");
+    await page.goto("/app/replay?mode=custom");
     await runReplay(page, "example-cloud-pro");
 
     const result = page.getByTestId("replay-result");

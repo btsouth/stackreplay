@@ -48,7 +48,7 @@ test("an imported workload survives a reload", async ({ page }) => {
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
 
   await page.goto("/app/replay");
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
+  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
 });
 
 test("a delayed storage lookup never appears empty or sends Replay through Import", async ({
@@ -91,7 +91,7 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
   await page.getByTestId("workload-replay-cta").click();
   await expect(page.getByTestId("replay-restoring")).toBeVisible();
   await expect(page.getByTestId("replay-empty")).toHaveCount(0);
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
+  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
 });
 
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {

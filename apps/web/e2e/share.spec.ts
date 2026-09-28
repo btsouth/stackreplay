@@ -88,7 +88,7 @@ test("an unreadable link still gets an image, not an error", async ({ request })
 
 test("the panel offers the image and a suggested post once a link exists", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
   await createShareToken(page);
   const download = page.waitForEvent("download");

@@ -54,7 +54,7 @@ async function replayCopilot(page: Page): Promise<string> {
 }
 
 async function compareConfiguredStack(page: Page, unresolved: number): Promise<void> {
-  await page.goto("/app/compare");
+  await page.goto("/app/compare?view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

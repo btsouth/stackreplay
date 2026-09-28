@@ -59,7 +59,7 @@ test("schema-valid long workload and model identities remain usable at 390px", a
     second.getByRole("button", { name: /^Delete snapshot .*second-observed-workload/u }),
   ).toBeVisible();
 
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await expect(page.getByTestId("workload-strip")).toBeVisible();
   const select = page.getByTestId("workload-select");
   await expect(select).toBeVisible();
