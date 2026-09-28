@@ -1,0 +1,29 @@
+id: anthropic-api-sonnet-5-5-current-rate-sonnet55
+role: pricing
+modelId: claude-sonnet-5-5
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: anthropic-messages-global
+rateVersion: current-20260928-sonnet55
+rates:
+  input: '2'
+  output: '10'
+  cacheRead: '0.2'
+  reasoning:
+    billedAs: output
+effectiveFrom: '2026-09-28'
+effectiveFromInstant: '2026-09-28T19:51:32Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Sonnet 5.5 input, output, cache reads and explicit 5m/1h cache-write prices
+  checkedAt: '2026-09-28'
+- url: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+  title: Thinking billed as inclusive output
+  checkedAt: '2026-09-28'
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Standard pricing across 1M context
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified

@@ -4,12 +4,23 @@ name: Claude Sonnet 5.5
 familyId: claude-sonnet
 lifecycle: current
 developerId: anthropic
-providerIds: []
-aliases: []
+providerIds:
+- anthropic
+aliases:
+- id: claude-sonnet-5-5-api-id
+  alias: claude-sonnet-5-5
+  kind: provider_id
+  sources:
+  - &id001
+    url: https://platform.claude.com/docs/en/models/sonnet-5-5/overview
+    title: Exact API identifier, model specifications and availability
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified
 sources:
-- url: https://website.anthropic.com/
-  title: Sonnet 5.5 launch announcement; API identity, rates and plan access pending
-    first-party verification
+- *id001
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Sonnet 5.5 standard and cache token rates
   checkedAt: '2026-09-28'
 lastVerifiedAt: '2026-09-28'
-verificationStatus: unknown
+verificationStatus: verified

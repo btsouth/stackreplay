@@ -62,6 +62,24 @@ describe("D3 exact real-mix admission and coverage", () => {
       ).toEqual(expected[i]);
     }
   });
+  it("prices Sonnet 5.5 with exact identity, both cache durations and inclusive reasoning", () => {
+    for (const [tokens, expected] of [
+      [1000, ["0.092", "0.098"]],
+      [600000, ["1.29", "1.296"]],
+    ] as const) {
+      const inputs = marketDecisionInputs(catalog, DECISION_MARKET, [
+        event("claude-sonnet-5-5", tokens),
+      ]);
+      expect(analyzeMarketCoverage(inputs).coverage).toMatchObject({
+        recorded: 1,
+        recognized: 1,
+        priced: 1,
+      });
+      expect(
+        inputs.map((input) => optimizeCompiledExactModels(input).candidates[0]?.totalUsd),
+      ).toEqual(expected);
+    }
+  });
   it("retains economically heavy unknowns outside an explicitly separate priced scope", () => {
     const events = [event("claude-fable-5-1"), event("claude-future-unpublished", 9000000)];
     const inputs = marketDecisionInputs(catalog, DECISION_MARKET, events);

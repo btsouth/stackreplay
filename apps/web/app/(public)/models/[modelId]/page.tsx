@@ -162,7 +162,10 @@ export default async function ModelPage({ params }: Props) {
               <p className="market-muted mt-2">
                 Input {priceNumber(price.rates.input)} · Output {priceNumber(price.rates.output)} ·
                 Cache read {priceNumber(price.rates.cacheRead)} · Cache write{" "}
-                {priceNumber(price.rates.cacheWrite)}
+                {price.rates.cacheWrite === undefined &&
+                prices.some((p) => p.variantId && p.rates.cacheWrite !== undefined)
+                  ? "See duration-specific rates below"
+                  : priceNumber(price.rates.cacheWrite)}
               </p>
               {price.tiers?.map((tier) => (
                 <p className="market-muted mt-2" key={tier.id}>

@@ -7,9 +7,9 @@ const catalog = loadBundledCatalog();
 describe("D0 admitted market snapshot", () => {
   it("reproduces every derived artifact with pinned overlays and catalog identity", () => {
     expect(DECISION_MARKET.catalogHash).toBe(catalog.catalogVersion);
-    expect(DECISION_MARKET.plans).toHaveLength(21);
+    expect(DECISION_MARKET.plans).toHaveLength(22);
     for (const scenario of DECISION_MARKET.scenarios) {
-      expect(scenario.artifacts).toHaveLength(11);
+      expect(scenario.artifacts).toHaveLength(12);
       for (const a of scenario.artifacts)
         expect(
           compileExecutionPlan(

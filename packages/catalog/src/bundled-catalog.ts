@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:3a0fe7a0c19f0325b2dba613cf08670129e68644ff9b7123bfb644fe70357be1";
+export const BUNDLED_CATALOG_VERSION = "sha256:3b4deae64c694441a3151916bad1c10befa413feb86c0b3ab2dc5b880290da18";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:3a0fe7a0c19f0325b2dba613cf08670129e68644ff9b7123bfb644fe70357be1",
+  "catalogVersion": "sha256:3b4deae64c694441a3151916bad1c10befa413feb86c0b3ab2dc5b880290da18",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -754,17 +754,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "current",
       "developerId": "anthropic",
-      "providerIds": [],
-      "aliases": [],
+      "providerIds": [
+        "anthropic"
+      ],
+      "aliases": [
+        {
+          "id": "claude-sonnet-5-5-api-id",
+          "alias": "claude-sonnet-5-5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+              "title": "Exact API identifier, model specifications and availability",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
-          "url": "https://website.anthropic.com/",
-          "title": "Sonnet 5.5 launch announcement; API identity, rates and plan access pending first-party verification",
+          "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+          "title": "Exact API identifier, model specifications and availability",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Sonnet 5.5 standard and cache token rates",
           "checkedAt": "2026-09-28"
         }
       ],
       "lastVerifiedAt": "2026-09-28",
-      "verificationStatus": "unknown"
+      "verificationStatus": "verified"
     },
     "claude-sonnet-5": {
       "id": "claude-sonnet-5",
@@ -4134,6 +4156,285 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "rateId": "standard-token-rate",
               "category": "reasoning",
               "pricingRef": "anthropic-api-opus-5-cache-1h-d3",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "anthropic-api-sonnet-5-5": {
+      "id": "anthropic-api-sonnet-5-5",
+      "role": "plan",
+      "name": "Anthropic API: Claude Sonnet 5.5",
+      "providerId": "anthropic",
+      "versions": [],
+      "executionVersions": [
+        {
+          "schemaVersion": 1,
+          "id": "anthropic-api-sonnet-5-5-current-20260928-sonnet55",
+          "validity": {
+            "start": "2026-09-28T19:51:32Z",
+            "end": "2026-10-27T00:00:00Z",
+            "basis": "current-market",
+            "claimRefs": [
+              "current"
+            ]
+          },
+          "publication": {
+            "observedAt": "2026-09-28T19:51:32Z",
+            "reviewedAt": "2026-09-28T19:51:32Z",
+            "catalogActivatedAt": "2026-09-28T19:51:32Z"
+          },
+          "productId": "anthropic-direct-api",
+          "purchase": {
+            "kind": "api"
+          },
+          "claims": [
+            {
+              "id": "current",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs; Availability",
+              "excerpt": "claude-sonnet-5-5 is an active Claude API model at review. Current-market admission only; no historical effective-date claim.",
+              "normalizedClaimHash": "sha256:c414fff3722d09b33da7fdbe2b429527412f962cc07b20390684171e3f647de2",
+              "evidencePackageHash": "sha256:538ba2c2524fcb0b8eb14337de1e6bfa33ec3d76222da8ace23db9140c9953d4",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "route",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Specifications: Model IDs / Claude API",
+              "excerpt": "Exact Claude API identifier claude-sonnet-5-5; standard direct global API execution; paid API credentials required.",
+              "normalizedClaimHash": "sha256:f70365b79939e4cbd80a67287cb9b5d3818b8efb66e437d6af83b911cfb010b5",
+              "evidencePackageHash": "sha256:7f989ed3170756aff6350dd7c97e6dc26ea51b53d506a849ee87a8175470bb86",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "endpoint",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/api/messages/create",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Create a Message: HTTP method and path",
+              "excerpt": "POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.",
+              "normalizedClaimHash": "sha256:de0f225f79406bad42dbf73dd1ba84d0acf4f1d52dc225c694b9cad56926bdce",
+              "evidencePackageHash": "sha256:05ed482d773ae78e0192f6cbbbd7ac7d993ec241f4db98b69cabd29aa5571d7a",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "rate",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Model pricing / Claude Sonnet 5.5",
+              "excerpt": "USD per million tokens: input 2, output 10, cache read 0.2. Cache-write prices depend on duration.",
+              "normalizedClaimHash": "sha256:a3efc5fcbddde737cc53583ad23e7b96a6b3f31b797418e20b765abccf3a9d61",
+              "evidencePackageHash": "sha256:533c21d3706dbc0cba88f27804ef9ab29066e38d21fd06b7344b1f5e5cc793f0",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "cache-duration-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Model pricing / Claude Sonnet 5.5 / 5m writes and 1h writes",
+              "excerpt": "Sonnet 5.5 cache writes cost USD 2.5 per million for five minutes or USD 4 per million for one hour. Imported duration is not assumed.",
+              "normalizedClaimHash": "sha256:ac5118075763aca853c939f7932cd7af90be5b43a88d546e4a6ad3ace9ffcb29",
+              "evidencePackageHash": "sha256:a6c0ff0dfc4dfb1ba2b15ef065a8b3ebfe71fc6fcc2d538c89179c83d6f8b174",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "thinking-output-d0",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Pricing / output_tokens remains inclusive",
+              "excerpt": "Thinking is billed as output. Inclusive output telemetry already includes reasoning, which must not be added again.",
+              "normalizedClaimHash": "sha256:842c039047f7fa6881f157e5e39be9b17d669d3050e7a95cdeb3b4425a32c497",
+              "evidencePackageHash": "sha256:f7739214c0968a93d7f65fe8d8ce90e57ef985ba5b87f5d8c9f19684e62ac4f9",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            },
+            {
+              "id": "context",
+              "sourceId": "platform.claude.com",
+              "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+              "sourceType": "provider_docs",
+              "observedAt": "2026-09-28T19:51:32Z",
+              "reviewedAt": "2026-09-28T19:51:32Z",
+              "effectiveDateBasis": "catalog_activation",
+              "authority": "provider",
+              "certainty": "published_deterministic",
+              "locator": "Long context pricing",
+              "excerpt": "Claude 4.6 and later use standard per-token pricing across the full 1M context window; no long-context premium for this route.",
+              "normalizedClaimHash": "sha256:2c0362d16eac1dbc98a5b0ba90cf285c88446a2f2fa84f8b589563d751f5598e",
+              "evidencePackageHash": "sha256:f92b6547b70799c772e89ed658dcb44922303366d92116a3527526cde8950e7a",
+              "reviewer": "Codex manual first-party Sonnet 5.5 pricing review"
+            }
+          ],
+          "requirements": [
+            {
+              "id": "paid-api-account",
+              "scope": "plan",
+              "kind": "purchase_state",
+              "value": "active-paid-api-credentials",
+              "claimRefs": [
+                "route"
+              ]
+            }
+          ],
+          "groups": [],
+          "rates": [
+            {
+              "id": "standard-token-rate",
+              "pricingRef": "anthropic-api-sonnet-5-5-current-rate-sonnet55",
+              "basis": "api_list_price",
+              "endpointId": "anthropic-messages-global",
+              "rateVersion": "current-20260928-sonnet55",
+              "denomination": "USD",
+              "claimRefs": [
+                "rate",
+                "thinking-output-d0",
+                "context"
+              ]
+            }
+          ],
+          "meters": [],
+          "pools": [],
+          "debits": [],
+          "windows": [],
+          "constraints": [],
+          "routes": [
+            {
+              "id": "direct-standard",
+              "endpointId": "anthropic-messages-global",
+              "protocol": "anthropic-messages",
+              "harnessIds": [
+                "direct-http"
+              ],
+              "models": {
+                "kind": "exact",
+                "modelIds": [
+                  "claude-sonnet-5-5"
+                ]
+              },
+              "debitIds": [],
+              "cash": {
+                "rateId": "standard-token-rate",
+                "cashRateFactor": "1"
+              },
+              "requirementIds": [],
+              "claimRefs": [
+                "route",
+                "endpoint"
+              ]
+            }
+          ],
+          "continuation": {
+            "kind": "hard_stop",
+            "claimRefs": [
+              "route"
+            ]
+          },
+          "capabilities": []
+        }
+      ],
+      "executionOverlays": [
+        {
+          "id": "cache-write-5m-d0",
+          "validFrom": "2026-09-28T19:51:32Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-sonnet-5-5-current-20260928-sonnet55"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-sonnet-5-5-cache-5m-sonnet55",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-sonnet-5-5-cache-5m-sonnet55",
+              "claimRefs": [
+                "thinking-output-d0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cache-write-1h-d0",
+          "validFrom": "2026-09-28T19:51:32Z",
+          "validUntil": "2026-10-27T00:00:00Z",
+          "planVersionIds": [
+            "anthropic-api-sonnet-5-5-current-20260928-sonnet55"
+          ],
+          "requirementIds": [],
+          "precedence": 0,
+          "claimRefs": [
+            "cache-duration-d0",
+            "thinking-output-d0"
+          ],
+          "modifications": [
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "cacheWrite",
+              "pricingRef": "anthropic-api-sonnet-5-5-cache-1h-sonnet55",
+              "claimRefs": [
+                "cache-duration-d0"
+              ]
+            },
+            {
+              "kind": "cash_category_override",
+              "rateId": "standard-token-rate",
+              "category": "reasoning",
+              "pricingRef": "anthropic-api-sonnet-5-5-cache-1h-sonnet55",
               "claimRefs": [
                 "thinking-output-d0"
               ]
@@ -18604,6 +18905,130 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-sonnet-5-5-cache-1h-sonnet55": {
+      "id": "anthropic-api-sonnet-5-5-cache-1h-sonnet55",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260928-sonnet55",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.2",
+        "cacheWrite": "4",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-28T19:51:32Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Sonnet 5.5 input, output, cache reads and explicit 5m/1h cache-write prices",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-sonnet-5-5-cache-5m-sonnet55": {
+      "id": "anthropic-api-sonnet-5-5-cache-5m-sonnet55",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260928-sonnet55",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.2",
+        "cacheWrite": "2.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-28T19:51:32Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Sonnet 5.5 input, output, cache reads and explicit 5m/1h cache-write prices",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "anthropic-api-sonnet-5-5-current-rate-sonnet55": {
+      "id": "anthropic-api-sonnet-5-5-current-rate-sonnet55",
+      "role": "pricing",
+      "modelId": "claude-sonnet-5-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "endpointId": "anthropic-messages-global",
+      "rateVersion": "current-20260928-sonnet55",
+      "rates": {
+        "input": "2",
+        "output": "10",
+        "cacheRead": "0.2",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "effectiveTo": "2026-10-27",
+      "effectiveFromInstant": "2026-09-28T19:51:32Z",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Sonnet 5.5 input, output, cache reads and explicit 5m/1h cache-write prices",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking billed as inclusive output",
+          "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Standard pricing across 1M context",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "anthropic-api-sonnet-5-cache-1h-d0": {

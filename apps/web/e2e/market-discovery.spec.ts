@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { gotoReplayImport, waitForWorkload } from "./helpers";
 
 test("subscription discovery filters sourced tools and opens a selected comparison", async ({
   page,
@@ -51,8 +52,19 @@ test("model selection compares token categories without assigning missing prices
   await page.getByRole("button", { name: "Clear comparison" }).click();
   await page.getByLabel("Find a model, family name or exact alias").fill("Sonnet 5.5");
   await expect(page.getByTestId("model-row")).toHaveCount(1);
-  await expect(page.getByTestId("model-row")).toContainText("Not verified");
-  await expect(page.getByTestId("model-row").getByRole("checkbox")).toHaveCount(0);
+  await expect(page.getByTestId("model-row")).toContainText("$2");
+  await expect(page.getByTestId("model-row")).toContainText("$10");
+  await expect(page.getByTestId("model-row")).toContainText("$0.2");
+  await expect(page.getByTestId("model-row")).not.toContainText("Not verified");
+  await expect(page.getByTestId("model-row").getByRole("checkbox")).toHaveCount(1);
+  await page.getByTestId("model-row").getByRole("link", { name: "Explore model" }).click();
+  const evidence = page
+    .locator("details")
+    .filter({ has: page.getByText("Pricing, assumptions & evidence", { exact: true }) });
+  await evidence.locator("summary").click();
+  await expect(evidence).toContainText("Cache write $2.5");
+  await expect(evidence).toContainText("Cache write $4");
+  await expect(evidence).not.toContainText("Not verified");
 });
 
 for (const theme of ["dark", "light"] as const) {
@@ -77,3 +89,32 @@ for (const theme of ["dark", "light"] as const) {
     }
   });
 }
+
+test("native Sonnet 5.5 history receives the published cache-duration range", async ({ page }) => {
+  await gotoReplayImport(page);
+  const record = JSON.stringify({
+    type: "assistant",
+    uuid: "synthetic-sonnet55",
+    sessionId: "synthetic-session",
+    timestamp: "2026-09-28T19:52:00Z",
+    message: {
+      id: "synthetic-sonnet55-response",
+      model: "claude-sonnet-5-5",
+      stop_reason: "end_turn",
+      usage: {
+        input_tokens: 100000,
+        output_tokens: 100000,
+        cache_read_input_tokens: 300000,
+        cache_creation_input_tokens: 500000,
+      },
+    },
+  });
+  await page.getByTestId("source-file-input").setInputFiles({
+    name: "synthetic-sonnet55.jsonl",
+    mimeType: "application/x-ndjson",
+    buffer: Buffer.from(record),
+  });
+  await waitForWorkload(page);
+  await expect(page.getByTestId("overview-api-total")).toHaveText("$2.51 – $3.26");
+  await expect(page.getByTestId("overview-scale")).toContainText("100%");
+});

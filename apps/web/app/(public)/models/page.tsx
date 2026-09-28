@@ -22,8 +22,8 @@ export default function ModelsPage() {
           <p className="market-kicker">New / September 28</p>
           <h2>Claude Sonnet 5.5</h2>
           <p>
-            Anthropic has announced its next Sonnet. Detailed API pricing and access are pending
-            verification here.
+            Published API rates: $2 input, $10 output and $0.20 cache reads per million tokens.
+            Inspect pricing and cache-write options.
           </p>
           <Link className="market-link" href="/models/claude-sonnet-5-5">
             Explore the release ↗

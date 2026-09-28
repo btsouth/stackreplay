@@ -57,9 +57,9 @@ export default function UpdatesPage() {
           <div>
             <h2 className="text-3xl tracking-tight">Claude Sonnet 5.5 arrives.</h2>
             <p className="mt-3 max-w-2xl text-muted-foreground leading-relaxed">
-              Anthropic has announced Sonnet 5.5. The release is listed here; exact API pricing,
-              identifiers and subscription access remain under review. Existing workload prices are
-              unchanged.
+              Sonnet 5.5 is available through the Claude API at $2 input and $10 output per million
+              tokens. Its exact API route, cache-read pricing and both cache-write durations are now
+              included in StackReplay.
             </p>
             <div className="flex flex-wrap gap-6">
               <Link href="/models/claude-sonnet-5-5" className="market-link">

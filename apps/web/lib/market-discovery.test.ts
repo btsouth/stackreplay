@@ -46,7 +46,13 @@ describe("public market discovery", () => {
     expect(basePrice(rates)?.rates).toMatchObject({ input: "4", output: "20", cacheRead: "0.2" });
     expect(rates.filter((rate) => rate.variantId)).toHaveLength(2);
     expect(basePrice(rates)?.rates.cacheWrite).toBeUndefined();
-    expect(modelPrices("claude-sonnet-5-5", "2026-09-28")).toEqual([]);
+    expect(basePrice(modelPrices("claude-sonnet-5-5", "2026-09-28"))?.rates).toMatchObject({
+      input: "2",
+      output: "10",
+      cacheRead: "0.2",
+    });
+    expect(modelPrices("claude-sonnet-5-5", "2026-09-27")).toEqual([]);
+    expect(modelPrices("unpublished-model", "2026-09-28")).toEqual([]);
   });
   it("resolves explicit category aliases without inventing missing or cyclic rates", () => {
     expect(

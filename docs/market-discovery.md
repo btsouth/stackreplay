@@ -33,16 +33,19 @@ lists are sourced subsets, not claims to represent every offered model. OpenCode
 external-tool compatibility depends on the versions and session-header conditions
 in its documentation. Older Ollama subscription cohorts can have different terms.
 
-Anthropic's homepage announces Sonnet 5.5. Its detailed model/pricing pages were
-not accessible during verification. The release is therefore visible with API
-identity, rates and entitlements explicitly pending. No API route, price or alias
-was invented. No benchmark ranking or quality-equivalence claim is added.
+Sonnet 5.5 is admitted from Anthropic's model documentation and pricing table:
+USD 2 input, 10 output, 0.20 cache reads, 2.50 five-minute cache writes and 4
+one-hour cache writes per million tokens. The exact `claude-sonnet-5-5` Messages
+route is priced using the existing two cache-duration scenarios. Inclusive
+reasoning remains part of output; standard rates apply across the 1M context.
+An initial announcement-only listing was corrected after verifying the detailed
+first-party pages. No benchmark ranking or subscription capacity is inferred.
 
 New commercial record dates are catalog admission dates, not reconstructed launch
 dates. Existing execution records retain their current-market validity boundary.
 The public API-rate view reads accepted catalog pricing and keeps variants,
-category aliases and context tiers explicit. The generated decision market changes
-only its catalog hash; executable artifact hashes and pricing remain unchanged.
+category aliases and context tiers explicit. The market snapshot now includes the Sonnet 5.5 route at its September 28
+catalog activation. Existing route economics are unchanged.
 
 ## Boundaries
 
