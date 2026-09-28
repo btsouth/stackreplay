@@ -11,6 +11,7 @@ import {
   gotoImport,
   importDemo,
   openReplayDetails,
+  openReviewEvidence,
   setRulesAsOf,
 } from "./helpers";
 
@@ -90,8 +91,9 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 
 async function openWorkload(page: Page): Promise<void> {
   await page.getByTestId("open-workload").click();
-  await expect(page.getByRole("heading", { name: "Your billing-period review" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
   // The value block appears once the analysis is in: a figure, or why there is none.
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -437,6 +439,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("not-saved-notice")).toHaveCount(0);
   await openWorkload(page);
   await page.reload();
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -447,6 +450,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   // The app entry opens the stored workload and its value directly.
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/workload$/);
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

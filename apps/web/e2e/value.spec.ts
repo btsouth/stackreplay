@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
-import { gotoImport } from "./helpers";
+import { gotoImport, openReviewEvidence } from "./helpers";
 
 /**
  * Phase 4: from Workload Ready and the workload's first screen, a person sees
@@ -55,6 +55,7 @@ test("the workload opens with its value, scope, tool split and comparative facts
   await importArchetype(page, "mixed");
   await page.goto("/app/workload");
   const opening = page.getByTestId("workload-opening");
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -77,15 +78,19 @@ test("the workload opens with its value, scope, tool split and comparative facts
     await expect(facts.nth(index)).toContainText("×");
     await expect(facts.nth(index).getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
   }
-  await expect(opening.getByRole("link", { name: "Replay part of this workload" })).toHaveCount(0);
-  await expect(opening.getByRole("link", { name: /Compare ways to buy this work/u })).toHaveCount(
-    0,
-  );
+  await expect(
+    page.getByTestId("review-evidence").getByRole("link", { name: "Replay part of this workload" }),
+  ).toHaveCount(1);
+  await expect(
+    page
+      .getByTestId("review-evidence")
+      .getByRole("link", { name: /Compare ways to buy this work/u }),
+  ).toHaveCount(1);
   const decision = page.getByTestId("replay-transition");
   await expect(decision.getByTestId("workload-replay-cta")).toHaveText(
     "Replay part of this workload",
   );
-  await expect(decision.getByTestId("workload-compare-cta")).toHaveText(
+  await expect(decision.getByTestId("legacy-workload-compare-cta")).toHaveText(
     "Compare ways to buy this work →",
   );
   const narrativeOrder = await page
@@ -94,8 +99,8 @@ test("the workload opens with its value, scope, tool split and comparative facts
     )
     .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
   expect(narrativeOrder).toEqual([
-    "workload-insights",
     "section-projects",
+    "workload-insights",
     "section-models",
     "section-chronology",
     "section-pressure",
@@ -120,6 +125,7 @@ test("the workload opens with its value, scope, tool split and comparative facts
 test("a Claude-only value is exactly its Direct API replay", async ({ page }) => {
   await importArchetype(page, "claude-only");
   await page.goto("/app/workload");
+  await openReviewEvidence(page);
   const figure = page.getByTestId("workload-opening").getByTestId("value-figure");
   await expect(figure).toHaveText(/^\$[\d,]+\.\d\d$/u, { timeout: 60_000 });
   const value = (await figure.textContent()) ?? "";
@@ -135,6 +141,10 @@ test("earlier analytical pricing remains explicitly prorated, with the arithmeti
 }) => {
   await importArchetype(page, "mixed");
   await page.goto("/app/workload");
+  await openReviewEvidence(page);
+  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
   const spend = page.getByTestId("current-spend");
   await expect(spend).toBeVisible({ timeout: 60_000 });
   await spend.locator(":scope > summary").click();

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { importDemo, openReviewEvidence } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
@@ -42,6 +42,7 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   });
   await expect(page.getByTestId("ready-preview")).toContainText("published API list prices");
   await page.getByTestId("open-workload").click();
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -53,6 +54,7 @@ test("mobile analysis control ends before the Share section", async ({ page }) =
   await page.setViewportSize({ width: 390, height: 844 });
   await importDemo(page, "moderate");
   await page.getByTestId("open-workload").click();
+  await openReviewEvidence(page);
   await expect(page.getByTestId("measure-bar")).toBeVisible();
   await page.getByTestId("section-pressure").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("measure-bar")).toBeInViewport();

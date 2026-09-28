@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { importDemo, openReviewEvidence } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`D1 same-scope API decision, receipts and subscriptions in ${theme}`, async ({ page }) => {
@@ -18,7 +18,8 @@ for (const theme of ["dark", "light"] as const) {
       "900 / 900 recorded calls modeled and priced",
     );
     await expect(market).toContainText("261 calls");
-    await expect(market).toContainText("not your actual bill");
+    await expect(market).toContainText("not an historical API invoice");
+    await openReviewEvidence(page);
     await market.getByTestId("market-calculation").locator(":scope > summary").click();
     await market
       .getByTestId("market-calculation")
@@ -52,6 +53,10 @@ for (const theme of ["dark", "light"] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    await page.getByTestId("review-evidence").locator(":scope > summary").click();
+    await page.getByTestId("workload-insights").locator('a[href="#pressure"]').click();
+    await expect(page.getByTestId("review-evidence")).toHaveAttribute("open", "");
+    await expect(page.locator("#pressure")).toBeVisible();
     // Reload via Compare: the saved synthetic workload and current stack remain browser-local.
     await page.goto("/app/compare");
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
@@ -71,9 +76,12 @@ test("replacing a workload cannot publish the previous market result", async ({ 
   await page.getByTestId("demo-multistack").click();
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
-  await expect(page.getByTestId("market-total")).toHaveText("Full total unavailable", {
-    timeout: 30_000,
-  });
+  await expect(page.getByTestId("market-total")).toHaveText(
+    "Pricing incomplete for this workload",
+    {
+      timeout: 30_000,
+    },
+  );
   await expect(page.getByTestId("market-coverage")).not.toContainText("900 / 900");
 });
 

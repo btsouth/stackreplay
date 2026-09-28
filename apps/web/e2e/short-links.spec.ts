@@ -4,7 +4,7 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, createShareLink, gotoImport } from "./helpers";
+import { captureRequests, createShareLink, gotoImport, openReviewEvidence } from "./helpers";
 
 /**
  * Short share links, end to end in a real browser.
@@ -54,6 +54,7 @@ async function scanMarkedHistory(page: Page): Promise<void> {
     timeout: 60_000,
   });
   await page.getByTestId("open-workload").click();
+  await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

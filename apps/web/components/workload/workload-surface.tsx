@@ -4,7 +4,7 @@ import { formatUsd, shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import { MissingWorkload } from "@/components/missing-workload";
@@ -31,7 +31,7 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
-import { CurrentSpend, InsightList, ToolSplit, WorkloadValueFigure } from "./value";
+import { CurrentSpend, ToolSplit, WorkloadValueFigure } from "./value";
 
 function browserTimeZone(): string {
   try {
@@ -243,6 +243,37 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         profile={profile}
         imports={imports}
         onSelect={setSelectedId}
+        decision={market?.id === record.id ? market.result : undefined}
+        detailContent={
+          <>
+            {" "}
+            {profile === undefined ? (
+              error === undefined ? (
+                <div
+                  className="flex flex-col gap-3 border-t border-border pt-4"
+                  role="status"
+                  data-testid="workload-analyzing"
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Restoring {count(record.eventCount)} recorded calls and analyzing their
+                    chronology, projects and sessions in this browser…
+                  </p>
+                </div>
+              ) : null
+            ) : (
+              <WorkloadBody
+                decision={market?.id === record.id ? market.result : undefined}
+                measure={measure}
+                onMeasure={setMeasure}
+                onUtc={setUseUtc}
+                profile={profile}
+                record={record}
+                useUtc={useUtc}
+                localZone={localZone}
+              />
+            )}
+          </>
+        }
       />
       {error !== undefined ? (
         <div role="alert" className="border-l-2 border-negative pl-4" data-testid="workload-error">
@@ -250,31 +281,6 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
           <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       ) : null}
-      {profile === undefined ? (
-        error === undefined ? (
-          <div
-            className="flex flex-col gap-3 border-t border-border pt-4"
-            role="status"
-            data-testid="workload-analyzing"
-          >
-            <p className="text-sm text-muted-foreground">
-              Restoring {count(record.eventCount)} recorded calls and analyzing their chronology,
-              projects and sessions in this browser…
-            </p>
-          </div>
-        ) : null
-      ) : (
-        <WorkloadBody
-          decision={market?.id === record.id ? market.result : undefined}
-          measure={measure}
-          onMeasure={setMeasure}
-          onUtc={setUseUtc}
-          profile={profile}
-          record={record}
-          useUtc={useUtc}
-          localZone={localZone}
-        />
-      )}
     </div>
   );
 }
@@ -393,8 +399,16 @@ function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
             <p className="text-xs leading-snug text-muted-foreground">
               {detail.endsWith(".") ? detail : `${detail}.`}{" "}
               <a
-                className="text-accent underline-offset-4 hover:underline"
+                className="text-accent underline underline-offset-4"
                 href={`#${insight.evidence.section}`}
+                onClick={() => {
+                  const target = document.getElementById(insight.evidence.section);
+                  let ancestor = target?.parentElement;
+                  while (ancestor) {
+                    if (ancestor instanceof HTMLDetailsElement) ancestor.open = true;
+                    ancestor = ancestor.parentElement;
+                  }
+                }}
               >
                 {insight.evidence.label} →
               </a>
@@ -407,17 +421,92 @@ function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
 }
 
 function WorkloadOpening({
-  onMarket,
   record,
   profile,
   imports,
   onSelect,
+  onMarket,
+  decision,
+  detailContent,
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
   imports: ImportRecord[];
   onSelect: (id: string) => void;
   onMarket: (id: string, result: MarketDecision | undefined) => void;
+  decision: MarketDecision | undefined;
+  detailContent: ReactNode;
+}) {
+  const insights = profile?.insights.filter((i) => i.id !== "cache-value").slice(0, 3) ?? [];
+  return (
+    <div className="min-w-0 space-y-4" data-testid="workload-opening">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-medium">Workload</h1>
+        <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
+      </div>
+      {record.savedLocally === false ? (
+        <p className="text-xs text-warning">
+          Not saved in this browser. This workload is available only until reload.
+        </p>
+      ) : null}
+      <PartialScanNotice
+        record={record}
+        briefing
+        action={
+          <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
+            Rescan history →
+          </Link>
+        }
+      />
+      <MarketDecisionSurface
+        key={record.id}
+        record={record}
+        onResult={onMarket}
+        workloadContent={
+          profile ? (
+            <section
+              className="space-y-5"
+              aria-label="Where the work went"
+              data-testid="work-destination"
+            >
+              <section id="projects" data-testid="section-projects" className="scroll-mt-24">
+                <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="text-xl font-medium tracking-tight">Where the work went</h2>
+                  <span className="text-xs text-muted-foreground">
+                    {decision?.history?.calls === profile.overview.events &&
+                    !decision?.history?.outsideCalls
+                      ? "Reviewed workload"
+                      : "Full saved import, including work outside the review"}{" "}
+                    · {count(profile.overview.events)} calls
+                  </span>
+                </div>
+                <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
+              </section>
+              {insights.length ? <BriefingInsights insights={insights} /> : null}
+            </section>
+          ) : (
+            <p role="status" className="text-sm">
+              Loading project and workload highlights…
+            </p>
+          )
+        }
+        evidenceContent={
+          <>
+            <ImportedWorkloadEvidence record={record} profile={profile} />
+            {detailContent}
+          </>
+        }
+      />
+    </div>
+  );
+}
+
+function ImportedWorkloadEvidence({
+  record,
+  profile,
+}: {
+  record: ImportRecord;
+  profile: WorkloadProfile | undefined;
 }) {
   const { summary } = record;
   const sources =
@@ -429,9 +518,6 @@ function WorkloadOpening({
         ? "synthetic demo"
         : "portable workload file";
   const overview = profile?.overview;
-  const insights = profile?.insights.filter((insight) => insight.id !== "cache-value") ?? [];
-  const leadingInsights = insights.slice(0, 3);
-  const remainingInsights = insights.slice(3);
   const figures: { label: string; value: string; title?: string; testId: string }[] = [
     { label: "calls", value: count(summary.eventCount), testId: "opening-events" },
     {
@@ -451,27 +537,14 @@ function WorkloadOpening({
       testId: "opening-tokens",
     },
   ];
-  const scanNotice = (
-    <PartialScanNotice
-      record={record}
-      briefing
-      action={
-        <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
-          Rescan history →
-        </Link>
-      }
-    />
-  );
   return (
-    <header className="flex min-w-0 flex-col gap-6" data-testid="workload-opening">
+    <header className="flex min-w-0 flex-col gap-6" data-testid="imported-workload-evidence">
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-2">
           <MicroLabel className="text-accent">
             {origin === "synthetic demo" ? "Synthetic demo workload" : "Your workload"}
           </MicroLabel>
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
-            Your billing-period review
-          </h1>
+          <h3 className="text-lg font-medium">Imported history</h3>
           <p
             className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
             data-testid="opening-meta"
@@ -519,10 +592,8 @@ function WorkloadOpening({
             </p>
           ) : null}
         </div>
-        <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
-      {scanNotice}
-      <MarketDecisionSurface key={record.id} record={record} onResult={onMarket} />
+
       <details data-testid="legacy-workload">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Inspect earlier replay valuation
@@ -563,31 +634,6 @@ function WorkloadOpening({
         />
         {profile === undefined ? null : <CacheReadBriefing profile={profile} />}
       </section>
-      {leadingInsights.length === 0 ? null : (
-        <section
-          aria-labelledby="insights-heading"
-          className="flex min-w-0 flex-col gap-3 border-t border-border pt-5"
-        >
-          <h2
-            id="insights-heading"
-            className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase"
-          >
-            What is unusual about this work
-          </h2>
-          <BriefingInsights insights={leadingInsights} />
-          {remainingInsights.length > 0 ? (
-            <details data-testid="more-insights">
-              <summary className="min-h-11 cursor-pointer content-center text-xs text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0">
-                {count(remainingInsights.length)} more{" "}
-                {remainingInsights.length === 1 ? "fact" : "facts"}
-              </summary>
-              <div className="mt-3">
-                <InsightList insights={remainingInsights} testId="workload-insights-more" />
-              </div>
-            </details>
-          ) : null}
-        </section>
-      )}
     </header>
   );
 }
@@ -709,17 +755,6 @@ function WorkloadBody({
             </button>
           </p>
         </div>
-
-        <WorkloadSection
-          index="01"
-          eyebrow="Projects"
-          title="Where the work came from"
-          lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
-          id="projects"
-          testId="section-projects"
-        >
-          <ProjectLedger measure={measure} profile={profile} />
-        </WorkloadSection>
 
         <WorkloadSection
           index="02"
@@ -906,7 +941,7 @@ function WorkloadBody({
           <Link
             href={`/app/compare?import=${record.id}`}
             className={ACTION_LINK}
-            data-testid="workload-compare-cta"
+            data-testid="legacy-workload-compare-cta"
           >
             Compare ways to buy this work →
           </Link>

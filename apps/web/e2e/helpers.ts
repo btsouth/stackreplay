@@ -169,3 +169,17 @@ export async function createShareLink(
 export async function createShareToken(page: Page): Promise<string> {
   return (await createShareLink(page)).token;
 }
+
+/** Review controls and evidence are progressive disclosures after setup. */
+export async function openReviewEditor(page: Page): Promise<void> {
+  const editor = page.getByTestId("review-editor");
+  await expect(editor).toBeVisible();
+  if (!(await editor.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await page.getByTestId("review-bar").click();
+}
+export async function openReviewEvidence(page: Page): Promise<void> {
+  const evidence = page.getByTestId("review-evidence");
+  await expect(evidence).toBeVisible();
+  if (!(await evidence.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await evidence.locator(":scope > summary").click();
+}

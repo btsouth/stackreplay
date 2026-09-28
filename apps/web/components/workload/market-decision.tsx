@@ -2,8 +2,11 @@
 
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import type { CapacityBurden } from "@/lib/capacity-episodes";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
 import {
@@ -23,7 +26,12 @@ import { partialScanOf } from "./evidence";
 import { ObservedCapacity } from "./observed-capacity";
 import { HistoryConfirmation, ReviewSetup } from "./review-setup";
 
-const dollars = (value: string) => `$${new Decimal(value).toFixed(2)}`;
+const dollars = (value: string) =>
+  `$${new Decimal(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+const date = (value: string) =>
+  new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(
+    new Date(`${value}T00:00:00Z`),
+  );
 const subscriptions = DECISION_MARKET.plans.filter(
   (p) => p.artifact.purchase.kind === "subscription",
 );
@@ -32,8 +40,12 @@ const subscriptions = DECISION_MARKET.plans.filter(
 export function MarketDecisionSurface({
   record,
   onResult,
+  workloadContent,
+  evidenceContent,
 }: {
   record: ImportRecord;
+  workloadContent?: ReactNode;
+  evidenceContent?: ReactNode;
   onResult?: (id: string, result: MarketDecision | undefined) => void;
 }) {
   const [computed, setComputed] = useState<{ key: string; result: MarketDecision }>();
@@ -136,573 +148,139 @@ export function MarketDecisionSurface({
       ),
     new Decimal(0),
   );
-  return (
-    <section
-      id="api-market"
-      aria-labelledby="api-market-heading"
-      className="flex min-w-0 scroll-mt-28 flex-col gap-4 border-t border-border-strong pt-5"
-      data-testid="market-decision"
-    >
-      <div className="flex flex-col gap-2">
-        {
-          <div className="flex flex-wrap items-end gap-3 border-b border-border pb-3">
-            <label className="min-w-0 max-w-full text-sm">
-              Local source account
-              <select
-                aria-label="Local source account"
-                className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
-                value={choice.resourceInstanceId ?? ""}
-                onChange={(e) => {
-                  const {
-                    historyConfirmation: _confirmation,
-                    historyConfirmed: _legacy,
-                    resourceInstanceId: _account,
-                    accountLabel: _label,
-                    ...rest
-                  } = choice;
-                  local.setChoice({
-                    ...rest,
-                    ...(e.target.value ? { resourceInstanceId: e.target.value } : {}),
-                  });
-                }}
-              >
-                <option value="">All imported accounts</option>
-                {accounts?.map((a, index) => (
-                  <option key={a.resourceInstanceId} value={a.resourceInstanceId}>
-                    {a.source} account {index + 1} · {a.calls.toLocaleString()} responses
-                  </option>
-                ))}
-              </select>
-            </label>
-            {choice.resourceInstanceId ? (
-              <label className="min-w-0 max-w-full text-sm">
-                Local account label
-                <input
-                  aria-label="Local account label"
-                  maxLength={80}
-                  className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
-                  value={choice.accountLabel ?? ""}
-                  onChange={(e) => local.setChoice({ ...choice, accountLabel: e.target.value })}
-                />
-              </label>
-            ) : null}
-          </div>
-        }
-        <ReviewSetup
-          key={`${choice.mode}:${choice.resourceInstanceId ?? "all"}`}
-          choice={choice}
-          recordedPeriod={recordedPeriod}
-          billing={billing}
-          onChange={local.setChoice}
-          names={Object.fromEntries(subscriptions.map((p) => [`plan:${p.id}`, p.name]))}
-          needsPeriod={needsPeriod}
-        />
+
+  const configured =
+    !!review?.historyConfirmed &&
+    review.confirmedSpend !== undefined &&
+    review.confirmedCount === selected.length &&
+    selected.length > 0 &&
+    !needsPeriod;
+  const [editing, setEditing] = useState(false);
+  const planName =
+    selected.length === 1
+      ? (subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ?? "Selected subscription")
+      : "Your subscriptions";
+  const cycleLabel = effectivePeriod
+    ? `${date(effectivePeriod.start)} → ${date(effectivePeriod.end)}`
+    : "Choose dates";
+  const ratio =
+    review?.complete && range && new Decimal(review.confirmedSpend ?? "0").gt(0)
+      ? [range.low, range.high].map((value) => {
+          const n = new Decimal(value).div(review.confirmedSpend ?? "1");
+          return n.toFixed(n.lt(1) ? 2 : 0);
+        })
+      : undefined;
+  const controls = (
+    <>
+      <div className="flex flex-wrap items-end gap-3 border-b border-border pb-3">
+        <label className="min-w-0 max-w-full text-sm">
+          Local source account
+          <select
+            aria-label="Local source account"
+            className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
+            value={choice.resourceInstanceId ?? ""}
+            onChange={(e) => {
+              const {
+                historyConfirmation: _confirmation,
+                historyConfirmed: _legacy,
+                resourceInstanceId: _account,
+                accountLabel: _label,
+                ...rest
+              } = choice;
+              local.setChoice({
+                ...rest,
+                ...(e.target.value ? { resourceInstanceId: e.target.value } : {}),
+              });
+            }}
+          >
+            <option value="">All imported accounts</option>
+            {accounts?.map((a, index) => (
+              <option key={a.resourceInstanceId} value={a.resourceInstanceId}>
+                {a.source} account {index + 1} · {a.calls.toLocaleString()} responses
+              </option>
+            ))}
+          </select>
+        </label>
+        {choice.resourceInstanceId ? (
+          <label className="min-w-0 max-w-full text-sm">
+            Local account label
+            <input
+              aria-label="Local account label"
+              maxLength={80}
+              className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
+              value={choice.accountLabel ?? ""}
+              onChange={(e) => local.setChoice({ ...choice, accountLabel: e.target.value })}
+            />
+          </label>
+        ) : null}
       </div>
+
+      <ReviewSetup
+        key={`${choice.mode}:${choice.resourceInstanceId ?? "all"}`}
+        choice={choice}
+        recordedPeriod={recordedPeriod}
+        billing={billing}
+        onChange={local.setChoice}
+        names={Object.fromEntries(subscriptions.map((p) => [`plan:${p.id}`, p.name]))}
+        needsPeriod={needsPeriod}
+      />
+
       {!needsPeriod ? (
         <>
-          <div className="flex flex-col gap-2">
-            <MicroLabel className={review?.complete ? "text-accent" : "text-warning"}>
-              <span data-testid="review-state">
-                {review?.complete ? "Complete billing-period review" : "Partial review"}
-              </span>
-            </MicroLabel>
-            {choice.resourceInstanceId && selected.length === 1 ? (
-              <p className="text-lg font-medium">
-                {subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ??
-                  "Selected subscription"}{" "}
-                · Billing cycle review{choice.accountLabel ? ` · ${choice.accountLabel}` : ""}
+          {" "}
+          {review ? (
+            <div className="my-2 flex flex-col gap-2 text-sm" data-testid="review-history">
+              <p>
+                Recorded history:{" "}
+                {review.history.firstDate && review.history.lastDate
+                  ? periodLabel({
+                      start: review.history.firstDate,
+                      end: nextDate(review.history.lastDate),
+                    })
+                  : "No calls in this period"}{" "}
+                · UTC
               </p>
-            ) : null}
-            <h2 className="text-2xl font-medium tracking-tight" data-testid="review-period">
-              {review?.period ? periodLabel(review.period) : "Choose your review period"}
-            </h2>
-            <p className="text-xs text-muted-foreground" data-testid="review-source">
-              {choice.mode === "history"
-                ? "Using recorded history span"
-                : choice.mode === "cycle"
-                  ? "Using a locally supplied subscription cycle"
-                  : "Using your custom review period"}{" "}
-              · UTC
-            </p>
-            {local.synthetic ? (
-              <p className="text-xs text-muted-foreground">
-                Synthetic demo workload and billing data. Not real customer evidence.
+              <p className="text-muted-foreground">
+                {review.history.firstDate && review.history.lastDate && review.period
+                  ? `Recorded history spans ${daysInPeriod({ start: review.history.firstDate, end: nextDate(review.history.lastDate) })} days of this ${daysInPeriod(review.period)}-day review period. `
+                  : ""}
+                This span does not prove complete logs.
               </p>
-            ) : null}
-            {review ? (
-              <div className="my-2 flex flex-col gap-2 text-sm" data-testid="review-history">
-                <p>
-                  Recorded history:{" "}
-                  {review.history.firstDate && review.history.lastDate
-                    ? periodLabel({
-                        start: review.history.firstDate,
-                        end: nextDate(review.history.lastDate),
-                      })
-                    : "No calls in this period"}{" "}
-                  · UTC
-                </p>
+              <p>
+                <span className="font-mono">{review.history.calls.toLocaleString()}</span>{" "}
+                {review.history.nativeResponses === review.history.calls
+                  ? "distinct responses"
+                  : "recorded calls"}{" "}
+                · <span className="font-mono">{review.history.knownTokens.toLocaleString()}</span>{" "}
+                known processed tokens
+                {review.history.unknownTokenCalls
+                  ? ` · ${review.history.unknownTokenCalls.toLocaleString()} calls with unknown token totals`
+                  : ""}
+              </p>
+              {review.history.outsideCalls ? (
                 <p className="text-muted-foreground">
-                  {review.history.firstDate && review.history.lastDate && review.period
-                    ? `Recorded history spans ${daysInPeriod({ start: review.history.firstDate, end: nextDate(review.history.lastDate) })} days of this ${daysInPeriod(review.period)}-day review period. `
-                    : ""}
-                  This span does not prove complete logs.
+                  {review.history.outsideCalls.toLocaleString()} imported calls fall outside this
+                  selected {choice.resourceInstanceId ? "account or period" : "period"}. They remain
+                  in your saved workload.
                 </p>
-                <p>
-                  <span className="font-mono">{review.history.calls.toLocaleString()}</span>{" "}
-                  {review.history.nativeResponses === review.history.calls
-                    ? "distinct responses"
-                    : "recorded calls"}{" "}
-                  · <span className="font-mono">{review.history.knownTokens.toLocaleString()}</span>{" "}
-                  known processed tokens
-                  {review.history.unknownTokenCalls
-                    ? ` · ${review.history.unknownTokenCalls.toLocaleString()} calls with unknown token totals`
-                    : ""}
-                </p>
-                {review.history.outsideCalls ? (
-                  <p className="text-muted-foreground">
-                    {review.history.outsideCalls.toLocaleString()} imported calls fall outside this
-                    selected {choice.resourceInstanceId ? "account or period" : "period"}. They
-                    remain in your saved workload.
-                  </p>
-                ) : null}
-                <p className="text-muted-foreground">
-                  {review.historyConfirmed
-                    ? "History coverage: confirmed locally by you; not independently verified."
-                    : "History coverage: not confirmed for this review period."}
-                </p>
-              </div>
-            ) : null}
-            {review ? (
-              <HistoryConfirmation
-                choice={choice}
-                review={review}
-                importId={importId}
-                scopeDigest={decision?.scenarios[0]?.summary.scope.digest}
-                partialScan={partialScan}
-                onChange={local.setChoice}
-              />
-            ) : null}
-            {review?.complete ? (
-              <div className="border-b border-border py-3">
-                <MicroLabel>What you paid</MicroLabel>
-                <p className="font-mono text-4xl">{dollars(review.confirmedSpend ?? "0")}</p>
-                <p className="text-xs text-muted-foreground">
-                  Confirmed fixed subscription spend for this cycle
-                </p>
-              </div>
-            ) : null}
-            <MicroLabel>
-              {partialPricing
-                ? "Current published API equivalent for priced workload"
-                : "Current published API equivalent"}
-            </MicroLabel>
-            {!decision && !error ? (
-              <p role="status" className="text-sm text-muted-foreground">
-                Calculating what your exact models would cost through published APIs…
+              ) : null}
+              <p className="text-muted-foreground">
+                {review.historyConfirmed
+                  ? "History coverage: confirmed locally by you; not independently verified."
+                  : "History coverage: not confirmed for this review period."}
               </p>
-            ) : null}
-            {error ? (
-              <div role="alert">
-                <p data-testid="market-total" className="font-mono text-xl">
-                  Calculation unavailable
-                </p>
-                <p className="text-sm text-warning">{error}</p>
-              </div>
-            ) : null}
-            {decision ? (
-              <>
-                <p
-                  data-testid="market-total"
-                  className="font-mono text-3xl font-medium tabular-nums tracking-tight sm:text-4xl"
-                >
-                  {comparable
-                    ? different
-                      ? `${dollars(totals[0] ?? "0")} – ${dollars(totals[1] ?? "0")}`
-                      : dollars(totals[0] ?? "0")
-                    : "Full total unavailable"}
-                </p>
-                <p className="max-w-3xl text-sm text-muted-foreground">
-                  {comparable
-                    ? different
-                      ? "At published API prices. Claude cache-write duration is not recorded by this source, so StackReplay calculated both published possibilities."
-                      : "At published API prices for the recorded workload."
-                    : "Some required execution or pricing facts remain unknown. No missing price is treated as zero."}{" "}
-                  This is not your actual bill. No monthly projection or subscription-capacity
-                  assumption.
-                </p>
-                {decision.unavailable ? (
-                  <p className="text-sm" data-testid="market-coverage">
-                    {decision.unavailable.calls.toLocaleString()} calls retained.{" "}
-                    {decision.unavailable.message}
-                  </p>
-                ) : null}
-                {first ? (
-                  <div className="space-y-1 text-sm" data-testid="market-coverage">
-                    <p>
-                      API pricing:{" "}
-                      {(
-                        decision.coverage?.priced ?? (comparable ? first.scope.required : 0)
-                      ).toLocaleString()}{" "}
-                      / {(decision.history?.calls ?? first.scope.recorded).toLocaleString()}{" "}
-                      recorded calls modeled and priced. Exact models preserved.
-                    </p>
-                    {decision.coverage ? (
-                      <>
-                        <p>
-                          {decision.coverage.recognized.toLocaleString()} /{" "}
-                          {decision.coverage.recorded.toLocaleString()} calls recognized. All
-                          recorded calls retained in this review.
-                        </p>
-                        <p data-testid="token-coverage">
-                          {decision.coverage.pricedKnownTokens.toLocaleString()} /{" "}
-                          {decision.coverage.knownTokens.toLocaleString()} known processed tokens
-                          priced
-                          {decision.coverage.knownTokens
-                            ? ` (${((100 * decision.coverage.pricedKnownTokens) / decision.coverage.knownTokens).toFixed(2)}%)`
-                            : ""}
-                          .
-                          {decision.coverage.unknownTokenCalls
-                            ? ` ${decision.coverage.unknownTokenCalls.toLocaleString()} calls have unknown token totals; no token percentage is claimed for them.`
-                            : ""}
-                        </p>
-                      </>
-                    ) : null}
-                    {partialPricing ? (
-                      <p className="text-warning">
-                        This subtotal covers only the priced calls. The remaining calls have unknown
-                        cost and may materially change the result. No whole-workload difference is
-                        available.
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-            {decision?.coverage?.models.some((m) => m.priced < m.calls) ? (
-              <details className="border-y border-border py-2">
-                <summary className="min-h-11 cursor-pointer content-center text-sm">
-                  Unpriced model details
-                </summary>
-                {decision.coverage.models
-                  .filter((m) => m.priced < m.calls)
-                  .map((m) => (
-                    <p className="py-2 text-sm" key={m.model}>
-                      {m.model}: {(m.calls - m.priced).toLocaleString()} unpriced calls ·{" "}
-                      {m.knownTokens.toLocaleString()} known tokens · {m.reasons.join(", ")}
-                    </p>
-                  ))}
-              </details>
-            ) : null}
-            <p className="text-xs text-muted-foreground">
-              Price snapshot: {DECISION_MARKET.rulesAt.slice(0, 10)} · review due{" "}
-              {DECISION_MARKET.reviewUntil.slice(0, 10)}. Standard paid API access assumed; token
-              usage only. Tools, tax and negotiated rates excluded.
-            </p>
-          </div>
-          <section aria-label="Your current stack" className="border-y border-border-strong py-5">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <MicroLabel>Published subscription price</MicroLabel>
-                <p
-                  className="mt-2 font-mono text-3xl tabular-nums"
-                  data-testid="decision-fixed-spend"
-                >
-                  {selected.length ? `${dollars(current.toString())} / month` : "Not selected"}
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Accepted catalog list prices for full billing cycles. Not an invoice.
-                  {unlisted > 0
-                    ? ` ${unlisted} selection(s) have no admitted monthly price in this subtotal.`
-                    : ""}
-                </p>
-                {subscriptions
-                  .filter((p) => selected.includes(`plan:${p.id}`))
-                  .map((p) => (
-                    <p className="mt-1 text-sm" key={p.id}>
-                      {p.name}
-                      {billing[`plan:${p.id}`]?.paid !== undefined
-                        ? ` · locally entered paid ${dollars(billing[`plan:${p.id}`]?.paid ?? "0")}`
-                        : ""}
-                      {billing[`plan:${p.id}`]?.cycle
-                        ? ` · ${periodLabel(billing[`plan:${p.id}`]?.cycle as { start: string; end: string })}`
-                        : " · cycle not supplied"}
-                    </p>
-                  ))}
-                <button
-                  type="button"
-                  className="inline-flex min-h-11 items-center text-sm text-accent underline"
-                  onClick={() => {
-                    const element = document.getElementById("current-stack");
-                    if (element instanceof HTMLDetailsElement) {
-                      element.open = true;
-                      element.scrollIntoView({ block: "start" });
-                      element.querySelector("summary")?.focus();
-                    }
-                  }}
-                >
-                  Select or edit your subscriptions →
-                </button>
-              </div>
-              <div>
-                <MicroLabel>Confirmed fixed subscription spend</MicroLabel>
-                <p
-                  className="mt-2 font-mono text-3xl tabular-nums"
-                  data-testid="review-confirmed-spend"
-                >
-                  {review?.confirmedSpend !== undefined
-                    ? dollars(review.confirmedSpend)
-                    : "Not confirmed"}
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {review?.confirmedCount ?? 0} / {selected.length} selected subscriptions have a
-                  paid amount and the exact review cycle. Local user-supplied amounts, not catalog
-                  facts.
-                  {review?.unmatchedCount
-                    ? ` ${review.unmatchedCount} cycle(s) are missing or do not align; those charges are not included.`
-                    : ""}
-                </p>
-                <MicroLabel className="mt-5">
-                  {choice.resourceInstanceId
-                    ? "Same-period difference"
-                    : "Difference for this review period"}
-                </MicroLabel>
-                <p
-                  className="mt-2 font-mono text-2xl tabular-nums"
-                  data-testid="decision-difference"
-                >
-                  {review?.difference
-                    ? `${dollars(review.difference.low)} – ${dollars(review.difference.high)}`
-                    : "Not directly comparable yet"}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Confirmed fixed spend minus published API equivalent. A negative difference means
-                  fixed spend is lower. This does not establish equivalent product experience.
-                </p>
-              </div>
             </div>
-          </section>
-          <section aria-label="What this means" className="border-l-2 border-accent pl-4">
-            <MicroLabel>What this means</MicroLabel>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed" data-testid="review-conclusion">
-              {review?.conclusion ?? "Calculating the recorded workload for this review."}
-            </p>
-          </section>
-          {decision?.capacity &&
-          choice.resourceInstanceId &&
-          review?.period &&
-          selected.length === 1 &&
-          selected[0] &&
-          decision.scenarios[0]?.summary.scope.digest ? (
-            <ObservedCapacity
-              key={`${executionKey}:${selected[0]}:${decision.capacity.digest}`}
-              summary={decision.capacity}
+          ) : null}
+          {review ? (
+            <HistoryConfirmation
+              choice={choice}
+              review={review}
               importId={importId}
-              resourceInstanceId={choice.resourceInstanceId}
-              planId={selected[0]}
-              planName={
-                subscriptions.find((p) => `plan:${p.id}` === selected[0])?.name ??
-                "Selected subscription"
-              }
-              period={review.period}
-              workloadDigest={decision.scenarios[0].summary.scope.digest}
+              scopeDigest={decision?.scenarios[0]?.summary.scope.digest}
+              partialScan={partialScan}
+              onChange={local.setChoice}
             />
           ) : null}
-          {local.saveFailed ? (
-            <p role="alert" className="text-warning">
-              Billing facts could not be saved in this browser. These changes last only until
-              navigation or reload.
-            </p>
-          ) : null}
-          <section aria-label="What StackReplay can tell you" className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <MicroLabel>
-                {comparable
-                  ? "API cost known · under displayed assumptions"
-                  : "API calculation incomplete"}
-              </MicroLabel>
-              <h3 className="mt-2 font-medium">What we can tell you</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {comparable
-                  ? `${first?.scope.required.toLocaleString()} calls priced using the exact recorded models. Both cache-write scenarios retain the same priced scope.`
-                  : "Missing facts remain visible below. No missing price is treated as zero."}
-              </p>
-            </div>
-            <div>
-              <MicroLabel>Subscription capacity unknown</MicroLabel>
-              <h3 className="mt-2 font-medium">What we still cannot prove</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Published subscription capacity is not deterministic enough to prove whether these
-                plans would handle every burst without interruption. API usage may provide a
-                different product experience. This is not a recommendation to cancel a plan. Taxes,
-                other tools and negotiated prices are not included in published API economics.
-              </p>
-            </div>
-          </section>
-          {review?.history.nativeResponses !== undefined ? (
-            <details className="border-b border-border py-3" data-testid="data-integrity">
-              <summary className="min-h-11 cursor-pointer content-center text-sm">
-                Data integrity
-              </summary>
-              <p className="text-sm">
-                Native responses used: {review.history.nativeResponses.toLocaleString()} · Duplicate
-                rows removed: {(review.history.duplicateRows ?? 0).toLocaleString()}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                StackReplay uses native response identity to prevent repeated session records from
-                being counted twice. Separate source roots remain separate local accounts.
-              </p>
-            </details>
-          ) : null}
-          {comparable ? (
-            <section className="border-y border-border py-3" aria-label="API scenario results">
-              {scenarios.map((s) => (
-                <div key={s.id} className="flex flex-wrap justify-between gap-2 py-1 text-sm">
-                  <span>{DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.label}</span>
-                  <span className="font-mono tabular-nums">
-                    {dollars(s.summary.candidates[0]?.totalUsd ?? "0")}
-                  </span>
-                </div>
-              ))}
-            </section>
-          ) : null}
-          {first?.explanation ? (
-            <section aria-label="Current API market" className="flex flex-col gap-2">
-              <MicroLabel>Exact models · published API routes</MicroLabel>
-              {DECISION_MARKET.plans
-                .filter((p) => p.artifact.purchase.kind === "api")
-                .map((p) => {
-                  const values = scenarios.map((s) => {
-                    const resource = s.summary.scenario.resources.find(
-                      (r) =>
-                        r.artifactHash ===
-                        DECISION_MARKET.scenarios
-                          .find((x) => x.id === s.id)
-                          ?.artifacts.find((a) => a.planId === p.id)?.artifactHash,
-                    );
-                    const receipts =
-                      s.summary.explanation?.receipts.filter((r) =>
-                        r.cash.some((c) => c.resourceInstanceId === resource?.id),
-                      ) ?? [];
-                    return {
-                      calls: receipts.reduce((n, r) => n + r.accepted, 0),
-                      usd: receipts
-                        .reduce((n, r) => n.add(r.variableUsd), new Decimal(0))
-                        .toString(),
-                    };
-                  });
-                  if (!values.some((v) => v.calls)) return null;
-                  return (
-                    <div
-                      key={p.id}
-                      className="flex flex-wrap justify-between gap-2 border-b border-border py-2 text-sm"
-                    >
-                      <span>
-                        {p.name.replace(/^.* API: /u, "")}{" "}
-                        <span className="text-muted-foreground">
-                          · {values[0]?.calls?.toLocaleString()}{" "}
-                          {review?.history.nativeResponses === review?.history.calls
-                            ? "distinct responses"
-                            : "calls"}
-                        </span>
-                      </span>
-                      <span className="font-mono tabular-nums">
-                        {values
-                          .map((v) => dollars(v.usd))
-                          .filter((v, i, a) => a.indexOf(v) === i)
-                          .join(" – ")}
-                      </span>
-                    </div>
-                  );
-                })}
-            </section>
-          ) : null}
-          <details className="min-w-0 text-sm" data-testid="market-calculation">
-            <summary className="cursor-pointer py-2 text-accent">
-              Inspect calculation, assumptions and evidence
-            </summary>
-            <div className="flex min-w-0 flex-col gap-4 pt-3 [overflow-wrap:anywhere]">
-              <p>
-                Both interpretations use the identical recorded calls. Neither cache duration is
-                observed history. Published reasoning billing is applied without changing token
-                accounting. The GPT-5.6 Sol promotion is a separately evidenced overlay; no
-                undiscounted permanent price is inferred.
-              </p>
-              <p className="font-mono text-xs">Catalog: {DECISION_MARKET.catalogHash}</p>
-              {scenarios.map((s) => (
-                <details key={s.id}>
-                  <summary className="cursor-pointer py-2">
-                    {DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.label} ·{" "}
-                    {s.summary.candidates[0]?.status}
-                  </summary>
-                  <p className="py-2">
-                    {DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.assumption}
-                  </p>
-                  <p className="font-mono text-xs">
-                    Scope {s.summary.scope.digest}
-                    <br />
-                    Scenario {s.summary.scenario.scenarioHash}
-                    <br />
-                    Exact USD total: {s.summary.candidates[0]?.totalUsd ?? "unknown"}
-                  </p>
-                  {s.summary.candidates
-                    .flatMap((c) => c.reasons)
-                    .map((r) => (
-                      <p key={`${r.code}-${r.subject}`} className="py-1 text-warning">
-                        {r.code}: {r.subject}
-                      </p>
-                    ))}
-                  {s.summary.explanation?.receipts.map((r) => (
-                    <div
-                      key={`${s.id}-${r.cash[0]?.resourceInstanceId}`}
-                      className="my-3 border-l border-border pl-3"
-                    >
-                      <p>
-                        {r.accepted} calls · exact USD {r.variableUsd}
-                      </p>
-                      {r.cash.map((c) => (
-                        <p
-                          key={`${c.routeId}-${c.rateId}-${c.category}-${c.ratePerMillion}-${c.factor}`}
-                          className="py-1 font-mono text-xs"
-                        >
-                          {c.resourceInstanceId} / {c.routeId} / {c.rateId} / {c.category}:{" "}
-                          {c.tokens} × ${c.ratePerMillion}/1M × {c.factor} = ${c.usd} · claims{" "}
-                          {c.claimRefs.join(", ")}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                  {DECISION_MARKET.scenarios
-                    .find((x) => x.id === s.id)
-                    ?.artifacts.map((a) => (
-                      <p key={a.artifactHash} className="py-1 font-mono text-xs">
-                        {a.planId}: {a.artifactHash} · overlays{" "}
-                        {a.appliedOverlayIds.join(", ") || "none"}
-                      </p>
-                    ))}
-                </details>
-              ))}
-              {DECISION_MARKET.plans
-                .filter((p) => p.artifact.purchase.kind === "api")
-                .map((p) => (
-                  <details key={p.id}>
-                    <summary className="cursor-pointer py-2">{p.name} · pricing sources</summary>
-                    {p.claims.map((c) => (
-                      <p key={c.id} className="py-1">
-                        <a
-                          className="text-accent underline"
-                          href={c.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {c.id}: {c.locator}
-                        </a>{" "}
-                        · checked {c.reviewedAt.slice(0, 10)}
-                      </p>
-                    ))}
-                  </details>
-                ))}
-            </div>
-          </details>
         </>
       ) : null}
       <details id="current-stack" data-testid="market-subscriptions" className="text-sm">
@@ -805,6 +383,503 @@ export function MarketDecisionSurface({
           remain separate. Selecting a plan does not establish eligibility or capacity.
         </p>
       </details>
+    </>
+  );
+  const render = (capacity?: {
+    summary: ReactNode;
+    evidence: ReactNode;
+    burden: CapacityBurden | undefined;
+  }) => (
+    <section
+      id="api-market"
+      aria-label="Billing-period review"
+      className="min-w-0 space-y-4"
+      data-testid="market-decision"
+    >
+      <details
+        open={!configured || editing}
+        onToggle={(event) => {
+          if (configured) setEditing(event.currentTarget.open);
+        }}
+        className="border-y border-border py-2"
+        data-testid="review-editor"
+      >
+        <summary
+          className="flex min-h-11 cursor-pointer flex-wrap items-center justify-between gap-2 text-sm"
+          data-testid="review-bar"
+        >
+          <span>
+            {configured
+              ? `${choice.accountLabel || "Selected account"} · ${planName} · ${cycleLabel} · ${dollars(review?.confirmedSpend ?? "0")} confirmed`
+              : "Set up your review"}
+          </span>
+          <span className="text-accent">
+            {configured ? (editing ? "Done" : "Edit") : "Account, dates & billing"}
+          </span>
+        </summary>
+        <div className="space-y-4 py-3">{controls}</div>
+      </details>
+      {local.saveFailed ? (
+        <p role="alert" className="text-sm text-warning">
+          Billing facts could not be saved in this browser. These changes last only until navigation
+          or reload.
+        </p>
+      ) : null}
+      {!needsPeriod ? (
+        <>
+          <section className="space-y-3" aria-label="Economic result" data-testid="economic-hero">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-2xl font-medium tracking-tight">
+                {configured ? planName : "Recorded workload preview"}
+              </h2>
+              <span className="text-sm text-muted-foreground" data-testid="review-period">
+                {cycleLabel}
+                <span className="sr-only"> · end excluded</span>
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              <span data-testid="review-state">
+                {review?.complete ? "Complete billing-period review" : "Partial review"}
+              </span>
+              {local.synthetic ? " · Synthetic demo workload and billing data" : ""}
+            </p>
+            {!configured ? (
+              <p className="max-w-3xl text-sm text-warning">
+                {review?.reason ?? "Loading this review…"} The recorded API result remains available
+                below.
+              </p>
+            ) : null}
+            <div className="grid gap-5 border-y border-border py-5 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.6fr)]">
+              <div>
+                <MicroLabel>Confirmed spend</MicroLabel>
+                <p
+                  className={
+                    configured
+                      ? "mt-2 font-mono text-4xl tracking-tight sm:text-5xl"
+                      : "mt-2 text-lg text-muted-foreground"
+                  }
+                  data-testid="review-confirmed-spend"
+                >
+                  {review?.confirmedSpend !== undefined
+                    ? dollars(review.confirmedSpend)
+                    : "Not confirmed"}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {configured ? "Paid for this billing cycle" : "Enter local billing facts above"}
+                </p>
+              </div>
+              <div className="min-w-0">
+                <MicroLabel>
+                  {partialPricing
+                    ? "Current published API equivalent for priced workload"
+                    : "Current published API equivalent"}
+                </MicroLabel>
+                {decision ? (
+                  <p
+                    data-testid="market-total"
+                    className={
+                      comparable
+                        ? "mt-2 font-mono text-[clamp(1.55rem,3.6vw,3rem)] tracking-tight tabular-nums"
+                        : "mt-2 text-sm text-muted-foreground"
+                    }
+                  >
+                    {comparable
+                      ? different
+                        ? `${dollars(totals[0] ?? "0")} – ${dollars(totals[1] ?? "0")}`
+                        : dollars(totals[0] ?? "0")
+                      : "Pricing incomplete for this workload"}
+                  </p>
+                ) : error ? (
+                  <div role="alert" className="my-2 text-sm">
+                    <p data-testid="market-total">Calculation unavailable</p>
+                    <p>{error}</p>
+                  </div>
+                ) : (
+                  <p role="status" className="my-2 text-sm">
+                    Calculating the recorded workload…
+                  </p>
+                )}
+                {different ? (
+                  <details className="mt-1 text-xs" data-testid="range-explanation">
+                    <summary className="min-h-11 cursor-pointer content-center text-accent">
+                      Why a range?
+                    </summary>
+                    <p className="max-w-xl text-muted-foreground">
+                      Claude cache-write duration is not recorded. The range applies both published
+                      cache-write scenarios to the same recorded calls. It is not an historical API
+                      invoice or a projection.
+                    </p>
+                  </details>
+                ) : (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Exact recorded work at current modeled API rates
+                  </p>
+                )}
+              </div>
+            </div>
+            {ratio ? (
+              <p className="text-lg" data-testid="economic-ratio">
+                <strong className="font-mono text-2xl text-accent">
+                  ≈ {ratio[0]}×{ratio[0] !== ratio[1] ? `–${ratio[1]}×` : ""}
+                </strong>{" "}
+                API-equivalent value{" "}
+                <span className="text-xs text-muted-foreground">relative to confirmed spend</span>
+              </p>
+            ) : null}
+            <dl
+              className="flex flex-wrap gap-x-7 gap-y-3 border-b border-border pb-4 text-sm"
+              data-testid="review-scale"
+            >
+              <div>
+                <dd className="font-mono text-xl">
+                  {review?.history.calls.toLocaleString() ?? "…"}
+                </dd>
+                <dt className="text-xs text-muted-foreground">
+                  {review?.history.nativeResponses === review?.history.calls
+                    ? "distinct responses"
+                    : "recorded calls"}
+                </dt>
+              </div>
+              <div title={review?.history.knownTokens.toLocaleString()}>
+                <dd className="font-mono text-xl">
+                  {formatTokens(review?.history.knownTokens) ?? "…"}
+                </dd>
+                <dt className="text-xs text-muted-foreground">known processed tokens</dt>
+              </div>
+              <div>
+                <dd className="font-mono text-xl">
+                  {decision?.coverage?.recorded
+                    ? `${Number(((100 * decision.coverage.priced) / decision.coverage.recorded).toFixed(2))}%`
+                    : "…"}
+                </dd>
+                <dt className="text-xs text-muted-foreground">calls priced</dt>
+              </div>
+              {capacity?.burden ? (
+                <div>
+                  <dd className="font-mono text-xl">{capacity.burden.episodes.length}</dd>
+                  <dt className="text-xs text-muted-foreground">observed capacity episodes</dt>
+                </div>
+              ) : null}
+            </dl>
+            {partialPricing ? (
+              <p className="text-sm text-warning">
+                This is a priced-scope subtotal. Unpriced calls have unknown cost and may materially
+                change the result. No whole-workload ratio or difference is available.
+              </p>
+            ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1">
+              {" "}
+              <p className="text-xs text-muted-foreground">
+                Economic comparison only. It does not establish equivalent product experience or
+                uninterrupted replacement.
+              </p>{" "}
+              {workloadContent ? (
+                <Link
+                  className="inline-flex min-h-11 items-center text-sm text-accent"
+                  href={`/app/compare?import=${importId}`}
+                  data-testid="workload-compare-cta"
+                >
+                  Compare this review →
+                </Link>
+              ) : null}
+            </div>
+          </section>
+        </>
+      ) : null}
+      {workloadContent}
+      {!needsPeriod ? (
+        <>
+          {first?.explanation ? (
+            <section aria-label="Current API market" className="flex flex-col gap-2">
+              <h2 className="text-xl font-medium tracking-tight">Model economics</h2>
+              <p className="text-xs text-muted-foreground">
+                Exact models in this review · current API contribution
+              </p>
+              {DECISION_MARKET.plans
+                .filter((p) => p.artifact.purchase.kind === "api")
+                .map((p) => {
+                  const values = scenarios.map((s) => {
+                    const resource = s.summary.scenario.resources.find(
+                      (r) =>
+                        r.artifactHash ===
+                        DECISION_MARKET.scenarios
+                          .find((x) => x.id === s.id)
+                          ?.artifacts.find((a) => a.planId === p.id)?.artifactHash,
+                    );
+                    const receipts =
+                      s.summary.explanation?.receipts.filter((r) =>
+                        r.cash.some((c) => c.resourceInstanceId === resource?.id),
+                      ) ?? [];
+                    return {
+                      calls: receipts.reduce((n, r) => n + r.accepted, 0),
+                      usd: receipts
+                        .reduce((n, r) => n.add(r.variableUsd), new Decimal(0))
+                        .toString(),
+                    };
+                  });
+                  if (!values.some((v) => v.calls)) return null;
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex flex-wrap justify-between gap-2 border-b border-border py-2 text-sm"
+                    >
+                      <span>
+                        {p.name.replace(/^.* API: /u, "")}{" "}
+                        <span className="text-muted-foreground">
+                          · {values[0]?.calls?.toLocaleString()}{" "}
+                          {review?.history.nativeResponses === review?.history.calls
+                            ? "distinct responses"
+                            : "calls"}
+                        </span>
+                      </span>
+                      <span className="font-mono tabular-nums">
+                        {values
+                          .map((v) => dollars(v.usd))
+                          .filter((v, i, a) => a.indexOf(v) === i)
+                          .join(" – ")}
+                      </span>
+                    </div>
+                  );
+                })}
+            </section>
+          ) : null}
+
+          {capacity?.summary}
+        </>
+      ) : null}
+      <details className="border-t border-border pt-2" data-testid="review-evidence">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Methodology, assumptions &amp; evidence
+        </summary>
+        <div className="space-y-5 py-4 text-sm">
+          <p data-testid="review-source">
+            {choice.mode === "cycle"
+              ? "Using a locally supplied subscription cycle"
+              : choice.mode === "custom"
+                ? "Using your custom review period"
+                : "Using recorded history span"}{" "}
+            · UTC · End excluded
+          </p>
+          <p data-testid="review-conclusion">{review?.conclusion}</p>
+          <p data-testid="decision-fixed-spend">
+            {selected.length ? `${dollars(current.toString())} / month` : "Not selected"}
+          </p>
+          <p>
+            Published subscription price, not confirmed spend. Catalog prices describe full cycles;
+            no arbitrary proration is used.
+          </p>
+          <p data-testid="decision-difference">
+            {review?.difference
+              ? `${dollars(review.difference.low)} – ${dollars(review.difference.high)}`
+              : "Not directly comparable yet"}
+          </p>
+          <p>Difference is confirmed spend minus current published API equivalent.</p>
+          {decision?.unavailable ? (
+            <p className="text-sm" data-testid="market-coverage">
+              {decision?.unavailable.calls.toLocaleString()} calls retained.{" "}
+              {decision?.unavailable.message}
+            </p>
+          ) : null}
+          {first && decision ? (
+            <div className="space-y-1 text-sm" data-testid="market-coverage">
+              <p>
+                API pricing:{" "}
+                {(
+                  decision.coverage?.priced ?? (comparable ? first.scope.required : 0)
+                ).toLocaleString()}{" "}
+                / {(decision.history?.calls ?? first.scope.recorded).toLocaleString()} recorded
+                calls modeled and priced. Exact models preserved.
+              </p>
+              {decision.coverage ? (
+                <>
+                  <p>
+                    {decision.coverage.recognized.toLocaleString()} /{" "}
+                    {decision.coverage.recorded.toLocaleString()} calls recognized. All recorded
+                    calls retained in this review.
+                  </p>
+                  <p data-testid="token-coverage">
+                    {decision.coverage.pricedKnownTokens.toLocaleString()} /{" "}
+                    {decision.coverage.knownTokens.toLocaleString()} known processed tokens priced
+                    {decision.coverage.knownTokens
+                      ? ` (${((100 * decision.coverage.pricedKnownTokens) / decision.coverage.knownTokens).toFixed(2)}%)`
+                      : ""}
+                    .
+                    {decision.coverage.unknownTokenCalls
+                      ? ` ${decision.coverage.unknownTokenCalls.toLocaleString()} calls have unknown token totals; no token percentage is claimed for them.`
+                      : ""}
+                  </p>
+                </>
+              ) : null}
+              {partialPricing ? (
+                <p className="text-warning">
+                  This subtotal covers only the priced calls. The remaining calls have unknown cost
+                  and may materially change the result. No whole-workload difference is available.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          {decision?.coverage?.models.some((m) => m.priced < m.calls) ? (
+            <details className="border-y border-border py-2">
+              <summary className="min-h-11 cursor-pointer content-center text-sm">
+                Unpriced model details
+              </summary>
+              {decision.coverage.models
+                .filter((m) => m.priced < m.calls)
+                .map((m) => (
+                  <p className="py-2 text-sm" key={m.model}>
+                    {m.model}: {(m.calls - m.priced).toLocaleString()} unpriced calls ·{" "}
+                    {m.knownTokens.toLocaleString()} known tokens · {m.reasons.join(", ")}
+                  </p>
+                ))}
+            </details>
+          ) : null}
+
+          {capacity?.evidence}
+          {review?.history.nativeResponses !== undefined ? (
+            <details className="border-b border-border py-3" data-testid="data-integrity">
+              <summary className="min-h-11 cursor-pointer content-center text-sm">
+                Data integrity
+              </summary>
+              <p className="text-sm">
+                Native responses used: {review.history.nativeResponses.toLocaleString()} · Duplicate
+                rows removed: {(review.history.duplicateRows ?? 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                StackReplay uses native response identity to prevent repeated session records from
+                being counted twice. Separate source roots remain separate local accounts.
+              </p>
+            </details>
+          ) : null}
+          {comparable ? (
+            <section className="border-y border-border py-3" aria-label="API scenario results">
+              {scenarios.map((s) => (
+                <div key={s.id} className="flex flex-wrap justify-between gap-2 py-1 text-sm">
+                  <span>{DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.label}</span>
+                  <span className="font-mono tabular-nums">
+                    {dollars(s.summary.candidates[0]?.totalUsd ?? "0")}
+                  </span>
+                </div>
+              ))}
+            </section>
+          ) : null}
+
+          <details className="min-w-0 text-sm" data-testid="market-calculation">
+            <summary className="cursor-pointer py-2 text-accent">
+              Inspect calculation, assumptions and evidence
+            </summary>
+            <div className="flex min-w-0 flex-col gap-4 pt-3 [overflow-wrap:anywhere]">
+              <p>
+                Both interpretations use the identical recorded calls. Neither cache duration is
+                observed history. Published reasoning billing is applied without changing token
+                accounting. The GPT-5.6 Sol promotion is a separately evidenced overlay; no
+                undiscounted permanent price is inferred.
+              </p>
+              <p className="font-mono text-xs">Catalog: {DECISION_MARKET.catalogHash}</p>
+              {scenarios.map((s) => (
+                <details key={s.id}>
+                  <summary className="cursor-pointer py-2">
+                    {DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.label} ·{" "}
+                    {s.summary.candidates[0]?.status}
+                  </summary>
+                  <p className="py-2">
+                    {DECISION_MARKET.scenarios.find((x) => x.id === s.id)?.assumption}
+                  </p>
+                  <p className="font-mono text-xs">
+                    Scope {s.summary.scope.digest}
+                    <br />
+                    Scenario {s.summary.scenario.scenarioHash}
+                    <br />
+                    Exact USD total: {s.summary.candidates[0]?.totalUsd ?? "unknown"}
+                  </p>
+                  {s.summary.candidates
+                    .flatMap((c) => c.reasons)
+                    .map((r) => (
+                      <p key={`${r.code}-${r.subject}`} className="py-1 text-warning">
+                        {r.code}: {r.subject}
+                      </p>
+                    ))}
+                  {s.summary.explanation?.receipts.map((r) => (
+                    <div
+                      key={`${s.id}-${r.cash[0]?.resourceInstanceId}`}
+                      className="my-3 border-l border-border pl-3"
+                    >
+                      <p>
+                        {r.accepted} calls · exact USD {r.variableUsd}
+                      </p>
+                      {r.cash.map((c) => (
+                        <p
+                          key={`${c.routeId}-${c.rateId}-${c.category}-${c.ratePerMillion}-${c.factor}`}
+                          className="py-1 font-mono text-xs"
+                        >
+                          {c.resourceInstanceId} / {c.routeId} / {c.rateId} / {c.category}:{" "}
+                          {c.tokens} × ${c.ratePerMillion}/1M × {c.factor} = ${c.usd} · claims{" "}
+                          {c.claimRefs.join(", ")}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                  {DECISION_MARKET.scenarios
+                    .find((x) => x.id === s.id)
+                    ?.artifacts.map((a) => (
+                      <p key={a.artifactHash} className="py-1 font-mono text-xs">
+                        {a.planId}: {a.artifactHash} · overlays{" "}
+                        {a.appliedOverlayIds.join(", ") || "none"}
+                      </p>
+                    ))}
+                </details>
+              ))}
+              {DECISION_MARKET.plans
+                .filter((p) => p.artifact.purchase.kind === "api")
+                .map((p) => (
+                  <details key={p.id}>
+                    <summary className="cursor-pointer py-2">{p.name} · pricing sources</summary>
+                    {p.claims.map((c) => (
+                      <p key={c.id} className="py-1">
+                        <a
+                          className="text-accent underline"
+                          href={c.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {c.id}: {c.locator}
+                        </a>{" "}
+                        · checked {c.reviewedAt.slice(0, 10)}
+                      </p>
+                    ))}
+                  </details>
+                ))}
+            </div>
+          </details>
+
+          <p className="text-xs text-muted-foreground">
+            Price snapshot: {DECISION_MARKET.rulesAt.slice(0, 10)} · review due{" "}
+            {DECISION_MARKET.reviewUntil.slice(0, 10)}. Standard paid API access assumed; tools, tax
+            and negotiated prices excluded. Published subscription capacity does not establish a
+            deterministic quota.
+          </p>
+          {evidenceContent}
+        </div>
+      </details>
     </section>
+  );
+  return decision?.capacity &&
+    choice.resourceInstanceId &&
+    review?.period &&
+    selected.length === 1 &&
+    selected[0] &&
+    decision.scenarios[0]?.summary.scope.digest ? (
+    <ObservedCapacity
+      key={`${executionKey}:${selected[0]}:${decision.capacity.digest}`}
+      summary={decision.capacity}
+      importId={importId}
+      resourceInstanceId={choice.resourceInstanceId}
+      planId={selected[0]}
+      period={review.period}
+      workloadDigest={decision.scenarios[0].summary.scope.digest}
+    >
+      {render}
+    </ObservedCapacity>
+  ) : (
+    render()
   );
 }

@@ -17,8 +17,6 @@ import {
 import { WindowDetail } from "./pressure";
 import { ShareBar } from "./section";
 
-const INITIAL_ROWS = 8;
-
 function dateOf(ms: number, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(ms));
 }
@@ -31,9 +29,11 @@ function dateOf(ms: number, timeZone: string): string {
 export function ProjectLedger({
   profile,
   measure,
+  initialRows = 8,
 }: {
   profile: WorkloadProfile;
   measure: Measure;
+  initialRows?: number;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [selected, setSelected] = useState<string | undefined>(undefined);
@@ -44,7 +44,7 @@ export function ProjectLedger({
       ),
     [profile.projects, measure],
   );
-  const visible = showAll ? ranked : ranked.slice(0, INITIAL_ROWS);
+  const visible = showAll ? ranked : ranked.slice(0, initialRows);
   const whole = measure === "events" ? profile.overview.events : profile.overview.knownTokens;
   const top = measureValue(ranked[0] ?? { events: 0, tokens: 0 }, measure);
   const selectedProject = ranked.find((project) => project.key === selected);
@@ -136,7 +136,7 @@ export function ProjectLedger({
           </tbody>
         </table>
       </div>
-      {ranked.length > INITIAL_ROWS ? (
+      {ranked.length > initialRows ? (
         <button
           type="button"
           className="min-h-11 self-start text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"

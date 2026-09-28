@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MicroLabel } from "@/components/instrument/primitives";
+import { type ReactNode, useEffect, useState } from "react";
+import type { CapacityBurden } from "@/lib/capacity-episodes";
 import {
   capacityBinding,
   type ManualCapacityEvent,
@@ -21,17 +21,21 @@ export function ObservedCapacity({
   importId,
   resourceInstanceId,
   planId,
-  planName,
   period,
   workloadDigest,
+  children,
 }: {
   summary: CapacitySummary;
   importId: string;
   resourceInstanceId: string;
   planId: string;
-  planName: string;
   period: ReviewPeriod;
   workloadDigest: string;
+  children: (parts: {
+    summary: ReactNode;
+    evidence: ReactNode;
+    burden: CapacityBurden | undefined;
+  }) => ReactNode;
 }) {
   const binding = capacityBinding({
     resourceInstanceId,
@@ -57,23 +61,9 @@ export function ObservedCapacity({
     setError("");
     return true;
   };
-  return (
-    <section
-      aria-label="Observed subscription capacity"
-      className="space-y-4 border-y border-border py-6"
-      data-testid="observed-capacity"
-    >
-      <div>
-        <MicroLabel>Observed interruption burden</MicroLabel>
-        <h3 className="mt-2 font-medium">{planName} · this account and cycle</h3>
-      </div>
-      <CapacityBurdenSurface
-        importId={importId}
-        resourceInstanceId={resourceInstanceId}
-        planId={planId}
-        period={period}
-        workloadDigest={workloadDigest}
-      />
+  const rawEvidence = (
+    <div data-testid="capacity-evidence" className="space-y-4">
+      {" "}
       <details>
         <summary className="min-h-11 cursor-pointer content-center text-sm">
           Raw capacity evidence
@@ -305,6 +295,28 @@ export function ObservedCapacity({
           recalculated for the selected scope.
         </p>
       </details>
-    </section>
+    </div>
+  );
+  return (
+    <CapacityBurdenSurface
+      importId={importId}
+      resourceInstanceId={resourceInstanceId}
+      planId={planId}
+      period={period}
+      workloadDigest={workloadDigest}
+    >
+      {({ summary: compact, evidence, burden }) =>
+        children({
+          summary: compact,
+          evidence: (
+            <>
+              {evidence}
+              {rawEvidence}
+            </>
+          ),
+          burden,
+        })
+      }
+    </CapacityBurdenSurface>
   );
 }

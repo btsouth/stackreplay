@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport } from "./helpers";
+import { gotoImport, openReviewEditor } from "./helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`35-day import offers review dates before economics in ${theme}`, async ({ page }) => {
@@ -44,18 +44,22 @@ for (const theme of ["dark", "light"] as const) {
       "",
     );
     await expect(page.getByTestId("market-total")).toHaveCount(0);
-    await expect(page.getByTestId("decision-difference")).toHaveCount(0);
+    await expect(page.getByTestId("decision-difference")).not.toBeVisible();
     await expect(market).not.toContainText("Full total unavailable");
+    await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("primary");
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(market.getByRole("alert")).toContainText("1 to 31 days");
+    await openReviewEditor(page);
     await page.getByLabel("Review start date").fill("2026-08-19");
+    await openReviewEditor(page);
     await page.getByLabel("Review end date").fill("2026-09-19");
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(page.getByTestId("market-total")).toContainText("$");
     await expect(page.getByTestId("review-history")).toContainText("2 recorded calls");
     await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
     await page.getByLabel("Confirm history covers this review period").check();
+    await openReviewEditor(page);
     await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
     const form = page.getByRole("form", { name: /Claude Max 5x billing facts/ });
     await form.getByLabel(/cycle start/).fill("2026-08-19");
@@ -67,17 +71,20 @@ for (const theme of ["dark", "light"] as const) {
     await expect(
       page.getByRole("button", { name: /Use billing cycle.*Claude Max 5x/ }),
     ).toBeVisible();
+    await openReviewEditor(page);
     await page.getByRole("button", { name: /Use billing cycle.*Claude Max 5x/ }).click();
     await expect(page.getByLabel("Review start date")).toHaveValue("2026-08-19");
     await expect(page.getByLabel("Review end date")).toHaveValue("2026-09-19");
     await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$87.00");
     await expect(page.getByTestId("decision-fixed-spend")).toHaveText("$100.00 / month");
     await page.getByLabel("Confirm history covers this review period").check();
+    await openReviewEditor(page);
     await page.getByLabel("Review start date").fill("2026-08-20");
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
     await expect(page.getByTestId("review-state")).toHaveText("Partial review");
     // Invalid drafts do not replace the last applied period or start another calculation.
+    await openReviewEditor(page);
     await page.getByLabel("Review start date").fill("2026-08-01");
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(market.getByRole("alert")).toContainText("1 to 31 days");

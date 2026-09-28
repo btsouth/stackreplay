@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, importDemo } from "./helpers";
+import { gotoImport, importDemo, openReviewEditor, openReviewEvidence } from "./helpers";
 
 async function completeDemo(page: import("@playwright/test").Page) {
   await gotoImport(page);
@@ -17,7 +17,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce", colorScheme: theme });
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
     await completeDemo(page);
-    await expect(page.getByTestId("review-period")).toHaveText("Sep 1, 2026 – Sep 30, 2026");
+    await expect(page.getByTestId("review-period")).toHaveText("Sep 1 → Oct 1 · end excluded");
     await expect(page.getByTestId("review-history")).toContainText("3,600 recorded calls");
     await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$120.00");
     await expect(page.getByTestId("decision-difference")).toHaveText("$95.61 – $96.27");
@@ -27,12 +27,14 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("market-decision")).toContainText(
       "Synthetic demo workload and billing data",
     );
+    await openReviewEditor(page);
     await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
     const axe = await new AxeBuilder({ page }).include('[data-testid="market-decision"]').analyze();
     expect(axe.violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    await openReviewEditor(page);
     await page.getByLabel("Confirm history covers this review period").focus();
     await page.keyboard.press("Space");
     await expect(page.getByTestId("review-state")).toHaveText("Partial review");
@@ -55,6 +57,7 @@ test("D2 billing edits are cheap and mismatched cycles remain partial through Co
   });
   await completeDemo(page);
   const runs = await page.evaluate(() => (window as unknown as { runs: number }).runs);
+  await openReviewEditor(page);
   await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
   const form = page.getByRole("form", { name: /Claude Max 5x billing facts/ });
   await form.getByRole("textbox", { name: /amount paid/ }).fill("1");
@@ -88,8 +91,11 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   await importDemo(page, "moderate");
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
+  await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("custom");
+  await openReviewEditor(page);
   await page.getByLabel("Review start date").fill("2026-09-01");
+  await openReviewEditor(page);
   await page.getByLabel("Review end date").fill("2026-10-01");
   await page.getByRole("button", { name: "Apply review period" }).click();
   await expect(page.getByTestId("review-history")).toContainText(
@@ -97,17 +103,21 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   );
   await expect(page.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
   await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
+  await openReviewEditor(page);
   await page.getByLabel("Review start date").fill("2026-09-14");
+  await openReviewEditor(page);
   await page.getByLabel("Review end date").fill("2026-09-15");
   await page.getByRole("button", { name: "Apply review period" }).click();
   await expect(page.getByTestId("review-history")).toContainText("outside this selected period");
   await expect(page.getByTestId("review-history")).not.toContainText("900 recorded calls");
   await expect(page.getByTestId("share-headline")).toContainText("Not directly comparable yet");
+  await openReviewEditor(page);
   await page.getByLabel("Review start date").fill("2026-08-01");
+  await openReviewEditor(page);
   await page.getByLabel("Review end date").fill("2026-09-01");
   await page.getByRole("button", { name: "Apply review period" }).click();
   await expect(page.getByTestId("review-conclusion")).toContainText("No recorded calls");
-  await expect(page.getByTestId("market-total")).toHaveText("Full total unavailable");
+  await expect(page.getByTestId("market-total")).toHaveText("Pricing incomplete for this workload");
 });
 
 test("D2 share hides paid amounts by default and includes them only after an explicit opt-in", async ({
@@ -119,6 +129,7 @@ test("D2 share hides paid amounts by default and includes them only after an exp
   );
   await expect(page.getByTestId("share-preview")).not.toContainText("$120");
   await expect(page.getByTestId("share-preview")).toContainText("Review dates not shared");
+  await openReviewEvidence(page);
   await page.getByTestId("share-include-review").check();
   await expect(page.getByTestId("share-preview")).toContainText("2026-09-01");
   await page.getByTestId("share-include-paid").check();
@@ -183,8 +194,9 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
+  await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
-  await expect(page.getByTestId("review-period")).toHaveText("Aug 1, 2026 – Aug 31, 2026");
+  await expect(page.getByTestId("review-period")).toHaveText("Aug 1 → Sep 1 · end excluded");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await page.getByLabel("Confirm history covers this review period").check();
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
@@ -208,14 +220,16 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
 
 test("D2 can choose a single offset cycle and preserves calls outside it", async ({ page }) => {
   await completeDemo(page);
+  await openReviewEditor(page);
   await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
   await page.getByRole("checkbox", { name: /ChatGPT Plus/ }).uncheck();
   const form = page.getByRole("form", { name: /Claude Max 5x billing facts/ });
   await form.getByLabel(/cycle start/).fill("2026-09-04");
   await form.getByLabel(/cycle end/).fill("2026-10-04");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
+  await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
-  await expect(page.getByTestId("review-period")).toHaveText("Sep 4, 2026 – Oct 3, 2026");
+  await expect(page.getByTestId("review-period")).toHaveText("Sep 4 → Oct 4 · end excluded");
   await expect(page.getByTestId("review-history")).toContainText("3,240 recorded calls");
   await expect(page.getByTestId("review-history")).toContainText("360 imported calls fall outside");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
@@ -252,7 +266,9 @@ test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ 
     "1 / 2 recorded calls modeled and priced",
   );
   await expect(page.getByTestId("token-coverage")).toContainText("known processed tokens priced");
-  await expect(page.getByTestId("market-total")).not.toHaveText("Full total unavailable");
+  await expect(page.getByTestId("market-total")).not.toHaveText(
+    "Pricing incomplete for this workload",
+  );
   await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
   await expect(page.getByTestId("share-preview")).toContainText("priced calls only");
   await expect(page.getByTestId("share-preview")).toContainText("may materially change");
@@ -302,7 +318,7 @@ test("D3 large API ranges fit the share preview and review on mobile", async ({ 
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await page.getByTestId("open-workload").click();
   await expect(page).toHaveURL(/\/app\/workload/u);
-  await expect(page.getByTestId("market-total")).toHaveText("$2565.00 – $3240.00");
+  await expect(page.getByTestId("market-total")).toHaveText("$2,565.00 – $3,240.00");
   await expect(page.getByTestId("share-figure")).toContainText("2,565.00");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -349,17 +365,20 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await page.getByTestId("open-workload").click();
   await expect(page.getByLabel("Local source account")).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
+  await openReviewEditor(page);
   await page.getByLabel("Local source account").selectOption("primary");
   await expect(page.getByTestId("review-history")).toContainText(
     `${original.length} distinct responses`,
   );
   await page.getByLabel("Local account label").fill("Primary synthetic account");
+  await openReviewEditor(page);
   await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
   const form = page.getByRole("form", { name: /Claude Max 5x billing facts/ });
   await form.getByLabel(/cycle start/).fill("2026-09-14");
   await form.getByLabel(/cycle end/).fill("2026-09-21");
   await form.getByLabel(/amount paid/).fill("87");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
+  await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$87.00");
   await page.getByLabel("Confirm history covers this review period").check();
@@ -368,12 +387,18 @@ test("D4 separates account billing, binds history and reuses the completed resul
     "You paid $87.00 for this confirmed Claude billing cycle",
   );
   await expect(page.getByTestId("share-preview")).not.toContainText("$87");
+  await openReviewEvidence(page);
   await page.getByTestId("data-integrity").locator("summary").click();
   await expect(page.getByTestId("data-integrity")).toContainText(
     `Duplicate rows removed: ${(original.length * 2).toLocaleString()}`,
   );
   const total = await page.getByTestId("market-total").innerText();
   const runs = await page.evaluate(() => (window as unknown as { runs: number }).runs);
+  await openReviewEditor(page);
+  if (
+    !(await page.getByTestId("market-subscriptions").evaluate((el: HTMLDetailsElement) => el.open))
+  )
+    await page.getByTestId("market-subscriptions").locator(":scope > summary").click();
   await form.getByLabel(/amount paid/).fill("88");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
@@ -383,11 +408,13 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
   await expect(page.getByTestId("market-total")).toHaveText(total);
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
+  await openReviewEditor(page);
   await page.getByLabel("Local source account").selectOption("secondary");
   await expect(
     page.getByRole("heading", { name: "Choose a review period", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toHaveCount(0);
+  await openReviewEditor(page);
   await page.getByLabel("Local source account").selectOption("primary");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
   await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
@@ -450,16 +477,19 @@ for (const theme of ["dark", "light"] as const) {
     });
     await expect(page.getByTestId("import-summary")).toBeVisible();
     await page.getByTestId("open-workload").click();
+    await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("main");
-    const capacity = page.getByTestId("observed-capacity");
+    const capacity = page.getByTestId("capacity-evidence");
     await expect(capacity).toContainText("1 direct capacity-limit event");
-    await capacity.getByText("Raw capacity evidence", { exact: true }).click();
+    await openReviewEvidence(page);
+    await page.getByText("Raw capacity evidence", { exact: true }).click();
     await capacity.getByText(/Inspect capacity timeline/).click();
     await expect(capacity).toContainText("Reset shown: 2026-09-16 13:00 UTC");
     await capacity.getByText("Workload before this event", { exact: true }).click();
     await expect(capacity).toContainText("Prior 7 days");
     const runs = await page.evaluate(() => (window as unknown as { runs: number }).runs);
-    await capacity.getByText("Add observed interruption", { exact: true }).focus();
+    await openReviewEvidence(page);
+    await page.getByText("Add observed interruption", { exact: true }).focus();
     await page.keyboard.press("Enter");
     await capacity.getByLabel("Limit reached at (UTC)").fill("2026-09-17T12:00");
     await capacity.getByLabel("Notes (optional, local only)").fill("Synthetic private note");

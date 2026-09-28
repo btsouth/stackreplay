@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport } from "./helpers";
+import { createShareToken, gotoImport, openReviewEvidence } from "./helpers";
 
 /**
  * Phase 3: every suggested route answers for the work it is scoped to, tool
@@ -18,10 +18,11 @@ async function importMixed(page: Page): Promise<string> {
   });
   await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 60_000 });
   await page.goto("/app/workload");
+  await openReviewEvidence(page);
   await expect(page.getByTestId("suggested-routes")).toBeVisible({ timeout: 60_000 });
   return (
     new URL(
-      (await page.getByTestId("workload-compare-cta").getAttribute("href")) ?? "",
+      (await page.getByTestId("legacy-workload-compare-cta").getAttribute("href")) ?? "",
       "http://x",
     ).searchParams.get("import") ?? ""
   );

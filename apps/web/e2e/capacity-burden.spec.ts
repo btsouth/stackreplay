@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport } from "./helpers";
+import { gotoImport, openReviewEditor, openReviewEvidence } from "./helpers";
 
 async function upload(page: Page, file: ReturnType<typeof buildDemoExport>, name: string) {
   await gotoImport(page);
@@ -84,6 +84,7 @@ for (const theme of ["dark", "light"] as const)
     };
     await upload(page, file, "d6-main.json");
     await page.getByTestId("open-workload").click();
+    await openReviewEditor(page);
     await page.getByLabel("Local source account").selectOption("main");
     const burden = page.getByTestId("capacity-burden");
     await expect(page.getByTestId("burden-conclusion")).toContainText(
@@ -96,12 +97,13 @@ for (const theme of ["dark", "light"] as const)
       }));
     const initial = await counts();
     const price = await page.getByTestId("market-total").innerText();
-    await burden.getByText("Continuity history and methodology", { exact: true }).click();
-    await burden.getByRole("checkbox", { name: /d6-context/ }).check();
+    await openReviewEvidence(page);
+    await page.getByText("Continuity history and methodology", { exact: true }).click();
+    await page.getByRole("checkbox", { name: /d6-context/ }).check();
     await expect(page.getByTestId("continuity-conclusion")).toContainText("1 of 2 episodes");
     expect((await counts()).market).toBe(initial.market);
     await expect(page.getByTestId("market-total")).toHaveText(price);
-    await burden.getByText("Inspect episode timeline and timing", { exact: true }).focus();
+    await burden.getByText("Review interruption timeline →", { exact: true }).focus();
     await page.keyboard.press("Enter");
     const episode = burden.getByTestId("capacity-episode").first();
     await episode.locator(":scope > summary").click();
@@ -131,8 +133,9 @@ for (const theme of ["dark", "light"] as const)
     await page.reload();
     await expect(burden.getByTestId("impact-summary")).toContainText("Worked around it: 1");
     await expect(page.getByTestId("continuity-conclusion")).toContainText("1 of 2 episodes");
-    await burden.getByText("Continuity history and methodology", { exact: true }).click();
-    await burden.getByRole("checkbox", { name: /d6-context/ }).uncheck();
+    await openReviewEvidence(page);
+    await page.getByText("Continuity history and methodology", { exact: true }).click();
+    await page.getByRole("checkbox", { name: /d6-context/ }).uncheck();
     await expect(page.getByTestId("continuity-conclusion")).toContainText("0 of 2 episodes");
     await expect(burden.getByTestId("impact-summary")).toHaveCount(0);
   });

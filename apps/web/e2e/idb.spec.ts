@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo } from "./helpers";
+import { gotoImport, importDemo, openReviewEvidence } from "./helpers";
 
 /** How many records and payloads the browser's own database holds. */
 async function readStoreCounts(page: import("@playwright/test").Page): Promise<{
@@ -85,6 +85,7 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
   await page.goto(workloadHref ?? "/app/workload");
   await expect(page.getByTestId("workload-restoring")).toBeVisible();
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
+  await openReviewEvidence(page);
   await expect(page.getByTestId("workload-replay-cta")).toBeVisible();
   await page.getByTestId("workload-replay-cta").click();
   await expect(page.getByTestId("replay-restoring")).toBeVisible();
