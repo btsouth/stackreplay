@@ -87,6 +87,11 @@ for (const theme of ["dark", "light"] as const)
       "5 priced · 5 models translated",
     );
     await expect(page.getByTestId("strategy-difference")).not.toContainText("No same-scope");
+    await page.getByTestId("strategy-evidence").locator("summary").first().click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.getByTestId("strategy-evidence").locator("summary").first().click();
     await page.getByTestId("add-to-compare").click();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     const replayRuns = await page.evaluate(

@@ -613,7 +613,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
           ) : null}
           <details className="border-t border-border pt-3" data-testid="strategy-evidence">
             <summary className={action}>Methodology, assumptions &amp; evidence</summary>
-            <div className="space-y-3 py-4 text-xs text-muted-foreground">
+            <div className="min-w-0 space-y-3 py-4 text-xs text-muted-foreground [overflow-wrap:anywhere]">
               <p>
                 Current accepted pricing at {result.rulesAt}, not a reconstructed historical
                 invoice. Catalog {result.catalogHash}. Scope {result.scopeDigest}.{" "}
