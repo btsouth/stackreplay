@@ -1,243 +1,264 @@
 "use client";
-
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { lifecycleText, verificationText } from "@/lib/catalog-copy";
+import type { ModelPrices } from "@/lib/market-discovery";
+import { basePrice, priceNumber } from "@/lib/market-prices";
 import {
   developerOptions,
   type ModelLibraryView,
   matchesDeveloper,
   modelsInView,
-  placesSummary,
   searchModels,
 } from "@/lib/model-library";
 import type { PublicModelSummary } from "@/lib/public-catalog";
 
-const VIEWS: readonly { id: ModelLibraryView; label: string }[] = [
-  { id: "models", label: "Models" },
-  { id: "legacy", label: "Legacy" },
-  { id: "identity", label: "Aliases and identity" },
-];
-
-const DEFAULT_ROWS = 12;
-
-const toggleClass =
-  "min-h-11 border border-border-strong px-3 text-sm text-foreground hover:border-accent aria-pressed:border-accent aria-pressed:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring";
-
-function ModelMeta({ model }: { model: PublicModelSummary }) {
-  if (model.kind === "family") {
-    return (
-      <p className="mt-1 text-sm text-muted-foreground">
-        Family name{model.developerName === undefined ? "" : ` · ${model.developerName}`}
-      </p>
-    );
-  }
-  const status = lifecycleText(model.lifecycle);
-  return (
-    <p className="mt-1 text-sm text-muted-foreground">
-      {model.developerName ?? "Developer not recorded"}
-      {status === undefined ? "" : ` · ${status}`}
-    </p>
-  );
-}
-
-function ModelWhere({
-  model,
-  nameOf,
+export function ModelExplorer({
+  models,
+  prices = {},
 }: {
-  model: PublicModelSummary;
-  nameOf: (id: string) => string;
+  models: readonly PublicModelSummary[];
+  prices?: Record<string, ModelPrices[]>;
 }) {
-  if (model.kind === "family") {
-    const [first, ...rest] = model.releaseIds;
-    return (
-      <p className="mt-2 text-sm text-foreground">
-        {first === undefined
-          ? "No release in the catalog names this family yet."
-          : `Points to releases such as ${nameOf(first)}${rest.length === 0 ? "" : ` and ${rest.length} more`}.`}
-      </p>
-    );
-  }
-  const { labels, more } = placesSummary(model);
-  return (
-    <p className="mt-2 text-sm text-foreground">
-      {labels.length === 0
-        ? "No catalogued plan or API offers this model yet."
-        : `${labels.join(" · ")}${more === 0 ? "" : ` · +${more} more ${more === 1 ? "place" : "places"}`}`}
-    </p>
-  );
-}
-
-export function ModelExplorer({ models }: { models: readonly PublicModelSummary[] }) {
   const [view, setView] = useState<ModelLibraryView>("models");
   const [developer, setDeveloper] = useState("all");
   const [query, setQuery] = useState("");
-  const [showAll, setShowAll] = useState(false);
-
-  const developers = useMemo(
-    () => developerOptions(models.filter((model) => model.kind === "release")),
-    [models],
+  const [sort, setSort] = useState("name");
+  const [metric, setMetric] = useState<"input" | "output" | "cacheRead">("output");
+  const [expanded, setExpanded] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const developers = developerOptions(models.filter((m) => m.kind === "release"));
+  const visible = useMemo(() => {
+    const list = (query.trim() ? searchModels(models, query) : modelsInView(models, view)).filter(
+      (m) => matchesDeveloper(m, developer),
+    );
+    if (sort !== "name")
+      list.sort(
+        (a, b) =>
+          Number(basePrice(prices[a.id] ?? [])?.rates[sort as "input" | "output"] ?? Infinity) -
+          Number(basePrice(prices[b.id] ?? [])?.rates[sort as "input" | "output"] ?? Infinity),
+      );
+    else list.sort((a, b) => a.name.localeCompare(b.name));
+    return list;
+  }, [models, view, query, developer, sort, prices]);
+  const chartModels = selected.length
+    ? models.filter((m) => selected.includes(m.id))
+    : (() => {
+        const available = visible.filter(
+          (m) => m.kind === "release" && basePrice(prices[m.id] ?? []),
+        );
+        const featured = [
+          "claude-opus-5-5",
+          "claude-sonnet-5",
+          "gpt-6-astra",
+          "gpt-6-sol",
+          "gpt-6-luna",
+          "glm-5-3-flash",
+          "deepseek-v4-1-flash",
+          "gemini-3-1-pro",
+        ];
+        const choices = available.filter((m) => featured.includes(m.id));
+        return (choices.length ? choices : available).slice(0, 8);
+      })();
+  const max = Math.max(
+    1,
+    ...chartModels.map((m) => Number(basePrice(prices[m.id] ?? [])?.rates[metric] ?? 0)),
   );
-  const nameOf = useMemo(() => {
-    const names = new Map(models.map((model) => [model.id, model.name]));
-    return (id: string) => names.get(id) ?? id;
-  }, [models]);
-
-  const searching = query.trim().length > 0;
-  const visible = useMemo(
-    () =>
-      (searching ? searchModels(models, query) : modelsInView(models, view)).filter((model) =>
-        matchesDeveloper(model, developer),
-      ),
-    [models, view, developer, query, searching],
-  );
-  const familyExamples = useMemo(
-    () =>
-      modelsInView(models, "identity")
-        .slice(0, 2)
-        .map((model) => model.name),
-    [models],
-  );
-  const displayed = searching || showAll ? visible : visible.slice(0, DEFAULT_ROWS);
-  const noun =
-    view === "identity" && !searching
-      ? visible.length === 1
-        ? "family name"
-        : "family names"
-      : visible.length === 1
-        ? "model"
-        : "models";
-
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-4 border-y border-border-strong py-4">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            Show
-          </p>
-          <fieldset className="mt-2 flex flex-wrap gap-2">
-            <legend className="sr-only">Choose which records to list</legend>
-            {VIEWS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                aria-pressed={!searching && view === item.id}
-                onClick={() => {
-                  setView(item.id);
-                  setQuery("");
-                  setShowAll(false);
-                }}
-                className={toggleClass}
-                data-testid={`model-view-${item.id}`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </fieldset>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              Developer
-            </p>
-            <fieldset className="mt-2 flex flex-wrap gap-2">
-              <legend className="sr-only">Filter models by developer</legend>
-              <button
-                type="button"
-                aria-pressed={developer === "all"}
-                onClick={() => setDeveloper("all")}
-                className={toggleClass}
-              >
-                All
-              </button>
-              {developers.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-pressed={developer === item.id}
-                  onClick={() => setDeveloper(item.id)}
-                  className={toggleClass}
-                >
-                  {item.name}
-                </button>
-              ))}
-            </fieldset>
-          </div>
-          <label className="flex flex-col gap-2 text-xs text-muted-foreground">
-            Find a model, family name or exact alias
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Claude Opus, opus, gpt-5.6"
-              className="min-h-11 w-full border border-control-border bg-surface px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
-            />
-          </label>
-        </div>
+    <div>
+      <div className="market-section-title">
+        <span>01 / Published API rates</span>
+        <span className="text-muted-foreground">USD per million tokens</span>
       </div>
-
-      {view === "identity" && !searching ? (
-        <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
-          {familyExamples.length === 0
-            ? "Family names"
-            : `Family names such as ${familyExamples.join(" or ")}`}{" "}
-          are not models of their own. Tools and plans use them to mean whichever release they point
-          to at the time. StackReplay keeps them so workloads and plans that use them still resolve.
-          Exact aliases and route IDs are listed on each model page, and search matches them too.
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <fieldset className="market-tabs" aria-label="Price category">
+          {(
+            [
+              ["output", "Output"],
+              ["input", "Input"],
+              ["cacheRead", "Cache read"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={metric === id}
+              onClick={() => setMetric(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </fieldset>
+        <p className="market-muted">
+          {selected.length ? `${selected.length} selected models` : "Featured models in this view"}{" "}
+          · standard rates
         </p>
-      ) : null}
-
-      <p className="font-mono text-xs text-muted-foreground" role="status">
-        {searching
-          ? `${visible.length} ${visible.length === 1 ? "match" : "matches"} across models, legacy models and family names`
-          : `${displayed.length} of ${visible.length} ${noun} shown`}
+      </div>
+      <fieldset className="market-price-bars" aria-label={`${metric} price comparison`}>
+        {chartModels.map((m) => {
+          const value = basePrice(prices[m.id] ?? [])?.rates[metric];
+          return (
+            <Link key={m.id} href={`/models/${m.id}`} className="market-price-bar">
+              <span>{m.name}</span>
+              <span className="market-price-bar-track" aria-hidden="true">
+                <span
+                  className="market-price-bar-fill block"
+                  style={{ width: `${(Number(value ?? 0) / max) * 100}%` }}
+                />
+              </span>
+              <span className="text-right font-mono">
+                {value === undefined ? "Unknown" : priceNumber(value)}
+              </span>
+            </Link>
+          );
+        })}
+        {!chartModels.length && (
+          <p className="market-muted">No verified standard API rates in this view.</p>
+        )}
+      </fieldset>
+      <p className="market-muted mb-8">
+        Token categories are compared separately. Context tiers, cache-write assumptions and pricing
+        evidence are on each model page. These bars do not measure model quality.
       </p>
-
-      <div className="divide-y divide-border border-t border-border" data-testid="model-table">
-        {displayed.map((model) => (
-          <article
-            key={model.id}
-            className="grid gap-x-7 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
-            data-testid="model-row"
-            data-model-kind={model.kind}
-          >
-            <div className="min-w-0">
-              <h2 className="text-base font-medium text-foreground">
-                <Link href={`/models/${model.id}`} className="hover:text-accent hover:underline">
-                  {model.name}
-                </Link>
-              </h2>
-              <ModelMeta model={model} />
-              <ModelWhere model={model} nameOf={nameOf} />
-            </div>
-            <div className="flex flex-wrap items-center gap-x-5 sm:flex-col sm:items-end sm:gap-1">
-              <p className="text-xs text-muted-foreground">
-                {verificationText(model.verificationStatus, model.lastVerifiedAt)}
-              </p>
-              <Link
-                href={`/models/${model.id}`}
-                className="inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-              >
-                Inspect model<span className="sr-only">: {model.name}</span> →
-              </Link>
-            </div>
-          </article>
-        ))}
+      <div className="market-section-title">
+        <span>02 / Explore models</span>
+        <span>{models.filter((m) => m.kind === "release").length} releases</span>
       </div>
-      {displayed.length < visible.length ? (
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          className="min-h-11 self-start border border-border-strong px-4 text-sm text-foreground hover:border-accent focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          Show all {visible.length} {noun}
-        </button>
-      ) : null}
-      {visible.length === 0 ? (
-        <p className="py-5 text-sm text-muted-foreground">
-          Nothing matches. Try another developer, or search for an exact model ID or alias.
+      <div className="market-filters">
+        <label className="grow">
+          Find a model, family name or exact alias
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search models…"
+          />
+        </label>
+        <label>
+          Developer
+          <select value={developer} onChange={(e) => setDeveloper(e.target.value)}>
+            <option value="all">All developers</option>
+            {developers.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Order by
+          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="name">Model name</option>
+            <option value="input">Input price</option>
+            <option value="output">Output price</option>
+          </select>
+        </label>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
+        <div className="market-tabs">
+          {(
+            [
+              ["models", "Models"],
+              ["legacy", "Legacy"],
+              ["identity", "Aliases and identity"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              type="button"
+              key={id}
+              data-testid={`model-view-${id}`}
+              aria-pressed={!query && view === id}
+              onClick={() => {
+                setView(id);
+                setQuery("");
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p role="status" className="market-muted">
+          {visible.length} {query ? "matches" : "models"} · Select up to 4 to compare rates
         </p>
-      ) : null}
+      </div>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between py-3">
+          <p className="market-muted">Rate comparison above uses your selection.</p>
+          <button type="button" onClick={() => setSelected([])} className="market-link">
+            Clear comparison
+          </button>
+        </div>
+      )}
+      <div data-testid="model-table">
+        {visible.slice(0, expanded ? undefined : 12).map((model) => {
+          const rate = basePrice(prices[model.id] ?? []);
+          return (
+            <article
+              key={model.id}
+              className="market-model-row"
+              data-testid="model-row"
+              data-model-kind={model.kind}
+            >
+              <div>
+                <div className="flex items-center gap-3">
+                  {rate && (
+                    <input
+                      type="checkbox"
+                      aria-label={`Compare ${model.name}`}
+                      checked={selected.includes(model.id)}
+                      disabled={selected.length >= 4 && !selected.includes(model.id)}
+                      onChange={(e) =>
+                        setSelected(
+                          e.target.checked
+                            ? [...selected, model.id]
+                            : selected.filter((id) => id !== model.id),
+                        )
+                      }
+                      className="size-5 accent-accent"
+                    />
+                  )}
+                  <h2>
+                    <Link href={`/models/${model.id}`} className="hover:text-accent">
+                      {model.name}
+                    </Link>
+                  </h2>
+                </div>
+                <p className="market-muted mt-1">
+                  {model.developerName ?? "Developer not recorded"} ·{" "}
+                  {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
+                </p>
+              </div>
+              {(["input", "output", "cacheRead"] as const).map((key, i) => (
+                <div key={key}>
+                  <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
+                  <p className={rate ? "market-rate" : "market-muted"}>
+                    {priceNumber(rate?.rates[key])}
+                  </p>
+                </div>
+              ))}
+              <div>
+                <p className="market-muted">
+                  {model.places.length
+                    ? `${model.places.filter((p) => p.kind === "api").length} API routes · ${model.planIds.length} plans`
+                    : "Access under review"}
+                </p>
+                <Link href={`/models/${model.id}`} className="market-link">
+                  Explore model <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      {visible.length > 12 && (
+        <button type="button" className="market-link my-4" onClick={() => setExpanded(!expanded)}>
+          {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
+        </button>
+      )}
+      {!visible.length && (
+        <p className="py-8 text-muted-foreground">
+          Nothing matches. Try another developer or model name.
+        </p>
+      )}
     </div>
   );
 }

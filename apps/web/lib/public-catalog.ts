@@ -21,6 +21,7 @@ import {
   directApiProviderIdsFor,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
+import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
 
 /**
  * Public catalog read model (M4).
@@ -93,6 +94,8 @@ export interface PublicPlanSummary {
   sources: readonly CatalogSourceV1[];
   billingMechanics: string | undefined;
   versionCount: number;
+  /** Current-market execution facts, not reconstructed historical terms. */
+  currentMarketOnly?: boolean;
 }
 
 /**
@@ -245,6 +248,81 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
   for (const planId of realPlanIds) {
     const version = currentVersionOf(catalog, planId, date);
     if (version !== undefined) plans.push(toPlanSummary(catalog, planId, version));
+    else {
+      const plan = catalog.plans[planId];
+      const execution = selectExecutionVersionAt(
+        plan?.executionVersions ?? [],
+        `${date}T23:59:59Z`,
+      );
+      if (
+        !plan ||
+        !execution ||
+        execution.purchase.kind !== "subscription" ||
+        execution.purchase.fixedUsd === null ||
+        execution.purchase.term !== "month"
+      )
+        continue;
+      const claims = execution.claims;
+      plans.push({
+        id: planId,
+        name: plan.name,
+        providerId: plan.providerId,
+        providerName: catalog.providers[plan.providerId]?.name ?? plan.providerId,
+        versionId: execution.id,
+        effectiveFrom: (execution.publication.catalogActivatedAt ?? execution.validity.start).slice(
+          0,
+          10,
+        ),
+        price: { currency: "USD", amount: execution.purchase.fixedUsd, interval: "month" },
+        limits: [],
+        promotions: [],
+        modelRules: [
+          ...new Set(
+            execution.routes.flatMap((route) =>
+              route.models.kind === "exact" ? route.models.modelIds : [],
+            ),
+          ),
+        ].map((model) => ({ model })),
+        qualitativeLimits: claims
+          .filter((claim) => ["capacity", "credits", "continuation"].includes(claim.id))
+          .flatMap((claim) =>
+            claim.excerpt
+              ? [
+                  {
+                    id: claim.id,
+                    label: claim.id === "continuation" ? "After the limit" : "Included usage",
+                    statement: claim.excerpt,
+                    sourceUrl: claim.sourceUrl,
+                    ...(claim.id === "continuation" ? { topic: "after_limit" as const } : {}),
+                  },
+                ]
+              : [],
+          ),
+        verificationStatus: "verified",
+        lastVerifiedAt: execution.publication.reviewedAt.slice(0, 10),
+        sources: [
+          ...new Map(
+            claims.flatMap((claim) =>
+              claim.sourceUrl
+                ? [
+                    [
+                      claim.sourceUrl,
+                      {
+                        url: claim.sourceUrl,
+                        title: claim.locator,
+                        checkedAt: claim.reviewedAt.slice(0, 10),
+                      },
+                    ] as const,
+                  ]
+                : [],
+            ),
+          ).values(),
+        ],
+        billingMechanics: claims.find((claim) => claim.id === "price")?.excerpt,
+        versionCount: plan.executionVersions?.length ?? 1,
+        currentMarketOnly: true,
+      });
+    }
   }
 
   const providerName = (id: string) => catalog.providers[id]?.name ?? id;

@@ -1,40 +1,37 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { ModelExplorer } from "@/components/public/model-explorer";
-import { modelsInView } from "@/lib/model-library";
-import { loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
-
+import { marketDiscovery } from "@/lib/market-discovery";
 export const metadata: Metadata = {
   title: "Models",
   description:
-    "Current AI models by developer, where each one is available, and how StackReplay recognizes its exact IDs and aliases.",
+    "Explore current AI models, compare published API rates, find subscription access and test alternatives against your own workload.",
   alternates: { canonical: "/models" },
 };
-
 export default function ModelsPage() {
-  const catalog = loadPublicCatalog();
-  const releases = catalog.models.filter((model) => model.kind === "release");
-  const current = modelsInView(catalog.models, "models").length;
-  const legacy = modelsInView(catalog.models, "legacy").length;
+  const { catalog, prices } = marketDiscovery();
   return (
-    <div className="flex flex-col gap-7 pb-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-3xl font-medium tracking-tight text-foreground">Models</h1>
-        <p className="max-w-[60ch] text-sm leading-relaxed text-muted-foreground">
-          Who makes each model, whether it is current, and where you can use it. Open a model to see
-          its exact IDs, aliases and sources.
-        </p>
-        <p className="font-mono text-xs text-muted-foreground">
-          {current} models · {legacy} legacy
-        </p>
-      </header>
-      {releases.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No model is listed yet.</p>
-      ) : (
-        <ModelExplorer models={catalog.models} />
-      )}
-      <p className="font-mono text-[11px] text-muted-foreground">
-        Catalog version {shortCatalogVersion(catalog.catalogVersion)}
-      </p>
+    <div>
+      <MarketHeader
+        eyebrow="The model field guide"
+        title="Know your models."
+        description="Compare the cost. Find the access. Put the alternatives to work on your own history."
+      >
+        <aside className="market-feature">
+          <p className="market-kicker">New / September 28</p>
+          <h2>Claude Sonnet 5.5</h2>
+          <p>
+            Anthropic has announced its next Sonnet. Detailed API pricing and access are pending
+            verification here.
+          </p>
+          <Link className="market-link" href="/models/claude-sonnet-5-5">
+            Explore the release ↗
+          </Link>
+        </aside>
+      </MarketHeader>
+      <ModelExplorer models={catalog.models} prices={prices} />
+      <MarketFooter />
     </div>
   );
 }

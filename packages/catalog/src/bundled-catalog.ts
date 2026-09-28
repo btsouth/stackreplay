@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:5f104453c7813d643d78ef3c381901406f0f6589e71579c73b6c79ef2e00c894";
+export const BUNDLED_CATALOG_VERSION = "sha256:3a0fe7a0c19f0325b2dba613cf08670129e68644ff9b7123bfb644fe70357be1";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:5f104453c7813d643d78ef3c381901406f0f6589e71579c73b6c79ef2e00c894",
+  "catalogVersion": "sha256:3a0fe7a0c19f0325b2dba613cf08670129e68644ff9b7123bfb644fe70357be1",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -30,6 +30,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "cline": {
+      "id": "cline",
+      "role": "provider",
+      "name": "Cline",
+      "sources": [
+        {
+          "url": "https://docs.cline.bot/getting-started/clinepass",
+          "title": "Official subscription documentation",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "command-code": {
@@ -180,6 +194,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "opencode": {
+      "id": "opencode",
+      "role": "provider",
+      "name": "OpenCode",
+      "sources": [
+        {
+          "url": "https://opencode.ai/v2/docs/console/go",
+          "title": "Official subscription documentation",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "x-ai": {
@@ -718,6 +746,25 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
+    },
+    "claude-sonnet-5-5": {
+      "id": "claude-sonnet-5-5",
+      "role": "model",
+      "name": "Claude Sonnet 5.5",
+      "familyId": "claude-sonnet",
+      "lifecycle": "current",
+      "developerId": "anthropic",
+      "providerIds": [],
+      "aliases": [],
+      "sources": [
+        {
+          "url": "https://website.anthropic.com/",
+          "title": "Sonnet 5.5 launch announcement; API identity, rates and plan access pending first-party verification",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "unknown"
     },
     "claude-sonnet-5": {
       "id": "claude-sonnet-5",
@@ -5731,6 +5778,121 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "clinepass": {
+      "id": "clinepass",
+      "role": "plan",
+      "name": "ClinePass",
+      "providerId": "cline",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "9.99",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Selected open coding models. Five-hour, weekly and monthly usage windows; no deterministic allowance admitted.",
+              "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Cline · OpenAI-compatible clients",
+              "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Subscription quota and pay-as-you-go Cline are separate providers.",
+              "sourceUrl": "https://docs.cline.bot/getting-started/clinepass",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "glm-5-3"
+            },
+            {
+              "model": "glm-5-3-flash"
+            },
+            {
+              "model": "kimi-k3"
+            },
+            {
+              "model": "deepseek-v4-1-flash"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.cline.bot/getting-started/clinepass",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "command-code-go": {
+      "id": "command-code-go",
+      "role": "plan",
+      "name": "Command Code Go",
+      "providerId": "command-code",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "1",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "$10 monthly credits. Five-hour and weekly limits also apply.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Command Code",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-luna"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://commandcode.ai/docs/resources/pricing-limits",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
     "command-code-goat": {
       "id": "command-code-goat",
       "role": "plan",
@@ -5933,6 +6095,174 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               ]
             }
           ]
+        }
+      ]
+    },
+    "command-code-max-10x": {
+      "id": "command-code-max-10x",
+      "role": "plan",
+      "name": "Command Code Max 10×",
+      "providerId": "command-code",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "$150 standard and $100 premium monthly usage pools. Five-hour and weekly limits also apply.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Command Code",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "gpt-5-6-sol"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://commandcode.ai/docs/resources/pricing-limits",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "command-code-max-20x": {
+      "id": "command-code-max-20x",
+      "role": "plan",
+      "name": "Command Code Max 20×",
+      "providerId": "command-code",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "200",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "$300 standard and $200 premium monthly usage pools. Five-hour and weekly limits also apply.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Command Code",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "gpt-5-6-sol"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://commandcode.ai/docs/resources/pricing-limits",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "command-code-pro": {
+      "id": "command-code-pro",
+      "role": "plan",
+      "name": "Command Code Pro",
+      "providerId": "command-code",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "20",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Up to $80 monthly usage value; model-dependent allowances. Five-hour and weekly limits also apply.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Command Code",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+              "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "gpt-5-6-sol"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://commandcode.ai/docs/resources/pricing-limits",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -9766,6 +10096,71 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "ollama-cloud-max": {
+      "id": "ollama-cloud-max",
+      "role": "plan",
+      "name": "Ollama Cloud Max",
+      "providerId": "ollama",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "$300 monthly usage credits at Ollama rates; 10 concurrent requests.",
+              "sourceUrl": "https://ollama.com/pricing"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Ollama",
+              "sourceUrl": "https://ollama.com/pricing"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Purchased usage credits fund additional usage. Current credit-based plan; older subscriptions have separate terms.",
+              "sourceUrl": "https://ollama.com/pricing",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "glm-5-3"
+            },
+            {
+              "model": "glm-5-3-flash"
+            },
+            {
+              "model": "kimi-k3"
+            },
+            {
+              "model": "kimi-k2-7-code"
+            },
+            {
+              "model": "deepseek-v4-1-flash"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://ollama.com/pricing",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
     "ollama-cloud-pro": {
       "id": "ollama-cloud-pro",
       "role": "plan",
@@ -11777,6 +12172,160 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "opencode-go-plus": {
+      "id": "opencode-go-plus",
+      "role": "plan",
+      "name": "OpenCode Go Plus",
+      "providerId": "opencode",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "40",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Model-dependent monthly allowances, with five-hour and weekly limits.",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "OpenCode · Claude Code · Codex · Hermes",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional Zen balance can fund usage after the included limit; free models remain available.",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "glm-5-3"
+            },
+            {
+              "model": "glm-5-3-flash"
+            },
+            {
+              "model": "kimi-k3"
+            },
+            {
+              "model": "kimi-k2-7-code"
+            },
+            {
+              "model": "deepseek-v4-1-flash"
+            },
+            {
+              "model": "gpt-6-luna"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "grok-4-6"
+            },
+            {
+              "model": "grok-4-7"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://opencode.ai/v2/docs/console/go",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "opencode-go": {
+      "id": "opencode-go",
+      "role": "plan",
+      "name": "OpenCode Go",
+      "providerId": "opencode",
+      "versions": [
+        {
+          "effectiveFrom": "2026-09-28",
+          "price": {
+            "currency": "USD",
+            "amount": "10",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Model-dependent monthly allowances, with five-hour and weekly limits.",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "OpenCode · Claude Code · Codex · Hermes",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Optional Zen balance can fund usage after the included limit; free models remain available.",
+              "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+              "topic": "after_limit"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "glm-5-3"
+            },
+            {
+              "model": "glm-5-3-flash"
+            },
+            {
+              "model": "kimi-k3"
+            },
+            {
+              "model": "kimi-k2-7-code"
+            },
+            {
+              "model": "deepseek-v4-1-flash"
+            },
+            {
+              "model": "gpt-6-luna"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "grok-4-6"
+            },
+            {
+              "model": "grok-4-7"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://opencode.ai/v2/docs/console/go",
+              "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-09-28"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-28",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
     "z-ai-api-glm-5-3-flash": {
       "id": "z-ai-api-glm-5-3-flash",
       "role": "plan",
@@ -12767,6 +13316,269 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planId": "anthropic-claude-pro",
       "planName": "Claude Pro",
       "providerId": "anthropic"
+    },
+    "clinepass@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "9.99",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Selected open coding models. Five-hour, weekly and monthly usage windows; no deterministic allowance admitted.",
+          "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Cline · OpenAI-compatible clients",
+          "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Subscription quota and pay-as-you-go Cline are separate providers.",
+          "sourceUrl": "https://docs.cline.bot/getting-started/clinepass",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "glm-5-3"
+        },
+        {
+          "model": "glm-5-3-flash"
+        },
+        {
+          "model": "kimi-k3"
+        },
+        {
+          "model": "deepseek-v4-1-flash"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.cline.bot/getting-started/clinepass",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "clinepass@2026-09-28",
+      "planId": "clinepass",
+      "planName": "ClinePass",
+      "providerId": "cline"
+    },
+    "command-code-go@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "1",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "$10 monthly credits. Five-hour and weekly limits also apply.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Command Code",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-luna"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://commandcode.ai/docs/resources/pricing-limits",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "command-code-go@2026-09-28",
+      "planId": "command-code-go",
+      "planName": "Command Code Go",
+      "providerId": "command-code"
+    },
+    "command-code-max-10x@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "$150 standard and $100 premium monthly usage pools. Five-hour and weekly limits also apply.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Command Code",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "gpt-5-6-sol"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://commandcode.ai/docs/resources/pricing-limits",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "command-code-max-10x@2026-09-28",
+      "planId": "command-code-max-10x",
+      "planName": "Command Code Max 10×",
+      "providerId": "command-code"
+    },
+    "command-code-max-20x@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "200",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "$300 standard and $200 premium monthly usage pools. Five-hour and weekly limits also apply.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Command Code",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "gpt-5-6-sol"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://commandcode.ai/docs/resources/pricing-limits",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "command-code-max-20x@2026-09-28",
+      "planId": "command-code-max-20x",
+      "planName": "Command Code Max 20×",
+      "providerId": "command-code"
+    },
+    "command-code-pro@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "20",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Up to $80 monthly usage value; model-dependent allowances. Five-hour and weekly limits also apply.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Command Code",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional on-demand credits continue usage separately from subscription limits.",
+          "sourceUrl": "https://commandcode.ai/docs/resources/pricing-limits",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "gpt-5-6-sol"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://commandcode.ai/docs/resources/pricing-limits",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "command-code-pro@2026-09-28",
+      "planId": "command-code-pro",
+      "planName": "Command Code Pro",
+      "providerId": "command-code"
     },
     "cursor-hobby@2026-09-21": {
       "effectiveFrom": "2026-09-21",
@@ -15970,6 +16782,67 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Google AI Ultra (5x tier)",
       "providerId": "google"
     },
+    "ollama-cloud-max@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "$300 monthly usage credits at Ollama rates; 10 concurrent requests.",
+          "sourceUrl": "https://ollama.com/pricing"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Ollama",
+          "sourceUrl": "https://ollama.com/pricing"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Purchased usage credits fund additional usage. Current credit-based plan; older subscriptions have separate terms.",
+          "sourceUrl": "https://ollama.com/pricing",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "glm-5-3"
+        },
+        {
+          "model": "glm-5-3-flash"
+        },
+        {
+          "model": "kimi-k3"
+        },
+        {
+          "model": "kimi-k2-7-code"
+        },
+        {
+          "model": "deepseek-v4-1-flash"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://ollama.com/pricing",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "ollama-cloud-max@2026-09-28",
+      "planId": "ollama-cloud-max",
+      "planName": "Ollama Cloud Max",
+      "providerId": "ollama"
+    },
     "openai-chatgpt-business@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "effectiveTo": "2026-09-21",
@@ -16879,6 +17752,152 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planId": "openai-chatgpt-pro",
       "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
       "providerId": "openai"
+    },
+    "opencode-go-plus@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "40",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Model-dependent monthly allowances, with five-hour and weekly limits.",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "OpenCode · Claude Code · Codex · Hermes",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional Zen balance can fund usage after the included limit; free models remain available.",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "glm-5-3"
+        },
+        {
+          "model": "glm-5-3-flash"
+        },
+        {
+          "model": "kimi-k3"
+        },
+        {
+          "model": "kimi-k2-7-code"
+        },
+        {
+          "model": "deepseek-v4-1-flash"
+        },
+        {
+          "model": "gpt-6-luna"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "grok-4-6"
+        },
+        {
+          "model": "grok-4-7"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://opencode.ai/v2/docs/console/go",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "opencode-go-plus@2026-09-28",
+      "planId": "opencode-go-plus",
+      "planName": "OpenCode Go Plus",
+      "providerId": "opencode"
+    },
+    "opencode-go@2026-09-28": {
+      "effectiveFrom": "2026-09-28",
+      "price": {
+        "currency": "USD",
+        "amount": "10",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on September 28, 2026. Provider usage credits follow provider-specific rates; they are not direct API dollars. Exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Model-dependent monthly allowances, with five-hour and weekly limits.",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "OpenCode · Claude Code · Codex · Hermes",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Optional Zen balance can fund usage after the included limit; free models remain available.",
+          "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+          "topic": "after_limit"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "glm-5-3"
+        },
+        {
+          "model": "glm-5-3-flash"
+        },
+        {
+          "model": "kimi-k3"
+        },
+        {
+          "model": "kimi-k2-7-code"
+        },
+        {
+          "model": "deepseek-v4-1-flash"
+        },
+        {
+          "model": "gpt-6-luna"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "grok-4-6"
+        },
+        {
+          "model": "grok-4-7"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://opencode.ai/v2/docs/console/go",
+          "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified",
+      "versionId": "opencode-go@2026-09-28",
+      "planId": "opencode-go",
+      "planName": "OpenCode Go",
+      "providerId": "opencode"
     }
   },
   "pricing": {

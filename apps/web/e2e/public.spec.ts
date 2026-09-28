@@ -16,11 +16,11 @@ import { captureRequests, createShareToken, importDemo, runReplay } from "./help
 
 const PUBLIC_ROUTES = [
   { path: "/", heading: "Your AI coding history, measured." },
-  { path: "/plans", heading: "Plans" },
-  { path: "/models", heading: "Models" },
+  { path: "/plans", heading: "Find your next stack." },
+  { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Compare plans" },
   { path: "/methodology", heading: "Methodology" },
-  { path: "/changelog", heading: "Catalog changelog" },
+  { path: "/changelog", heading: "Know what changed." },
 ] as const;
 
 test.describe("public site", () => {
@@ -82,32 +82,20 @@ test.describe("public site", () => {
     const cards = page.getByTestId("plan-card");
     const count = await cards.count();
     test.skip(count === 0, "no sourced plan is catalogued in this build");
-    // A plan page publishes what the provider states: a numeric limit table where
-    // there is a number and a window, qualitative statements where there is not.
-    // Either way the card shows its sources and its verification state.
-    for (let index = 0; index < count; index += 1) {
-      const card = cards.nth(index);
-      await card.getByText("Inspect limits and sources").click();
-      await expect(card.getByTestId("source-list")).toBeVisible();
-      await expect(card.getByText(/verified|estimated|measured|unknown/u).first()).toBeVisible();
-      const numeric = await card.getByTestId("limit-table").count();
-      const qualitative = await card.getByTestId("qualitative-limits").count();
-      expect(numeric + qualitative).toBeGreaterThan(0);
-    }
+    await cards.first().getByRole("link", { name: "Explore plan" }).click();
+    await page.getByText("Published terms, sources & history", { exact: true }).click();
+    await expect(page.getByTestId("source-list").first()).toBeVisible();
+    await expect(page.getByText(/Published terms checked/)).toBeVisible();
+    await expect(page.getByTestId("qualitative-limits")).toBeVisible();
   });
 
-  test("a plan detail page links into a local replay", async ({ page }) => {
-    await page.goto("/plans");
-    const firstPlan = page.getByTestId("plan-card").first().getByRole("link").first();
-    const count = await page.getByTestId("plan-card").count();
-    test.skip(count === 0, "no sourced plan is catalogued in this build");
-    await firstPlan.click();
-    await expect(page).toHaveURL(/\/plans\/[^/]+$/u);
-    const replayLink = page.getByRole("link", { name: /^Replay against/u });
-    await expect(replayLink).toBeVisible();
-    const href = await replayLink.getAttribute("href");
-    expect(href).toContain("/app/import?target=");
-    await replayLink.click();
+  test("a plan detail page leads to comparison and local analysis", async ({ page }) => {
+    await page.goto("/plans/clinepass");
+    await expect(page.getByRole("link", { name: "Compare this plan" })).toHaveAttribute(
+      "href",
+      "/compare?left=clinepass",
+    );
+    await page.getByRole("link", { name: "Analyze my workload" }).click();
     await expect(page.getByTestId("import-dropzone")).toBeVisible();
   });
 
@@ -127,7 +115,7 @@ test.describe("public site", () => {
     for (const route of ["/models", "/compare", "/plans/github-copilot-business"]) {
       await page.goto(route);
       const facts = page.locator(
-        "main article, main table td, main [data-testid='compare-target']",
+        "main article, main table td, main [data-testid='compare-target'], main [data-testid='plan-models-summary']",
       );
       await expect(facts.first()).toBeVisible();
       const outside = await facts.evaluateAll((cells) => {
@@ -155,10 +143,14 @@ test.describe("public site", () => {
     for (const route of ["/plans", "/compare"]) {
       await page.goto(route);
       const action = page
-        .getByRole("link", { name: /Replay (this target|your workload here)/u })
+        .getByRole("link", {
+          name: route === "/plans" ? /Explore plan/u : /Replay (this target|your workload here)/u,
+        })
         .first();
       await expect(action).toBeVisible();
-      expect(await action.getAttribute("href")).toMatch(/^\/app\/import\?target=/u);
+      expect(await action.getAttribute("href")).toMatch(
+        route === "/plans" ? /^\/plans\//u : /^\/app\/import\?target=/u,
+      );
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -220,9 +212,9 @@ test.describe("public site", () => {
     await page.getByLabel("Find a model, family name or exact alias").fill("claude-opus");
     await expect(page.getByTestId("model-table")).toContainText("Family name");
     await page.goto("/models/claude-opus");
-    await expect(page.getByTestId("family-explainer")).toBeVisible();
-    await expect(page.getByTestId("family-releases")).toContainText("Claude Opus 5.5");
-    await expect(page.getByRole("heading", { name: "Aliases, routes and identity" })).toBeVisible();
+    await expect(page.getByText("A family of model releases.", { exact: true })).toBeVisible();
+    await expect(page.locator("main section")).toContainText("Claude Opus 5.5");
+    await expect(page.getByText("Aliases, routes and identity", { exact: true })).toBeVisible();
   });
 
   test("public navigation identifies the current section on desktop and mobile", async ({
@@ -231,7 +223,7 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -246,7 +238,7 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -265,8 +257,9 @@ test.describe("public site", () => {
     const catalog = page.getByRole("link", { name: "Catalog sources" });
     await expect(catalog).toHaveAttribute("href", "/plans");
     await catalog.click();
-    await page.getByTestId("plan-card").first().getByText("Inspect limits and sources").click();
-    await expect(page.getByTestId("plan-card").first().getByTestId("source-list")).toBeVisible();
+    await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();
+    await page.getByText("Published terms, sources & history", { exact: true }).click();
+    await expect(page.getByTestId("source-list").first()).toBeVisible();
   });
 });
 

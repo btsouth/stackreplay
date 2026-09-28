@@ -51,6 +51,40 @@ export default function HomePage() {
         <HomeReplay hero={hero} />
       </section>
 
+      <section className="border-t border-border-strong py-6" aria-label="Explore the AI market">
+        <p className="market-kicker">Beyond your workload</p>
+        <div className="mt-5 grid gap-8 md:grid-cols-3">
+          {[
+            {
+              href: "/models",
+              title: "Know your models.",
+              text: "Compare published input, output and cache rates. Find model access across APIs and subscriptions.",
+              label: "Explore models",
+            },
+            {
+              href: "/plans",
+              title: "Find your next stack.",
+              text: "Claude, Codex, ClinePass, OpenCode, Ollama and more. Prices, compatible tools and usage terms together.",
+              label: "Explore subscriptions",
+            },
+            {
+              href: "/changelog",
+              title: "Keep up with changes.",
+              text: "New releases and newly verified offers, with the sources and dates that put them in context.",
+              label: "Market updates",
+            },
+          ].map((item) => (
+            <div key={item.href}>
+              <h2 className="text-2xl tracking-tight">{item.title}</h2>
+              <p className="market-muted mt-3 max-w-sm">{item.text}</p>
+              <Link href={item.href} className="market-link">
+                {item.label} ↗
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section
         className="grid gap-7 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
         data-testid="home-privacy"

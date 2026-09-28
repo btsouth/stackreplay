@@ -1,0 +1,38 @@
+id: command-code-go
+role: plan
+name: Command Code Go
+providerId: command-code
+versions:
+- effectiveFrom: '2026-09-28'
+  price:
+    currency: USD
+    amount: '1'
+    interval: month
+  billingMechanics: Current monthly offer recorded on September 28, 2026. Provider
+    usage credits follow provider-specific rates; they are not direct API dollars.
+    Exact subscription capacity is not admitted for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: $10 monthly credits. Five-hour and weekly limits also apply.
+    sourceUrl: https://commandcode.ai/docs/resources/pricing-limits
+  - id: compatible-tools
+    label: Compatible tools
+    statement: Command Code
+    sourceUrl: https://commandcode.ai/docs/resources/pricing-limits
+  - id: after-limit
+    label: After the limit
+    statement: Optional on-demand credits continue usage separately from subscription
+      limits.
+    sourceUrl: https://commandcode.ai/docs/resources/pricing-limits
+    topic: after_limit
+  modelRules:
+  - model: gpt-5-6-luna
+  sources:
+  - url: https://commandcode.ai/docs/resources/pricing-limits
+    title: Official current price, access and usage terms; catalog admission date,
+      not a historical launch date
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified

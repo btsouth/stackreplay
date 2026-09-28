@@ -179,6 +179,15 @@ export function buildCompareFacts(
     detail: limit.label,
   }));
 
+  if (!usageLines.length) {
+    const published = plan.qualitativeLimits.find((limit) => limit.label === "Included usage");
+    if (published)
+      usageLines.push({
+        text: published.statement,
+        detail: "Published terms; exact replay capacity not established",
+      });
+  }
+
   const exceedLines = [...new Set(plan.limits.map((limit) => exceedText(limit)))];
   const quotes = plan.qualitativeLimits
     .filter((limit) => limit.topic === "after_limit")
@@ -222,8 +231,11 @@ export function buildCompareFacts(
       more: included.filter((model) => !featured.includes(model)),
       total: included.length,
     },
-    codingTools: codingToolsFor(plan),
-    usage: { numeric: usageLines.length > 0, lines: usageLines },
+    codingTools:
+      plan.qualitativeLimits
+        .find((limit) => limit.label === "Compatible tools")
+        ?.statement.split(" · ") ?? codingToolsFor(plan),
+    usage: { numeric: plan.limits.length > 0, lines: usageLines },
     simulation,
     afterLimit: { lines: exceedLines, quotes },
     evidence: verificationText(plan.verificationStatus, plan.lastVerifiedAt),

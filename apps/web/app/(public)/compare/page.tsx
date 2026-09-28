@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CompareExplorer } from "@/components/public/compare-explorer";
 import { buildCompareFacts, type CompareFacts, defaultComparePair } from "@/lib/compare-facts";
+import { planTools } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
 export const metadata: Metadata = {
@@ -10,10 +11,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/compare" },
 };
 
-export default function ComparePage() {
+export default async function ComparePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ left?: string; right?: string }>;
+}) {
+  const query = await searchParams;
   const catalog = loadPublicCatalog();
   const facts: Record<string, CompareFacts> = Object.fromEntries(
-    catalog.plans.map((plan) => [plan.id, buildCompareFacts(plan, catalog.modelById)]),
+    catalog.plans.map((plan) => [
+      plan.id,
+      { ...buildCompareFacts(plan, catalog.modelById), codingTools: planTools(plan) },
+    ]),
   );
   return (
     <div className="flex flex-col gap-7 pb-8">
@@ -32,7 +41,13 @@ export default function ComparePage() {
           plans={catalog.plans}
           providers={catalog.providers}
           facts={facts}
-          initialPair={defaultComparePair(catalog.plans)}
+          initialPair={(() => {
+            const fallback = defaultComparePair(catalog.plans);
+            return [
+              catalog.planById(query.left ?? "")?.id ?? fallback[0],
+              catalog.planById(query.right ?? "")?.id ?? fallback[1],
+            ];
+          })()}
         />
       )}
     </div>

@@ -1,241 +1,181 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MarketFooter } from "@/components/public/market-header";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
-import { SourceList, VerificationBadge } from "@/components/public/provenance";
-import { formatCatalogDate } from "@/lib/catalog-copy";
-import { buildCompareFacts, NO_NUMERIC_ALLOWANCE } from "@/lib/compare-facts";
+import { SourceList } from "@/components/public/provenance";
+import { buildCompareFacts } from "@/lib/compare-facts";
+import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
-interface PlanPageProps {
+interface Props {
   params: Promise<{ planId: string }>;
 }
-
 export function generateStaticParams() {
-  return loadPublicCatalog().plans.map((plan) => ({ planId: plan.id }));
+  return loadPublicCatalog().plans.map((p) => ({ planId: p.id }));
 }
-
-export async function generateMetadata({ params }: PlanPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { planId } = await params;
-  const plan = loadPublicCatalog().planById(planId);
-  if (plan === undefined) return { title: "Plan not found" };
+  const p = loadPublicCatalog().planById(planId);
   return {
-    title: `${plan.name} (${plan.providerName})`,
-    description: `${plan.name} from ${plan.providerName}: $${plan.price.amount} per ${plan.price.interval}, included models, usage limits and what happens after the limit, with sources.`,
-    alternates: { canonical: `/plans/${plan.id}` },
+    title: p?.name ?? "Plan not found",
+    description: `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
+    alternates: { canonical: `/plans/${planId}` },
   };
 }
-
-export default async function PlanDetailPage({ params }: PlanPageProps) {
+export default async function PlanPage({ params }: Props) {
   const { planId } = await params;
   const catalog = loadPublicCatalog();
   const plan = catalog.planById(planId);
-  if (plan === undefined) notFound();
-  const versions = catalog.planVersions(plan.id);
+  if (!plan) notFound();
   const facts = buildCompareFacts(plan, catalog.modelById);
-
+  const tools = planTools(plan);
+  const siblings = catalog.plans
+    .filter((p) => p.providerId === plan.providerId && p.id !== plan.id)
+    .sort((a, b) => Number(a.price.amount) - Number(b.price.amount));
   return (
-    <div className="flex flex-col gap-8 pb-8">
-      <header className="flex flex-col gap-3 border-b border-border-strong pb-6">
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-accent">
-          <Link className="underline-offset-2 hover:underline" href="/plans">
-            Plans
-          </Link>{" "}
-          · {plan.providerName}
-        </p>
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{plan.name}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Prices and rules in effect since {formatCatalogDate(plan.effectiveFrom)}
-            </p>
-          </div>
-          <p className="text-3xl font-medium tabular-nums tracking-tight text-foreground">
-            ${plan.price.amount}
-            <span className="ml-1 text-sm font-normal text-muted-foreground">
-              per {plan.price.interval}
-            </span>
-          </p>
+    <div>
+      <header className="market-header">
+        <div>
+          <Link href="/plans" className="market-kicker">
+            Subscriptions / {plan.providerName}
+          </Link>
+          <h1>{plan.name}</h1>
+          <p className="market-description">{planUsage(plan)}</p>
+          <p className="market-muted mt-3">Published terms checked {plan.lastVerifiedAt}</p>
         </div>
-        <VerificationBadge status={plan.verificationStatus} lastVerifiedAt={plan.lastVerifiedAt} />
+        <aside className="self-end border-l-2 border-accent pl-6">
+          <p className="market-kicker">Published subscription price</p>
+          <p className="my-3 text-[clamp(4rem,8vw,7rem)] leading-none tracking-[-.06em]">
+            ${Number(plan.price.amount).toLocaleString("en-US")}
+          </p>
+          <p className="market-muted">
+            USD / {plan.price.interval} · actual paid amount may differ
+          </p>
+          <Link href={`/compare?left=${plan.id}`} className="market-link">
+            Compare this plan ↗
+          </Link>
+        </aside>
       </header>
-
-      <section className="grid gap-4 border-b border-border pb-6 sm:grid-cols-[repeat(3,minmax(0,1fr))] sm:items-end">
+      <section className="market-detail-stats">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-            Models
-          </p>
-          <p className="mt-1 text-sm text-foreground" data-testid="plan-models-summary">
-            {facts.models.total === 0
-              ? "No named model is listed for this plan."
-              : `${facts.models.featured.map((model) => model.name).join(", ")}${facts.models.more.length === 0 ? "" : ` and ${facts.models.more.length} more`}`}
+          <p className="market-kicker mb-3">Works with</p>
+          <p className="text-lg">{tools.join(" · ") || "See provider terms"}</p>
+        </div>
+        <div>
+          <p className="market-kicker mb-3">Model access</p>
+          <p className="text-lg" data-testid="plan-models-summary">
+            {facts.models.total
+              ? `${facts.models.total} verified releases`
+              : "Provider model lineup"}
           </p>
         </div>
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-            Usage limits
+          <p className="market-kicker mb-3">Capacity replay</p>
+          <p className="text-lg">
+            {plan.limits.length ? "Published rules available" : "Not deterministically established"}
           </p>
-          <p className="mt-1 text-sm text-foreground">
-            {facts.usage.numeric
-              ? facts.usage.lines.map((line) => line.text).join("; ")
-              : NO_NUMERIC_ALLOWANCE}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">{facts.simulation}</p>
         </div>
-        <Link
-          className="inline-flex min-h-11 items-center justify-center border border-accent px-4 text-sm text-accent hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring"
-          href={`/app/import?target=${encodeURIComponent(plan.id)}`}
-        >
-          Replay against {plan.name} ↗
-        </Link>
       </section>
-
-      {plan.billingMechanics === undefined ? null : (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-xl font-medium tracking-tight text-foreground">How billing works</h2>
-          <p className="max-w-[68ch] text-base leading-relaxed text-muted-foreground">
-            {plan.billingMechanics}
-          </p>
-        </section>
-      )}
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">Usage limits</h2>
-        <LimitTable limits={plan.limits} />
-        {plan.qualitativeLimits.length === 0 ? null : (
-          <details className="border-t border-border pt-4">
-            <summary className="min-h-11 cursor-pointer text-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-              What {plan.providerName} says about limits
-            </summary>
-            <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
-              {plan.providerName} describes these without numbers. They are quoted here as written,
-              not turned into amounts.
-            </p>
-            <ul
-              className="flex max-w-6xl flex-col border-t border-border text-sm text-muted-foreground"
-              data-testid="qualitative-limits"
-            >
-              {plan.qualitativeLimits.map((limit) => (
-                <li
-                  key={limit.id}
-                  className="grid gap-2 border-b border-border py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6"
-                >
-                  <span className="font-medium text-foreground">{limit.label}</span>
-                  <div className="min-w-0">
-                    <blockquote className="max-w-[68ch] border-l border-border-strong pl-3 leading-relaxed">
-                      &ldquo;{limit.statement}&rdquo;
-                    </blockquote>
-                    {limit.sourceUrl === undefined ? null : (
-                      <a
-                        className="mt-1 inline-block text-xs text-accent underline underline-offset-2"
-                        href={limit.sourceUrl}
-                        rel="noreferrer noopener"
-                        target="_blank"
-                      >
-                        Source for this statement ↗
-                      </a>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </details>
+      <section>
+        <div className="market-section-title">
+          <span>01 / What you get</span>
+        </div>
+        <p className="max-w-3xl text-lg leading-relaxed">{planUsage(plan)}</p>
+        {plan.billingMechanics && (
+          <p className="market-muted mt-4 max-w-3xl">{plan.billingMechanics}</p>
         )}
       </section>
-
-      <details className="border-t border-border pt-4">
-        <summary className="min-h-11 cursor-pointer text-xl font-medium tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-          Models on this plan
-        </summary>
-        <div className="mt-4">
-          <ModelRuleList rules={plan.modelRules} modelById={catalog.modelById} />
+      <section className="mt-10">
+        <div className="market-section-title">
+          <span>02 / Included models & access</span>
         </div>
-      </details>
-
-      {plan.promotions.length === 0 ? null : (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xl font-medium tracking-tight text-foreground">Promotions</h2>
-          <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-            {plan.promotions.map((promotion) => (
-              <li key={promotion.id}>
-                {promotion.label} · ×{promotion.multiplier} · from {promotion.effectiveFrom}
-                {promotion.effectiveTo === undefined ? "" : ` to ${promotion.effectiveTo}`}
-                {promotion.models === undefined ? "" : ` · ${promotion.models.join(", ")}`}
+        {plan.modelRules.length ? (
+          <>
+            <p className="market-muted mb-4">
+              Exact releases verified in this catalog. The provider may offer additional models;
+              consult its current lineup below.
+            </p>
+            <ModelRuleList rules={plan.modelRules} modelById={catalog.modelById} />
+          </>
+        ) : (
+          <p className="market-muted">
+            The provider publishes a broader lineup. Exact model entitlements are not yet admitted
+            here; inspect the official source below.
+          </p>
+        )}
+      </section>
+      <section className="mt-10">
+        <div className="market-section-title">
+          <span>03 / When you reach the limit</span>
+        </div>
+        <div className="max-w-3xl space-y-3 text-sm leading-relaxed">
+          {facts.afterLimit.lines.length || facts.afterLimit.quotes.length ? (
+            [...facts.afterLimit.lines, ...facts.afterLimit.quotes.map((q) => q.text)].map(
+              (line) => <p key={line}>{line}</p>,
+            )
+          ) : (
+            <p>
+              Continuation behavior is not fully established in this catalog. Check the provider
+              before relying on overflow.
+            </p>
+          )}
+        </div>
+      </section>
+      {siblings.length > 0 && (
+        <section className="mt-10">
+          <div className="market-section-title">
+            <span>Other {plan.providerName} subscriptions</span>
+          </div>
+          {siblings.map((p) => (
+            <Link
+              key={p.id}
+              href={`/compare?left=${plan.id}&right=${p.id}`}
+              className="flex flex-wrap justify-between gap-3 border-b border-border py-4 hover:text-accent"
+            >
+              <span>{p.name}</span>
+              <span className="font-mono text-sm">
+                ${p.price.amount} / {p.price.interval}{" "}
+                <span className="ml-4 text-accent">Compare ↗</span>
+              </span>
+            </Link>
+          ))}
+        </section>
+      )}
+      <details className="mt-10 border-y border-border-strong py-4">
+        <summary className="min-h-11 cursor-pointer text-lg">
+          Published terms, sources & history
+        </summary>
+        <div className="space-y-5 py-5">
+          {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
+          <ul className="space-y-4" data-testid="qualitative-limits">
+            {plan.qualitativeLimits.map((limit) => (
+              <li key={limit.id}>
+                <p className="text-sm font-medium">{limit.label}</p>
+                <p className="market-muted mt-1 max-w-3xl">{limit.statement}</p>
               </li>
             ))}
           </ul>
-        </section>
-      )}
-
-      <details className="border-t border-border pt-4">
-        <summary className="min-h-11 cursor-pointer text-xl font-medium tracking-tight text-foreground focus-visible:outline-2 focus-visible:outline-ring">
-          Version history · {versions.length} {versions.length === 1 ? "version" : "versions"}
-        </summary>
-        <section className="w-full min-w-0" aria-label="Plan version history">
-          <table
-            className="block w-full border-collapse text-sm lg:table"
-            data-testid="version-table"
-          >
-            <caption className="sr-only">Plan version history</caption>
-            <thead className="sr-only lg:not-sr-only lg:table-header-group">
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-4 font-medium">Effective from</th>
-                <th className="py-2 pr-4 font-medium">Effective to</th>
-                <th className="py-2 pr-4 font-medium">Price</th>
-                <th className="py-2 pr-4 font-medium">Limits</th>
-                <th className="py-2 font-medium">Verification</th>
-              </tr>
-            </thead>
-            <tbody className="block lg:table-row-group">
-              {versions.map((version) => (
-                <tr
-                  key={version.versionId}
-                  className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border/60 py-5 align-top lg:table-row lg:py-0"
-                >
-                  <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
-                      Effective from
-                    </span>
-                    {version.effectiveFrom}
-                  </td>
-                  <td className="block min-w-0 tabular-nums text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs lg:hidden">Effective to</span>
-                    {version.effectiveTo ?? "current"}
-                  </td>
-                  <td className="block min-w-0 tabular-nums text-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
-                      Price
-                    </span>
-                    ${version.price.amount}/{version.price.interval}
-                  </td>
-                  <td className="col-span-2 block min-w-0 text-muted-foreground lg:table-cell lg:py-2 lg:pr-4">
-                    <span className="mb-1 block text-xs lg:hidden">Limits</span>
-                    {version.limits.map((limit) => `${limit.label} ${limit.amount}`).join(" · ")}
-                  </td>
-                  <td className="col-span-2 block min-w-0 lg:table-cell lg:py-2">
-                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">
-                      Verification
-                    </span>
-                    <VerificationBadge
-                      status={version.verificationStatus}
-                      lastVerifiedAt={version.lastVerifiedAt}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+          <SourceList sources={plan.sources} />
+          <p className="market-muted">
+            Catalog record {plan.versionId}.{" "}
+            {plan.currentMarketOnly
+              ? "Current-market observation; not evidence of historical terms."
+              : "Catalog dates identify recorded rule versions. New admissions do not establish a provider launch date."}{" "}
+            Provider credits are specific to that provider. Listing a price does not establish
+            capacity, equivalent experience or that a plan could replace another.
+          </p>
+          <fieldset aria-label="Plan version history" data-testid="version-table">
+            {catalog.planVersions(plan.id).map((v) => (
+              <p className="market-muted" key={v.versionId}>
+                {v.effectiveFrom} · ${v.price.amount}/{v.price.interval} · checked{" "}
+                {v.lastVerifiedAt}
+              </p>
+            ))}
+          </fieldset>
+        </div>
       </details>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-medium tracking-tight text-foreground">Source evidence</h2>
-        <SourceList sources={plan.sources} />
-        <p className="max-w-3xl text-xs text-muted-foreground">
-          Rule version {plan.versionId}. A replay against this plan uses the version in force on the
-          date you choose, never today&apos;s rules by accident.
-        </p>
-      </section>
+      <MarketFooter />
     </div>
   );
 }

@@ -17,11 +17,11 @@ export interface PublicNavItem {
 }
 
 export const publicNavItems = [
-  { label: "Plans", href: "/plans", description: "Every catalogued plan, with sources" },
-  { label: "Models", href: "/models", description: "Canonical model identities and availability" },
+  { label: "Subscriptions", href: "/plans", description: "Every catalogued plan, with sources" },
+  { label: "Models", href: "/models", description: "Models, published prices and access" },
   { label: "Compare", href: "/compare", description: "Compare documented plan facts" },
   { label: "Methodology", href: "/methodology", description: "How a replay is calculated" },
-  { label: "Changelog", href: "/changelog", description: "Catalog changes over time" },
+  { label: "Updates", href: "/changelog", description: "Catalog changes over time" },
 ] as const satisfies readonly PublicNavItem[];
 
 export const repositoryNavItem = {
@@ -51,7 +51,7 @@ export const publicFooterGroups = [
     title: "Product",
     items: [
       { label: "Scan your AI history", href: "/app/import" },
-      { label: "Plans", href: "/plans" },
+      { label: "Subscriptions", href: "/plans" },
       { label: "Models", href: "/models" },
       { label: "Compare", href: "/compare" },
     ],
@@ -60,7 +60,7 @@ export const publicFooterGroups = [
     title: "Trust",
     items: [
       { label: "Methodology", href: "/methodology" },
-      { label: "Catalog changelog", href: "/changelog" },
+      { label: "Market updates", href: "/changelog" },
       { label: "Privacy model", href: "/methodology#privacy" },
       { label: "Catalog sources", href: "/plans" },
     ],

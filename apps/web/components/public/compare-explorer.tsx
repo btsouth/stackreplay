@@ -45,7 +45,7 @@ function ModelsCell({ facts }: { facts: CompareFacts }) {
 }
 
 function UsageCell({ facts }: { facts: CompareFacts }) {
-  if (!facts.usage.numeric) {
+  if (!facts.usage.lines.length) {
     return <p className="text-foreground">Provider does not publish a numeric allowance.</p>;
   }
   return (
@@ -78,7 +78,7 @@ function AfterLimitCell({ facts }: { facts: CompareFacts }) {
               key={quote.text}
               className="border-l border-border-strong pl-3 text-muted-foreground"
             >
-              &ldquo;{quote.excerpt}&rdquo;
+              {quote.excerpt}
             </blockquote>
           ))
         : null}

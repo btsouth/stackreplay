@@ -1,0 +1,9 @@
+id: cline
+role: provider
+name: Cline
+sources:
+- url: https://docs.cline.bot/getting-started/clinepass
+  title: Official subscription documentation
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified

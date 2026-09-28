@@ -1,0 +1,15 @@
+id: claude-sonnet-5-5
+role: model
+name: Claude Sonnet 5.5
+familyId: claude-sonnet
+lifecycle: current
+developerId: anthropic
+providerIds: []
+aliases: []
+sources:
+- url: https://website.anthropic.com/
+  title: Sonnet 5.5 launch announcement; API identity, rates and plan access pending
+    first-party verification
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: unknown
