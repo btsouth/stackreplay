@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ModelPriceComparison } from "@/components/public/model-price-comparison";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
 import {
+  byDiscoveryOrder,
   developerOptions,
   type ModelLibraryView,
   matchesDeveloper,
@@ -24,8 +26,7 @@ export function ModelExplorer({
   const [capability, setCapability] = useState("all");
   const [developer, setDeveloper] = useState("all");
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState("name");
-  const [metric, setMetric] = useState<"input" | "output" | "cacheRead">("output");
+  const [sort, setSort] = useState("featured");
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const developers = developerOptions(models.filter((m) => m.kind === "release"));
@@ -38,7 +39,9 @@ export function ModelExplorer({
             ? (m.specifications?.contextTokens ?? 0) >= 1_000_000
             : modelCapabilities(m).includes(capability))),
     );
-    if (sort !== "name")
+    if (sort === "featured") {
+      if (!query.trim()) list.sort(byDiscoveryOrder);
+    } else if (sort !== "name")
       list.sort(
         (a, b) =>
           Number(basePrice(prices[a.id] ?? [])?.rates[sort as "input" | "output"] ?? Infinity) -
@@ -47,88 +50,9 @@ export function ModelExplorer({
     else list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
   }, [models, view, query, developer, capability, sort, prices]);
-  const chartModels = selected.length
-    ? models.filter((m) => selected.includes(m.id))
-    : (() => {
-        const available = visible.filter(
-          (m) => m.kind === "release" && basePrice(prices[m.id] ?? []),
-        );
-        const featured = [
-          "claude-opus-5-5",
-          "claude-sonnet-5-5",
-          "gpt-6-astra",
-          "gpt-6-sol",
-          "gpt-6-luna",
-          "glm-5-3-flash",
-          "deepseek-v4-1-flash",
-          "gemini-3-1-pro",
-        ];
-        const choices = available.filter((m) => featured.includes(m.id));
-        return (choices.length ? choices : available).slice(0, 8);
-      })();
-  const max = Math.max(
-    1,
-    ...chartModels.map((m) => Number(basePrice(prices[m.id] ?? [])?.rates[metric] ?? 0)),
-  );
   return (
     <div>
-      <div className="market-section-title">
-        <span>01 / Published API rates</span>
-        <span className="text-muted-foreground">USD per million tokens</span>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <fieldset className="market-tabs" aria-label="Price category">
-          {(
-            [
-              ["output", "Output"],
-              ["input", "Input"],
-              ["cacheRead", "Cache read"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={metric === id}
-              onClick={() => setMetric(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </fieldset>
-        <p className="market-muted">
-          {selected.length ? `${selected.length} selected models` : "Featured models in this view"}{" "}
-          · base rates; conditions apply
-        </p>
-      </div>
-      <fieldset className="market-price-bars" aria-label={`${metric} price comparison`}>
-        {chartModels.map((m) => {
-          const value = basePrice(prices[m.id] ?? [])?.rates[metric];
-          return (
-            <Link key={m.id} href={`/models/${m.id}`} className="market-price-bar">
-              <span>{m.name}</span>
-              <span className="market-price-bar-track" aria-hidden="true">
-                {value !== undefined && (
-                  <span
-                    className="market-price-bar-fill block"
-                    style={{ width: `${(Number(value) / max) * 100}%` }}
-                  />
-                )}
-              </span>
-              <span className="text-right font-mono">
-                {value === undefined ? "See details" : priceNumber(value)}
-              </span>
-            </Link>
-          );
-        })}
-        {!chartModels.length && (
-          <p className="market-muted">No verified standard API rates in this view.</p>
-        )}
-      </fieldset>
-      <p className="market-muted mb-8">
-        Token categories are compared separately. Context tiers, time-based rates, cache-write
-        assumptions and pricing evidence are on each model page. These bars do not measure model
-        quality.
-      </p>
+      <ModelPriceComparison models={models} prices={prices} selected={selected} />
       <div className="market-section-title">
         <span>02 / Explore models</span>
         <span>{models.filter((m) => m.kind === "release").length} releases</span>
@@ -169,6 +93,7 @@ export function ModelExplorer({
         <label>
           Order by
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="featured">Featured first</option>
             <option value="name">Model name</option>
             <option value="input">Input price</option>
             <option value="output">Output price</option>

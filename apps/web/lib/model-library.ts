@@ -19,6 +19,40 @@ export type ModelLibraryView = "models" | "legacy" | "identity";
 /** Developer filter value for records whose developer the catalog does not state. */
 export const UNRECORDED_DEVELOPER = "unrecorded";
 
+/** Editorial browsing pairs, not equivalence claims or replay translation rules. */
+export const FEATURED_MODEL_PAIRS = [
+  ["claude-fable-5-1", "gpt-6-astra"],
+  ["claude-opus-5-5", "gpt-6-sol"],
+  ["claude-sonnet-5-5", "gpt-5-6-terra"],
+  ["claude-haiku-4-5", "gpt-6-luna"],
+] as const;
+export const FEATURED_ALTERNATIVE_MODELS = ["glm-5-3", "deepseek-v4-1-flash"] as const;
+
+// A deliberate coding shortlist, not a measured popularity ranking. Every other
+// catalog entry remains accessible through search, filters and the full list.
+const DISCOVERY_ORDER: readonly string[] = [
+  "claude-opus-5-5",
+  "gpt-6-sol",
+  "claude-sonnet-5-5",
+  "gpt-5-6-terra",
+  "claude-haiku-4-5",
+  "gpt-6-luna",
+  ...FEATURED_ALTERNATIVE_MODELS,
+  "claude-fable-5-1",
+  "gpt-6-astra",
+  "glm-5-3-flash",
+  "kimi-k3",
+  "gpt-5-3-codex",
+  "grok-4-7",
+];
+export function byDiscoveryOrder(left: PublicModelSummary, right: PublicModelSummary): number {
+  const rank = (id: string) => {
+    const index = DISCOVERY_ORDER.indexOf(id);
+    return index < 0 ? DISCOVERY_ORDER.length : index;
+  };
+  return rank(left.id) - rank(right.id) || byLibraryOrder(left, right);
+}
+
 function byLibraryOrder(left: PublicModelSummary, right: PublicModelSummary): number {
   return (
     lifecycleRank(left.lifecycle) - lifecycleRank(right.lifecycle) ||

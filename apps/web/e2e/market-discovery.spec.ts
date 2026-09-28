@@ -2,6 +2,77 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { gotoReplayImport, waitForWorkload } from "./helpers";
 
+test("featured rates keep deliberate Claude and OpenAI pairs on the same price scale", async ({
+  page,
+}) => {
+  await page.goto("/models");
+  const chart = page.getByRole("group", { name: "output price comparison" });
+  const pairs = chart.getByTestId("price-comparison-pair");
+  await expect(pairs).toHaveCount(4);
+  await expect(pairs.nth(0)).toContainText("Claude Fable 5.1");
+  await expect(pairs.nth(0)).toContainText("GPT-6 Astra");
+  await expect(pairs.nth(1)).toContainText("Claude Opus 5.5");
+  await expect(pairs.nth(1)).toContainText("GPT-6 Sol");
+  await expect(pairs.nth(2)).toContainText("Claude Sonnet 5.5");
+  await expect(pairs.nth(2)).toContainText("GPT-5.6 Terra");
+  await expect(pairs.nth(3)).toContainText("Claude Haiku 4.5");
+  await expect(pairs.nth(3)).toContainText("GPT-6 Luna");
+  await expect(chart.getByRole("link")).toHaveCount(10);
+  await expect(chart).not.toContainText("Gemini");
+  await expect(chart).not.toContainText("Composer");
+  await expect(chart).toContainText("GLM 5.3");
+  await expect(chart).toContainText("DeepSeek-V4.1-Flash");
+  await expect(page.getByTestId("price-chart-scale")).toHaveText("Shared scale: $0 to $50");
+  // Half the price must occupy half the actual bar width, including across columns.
+  const width = async (id: string) =>
+    (await chart.locator(`[data-model-id="${id}"] .market-price-bar-fill`).boundingBox())?.width ??
+    0;
+  expect((await width("gpt-6-sol")) / (await width("claude-opus-5-5"))).toBeCloseTo(0.5, 1);
+  expect((await width("glm-5-3")) / (await width("claude-opus-5-5"))).toBeCloseTo(0.22, 1);
+  await page.getByRole("button", { name: "Input", exact: true }).click();
+  await expect(page.getByTestId("price-chart-scale")).toHaveText("Shared scale: $0 to $10");
+  await expect(page.getByText("Shorter bar = lower input price")).toBeVisible();
+});
+
+test("the model library leads with the coding shortlist but keeps every model discoverable", async ({
+  page,
+}) => {
+  await page.goto("/models");
+  await expect(page.getByLabel("Order by")).toHaveValue("featured");
+  const rows = page.getByTestId("model-row");
+  await expect(rows.nth(0)).toContainText("Claude Opus 5.5");
+  await expect(rows.nth(1)).toContainText("GPT-6 Sol");
+  await expect(rows.nth(2)).toContainText("Claude Sonnet 5.5");
+  await expect(rows.nth(3)).toContainText("GPT-5.6 Terra");
+  await expect(page.getByTestId("model-table")).not.toContainText("Gemini");
+  await expect(page.getByTestId("model-table")).not.toContainText("Composer");
+  await page.getByLabel("Find a model, family name or exact alias").fill("Gemini");
+  await expect(rows.first()).toContainText("Gemini");
+  // Searching the library does not unexpectedly replace the featured comparison.
+  await expect(page.getByRole("group", { name: "output price comparison" })).not.toContainText(
+    "Gemini",
+  );
+  await page.getByLabel("Find a model, family name or exact alias").fill("Composer 2.5");
+  await expect(rows).toHaveCount(1);
+  await page.getByLabel("Find a model, family name or exact alias").clear();
+  await page.getByLabel("Order by").selectOption("name");
+  await expect(rows.first()).toContainText("Claude Fable");
+});
+
+test("selected comparisons sort by the active price category, highest first", async ({ page }) => {
+  await page.goto("/models");
+  await page.getByRole("checkbox", { name: "Compare GLM 5.3", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Compare Claude Opus 5.5", exact: true }).check();
+  await expect(
+    page.getByRole("group", { name: "output price comparison" }).getByRole("link").first(),
+  ).toContainText("Opus");
+  await page.getByRole("button", { name: "Cache read", exact: true }).click();
+  await expect(
+    page.getByRole("group", { name: "cacheRead price comparison" }).getByRole("link").first(),
+  ).toContainText("GLM 5.3");
+  await expect(page.getByTestId("price-chart-scale")).toHaveText("Shared scale: $0 to $0.26");
+});
+
 test("subscription discovery filters sourced tools and opens a selected comparison", async ({
   page,
 }) => {
