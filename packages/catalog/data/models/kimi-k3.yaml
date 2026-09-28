@@ -1,14 +1,35 @@
 id: kimi-k3
 role: model
-name: "Kimi K3"
+name: Kimi K3
 providerIds:
-  - github
+- github
 sources:
-  - url: https://github.com/features/copilot/plans
-    title: "GitHub pricing (official)"
-    checkedAt: 2026-09-23
-  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
-    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+- url: https://github.com/features/copilot/plans
+  title: GitHub pricing (official)
+  checkedAt: 2026-09-23
+- url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+  title: GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+- url: https://platform.kimi.ai/
+  title: Published token rates
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+developerId: moonshot
+specifications:
+  contextTokens: 1000000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  notes:
+  - Reasoning is always enabled. Cache writes use explicit five-minute or one-hour durations.
+  sources:
+  - url: https://platform.kimi.ai/docs/guide/kimi-k3-quickstart
+    title: Official model specifications
+    checkedAt: '2026-09-28'
+pricingNote: Official platform lists cache writes at $3 per million tokens. Five-minute and one-hour storage are
+  supported; duration-specific write pricing is not resolved here. No write duration is assumed.

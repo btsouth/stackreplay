@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:3b4deae64c694441a3151916bad1c10befa413feb86c0b3ab2dc5b880290da18";
+export const BUNDLED_CATALOG_VERSION = "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:3b4deae64c694441a3151916bad1c10befa413feb86c0b3ab2dc5b880290da18",
+  "catalogVersion": "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -163,6 +163,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
+    "meta": {
+      "id": "meta",
+      "role": "provider",
+      "name": "Meta",
+      "sources": [
+        {
+          "url": "https://research.meta.ai/blog/introducing-muse-spark-1-3",
+          "title": "Official model developer",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "microsoft": {
+      "id": "microsoft",
+      "role": "provider",
+      "name": "Microsoft AI",
+      "sources": [
+        {
+          "url": "https://github.com/microsoft/MAI-Code",
+          "title": "Official model developer",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "moonshot": {
+      "id": "moonshot",
+      "role": "provider",
+      "name": "Moonshot AI",
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/docs/guide/kimi-k3-quickstart",
+          "title": "Official model developer",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
     "ollama": {
       "id": "ollama",
       "role": "provider",
@@ -247,6 +289,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-fable",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "github",
@@ -295,7 +357,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-fable-5": {
@@ -386,6 +448,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-haiku",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 200000,
+        "maxOutputTokens": 64000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github",
         "anthropic"
@@ -428,7 +510,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-27",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-haiku": {
@@ -467,6 +549,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "pricingNote": "Cache writes cost 1.25 times input for five-minute storage or twice input for one hour. Batch and regional rates differ.",
       "providerIds": [
         "github",
         "anthropic"
@@ -493,7 +576,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8-fast-mode": {
@@ -503,6 +586,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "pricingNote": "A separately recorded fast-preview identity. Current standard Opus rates are not substituted for this preview without exact route and pricing evidence.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "github"
       ],
@@ -521,9 +606,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://platform.claude.com/docs/en/models/overview",
           "title": "Anthropic models overview: Claude Opus 4.8, the model this fast-mode route serves, listed under legacy models (still available)",
           "checkedAt": "2026-09-24"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8": {
@@ -585,6 +675,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "anthropic"
       ],
@@ -616,7 +726,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-opus-5": {
@@ -718,6 +828,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "pricingNote": "Cache writes cost 1.25 times input for five-minute storage or twice input for one hour. Batch and regional rates differ.",
       "providerIds": [
         "github",
         "anthropic"
@@ -744,7 +855,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-sonnet-5-5": {
@@ -754,6 +865,26 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "anthropic"
       ],
@@ -793,8 +924,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Claude Sonnet 5",
       "familyId": "claude-sonnet",
-      "lifecycle": "current",
+      "lifecycle": "legacy",
       "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "knowledgeCutoff": "January 2026",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "anthropic",
         "cursor",
@@ -846,9 +998,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+          "title": "Active legacy release; Sonnet 5.5 is the current generation",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-sonnet": {
@@ -884,6 +1041,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "id": "composer-2-5",
       "role": "model",
       "name": "Composer 2.5",
+      "developerId": "cursor",
+      "specifications": {
+        "contextTokens": 200000,
+        "toolCalling": true,
+        "notes": [
+          "Designed for coding with Cursor agent tools. Fast is the default product variant."
+        ],
+        "sources": [
+          {
+            "url": "https://cursor.com/docs/models/cursor-composer-2-5",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Cursor on-demand rates per million tokens: standard $0.50 input, $0.20 cached input and $2.50 output; Fast $3 input, $0.50 cached input and $15 output. These are Cursor product rates, not a separately established direct API route.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "cursor"
       ],
@@ -899,7 +1073,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "deepseek-v4-1-flash": {
@@ -907,6 +1081,30 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "DeepSeek-V4.1-Flash",
       "developerId": "deepseek",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 384000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking and non-thinking modes. Prices vary between peak and off-peak hours."
+        ],
+        "sources": [
+          {
+            "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "deepseek"
       ],
@@ -997,7 +1195,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-vision-exp": {
@@ -1085,6 +1283,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "DeepSeek-V4-Pro-0813",
       "developerId": "deepseek",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 384000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Current provider model version: DeepSeek-V4-Pro-0813. Thinking and non-thinking modes. Peak and off-peak prices differ."
+        ],
+        "sources": [
+          {
+            "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "deepseek"
       ],
@@ -1121,7 +1342,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "example-large": {
@@ -1181,6 +1402,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3.1 Pro",
       "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxInputTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "google"
@@ -1237,13 +1483,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-5-flash": {
       "id": "gemini-3-5-flash",
       "role": "model",
       "name": "Gemini 3.5 Flash",
+      "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -1259,13 +1530,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-6-flash": {
       "id": "gemini-3-6-flash",
       "role": "model",
       "name": "Gemini 3.6 Flash",
+      "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
       "providerIds": [
         "github",
         "google"
@@ -1292,13 +1589,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-24"
         }
       ],
-      "lastVerifiedAt": "2026-09-24",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-7-flash": {
       "id": "gemini-3-7-flash",
       "role": "model",
       "name": "Gemini 3.7 Flash",
+      "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
       "providerIds": [
         "github"
       ],
@@ -1314,13 +1637,39 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash": {
       "id": "gemini-3-8-flash",
       "role": "model",
       "name": "Gemini 3.8 Flash",
+      "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
       "providerIds": [
         "cursor",
         "github"
@@ -1377,7 +1726,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-flash-lite": {
@@ -1385,6 +1734,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3 Flash-Lite",
       "developerId": "google",
+      "pricingNote": "This subscription label is not automatically equated with the separately named Gemini 3.1 Flash-Lite API model. An exact API identity is needed before applying its rates.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "google"
       ],
@@ -1398,9 +1749,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://ai.google.dev/gemini-api/docs/models",
           "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-flash": {
@@ -1408,6 +1764,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3 Flash",
       "developerId": "google",
+      "specifications": {
+        "contextTokens": 1048576,
+        "maxInputTokens": 1048576,
+        "maxOutputTokens": 65536,
+        "inputModalities": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "google"
       ],
@@ -1439,7 +1820,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-pro": {
@@ -1447,6 +1828,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3 Pro",
       "developerId": "google",
+      "pricingNote": "The Gemini 3 Pro Preview API was shut down on March 9, 2026. Subscription access is listed separately; a replacement API model is not silently substituted.",
+      "apiAvailability": "retired",
       "providerIds": [
         "google"
       ],
@@ -1465,9 +1848,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://gemini.google/us/subscriptions/",
           "title": "Subscription model label checked for the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "glm-5-3-flash": {
@@ -1475,6 +1863,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GLM 5.3 Flash",
       "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Reasoning is always enabled. File input is also supported."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/vlm/glm-5.3-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "z-ai",
         "command-code",
@@ -1611,7 +2024,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-27",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "glm-5-3-flashx": {
@@ -1619,6 +2032,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GLM 5.3 FlashX",
       "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Reasoning is always enabled. File input is also supported. FlashX is not included in the GLM Coding Plan."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/vlm/glm-5.3-flash",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "z-ai"
       ],
@@ -1659,7 +2097,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "glm-5-3": {
@@ -1667,6 +2105,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GLM 5.3",
       "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Reasoning is always on. Supported effort levels: low, high and max."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.3",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "z-ai"
       ],
@@ -1707,13 +2168,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex": {
       "id": "gpt-5-3-codex",
       "role": "model",
       "name": "GPT-5.3-Codex",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 400000,
+        "maxInputTokens": 272000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Aug 31, 2025",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.3-codex",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -1745,13 +2230,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-4-mini": {
       "id": "gpt-5-4-mini",
       "role": "model",
       "name": "GPT-5.4 mini",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 400000,
+        "maxInputTokens": 272000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Aug 31, 2025",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github",
         "openai"
@@ -1789,13 +2298,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-27",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-4-nano": {
       "id": "gpt-5-4-nano",
       "role": "model",
       "name": "GPT-5.4 nano",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 400000,
+        "maxInputTokens": 272000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Aug 31, 2025",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.4-nano",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -1811,13 +2344,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-4": {
       "id": "gpt-5-4",
       "role": "model",
       "name": "GPT-5.4",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Aug 31, 2025",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.4",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -1849,13 +2405,36 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-5": {
       "id": "gpt-5-5",
       "role": "model",
       "name": "GPT-5.5",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Dec 01, 2025",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.5",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -1887,7 +2466,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-6-luna": {
@@ -1895,6 +2474,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5.6 Luna",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Feb 16, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "github",
@@ -1948,7 +2550,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol-pro": {
@@ -1956,6 +2558,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5.6 Sol Pro",
       "developerId": "openai",
+      "pricingNote": "ChatGPT Pro model option. OpenAI lists Sol, Terra and Luna as API models, but does not establish a separate Sol Pro API rate in the reviewed API catalog. Sol API pricing is not substituted.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "openai"
       ],
@@ -1974,9 +2578,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://chatgpt.com/pricing/",
           "title": "Subscription model label checked for the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://openai.com/index/gpt-5-6/",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-6-sol": {
@@ -1984,6 +2593,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5.6 Sol",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Feb 16, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "github",
@@ -2065,7 +2697,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-6-terra": {
@@ -2073,6 +2705,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5.6 Terra",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Feb 16, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "github",
@@ -2140,13 +2795,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-mini": {
       "id": "gpt-5-mini",
       "role": "model",
       "name": "GPT-5 mini",
+      "developerId": "openai",
+      "specifications": {
+        "contextTokens": 400000,
+        "maxInputTokens": 272000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "May 31, 2024",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-5-mini",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -2178,7 +2857,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-thinking-mini": {
@@ -2186,6 +2865,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-5 Thinking Mini",
       "developerId": "openai",
+      "pricingNote": "A ChatGPT model label. A separate direct API identifier and price for this exact label are not established. GPT-5 mini is listed separately.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "openai"
       ],
@@ -2204,9 +2885,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://chatgpt.com/pricing/",
           "title": "Subscription model label checked for the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-6-astra": {
@@ -2214,6 +2900,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Astra",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Apr 30, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github",
         "openai"
@@ -2256,7 +2965,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-6-luna": {
@@ -2264,6 +2973,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Luna",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "May 18, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "openai"
       ],
@@ -2290,7 +3022,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-6-sol": {
@@ -2298,6 +3030,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Sol",
       "developerId": "openai",
+      "specifications": {
+        "contextTokens": 1050000,
+        "maxInputTokens": 922000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "Apr 20, 2026",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "openai"
       ],
@@ -2324,13 +3079,35 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "grok-4-5": {
       "id": "grok-4-5",
       "role": "model",
       "name": "Grok 4.5",
+      "developerId": "x-ai",
+      "specifications": {
+        "contextTokens": 500000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://docs.x.ai/developers/models/grok-4.5",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Higher rates apply to long prompts around the 200K threshold. The pricing table specifies at least 200K; model documentation says above 200K. Global rates shown; regional processing, priority and server-side tools cost extra.",
       "providerIds": [
         "cursor",
         "github"
@@ -2355,15 +3132,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.x.ai/developers/pricing",
+          "title": "Official global pricing and long-context conditions",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "grok-4-6": {
       "id": "grok-4-6",
       "role": "model",
       "name": "Grok 4.6",
+      "developerId": "x-ai",
+      "specifications": {
+        "contextTokens": 500000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://docs.x.ai/developers/models/grok-4.6",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Higher rates apply to long prompts around the 200K threshold. The pricing table specifies at least 200K; model documentation says above 200K. Global rates shown; regional processing, priority and server-side tools cost extra.",
       "providerIds": [
         "cursor",
         "github"
@@ -2388,9 +3192,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.x.ai/developers/pricing",
+          "title": "Official global pricing and long-context conditions",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "grok-4-7": {
@@ -2398,6 +3207,27 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Grok 4.7",
       "developerId": "x-ai",
+      "specifications": {
+        "contextTokens": 500000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://docs.x.ai/developers/models/grok-4.7",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Higher rates apply to long prompts around the 200K threshold. The pricing table specifies at least 200K; model documentation says above 200K. Global rates shown; regional processing, priority and server-side tools cost extra.",
       "providerIds": [
         "cursor",
         "github",
@@ -2444,15 +3274,40 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.x.ai/developers/pricing",
+          "title": "Official global pricing and long-context conditions",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "kimi-k2-7-code": {
       "id": "kimi-k2-7-code",
       "role": "model",
       "name": "Kimi K2.7 Code",
+      "developerId": "moonshot",
+      "specifications": {
+        "contextTokens": 256000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
       "providerIds": [
         "github"
       ],
@@ -2468,13 +3323,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "kimi-k3": {
       "id": "kimi-k3",
       "role": "model",
       "name": "Kimi K3",
+      "developerId": "moonshot",
+      "specifications": {
+        "contextTokens": 1000000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Reasoning is always enabled. Cache writes use explicit five-minute or one-hour durations."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.kimi.ai/docs/guide/kimi-k3-quickstart",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Official platform lists cache writes at $3 per million tokens. Five-minute and one-hour storage are supported; duration-specific write pricing is not resolved here. No write duration is assumed.",
       "providerIds": [
         "github"
       ],
@@ -2488,15 +3367,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://platform.kimi.ai/",
+          "title": "Published token rates",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "mai-code-1-1-flash": {
       "id": "mai-code-1-1-flash",
       "role": "model",
       "name": "MAI-Code-1.1-Flash",
+      "developerId": "microsoft",
+      "specifications": {
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "notes": [
+          "Coding model available in GitHub Copilot. Provider reports support for image understanding."
+        ],
+        "sources": [
+          {
+            "url": "https://github.com/microsoft/MAI-Code",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Available through GitHub Copilot. Microsoft describes a lower product cost, but the reviewed announcement does not publish an absolute direct API token price.",
+      "apiAvailability": "not_established",
       "providerIds": [
         "github"
       ],
@@ -2510,15 +3416,42 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
           "title": "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://microsoft.ai/news/mai-code-1-1-flash-br-better-faster-at-a-quarter-of-the-cost/",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3": {
       "id": "muse-spark-1-3",
       "role": "model",
       "name": "Muse Spark 1.3",
+      "developerId": "meta",
+      "specifications": {
+        "contextTokens": 1000000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://developer.meta.com/ai/models/muse-spark/",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Standard Muse Spark 1.3 rates. The separate contributor model has lower prices and permits use of data to improve Meta products; it is not silently substituted here.",
       "providerIds": [
         "cursor"
       ],
@@ -2534,7 +3467,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "nano-banana-pro": {
@@ -2542,6 +3475,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Nano Banana Pro",
       "developerId": "google",
+      "specifications": {
+        "maxInputTokens": 65536,
+        "maxOutputTokens": 32768,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text",
+          "image"
+        ],
+        "reasoning": true,
+        "toolCalling": false,
+        "structuredOutput": false,
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-28"
+          }
+        ]
+      },
+      "pricingNote": "Gemini 3 Pro Image pricing is modality-specific: $2 per million input tokens; $12 per million text/thinking output tokens; $120 per million image output tokens. A 1K/2K image is $0.134 and a 4K image $0.24. These cannot be collapsed into one output-token rate.",
       "providerIds": [
         "google"
       ],
@@ -2555,9 +3511,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://ai.google.dev/gemini-api/docs/models",
           "title": "Google Gemini API model list; reviewed in the Sep 23 launch audit",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Current API identity and pricing review",
+          "checkedAt": "2026-09-28"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     }
   },
@@ -4821,6 +5782,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "20× Pro’s per-session allowance, with five-hour and weekly limits. Claude Code included.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
               "id": "per-session-usage-allowance-multiple-of-pro",
               "label": "Per-session usage allowance (multiple of Pro)",
               "statement": "Max 20x includes 20 times the Pro plan's per-session usage allowance. This tier is ideal for daily users who collaborate often with Claude for most tasks.",
@@ -5289,6 +6256,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "5× Pro’s per-session allowance, with five-hour and weekly limits. Claude Code included.",
+              "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+            },
+            {
               "id": "per-session-usage-allowance-multiple-of-pro",
               "label": "Per-session usage allowance (multiple of Pro)",
               "statement": "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance.",
@@ -5745,6 +6718,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "Claude and Claude Code access with five-hour and weekly usage limits. Optional paid usage credits after included usage.",
+              "sourceUrl": "https://claude.com/pricing"
+            },
             {
               "id": "5-hour-session-usage-limit-rolling",
               "label": "5-hour session usage limit (rolling)",
@@ -6584,6 +7563,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "Free access to Composer with limited Agent requests. No published numeric allowance.",
+              "sourceUrl": "https://cursor.com/help/account-and-billing/pricing"
+            },
+            {
+              "id": "after-limit-not-published",
+              "label": "After the limit",
+              "statement": "The pricing page does not state a numeric Hobby allowance or an automatic paid-overage rule. Check the upgrade options in your account when a limit is reached.",
+              "sourceUrl": "https://cursor.com/pricing",
+              "topic": "after_limit"
+            },
+            {
               "id": "hobby-auto-only",
               "label": "Auto model only",
               "statement": "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model.",
@@ -6680,7 +7672,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             }
           ],
           "lastVerifiedAt": "2026-09-23",
-          "verificationStatus": "unknown"
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -6700,6 +7692,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "Monthly $60/mo; yearly view shows $48/mo ('Save 20% with yearly billing').",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "3× Pro Agent limits, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            },
             {
               "id": "grok-route-pricing-unknown",
               "label": "Grok 4.7 route pricing depends on speed and context",
@@ -6835,6 +7833,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "Monthly price $20/mo; yearly view shows $16/mo with the banner 'Save 20% with yearly billing' (read from the live Monthly/Yearly toggle on 2026-09-21).",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "Included Cursor-model and third-party-model usage pools, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            },
             {
               "id": "grok-route-pricing-unknown",
               "label": "Grok 4.7 route pricing depends on speed and context",
@@ -7163,6 +8167,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "Monthly $200/mo; yearly view shows $160/mo ('Save 20% with yearly billing').",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "20× Pro Agent limits, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            },
             {
               "id": "grok-route-pricing-unknown",
               "label": "Grok 4.7 route pricing depends on speed and context",
@@ -9858,6 +10868,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "4× standard Gemini Apps usage, with five-hour and weekly limits. Separate allowances apply in other Google AI products.",
+              "sourceUrl": "https://gemini.google/subscriptions/"
+            },
+            {
               "id": "gemini-apps-compute-based-usage-limit-relative-t",
               "label": "Gemini Apps compute-based usage limit (relative to no-plan users)",
               "statement": "Gemini Apps have compute-based usage limits that determine how much you can interact with Gemini tools and features. These limits factor in the complexity of your prompt, the models and features you use, and the length of your chat. Your limit refreshes every 5 hours until you reach your weekly limit. ... AI Pro | 4x higher than standard limits | AI Ultra | 5x or 20x higher than AI Pro limits depending on your subscription",
@@ -9973,6 +10989,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "20× AI Pro usage in Gemini and Antigravity. Separate creative-tool and model limits apply.",
+              "sourceUrl": "https://gemini.google/subscriptions/"
+            },
+            {
               "id": "gemini-apps-usage-limit-relative-to-google-ai-pr",
               "label": "Gemini Apps usage limit relative to Google AI Pro (20x tier)",
               "statement": "$199.99 / month: 20x higher usage limits vs. AI Pro",
@@ -10087,6 +11109,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "Google AI Ultra has a $99.99 per month tier with 5x the AI Pro usage limits. Google also offers a separate $199.99 tier.",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "5× AI Pro usage in Gemini and Antigravity. Deep Think access and separate creative-tool allowances.",
+              "sourceUrl": "https://gemini.google/subscriptions/"
+            },
             {
               "id": "gemini-apps-usage-limit-relative-to-google-ai-pr",
               "label": "Gemini Apps usage limit relative to Google AI Pro (5x tier)",
@@ -11320,6 +12348,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "Managed workspace with Standard and Premium seats, included agentic usage and optional workspace credits. Two paid seats minimum.",
+              "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+            },
+            {
               "id": "standard-seat-included-usage-unquantified-5-hour",
               "label": "Standard seat included usage (unquantified) + 5-hour usage limit",
               "statement": "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace.",
@@ -11557,6 +12591,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan.",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "ChatGPT, Codex and Work. Shared agentic usage with five-hour and weekly limits; optional paid credits.",
+              "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+            },
             {
               "id": "message-caps-on-plus-unquantified",
               "label": "Message caps on Plus (unquantified)",
@@ -11956,6 +12996,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "limits": [],
           "qualitativeLimits": [
             {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "ChatGPT · Codex · ChatGPT Work",
+              "sourceUrl": "https://openai.com/index/gpt-5-6/"
+            },
+            {
               "id": "pro-200-usage-relative-to-plus",
               "label": "Pro $200 usage relative to Plus",
               "statement": "Pro $200 unlocks 20x usage than Plus.",
@@ -12172,6 +13224,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
           "limits": [],
           "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "5× Plus usage. ChatGPT, Codex and Work, with model-specific allowances and optional paid credits.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
             {
               "id": "pro-100-usage-relative-to-plus",
               "label": "Pro $100 usage relative to Plus",
@@ -12904,6 +13962,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "20× Pro’s per-session allowance, with five-hour and weekly limits. Claude Code included.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
           "id": "per-session-usage-allowance-multiple-of-pro",
           "label": "Per-session usage allowance (multiple of Pro)",
           "statement": "Max 20x includes 20 times the Pro plan's per-session usage allowance. This tier is ideal for daily users who collaborate often with Claude for most tasks.",
@@ -13190,6 +14254,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "5× Pro’s per-session allowance, with five-hour and weekly limits. Claude Code included.",
+          "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+        },
+        {
           "id": "per-session-usage-allowance-multiple-of-pro",
           "label": "Per-session usage allowance (multiple of Pro)",
           "statement": "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance.",
@@ -13464,6 +14534,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Claude Pro costs $20 per month. Annual billing is available at $200 upfront.",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "Claude and Claude Code access with five-hour and weekly usage limits. Optional paid usage credits after included usage.",
+          "sourceUrl": "https://claude.com/pricing"
+        },
         {
           "id": "5-hour-session-usage-limit-rolling",
           "label": "5-hour session usage limit (rolling)",
@@ -13892,6 +14968,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "Free access to Composer with limited Agent requests. No published numeric allowance.",
+          "sourceUrl": "https://cursor.com/help/account-and-billing/pricing"
+        },
+        {
+          "id": "after-limit-not-published",
+          "label": "After the limit",
+          "statement": "The pricing page does not state a numeric Hobby allowance or an automatic paid-overage rule. Check the upgrade options in your account when a limit is reached.",
+          "sourceUrl": "https://cursor.com/pricing",
+          "topic": "after_limit"
+        },
+        {
           "id": "hobby-auto-only",
           "label": "Auto model only",
           "statement": "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model.",
@@ -13988,7 +15077,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
-      "verificationStatus": "unknown",
+      "verificationStatus": "verified",
       "versionId": "cursor-hobby@2026-09-21",
       "planId": "cursor-hobby",
       "planName": "Cursor Hobby",
@@ -14004,6 +15093,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Monthly $60/mo; yearly view shows $48/mo ('Save 20% with yearly billing').",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "3× Pro Agent limits, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        },
         {
           "id": "grok-route-pricing-unknown",
           "label": "Grok 4.7 route pricing depends on speed and context",
@@ -14135,6 +15230,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Monthly price $20/mo; yearly view shows $16/mo with the banner 'Save 20% with yearly billing' (read from the live Monthly/Yearly toggle on 2026-09-21).",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "Included Cursor-model and third-party-model usage pools, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        },
         {
           "id": "grok-route-pricing-unknown",
           "label": "Grok 4.7 route pricing depends on speed and context",
@@ -14278,6 +15379,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Monthly $200/mo; yearly view shows $160/mo ('Save 20% with yearly billing').",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "20× Pro Agent limits, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        },
         {
           "id": "grok-route-pricing-unknown",
           "label": "Grok 4.7 route pricing depends on speed and context",
@@ -16755,6 +17862,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "4× standard Gemini Apps usage, with five-hour and weekly limits. Separate allowances apply in other Google AI products.",
+          "sourceUrl": "https://gemini.google/subscriptions/"
+        },
+        {
           "id": "gemini-apps-compute-based-usage-limit-relative-t",
           "label": "Gemini Apps compute-based usage limit (relative to no-plan users)",
           "statement": "Gemini Apps have compute-based usage limits that determine how much you can interact with Gemini tools and features. These limits factor in the complexity of your prompt, the models and features you use, and the length of your chat. Your limit refreshes every 5 hours until you reach your weekly limit. ... AI Pro | 4x higher than standard limits | AI Ultra | 5x or 20x higher than AI Pro limits depending on your subscription",
@@ -16866,6 +17979,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "20× AI Pro usage in Gemini and Antigravity. Separate creative-tool and model limits apply.",
+          "sourceUrl": "https://gemini.google/subscriptions/"
+        },
+        {
           "id": "gemini-apps-usage-limit-relative-to-google-ai-pr",
           "label": "Gemini Apps usage limit relative to Google AI Pro (20x tier)",
           "statement": "$199.99 / month: 20x higher usage limits vs. AI Pro",
@@ -16976,6 +18095,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Google AI Ultra has a $99.99 per month tier with 5x the AI Pro usage limits. Google also offers a separate $199.99 tier.",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "5× AI Pro usage in Gemini and Antigravity. Deep Think access and separate creative-tool allowances.",
+          "sourceUrl": "https://gemini.google/subscriptions/"
+        },
         {
           "id": "gemini-apps-usage-limit-relative-to-google-ai-pr",
           "label": "Gemini Apps usage limit relative to Google AI Pro (5x tier)",
@@ -17263,6 +18388,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "Managed workspace with Standard and Premium seats, included agentic usage and optional workspace credits. Two paid seats minimum.",
+          "sourceUrl": "https://help.openai.com/en/articles/8792828-chatgpt-business"
+        },
+        {
           "id": "standard-seat-included-usage-unquantified-5-hour",
           "label": "Standard seat included usage (unquantified) + 5-hour usage limit",
           "statement": "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace.",
@@ -17501,6 +18632,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "limits": [],
       "qualitativeLimits": [
         {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "ChatGPT, Codex and Work. Shared agentic usage with five-hour and weekly limits; optional paid credits.",
+          "sourceUrl": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus"
+        },
+        {
           "id": "message-caps-on-plus-unquantified",
           "label": "Message caps on Plus (unquantified)",
           "statement": "To ensure a smooth experience for all users, Plus subscriptions may include usage limits such as message caps, especially during high demand. These limits may vary based on system conditions.",
@@ -17716,6 +18853,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "Included as a separate entry because ChatGPT Pro has two official price points and usage allowances under one plan name.",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "ChatGPT · Codex · ChatGPT Work",
+          "sourceUrl": "https://openai.com/index/gpt-5-6/"
+        },
         {
           "id": "pro-200-usage-relative-to-plus",
           "label": "Pro $200 usage relative to Plus",
@@ -17933,6 +19082,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "billingMechanics": "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x.",
       "limits": [],
       "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "5× Plus usage. ChatGPT, Codex and Work, with model-specific allowances and optional paid credits.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
         {
           "id": "pro-100-usage-relative-to-plus",
           "label": "Pro $100 usage relative to Plus",
@@ -19329,6 +20484,88 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "claude-opus-4-7-api-reference-20260928-1h": {
+      "id": "claude-opus-4-7-api-reference-20260928-1h",
+      "role": "pricing",
+      "modelId": "claude-opus-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "10.0",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-7-api-reference-20260928-5m": {
+      "id": "claude-opus-4-7-api-reference-20260928-5m",
+      "role": "pricing",
+      "modelId": "claude-opus-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-7-api-reference-20260928": {
+      "id": "claude-opus-4-7-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "claude-opus-4-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
     "claude-opus-4-7-github-pricing": {
       "id": "claude-opus-4-7-github-pricing",
       "role": "pricing",
@@ -19573,6 +20810,88 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-sonnet-4-6-api-reference-20260928-1h": {
+      "id": "claude-sonnet-4-6-api-reference-20260928-1h",
+      "role": "pricing",
+      "modelId": "claude-sonnet-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "3",
+        "output": "15",
+        "cacheRead": "0.3",
+        "cacheWrite": "6.0",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "claude-sonnet-4-6-api-reference-20260928-5m": {
+      "id": "claude-sonnet-4-6-api-reference-20260928-5m",
+      "role": "pricing",
+      "modelId": "claude-sonnet-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "3",
+        "output": "15",
+        "cacheRead": "0.3",
+        "cacheWrite": "3.75",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "claude-sonnet-4-6-api-reference-20260928": {
+      "id": "claude-sonnet-4-6-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "claude-sonnet-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "3",
+        "output": "15",
+        "cacheRead": "0.3",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "claude-sonnet-5-github-pricing": {
@@ -20059,6 +21378,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "gemini-3-5-flash-api-reference-20260928": {
+      "id": "gemini-3-5-flash-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "gemini-3-5-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.5",
+        "output": "9",
+        "cacheRead": "0.15",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
     "gemini-3-5-flash-github-pricing": {
       "id": "gemini-3-5-flash-github-pricing",
       "role": "pricing",
@@ -20083,6 +21428,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-6-flash-api-reference-20260928": {
+      "id": "gemini-3-6-flash-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "gemini-3-6-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "effectiveTo": "2026-12-31",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-6-flash-github-pricing": {
@@ -20110,6 +21482,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-7-flash-api-reference-20260928": {
+      "id": "gemini-3-7-flash-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "gemini-3-7-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.75",
+        "output": "3.75",
+        "cacheRead": "0.075",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "effectiveTo": "2026-12-31",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gemini-3-7-flash-github-pricing": {
@@ -20572,6 +21971,32 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gpt-5-4-nano-api-reference-20260928": {
+      "id": "gpt-5-4-nano-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "gpt-5-4-nano",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.2",
+        "output": "1.25",
+        "cacheRead": "0.02",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-5.4-nano",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "gpt-5-4-nano-github-pricing": {
@@ -21530,6 +22955,43 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "grok-4-5-api-reference-20260928": {
+      "id": "grok-4-5-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "grok-4-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2",
+        "output": "6",
+        "cacheRead": "0.3"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "At least 200K prompt tokens",
+          "when": {
+            "inputTokensAbove": 199999
+          },
+          "rates": {
+            "input": "4",
+            "output": "12",
+            "cacheRead": "0.6"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://docs.x.ai/developers/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
     "grok-4-5-github-pricing": {
       "id": "grok-4-5-github-pricing",
       "role": "pricing",
@@ -21565,6 +23027,43 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "grok-4-6-api-reference-20260928": {
+      "id": "grok-4-6-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "grok-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2",
+        "output": "6",
+        "cacheRead": "0.5"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "At least 200K prompt tokens",
+          "when": {
+            "inputTokensAbove": 199999
+          },
+          "rates": {
+            "input": "4",
+            "output": "12",
+            "cacheRead": "1.0"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://docs.x.ai/developers/pricing",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "grok-4-6-github-pricing": {
@@ -21678,6 +23177,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "kimi-k2-7-code-api-reference-20260928": {
+      "id": "kimi-k2-7-code-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "kimi-k2-7-code",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.95",
+        "output": "4",
+        "cacheRead": "0.19"
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
     "kimi-k2-7-code-github-pricing": {
       "id": "kimi-k2-7-code-github-pricing",
       "role": "pricing",
@@ -21699,6 +23221,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "kimi-k3-api-reference-20260928": {
+      "id": "kimi-k3-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "kimi-k3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "3",
+        "output": "15",
+        "cacheRead": "0.3"
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "kimi-k3-github-pricing": {
@@ -21745,6 +23290,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "muse-spark-1-3-api-reference-20260928": {
+      "id": "muse-spark-1-3-api-reference-20260928",
+      "role": "pricing",
+      "modelId": "muse-spark-1-3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.25",
+        "output": "4.25",
+        "cacheRead": "0.15"
+      },
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://developer.meta.com/ai/models/muse-spark/",
+          "title": "Official standard token prices; checked September 28, 2026",
+          "checkedAt": "2026-09-28"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
     "openai-api-gpt-5-4-mini-current-rate": {

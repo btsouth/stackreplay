@@ -1,31 +1,47 @@
 id: glm-5-3
 role: model
-name: "GLM 5.3"
+name: GLM 5.3
 developerId: z-ai
 providerIds:
-  - z-ai
+- z-ai
 aliases:
-  - id: glm-5-3-router-z-ai-glm-5-3
-    alias: "z-ai/glm-5.3"
-    kind: harness_alias
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3
-        title: "OpenRouter model record `z-ai/glm-5.3` (exact id as published in the model list)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-  - id: glm-5-3-observed-glm-5-3
-    alias: "GLM-5.3"
-    kind: provider_id
-    sources:
-      - url: https://docs.z.ai/guides/overview/pricing
-        title: "GLM 5.3 API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-sources:
+- id: glm-5-3-router-z-ai-glm-5-3
+  alias: z-ai/glm-5.3
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3
+    title: OpenRouter model record `z-ai/glm-5.3` (exact id as published in the model list)
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+- id: glm-5-3-observed-glm-5-3
+  alias: GLM-5.3
+  kind: provider_id
+  sources:
   - url: https://docs.z.ai/guides/overview/pricing
-    title: "GLM 5.3 model documentation"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+    title: GLM 5.3 API model id
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+sources:
+- url: https://docs.z.ai/guides/overview/pricing
+  title: GLM 5.3 model documentation
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - 'Reasoning is always on. Supported effort levels: low, high and max.'
+  sources:
+  - url: https://docs.z.ai/guides/llm/glm-5.3
+    title: Official model specifications
+    checkedAt: '2026-09-28'

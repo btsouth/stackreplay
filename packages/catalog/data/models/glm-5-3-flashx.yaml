@@ -1,31 +1,49 @@
 id: glm-5-3-flashx
 role: model
-name: "GLM 5.3 FlashX"
+name: GLM 5.3 FlashX
 developerId: z-ai
 providerIds:
-  - z-ai
+- z-ai
 aliases:
-  - id: glm-5-3-flashx-router-z-ai-glm-5-3-flashx
-    alias: "z-ai/glm-5.3-flashx"
-    kind: harness_alias
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3-flashx
-        title: "OpenRouter model record `z-ai/glm-5.3-flashx` (exact id as published in the model list)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-  - id: glm-5-3-flashx-observed-glm-5-3-flashx
-    alias: "GLM-5.3-FlashX"
-    kind: provider_id
-    sources:
-      - url: https://docs.z.ai/guides/overview/pricing
-        title: "GLM 5.3 FlashX API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-sources:
+- id: glm-5-3-flashx-router-z-ai-glm-5-3-flashx
+  alias: z-ai/glm-5.3-flashx
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3-flashx
+    title: OpenRouter model record `z-ai/glm-5.3-flashx` (exact id as published in the model list)
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+- id: glm-5-3-flashx-observed-glm-5-3-flashx
+  alias: GLM-5.3-FlashX
+  kind: provider_id
+  sources:
   - url: https://docs.z.ai/guides/overview/pricing
-    title: "GLM 5.3 FlashX model documentation"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+    title: GLM 5.3 FlashX API model id
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+sources:
+- url: https://docs.z.ai/guides/overview/pricing
+  title: GLM 5.3 FlashX model documentation
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  - video
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Reasoning is always enabled. File input is also supported. FlashX is not included in the GLM Coding Plan.
+  sources:
+  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+    title: Official model specifications
+    checkedAt: '2026-09-28'

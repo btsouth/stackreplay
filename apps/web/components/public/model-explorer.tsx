@@ -10,6 +10,7 @@ import {
   modelsInView,
   searchModels,
 } from "@/lib/model-library";
+import { modelCapabilities, tokenSize } from "@/lib/model-specifications";
 import type { PublicModelSummary } from "@/lib/public-catalog";
 
 export function ModelExplorer({
@@ -20,6 +21,7 @@ export function ModelExplorer({
   prices?: Record<string, ModelPrices[]>;
 }) {
   const [view, setView] = useState<ModelLibraryView>("models");
+  const [capability, setCapability] = useState("all");
   const [developer, setDeveloper] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("name");
@@ -29,7 +31,12 @@ export function ModelExplorer({
   const developers = developerOptions(models.filter((m) => m.kind === "release"));
   const visible = useMemo(() => {
     const list = (query.trim() ? searchModels(models, query) : modelsInView(models, view)).filter(
-      (m) => matchesDeveloper(m, developer),
+      (m) =>
+        matchesDeveloper(m, developer) &&
+        (capability === "all" ||
+          (capability === "long-context"
+            ? (m.specifications?.contextTokens ?? 0) >= 1_000_000
+            : modelCapabilities(m).includes(capability))),
     );
     if (sort !== "name")
       list.sort(
@@ -39,7 +46,7 @@ export function ModelExplorer({
       );
     else list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [models, view, query, developer, sort, prices]);
+  }, [models, view, query, developer, capability, sort, prices]);
   const chartModels = selected.length
     ? models.filter((m) => selected.includes(m.id))
     : (() => {
@@ -90,7 +97,7 @@ export function ModelExplorer({
         </fieldset>
         <p className="market-muted">
           {selected.length ? `${selected.length} selected models` : "Featured models in this view"}{" "}
-          · standard rates
+          · base rates; conditions apply
         </p>
       </div>
       <fieldset className="market-price-bars" aria-label={`${metric} price comparison`}>
@@ -100,13 +107,15 @@ export function ModelExplorer({
             <Link key={m.id} href={`/models/${m.id}`} className="market-price-bar">
               <span>{m.name}</span>
               <span className="market-price-bar-track" aria-hidden="true">
-                <span
-                  className="market-price-bar-fill block"
-                  style={{ width: `${(Number(value ?? 0) / max) * 100}%` }}
-                />
+                {value !== undefined && (
+                  <span
+                    className="market-price-bar-fill block"
+                    style={{ width: `${(Number(value) / max) * 100}%` }}
+                  />
+                )}
               </span>
               <span className="text-right font-mono">
-                {value === undefined ? "Unknown" : priceNumber(value)}
+                {value === undefined ? "See details" : priceNumber(value)}
               </span>
             </Link>
           );
@@ -116,8 +125,9 @@ export function ModelExplorer({
         )}
       </fieldset>
       <p className="market-muted mb-8">
-        Token categories are compared separately. Context tiers, cache-write assumptions and pricing
-        evidence are on each model page. These bars do not measure model quality.
+        Token categories are compared separately. Context tiers, time-based rates, cache-write
+        assumptions and pricing evidence are on each model page. These bars do not measure model
+        quality.
       </p>
       <div className="market-section-title">
         <span>02 / Explore models</span>
@@ -142,6 +152,18 @@ export function ModelExplorer({
                 {d.name}
               </option>
             ))}
+          </select>
+        </label>
+        <label>
+          Capability
+          <select value={capability} onChange={(e) => setCapability(e.target.value)}>
+            <option value="all">All capabilities</option>
+            {["Reasoning", "Tool calling", "Vision", "Audio input", "Structured output"].map(
+              (item) => (
+                <option key={item}>{item}</option>
+              ),
+            )}
+            <option value="long-context">1M+ context</option>
           </select>
         </label>
         <label>
@@ -182,11 +204,37 @@ export function ModelExplorer({
       </div>
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
-          <p className="market-muted">Rate comparison above uses your selection.</p>
+          <p className="market-muted">Your selected models are compared above and below.</p>
           <button type="button" onClick={() => setSelected([])} className="market-link">
             Clear comparison
           </button>
         </div>
+      )}
+      {selected.length > 0 && (
+        <section className="market-comparison" aria-label="Selected model specifications">
+          {models
+            .filter((m) => selected.includes(m.id))
+            .map((model) => (
+              <article key={model.id}>
+                <Link
+                  href={`/models/${model.id}`}
+                  className="text-base font-medium hover:text-accent"
+                >
+                  {model.name} ↗
+                </Link>
+                <p className="market-profile-number">
+                  {tokenSize(model.specifications?.contextTokens)}
+                </p>
+                <p className="market-muted">context tokens</p>
+                <p className="market-muted mt-4">
+                  Max output {tokenSize(model.specifications?.maxOutputTokens)}
+                </p>
+                <p className="market-muted mt-2">
+                  {modelCapabilities(model).join(" · ") || "Capabilities on model page"}
+                </p>
+              </article>
+            ))}
+        </section>
       )}
       <div data-testid="model-table">
         {visible.slice(0, expanded ? undefined : 12).map((model) => {
@@ -200,7 +248,7 @@ export function ModelExplorer({
             >
               <div>
                 <div className="flex items-center gap-3">
-                  {rate && (
+                  {model.kind === "release" && (
                     <input
                       type="checkbox"
                       aria-label={`Compare ${model.name}`}
@@ -223,23 +271,49 @@ export function ModelExplorer({
                   </h2>
                 </div>
                 <p className="market-muted mt-1">
-                  {model.developerName ?? "Developer not recorded"} ·{" "}
+                  {model.developerName ?? "Model release"} ·{" "}
                   {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
                 </p>
+                {model.specifications && (
+                  <p className="market-model-spec-line">
+                    {model.specifications.contextTokens
+                      ? `${tokenSize(model.specifications.contextTokens)} context`
+                      : ""}
+                    {model.specifications.contextTokens && modelCapabilities(model).length
+                      ? " · "
+                      : ""}
+                    {modelCapabilities(model).slice(0, 2).join(" · ")}
+                  </p>
+                )}
               </div>
-              {(["input", "output", "cacheRead"] as const).map((key, i) => (
-                <div key={key}>
-                  <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
-                  <p className={rate ? "market-rate" : "market-muted"}>
-                    {priceNumber(rate?.rates[key])}
+              {rate ? (
+                (["input", "output", "cacheRead"] as const).map((key, i) => (
+                  <div key={key}>
+                    <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
+                    <p className={rate ? "market-rate" : "market-muted"}>
+                      {rate ? priceNumber(rate.rates[key]) : "See details"}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="market-model-price-context">
+                  <p className="market-kicker mb-2">Pricing context</p>
+                  <p className="market-muted">
+                    {model.pricingNote?.split(/(?<=[.!?])\s+(?=[A-Z])/u)[0] ??
+                      (model.kind === "family"
+                        ? "Choose an exact release to inspect its pricing."
+                        : "See available plans and provider pricing details.")}
                   </p>
                 </div>
-              ))}
+              )}
               <div>
                 <p className="market-muted">
-                  {model.places.length
-                    ? `${model.places.filter((p) => p.kind === "api").length} API routes · ${model.planIds.length} plans`
-                    : "Access under review"}
+                  {[
+                    model.places.some((p) => p.kind === "api") ? "Published API" : undefined,
+                    model.planIds.length ? `${model.planIds.length} documented plans` : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || "View access details"}
                 </p>
                 <Link href={`/models/${model.id}`} className="market-link">
                   Explore model <span aria-hidden="true">↗</span>

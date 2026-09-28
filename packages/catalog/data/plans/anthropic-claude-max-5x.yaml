@@ -88,6 +88,10 @@ versions:
     billingMechanics: "Official pricing: 'Max 5x : $100 per month'."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 5× Pro’s per-session allowance, with five-hour and weekly limits. Claude Code included.
+        sourceUrl: https://support.claude.com/en/articles/11049741-what-is-the-max-plan
       - id: per-session-usage-allowance-multiple-of-pro
         label: "Per-session usage allowance (multiple of Pro)"
         statement: "Max 5x includes five times the Pro plan's per-session usage allowance. This tier is ideal for frequent users who work with Claude on a variety of tasks. Max 20x includes 20 times the Pro plan's per-session usage allowance."

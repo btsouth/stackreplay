@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Monthly price $20/mo; yearly view shows $16/mo with the banner 'Save 20% with yearly billing' (read from the live Monthly/Yearly toggle on 2026-09-21)."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Included Cursor-model and third-party-model usage pools, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.
+        sourceUrl: https://cursor.com/docs/models-and-pricing
       - id: grok-route-pricing-unknown
         label: "Grok 4.7 route pricing depends on speed and context"
         statement: "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate."

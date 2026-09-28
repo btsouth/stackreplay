@@ -31,7 +31,7 @@ export function basePrice(prices: readonly ModelPrices[]) {
     : undefined;
 }
 export function priceNumber(value: string | { billedAs: string } | undefined) {
-  if (value === undefined) return "Not verified";
+  if (value === undefined) return "Not listed";
   if (typeof value !== "string") return `Billed as ${value.billedAs}`;
   return `$${Number(value).toLocaleString("en-US", { maximumFractionDigits: 4 })}`;
 }

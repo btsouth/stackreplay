@@ -306,3 +306,115 @@
     align-items: baseline;
   }
 }
+
+/* Model field guide: a few strong facts, with space for the details. */
+.market-model-profile {
+  align-self: end;
+  border-left: 2px solid var(--accent);
+  padding: 1rem 0 1rem 2rem;
+}
+.market-profile-number {
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  letter-spacing: -0.06em;
+  line-height: 1.2;
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.market-capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.75rem;
+}
+.market-capabilities span::before {
+  content: "+";
+  margin-right: 0.4rem;
+  color: var(--accent);
+}
+.market-model-spec-line {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+.market-price-note {
+  border-left: 2px solid var(--accent);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  max-width: 80ch;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+.market-specifications {
+  margin: 2.5rem 0;
+}
+.market-fact-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 3rem;
+}
+.market-fact-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.market-fact-list dt {
+  color: var(--muted-foreground);
+}
+.market-fact-list dd {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.market-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-strong);
+}
+.market-comparison .market-profile-number {
+  font-size: 2.75rem;
+}
+.market-plan-terms > details {
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 0;
+}
+.market-plan-terms summary {
+  padding: 0.8rem 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.market-plan-terms details > p {
+  max-width: 78ch;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+@media (max-width: 700px) {
+  .market-fact-list {
+    grid-template-columns: 1fr;
+  }
+  .market-model-profile {
+    padding-left: 1.25rem;
+  }
+  .market-profile-number {
+    font-size: 3rem;
+  }
+  .market-model-row {
+    padding: 1.75rem 0;
+  }
+  .market-comparison {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.market-model-price-context {
+  grid-column: span 3;
+  max-width: 65ch;
+}

@@ -251,6 +251,21 @@ export type ModelKindV1 = z.infer<typeof modelKindV1Schema>;
 export const modelLifecycleV1Schema = z.enum(["current", "legacy"]);
 export type ModelLifecycleV1 = z.infer<typeof modelLifecycleV1Schema>;
 
+/** Sourced discovery facts. Display only; these never supply replay capacity or rates. */
+export const modelSpecificationsV1Schema = z.strictObject({
+  contextTokens: z.number().int().positive().optional(),
+  maxInputTokens: z.number().int().positive().optional(),
+  maxOutputTokens: z.number().int().positive().optional(),
+  inputModalities: z.array(z.enum(["text", "image", "audio", "video", "pdf"])).optional(),
+  outputModalities: z.array(z.enum(["text", "image", "audio", "video"])).optional(),
+  reasoning: z.boolean().optional(),
+  toolCalling: z.boolean().optional(),
+  structuredOutput: z.boolean().optional(),
+  knowledgeCutoff: z.string().min(1).optional(),
+  notes: z.array(z.string().min(1)).optional(),
+  sources: z.array(catalogSourceV1Schema).min(1),
+});
+
 export const modelV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("model"),
@@ -268,6 +283,11 @@ export const modelV1Schema = z.strictObject({
    * inferred from the other.
    */
   developerId: catalogIdV1Schema.optional(),
+  specifications: modelSpecificationsV1Schema.optional(),
+  /** A precise explanation when API pricing or access differs from normal token billing. */
+  pricingNote: z.string().min(1).optional(),
+  /** Public access status, separate from subscription access and executable admission. */
+  apiAvailability: z.enum(["available", "not_established", "retired"]).optional(),
   /** Routes that offer this model (a Direct API, a subscription platform). */
   providerIds: z.array(catalogIdV1Schema).optional(),
   aliases: z.array(modelAliasV1Schema).optional(),

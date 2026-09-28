@@ -78,6 +78,10 @@ versions:
     billingMechanics: "ChatGPT Plus costs $20 per month, billed monthly. OpenAI does not offer annual billing for this plan."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: ChatGPT, Codex and Work. Shared agentic usage with five-hour and weekly limits; optional paid credits.
+        sourceUrl: https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus
       - id: message-caps-on-plus-unquantified
         label: "Message caps on Plus (unquantified)"
         statement: "To ensure a smooth experience for all users, Plus subscriptions may include usage limits such as message caps, especially during high demand. These limits may vary based on system conditions."

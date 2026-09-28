@@ -1,0 +1,21 @@
+id: claude-opus-4-7-api-reference-20260928-1h
+role: pricing
+modelId: claude-opus-4-7
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '5'
+  output: '25'
+  reasoning:
+    billedAs: output
+  cacheRead: '0.5'
+  cacheWrite: '10.0'
+effectiveFrom: '2026-09-28'
+sources:
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Official standard token prices; checked September 28, 2026
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified
+variantId: cache-write-1h

@@ -1,0 +1,9 @@
+id: moonshot
+role: provider
+name: Moonshot AI
+sources:
+- url: https://platform.kimi.ai/docs/guide/kimi-k3-quickstart
+  title: Official model developer
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified

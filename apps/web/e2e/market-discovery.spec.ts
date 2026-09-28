@@ -118,3 +118,60 @@ test("native Sonnet 5.5 history receives the published cache-duration range", as
   await expect(page.getByTestId("overview-api-total")).toHaveText("$2.51 – $3.26");
   await expect(page.getByTestId("overview-scale")).toContainText("100%");
 });
+
+test("model capabilities filter and selected specifications are useful without opening evidence", async ({
+  page,
+}) => {
+  await page.goto("/models");
+  await page
+    .getByRole("combobox", { name: "Capability", exact: true })
+    .selectOption("long-context");
+  await page.getByLabel("Find a model, family name or exact alias").fill("Sonnet 5.5");
+  await expect(page.getByTestId("model-row")).toContainText("1M context");
+  await page.getByRole("checkbox", { name: "Compare Claude Sonnet 5.5", exact: true }).check();
+  await expect(page.getByRole("region", { name: "Selected model specifications" })).toContainText(
+    "128K",
+  );
+  await page.getByTestId("model-row").getByRole("link", { name: "Explore model" }).click();
+  await expect(page.getByRole("region", { name: "Model specifications" })).toContainText("128,000");
+  await expect(
+    page.locator(".market-capabilities").getByText("Tool calling", { exact: true }),
+  ).toBeVisible();
+});
+
+test("special pricing and practical subscription terms have specific explanations", async ({
+  page,
+}) => {
+  await page.goto("/models/composer-2-5");
+  await expect(page.getByTestId("pricing-note")).toContainText("Cursor on-demand");
+  await expect(page.getByTestId("pricing-note")).toContainText("$15 output");
+  await expect(page.getByText("Not verified", { exact: true })).toHaveCount(0);
+  await page.goto("/models/nano-banana-pro");
+  await expect(page.getByTestId("pricing-note")).toContainText("$120");
+  await page.goto("/plans/anthropic-claude-max-5x");
+  await expect(page.locator(".market-description")).toContainText("5× Pro");
+  await page.getByText("Session usage limit reset", { exact: true }).first().click();
+  await expect(page.locator(".market-plan-terms details[open]")).toContainText("five hours");
+  await page.goto("/plans/openai-chatgpt-pro-20x");
+  await expect(page.locator(".market-description")).toContainText("paused");
+  await expect(
+    page.getByText("ChatGPT · Codex · ChatGPT Work", { exact: true }).first(),
+  ).toBeVisible();
+});
+
+test("discovery includes deeper model access and supports comparing product-only models", async ({
+  page,
+}) => {
+  await page.goto("/plans");
+  await page.getByLabel("Find a plan", { exact: true }).fill("Sonnet 4.6");
+  await expect(page.getByTestId("plan-results")).toContainText("Claude Max 5x");
+  await page.goto("/models");
+  await page.getByLabel("Find a model, family name or exact alias").fill("Composer 2.5");
+  await page.getByRole("checkbox", { name: "Compare Composer 2.5", exact: true }).check();
+  await expect(page.getByRole("region", { name: "Selected model specifications" })).toContainText(
+    "200K",
+  );
+  const chart = page.getByRole("group", { name: "output price comparison" });
+  await expect(chart).toContainText("See details");
+  await expect(chart.locator(".market-price-bar-fill")).toHaveCount(0);
+});

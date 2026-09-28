@@ -171,8 +171,9 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-target")).toHaveCount(2);
     await expect(page.getByTestId("compare-price").first()).toContainText("/ month");
     await expect(page.getByTestId("compare-row-models")).toContainText("Claude Opus 5.5");
-    await expect(page.getByTestId("compare-row-usage")).toContainText(
-      "Provider does not publish a numeric allowance.",
+    await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
+    await expect(page.getByTestId("compare-row-simulation")).toContainText(
+      "exact capacity cannot be established",
     );
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
     for (const row of [

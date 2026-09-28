@@ -54,12 +54,15 @@ describe("public compare facts", () => {
     expect(facts.price).toBe("$200 / month");
     const featured = facts.models.featured.map((model) => model.name);
     expect(featured).toContain("Claude Opus 5.5");
-    expect(featured).toContain("Claude Sonnet 5");
     // Family identity records are not listed as models.
     const all = [...featured, ...facts.models.more.map((model) => model.name)];
+    expect(all).toContain("Claude Sonnet 5");
     for (const family of ["Opus", "Sonnet", "Haiku", "Fable"]) expect(all).not.toContain(family);
-    // Current releases lead; legacy ones follow under "+ N more".
-    expect(facts.models.featured.every((model) => !model.legacy)).toBe(true);
+    // Current releases lead. Remaining slots can include legacy releases.
+    const releases = [...facts.models.featured, ...facts.models.more];
+    const firstLegacy = releases.findIndex((model) => model.legacy);
+    expect(firstLegacy).toBeGreaterThan(0);
+    expect(releases.slice(firstLegacy).every((model) => model.legacy)).toBe(true);
     expect(facts.models.more.some((model) => model.name === "Claude Opus 4.7")).toBe(true);
     expect(facts.codingTools).toEqual(["Claude Code"]);
     expect(facts.usage.numeric).toBe(false);
@@ -103,8 +106,8 @@ describe("public compare facts", () => {
     const pro100 = catalog.planById("openai-chatgpt-pro");
     if (pro200 === undefined || pro100 === undefined) throw new Error("missing plans");
     expect(codingToolsFor(pro100)).toEqual(["Codex"]);
-    // The $200 record does not mention Codex, so none is claimed for it.
-    expect(codingToolsFor(pro200)).toEqual([]);
+    // First-party Pro documentation establishes Codex for both tiers.
+    expect(codingToolsFor(pro200)).toEqual(["Codex"]);
   });
 
   it("keeps every model rule, including identity records, for the inspect view", () => {

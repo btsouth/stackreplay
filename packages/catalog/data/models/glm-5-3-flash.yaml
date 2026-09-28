@@ -1,95 +1,116 @@
 id: glm-5-3-flash
 role: model
-name: "GLM 5.3 Flash"
+name: GLM 5.3 Flash
 developerId: z-ai
 providerIds:
-  - z-ai
-  - command-code
-  - ollama
+- z-ai
+- command-code
+- ollama
 aliases:
-  - id: glm-5-3-flash-ollama-cloud-model-code
-    alias: "glm-5.3-flash:cloud"
-    kind: harness_alias
-    harness: ollama
-    sources:
-      - url: https://registry.ollama.com/library/glm-5.3-flash
-        title: "Ollama Cloud exact model code glm-5.3-flash:cloud"
-        checkedAt: 2026-09-27
-    lastVerifiedAt: 2026-09-27
-    verificationStatus: verified
-  - id: glm-5-3-flash-command-code-model-code
-    alias: "z-ai/glm-5.3-flash"
-    kind: harness_alias
-    harness: command-code
-    sources:
-      - url: https://commandcode.ai/models/glm-5-3-flash
-        title: "Command Code exact model code z-ai/glm-5.3-flash"
-        checkedAt: 2026-09-27
-    lastVerifiedAt: 2026-09-27
-    verificationStatus: verified
-  - id: glm-5-3-flash-z-ai-api-model-code
-    alias: "glm-5.3-flash"
-    kind: provider_id
-    sources:
-      - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
-        title: "Z.AI Model API code glm-5.3-flash"
-        checkedAt: 2026-09-27
-    lastVerifiedAt: 2026-09-27
-    verificationStatus: verified
-  - id: glm-5-3-flash-router-z-ai-glm-5-3-flash
-    alias: "z-ai/glm-5.3-flash"
-    kind: harness_alias
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3-flash
-        title: "OpenRouter model record `z-ai/glm-5.3-flash` (exact id as published in the model list)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-  - id: glm-5-3-flash-router-glm-5-3-flash-opencode
-    alias: "glm-5.3-flash"
-    kind: harness_alias
-    harness: opencode
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3-flash
-        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: glm-5-3-flash-router-glm-5-3-flash-t3-code
-    alias: "glm-5.3-flash"
-    kind: harness_alias
-    harness: t3-code
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3-flash
-        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: glm-5-3-flash-router-glm-5-3-flash-hermes
-    alias: "glm-5.3-flash"
-    kind: harness_alias
-    harness: hermes
-    sources:
-      - url: https://openrouter.ai/z-ai/glm-5.3-flash
-        title: "OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: glm-5-3-flash-observed-glm-5-3-flash
-    alias: "GLM-5.3-Flash"
-    kind: provider_id
-    sources:
-      - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
-        title: "GLM 5.3 Flash API model code glm-5.3-flash"
-        checkedAt: 2026-09-27
-    lastVerifiedAt: 2026-09-27
-    verificationStatus: verified
-sources:
-  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
-    title: "GLM 5.3 Flash model page: API model code glm-5.3-flash"
+- id: glm-5-3-flash-ollama-cloud-model-code
+  alias: glm-5.3-flash:cloud
+  kind: harness_alias
+  harness: ollama
+  sources:
+  - url: https://registry.ollama.com/library/glm-5.3-flash
+    title: Ollama Cloud exact model code glm-5.3-flash:cloud
     checkedAt: 2026-09-27
-  - url: https://docs.z.ai/guides/overview/pricing
-    title: "GLM 5.3 Flash model documentation"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-27
+  lastVerifiedAt: 2026-09-27
+  verificationStatus: verified
+- id: glm-5-3-flash-command-code-model-code
+  alias: z-ai/glm-5.3-flash
+  kind: harness_alias
+  harness: command-code
+  sources:
+  - url: https://commandcode.ai/models/glm-5-3-flash
+    title: Command Code exact model code z-ai/glm-5.3-flash
+    checkedAt: 2026-09-27
+  lastVerifiedAt: 2026-09-27
+  verificationStatus: verified
+- id: glm-5-3-flash-z-ai-api-model-code
+  alias: glm-5.3-flash
+  kind: provider_id
+  sources:
+  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+    title: Z.AI Model API code glm-5.3-flash
+    checkedAt: 2026-09-27
+  lastVerifiedAt: 2026-09-27
+  verificationStatus: verified
+- id: glm-5-3-flash-router-z-ai-glm-5-3-flash
+  alias: z-ai/glm-5.3-flash
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3-flash
+    title: OpenRouter model record `z-ai/glm-5.3-flash` (exact id as published in the model list)
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+- id: glm-5-3-flash-router-glm-5-3-flash-opencode
+  alias: glm-5.3-flash
+  kind: harness_alias
+  harness: opencode
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3-flash
+    title: OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `opencode`
+      harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: glm-5-3-flash-router-glm-5-3-flash-t3-code
+  alias: glm-5.3-flash
+  kind: harness_alias
+  harness: t3-code
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3-flash
+    title: OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `t3-code`
+      harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: glm-5-3-flash-router-glm-5-3-flash-hermes
+  alias: glm-5.3-flash
+  kind: harness_alias
+  harness: hermes
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.3-flash
+    title: OpenRouter publishes the prefixed id `z-ai/glm-5.3-flash`; this bare spelling is observed in the `hermes`
+      harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: glm-5-3-flash-observed-glm-5-3-flash
+  alias: GLM-5.3-Flash
+  kind: provider_id
+  sources:
+  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+    title: GLM 5.3 Flash API model code glm-5.3-flash
+    checkedAt: 2026-09-27
+  lastVerifiedAt: 2026-09-27
+  verificationStatus: verified
+sources:
+- url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+  title: 'GLM 5.3 Flash model page: API model code glm-5.3-flash'
+  checkedAt: 2026-09-27
+- url: https://docs.z.ai/guides/overview/pricing
+  title: GLM 5.3 Flash model documentation
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  - video
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Reasoning is always enabled. File input is also supported.
+  sources:
+  - url: https://docs.z.ai/guides/vlm/glm-5.3-flash
+    title: Official model specifications
+    checkedAt: '2026-09-28'

@@ -27,7 +27,7 @@ export function PlanExplorer({
       (p) =>
         (provider === "all" || p.providerId === provider) &&
         (tool === "all" || tools[p.id]?.includes(tool)) &&
-        `${p.name} ${p.providerName} ${facts[p.id]?.models.featured.map((m) => m.name).join(" ")}`
+        `${p.name} ${p.providerName} ${[...(facts[p.id]?.models.featured ?? []), ...(facts[p.id]?.models.more ?? [])].map((m) => m.name).join(" ")}`
           .toLowerCase()
           .includes(query.toLowerCase()),
     )

@@ -78,6 +78,10 @@ versions:
     billingMechanics: "Claude Pro costs $20 per month. Annual billing is available at $200 upfront."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Claude and Claude Code access with five-hour and weekly usage limits. Optional paid usage credits after included usage.
+        sourceUrl: https://claude.com/pricing
       - id: 5-hour-session-usage-limit-rolling
         label: "5-hour session usage limit (rolling)"
         statement: "Your session-based usage limit will reset every five hours."

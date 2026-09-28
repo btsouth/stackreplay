@@ -122,6 +122,8 @@ export interface PublicModelSummary {
   /** Only what the record states; absent is never read as current. */
   lifecycle: ModelLifecycleV1 | undefined;
   developerId: string | undefined;
+  specifications?: CatalogV1["models"][string]["specifications"];
+  pricingNote?: string | undefined;
   developerName: string | undefined;
   /** For a release: the family identity record it belongs to. */
   familyId: string | undefined;
@@ -338,7 +340,27 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     // Places: a Direct API route first (an offering fact, not authorship), then
     // plans, the developer's own plans first so the row leads with the obvious
     // place to use the model.
-    const apiPlaces: PublicModelPlace[] = directApiProviderIdsFor(catalog, modelId).map((id) => ({
+    // A current first-party API reference price also documents public access.
+    // This display fact does not add an executable target or change admission.
+    const hasReferencePrice = Object.values(catalog.pricing).some(
+      (price) =>
+        price.modelId === modelId &&
+        price.basis === "api_list_price" &&
+        price.verificationStatus === "verified" &&
+        !price.variantId &&
+        price.effectiveFrom <= date &&
+        (!price.effectiveTo || price.effectiveTo >= date),
+    );
+    const apiProviderIds =
+      model?.apiAvailability === "not_established" || model?.apiAvailability === "retired"
+        ? []
+        : [
+            ...new Set([
+              ...directApiProviderIdsFor(catalog, modelId),
+              ...(developerId && hasReferencePrice ? [developerId] : []),
+            ]),
+          ];
+    const apiPlaces: PublicModelPlace[] = apiProviderIds.map((id) => ({
       kind: "api",
       label: `${providerName(id)} API`,
       providerId: id,
@@ -367,6 +389,8 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
       kind: model === undefined ? "release" : modelKindOf(model),
       lifecycle: model?.lifecycle,
       developerId,
+      specifications: model?.specifications,
+      pricingNote: model?.pricingNote,
       developerName: developerId === undefined ? undefined : providerName(developerId),
       familyId,
       familyName: familyId === undefined ? undefined : catalog.models[familyId]?.name,

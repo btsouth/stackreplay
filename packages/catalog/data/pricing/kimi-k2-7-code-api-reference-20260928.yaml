@@ -1,0 +1,17 @@
+id: kimi-k2-7-code-api-reference-20260928
+role: pricing
+modelId: kimi-k2-7-code
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.95'
+  output: '4'
+  cacheRead: '0.19'
+effectiveFrom: '2026-09-28'
+sources:
+- url: https://platform.kimi.ai/
+  title: Official standard token prices; checked September 28, 2026
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified

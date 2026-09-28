@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketFooter } from "@/components/public/market-header";
 import { SourceList } from "@/components/public/provenance";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
+import { modelCapabilities, tokenSize } from "@/lib/model-specifications";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
 interface Props {
@@ -29,6 +30,12 @@ export default async function ModelPage({ params }: Props) {
   const prices = modelPrices(modelId, catalog.asOf);
   const base = basePrice(prices);
   const plans = model.places.filter((p) => p.kind === "plan");
+  const familyPlans =
+    plans.length || !model.familyId
+      ? []
+      : catalog.plans.filter((plan) =>
+          plan.modelRules.some((rule) => rule.model === model.familyId && rule.excluded !== true),
+        );
   const apis = model.places.filter((p) => p.kind === "api");
   const related = catalog.models.filter(
     (m) =>
@@ -50,20 +57,33 @@ export default async function ModelPage({ params }: Props) {
               ? "A family of model releases."
               : model.verificationStatus === "unknown"
                 ? "Newly announced. API identity, pricing and subscription access are under review."
-                : `${model.developerName} · ${model.lifecycle === "legacy" ? "Legacy release" : model.lifecycle === "current" ? "Current release" : "Model release"}`}
+                : `${model.developerName ?? "Model"} · ${model.lifecycle === "legacy" ? "Legacy release" : model.lifecycle === "current" ? "Current release" : "Model release"}`}
           </p>
           <p className="market-muted mt-3">Catalog checked {model.lastVerifiedAt}</p>
         </div>
-        <aside className="market-feature">
-          <p className="market-kicker">Your work / Another possibility</p>
-          <h2>Put the model in context.</h2>
-          <p>
-            See the models you use today, then inspect explicit alternatives in Replay. Translation
-            is a scenario you approve, not a quality-equivalence claim.
+        <aside className="market-model-profile">
+          <p className="market-kicker">
+            {model.specifications?.contextTokens
+              ? "Context window"
+              : model.specifications?.maxInputTokens
+                ? "Maximum input"
+                : "Subscription access"}
           </p>
-          <Link className="market-link" href="/app/replay">
-            Explore workload replays ↗
-          </Link>
+          <p className="market-profile-number">
+            {model.specifications?.contextTokens || model.specifications?.maxInputTokens
+              ? tokenSize(model.specifications.contextTokens ?? model.specifications.maxInputTokens)
+              : `${plans.length} plans`}
+          </p>
+          <p className="market-muted">
+            {model.specifications?.contextTokens || model.specifications?.maxInputTokens
+              ? "tokens · provider specification"
+              : "Documented access in this guide"}
+          </p>
+          <div className="market-capabilities mt-5">
+            {modelCapabilities(model).map((capability) => (
+              <span key={capability}>{capability}</span>
+            ))}
+          </div>
         </aside>
       </header>
       {model.kind === "release" && (
@@ -72,32 +92,92 @@ export default async function ModelPage({ params }: Props) {
             <span>01 / Standard API price</span>
             <span>USD / 1M tokens</span>
           </div>
-          <div className="market-detail-stats">
-            {(["input", "output", "cacheRead"] as const).map((key, i) => (
-              <div key={key}>
-                <p className="market-muted mb-2">{["Input", "Output", "Cache read"][i]}</p>
-                <p className={base ? "market-stat" : "text-base"}>
-                  {priceNumber(base?.rates[key])}
-                </p>
-              </div>
-            ))}
-          </div>
+          {base && (
+            <div className="market-detail-stats">
+              {(["input", "output", "cacheRead"] as const).map((key, i) => (
+                <div key={key}>
+                  <p className="market-muted mb-2">{["Input", "Output", "Cache read"][i]}</p>
+                  <p className={base ? "market-stat" : "text-base"}>
+                    {priceNumber(base?.rates[key])}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          {model.pricingNote && (
+            <p className="market-price-note" data-testid="pricing-note">
+              {model.pricingNote}
+            </p>
+          )}
           {base ? (
             <p className="market-muted mb-8">
               Current published base rates. Context tiers, cache-write duration and other conditions
               may change the rate for a request. These are not a reconstructed historical invoice.
             </p>
-          ) : (
-            <p className="market-muted mb-8">
-              No single verified current API rate is available here. Missing prices stay unknown.
+          ) : !model.pricingNote ? (
+            <p className="market-price-note">
+              A direct API price for this exact release is not recorded. See its published access
+              and sources below.
             </p>
-          )}
+          ) : null}
         </>
       )}
+      {model.specifications && (
+        <section className="market-specifications" aria-label="Model specifications">
+          <div className="market-section-title">
+            <span>02 / Capabilities & limits</span>
+            <span>Provider specifications</span>
+          </div>
+          <dl className="market-fact-list">
+            {[
+              ["Context window", model.specifications.contextTokens?.toLocaleString("en-US")],
+              ["Maximum input", model.specifications.maxInputTokens?.toLocaleString("en-US")],
+              ["Maximum output", model.specifications.maxOutputTokens?.toLocaleString("en-US")],
+              ["Input", model.specifications.inputModalities?.join(" · ")],
+              ["Output", model.specifications.outputModalities?.join(" · ")],
+              ["Knowledge cutoff", model.specifications.knowledgeCutoff],
+              [
+                "Tool calling",
+                model.specifications.toolCalling === undefined
+                  ? undefined
+                  : model.specifications.toolCalling
+                    ? "Supported"
+                    : "Not supported",
+              ],
+              [
+                "Structured output",
+                model.specifications.structuredOutput === undefined
+                  ? undefined
+                  : model.specifications.structuredOutput
+                    ? "Supported"
+                    : "Not supported",
+              ],
+            ]
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+          </dl>
+          {model.specifications.notes?.map((note) => (
+            <p key={note} className="market-muted mt-4 max-w-3xl">
+              {note}
+            </p>
+          ))}
+        </section>
+      )}
       <div className="market-section-title">
-        <span>{model.kind === "family" ? "01" : "02"} / Where you can use it</span>
         <span>
-          {apis.length} API routes · {plans.length} subscriptions
+          {model.kind === "family" ? "01" : model.specifications ? "03" : "02"} / Where you can use
+          it
+        </span>
+        <span>
+          {apis.length
+            ? `${apis.length} API ${apis.length === 1 ? "route" : "routes"}`
+            : "Published access"}
+          {plans.length ? ` · ${plans.length} subscriptions` : ""}
         </span>
       </div>
       {apis.map((p) => (
@@ -124,7 +204,28 @@ export default async function ModelPage({ params }: Props) {
           </Link>
         ))}
       </div>
-      {!model.places.length && (
+      {familyPlans.length > 0 && (
+        <section className="my-6">
+          <h2 className="text-base font-medium">Plans with {model.familyName} family access</h2>
+          <p className="market-muted mt-2 max-w-3xl">
+            The provider lists family access for these plans. Availability of this exact release can
+            depend on rollout and the model picker.
+          </p>
+          {familyPlans.map((plan) => (
+            <Link
+              key={plan.id}
+              href={`/plans/${plan.id}`}
+              className="flex justify-between gap-4 border-b border-border py-4 hover:text-accent"
+            >
+              <span>{plan.name}</span>
+              <span className="font-mono text-sm">
+                ${plan.price.amount} / {plan.price.interval} ↗
+              </span>
+            </Link>
+          ))}
+        </section>
+      )}
+      {!model.places.length && !familyPlans.length && (
         <p className="market-muted py-5">
           No catalogued plan or API offers this model yet. Access is not inferred from another
           release.
@@ -178,6 +279,7 @@ export default async function ModelPage({ params }: Props) {
               </div>
             </section>
           ))}
+          {model.specifications && <SourceList sources={model.specifications.sources} />}
           <SourceList sources={model.sources} />
           <p className="market-muted">
             Missing token-category prices are not zero. Workload pricing applies exact recorded

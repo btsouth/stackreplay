@@ -1,36 +1,56 @@
 id: grok-4-7
 role: model
-name: "Grok 4.7"
+name: Grok 4.7
 developerId: x-ai
 providerIds:
-  - cursor
-  - github
-  - x-ai
+- cursor
+- github
+- x-ai
 aliases:
-  - id: grok-4-7-api-id
-    alias: "grok-4.7"
-    kind: provider_id
-    sources:
-      - url: https://docs.x.ai/developers/release-notes
-        title: "xAI Grok 4.7 canonical API ID"
-        checkedAt: 2026-09-23
-    lastVerifiedAt: 2026-09-23
-    verificationStatus: verified
-sources:
-  - url: https://github.com/features/copilot/plans
-    title: "GitHub pricing (official)"
-    checkedAt: 2026-09-23
-  - url: https://cursor.com/pricing
-    title: "Cursor pricing (official)"
-    checkedAt: 2026-09-23
+- id: grok-4-7-api-id
+  alias: grok-4.7
+  kind: provider_id
+  sources:
   - url: https://docs.x.ai/developers/release-notes
-    title: "xAI Grok 4.7 API availability, context, reasoning, and prices"
+    title: xAI Grok 4.7 canonical API ID
     checkedAt: 2026-09-23
-  - url: https://cursor.com/docs/models-and-pricing
-    title: "Cursor current model and rate tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
-    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+  lastVerifiedAt: 2026-09-23
+  verificationStatus: verified
+sources:
+- url: https://github.com/features/copilot/plans
+  title: GitHub pricing (official)
+  checkedAt: 2026-09-23
+- url: https://cursor.com/pricing
+  title: Cursor pricing (official)
+  checkedAt: 2026-09-23
+- url: https://docs.x.ai/developers/release-notes
+  title: xAI Grok 4.7 API availability, context, reasoning, and prices
+  checkedAt: 2026-09-23
+- url: https://cursor.com/docs/models-and-pricing
+  title: Cursor current model and rate tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+- url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+  title: GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+- url: https://docs.x.ai/developers/pricing
+  title: Official global pricing and long-context conditions
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+specifications:
+  contextTokens: 500000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  sources:
+  - url: https://docs.x.ai/developers/models/grok-4.7
+    title: Official model specifications
+    checkedAt: '2026-09-28'
+pricingNote: Higher rates apply to long prompts around the 200K threshold. The pricing table specifies at least
+  200K; model documentation says above 200K. Global rates shown; regional processing, priority and server-side tools
+  cost extra.

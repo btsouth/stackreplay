@@ -30,6 +30,12 @@ export default async function PlanPage({ params }: Props) {
   if (!plan) notFound();
   const facts = buildCompareFacts(plan, catalog.modelById);
   const tools = planTools(plan);
+  const practicalTerms = plan.qualitativeLimits.filter(
+    (term) =>
+      !/Included usage|Compatible tools|What the provider does not publish|Model availability scope|route pricing depends|funding|purchase cap/i.test(
+        term.label,
+      ) && !/after|overage|exhaust|exceed|continuation/i.test(term.label),
+  );
   const siblings = catalog.plans
     .filter((p) => p.providerId === plan.providerId && p.id !== plan.id)
     .sort((a, b) => Number(a.price.amount) - Number(b.price.amount));
@@ -66,14 +72,14 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-kicker mb-3">Model access</p>
           <p className="text-lg" data-testid="plan-models-summary">
             {facts.models.total
-              ? `${facts.models.total} verified releases`
+              ? `${facts.models.total} documented releases`
               : "Provider model lineup"}
           </p>
         </div>
         <div>
-          <p className="market-kicker mb-3">Capacity replay</p>
+          <p className="market-kicker mb-3">Billing</p>
           <p className="text-lg">
-            {plan.limits.length ? "Published rules available" : "Not deterministically established"}
+            {plan.price.interval === "month" ? "Monthly" : plan.price.interval} subscription
           </p>
         </div>
       </section>
@@ -81,22 +87,45 @@ export default async function PlanPage({ params }: Props) {
         <div className="market-section-title">
           <span>01 / What you get</span>
         </div>
-        <p className="max-w-3xl text-lg leading-relaxed">{planUsage(plan)}</p>
+        {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
+        <div className="market-plan-terms">
+          {practicalTerms.map((term) => (
+            <details key={term.id}>
+              <summary>{term.label.replace(/ \(.*\)$/u, "")}</summary>
+              <p>{term.statement}</p>
+              {term.sourceUrl && (
+                <a
+                  href={term.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="market-link"
+                >
+                  Provider details ↗
+                </a>
+              )}
+            </details>
+          ))}
+        </div>
         {plan.billingMechanics && (
-          <p className="market-muted mt-4 max-w-3xl">{plan.billingMechanics}</p>
+          <p className="market-muted mt-5 max-w-3xl">{plan.billingMechanics}</p>
         )}
       </section>
       <section className="mt-10">
         <div className="market-section-title">
           <span>02 / Included models & access</span>
         </div>
-        {plan.modelRules.length ? (
+        {facts.models.total > 0 ? (
           <>
             <p className="market-muted mb-4">
               Exact releases verified in this catalog. The provider may offer additional models;
               consult its current lineup below.
             </p>
-            <ModelRuleList rules={plan.modelRules} modelById={catalog.modelById} />
+            <ModelRuleList
+              rules={plan.modelRules.filter(
+                (rule) => catalog.modelById(rule.model)?.kind !== "family",
+              )}
+              modelById={catalog.modelById}
+            />
           </>
         ) : (
           <p className="market-muted">
@@ -147,7 +176,11 @@ export default async function PlanPage({ params }: Props) {
           Published terms, sources & history
         </summary>
         <div className="space-y-5 py-5">
-          {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
+          <p className="market-muted">
+            {plan.limits.length
+              ? "Published rules are available for this plan."
+              : "Published price and access do not establish a deterministic workload allowance."}
+          </p>
           <ul className="space-y-4" data-testid="qualitative-limits">
             {plan.qualitativeLimits.map((limit) => (
               <li key={limit.id}>

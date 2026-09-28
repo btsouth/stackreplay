@@ -128,7 +128,12 @@ describe("launch catalog: Anthropic lineup (checked 2026-09-24)", () => {
   });
 
   it("classifies the current lineup and the legacy models Anthropic still lists", () => {
-    const current = ["claude-fable-5-1", "claude-haiku-4-5", "claude-opus-5-5", "claude-sonnet-5"];
+    const current = [
+      "claude-fable-5-1",
+      "claude-haiku-4-5",
+      "claude-opus-5-5",
+      "claude-sonnet-5-5",
+    ];
     const legacy = [
       "claude-fable-5",
       "claude-opus-4-7",
@@ -136,6 +141,7 @@ describe("launch catalog: Anthropic lineup (checked 2026-09-24)", () => {
       "claude-opus-4-8-fast-mode",
       "claude-opus-5",
       "claude-sonnet-4-6",
+      "claude-sonnet-5",
     ];
     for (const id of current) expect(model(id).lifecycle, id).toBe("current");
     for (const id of legacy) expect(model(id).lifecycle, id).toBe("legacy");
@@ -164,13 +170,12 @@ describe("launch catalog: Anthropic lineup (checked 2026-09-24)", () => {
     expect(opus47.providerIds?.[0]).toBe("github");
     expect(opus47.providerIds).toContain("anthropic");
     expect(opus47.developerId).toBe("anthropic");
-    // A route alone never establishes a developer: GitHub and Cursor route many
-    // models and develop none of these, so no model names them as developer.
-    for (const entry of Object.values(catalog.models)) {
-      expect(["github", "cursor"], entry.id).not.toContain(entry.developerId);
-    }
-    // A model whose own sources do not establish a developer keeps none.
-    expect(model("kimi-k3").developerId).toBeUndefined();
+    // A route alone never establishes a developer. First-party model docs do.
+    expect(model("kimi-k3").developerId).toBe("moonshot");
+    expect(model("composer-2-5").developerId).toBe("cursor");
+    expect(Object.values(catalog.models).some((entry) => entry.developerId === "github")).toBe(
+      false,
+    );
   });
 
   it("offers every current and still-available Anthropic release on the Claude API route", () => {

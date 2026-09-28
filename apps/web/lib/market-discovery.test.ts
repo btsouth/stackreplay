@@ -74,3 +74,63 @@ describe("public market discovery", () => {
     expect(planTools(cline)).not.toContain("Claude Code");
   });
 });
+
+describe("model and subscription detail completeness", () => {
+  const catalog = loadPublicCatalog("2026-09-28");
+  it("exposes first-party specifications and keeps missing capabilities unknown", () => {
+    const sonnet = catalog.modelById("claude-sonnet-5-5");
+    expect(sonnet?.specifications).toMatchObject({
+      contextTokens: 1_000_000,
+      maxOutputTokens: 128_000,
+      toolCalling: true,
+    });
+    expect(sonnet?.specifications?.sources.length).toBeGreaterThan(0);
+    expect(catalog.modelById("mai-code-1-1-flash")?.specifications?.contextTokens).toBeUndefined();
+  });
+  it("keeps product-specific and modality-specific prices out of a generic API rate", () => {
+    for (const id of ["composer-2-5", "nano-banana-pro", "gpt-5-6-sol-pro"]) {
+      expect(basePrice(modelPrices(id, "2026-09-28"))).toBeUndefined();
+      expect(catalog.modelById(id)?.pricingNote?.length).toBeGreaterThan(40);
+    }
+  });
+  it("does not advertise an API for retired routes or unmatched subscription labels", () => {
+    for (const id of [
+      "gemini-3-pro",
+      "gemini-3-flash-lite",
+      "gpt-5-6-sol-pro",
+      "gpt-5-thinking-mini",
+    ]) {
+      expect(catalog.modelById(id)?.places.some((place) => place.kind === "api")).toBe(false);
+    }
+  });
+  it("fills sourced API prices without assuming cache duration or reasoning billing", () => {
+    expect(basePrice(modelPrices("kimi-k3", "2026-09-28"))?.rates).toMatchObject({
+      input: "3",
+      output: "15",
+      cacheRead: "0.3",
+    });
+    expect(basePrice(modelPrices("kimi-k3", "2026-09-28"))?.rates.cacheWrite).toBeUndefined();
+    expect(
+      catalog
+        .modelById("kimi-k3")
+        ?.places.some((place) => place.kind === "api" && place.providerId === "moonshot"),
+    ).toBe(true);
+    expect(basePrice(modelPrices("grok-4-5", "2026-09-28"))?.rates.cacheRead).toBe("0.3");
+    const opus = modelPrices("claude-opus-4-7", "2026-09-28");
+    expect(basePrice(opus)?.rates.cacheWrite).toBeUndefined();
+    expect(opus.filter((price) => price.variantId)).toHaveLength(2);
+  });
+  it("does not extend temporary reference prices past their published period", () => {
+    expect(basePrice(modelPrices("gemini-3-7-flash", "2026-09-28"))?.rates.input).toBe("0.75");
+    expect(basePrice(modelPrices("gemini-3-7-flash", "2027-01-01"))).toBeUndefined();
+  });
+  it("shows relevant usage and tool facts without treating them as quotas", () => {
+    const max = catalog.planById("anthropic-claude-max-5x");
+    const pro = catalog.planById("openai-chatgpt-pro-20x");
+    expect(
+      max?.qualitativeLimits.find((term) => term.label === "Included usage")?.statement,
+    ).toContain("5× Pro");
+    expect(max?.limits).toEqual([]);
+    expect(pro && planTools(pro)).toContain("Codex");
+  });
+});

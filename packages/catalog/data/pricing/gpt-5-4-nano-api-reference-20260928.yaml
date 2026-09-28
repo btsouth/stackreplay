@@ -1,0 +1,19 @@
+id: gpt-5-4-nano-api-reference-20260928
+role: pricing
+modelId: gpt-5-4-nano
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.2'
+  output: '1.25'
+  reasoning:
+    billedAs: output
+  cacheRead: '0.02'
+effectiveFrom: '2026-09-28'
+sources:
+- url: https://developers.openai.com/api/docs/models/gpt-5.4-nano
+  title: Official standard token prices; checked September 28, 2026
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified

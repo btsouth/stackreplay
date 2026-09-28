@@ -79,6 +79,10 @@ versions:
     billingMechanics: "ChatGPT Pro has two price tiers. The $100 tier offers 5x the Plus usage allowance; the $200 tier offers 20x."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 5× Plus usage. ChatGPT, Codex and Work, with model-specific allowances and optional paid credits.
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
       - id: pro-100-usage-relative-to-plus
         label: "Pro $100 usage relative to Plus"
         statement: "Both Pro tiers include the same core capabilities. The main difference is usage allowance: Pro $100 unlocks 5x higher usage than Plus, while Pro $200 unlocks 20x usage than Plus."

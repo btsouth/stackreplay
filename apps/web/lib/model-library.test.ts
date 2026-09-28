@@ -6,7 +6,6 @@ import {
   modelsInView,
   placesSummary,
   searchModels,
-  UNRECORDED_DEVELOPER,
 } from "./model-library";
 import { loadPublicCatalog } from "./public-catalog";
 
@@ -40,7 +39,12 @@ describe("default model listing", () => {
   });
 
   it("leads with current releases", () => {
-    const current = ["claude-fable-5-1", "claude-haiku-4-5", "claude-opus-5-5", "claude-sonnet-5"];
+    const current = [
+      "claude-fable-5-1",
+      "claude-haiku-4-5",
+      "claude-opus-5-5",
+      "claude-sonnet-5-5",
+    ];
     expect(ids.slice(0, current.length).sort()).toEqual(current);
     expect(listed.slice(0, current.length).every((model) => model.lifecycle === "current")).toBe(
       true,
@@ -98,14 +102,14 @@ describe("developer and routes", () => {
     expect(opus47.places.map((place) => place.label)).toContain("Anthropic API");
   });
 
-  it("leaves the developer unrecorded when the record does not state one", () => {
+  it("uses sourced developers without confusing them with resellers", () => {
     const kimi = byId("kimi-k3");
-    expect(kimi.developerId).toBeUndefined();
+    expect(kimi.developerId).toBe("moonshot");
     expect(kimi.providerIds).toEqual(["github"]);
     const options = developerOptions(catalog.models).map((option) => option.id);
-    expect(options).toContain(UNRECORDED_DEVELOPER);
+    expect(options).toContain("moonshot");
     expect(options).not.toContain("github");
-    expect(options).not.toContain("cursor");
+    expect(options).toContain("cursor");
   });
 
   it("summarizes places by human name, Direct API first", () => {
