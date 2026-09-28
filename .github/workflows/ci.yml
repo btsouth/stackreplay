@@ -32,7 +32,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
       - name: Unit tests
-        run: pnpm test
+        # Each package already uses Vitest workers. Avoid multiplying those
+        # pools across the small hosted runner and starving filesystem tests.
+        run: pnpm test --concurrency=1
       - name: Build
         run: pnpm build
 
