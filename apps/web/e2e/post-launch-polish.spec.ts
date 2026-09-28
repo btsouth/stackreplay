@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, openReviewEvidence, waitForWorkload } from "./helpers";
+import { importDemo, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
@@ -60,6 +60,7 @@ test("mobile analysis control ends before the Share section", async ({ page }) =
   await expect(page.getByTestId("measure-bar")).toBeVisible();
   await page.getByTestId("section-pressure").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("measure-bar")).toBeInViewport();
+  await openWorkloadTools(page);
   await page.locator("#share").scrollIntoViewIfNeeded();
   await expect(page.locator("#share")).toBeInViewport();
   const bar = await page.getByTestId("measure-bar").boundingBox();

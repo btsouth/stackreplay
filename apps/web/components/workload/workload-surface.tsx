@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUsd, shareText } from "@stackreplay/share";
+import { shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,7 @@ import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/w
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
 import { cacheReadShareOf } from "@/lib/workload-facts";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
-import type { Insight, Measure, WorkloadProfile } from "@/lib/workload-profile";
+import type { Measure, WorkloadProfile } from "@/lib/workload-profile";
 import { AutomaticWorkload } from "./automatic-workload";
 import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
@@ -31,7 +31,7 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
-import { CurrentSpend, ToolSplit, WorkloadValueFigure } from "./value";
+import { CurrentSpend, WorkloadValueFigure } from "./value";
 
 function browserTimeZone(): string {
   try {
@@ -249,6 +249,24 @@ export function WorkloadSurface({
         profile={profile}
         imports={imports}
         onSelect={setSelectedId}
+        analysisContent={(decision) =>
+          profile ? (
+            <WorkloadAnalysis
+              decision={decision}
+              measure={measure}
+              onMeasure={setMeasure}
+              onUtc={setUseUtc}
+              profile={profile}
+              record={record}
+              useUtc={useUtc}
+              localZone={localZone}
+            />
+          ) : (
+            <p role="status" className="text-sm text-muted-foreground">
+              Reading workload analysis…
+            </p>
+          )
+        }
         detailContent={
           <>
             {initialTarget === undefined ? null : (
@@ -276,13 +294,8 @@ export function WorkloadSurface({
             ) : (
               <WorkloadBody
                 decision={market?.id === record.id ? market.result : undefined}
-                measure={measure}
-                onMeasure={setMeasure}
-                onUtc={setUseUtc}
                 profile={profile}
                 record={record}
-                useUtc={useUtc}
-                localZone={localZone}
               />
             )}
           </>
@@ -348,97 +361,6 @@ function WorkloadPicker({
   );
 }
 
-function CacheReadBriefing({ profile }: { profile: WorkloadProfile }) {
-  const share = cacheReadShareOf(profile);
-  if (share === undefined || profile.tokens.cacheRead === 0) return null;
-  const value = profile.value;
-  const freshInput = formatUsd(value?.cacheReadsAtInputRate);
-  const priced = formatUsd(value?.total);
-  return (
-    <div className="flex min-w-0 flex-col gap-2" data-testid="cache-briefing">
-      <MicroLabel>Why the value looks like this</MicroLabel>
-      <p className="text-sm leading-relaxed">
-        <strong className="font-semibold tabular-nums">{percent(share)}</strong> of known processed
-        tokens were cache reads.
-      </p>
-      {freshInput === undefined || priced === undefined ? null : (
-        <>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            For the priced calls, at published rates, repricing their cache reads as fresh input
-            would produce a <span className="tabular-nums text-foreground">{freshInput}</span>{" "}
-            scenario instead of <span className="tabular-nums text-foreground">{priced}</span>.
-          </p>
-          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
-            Hypothetical pricing comparison · not savings
-          </p>
-        </>
-      )}
-      <a className={`${ACTION_LINK} self-start`} href="#tokens">
-        Inspect token composition →
-      </a>
-    </div>
-  );
-}
-
-function BriefingInsights({ insights }: { insights: readonly Insight[] }) {
-  return (
-    <ol className="grid gap-x-7 gap-y-4 lg:grid-cols-3" data-testid="workload-insights">
-      {insights.map((insight) => {
-        const shareLead = insight.id === "projects" || insight.id === "late-night";
-        const lead = shareLead
-          ? percent(insight.fact.share ?? 0)
-          : insight.comparison.match(/^\S+×/u)?.[0];
-        const label =
-          insight.id === "largest-session"
-            ? "Largest session versus median session"
-            : insight.id === "projects"
-              ? "of known processed tokens came from three projects"
-              : insight.id === "peak-hour"
-                ? "Busiest hour versus a median active hour"
-                : insight.id === "peak-day"
-                  ? "Busiest day versus a median active day"
-                  : insight.id === "late-night"
-                    ? "of calls came between 10 PM and 4 AM"
-                    : insight.id === "peak-5h"
-                      ? "Busiest five hours versus a median active window"
-                      : undefined;
-        const detail = insight.id === "projects" ? insight.comparison : insight.text;
-        return (
-          <li
-            key={insight.id}
-            className="flex min-w-0 flex-col gap-1 border-t border-border pt-3"
-            data-insight={insight.id}
-          >
-            {lead === undefined ? null : (
-              <strong className="font-sans text-3xl font-semibold leading-none tracking-tight tabular-nums">
-                {lead}
-              </strong>
-            )}
-            <p className="text-sm leading-snug">{label ?? insight.text}</p>
-            <p className="text-xs leading-snug text-muted-foreground">
-              {detail.endsWith(".") ? detail : `${detail}.`}{" "}
-              <a
-                className="text-accent underline underline-offset-4"
-                href={`#${insight.evidence.section}`}
-                onClick={() => {
-                  const target = document.getElementById(insight.evidence.section);
-                  let ancestor = target?.parentElement;
-                  while (ancestor) {
-                    if (ancestor instanceof HTMLDetailsElement) ancestor.open = true;
-                    ancestor = ancestor.parentElement;
-                  }
-                }}
-              >
-                {insight.evidence.label} →
-              </a>
-            </p>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
 function WorkloadOpening({
   record,
   profile,
@@ -446,6 +368,7 @@ function WorkloadOpening({
   onSelect,
   onMarket,
   detailContent,
+  analysisContent,
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
@@ -453,8 +376,8 @@ function WorkloadOpening({
   onSelect: (id: string) => void;
   onMarket: (id: string, result: MarketDecision | undefined) => void;
   detailContent: ReactNode;
+  analysisContent: (decision: MarketDecision | undefined) => ReactNode;
 }) {
-  const insights = profile?.insights.filter((i) => i.id !== "cache-value").slice(0, 3) ?? [];
   return (
     <div className="min-w-0 space-y-4" data-testid="workload-opening">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -482,39 +405,36 @@ function WorkloadOpening({
         onResult={onMarket}
         projects={
           profile ? (
-            <section
+            <WorkloadSection
+              index="01"
+              eyebrow="Projects"
+              title="Where your work went"
               id="projects"
-              data-testid="section-projects"
-              className="scroll-mt-24 space-y-3"
+              testId="section-projects"
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-xl font-medium tracking-tight">Where your work went</h2>
-                <span className="text-xs text-muted-foreground">
-                  Full imported workload · {count(profile.overview.events)} calls
-                </span>
-              </div>
               <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
-            </section>
+            </WorkloadSection>
           ) : (
             <p className="text-sm text-muted-foreground">Reading project distribution…</p>
           )
         }
-        highlights={
-          insights.length ? (
-            <section
-              aria-label="Workload highlights"
-              data-testid="overview-highlights"
-              className="space-y-3"
-            >
-              <h2 className="text-xl font-medium tracking-tight">Workload highlights</h2>
-              <BriefingInsights insights={insights} />
-            </section>
-          ) : null
-        }
+        analysis={analysisContent}
+        tools={detailContent}
         evidence={
           <>
             <ImportedWorkloadEvidence record={record} profile={profile} />
-            {detailContent}
+            {profile ? (
+              <div data-testid="section-evidence">
+                <ScanEvidence profile={profile} record={record} />
+              </div>
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              Models are grouped by exact canonical identity. Known processed tokens count recorded
+              input, cache reads, cache writes, output and separately reported reasoning. Unknown
+              categories are not estimated. Historical rolling demand windows start with the first
+              call after the previous window closes; they describe workload, not subscription
+              capacity.
+            </p>
           </>
         }
       />
@@ -637,29 +557,11 @@ function ImportedWorkloadEvidence({
           )}
         </section>
       </details>
-      <section
-        className="grid min-w-0 gap-6 border-t border-border pt-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10"
-        aria-label="What produced this workload and value"
-      >
-        <ToolSplit
-          sources={summary.usageSources}
-          compact
-          testHref={(adapterId) =>
-            replayLink(record.id, {
-              scope:
-                summary.usageSources.filter((source) => source.role === "usage").length > 1
-                  ? [adapterId]
-                  : undefined,
-            })
-          }
-        />
-        {profile === undefined ? null : <CacheReadBriefing profile={profile} />}
-      </section>
     </header>
   );
 }
 
-function WorkloadBody({
+function WorkloadAnalysis({
   decision,
   profile,
   record,
@@ -669,6 +571,7 @@ function WorkloadBody({
   onUtc,
   localZone,
 }: {
+  decision: MarketDecision | undefined;
   profile: WorkloadProfile;
   record: ImportRecord;
   measure: Measure;
@@ -676,7 +579,138 @@ function WorkloadBody({
   useUtc: boolean;
   onUtc: (value: boolean) => void;
   localZone: string;
+}) {
+  const peakDates = new Set<string>();
+  for (const window of profile.topWindows[measure]) {
+    peakDates.add(
+      new Intl.DateTimeFormat("en-CA", { timeZone: profile.timeZone }).format(
+        new Date(window.startMs),
+      ),
+    );
+  }
+  const median = measure === "events" ? profile.days.medianEvents : profile.days.medianTokens;
+  const peakDay = measure === "events" ? profile.days.peakByEvents : profile.days.peakByTokens;
+
+  return (
+    <div className="flex min-w-0 flex-col gap-10 sm:gap-14" data-testid="analysis-region">
+      <div
+        className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
+        data-testid="measure-bar"
+      >
+        <fieldset className="flex flex-wrap items-center gap-2">
+          <legend className="sr-only">Read demand as</legend>
+          <span aria-hidden="true" className="text-xs text-muted-foreground">
+            Read demand as
+          </span>
+          <button
+            type="button"
+            aria-pressed={measure === "events"}
+            className={segmented(measure === "events")}
+            onClick={() => onMeasure("events")}
+            data-testid="measure-events"
+          >
+            Calls
+          </button>
+          <button
+            type="button"
+            aria-pressed={measure === "tokens"}
+            className={segmented(measure === "tokens")}
+            onClick={() => onMeasure("tokens")}
+            data-testid="measure-tokens"
+          >
+            Known tokens
+          </button>
+        </fieldset>
+        <p className="text-xs text-muted-foreground">
+          Times in <span className="font-mono text-foreground">{profile.timeZone}</span> ·{" "}
+          <button
+            type="button"
+            className="min-h-11 text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
+            onClick={() => onUtc(!useUtc)}
+            data-testid="timezone-toggle"
+          >
+            {useUtc ? `Use ${localZone}` : "Use UTC"}
+          </button>
+        </p>
+      </div>
+
+      <WorkloadSection
+        index="02"
+        eyebrow="Model mix"
+        title="Which models did the work"
+        id="models"
+        testId="section-models"
+      >
+        <ModelMix measure={measure} profile={profile} decision={decision} />
+        <div id="tokens" data-testid="section-tokens" className="space-y-3 pt-3">
+          <h3 className="text-sm font-medium">Token behavior</h3>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-mono text-foreground" data-testid="cache-share">
+              {percent(cacheReadShareOf(profile) ?? 0)}
+            </span>{" "}
+            of known tokens were cache reads.
+          </p>
+          <CompositionLedger buckets={profile.tokens} />
+        </div>
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="03"
+        eyebrow="Recorded demand"
+        title="Your history, day by day"
+        lede={`${count(profile.overview.activeDays)} active days. ${peakDay ? `Busiest day: ${plainDay(peakDay.date)} · ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens)} known tokens`}.` : ""}`}
+        id="chronology"
+        testId="section-chronology"
+      >
+        <DemandChronology
+          highlighted={{
+            dates: peakDates,
+            legend: "day holding one of the five heaviest five-hour windows",
+          }}
+          label="Recorded demand"
+          measure={measure}
+          median={profile.chronology.unit === "day" ? median : undefined}
+          points={profile.chronology.points}
+          testId="workload-chronology"
+          unit={profile.chronology.unit}
+        />
+        <div id="rhythm" data-testid="section-rhythm" className="space-y-3 pt-4">
+          <h3 className="text-sm font-medium">Hours and weekdays</h3>
+          <WorkRhythm measure={measure} profile={profile} />
+        </div>
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="04"
+        eyebrow="Session shape"
+        title="How intense the work became"
+        id="sessions"
+        testId="section-sessions"
+      >
+        <SessionShape profile={profile} />
+        <div id="pressure" data-testid="section-pressure" className="space-y-4 pt-4">
+          <h3 className="text-lg font-medium">Your heaviest windows</h3>
+          <HistoricalPressure
+            measure={measure}
+            profile={profile}
+            sourceNames={
+              new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
+            }
+          />
+        </div>
+      </WorkloadSection>
+    </div>
+  );
+}
+
+function WorkloadBody({
+  decision,
+  profile,
+  record,
+}: {
   decision: MarketDecision | undefined;
+  profile: WorkloadProfile;
+  record: ImportRecord;
 }) {
   // Every suggestion is chosen from how much of this workload the target runs
   // (lib/routes.ts), never from a fixed list.
@@ -692,249 +726,14 @@ function WorkloadBody({
     (options: ShareOptions) => workloadShareV2(record, profile, options, decision),
     [profile, record, decision],
   );
-  const apiRoute = routes.find((route) => route.id === "api-value");
-  const numericRoute = routes.find((route) => route.id === "numeric-limits");
-  const peakDates = new Set<string>();
-  for (const window of profile.topWindows[measure]) {
-    peakDates.add(
-      new Intl.DateTimeFormat("en-CA", { timeZone: profile.timeZone }).format(
-        new Date(window.startMs),
-      ),
-    );
-  }
-  const known = profile.overview.knownTokens;
-  const cacheShare = cacheReadShareOf(profile) ?? 0;
-  const median = measure === "events" ? profile.days.medianEvents : profile.days.medianTokens;
-  const peakDay = measure === "events" ? profile.days.peakByEvents : profile.days.peakByTokens;
-
   return (
-    <div className="flex min-w-0 flex-col gap-14">
-      <nav
-        aria-label="Explore workload details"
-        className="flex flex-col gap-2 border-b border-border pb-5 text-sm"
-      >
-        <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-          Explore the detail
-        </p>
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <a className={ACTION_LINK} href="#projects">
-            What drives usage
-          </a>
-          <a className={ACTION_LINK} href="#pressure">
-            When demand gets heavy
-          </a>
-          <a className={ACTION_LINK} href="#tokens">
-            How tokens behave
-          </a>
-          <a className={ACTION_LINK} href="#sessions">
-            Session shape
-          </a>
-          <a className={ACTION_LINK} href="#share" data-testid="share-workload-link">
-            Share this workload
-          </a>
-        </div>
-      </nav>
-
-      <div className="flex min-w-0 flex-col gap-14" data-testid="analysis-region">
-        <div
-          className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
-          data-testid="measure-bar"
-        >
-          <fieldset className="flex flex-wrap items-center gap-2">
-            <legend className="sr-only">Read demand as</legend>
-            <span aria-hidden="true" className="text-xs text-muted-foreground">
-              Read demand as
-            </span>
-            <button
-              type="button"
-              aria-pressed={measure === "events"}
-              className={segmented(measure === "events")}
-              onClick={() => onMeasure("events")}
-              data-testid="measure-events"
-            >
-              Calls
-            </button>
-            <button
-              type="button"
-              aria-pressed={measure === "tokens"}
-              className={segmented(measure === "tokens")}
-              onClick={() => onMeasure("tokens")}
-              data-testid="measure-tokens"
-            >
-              Known tokens
-            </button>
-          </fieldset>
-          <p className="text-xs text-muted-foreground">
-            Times in <span className="font-mono text-foreground">{profile.timeZone}</span> ·{" "}
-            <button
-              type="button"
-              className="min-h-11 text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
-              onClick={() => onUtc(!useUtc)}
-              data-testid="timezone-toggle"
-            >
-              {useUtc ? `Use ${localZone}` : "Use UTC"}
-            </button>
-          </p>
-        </div>
-
-        <WorkloadSection
-          index="02"
-          eyebrow="Model mix"
-          title="Which models did the work"
-          lede="Grouped by canonical model, so different spellings of one model are counted once."
-          id="models"
-          testId="section-models"
-        >
-          <ModelMix measure={measure} profile={profile} />
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="03"
-          eyebrow="Recorded demand"
-          title="Your history, day by day"
-          lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
-          id="chronology"
-          testId="section-chronology"
-        >
-          <DemandChronology
-            highlighted={{
-              dates: peakDates,
-              legend: "day holding one of the five heaviest five-hour windows",
-            }}
-            label="Recorded demand"
-            measure={measure}
-            median={profile.chronology.unit === "day" ? median : undefined}
-            points={profile.chronology.points}
-            testId="workload-chronology"
-            unit={profile.chronology.unit}
-          />
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="04"
-          eyebrow="When you work"
-          title="Hours and weekdays"
-          lede={`Read in ${profile.timeZone}, from each call's recorded timestamp.`}
-          id="rhythm"
-          testId="section-rhythm"
-        >
-          <WorkRhythm measure={measure} profile={profile} />
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="05"
-          eyebrow="Historical pressure"
-          title="Your heaviest windows"
-          lede="Monthly totals hide bursts. Rolling windows open at the first call after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
-          id="pressure"
-          testId="section-pressure"
-          action={
-            numericRoute === undefined ? undefined : (
-              <Link
-                className={ACTION_LINK}
-                href={routeLink(record.id, numericRoute)}
-                data-testid="pressure-replay-link"
-              >
-                Test these peaks against {numericRoute.target.name}&apos;s published limits →
-              </Link>
-            )
-          }
-        >
-          <HistoricalPressure
-            measure={measure}
-            profile={profile}
-            sourceNames={
-              new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
-            }
-          />
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="06"
-          eyebrow="Token composition"
-          title="Where the tokens go"
-          id="tokens"
-          testId="section-tokens"
-          action={
-            apiRoute === undefined ? undefined : (
-              <Link
-                className={ACTION_LINK}
-                href={routeLink(record.id, apiRoute)}
-                data-testid="tokens-api-link"
-              >
-                {apiRoute.slice.sources.length === 0
-                  ? `Estimate at ${apiRoute.target.name} rates →`
-                  : `Price your ${apiRoute.slice.label} work at ${apiRoute.target.name} rates →`}
-              </Link>
-            )
-          }
-        >
-          <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-            <div className="flex min-w-0 flex-col gap-3">
-              <p
-                className="font-sans text-5xl font-semibold leading-none tracking-tight tabular-nums sm:text-6xl"
-                data-testid="cache-share"
-              >
-                {percent(cacheShare)}
-              </p>
-              <p className="text-sm leading-relaxed">
-                of {formatTokens(known) ?? "0"} known processed tokens were cache reads.
-              </p>
-              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-                Processed tokens count everything a model read or wrote on each request, including
-                context it re-read from cache on every turn. They are not unique text, and a cache
-                read is not billed like fresh input. Fresh input was{" "}
-                <span className="font-mono text-foreground">
-                  {formatTokens(profile.tokens.uncachedInput) ?? "0"}
-                </span>{" "}
-                and output{" "}
-                <span className="font-mono text-foreground">
-                  {formatTokens(profile.tokens.output) ?? "0"}
-                </span>
-                {profile.tokens.reasoning > 0 ? (
-                  <>
-                    , with{" "}
-                    <span className="font-mono text-foreground">
-                      {formatTokens(profile.tokens.reasoning) ?? "0"}
-                    </span>{" "}
-                    reasoning counted separately
-                  </>
-                ) : null}
-                .
-              </p>
-              {profile.overview.unknownUsageEvents > 0 ? (
-                <p className="text-xs text-warning">
-                  {count(profile.overview.unknownUsageEvents)} calls report an incomplete set of
-                  token categories and are not in these totals. Their reported part is at least{" "}
-                  {formatTokens(profile.overview.lowerBoundTokens) ?? "0"} tokens.
-                </p>
-              ) : null}
-            </div>
-            <CompositionLedger buckets={profile.tokens} />
-          </div>
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="07"
-          eyebrow="Session shape"
-          title="How the sessions break down"
-          id="sessions"
-          testId="section-sessions"
-        >
-          <SessionShape profile={profile} />
-        </WorkloadSection>
-
-        <WorkloadSection
-          index="08"
-          eyebrow="Scan quality"
-          title="Evidence behind these figures"
-          id="evidence"
-          testId="section-evidence"
-        >
-          <ScanEvidence profile={profile} record={record} />
-        </WorkloadSection>
-      </div>
-
+    <details className="border-t border-border pt-2" data-testid="workload-tools">
+      <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+        Share or replay this workload
+      </summary>
+      <a href="#share" className={ACTION_LINK} data-testid="share-workload-link">
+        Share this workload →
+      </a>
       <section
         id="next"
         aria-labelledby="next-heading"
@@ -1020,7 +819,7 @@ function WorkloadBody({
         Your workload stays local unless you explicitly choose to share something. This analysis ran
         in a Worker in this browser; project names, sessions and timestamps were not sent anywhere.
       </p>
-    </div>
+    </details>
   );
 }
 

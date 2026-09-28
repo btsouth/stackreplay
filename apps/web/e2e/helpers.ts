@@ -238,3 +238,10 @@ export async function openBillingReview(page: Page): Promise<void> {
     await expect(page.getByTestId("review-editor")).toBeVisible();
   }
 }
+
+export async function openWorkloadTools(page: Page): Promise<void> {
+  const tools = page.getByTestId("workload-tools");
+  await expect(tools).toBeVisible();
+  if (!(await tools.evaluate((el) => (el as HTMLDetailsElement).open)))
+    await tools.locator(":scope > summary").click();
+}

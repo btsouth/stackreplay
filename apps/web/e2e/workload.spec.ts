@@ -13,6 +13,7 @@ import {
   openBillingReview,
   openReplayDetails,
   openReviewEvidence,
+  openWorkloadTools,
   setRulesAsOf,
   visitReplay,
   waitForWorkload,
@@ -152,6 +153,7 @@ test("project names and the workload stay local through scan, analysis and repla
   await scanFixtures(page);
   await openWorkload(page);
   await page.getByTestId("inspect-1h").click();
+  await openWorkloadTools(page);
   await page.getByTestId("next-api").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
@@ -184,6 +186,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
 }) => {
   await scanFixtures(page);
   await openWorkload(page);
+  await openWorkloadTools(page);
   await page.getByTestId("next-cross-provider").click();
 
   await expect(page.getByTestId("translation-required")).toContainText(
@@ -228,6 +231,7 @@ test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
   });
   await waitForWorkload(page);
   await openWorkload(page);
+  await openWorkloadTools(page);
   await page.getByTestId("next-cross-provider").click();
   await expect(page.getByTestId("translation-required")).toBeVisible();
   await page.getByTestId("configure-translation").click();
@@ -245,7 +249,8 @@ test("same models on the Direct API: an explicit scope prices what is establishe
 }) => {
   await scanFixtures(page, true);
   await openWorkload(page);
-  await page.getByTestId("tokens-api-link").click();
+  await openWorkloadTools(page);
+  await page.getByTestId("next-api").click();
   await expect(page.getByTestId("target-kind-api")).toHaveAttribute("aria-pressed", "true");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-cost")).toContainText("Not established", {
@@ -389,6 +394,7 @@ for (const theme of ["dark", "light"] as const) {
     });
     await expectNoSeriousViolations(page);
 
+    await openWorkloadTools(page);
     await page.getByTestId("next-cross-provider").click();
     await page.getByTestId("configure-translation").click();
     await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
@@ -520,6 +526,7 @@ test("a workload share link carries aggregates only and reads as StackReplay in 
 }) => {
   await scanFixtures(page);
   await openWorkload(page);
+  await openWorkloadTools(page);
   await page.getByTestId("share-workload-link").click();
   const panel = page.getByTestId("share-panel");
   await expect(panel.getByTestId("share-preview")).toBeVisible();

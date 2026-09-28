@@ -23,10 +23,38 @@ for (const theme of ["dark", "light"] as const) {
     expect(
       await page
         .locator(
-          '[data-testid="workload-hero"], [data-testid="section-projects"], [data-testid="overview-models"], [data-testid="overview-evidence"]',
+          '[data-testid="workload-hero"], [data-testid="section-projects"], [data-testid="section-models"], [data-testid="section-chronology"], [data-testid="section-sessions"], [data-testid="overview-evidence"]',
         )
         .evaluateAll((elements) => elements.map((el) => el.getAttribute("data-testid"))),
-    ).toEqual(["workload-hero", "section-projects", "overview-models", "overview-evidence"]);
+    ).toEqual([
+      "workload-hero",
+      "section-projects",
+      "section-models",
+      "section-chronology",
+      "section-sessions",
+      "overview-evidence",
+    ]);
+    for (const id of [
+      "project-table",
+      "model-mix",
+      "section-tokens",
+      "workload-chronology",
+      "rhythm-grid",
+      "top-sessions",
+      "pressure-table",
+      "top-windows",
+    ]) {
+      await expect(page.getByTestId(id)).toBeVisible();
+      expect(await page.getByTestId(id).evaluate((el) => el.closest("details"))).toBeNull();
+    }
+    await expect(page.getByTestId("overview-pricing-evidence")).not.toBeVisible();
+    await expect(page.getByTestId("overview-models")).toHaveCount(0);
+    await expect(page.getByTestId("model-api-contribution").first()).toContainText("$");
+    const api = await page.getByTestId("overview-api-total").textContent();
+    await page.getByTestId("measure-tokens").click();
+    await expect(page.getByTestId("measure-tokens")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("overview-api-total")).toHaveText(api ?? "");
+    await page.getByTestId("workload-hero").scrollIntoViewIfNeeded();
     await page.getByTestId("overview-range").locator("summary").click();
     await expect(page.getByTestId("overview-range")).toContainText(
       "Both published cache-write scenarios",

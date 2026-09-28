@@ -61,7 +61,7 @@ for (const theme of ["dark", "light"] as const) {
       true,
     );
     await page.getByTestId("review-evidence").locator(":scope > summary").click();
-    await page.getByTestId("workload-insights").locator('a[href="#pressure"]').click();
+    await page.locator("#pressure").scrollIntoViewIfNeeded();
     await expect(page.getByTestId("overview-evidence")).toHaveAttribute("open", "");
     await expect(page.locator("#pressure")).toBeVisible();
     // Reload via Compare: the saved synthetic workload and current stack remain browser-local.

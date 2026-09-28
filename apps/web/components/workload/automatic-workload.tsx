@@ -14,6 +14,7 @@ import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import type { WorkloadProfile } from "@/lib/workload-profile";
 import { MarketDecisionSurface } from "./market-decision";
+import { WorkloadSection } from "./section";
 
 const usd = (n: string) => `$${new Decimal(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 const n = (value: number) => value.toLocaleString("en-US");
@@ -23,87 +24,6 @@ const day = (value: string) =>
   );
 const rangeText = (range: { low: string; high: string }) =>
   range.low === range.high ? usd(range.low) : `${usd(range.low)} – ${usd(range.high)}`;
-
-/** Aggregate receipts, not an alternative pricing implementation. */
-function ModelEconomics({
-  decision,
-  profile,
-}: {
-  decision: MarketDecision | undefined;
-  profile: WorkloadProfile | undefined;
-}) {
-  const priced = marketRange(decision) ? decision : decision?.pricedScope;
-  const models = profile?.models.canonical ?? [];
-  return (
-    <section aria-label="Model economics" data-testid="overview-models" className="space-y-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-medium tracking-tight">Models &amp; API economics</h2>
-        <span className="text-xs text-muted-foreground">Full imported workload · exact models</span>
-      </div>
-      {models.map((model) => {
-        const contributions = priced?.scenarios.map((scenario) => {
-          const lines =
-            scenario.summary.explanation?.receipts
-              .flatMap((receipt) => receipt.cash)
-              .filter((cash) => {
-                const resource = scenario.summary.scenario.resources.find(
-                  (resource) => resource.id === cash.resourceInstanceId,
-                );
-                const artifact = DECISION_MARKET.scenarios
-                  .find((option) => option.id === scenario.id)
-                  ?.artifacts.find((artifact) => artifact.artifactHash === resource?.artifactHash);
-                if (artifact?.computation.kind !== "executable") return false;
-                const route = artifact.computation.routes.find(
-                  (route) => route.id === cash.routeId,
-                );
-                return route?.models.length === 1 && route.models[0] === model.modelId;
-              }) ?? [];
-          return lines.length
-            ? lines.reduce((sum, line) => sum.add(line.usd), new Decimal(0)).toString()
-            : undefined;
-        });
-        // These admitted API artifacts are exact-model routes. Unknown contributions remain unknown.
-        const complete =
-          contributions?.length === 2 && contributions.every((value) => value !== undefined);
-        const coverage = decision?.coverage?.models.find((entry) => entry.model === model.modelId);
-        return (
-          <div
-            key={model.modelId}
-            className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border py-2 text-sm"
-          >
-            <div>
-              <span>{model.name}</span>
-              <span className="ml-2 text-xs text-muted-foreground">
-                {n(model.events)} responses · {formatTokens(model.tokens)} known tokens
-              </span>
-            </div>
-            <span className="font-mono tabular-nums">
-              {complete
-                ? [...new Set(contributions.map((value) => usd(value ?? "0")))].join(" – ")
-                : decision
-                  ? "No complete price"
-                  : "Pricing…"}
-              {coverage && coverage.priced < coverage.calls ? (
-                <span className="ml-2 font-sans text-xs text-muted-foreground">
-                  {n(coverage.priced)} / {n(coverage.calls)} priced
-                </span>
-              ) : null}
-            </span>
-          </div>
-        );
-      })}
-      {profile?.models.unresolved.length ? (
-        <p className="text-sm text-muted-foreground">
-          {n(profile.overview.unresolvedEvents)} calls have unresolved model identities. No
-          substitution or price is inferred.
-        </p>
-      ) : null}
-      {!profile ? (
-        <p className="text-sm text-muted-foreground">Reading recorded model distribution…</p>
-      ) : null}
-    </section>
-  );
-}
 
 function ApiEvidence({ decision }: { decision: MarketDecision | undefined }) {
   const display = marketRange(decision) ? decision : decision?.pricedScope;
@@ -230,14 +150,16 @@ export function AutomaticWorkload({
   record,
   profile,
   projects,
-  highlights,
+  analysis,
+  tools,
   evidence,
   onResult,
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
   projects: ReactNode;
-  highlights: ReactNode;
+  analysis: (decision: MarketDecision | undefined) => ReactNode;
+  tools: ReactNode;
   evidence: ReactNode;
   onResult: (id: string, result: MarketDecision | undefined) => void;
 }) {
@@ -304,11 +226,6 @@ export function AutomaticWorkload({
       ? Math.round((Date.parse(to.slice(0, 10)) - Date.parse(from.slice(0, 10))) / 86400000) + 1
       : undefined);
   const sources = summary.usageSources.map((source) => source.name).join(" + ");
-  const makers = [
-    ...new Set(
-      profile?.models.canonical.flatMap((model) => (model.maker ? [model.maker] : [])) ?? [],
-    ),
-  ].join(" · ");
   const coverage = overview?.coverage;
   const signal = overview?.capacitySignal;
   const openBilling = () => {
@@ -349,7 +266,7 @@ export function AutomaticWorkload({
     action.current?.focus();
   };
   return (
-    <div className="space-y-7" data-testid="automatic-workload">
+    <div className="space-y-10 sm:space-y-14" data-testid="automatic-workload">
       <section
         aria-label="Imported workload overview"
         data-testid="workload-hero"
@@ -467,9 +384,6 @@ export function AutomaticWorkload({
             </div>
           </dl>
         </div>
-        {makers ? (
-          <p className="text-xs text-muted-foreground">Recorded models from {makers}</p>
-        ) : null}
         {matchingScope && paid ? (
           <div
             className="flex flex-wrap items-baseline gap-x-6 gap-y-2"
@@ -499,8 +413,7 @@ export function AutomaticWorkload({
             <p className="text-sm">{billingLabel}</p>
           ) : (
             <p className="text-xs text-muted-foreground">
-              {local.synthetic ? "Synthetic sample workload. " : ""}Recorded economics, not a
-              subscription replacement claim.
+              {local.synthetic ? "Synthetic sample workload" : ""}
             </p>
           )}
           <button
@@ -571,11 +484,14 @@ export function AutomaticWorkload({
         </Link>
       </section>
       {projects}
-      <ModelEconomics decision={overview} profile={profile} />
-      {highlights}
+      {analysis(overview)}
       {signal?.blockedAttempts || (complete && burden) ? (
-        <section className="space-y-2 border-y border-border py-4" data-testid="overview-capacity">
-          <h2 className="text-lg font-medium">Observed capacity burden</h2>
+        <WorkloadSection
+          index="05"
+          eyebrow="Capacity"
+          title="Where limits appeared"
+          testId="overview-capacity"
+        >
           {complete && burden ? (
             <>
               <p className="text-xs text-muted-foreground">
@@ -601,8 +517,9 @@ export function AutomaticWorkload({
               ? "Review interruption timeline →"
               : "Inspect capacity evidence in a focused review →"}
           </button>
-        </section>
+        </WorkloadSection>
       ) : null}
+      {tools}
       <details className="border-t border-border pt-2" data-testid="overview-evidence">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Methodology, assumptions &amp; evidence

@@ -1,7 +1,7 @@
 import { formatTokens } from "@/components/instrument/format";
 import type { WorkloadProfile } from "@/lib/workload-profile";
-import { count, instant, spanText } from "./format";
-import { Figure } from "./section";
+import { count, instant, percent } from "./format";
+import { ShareBar } from "./section";
 
 /**
  * Session shape. Sessions are the source's own session identities; no
@@ -12,19 +12,22 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
   const { sessions, overview, timeZone } = profile;
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
-        <Figure label="Sessions" value={count(sessions.count)} />
-        <Figure
-          label="Per active day"
-          value={sessions.perActiveDay.toFixed(1)}
-          note={`across ${count(overview.activeDays)} active days`}
-        />
-        <Figure label="Median calls per session" value={count(Math.round(sessions.medianEvents))} />
-        <Figure
-          label="Median known tokens per session"
-          value={formatTokens(Math.round(sessions.medianTokens)) ?? "0"}
-        />
-      </div>
+      <p className="text-sm text-muted-foreground">
+        <span className="font-mono text-foreground">{count(sessions.count)}</span> sessions · median{" "}
+        {count(Math.round(sessions.medianEvents))} calls per session.
+        {sessions.top[0] ? (
+          <>
+            {" "}
+            The largest held{" "}
+            <span className="font-mono text-foreground">
+              {formatTokens(sessions.top[0].tokens)}
+            </span>{" "}
+            known tokens,{" "}
+            {percent(overview.knownTokens ? sessions.top[0].tokens / overview.knownTokens : 0)} of
+            the workload.
+          </>
+        ) : null}
+      </p>
       {sessions.top.length > 0 ? (
         <div className="min-w-0">
           <p className="mb-2 text-xs text-muted-foreground">Heaviest sessions by known tokens</p>
@@ -74,21 +77,17 @@ export function SessionShape({ profile }: { profile: WorkloadProfile }) {
                     title={`${count(session.tokens)} tokens`}
                   >
                     {formatTokens(session.tokens) ?? "0"}
+                    <span className="mt-1 block">
+                      <ShareBar
+                        share={session.tokens / Math.max(1, sessions.top[0]?.tokens ?? 1)}
+                        emphasis={session.key === sessions.top[0]?.key}
+                      />
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {sessions.longestSpan === undefined ? null : (
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Longest time between a session&apos;s first and last recorded call:{" "}
-              <span className="font-mono text-foreground">
-                {spanText(sessions.longestSpan.observedSpanMs)}
-              </span>{" "}
-              ({sessions.longestSpan.projectLabel ?? "no project recorded"}). Sessions can be
-              resumed, so this is a span of recorded activity, not time spent working.
-            </p>
-          )}
         </div>
       ) : null}
       {overview.eventsWithoutSession > 0 ? (

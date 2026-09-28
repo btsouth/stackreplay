@@ -1,6 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+import {
+  createShareToken,
+  gotoImport,
+  openReviewEvidence,
+  openWorkloadTools,
+  waitForWorkload,
+} from "./helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -24,6 +30,7 @@ async function importMixed(page: Page): Promise<string> {
   await waitForWorkload(page);
   await page.goto("/app/workload");
   await openReviewEvidence(page);
+  await openWorkloadTools(page);
   await expect(page.getByTestId("suggested-routes")).toBeVisible({ timeout: 60_000 });
   return (
     new URL(
@@ -41,6 +48,7 @@ test("suggested routes go to targets that answer, with the tool slice stated", a
   await expect(page.getByTestId("next-numeric")).toContainText("Copilot Pro+");
   await expect(page.getByTestId("next-cross-provider")).toContainText("Claude Max 20x");
 
+  await openWorkloadTools(page);
   await page.getByTestId("next-api").click();
   await expect(page).toHaveURL(/scope=claude-code/u);
   await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
@@ -65,6 +73,7 @@ test("the numeric route shows where the plan would run out, on the whole workloa
   page,
 }) => {
   await importMixed(page);
+  await openWorkloadTools(page);
   await page.getByTestId("next-numeric").click();
   await expect(page.getByTestId("plan-github-copilot-pro-plus")).toHaveAttribute(
     "aria-pressed",

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
-import { gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+import { gotoImport, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -45,11 +45,8 @@ test("automatic handoff opens Workload with economics and inspectable valuation"
   await expect(preview.getByTestId("value-left-out")).toContainText(
     "model IDs StackReplay couldn't resolve",
   );
-  await expect(preview.getByTestId("tool-split")).toContainText("Claude Code");
-  await expect(preview.getByTestId("tool-split")).toContainText("Command Code");
-  const fact = preview.getByTestId("workload-insights").locator("li").first();
-  await expect(fact).toContainText("×");
-  await expect(fact.getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
+  await expect(preview.getByTestId("workload-hero")).toContainText("Claude Code");
+  await expect(preview.getByTestId("model-mix")).toBeVisible();
 });
 
 test("the workload opens with its value, scope, tool split and comparative facts", async ({
@@ -72,51 +69,11 @@ test("the workload opens with its value, scope, tool split and comparative facts
   await expect(opening.getByTestId("value-figure")).toBeInViewport();
   await expect(opening.getByTestId("value-caption")).toBeInViewport();
   await expect(opening.getByTestId("value-scope")).toContainText("included calls priced");
-  await expect(opening.getByTestId("tool-split")).toBeInViewport();
-
-  const facts = opening.getByTestId("workload-insights").locator("li");
-  await expect(facts).toHaveCount(3);
-  for (const index of [0, 1, 2]) {
-    await expect(facts.nth(index)).toContainText("×");
-    await expect(facts.nth(index).getByRole("link")).toHaveAttribute("href", /^#[a-z]+$/u);
-  }
-  await expect(
-    page
-      .getByTestId("overview-evidence")
-      .getByRole("link", { name: "Replay part of this workload" }),
-  ).toHaveCount(1);
-  await expect(
-    page
-      .getByTestId("overview-evidence")
-      .getByRole("link", { name: /Compare ways to buy this work/u }),
-  ).toHaveCount(1);
-  const decision = page.getByTestId("replay-transition");
-  await expect(decision.getByTestId("workload-replay-cta")).toHaveText(
-    "Replay part of this workload",
-  );
-  await expect(decision.getByTestId("legacy-workload-compare-cta")).toHaveText(
-    "Compare ways to buy this work →",
-  );
-  const narrativeOrder = await page
-    .locator(
-      '[data-testid="workload-insights"], [data-testid="section-projects"], [data-testid="section-models"], [data-testid="section-chronology"], [data-testid="section-pressure"], [data-testid="section-tokens"], [data-testid="section-sessions"], [data-testid="section-evidence"], [data-testid="replay-transition"]',
-    )
-    .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
-  expect(narrativeOrder).toEqual([
-    "section-projects",
-    "workload-insights",
-    "section-models",
-    "section-chronology",
-    "section-pressure",
-    "section-tokens",
-    "section-sessions",
-    "section-evidence",
-    "replay-transition",
-  ]);
-  // A fact's link lands on the section that shows it.
-  const href = (await facts.first().getByRole("link").getAttribute("href")) ?? "";
-  await facts.first().getByRole("link").click();
-  await expect(page.locator(href)).toBeInViewport();
+  await expect(opening.getByTestId("model-mix")).toBeVisible();
+  await expect(page.getByTestId("workload-insights")).toHaveCount(0);
+  await openWorkloadTools(page);
+  await expect(page.getByTestId("workload-replay-cta")).toBeVisible();
+  await expect(page.getByTestId("overview-evidence").getByTestId("model-mix")).toHaveCount(0);
 
   // Every dollar opens to its arithmetic, one receipt per maker.
   await page.getByTestId("value-receipts").locator(":scope > summary").click();
@@ -135,6 +92,7 @@ test("a Claude-only value is exactly its Direct API replay", async ({ page }) =>
   const value = (await figure.textContent()) ?? "";
   await expect(page.getByTestId("value-left-out")).toHaveCount(0);
 
+  await openWorkloadTools(page);
   await page.getByTestId("next-api").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("verdict-figure")).toHaveText(value, { timeout: 60_000 });
@@ -149,6 +107,7 @@ test("earlier analytical pricing remains explicitly prorated, with the arithmeti
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
+  await openWorkloadTools(page);
   const spend = page.getByTestId("current-spend");
   await expect(spend).toBeVisible({ timeout: 60_000 });
   await spend.locator(":scope > summary").click();
