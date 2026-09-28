@@ -7,6 +7,7 @@ import {
   openBillingReview,
   openReviewEditor,
   openReviewEvidence,
+  openWorkloadTools,
   waitForWorkload,
 } from "./helpers";
 
@@ -140,6 +141,7 @@ test("D2 share hides paid amounts by default and includes them only after an exp
   await expect(page.getByTestId("share-preview")).not.toContainText("$120");
   await expect(page.getByTestId("share-preview")).toContainText("Review dates not shared");
   await openReviewEvidence(page);
+  await openWorkloadTools(page);
   await page.getByTestId("share-include-review").check();
   await expect(page.getByTestId("share-preview")).toContainText("2026-09-01");
   await page.getByTestId("share-include-paid").check();
