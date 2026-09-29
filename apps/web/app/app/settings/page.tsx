@@ -30,7 +30,7 @@ export default function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        description="Everything here stays in this browser. Nothing is sent to StackReplay."
+        description="Your settings stay in this browser. They are not uploaded."
       />
       <div className="flex max-w-4xl flex-col gap-8">
         <Setting

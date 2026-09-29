@@ -14,9 +14,15 @@ import type { NextConfig } from "next";
  * `script-src` and `style-src` allow `'unsafe-inline'` because the framework's
  * hydration bootstrap and the charting library's inline styles are emitted without
  * a nonce, and this application renders statically. That is a real weakening of
- * those two directives, stated here rather than hidden: it does not permit any
- * third-party origin, and it cannot be used to reach one, because the egress
- * directives above are what a script would need to exfiltrate through.
+ * those two directives, stated here rather than hidden. The one external script
+ * exception is Cloudflare Web Analytics. Automatic injection reports page and
+ * performance metrics to our own /cdn-cgi/rum endpoint, so connect-src stays
+ * self-only. The exact script path and its versioned descendants are allowed,
+ * rather than every script on the Cloudflare host. Cloudflare supplies SRI on
+ * automatically injected scripts.
+ *
+ * Referrers contain only the origin, including on same-origin requests, so
+ * browser-local import IDs in URL queries do not enter analytics headers.
  *
  * `font-src 'self' data:` covers the self-hosted font files and the inline data
  * font the framework emits.
@@ -27,7 +33,7 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
@@ -41,7 +47,7 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Referrer-Policy", value: "strict-origin" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",

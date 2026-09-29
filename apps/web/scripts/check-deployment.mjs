@@ -8,7 +8,7 @@ if (!origin || !/^https?:\/\//u.test(origin)) {
 const expectedHeaders = {
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
-  "referrer-policy": "strict-origin-when-cross-origin",
+  "referrer-policy": "strict-origin",
   "cross-origin-opener-policy": "same-origin",
   "permissions-policy":
     "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()",
@@ -17,8 +17,20 @@ const expectedHeaders = {
 
 function checkSecurityHeaders(path, response) {
   const policy = response.headers.get("content-security-policy") ?? "";
+  const directives = policy.split(";").map((directive) => directive.trim());
   for (const directive of ["connect-src 'self'", "worker-src 'self'", "frame-ancestors 'none'"]) {
-    if (!policy.includes(directive)) throw new Error(`${path}: missing CSP ${directive}`);
+    if (!directives.includes(directive)) throw new Error(`${path}: missing CSP ${directive}`);
+  }
+  const scriptSources = policy
+    .split(";")
+    .find((directive) => directive.trim().startsWith("script-src "));
+  for (const source of [
+    "https://static.cloudflareinsights.com/beacon.min.js",
+    "https://static.cloudflareinsights.com/beacon.min.js/",
+  ]) {
+    if (!scriptSources?.trim().split(/\s+/u).includes(source)) {
+      throw new Error(`${path}: missing analytics script permission ${source}`);
+    }
   }
   for (const [name, value] of Object.entries(expectedHeaders)) {
     if (response.headers.get(name) !== value) throw new Error(`${path}: incorrect ${name}`);

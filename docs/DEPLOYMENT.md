@@ -62,7 +62,14 @@ build generates `dist/client/_headers` for Cloudflare static assets from the
 same Next configuration; fonts, images, and the browser Worker receive the
 same security headers and their correct MIME types. The
 production policy retains `connect-src 'self'`, `worker-src 'self'`, and
-`frame-ancestors 'none'`. No third-party telemetry is configured.
+`frame-ancestors 'none'`. Cloudflare Web Analytics is automatically injected by
+the production zone. CSP allows only its beacon script path and versioned
+descendants; its metrics POST to the same-origin `/cdn-cgi/rum` endpoint. No
+external connection destination is added. `Referrer-Policy: strict-origin`
+keeps browser-local import IDs out of request headers. The beacon removes URL
+queries and fragments from its page metrics; public share URLs remain page paths.
+Raw imported histories are not analytics payloads. See
+[Cloudflare's CSP guidance](https://developers.cloudflare.com/web-analytics/faq/#what-do-i-need-to-add-to-my-content-security-policy-csp).
 
 The only app environment variable is optional build-time
 `NEXT_PUBLIC_SITE_URL`. Leave it unset for both preview and production: public

