@@ -5,8 +5,10 @@ import {
   getPlanVersion,
   getPricing,
   type LoadedPlanVersionV1,
+  type ModelRouteVariantV1,
   type ModelRuleV1,
   modelResolutionKindOf,
+  observedRouteVariantOf,
   type PlanLimitV1,
   selectLoadedPlanVersionAt,
   validateLoadedCatalog,
@@ -474,6 +476,7 @@ function computeSemantics(input: {
       priced: preparedEvent.moneyUnits !== undefined,
       missingPricingEntry: preparedEvent.missingPricing,
       unpricedCategories: preparedEvent.unpricedCategories,
+      scheduleUnestablished: preparedEvent.scheduleUnestablished,
       indeterminate: preparedEvent.outcome === "indeterminate",
       disposition: dispositionOf(preparedEvent),
     };
@@ -687,6 +690,49 @@ interface ModelResolution {
   rule?: ModelRuleV1;
   /** Rule multiplier times promotions active in the rules snapshot (decision 17). */
   multiplier: Decimal;
+  /**
+   * The provider route variant the observed call ran on, when its identifier
+   * selects one (for example Command Code's Fast route to DeepSeek V4.1 Flash).
+   */
+  routeVariant?: ModelRouteVariantV1;
+}
+
+/**
+ * The rule that covers one event, given the provider route variant it ran on.
+ *
+ * On the provider that sells the variant, only the rule's entry for that
+ * variant covers it: its own price and multiplier, never the default route's.
+ * A variant the rule does not list is not covered. On any other target the
+ * variant does not exist, so the call runs on that target's own route for the
+ * same model and the rule applies as written; the replay records that.
+ */
+function ruleForRoute(
+  rule: ModelRuleV1,
+  variant: ModelRouteVariantV1 | undefined,
+  planProviderId: string,
+  tracker: Tracker,
+): ModelRuleV1 | undefined {
+  if (variant === undefined || rule.excluded === true) return rule;
+  if (variant.providerId !== planProviderId) {
+    tracker.warn(
+      "MODEL_ROUTE_VARIANT_NOT_CARRIED",
+      "One or more events ran on another provider's route variant of their model (for example a Fast route). This target has no such route, so they are replayed on its own route for the same model, at its own terms.",
+    );
+    return rule;
+  }
+  const entry = rule.variants?.find((candidate) => candidate.id === variant.id);
+  if (entry === undefined) {
+    tracker.warn(
+      "MODEL_ROUTE_VARIANT_NOT_OFFERED",
+      "One or more events ran on a route variant of their model that this plan's rules do not list; they are not covered, and the model's default route was not used in its place.",
+    );
+    return undefined;
+  }
+  return {
+    model: rule.model,
+    ...(entry.pricingRef === undefined ? {} : { pricingRef: entry.pricingRef }),
+    ...(entry.multiplier === undefined ? {} : { multiplier: entry.multiplier }),
+  };
 }
 
 function resolveModels(
@@ -714,8 +760,9 @@ function resolveModels(
    * remediation).
    */
   const multiplierByModel = new Map<string, Decimal>();
-  const multiplierFor = (modelId: string, rule: ModelRuleV1): Decimal => {
-    const cached = multiplierByModel.get(modelId);
+  const multiplierFor = (modelId: string, rule: ModelRuleV1, variantId?: string): Decimal => {
+    const key = variantId === undefined ? modelId : `${modelId}|${variantId}`;
+    const cached = multiplierByModel.get(key);
     if (cached !== undefined) return cached;
     let multiplier = ONE;
     if (rule.multiplier !== undefined) multiplier = multiplier.times(parseAmount(rule.multiplier));
@@ -724,8 +771,25 @@ function resolveModels(
       if (promotion.models !== undefined && !promotion.models.includes(modelId)) continue;
       multiplier = multiplier.times(parseAmount(promotion.multiplier));
     }
-    multiplierByModel.set(modelId, multiplier);
+    multiplierByModel.set(key, multiplier);
     return multiplier;
+  };
+  /** Route variants per harness and raw name: identity lookups, memoized. */
+  const variantByName = new Map<string, ModelRouteVariantV1 | null>();
+  const routeVariantOf = (event: TimedEvent["event"]): ModelRouteVariantV1 | undefined => {
+    if (event.harness === undefined) return undefined;
+    const key = `${event.harness.id}|${event.model.canonicalId ?? ""}|${event.model.rawName}`;
+    let cached = variantByName.get(key);
+    if (cached === undefined) {
+      cached =
+        observedRouteVariantOf(identity, {
+          rawName: event.model.rawName,
+          harness: event.harness.id,
+          canonicalId: event.model.canonicalId,
+        }) ?? null;
+      variantByName.set(key, cached);
+    }
+    return cached ?? undefined;
   };
 
   const resolution = new Map<string, ModelResolution>();
@@ -778,8 +842,17 @@ function resolveModels(
     const substitute = substituteFor(translationPlan, sourceModelId);
     const effectiveModelId = substitute ?? sourceModelId;
     if (substitute !== undefined) translationApplication.record(sourceModelId);
+    const observedVariant = routeVariantOf(event);
+    // A variant is a route of the observed model. A substitute is another
+    // model, run on the target's default route.
+    const routeVariant = substitute === undefined ? observedVariant : undefined;
+    const variantFields = observedVariant === undefined ? {} : { routeVariant: observedVariant };
 
-    const rule = ruleByModel.get(effectiveModelId);
+    const declared = ruleByModel.get(effectiveModelId);
+    const rule =
+      declared === undefined
+        ? undefined
+        : ruleForRoute(declared, routeVariant, planVersion.providerId, tracker);
     if (rule === undefined) {
       resolution.set(event.id, {
         quality,
@@ -789,6 +862,7 @@ function resolveModels(
         supported: false,
         unsupportedReason: "not_supported",
         multiplier: ONE,
+        ...variantFields,
       });
       continue;
     }
@@ -802,9 +876,14 @@ function resolveModels(
         unsupportedReason: "excluded",
         rule,
         multiplier: ONE,
+        ...variantFields,
       });
       continue;
     }
+    const pricedVariant =
+      routeVariant !== undefined && routeVariant.providerId === planVersion.providerId
+        ? routeVariant.id
+        : undefined;
     resolution.set(event.id, {
       quality,
       resolutionKind,
@@ -812,7 +891,8 @@ function resolveModels(
       effectiveModelId,
       supported: true,
       rule,
-      multiplier: multiplierFor(effectiveModelId, rule),
+      multiplier: multiplierFor(effectiveModelId, rule, pricedVariant),
+      ...variantFields,
     });
   }
   return resolution;
@@ -834,6 +914,8 @@ interface PreparedEvent {
   missingPricing: boolean;
   /** A consumed category the selected pricing record does not establish. */
   unpricedCategories: boolean;
+  /** The selected pricing record's schedule leaves this event's rate set open. */
+  scheduleUnestablished: boolean;
   /** Whether at least one numeric rule of the target applies to this event. */
   subjectToNumericRule: boolean;
   /** Whether any of this event's consumption was billed above included capacity. */
@@ -875,6 +957,7 @@ function prepareEvents(
     let moneyUnits: Decimal | undefined;
     let missingPricing = false;
     let unpricedCategories = false;
+    let scheduleUnestablished = false;
     if (needsMoney && res.supported) {
       const pricing =
         res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
@@ -910,8 +993,15 @@ function prepareEvents(
           "One or more events consume nonzero tokens in a category the selected pricing rule does not establish; monetary consumption for those events is unknown rather than guessed.",
         );
       }
+      if (outcome.scheduleUnestablished === true) {
+        tracker.warn(
+          "PRICING_SCHEDULE_UNESTABLISHED",
+          "One or more events fall inside a peak window on a date the price schedule's calendar does not settle (for example a holiday the source leaves open); neither the peak nor the off-peak rate was used for them.",
+        );
+      }
       missingPricing = outcome.missingPricing;
       unpricedCategories = outcome.unpricedCategories.length > 0;
+      scheduleUnestablished = outcome.scheduleUnestablished === true;
       moneyUnits = outcome.known ? outcome.units : undefined;
     }
 
@@ -924,6 +1014,7 @@ function prepareEvents(
       needsMoney: needsMoney && res.supported,
       missingPricing,
       unpricedCategories,
+      scheduleUnestablished,
       subjectToNumericRule: false,
       overageConsumption: false,
       outcome: undefined,
@@ -1500,13 +1591,14 @@ function computeConfidence(
 
   if (
     tracker.warnings.has("PRICING_MISSING") ||
-    tracker.warnings.has("PRICING_CATEGORY_UNDOCUMENTED")
+    tracker.warnings.has("PRICING_CATEGORY_UNDOCUMENTED") ||
+    tracker.warnings.has("PRICING_SCHEDULE_UNESTABLISHED")
   ) {
     factors.push({
       id: "pricing_completeness",
       level: "low",
       description:
-        "Some events could not be priced from the selected pricing rules (no pricing entry, or nonzero token categories the pricing rule does not establish), so their monetary consumption is unknown.",
+        "Some events could not be priced from the selected pricing rules (no pricing entry, nonzero token categories the pricing rule does not establish, or a date the price schedule leaves open), so their monetary consumption is unknown.",
     });
   }
 
@@ -1560,6 +1652,8 @@ function collectPricingReferences(planVersion: LoadedPlanVersionV1): string[] {
   const references = new Set<string>();
   for (const rule of planVersion.modelRules) {
     if (rule.pricingRef !== undefined) references.add(rule.pricingRef);
+    for (const variant of rule.variants ?? [])
+      if (variant.pricingRef !== undefined) references.add(variant.pricingRef);
   }
   return [...references].sort();
 }

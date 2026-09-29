@@ -3,6 +3,7 @@ import { buildCompareFacts } from "./compare-facts";
 import { modelPlanCount, modelPlanCounts } from "./model-library";
 import { loadPublicCatalog, planIncludesModel } from "./public-catalog";
 import {
+  accessModelKey,
   includedAccessModels,
   type SubscriptionAccessModel,
   subscriptionAccess,
@@ -31,11 +32,15 @@ describe("published subscription access", () => {
       }
     }
   });
-  it("shows the Command Code Max lineup beyond the two replay model rules", () => {
+  it("shows the Command Code Max lineup beyond the three replay model rules", () => {
     const plan = catalog.planById("command-code-max-20x");
     if (!plan) throw new Error("Missing Command Code Max");
     const facts = buildCompareFacts(plan, catalog.modelById);
-    expect(plan.modelRules.map((rule) => rule.model)).toEqual(["gpt-5-6-luna", "gpt-5-6-sol"]);
+    expect(plan.modelRules.map((rule) => rule.model)).toEqual([
+      "gpt-5-6-luna",
+      "gpt-5-6-sol",
+      "deepseek-v4-1-flash",
+    ]);
     expect(facts.models.total).toBe(86);
     expect(names(plan.id)).toEqual(
       expect.arrayContaining([
@@ -80,6 +85,52 @@ describe("published subscription access", () => {
     expect(names("cursor-hobby")).toEqual([]);
     expect(names("github-copilot-free")).toEqual([]);
     expect(names("google-ai-pro")).toContain("Claude Sonnet 4.6 (thinking)");
+  });
+  it("lists Command Code's V4.1 Flash Fast as its own route of the canonical model", () => {
+    for (const planId of [
+      "command-code-go",
+      "command-code-goat",
+      "command-code-pro",
+      "command-code-max-10x",
+      "command-code-max-20x",
+    ]) {
+      const rows = includedAccessModels(accessFor(planId)).filter(
+        (model) => model.modelId === "deepseek-v4-1-flash",
+      );
+      expect(
+        rows.map((row) => [row.name, row.variant, accessModelKey(row)]),
+        planId,
+      ).toEqual([
+        ["DeepSeek V4.1 Flash", undefined, "deepseek-v4-1-flash"],
+        ["DeepSeek V4.1 Flash Fast", "fast", "deepseek-v4-1-flash~fast"],
+      ]);
+    }
+    const plan = catalog.planById("command-code-go");
+    if (!plan) throw new Error("Missing Command Code Go");
+    const { featured, more } = buildCompareFacts(plan, catalog.modelById).models;
+    const ids = [...featured, ...more].map((model) => model.id);
+    expect(ids).toContain("deepseek-v4-1-flash");
+    expect(ids).toContain("deepseek-v4-1-flash~fast");
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(planIncludesModel(plan, "deepseek-v4-1-flash")).toBe(true);
+  });
+  it("never lets a variant row replace the default route's row", () => {
+    const rows = includedAccessModels({
+      checkedAt: date,
+      summary: "",
+      groups: [
+        {
+          label: "Included",
+          access: "included",
+          sourceUrl: "https://example.com",
+          models: [
+            { name: "Alpha", modelId: "alpha" },
+            { name: "Alpha Fast", modelId: "alpha", variant: "fast" },
+          ],
+        },
+      ],
+    });
+    expect(rows.map((row) => row.name)).toEqual(["Alpha", "Alpha Fast"]);
   });
   it("does not backdate current lineup observations", () => {
     expect(subscriptionAccess("command-code-max-20x", "2026-09-27")).toBeUndefined();

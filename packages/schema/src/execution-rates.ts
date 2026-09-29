@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { decimalAmountV1Schema } from "./scalars.js";
+import { decimalAmountV1Schema, isoDateV1Schema } from "./scalars.js";
 export const billingEquivalenceV1Schema = z.strictObject({
   billedAs: z.enum(["input", "output", "cacheRead", "cacheWrite", "reasoning"]),
 });
@@ -61,8 +61,28 @@ export const pricingTierInputConditionV1Schema = z.strictObject({
 });
 export type PricingTierInputConditionV1 = z.infer<typeof pricingTierInputConditionV1Schema>;
 
+/**
+ * A time-of-day schedule, optionally with a published date calendar.
+ *
+ * Some schedules skip named dates: DeepSeek's peak hours exclude Chinese public
+ * holidays, so a weekday holiday is off-peak all day. The calendar is dated in
+ * UTC, which only works when every window falls inside the same calendar day in
+ * the source's own zone; the author checks that before listing dates.
+ *
+ * A calendar is only as complete as its source. `unestablishedUtcDates` names
+ * dates the source leaves open (it is not clear whether a window applies), and
+ * `datesKnownThrough` bounds the calendar: on a later date the windows' own
+ * hours are unestablished, because a holiday there would not be listed yet.
+ * Outside the windows' hours the base rates apply either way.
+ */
 export const pricingTierScheduleConditionV1Schema = z.strictObject({
   utcWindows: z.array(utcTimeWindowV1Schema).min(1),
+  /** UTC dates on which no window applies; the base rates price the whole day. */
+  exceptUtcDates: z.array(isoDateV1Schema).min(1).optional(),
+  /** UTC dates on which the source does not establish whether a window applies. */
+  unestablishedUtcDates: z.array(isoDateV1Schema).min(1).optional(),
+  /** Last UTC date the date lists are complete for. Required with either list. */
+  datesKnownThrough: isoDateV1Schema.optional(),
 });
 export type PricingTierScheduleConditionV1 = z.infer<typeof pricingTierScheduleConditionV1Schema>;
 

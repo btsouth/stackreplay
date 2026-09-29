@@ -6,7 +6,11 @@ import {
   verificationText,
 } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
-import { includedAccessModels, type SubscriptionAccess } from "./subscription-access";
+import {
+  accessModelKey,
+  includedAccessModels,
+  type SubscriptionAccess,
+} from "./subscription-access";
 import type { SubscriptionPublishedTerms } from "./subscription-published-terms";
 
 /**
@@ -179,7 +183,7 @@ export function buildCompareFacts(
     }));
   const included = plan.modelAccess
     ? includedAccessModels(plan.modelAccess).map((entry) => ({
-        id: entry.modelId ?? `published:${entry.name}`,
+        id: accessModelKey(entry),
         name: entry.name,
         legacy: false,
         ...(entry.modelId && modelById(entry.modelId)?.developerId

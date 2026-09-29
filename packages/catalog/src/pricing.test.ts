@@ -302,3 +302,56 @@ describe("catalog pricing: promotional standing", () => {
     ).toContain("PRICING_PROMOTION_TIER_DUPLICATE");
   });
 });
+
+describe("catalog pricing semantics: schedule date calendars", () => {
+  const completeRates = { input: "2.00", output: "4.00", cacheRead: "0.50" };
+  const peak = (calendar: Record<string, unknown>) =>
+    record(completeRates, [
+      {
+        id: "peak-hours",
+        label: "Peak",
+        when: {
+          utcWindows: [{ days: ["mon", "tue", "wed", "thu", "fri"], start: "01:00", end: "04:00" }],
+          ...calendar,
+        },
+        rates: { input: "4.00", output: "8.00", cacheRead: "1.00" },
+      },
+    ]);
+
+  it("accepts a sorted calendar that is complete through a stated date", () => {
+    expect(
+      check(
+        peak({
+          exceptUtcDates: ["2026-09-25", "2026-10-01"],
+          unestablishedUtcDates: ["2026-10-05"],
+          datesKnownThrough: "2026-12-31",
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects a date list without datesKnownThrough, so later holidays are never read as weekdays", () => {
+    expect(check(peak({ exceptUtcDates: ["2026-09-25"] }))).toContain(
+      "PRICING_TIER_CALENDAR_INVALID",
+    );
+    expect(check(peak({ unestablishedUtcDates: ["2026-10-05"] }))).toContain(
+      "PRICING_TIER_CALENDAR_INVALID",
+    );
+  });
+
+  it("rejects unsorted or repeated dates, dates past the bound, and a date both skipped and open", () => {
+    for (const calendar of [
+      { exceptUtcDates: ["2026-10-01", "2026-09-25"], datesKnownThrough: "2026-12-31" },
+      { exceptUtcDates: ["2026-10-01", "2026-10-01"], datesKnownThrough: "2026-12-31" },
+      { exceptUtcDates: ["2027-01-01"], datesKnownThrough: "2026-12-31" },
+      {
+        exceptUtcDates: ["2026-10-05"],
+        unestablishedUtcDates: ["2026-10-05"],
+        datesKnownThrough: "2026-12-31",
+      },
+    ])
+      expect(check(peak(calendar)), JSON.stringify(calendar)).toContain(
+        "PRICING_TIER_CALENDAR_INVALID",
+      );
+  });
+});

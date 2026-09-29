@@ -10,7 +10,7 @@ rates:
   cacheRead: "0.003"
 tiers:
   - id: peak-hours
-    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday"
+    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays"
     when:
       utcWindows:
         - days: [mon, tue, wed, thu, fri]
@@ -19,6 +19,9 @@ tiers:
         - days: [mon, tue, wed, thu, fri]
           start: "06:00"
           end: "10:00"
+      exceptUtcDates: ["2026-09-25", "2026-10-01", "2026-10-02"]
+      unestablishedUtcDates: ["2026-10-05", "2026-10-06", "2026-10-07"]
+      datesKnownThrough: "2026-12-31"
     rates:
       input: "0.3"
       output: "1.2"
@@ -27,13 +30,22 @@ effectiveFrom: 2026-09-10
 effectiveFromInstant: 2026-09-10T04:00:00Z
 sources:
       - url: https://api-docs.deepseek.com/quick_start/pricing
-        title: 'DeepSeek-V4.1-Flash peak/off-peak schedule: "Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak)." Base rates are the documented off-peak rates; the tier is the documented peak window.'
-        checkedAt: 2026-09-23
+        title: 'Peak/off-peak schedule, current wording: "Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full." Base rates are the documented off-peak rates; the tier is the documented peak window.'
+        checkedAt: 2026-09-29
+      - url: https://api-docs.deepseek.com/zh-cn/quick_start/pricing
+        title: 'Chinese wording: "北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。" Both peak windows fall on the same calendar date in Beijing and in UTC, so the holiday calendar is dated in UTC.'
+        checkedAt: 2026-09-29
+      - url: https://web.archive.org/web/20260922212416/https://api-docs.deepseek.com/quick_start/pricing
+        title: 'First archived copy with the holiday exclusion (Sep 22, 2026 21:24 UTC); the Sep 17 copy still reads "Monday through Friday (all other hours are off-peak)". No weekday Chinese public holiday falls between the start of this record and Sep 22, so the exclusion changes no earlier price.'
+        checkedAt: 2026-09-29
+      - url: https://www.gov.cn/zhengce/content/202511/content_7047090.htm
+        title: 'State Council notice 国办发明电〔2025〕7号 on the 2026 holidays: Mid-Autumn Festival Sep 25 (Fri) to 27; National Day Oct 1 (Thu) to 7 (Wed) with rest days swapped, and Sep 20 (Sun) and Oct 10 (Sat) worked. Sep 25, Oct 1 and Oct 2 are statutory holidays on weekdays, so they are off-peak. Oct 5 to 7 are weekday rest days inside the break; DeepSeek does not say whether its 法定节假日 includes them, so their peak hours are left unpriced. The worked Sunday and Saturday stay off-peak as weekends. No later 2026 holiday falls on a weekday, so the calendar is complete through Dec 31, 2026.'
+        checkedAt: 2026-09-29
       - url: https://api-docs.deepseek.com/quick_start/pricing
         title: 'Rate rows: cache hit "OFF-PEAK | $0.003" / "PEAK | $0.006"; cache miss "OFF-PEAK | $0.15" / "PEAK | $0.3"; output "OFF-PEAK | $0.6" / "PEAK | $1.2" (the page prints one decimal). DeepSeek publishes no separate cache-write rate and no reasoning-token billing relationship.'
         checkedAt: 2026-09-23
       - url: https://api-docs.deepseek.com/news/news260910/
         title: V4.1 Flash pricing effective September 10 at 04:00 UTC
         checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+lastVerifiedAt: 2026-09-29
 verificationStatus: verified

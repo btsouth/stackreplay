@@ -41,7 +41,9 @@
             "modelId": "gemini-3-8-flash"
           },
           {
-            "name": "DeepSeek V4.1 Flash Fast"
+            "name": "DeepSeek V4.1 Flash Fast",
+            "modelId": "deepseek-v4-1-flash",
+            "variant": "fast"
           },
           {
             "name": "Pixel Canary",
@@ -288,7 +290,9 @@
             "modelId": "gemini-3-8-flash"
           },
           {
-            "name": "DeepSeek V4.1 Flash Fast"
+            "name": "DeepSeek V4.1 Flash Fast",
+            "modelId": "deepseek-v4-1-flash",
+            "variant": "fast"
           },
           {
             "name": "Pixel Canary",
@@ -675,7 +679,9 @@
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4.1 Flash Fast"
+            "name": "DeepSeek V4.1 Flash Fast",
+            "modelId": "deepseek-v4-1-flash",
+            "variant": "fast"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -1006,7 +1012,9 @@
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4.1 Flash Fast"
+            "name": "DeepSeek V4.1 Flash Fast",
+            "modelId": "deepseek-v4-1-flash",
+            "variant": "fast"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -1305,7 +1313,9 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4.1 Flash Fast"
+            "name": "DeepSeek V4.1 Flash Fast",
+            "modelId": "deepseek-v4-1-flash",
+            "variant": "fast"
           },
           {
             "name": "Qwen 3.8 Omni Flash"

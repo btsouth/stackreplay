@@ -166,9 +166,11 @@ export function reconstructListPrice(
         categories: [],
         pricingReferences: [...references].sort(),
         reason:
-          outcome.missingPricing || outcome.unpricedCategories.length > 0
-            ? "a consumed category is not established by the pinned pricing record"
-            : "an event does not report every canonical token category, so its consumption is unknown",
+          outcome.scheduleUnestablished === true
+            ? "an event falls inside a peak window on a date the pinned record's schedule leaves open"
+            : outcome.missingPricing || outcome.unpricedCategories.length > 0
+              ? "a consumed category is not established by the pinned pricing record"
+              : "an event does not report every canonical token category, so its consumption is unknown",
       };
     total = total.plus(outcome.units);
 

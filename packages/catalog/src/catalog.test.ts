@@ -490,9 +490,9 @@ describe("launch catalog: model identity", () => {
     }
     // A model whose provider documents no cache-write rate or no reasoning
     // billing relationship must not invent one.
-    const deepseek = Object.values(catalog.pricing).find(
-      (entry) => entry.modelId === "deepseek-v4-1-flash",
-    );
+    // By id: V4.1 Flash also carries Command Code's own billing rates, so "the
+    // first record for the model" is not DeepSeek's list price.
+    const deepseek = catalog.pricing["deepseek-v4-1-flash-pricing"];
     expect(deepseek?.effectiveFrom).toBe("2026-09-10");
     expect(deepseek?.effectiveFromInstant).toBe("2026-09-10T04:00:00Z");
     expect(catalog.pricing["deepseek-v4-pro-pricing"]?.effectiveFromInstant).toBe(
@@ -504,10 +504,23 @@ describe("launch catalog: model identity", () => {
     // flattened rate: it lives on a tier with the published UTC windows.
     const peak = deepseek?.tiers?.find((tier) => tier.id === "peak-hours");
     expect(peak && "utcWindows" in peak.when ? peak.when.utcWindows.length : 0).toBe(2);
-    for (const id of ["deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]) {
-      const record = Object.values(catalog.pricing).find((entry) => entry.modelId === id);
+    for (const id of [
+      "deepseek-v4-1-flash",
+      "deepseek-v4-pro",
+      "deepseek-v4-flash",
+      "deepseek-v4-flash-vision-exp",
+    ]) {
+      const record = catalog.pricing[`${id}-pricing`];
       const tier = record?.tiers?.find((item) => item.id === "peak-hours");
       expect(tier && "utcWindows" in tier.when ? tier.when.utcWindows.length : 0, id).toBe(2);
+      // DeepSeek's peak hours exclude Chinese public holidays. Weekday statutory
+      // holidays are skipped; the swapped rest days its wording leaves open are
+      // not guessed either way.
+      expect(tier && "utcWindows" in tier.when ? tier.when : undefined, id).toMatchObject({
+        exceptUtcDates: ["2026-09-25", "2026-10-01", "2026-10-02"],
+        unestablishedUtcDates: ["2026-10-05", "2026-10-06", "2026-10-07"],
+        datesKnownThrough: "2026-12-31",
+      });
     }
     expect(peak?.rates.input).toBe("0.3");
     expect(peak?.rates.output).toBe("1.2");

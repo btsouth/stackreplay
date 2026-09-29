@@ -62,6 +62,8 @@ export interface EventSemanticsFacts {
   priced: boolean;
   missingPricingEntry: boolean;
   unpricedCategories: boolean;
+  /** The selected record's schedule leaves this event's rate set open. */
+  scheduleUnestablished?: boolean | undefined;
   indeterminate: boolean;
   disposition: ReplayDispositionKindV1;
   /**
@@ -261,6 +263,7 @@ export class SemanticsAccumulator {
   private numericRuleEvents = 0;
   private missingPricingEvents = 0;
   private unpricedCategoryEvents = 0;
+  private scheduleUnestablishedEvents = 0;
 
   constructor(inputs: SemanticsInputs) {
     this.inputs = inputs;
@@ -323,6 +326,7 @@ export class SemanticsAccumulator {
       if (facts.priced) this.priced.covered += 1;
       if (facts.missingPricingEntry) this.missingPricingEvents += 1;
       if (facts.unpricedCategories) this.unpricedCategoryEvents += 1;
+      if (facts.scheduleUnestablished === true) this.scheduleUnestablishedEvents += 1;
     }
 
     if (facts.indeterminate) this.unknownConsumptionEvents += 1;
@@ -496,6 +500,9 @@ export class SemanticsAccumulator {
         : undefined,
       this.unpricedCategoryEvents > 0
         ? `${this.unpricedCategoryEvents} event(s) consume a category the selected pricing record does not establish`
+        : undefined,
+      this.scheduleUnestablishedEvents > 0
+        ? `${this.scheduleUnestablishedEvents} event(s) fall inside a peak window on a date the price schedule leaves open`
         : undefined,
     ].filter((part): part is string => part !== undefined);
     return (

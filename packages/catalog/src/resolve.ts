@@ -23,7 +23,7 @@
 
 import type { ModelResolutionKindV1, VerificationStatusV1 } from "@stackreplay/schema";
 import type { CatalogV1 } from "./catalog.js";
-import type { CatalogSourceV1, ModelAliasV1, ModelV1 } from "./schema.js";
+import type { CatalogSourceV1, ModelAliasV1, ModelRouteVariantV1, ModelV1 } from "./schema.js";
 
 /** Alias kinds, derived from the catalog schema so they can never drift. */
 export type ModelAliasKindV1 = ModelAliasV1["kind"];
@@ -43,6 +43,12 @@ export interface ModelIdentityResolutionV1 {
   aliasKind?: ModelAliasKindV1;
   /** The harness scope the matched alias was declared for, when it was scoped. */
   harness?: string;
+  /**
+   * The provider route variant the matched alias selects. The canonical id is
+   * still the model's own; the variant rides beside it so pricing can never
+   * read it as the model's default route.
+   */
+  variant?: ModelRouteVariantV1;
   /** Present only when unresolved. */
   reason?: ModelIdentityUnresolvedReasonV1;
 }
@@ -71,6 +77,7 @@ export interface ModelIdentityAliasViewV1 {
   alias: string;
   kind: ModelAliasKindV1;
   harness?: string;
+  variant?: ModelRouteVariantV1;
   sources: readonly CatalogSourceV1[];
   lastVerifiedAt: string;
   verificationStatus: VerificationStatusV1;
@@ -124,6 +131,7 @@ export function createModelIdentityIndex(catalog: CatalogV1): ModelIdentityIndex
         alias: alias.alias,
         kind: alias.kind,
         ...(alias.harness === undefined ? {} : { harness: alias.harness }),
+        ...(alias.variant === undefined ? {} : { variant: alias.variant }),
         sources: alias.sources,
         lastVerifiedAt: alias.lastVerifiedAt,
         verificationStatus: alias.verificationStatus,
@@ -172,6 +180,7 @@ export function createModelIdentityIndex(catalog: CatalogV1): ModelIdentityIndex
             aliasId: scoped.alias.id,
             aliasKind: scoped.alias.kind,
             ...(scoped.alias.harness === undefined ? {} : { harness: scoped.alias.harness }),
+            ...(scoped.alias.variant === undefined ? {} : { variant: scoped.alias.variant }),
           };
         }
       }
@@ -193,4 +202,26 @@ export function createModelIdentityIndex(catalog: CatalogV1): ModelIdentityIndex
       return { observed: trimmed, basis: "unresolved", reason: "unknown" };
     },
   };
+}
+
+/**
+ * The provider route variant an observed event ran on, if any.
+ *
+ * Importers attach the canonical id at import time, so a replay cannot rely on
+ * re-resolving the raw name to notice a variant. This reads it from the
+ * harness-scoped alias the event's own raw name and harness match, and only
+ * when that alias names the model the event is attributed to. Every event a
+ * variant alias ever matched therefore keeps its variant, including events
+ * stored before the variant was catalogued.
+ */
+export function observedRouteVariantOf(
+  identity: ModelIdentityIndex,
+  observed: { rawName: string; harness?: string | undefined; canonicalId?: string | undefined },
+): ModelRouteVariantV1 | undefined {
+  if (observed.harness === undefined) return undefined;
+  const resolution = identity.resolve(observed.rawName, { harness: observed.harness });
+  if (resolution.variant === undefined) return undefined;
+  if (observed.canonicalId !== undefined && observed.canonicalId !== resolution.canonicalId)
+    return undefined;
+  return resolution.variant;
 }

@@ -160,17 +160,32 @@ function minutesOfDay(value: string): number {
   return Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
 }
 
-function tierApplies(condition: PricingTierConditionV1, when: PricingSelectionContext): boolean {
+/**
+ * Whether a tier's condition holds for one event. A schedule with a date
+ * calendar can leave the answer open: inside a window's hours, on a date the
+ * source does not settle or past the date the calendar is complete through,
+ * the result is `"unestablished"` rather than a guess either way.
+ */
+function tierApplies(
+  condition: PricingTierConditionV1,
+  when: PricingSelectionContext,
+): boolean | "unestablished" {
   if ("inputTokensAbove" in condition) return when.inputTokens > condition.inputTokensAbove;
   const clock = utcWallClock(when.atMs);
   const day = DAY_BY_UTC_WEEKDAY[clock.day];
   if (day === undefined) return false;
-  return condition.utcWindows.some(
+  const inWindow = condition.utcWindows.some(
     (window) =>
       window.days.includes(day) &&
       minutesOfDay(window.start) <= clock.minutes &&
       clock.minutes < minutesOfDay(window.end),
   );
+  if (!inWindow) return false;
+  if (condition.exceptUtcDates?.includes(clock.date) === true) return false;
+  if (condition.unestablishedUtcDates?.includes(clock.date) === true) return "unestablished";
+  if (condition.datesKnownThrough !== undefined && clock.date > condition.datesKnownThrough)
+    return "unestablished";
+  return true;
 }
 
 /**
@@ -181,13 +196,19 @@ function tierApplies(condition: PricingTierConditionV1, when: PricingSelectionCo
  * request's input-side token count and the historical instant. Catalog
  * validation keeps tier conditions disjoint, so at most one tier can match and
  * selection never depends on declaration order.
+ *
+ * Returns `undefined` when a schedule's calendar does not establish whether a
+ * tier applies at the event's instant: neither the tier nor the base rates are
+ * a fact then, and the event's price is unknown.
  */
 export function selectRateSet(
   pricing: ExecutionTokenRateV1,
   when: PricingSelectionContext,
-): RateSetSelection {
+): RateSetSelection | undefined {
   for (const tier of pricing.tiers ?? []) {
-    if (tierApplies(tier.when, when)) return { rates: tier.rates, tierId: tier.id };
+    const applies = tierApplies(tier.when, when);
+    if (applies === "unestablished") return undefined;
+    if (applies) return { rates: tier.rates, tierId: tier.id };
   }
   return { rates: pricing.rates };
 }
@@ -207,13 +228,22 @@ function rateFor(rates: PricingRateSetV1, category: PricingCategory): Decimal | 
 }
 
 export interface MoneyConversionOutcome {
-  /** False when telemetry is incomplete, pricing is absent, or a nonzero bucket is unpriced. */
+  /**
+   * False when telemetry is incomplete, pricing is absent, a nonzero bucket is
+   * unpriced, or the record's schedule leaves the rate set open.
+   */
   known: boolean;
   units: Decimal;
   /** No pricing entry establishes rates for this event's model at all. */
   missingPricing: boolean;
   /** Nonzero consumed buckets the selected rate set does not establish. */
   unpricedCategories: readonly PricingCategory[];
+  /**
+   * The record's schedule does not establish which rate set applies at the
+   * event's instant (a date its calendar leaves open). Neither missing
+   * telemetry nor a missing record.
+   */
+  scheduleUnestablished?: true;
   /** Categories the event does not report: missing telemetry, never missing pricing. */
   missingCategories: readonly string[];
   /** Conditional tier that priced this event; absent means the base rates. */
@@ -288,6 +318,26 @@ export function moneyUnitsForUsage(
     atMs: when.atMs,
     inputTokens: buckets.uncachedInputTokens + buckets.cacheReadTokens + buckets.cacheWriteTokens,
   });
+  // Zero consumption costs nothing at any rate, so an open schedule only makes
+  // an event unknown when it consumed something.
+  if (selection === undefined && accounting.total > 0) {
+    return {
+      known: false,
+      units: ZERO,
+      missingPricing: false,
+      unpricedCategories: [],
+      missingCategories: [],
+      scheduleUnestablished: true,
+    };
+  }
+  if (selection === undefined)
+    return {
+      known: true,
+      units: ZERO,
+      missingPricing: false,
+      unpricedCategories: [],
+      missingCategories: [],
+    };
 
   const quantities: ReadonlyArray<readonly [PricingCategory, number]> = [
     ["input", buckets.uncachedInputTokens],
