@@ -1,0 +1,21 @@
+id: claude-opus-4-6-api-reference-20260929-5m
+role: pricing
+modelId: claude-opus-4-6
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '5'
+  output: '25'
+  reasoning:
+    billedAs: output
+  cacheRead: '0.5'
+  cacheWrite: '6.25'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://platform.claude.com/docs/en/models/opus-4-6/overview
+  title: Official five-minute cache-write rate; checked September 29, 2026
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+variantId: cache-write-5m

@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 49 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 50 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -20,6 +20,7 @@ Existing prices and technical facts were checked against the linked documentatio
 | Claude Fable 5 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/fable-5/overview) |
 | Claude Fable 5.1 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/fable-5-1/overview) |
 | Claude Haiku 4.5 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/haiku-4-5/overview) |
+| Claude Opus 4.6 | Thinking, API availability, Released, Retirement commitment, Extended output, Prompt caching, Platforms | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-6/overview) |
 | Claude Opus 4.7 | Thinking, API availability, Released, Retirement commitment, Extended output | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-7/overview) |
 | Claude Opus 4.8 | Thinking, API availability, Released, Retirement commitment, Extended output | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-8/overview) |
 | Claude Opus 4.8 (fast mode) (preview) | Processing mode, Billing | [Official documentation](https://platform.claude.com/docs/en/about-claude/pricing) |

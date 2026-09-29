@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064";
+export const BUNDLED_CATALOG_VERSION = "sha256:01c66acc6bf2ad65a36114216911701aa4853798b03961f6a38f05901f8289f0";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064",
+  "catalogVersion": "sha256:01c66acc6bf2ad65a36114216911701aa4853798b03961f6a38f05901f8289f0",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -540,6 +540,76 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-24",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6": {
+      "id": "claude-opus-4-6",
+      "role": "model",
+      "name": "Claude Opus 4.6",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "knowledgeCutoff": "May 2025",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "anthropic"
+      ],
+      "aliases": [
+        {
+          "id": "claude-opus-4-6-api-id",
+          "alias": "claude-opus-4-6",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+              "title": "Exact API identifier, model specifications and availability",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "claude-opus-4-6-router-anthropic-claude-opus-4-6",
+          "alias": "anthropic/claude-opus-4.6",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/anthropic/claude-opus-4.6",
+              "title": "OpenRouter model record `anthropic/claude-opus-4.6` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Exact API identifier, model specifications and availability",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "claude-opus-4-7": {
@@ -20482,6 +20552,93 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6-api-reference-20260929-1h": {
+      "id": "claude-opus-4-6-api-reference-20260929-1h",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "10",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official one-hour cache-write rate; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6-api-reference-20260929-5m": {
+      "id": "claude-opus-4-6-api-reference-20260929-5m",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official five-minute cache-write rate; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6-api-reference-20260929": {
+      "id": "claude-opus-4-6-api-reference-20260929",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official standard token prices and cache rates; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "claude-opus-4-7-api-reference-20260928-1h": {

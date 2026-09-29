@@ -714,7 +714,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Sonnet 5",
@@ -1027,7 +1028,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Sonnet 5",
@@ -2669,7 +2671,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2757,7 +2760,8 @@
             "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2828,7 +2832,8 @@
             "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2898,7 +2903,8 @@
             "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"

@@ -48,6 +48,49 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       knowledgeCutoff: "Jan 2026",
     },
   },
+  "claude-opus-4-6": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Adaptive (extended deprecated) · default effort high",
+      },
+      {
+        label: "API availability",
+        value: "Active (legacy)",
+      },
+      {
+        label: "Released",
+        value: "February 5, 2026",
+      },
+      {
+        label: "Retirement commitment",
+        value: "Not sooner than February 5, 2027",
+      },
+      {
+        label: "Extended output",
+        value:
+          "Maximum output is 300K tokens on the Batch API (beta). The standard maximum output limit remains 128K tokens.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Five-minute cache writes cost $6.25 per MTok, one-hour cache writes cost $10 per MTok and cache reads cost $0.50 per MTok.",
+      },
+      {
+        label: "Platforms",
+        value:
+          "Claude API, Amazon Bedrock (InvokeModel), Google Cloud, Microsoft Foundry and Claude Platform on AWS.",
+      },
+    ],
+  },
   "claude-opus-4-8": {
     checkedAt: "2026-09-29",
     sources: [
