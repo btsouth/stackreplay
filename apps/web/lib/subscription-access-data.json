@@ -96,7 +96,8 @@
             "name": "LongCat 2.0"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -106,7 +107,8 @@
             "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -127,7 +129,8 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
             "name": "DeepSeek V4 Flash (latest)"
@@ -182,7 +185,8 @@
             "modelId": "minimax-m3"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "Step 3.7 Flash"
@@ -194,7 +198,8 @@
             "name": "MiMo V2.5 Pro"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
             "name": "Step 3.5 Flash"
@@ -332,7 +337,8 @@
             "name": "LongCat 2.0"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -342,7 +348,8 @@
             "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -363,7 +370,8 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
             "name": "DeepSeek V4 Flash (latest)"
@@ -436,7 +444,8 @@
             "modelId": "minimax-m3"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "Step 3.7 Flash"
@@ -448,7 +457,8 @@
             "name": "MiMo V2.5 Pro"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -662,10 +672,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -674,13 +686,16 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
@@ -982,10 +997,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -994,13 +1011,16 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
@@ -1270,10 +1290,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -1282,13 +1304,16 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
@@ -1394,13 +1419,16 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.7 Max"
+            "name": "Qwen3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           }
         ]
       }
@@ -1491,13 +1519,16 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.8 Flash"
+            "name": "Qwen3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "DeepSeek V4.1 Flash",
@@ -1613,13 +1644,16 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.8 Flash"
+            "name": "Qwen3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "DeepSeek V4.1 Flash",

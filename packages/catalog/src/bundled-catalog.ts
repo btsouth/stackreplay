@@ -8,11 +8,25 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:edcf147000501cfc1b2c9d8a5673e021c6136de6d4ca91241c2dc59fc466550f";
+export const BUNDLED_CATALOG_VERSION = "sha256:3c9f702c5a6e536be33729dedfdd6346b3d8a2350522e631a0dfe22d74a8f02d";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:edcf147000501cfc1b2c9d8a5673e021c6136de6d4ca91241c2dc59fc466550f",
+  "catalogVersion": "sha256:3c9f702c5a6e536be33729dedfdd6346b3d8a2350522e631a0dfe22d74a8f02d",
   "providers": {
+    "alibaba": {
+      "id": "alibaba",
+      "role": "provider",
+      "name": "Alibaba Cloud (Qwen)",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Alibaba Cloud Model Studio model inference pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "anthropic": {
       "id": "anthropic",
       "role": "provider",
@@ -4097,6 +4111,385 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-max": {
+      "id": "qwen-3-7-max",
+      "role": "model",
+      "name": "Qwen 3.7 Max",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-7-max-api-id",
+          "alias": "qwen3.7-max",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+              "title": "Qwen 3.7 Max API model id qwen3.7-max",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-7-max-router-qwen-qwen3-7-max",
+          "alias": "qwen/qwen3.7-max",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.7-max",
+              "title": "OpenRouter model record `qwen/qwen3.7-max` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+          "title": "Qwen 3.7 Max model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-plus": {
+      "id": "qwen-3-7-plus",
+      "role": "model",
+      "name": "Qwen 3.7 Plus",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-7-plus-api-id",
+          "alias": "qwen3.7-plus",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+              "title": "Qwen 3.7 Plus API model id qwen3.7-plus",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-7-plus-router-qwen-qwen3-7-plus",
+          "alias": "qwen/qwen3.7-plus",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.7-plus",
+              "title": "OpenRouter model record `qwen/qwen3.7-plus` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+          "title": "Qwen 3.7 Plus model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-27b": {
+      "id": "qwen-3-8-27b",
+      "role": "model",
+      "name": "Qwen 3.8 27B",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-27b-api-id",
+          "alias": "qwen3.8-27b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+              "title": "Qwen 3.8 27B API model id qwen3.8-27b",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-27b-router-qwen-qwen3-8-27b",
+          "alias": "qwen/qwen3.8-27b",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.8-27b",
+              "title": "OpenRouter model record `qwen/qwen3.8-27b` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+          "title": "Qwen 3.8 27B model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-flash": {
+      "id": "qwen-3-8-flash",
+      "role": "model",
+      "name": "Qwen 3.8 Flash",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-flash-api-id",
+          "alias": "qwen3.8-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+              "title": "Qwen 3.8 Flash API model id qwen3.8-flash",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-flash-router-qwen-qwen3-8-flash",
+          "alias": "qwen/qwen3.8-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.8-flash",
+              "title": "OpenRouter model record `qwen/qwen3.8-flash` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+          "title": "Qwen 3.8 Flash model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-max": {
+      "id": "qwen-3-8-max",
+      "role": "model",
+      "name": "Qwen 3.8 Max",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-max-api-id",
+          "alias": "qwen3.8-max",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+              "title": "Qwen 3.8 Max API model id qwen3.8-max",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+          "title": "Qwen 3.8 Max model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     }
   },
@@ -24262,6 +24655,160 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-max-pricing": {
+      "id": "qwen-3-7-max-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-7-max",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2.5",
+        "output": "7.5",
+        "cacheRead": "0.5"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-plus-pricing": {
+      "id": "qwen-3-7-plus-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-7-plus",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.4",
+        "output": "1.6",
+        "cacheRead": "0.08"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 256K input tokens (all tokens in the request)",
+          "when": {
+            "inputTokensAbove": 256000
+          },
+          "rates": {
+            "input": "1.2",
+            "output": "4.8",
+            "cacheRead": "0.24"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-27b-pricing": {
+      "id": "qwen-3-8-27b-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-27b",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.5",
+        "output": "3",
+        "cacheRead": "0.1"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-flash-pricing": {
+      "id": "qwen-3-8-flash-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.15",
+        "output": "0.47",
+        "cacheRead": "0.016"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-max-pricing": {
+      "id": "qwen-3-8-max-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-max",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2",
+        "output": "6",
+        "cacheRead": "0.25"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "z-ai-api-glm-5-3-flash-current-rate": {

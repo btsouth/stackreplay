@@ -1866,6 +1866,236 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "qwen-3-8-max": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 2, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.25 per MTok. Explicit cache creation costs $2.50 and explicit cache reads cost $0.17 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      {
+        label: "Snapshots",
+        value: "qwen3.8-max-0902 is a separate upgraded snapshot with its own model id.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
+  "qwen-3-8-flash": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 26, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.016 per MTok. Explicit cache creation costs $0.20 and explicit cache reads cost $0.016 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
+  "qwen-3-7-plus": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on June 1, 2026.",
+      },
+      {
+        label: "Long-context pricing",
+        value:
+          "Requests above 256K input tokens bill all tokens at $1.20 input and $4.80 output per MTok.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Up to 256K input: implicit cache hits $0.08, explicit cache creation $0.50 and explicit cache reads $0.04 per MTok. Above 256K: $0.24, $1.50 and $0.12.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      {
+        label: "Snapshot",
+        value: "qwen3.7-plus is functionally equivalent to qwen3.7-plus-2026-05-26.",
+      },
+    ],
+  },
+  "qwen-3-7-max": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on May 21, 2026.",
+      },
+      {
+        label: "Status",
+        value: "Model Studio lists qwen3.7-max under legacy models that are no longer recommended.",
+      },
+      {
+        label: "Snapshot and input",
+        value:
+          "qwen3.7-max is functionally equivalent to qwen3.7-max-2026-05-20 and accepts text input only. The qwen3.7-max-2026-06-08 snapshot adds visual input under its own id.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.50 per MTok. Explicit cache creation costs $3.125 and explicit cache reads cost $0.25 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+    ],
+  },
+  "qwen-3-8-27b": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 17, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.10 per MTok. Explicit cache creation costs $0.625 and explicit cache reads cost $0.05 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Model Studio offers it in China (Beijing) and Singapore (International). Rates shown are for Singapore.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [

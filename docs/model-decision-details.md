@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 56 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 61 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -73,6 +73,11 @@ Existing prices and technical facts were checked against the linked documentatio
 | MiniMax M3 | Thinking, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
+| Qwen 3.7 Max | Thinking, Released on Model Studio, Status, Snapshot and input, Prompt caching, Regions | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
+| Qwen 3.7 Plus | Thinking, Released on Model Studio, Long-context pricing, Prompt caching, Regions, Snapshot | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus) |
+| Qwen 3.8 27B | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b) |
+| Qwen 3.8 Flash | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash) |
+| Qwen 3.8 Max | Thinking, Released on Model Studio, Prompt caching, Regions, Snapshots, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max) |
 
 ## Remaining boundaries
 

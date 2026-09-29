@@ -1,0 +1,9 @@
+id: alibaba
+role: provider
+name: "Alibaba Cloud (Qwen)"
+sources:
+  - url: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+    title: "Alibaba Cloud Model Studio model inference pricing"
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

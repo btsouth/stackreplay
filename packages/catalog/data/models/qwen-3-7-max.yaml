@@ -1,0 +1,52 @@
+id: qwen-3-7-max
+role: model
+name: Qwen 3.7 Max
+developerId: alibaba
+providerIds:
+- alibaba
+aliases:
+- id: qwen-3-7-max-api-id
+  alias: qwen3.7-max
+  kind: provider_id
+  sources:
+  - url: https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max
+    title: Qwen 3.7 Max API model id qwen3.7-max
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: qwen-3-7-max-router-qwen-qwen3-7-max
+  alias: qwen/qwen3.7-max
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/qwen/qwen3.7-max
+    title: OpenRouter model record `qwen/qwen3.7-max` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max
+  title: Qwen 3.7 Max model page on Alibaba Cloud Model Studio
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 131072
+  inputModalities:
+  - text
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking.
+  sources:
+  - url: https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max
+    title: Official model capabilities and context limits (Singapore, International)
+    checkedAt: '2026-09-29'
+  - url: https://www.alibabacloud.com/help/en/model-studio/deep-thinking
+    title: Default thinking behavior
+    checkedAt: '2026-09-29'
+pricingNote: Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and
+  limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.
