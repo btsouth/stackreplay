@@ -2,6 +2,7 @@ import { hmac as nobleHmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { isRealCalendarDate } from "./parse.js";
+import { trimTrailingPathSeparators } from "./path-string.js";
 import type { AdapterId, SourceEnvironment } from "./types.js";
 
 /**
@@ -48,7 +49,7 @@ function hmac(salt: string, purpose: string, value: string): string {
 export function normalizeProjectKey(raw: string, platform: SourceEnvironment["platform"]): string {
   let value = raw.trim();
   if (value.length === 0) return value;
-  value = value.replace(/[\\/]+$/u, "");
+  value = trimTrailingPathSeparators(value);
   if (value.length === 0) value = raw.trim();
   if (platform === "win32") value = value.replace(/\//gu, "\\").toLowerCase();
   return value;
