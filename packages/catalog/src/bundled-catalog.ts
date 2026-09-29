@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:d7c2b09fb442ae436f0a3f829fc8489cc3a6983db65c70954f1a9762bfbc7652";
+export const BUNDLED_CATALOG_VERSION = "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:d7c2b09fb442ae436f0a3f829fc8489cc3a6983db65c70954f1a9762bfbc7652",
+  "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -3866,7 +3866,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date or undiscounted rate. A separate yuan price table is also listed.",
+      "pricingNote": "LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date. The regular rates are $0.75 input, $0.015 cached input and $2.95 output per 1M tokens. A separate yuan price table is also listed.",
       "providerIds": [
         "meituan"
       ],
@@ -24990,12 +24990,12 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "sources": [
         {
           "url": "https://longcat.chat/platform/docs/pricing/longcat-2.0",
-          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.",
+          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\" column: uncached input, cached input and output. The \"Price $/1M Tokens\" column lists the regular rates. No end date or cache-write rate is published.",
           "checkedAt": "2026-09-29"
         },
         {
           "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
-          "title": "Same USD table and billing formula on the pay-as-you-go guide",
+          "title": "Discounted USD rates and billing formula on the pay-as-you-go guide",
           "checkedAt": "2026-09-29"
         }
       ],

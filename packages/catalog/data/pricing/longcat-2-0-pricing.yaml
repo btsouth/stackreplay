@@ -11,10 +11,10 @@ rates:
 effectiveFrom: '2026-09-29'
 sources:
 - url: https://longcat.chat/platform/docs/pricing/longcat-2.0
-  title: 'Pay-as-you-go USD table, "Discounted Price $/1M Tokens (limited-time)": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.'
+  title: 'Pay-as-you-go USD table, "Discounted Price $/1M Tokens (limited-time)" column: uncached input, cached input and output. The "Price $/1M Tokens" column lists the regular rates. No end date or cache-write rate is published.'
   checkedAt: '2026-09-29'
 - url: https://longcat.chat/platform/docs/api-pay-as-you-go
-  title: Same USD table and billing formula on the pay-as-you-go guide
+  title: Discounted USD rates and billing formula on the pay-as-you-go guide
   checkedAt: '2026-09-29'
 lastVerifiedAt: '2026-09-29'
 verificationStatus: verified
