@@ -2096,6 +2096,214 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
     ],
   },
+  "mimo-v2-6-pro": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "September 22, 2026" },
+      {
+        label: "Batch API",
+        value: "Batch requests cost $0.2175 input, $0.435 output and $0.0018 cache hit per MTok.",
+      },
+      {
+        label: "Variants",
+        value:
+          "mimo-v2.6-pro-ultraspeed is listed as V2.6-Pro performance up to 20x faster, at $4.35 input and $8.70 output per MTok. It does not support the Batch API.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-6-flash": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "September 22, 2026" },
+      {
+        label: "Batch API",
+        value: "Batch requests cost $0.07 input, $0.14 output and $0.0014 cache hit per MTok.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-5": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.5",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/deprecate",
+        title: "Deprecation schedule",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "April 23, 2026" },
+      {
+        label: "Deprecation",
+        value:
+          "Xiaomi deprecates this model at 10:00 Beijing time on October 21, 2026, with no automatic replacement. Requests after that return an error.",
+      },
+      { label: "Batch API", value: "Not supported." },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-5-pro": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/deprecate",
+        title: "Deprecation schedule",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "April 23, 2026" },
+      {
+        label: "Deprecation",
+        value:
+          "Xiaomi deprecates this model at 10:00 Beijing time on October 21, 2026, with no automatic replacement. Requests after that return an error.",
+      },
+      { label: "Input support", value: "Text input only." },
+      { label: "Batch API", value: "Not supported." },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [

@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:b7760bd3160295d7fdaef3e38d4c237312715821a34635810d612dba17a42520";
+export const BUNDLED_CATALOG_VERSION = "sha256:6ee69c120fcfeca7bece617912aa7169657ae937138f2738b20eb6d8d7806d24";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:b7760bd3160295d7fdaef3e38d4c237312715821a34635810d612dba17a42520",
+  "catalogVersion": "sha256:6ee69c120fcfeca7bece617912aa7169657ae937138f2738b20eb6d8d7806d24",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -292,6 +292,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "xiaomi": {
+      "id": "xiaomi",
+      "role": "provider",
+      "name": "Xiaomi",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "z-ai": {
@@ -3846,6 +3860,341 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5-pro": {
+      "id": "mimo-v2-5-pro",
+      "role": "model",
+      "name": "MiMo V2.5 Pro",
+      "lifecycle": "legacy",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-5-pro-api-id",
+          "alias": "mimo-v2.5-pro",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.5 Pro API model id mimo-v2.5-pro",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-5-pro-router-xiaomi-mimo-v2-5-pro",
+          "alias": "xiaomi/mimo-v2.5-pro",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.5-pro",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.5-pro` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+          "title": "MiMo V2.5 Pro model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5": {
+      "id": "mimo-v2-5",
+      "role": "model",
+      "name": "MiMo V2.5",
+      "lifecycle": "legacy",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-5-api-id",
+          "alias": "mimo-v2.5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.5 API model id mimo-v2.5",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-5-router-xiaomi-mimo-v2-5",
+          "alias": "xiaomi/mimo-v2.5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.5",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.5` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+          "title": "MiMo V2.5 model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-flash": {
+      "id": "mimo-v2-6-flash",
+      "role": "model",
+      "name": "MiMo V2.6 Flash",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-6-flash-api-id",
+          "alias": "mimo-v2.6-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.6 Flash API model id mimo-v2.6-flash",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-flash-router-xiaomi-mimo-v2-6-flash",
+          "alias": "xiaomi/mimo-v2.6-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.6-flash",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.6-flash` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+          "title": "MiMo V2.6 Flash model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-pro": {
+      "id": "mimo-v2-6-pro",
+      "role": "model",
+      "name": "MiMo V2.6 Pro",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-6-pro-api-id",
+          "alias": "mimo-v2.6-pro",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.6 Pro API model id mimo-v2.6-pro",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-pro-router-xiaomi-mimo-v2-6-pro",
+          "alias": "xiaomi/mimo-v2.6-pro",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.6-pro",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.6-pro` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+          "title": "MiMo V2.6 Pro model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "minimax-m2-7": {
@@ -24441,6 +24790,118 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5-pricing": {
+      "id": "mimo-v2-5-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.14",
+        "output": "0.28",
+        "cacheRead": "0.0028"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.5 (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5-pro-pricing": {
+      "id": "mimo-v2-5-pro-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-5-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.435",
+        "output": "0.87",
+        "cacheRead": "0.0036"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.5-pro (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-flash-pricing": {
+      "id": "mimo-v2-6-flash-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-6-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.14",
+        "output": "0.28",
+        "cacheRead": "0.0028"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.6-flash (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-pro-pricing": {
+      "id": "mimo-v2-6-pro-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-6-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.435",
+        "output": "0.87",
+        "cacheRead": "0.0036"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.6-pro (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "minimax-m2-7-pricing": {

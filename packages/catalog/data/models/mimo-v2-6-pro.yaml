@@ -1,0 +1,56 @@
+id: mimo-v2-6-pro
+role: model
+name: MiMo V2.6 Pro
+developerId: xiaomi
+providerIds:
+- xiaomi
+aliases:
+- id: mimo-v2-6-pro-api-id
+  alias: mimo-v2.6-pro
+  kind: provider_id
+  sources:
+  - url: https://mimo.mi.com/docs/en-US/quick-start/summary/model
+    title: MiMo V2.6 Pro API model id mimo-v2.6-pro
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: mimo-v2-6-pro-router-xiaomi-mimo-v2-6-pro
+  alias: xiaomi/mimo-v2.6-pro
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/xiaomi/mimo-v2.6-pro
+    title: OpenRouter model record `xiaomi/mimo-v2.6-pro` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://mimo.mi.com/models/en-US/mimo-v2.6-pro
+  title: MiMo V2.6 Pro model page
+  checkedAt: '2026-09-29'
+- url: https://mimo.mi.com/docs/en-US/price/pay-as-you-go
+  title: Xiaomi MiMo API pay-as-you-go pricing
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  - video
+  - audio
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Deep thinking is on by default and can be turned off with thinking.type set to disabled.
+  sources:
+  - url: https://mimo.mi.com/models/en-US/mimo-v2.6-pro
+    title: Official model specs
+    checkedAt: '2026-09-29'
+  - url: https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking
+    title: Default thinking behavior
+    checkedAt: '2026-09-29'
