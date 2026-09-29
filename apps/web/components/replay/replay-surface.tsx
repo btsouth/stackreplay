@@ -167,6 +167,8 @@ export function ReplaySurface({
   const [providerId, setProviderId] = useState<string | undefined>(initialApi);
   /** The processing tier a Direct API replay prices at; Standard unless chosen. */
   const [serviceTier, setServiceTier] = useState<ServiceTierV1>("standard");
+  /** A plan's subscriber cohort (grandfathering) to replay instead of market terms. */
+  const [planCohort, setPlanCohort] = useState<string | undefined>(undefined);
   /**
    * Model substitutions the person chose, kept per target so switching back to a
    * target restores its scenario. Never pre-filled: an empty mapping is exact.
@@ -524,7 +526,12 @@ export function ReplaySurface({
             }
         : selectedPlan === undefined
           ? undefined
-          : { type: "subscription", planId: selectedPlan.id, ...translation };
+          : {
+              type: "subscription",
+              planId: selectedPlan.id,
+              ...(planCohort === undefined ? {} : { cohort: planCohort }),
+              ...translation,
+            };
     if (workload === undefined || target === undefined) return;
     const token = guard.begin();
     setPhase("loading");
@@ -572,6 +579,7 @@ export function ReplaySurface({
     policy,
     rulesAsOf,
     scope,
+    planCohort,
     selectedPlan,
     selectedProvider,
     serviceTier,
@@ -589,6 +597,7 @@ export function ReplaySurface({
   const selectPlan = useCallback(
     (id: string) => {
       setPlanId(id);
+      setPlanCohort(undefined);
       setTranslationOpen(false);
       dropResult();
     },
@@ -1011,7 +1020,15 @@ export function ReplaySurface({
             )}
           </div>
           {targetKind === "subscription" && selectedPlan !== undefined ? (
-            <PlanTermsLine planId={selectedPlan.id} rulesAsOf={rulesAsOf} />
+            <PlanTermsLine
+              cohort={planCohort}
+              onCohortChange={(next) => {
+                setPlanCohort(next);
+                dropResult();
+              }}
+              planId={selectedPlan.id}
+              rulesAsOf={rulesAsOf}
+            />
           ) : null}
           {targetKind === "api" && selectedProvider !== undefined ? (
             <ServiceTierPicker

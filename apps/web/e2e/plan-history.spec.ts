@@ -28,14 +28,20 @@ async function expectNoSeriousViolations(page: Page) {
 }
 
 test.describe("ChatGPT Pro $200 plan page", () => {
-  test("shows the official scheduled change on Sep 29, without expanding anything", async ({
+  test("leads with the revised market offer on Sep 29, with grandfathering as a visible exception", async ({
     page,
   }) => {
     await page.clock.setFixedTime(new Date("2026-09-29T16:00:00Z"));
     await page.goto(PRO_200);
     const notice = page.getByTestId("plan-terms-notice");
-    await expect(notice).toContainText("Official change effective Sep 30, 2026");
-    await expect(notice).toContainText("≈50% of the previous API-equivalent spend");
+    await expect(notice).toContainText("Revised usage allowance since Sep 29, 2026");
+    await expect(notice).toContainText("New and non-grandfathered subscriptions");
+    await expect(notice).toContainText(
+      "described by OpenAI staff as ≈50% of the previous API-equivalent spend",
+    );
+    await expect(notice.getByTestId("plan-terms-exception")).toContainText(
+      "Already on ChatGPT Pro $200? Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+    );
     await expect(notice).toBeInViewport();
 
     const history = page.getByTestId("plan-history");
@@ -43,27 +49,40 @@ test.describe("ChatGPT Pro $200 plan page", () => {
     await expect(history.getByRole("heading", { name: /Plan history/u })).toBeVisible();
     const steps = history.getByTestId("plan-timeline-step");
     await expect(steps).toHaveCount(4);
-    await expect(steps.nth(0)).toHaveAttribute("aria-current", "step");
+    await expect(steps.nth(0)).toContainText("Previous terms");
     await expect(steps.nth(0)).toContainText("Start date not published");
     await expect(steps.nth(1)).toContainText("New subscriptions paused");
     await expect(steps.nth(1)).toContainText("Existing subscribers not affected");
-    await expect(steps.nth(2)).toContainText("Revised terms officially announced");
+    await expect(steps.nth(2)).toHaveAttribute("aria-current", "step");
+    await expect(steps.nth(2)).toContainText("Available to new subscribers again");
+    await expect(steps.nth(2).getByTestId("plan-timeline-note")).toContainText(
+      "Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+    );
     await expect(steps.nth(3)).toHaveAttribute("data-state", "scheduled");
-    await expect(steps.nth(3)).toContainText("New subscriptions reopen");
-    await expect(steps.nth(3).locator("time")).toHaveAttribute("datetime", "2026-09-30");
+    await expect(steps.nth(3)).toContainText("Grandfathered allowance ends");
+    await expect(steps.nth(3).locator("time")).toHaveAttribute("datetime", "2026-10-30");
 
     const text = (await page.locator("main").innerText()).toLowerCase();
     expect(text).not.toMatch(/fewer tokens|half the tokens/u);
     expect(text).not.toMatch(/pro \$200 (is )?(disabled|shut down)/u);
+    expect(text).not.toMatch(/all (existing )?subscribers (lose|lost)/u);
   });
 
-  test("reads the Sep 30 terms as current from Sep 30 on", async ({ page }) => {
-    await page.clock.setFixedTime(new Date("2026-10-01T16:00:00Z"));
+  test("shows no revision on Sep 28, before it was announced", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-09-28T16:00:00Z"));
     await page.goto(PRO_200);
-    await expect(page.getByTestId("plan-terms-notice")).toContainText("Terms changed Sep 30, 2026");
+    await expect(page.getByTestId("plan-history").getByTestId("plan-timeline-step")).toHaveCount(1);
+    await expect(page.getByTestId("plan-terms-notice")).toHaveCount(0);
+  });
+
+  test("drops the grandfathering exception from Oct 30, with no catalog edit", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-10-30T16:00:00Z"));
+    await page.goto(PRO_200);
+    const notice = page.getByTestId("plan-terms-notice");
+    await expect(notice).toContainText("Revised usage allowance since Sep 29, 2026");
+    await expect(notice.getByTestId("plan-terms-exception")).toHaveCount(0);
     const steps = page.getByTestId("plan-history").getByTestId("plan-timeline-step");
-    await expect(steps.nth(0)).toContainText("Previous terms");
-    await expect(steps.nth(3)).toHaveAttribute("aria-current", "step");
+    await expect(steps.nth(3)).toHaveAttribute("data-state", "past");
     // Old and new terms are never both marked current.
     await expect(
       page.locator('[data-testid="plan-timeline-step"][aria-current="step"]'),
@@ -114,12 +133,15 @@ test.describe("plan changes where plans are compared", () => {
     await page.clock.setFixedTime(new Date("2026-09-29T16:00:00Z"));
     await page.goto("/compare?left=openai-chatgpt-pro-20x&right=openai-chatgpt-pro-500");
     const notice = page.getByTestId("compare-target").first().getByTestId("plan-terms-notice");
-    await expect(notice).toContainText("Official change effective Sep 30, 2026");
+    await expect(notice).toContainText("Revised usage allowance since Sep 29, 2026");
+    await expect(notice.getByTestId("plan-terms-exception")).toContainText("through Oct 29, 2026");
     await expect(notice.getByRole("link", { name: /View plan history/u })).toHaveAttribute(
       "href",
       "/plans/openai-chatgpt-pro-20x#history",
     );
-    await expect(page.getByTestId("compare-target").nth(1)).toContainText("ChatGPT Pro $500");
+    const pro500 = page.getByTestId("compare-target").nth(1);
+    await expect(pro500).toContainText("ChatGPT Pro $500");
+    await expect(pro500.getByTestId("plan-terms-notice")).toHaveCount(0);
     await page.goto("/plans");
     await page.getByPlaceholder("Plan, provider or model…").fill("Pro $200");
     await expect(
@@ -127,37 +149,55 @@ test.describe("plan changes where plans are compared", () => {
         .getByTestId("plan-card")
         .filter({ hasText: "ChatGPT Pro $200" })
         .getByTestId("plan-terms-notice"),
-    ).toContainText("Sep 30, 2026");
+    ).toHaveText("Revised usage allowance since Sep 29, 2026 →");
   });
 });
 
 test.describe("Replay binds a subscription result to the plan terms it used", () => {
-  test("names scheduled and current terms by the rules date, and on the result", async ({
+  test("uses market terms by default, and grandfathered terms only when asked", async ({
     page,
   }) => {
     await importDemo(page, "moderate");
     await visitReplay(page);
-    await setRulesAsOf(page, "2026-09-29");
+    await setRulesAsOf(page, "2026-09-28");
     await page.getByTestId("plan-openai-chatgpt-pro-20x").click();
     const terms = page.getByTestId("replay-plan-terms");
-    await expect(terms.locator(":scope > summary")).toContainText(
-      "Current terms · Official revision takes effect Sep 30, 2026",
-    );
-    await terms.locator(":scope > summary").click();
-    await expect(terms.getByTestId("plan-timeline-step")).toHaveCount(4);
+    await expect(terms.locator(":scope > summary")).toContainText("Current terms");
+    await expect(page.getByTestId("replay-plan-cohort")).toHaveCount(0);
     await page.getByTestId("run-replay").click();
     await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · terms before the Sep 30, 2026 revision",
+      " · terms before the Sep 29, 2026 revision",
     );
 
     await setRulesAsOf(page, "2026-10-01");
     await expect(terms.locator(":scope > summary")).toContainText(
-      "Using terms effective Sep 30, 2026",
+      "Current market terms, revised Sep 29, 2026 · ≈50% of the previous API-equivalent spend",
+    );
+    await terms.locator(":scope > summary").click();
+    await expect(terms.getByTestId("plan-timeline-step")).toHaveCount(4);
+    await page.getByTestId("run-replay").click();
+    await expect(page.getByTestId("result-plan-terms")).toHaveText(
+      " · terms effective Sep 29, 2026",
+      { timeout: 60_000 },
+    );
+
+    const cohort = page.getByTestId("replay-plan-cohort");
+    await expect(cohort).toContainText("Existing subscriber?");
+    await cohort.locator("input").check();
+    await expect(terms.locator(":scope > summary")).toContainText(
+      "Eligible existing subscribers: previous allowance through Oct 29, 2026",
     );
     await page.getByTestId("run-replay").click();
     await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · terms effective Sep 30, 2026",
+      " · eligible existing subscribers' previous allowance through Oct 29, 2026",
+      { timeout: 60_000 },
+    );
+
+    await setRulesAsOf(page, "2026-10-30");
+    await page.getByTestId("run-replay").click();
+    await expect(page.getByTestId("result-plan-terms")).toHaveText(
+      " · terms effective Sep 29, 2026",
       { timeout: 60_000 },
     );
   });
@@ -200,5 +240,21 @@ test.describe("processing tiers on a model page", () => {
     await page.goto("/models/gpt-6-sol");
     await expect(page.getByTestId("model-rate-table")).toContainText("$0.20");
     await expect(page.getByTestId("model-service-tiers")).toHaveCount(0);
+  });
+});
+
+test.describe("ChatGPT Pro $500", () => {
+  test("states 25x Plus usage as a multiple, with Ultrafast and no speed figure as economics", async ({
+    page,
+  }) => {
+    await page.goto("/plans/openai-chatgpt-pro-500");
+    const allowance = page.getByTestId("plan-relative-allowance");
+    await expect(allowance).toContainText("25× ChatGPT Plus usage");
+    await expect(allowance).toContainText("A multiple, not a published quota");
+    const main = page.locator("main");
+    await expect(main).toContainText("Astra Ultrafast");
+    const text = await main.innerText();
+    expect(text).not.toMatch(/25x (tokens|messages)|25× (tokens|messages)/iu);
+    expect(text).not.toMatch(/8x faster usage|consumes 8x speed/iu);
   });
 });

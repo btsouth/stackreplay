@@ -1,5 +1,6 @@
 import type {
   PlanAudienceV1,
+  PlanCohortWindowV1,
   PlanEvidenceV1,
   PlanRelativeValueV1,
   PlanTimelineEntryV1,
@@ -52,6 +53,35 @@ export function audienceWords(audience: readonly PlanAudienceV1[]): string {
 }
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/** Who stated a relative change, so a staff description is not read as a published rate. */
+function attribution(value: PlanRelativeValueV1, providerName: string | undefined): string {
+  const who = providerName ?? "the provider";
+  switch (value.evidence[0]?.authority) {
+    case "provider_staff":
+      return `described by ${who} staff as`;
+    case "provider_keynote":
+    case "provider_announcement":
+      return `announced by ${who} as`;
+    default:
+      return `stated by ${who} as`;
+  }
+}
+
+/** Cohort windows that matter today: running now, or announced and about to start. */
+const liveWindows = (timeline: PlanTimelineV1) =>
+  timeline.cohortWindows.filter((window) => window.status !== "ended");
+
+/** "Eligible existing subscribers keep their previous allowance through Oct 29, 2026." */
+function cohortSentence(window: PlanCohortWindowV1): string {
+  const until =
+    window.effectiveTo === undefined
+      ? "; no end date is published"
+      : ` through ${formatCatalogDate(window.effectiveTo)}`;
+  const verb = window.status === "ended" ? "kept" : "keep";
+  return `${window.cohort.label} ${verb} their previous allowance${until}.`;
+}
 
 export interface PlanTermsNoticeV1 {
   /** `scheduled`: officially announced, not yet in effect. `revised`: the current terms are a revision. */
@@ -59,56 +89,108 @@ export interface PlanTermsNoticeV1 {
   effectiveFrom: string;
   headline: string;
   detail?: string;
+  /** A conditional exception for a cohort, such as grandfathered subscribers. */
+  exception?: { lead: string; text: string };
 }
 
 /**
- * The one line a plan header shows about its terms, or nothing for a plan whose
- * terms have never been revised. An announced revision takes precedence over a
+ * The lines a plan header shows about its terms, or nothing for a plan whose
+ * terms have never been revised. The headline and detail describe what someone
+ * subscribing today gets; a running cohort window (grandfathering) is a
+ * separate, secondary exception. An announced revision takes precedence over a
  * past one, because it is what a buyer needs to know next.
  */
-export function planTermsNotice(timeline: PlanTimelineV1): PlanTermsNoticeV1 | undefined {
+export function planTermsNotice(
+  timeline: PlanTimelineV1,
+  options: { planName?: string; providerName?: string } = {},
+): PlanTermsNoticeV1 | undefined {
   const terms = timeline.scheduled ?? (timeline.current?.revision ? timeline.current : undefined);
   if (terms?.revision === undefined) return undefined;
   const state = terms.status === "scheduled" ? "scheduled" : "revised";
   const date = formatCatalogDate(terms.effectiveFrom);
   const value = terms.revision.relativeValue;
-  const scope =
-    terms.audience !== undefined && terms.audience.length > 0
-      ? `For ${audienceWords(terms.audience)}`
-      : undefined;
+  const windows = liveWindows(timeline);
+  const subject = windows.some((window) => window.cohort.kind === "grandfathered")
+    ? "New and non-grandfathered subscriptions"
+    : terms.audience !== undefined && terms.audience.length > 0
+      ? capitalize(audienceWords(terms.audience))
+      : "Subscriptions";
+  const what = `the ${lowerFirst(terms.revision.title)}`;
   const detail =
-    value !== undefined
-      ? `${scope === undefined ? "" : `${scope}: `}${state === "scheduled" ? "new terms provide" : "usage is"} ${relativeValuePhrase(value)}.`
-      : scope === undefined
-        ? undefined
-        : `${scope}.`;
+    value === undefined
+      ? `${subject} ${state === "scheduled" ? "will get" : "get"} ${what}.`
+      : `${subject} ${state === "scheduled" ? "will get" : "get"} ${what}, ${attribution(value, options.providerName)} ${relativeValuePhrase(value)}.`;
+  const window = windows[0];
   return {
     state,
     effectiveFrom: terms.effectiveFrom,
-    headline: state === "scheduled" ? `Official change effective ${date}` : `Terms changed ${date}`,
-    ...(detail !== undefined ? { detail: capitalize(detail) } : {}),
+    headline:
+      state === "scheduled"
+        ? `Official change effective ${date}`
+        : `${terms.revision.title} since ${date}`,
+    detail,
+    ...(window !== undefined
+      ? {
+          exception: {
+            lead:
+              options.planName === undefined
+                ? "Already subscribed?"
+                : `Already on ${options.planName}?`,
+            text: cohortSentence(window),
+          },
+        }
+      : {}),
   };
 }
 
-/** Replay's line for the terms a result uses. */
+/** Replay's line for the terms a replay uses, and a cohort it could use instead. */
 export function planTermsInUse(timeline: PlanTimelineV1): {
   terms: string;
   change?: string;
+  cohortOffer?: { id: string; label: string; text: string; through?: string };
 } {
+  const applied = timeline.applied;
   const current = timeline.current;
   const scheduled = timeline.scheduled;
+  if (applied?.cohort !== undefined) {
+    const window = timeline.cohortWindows.find((entry) => entry.versionId === applied.versionId);
+    return {
+      terms:
+        window === undefined
+          ? "Cohort terms"
+          : `${window.cohort.label}: previous allowance${
+              window.effectiveTo === undefined
+                ? ""
+                : ` through ${formatCatalogDate(window.effectiveTo)}`
+            }`,
+    };
+  }
+  const running = timeline.cohortWindows.find((window) => window.status === "current");
+  const cohortOffer =
+    running === undefined
+      ? undefined
+      : {
+          id: running.cohort.id,
+          label: running.cohort.label,
+          text: cohortSentence(running),
+          ...(running.effectiveTo !== undefined ? { through: running.effectiveTo } : {}),
+        };
   const terms =
     current?.revision !== undefined
-      ? `Using terms effective ${formatCatalogDate(current.effectiveFrom)}`
+      ? `Current market terms, revised ${formatCatalogDate(current.effectiveFrom)}`
       : "Current terms";
   if (scheduled?.revision !== undefined)
     return {
       terms,
       change: `Official revision takes effect ${formatCatalogDate(scheduled.effectiveFrom)}`,
+      ...(cohortOffer !== undefined ? { cohortOffer } : {}),
     };
   const value = current?.revision?.relativeValue;
-  if (value !== undefined) return { terms, change: capitalize(relativeValuePhrase(value)) };
-  return { terms };
+  return {
+    terms,
+    ...(value !== undefined ? { change: capitalize(relativeValuePhrase(value)) } : {}),
+    ...(cohortOffer !== undefined ? { cohortOffer } : {}),
+  };
 }
 
 export type PlanHistoryStepStateV1 =
@@ -140,6 +222,8 @@ export interface PlanHistoryStepV1 {
   lines: readonly PlanHistoryLineV1[];
   /** An audience every line of the step shares, said once for the step. */
   audience?: string;
+  /** A cohort exception that starts on this day, shown as a compact note. */
+  note?: { label: string; text: string };
 }
 
 const STATE_LABELS: Record<PlanHistoryStepStateV1, string> = {
@@ -205,13 +289,32 @@ export function planHistorySteps(timeline: PlanTimelineV1): PlanHistoryStepV1[] 
     const state: PlanHistoryStepStateV1 = earlier.status === "previous" ? "previous" : "current";
     // The rail position is the terms' start. Only a provider-stated start is a
     // date; otherwise the step sits before every dated event as "Earlier".
+    // Terms a cohort keeps after the market moved on end on two dates, and the
+    // step says both rather than implying everyone lost them on the first.
+    const kept =
+      earlier.endedAt === undefined
+        ? undefined
+        : timeline.cohortWindows.find(
+            (window) =>
+              window.cohort.kind === "grandfathered" &&
+              window.effectiveFrom === dayAfter(earlier.endedAt as string),
+          );
     const details = [
       ...(earlier.endedAt !== undefined
-        ? [
-            state === "previous"
-              ? `In effect until ${formatCatalogDate(earlier.endedAt)}`
-              : `In effect through ${formatCatalogDate(earlier.endedAt)}`,
-          ]
+        ? kept !== undefined
+          ? [
+              `Offered to new subscribers until ${formatCatalogDate(earlier.endedAt)}`,
+              `Kept by ${lowerFirst(kept.cohort.label)}${
+                kept.effectiveTo === undefined
+                  ? ""
+                  : ` through ${formatCatalogDate(kept.effectiveTo)}`
+              }`,
+            ]
+          : [
+              state === "previous"
+                ? `In effect until ${formatCatalogDate(earlier.endedAt)}`
+                : `In effect through ${formatCatalogDate(earlier.endedAt)}`,
+            ]
         : []),
       ...(earlier.startedAt === undefined ? ["Start date not published"] : []),
     ];
@@ -237,6 +340,8 @@ export function planHistorySteps(timeline: PlanTimelineV1): PlanHistoryStepV1[] 
     const key = entry.date ?? `undated-${entry.id}`;
     byDate.set(key, [...(byDate.get(key) ?? []), entry]);
   }
+  const dated: PlanHistoryStepV1[] = [];
+  const undated: PlanHistoryStepV1[] = [];
   for (const [key, entries] of byDate) {
     const state = stepState(entries);
     const date = entries[0]?.date;
@@ -245,7 +350,7 @@ export function planHistorySteps(timeline: PlanTimelineV1): PlanHistoryStepV1[] 
       lines.length > 1 && lines.every((line) => line.audience === lines[0]?.audience)
         ? lines[0]?.audience
         : undefined;
-    steps.push({
+    (date === undefined ? undated : dated).push({
       key,
       kind: "events",
       ...(date !== undefined ? { date } : {}),
@@ -256,12 +361,63 @@ export function planHistorySteps(timeline: PlanTimelineV1): PlanHistoryStepV1[] 
       ...(shared !== undefined ? { audience: shared } : {}),
     });
   }
-  return steps;
+  // A cohort window is drawn from its own version's dates: a note on the day
+  // it starts, and a step on the day its terms end. Nothing restates a date.
+  for (const window of timeline.cohortWindows) {
+    const note = { label: cohortNoteLabel(window), text: cohortSentence(window) };
+    const start = dated.find((step) => step.date === window.effectiveFrom);
+    if (start !== undefined) start.note = note;
+    else
+      dated.push({
+        key: `cohort-${window.versionId}`,
+        kind: "events",
+        date: window.effectiveFrom,
+        dateLabel: formatCatalogDate(window.effectiveFrom),
+        state: window.status === "scheduled" ? "scheduled" : "past",
+        stateLabel: STATE_LABELS[window.status === "scheduled" ? "scheduled" : "past"],
+        lines: [],
+        note,
+      });
+    if (window.effectiveTo !== undefined) {
+      const endState: PlanHistoryStepStateV1 = window.status === "ended" ? "past" : "scheduled";
+      dated.push({
+        key: `cohort-end-${window.versionId}`,
+        kind: "events",
+        date: dayAfter(window.effectiveTo),
+        dateLabel: `After ${formatCatalogDate(window.effectiveTo)}`,
+        state: endState,
+        stateLabel: STATE_LABELS[endState],
+        lines: [
+          {
+            key: `cohort-end-${window.versionId}`,
+            title: `${cohortNoteLabel(window)} ends`,
+            details: [`${window.cohort.label} move to the current market terms.`],
+            evidence: window.cohort.evidence,
+          },
+        ],
+      });
+    }
+  }
+  dated.sort((a, b) =>
+    (a.date ?? "") < (b.date ?? "") ? -1 : (a.date ?? "") > (b.date ?? "") ? 1 : 0,
+  );
+  return [...steps, ...dated, ...undated];
+}
+
+function dayAfter(date: string): string {
+  const instant = new Date(`${date}T00:00:00Z`);
+  instant.setUTCDate(instant.getUTCDate() + 1);
+  return instant.toISOString().slice(0, 10);
+}
+
+function cohortNoteLabel(window: PlanCohortWindowV1): string {
+  return window.cohort.kind === "grandfathered" ? "Grandfathered allowance" : window.cohort.label;
 }
 
 /**
  * The terms a result was computed on, from its own plan version: "terms
- * effective Sep 30, 2026", or "terms before the Sep 30, 2026 revision". A plan
+ * effective Sep 29, 2026", "terms before the Sep 29, 2026 revision", or a
+ * cohort's previous allowance "through Oct 29, 2026". A plan
  * that has never been revised needs no label. It reads the stored version id,
  * never today's date, so a saved result keeps naming the terms it used.
  */
@@ -271,6 +427,10 @@ export function versionTermsLabel(
 ): string | undefined {
   const terms = planTermsOfVersion(plan, versionId);
   if (terms === undefined) return undefined;
+  if (terms.cohort !== undefined)
+    return `${lowerFirst(terms.cohort.label)}' previous allowance${
+      terms.effectiveTo === undefined ? "" : ` through ${formatCatalogDate(terms.effectiveTo)}`
+    }`;
   if (terms.revision !== undefined)
     return `terms effective ${formatCatalogDate(terms.effectiveFrom)}`;
   if (terms.nextRevisionFrom !== undefined)

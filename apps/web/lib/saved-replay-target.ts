@@ -1,4 +1,5 @@
 import { bundledPlanTimelineInput, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { cohortOfPlanVersionId } from "@stackreplay/catalog/timeline";
 import type { CompletedReplay } from "./completed-replays";
 import { versionTermsLabel } from "./plan-terms";
 
@@ -32,7 +33,10 @@ export function savedReplayTargetLine(record: CompletedReplay): string | undefin
   const input = bundledPlanTimelineInput(target.planId);
   const terms = input === undefined ? undefined : versionTermsLabel(input, target.planVersionId);
   const effectiveFrom = target.planVersionId.slice(target.planVersionId.lastIndexOf("@") + 1);
-  return terms === undefined
-    ? `${name} · plan version from ${effectiveFrom}`
-    : `${name} · ${terms}`;
+  const label =
+    terms === undefined ? `${name} · plan version from ${effectiveFrom}` : `${name} · ${terms}`;
+  // A cohort that was asked for but did not apply on the replay's date.
+  const unapplied =
+    target.cohort !== undefined && cohortOfPlanVersionId(target.planVersionId) === undefined;
+  return unapplied ? `${label} (cohort terms had ended; market terms used)` : label;
 }

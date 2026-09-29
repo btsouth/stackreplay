@@ -116,6 +116,8 @@ export interface PublicPlanSummary {
   publishedTerms?: SubscriptionPublishedTerms;
   /** Present when the plan has history or revised terms: the input its timeline reads. */
   timeline?: PlanTimelineInputV1;
+  /** Allowances the provider states relative to another plan's, e.g. 25x Plus usage. */
+  relativeAllowances?: readonly { multiple: string; comparedToPlanName: string }[];
 }
 
 /**
@@ -254,6 +256,15 @@ function toPlanSummary(
     billingMechanics: version.billingMechanics,
     versionCount: plan?.versions.length ?? 1,
     ...(plan !== undefined && planHasHistory(plan) ? { timeline: planTimelineInputOf(plan) } : {}),
+    ...(version.relativeAllowances !== undefined
+      ? {
+          relativeAllowances: version.relativeAllowances.map((allowance) => ({
+            multiple: allowance.multiple,
+            comparedToPlanName:
+              catalog.plans[allowance.comparedToPlanId]?.name ?? allowance.comparedToPlanId,
+          })),
+        }
+      : {}),
   };
 }
 
@@ -474,7 +485,10 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     modelById: (id: string) => models.find((model) => model.id === id),
     planVersions: (id: string) =>
       (catalog.plans[id]?.versions ?? [])
-        .map((version) => catalog.planVersions[planVersionId(id, version.effectiveFrom)])
+        .map(
+          (version) =>
+            catalog.planVersions[planVersionId(id, version.effectiveFrom, version.cohort)],
+        )
         .filter((version): version is LoadedPlanVersionV1 => version !== undefined)
         .sort((left, right) => right.effectiveFrom.localeCompare(left.effectiveFrom)),
   };
@@ -491,7 +505,8 @@ export interface CatalogChange {
     | "limit_changed"
     | "model_access_changed"
     | "rule_changed"
-    | "terms_revised";
+    | "terms_revised"
+    | "cohort_terms";
   summary: string;
   modelDetails?: string;
   verificationStatus: LoadedPlanVersionV1["verificationStatus"];
@@ -547,10 +562,28 @@ export function deriveCatalogChanges(catalog: CatalogV1 = loadCatalog()): Catalo
     const plan = catalog.plans[planId];
     if (plan === undefined) continue;
     const providerName = catalog.providers[plan.providerId]?.name ?? plan.providerId;
-    // A withdrawn version never took effect, so it is not a change.
+    // A withdrawn version never took effect, so it is not a change, and a
+    // cohort's own terms are not a change to what a subscriber can buy.
     const ordered = plan.versions
-      .filter((version) => version.withdrawn === undefined)
+      .filter((version) => version.withdrawn === undefined && version.cohort === undefined)
       .sort((left, right) => left.effectiveFrom.localeCompare(right.effectiveFrom));
+    for (const version of plan.versions) {
+      const cohort = plan.cohorts?.find((entry) => entry.id === version.cohort);
+      if (cohort === undefined || version.withdrawn !== undefined) continue;
+      changes.push({
+        planId,
+        planName: plan.name,
+        providerName,
+        effectiveFrom: version.effectiveFrom,
+        verificationStatus: version.verificationStatus,
+        lastVerifiedAt: version.lastVerifiedAt,
+        sources: version.sources,
+        kind: "cohort_terms",
+        summary: `${cohort.label} keep their previous terms${
+          version.effectiveTo === undefined ? "" : ` through ${version.effectiveTo}`
+        }; new subscriptions get the current terms.`,
+      });
+    }
     for (const [index, version] of ordered.entries()) {
       const previous = index === 0 ? undefined : ordered[index - 1];
       const base = {

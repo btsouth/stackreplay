@@ -3,7 +3,7 @@ import type { DecisionMarket } from "./decision-market.js";
 export const DECISION_MARKET: DecisionMarket = {
   "rulesAt": "2026-09-28T19:51:32Z",
   "reviewUntil": "2026-10-27T00:00:00Z",
-  "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+  "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
   "scenarios": [
     {
       "id": "cache-5m",
@@ -13,7 +13,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:258a95bc79a89724a4f5bb3197d4bc64b59d930552ca426f354b0def1beba84c",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-fable-5",
           "planVersionId": "anthropic-api-fable-5-current-20260927-d3",
@@ -223,7 +223,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:60cacaf9989637903532b498cd42052b548770ba2eabd365a5649bd69ba7a105",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-fable-5-1",
           "planVersionId": "anthropic-api-fable-5-1-current-20260927-d3",
@@ -433,7 +433,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:de90bb5dee3ada64814f203c98c5223c2017a222a06632d629f44b4d7328ae08",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-haiku-4-5",
           "planVersionId": "anthropic-api-haiku-4-5-current-20260927",
@@ -596,7 +596,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:94be67fdaf40a0cec8f8a8cf8183a27fc1a8213ba15f6c62916dbbbdf9004c8b",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-4-8",
           "planVersionId": "anthropic-api-opus-4-8-current-20260927-d3",
@@ -806,7 +806,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:ea7850b09118a3da3861c3f247d45785643f4a795750c66cdbbc71259bd1cf9e",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-5",
           "planVersionId": "anthropic-api-opus-5-current-20260927-d3",
@@ -1016,7 +1016,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:3fd1686e96c373cfa34cc31d93091d14588bd6ae7c743182b4169d2fcca6e5c3",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-5-5",
           "planVersionId": "anthropic-api-opus-5-5-current-20260927-d3",
@@ -1226,7 +1226,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:01795f40ec39f0123e304874c70ab556763ff6be0af746896c4af52e36320f2e",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-sonnet-5",
           "planVersionId": "anthropic-api-sonnet-5-current-20260927",
@@ -1413,7 +1413,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:b421fa29c945ba4641b8c8f6d43339624bfde95aa3af1ff5f5f236339f7fe752",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-sonnet-5-5",
           "planVersionId": "anthropic-api-sonnet-5-5-current-20260928-sonnet55",
@@ -1623,7 +1623,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:de410cd4d4b371529ca2f3a36823090ac06c521a4d8cf19502501a472f8557a9",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "openai-api-gpt-5-4-mini",
           "planVersionId": "openai-api-gpt-5-4-mini-current-20260927",
@@ -1761,7 +1761,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:4a6fc113a3f2bd5095de7d520b4b8191fdc36f75f763f6abc6e57c8b38d8dcbe",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "openai-api-gpt-5-6-sol",
           "planVersionId": "openai-api-gpt-5-6-sol-d0-20260927",
@@ -1987,7 +1987,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:5cd4814fbdfc3e16208d2b1da5c827333ea490f5a72f129e067d8c54c41ec217",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "openai-api-gpt-6-sol",
           "planVersionId": "openai-api-gpt-6-sol-current-20260927",
@@ -2156,7 +2156,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:7e464f5b461c81b3333832af54896e376d19447388b837ff872333aea19d8cd0",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "z-ai-api-glm-5-3-flash",
           "planVersionId": "z-ai-api-glm-5-3-flash-current-20260927",
@@ -2301,7 +2301,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:39d4cd1410c738706e64e7a49411b5487b2648fa490f953e665462b3c239d300",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-fable-5",
           "planVersionId": "anthropic-api-fable-5-current-20260927-d3",
@@ -2511,7 +2511,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:e2a9ea41f97c9e209409b0b97a1788c2419596c865874ae0b585a5b7e5eb44b5",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-fable-5-1",
           "planVersionId": "anthropic-api-fable-5-1-current-20260927-d3",
@@ -2721,7 +2721,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:68cc2ae9e005846d890d3788f2e13d6f8746e0eafe549f5a11375d2fb50fc297",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-haiku-4-5",
           "planVersionId": "anthropic-api-haiku-4-5-current-20260927",
@@ -2884,7 +2884,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:dbf714598d6031cac987ece81dbf0fca8dbb5d18d2e51cf047d9073f279b88ee",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-4-8",
           "planVersionId": "anthropic-api-opus-4-8-current-20260927-d3",
@@ -3094,7 +3094,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:0a42f5ebd53d66ce2864a475b4aa5adc468fbf5292398de4b621ae6206383d9c",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-5",
           "planVersionId": "anthropic-api-opus-5-current-20260927-d3",
@@ -3304,7 +3304,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:a0afe1223ddbcfa1526b5496b031fade640cf23c4885cc5a76bcf4f7991e9d81",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-opus-5-5",
           "planVersionId": "anthropic-api-opus-5-5-current-20260927-d3",
@@ -3514,7 +3514,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:c6549f98f5230f188c3845cdfaaa11a48da0af2d26fa39b78d535d0f8dbbe774",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-sonnet-5",
           "planVersionId": "anthropic-api-sonnet-5-current-20260927",
@@ -3701,7 +3701,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:4c69a0e9c8f568f51afc5b1c06105348bd2b1fbfd2e9208cb17ce37f3ec8e6cf",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "anthropic-api-sonnet-5-5",
           "planVersionId": "anthropic-api-sonnet-5-5-current-20260928-sonnet55",
@@ -3911,7 +3911,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:de410cd4d4b371529ca2f3a36823090ac06c521a4d8cf19502501a472f8557a9",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "openai-api-gpt-5-4-mini",
           "planVersionId": "openai-api-gpt-5-4-mini-current-20260927",
@@ -4049,7 +4049,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:4a6fc113a3f2bd5095de7d520b4b8191fdc36f75f763f6abc6e57c8b38d8dcbe",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-d0-v2",
           "planId": "openai-api-gpt-5-6-sol",
           "planVersionId": "openai-api-gpt-5-6-sol-d0-20260927",
@@ -4275,7 +4275,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:5cd4814fbdfc3e16208d2b1da5c827333ea490f5a72f129e067d8c54c41ec217",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "openai-api-gpt-6-sol",
           "planVersionId": "openai-api-gpt-6-sol-current-20260927",
@@ -4444,7 +4444,7 @@ export const DECISION_MARKET: DecisionMarket = {
         {
           "contractVersion": 2,
           "artifactHash": "sha256:7e464f5b461c81b3333832af54896e376d19447388b837ff872333aea19d8cd0",
-          "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+          "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
           "compilerVersion": "catalog-execution-c2a-v2",
           "planId": "z-ai-api-glm-5-3-flash",
           "planVersionId": "z-ai-api-glm-5-3-flash-current-20260927",
@@ -4705,7 +4705,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:a85861379d8d1a67a2d1c2f5473e31094a4c39971d28be22828235e8d522605e",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-fable-5",
         "planVersionId": "anthropic-api-fable-5-current-20260927-d3",
@@ -4998,7 +4998,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:798c7a0d231fe540a230e03dfc0d23faee9d940f3612ae914c2e28c60b4648a6",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-fable-5-1",
         "planVersionId": "anthropic-api-fable-5-1-current-20260927-d3",
@@ -5242,7 +5242,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:a8bc2dd280d562a094c088d43fb0f6431523f8af6711a87c5746875de0d7df79",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-haiku-4-5",
         "planVersionId": "anthropic-api-haiku-4-5-current-20260927",
@@ -5500,7 +5500,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:cd62a2cdf4615d5244d5cce1fddd9414d8f6e6fc2e8ed7015fd66cdf3a6d00bc",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-opus-4-8",
         "planVersionId": "anthropic-api-opus-4-8-current-20260927-d3",
@@ -5793,7 +5793,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:ad80d71a6dd586b546d1ccbd7dfeaa9d2a2bb283c634aa5c59f6b84b53b2dbe0",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-opus-5",
         "planVersionId": "anthropic-api-opus-5-current-20260927-d3",
@@ -6086,7 +6086,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:db7b19da2842b0e123afcef5416f098b01990d234950eae668c83119d2b9825c",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-opus-5-5",
         "planVersionId": "anthropic-api-opus-5-5-current-20260927-d3",
@@ -6346,7 +6346,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:99dbe83280f4741f29a805cd1a32d4cafcd62b8aedbd2881073be44011fc7c54",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-sonnet-5",
         "planVersionId": "anthropic-api-sonnet-5-current-20260927",
@@ -6604,7 +6604,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:1545fc05479dcbd876f220f4f712569381e57e3e6ea660a54f382989d83efc32",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-api-sonnet-5-5",
         "planVersionId": "anthropic-api-sonnet-5-5-current-20260928-sonnet55",
@@ -6881,7 +6881,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:b634afb1505d657bedbf6ebda1694160e8fba37210d065c9207cdf009c0928ee",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-claude-max-20x",
         "planVersionId": "anthropic-claude-max-20x-current-20260927",
@@ -7130,7 +7130,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:597f2e01d8f725d396c2d1473586cbb93c2bb0aa98a440eba4a59e8cd763a1df",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-claude-max-5x",
         "planVersionId": "anthropic-claude-max-5x-current-20260927",
@@ -7379,7 +7379,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:fc7e8ee3d5bde5a4259ee7776c85ccdbceee5294733eba562e464bbf30bcf567",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "anthropic-claude-pro",
         "planVersionId": "anthropic-claude-pro-current-20260927",
@@ -7644,7 +7644,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:6d73c3c0ca8382e84c7e1e2e265d6896741a7762122b8f3cd979811129cfd262",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "command-code-goat",
         "planVersionId": "command-code-goat-current-20260927",
@@ -7901,7 +7901,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:2ebbcb486933b015ab7f8d3debd128d05e2cbb5c5e6e421dd6fb30382c28173d",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "cursor-pro",
         "planVersionId": "cursor-pro-current-20260927",
@@ -8165,7 +8165,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:950ef6ef9c7f98be954f2920c1ce8b8d394c18454b12879e78b1e761d14a377d",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "github-copilot-pro",
         "planVersionId": "github-copilot-pro-current-20260927",
@@ -8422,7 +8422,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:1335eaa8eec378831d7e451bfb05785f1ea21e440d71dd297fe004a2f415609d",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "kiro-pro",
         "planVersionId": "kiro-pro-current-20260927",
@@ -8697,7 +8697,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:dd4fe108ae6c01cc18e98e438ba2c9d15a685a7439e764f767a3471e46af721d",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "ollama-cloud-pro",
         "planVersionId": "ollama-cloud-pro-current-20260927",
@@ -8906,7 +8906,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:de410cd4d4b371529ca2f3a36823090ac06c521a4d8cf19502501a472f8557a9",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "openai-api-gpt-5-4-mini",
         "planVersionId": "openai-api-gpt-5-4-mini-current-20260927",
@@ -9127,7 +9127,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:4a6fc113a3f2bd5095de7d520b4b8191fdc36f75f763f6abc6e57c8b38d8dcbe",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-d0-v2",
         "planId": "openai-api-gpt-5-6-sol",
         "planVersionId": "openai-api-gpt-5-6-sol-d0-20260927",
@@ -9425,7 +9425,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:5cd4814fbdfc3e16208d2b1da5c827333ea490f5a72f129e067d8c54c41ec217",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "openai-api-gpt-6-sol",
         "planVersionId": "openai-api-gpt-6-sol-current-20260927",
@@ -9698,7 +9698,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:ab4173252ecf3a380ef032665aaaf4eb2edf1ee700b0a82e2db41743cc2a0394",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "openai-chatgpt-plus",
         "planVersionId": "openai-chatgpt-plus-current-20260927",
@@ -9947,7 +9947,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:672b8f54f3011a1b3fe6540b30a6f91bb51acf7cecbe7713e4a458ddbfd6ea42",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "openai-chatgpt-pro",
         "planVersionId": "openai-chatgpt-pro-current-20260927",
@@ -10148,7 +10148,7 @@ export const DECISION_MARKET: DecisionMarket = {
       "artifact": {
         "contractVersion": 2,
         "artifactHash": "sha256:7e464f5b461c81b3333832af54896e376d19447388b837ff872333aea19d8cd0",
-        "catalogHash": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+        "catalogHash": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
         "compilerVersion": "catalog-execution-c2a-v2",
         "planId": "z-ai-api-glm-5-3-flash",
         "planVersionId": "z-ai-api-glm-5-3-flash-current-20260927",

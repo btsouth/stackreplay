@@ -21,8 +21,41 @@
   font-size: 0.85rem;
   line-height: 1.55;
 }
+.plan-terms-notice-exception {
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.plan-terms-notice-lead {
+  color: var(--foreground);
+  font-weight: 500;
+}
+.plan-terms-notice[data-variant="summary"] {
+  margin-top: 0.75rem;
+}
 .plan-terms-notice .market-link {
   min-height: 40px;
+}
+/* A cohort exception on the day it starts: secondary, labelled, never a warning. */
+.plan-timeline-note {
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-left: 2px solid var(--border-strong);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.plan-timeline-note-label {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
 }
 
 .plan-terms-compact {
@@ -44,6 +77,27 @@
 }
 
 /* Replay: the terms a subscription replay uses, with the history behind it. */
+.plan-terms-cohort {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding-top: 0.2rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.plan-terms-cohort input {
+  margin-top: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+@media (min-width: 40rem) {
+  .plan-terms-cohort {
+    min-height: 32px;
+  }
+}
 .plan-terms-line {
   font-size: 0.8rem;
   color: var(--muted-foreground);
@@ -269,4 +323,11 @@
 .market-tier-table .market-tier-status .market-muted {
   max-width: 28rem;
   margin-left: auto;
+}
+
+/* A plan with a stated relative allowance has four key figures, not three. */
+@media (min-width: 701px) {
+  .market-detail-stats:has(> [data-testid="plan-relative-allowance"]) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }

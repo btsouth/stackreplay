@@ -187,9 +187,9 @@ versions:
         label: "Usage credits (pay-as-you-go overage)"
         statement: "For Plus and Pro, Codex, ChatGPT Work, Excel, and PowerPoint can share the same agentic usage allowance when those features are available on your plan."
         sourceUrl: https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans
-      - id: pro-200-new-signup-pause-as-of-2026-09-10
-        label: "Pro $200 new-signup pause (as of 2026-09-10)"
-        statement: "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause."
+      - id: ultrafast-not-included
+        label: "Ultrafast not included"
+        statement: "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast."
         sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
       - id: what-the-provider-does-not-publish
         label: "What the provider does not publish"

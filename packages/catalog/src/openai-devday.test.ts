@@ -10,6 +10,7 @@ import {
   resolveServiceTier,
   tierPricingAt,
 } from "./service-tiers.js";
+import { planVersionId } from "./version-id.js";
 import { selectPlanVersionAt } from "./versions.js";
 
 /**
@@ -22,40 +23,97 @@ const catalog = loadDefaultCatalog();
 const pro200 = catalog.plans["openai-chatgpt-pro-20x"];
 if (pro200 === undefined) throw new Error("Pro $200 plan missing");
 
-describe("ChatGPT Pro $200 revised terms", () => {
-  it("shows the Sep 30 revision as officially scheduled on Sep 29", () => {
-    const timeline = resolvePlanTimeline(pro200, "2026-09-29");
+describe("ChatGPT Pro $200: market terms and grandfathered terms", () => {
+  const market = (day: string) => selectPlanVersionAt(pro200.versions, day);
+  const grandfathered = (day: string) =>
+    selectPlanVersionAt(pro200.versions, day, { cohort: "grandfathered" });
+  const id = (version: { effectiveFrom: string; cohort?: string | undefined } | undefined) =>
+    version === undefined
+      ? undefined
+      : planVersionId("openai-chatgpt-pro-20x", version.effectiveFrom, version.cohort);
+
+  it("is not yet revised on Sep 28, for anyone", () => {
+    expect(id(market("2026-09-28"))).toBe("openai-chatgpt-pro-20x@2026-09-22");
+    expect(id(grandfathered("2026-09-28"))).toBe("openai-chatgpt-pro-20x@2026-09-22");
+    const timeline = resolvePlanTimeline(pro200, "2026-09-28");
     expect(timeline.current?.revision).toBeUndefined();
-    expect(timeline.scheduled?.effectiveFrom).toBe("2026-09-30");
-    expect(timeline.scheduled?.announcedAt).toBe("2026-09-29");
-    const value = timeline.scheduled?.revision?.relativeValue;
-    expect(value).toMatchObject({
+    // Nothing about the revision was known yet.
+    expect(timeline.scheduled).toBeUndefined();
+    expect(timeline.cohortWindows).toEqual([]);
+  });
+
+  it("offers the revised allowance to a buyer from Sep 29, from its structured date alone", () => {
+    expect(id(market("2026-09-29"))).toBe("openai-chatgpt-pro-20x@2026-09-29");
+    const timeline = resolvePlanTimeline(pro200, "2026-09-29");
+    expect(timeline.current?.versionId).toBe("openai-chatgpt-pro-20x@2026-09-29");
+    expect(timeline.current?.revision?.relativeValue).toMatchObject({
       measure: "api_equivalent_spend",
       ratio: "0.5",
       approximate: true,
       comparedTo: "previous_terms",
     });
-    expect(value?.evidence[0]?.authority).toBe("provider_staff");
+    expect(timeline.current?.revision?.relativeValue?.evidence[0]?.authority).toBe(
+      "provider_staff",
+    );
+    expect(timeline.applied?.versionId).toBe(timeline.current?.versionId);
+    expect(timeline.applied?.cohort).toBeUndefined();
   });
 
-  it("makes the revision current on Sep 30 from its structured date alone", () => {
-    const before = resolvePlanTimeline(pro200, "2026-09-29");
-    const on = resolvePlanTimeline(pro200, "2026-09-30");
-    const after = resolvePlanTimeline(pro200, "2026-10-01");
-    expect(before.current?.versionId).toBe("openai-chatgpt-pro-20x@2026-09-21");
-    expect(on.current?.versionId).toBe("openai-chatgpt-pro-20x@2026-09-30");
-    expect(after.current?.versionId).toBe("openai-chatgpt-pro-20x@2026-09-30");
-    expect(on.scheduled).toBeUndefined();
-    // The engine selects the same version on each day.
-    expect(selectPlanVersionAt(pro200.versions, "2026-09-29")?.effectiveFrom).toBe("2026-09-29");
-    expect(selectPlanVersionAt(pro200.versions, "2026-09-30")?.effectiveFrom).toBe("2026-09-30");
+  it("keeps eligible grandfathered subscribers on the previous allowance on the same day", () => {
+    const version = grandfathered("2026-09-29");
+    expect(id(version)).toBe("openai-chatgpt-pro-20x@2026-09-29~grandfathered");
+    expect(version?.revision).toBeUndefined();
+    const timeline = resolvePlanTimeline(pro200, "2026-09-29", { cohort: "grandfathered" });
+    expect(timeline.applied).toMatchObject({
+      versionId: "openai-chatgpt-pro-20x@2026-09-29~grandfathered",
+      cohort: "grandfathered",
+      endedAt: "2026-10-29",
+    });
+    // The market reading on the same day is unchanged: both term sets coexist.
+    expect(timeline.current?.versionId).toBe("openai-chatgpt-pro-20x@2026-09-29");
+  });
+
+  it("treats Oct 29 as the last grandfathered day and Oct 30 as the first on revised terms", () => {
+    expect(id(grandfathered("2026-10-29"))).toBe("openai-chatgpt-pro-20x@2026-09-29~grandfathered");
+    expect(id(grandfathered("2026-10-30"))).toBe("openai-chatgpt-pro-20x@2026-09-29");
+    expect(id(market("2026-10-29"))).toBe("openai-chatgpt-pro-20x@2026-09-29");
+    const window = (day: string) => resolvePlanTimeline(pro200, day).cohortWindows[0];
+    expect(window("2026-10-29")?.status).toBe("current");
+    expect(window("2026-10-30")?.status).toBe("ended");
+    expect(window("2026-10-30")?.effectiveTo).toBe("2026-10-29");
+  });
+
+  it("never gives a buyer grandfathered terms by default", () => {
+    for (const day of ["2026-09-29", "2026-10-01", "2026-10-29", "2026-12-01"]) {
+      expect(market(day)?.cohort).toBeUndefined();
+      expect(resolvePlanTimeline(pro200, day).applied?.cohort).toBeUndefined();
+    }
+  });
+
+  it("keeps grandfathering a Pro $200 allowance, not a Pro $500 upgrade or Ultrafast", () => {
+    const version = grandfathered("2026-10-01");
+    expect(version?.price).toEqual({ currency: "USD", amount: "200", interval: "month" });
+    const statements = (version?.qualitativeLimits ?? []).map((limit) => limit.statement).join(" ");
+    expect(statements).toContain("does not upgrade your plan or add Ultrafast");
+    expect(statements).toContain("Ultrafast is available only on Pro 500");
+    expect(version?.relativeAllowances).toBeUndefined();
+    expect(pro200.cohorts?.map((cohort) => cohort.id)).toEqual(["grandfathered"]);
+  });
+
+  it("records the eligibility in OpenAI's words without inventing the cutoff date", () => {
+    const cohort = pro200.cohorts?.[0];
+    expect(cohort?.eligibility).toContain("eligibility cutoff");
+    expect(cohort?.eligibility).toContain("seven days before it");
+    // The Help Center states no cutoff date, and the catalog holds none.
+    expect(cohort?.eligibility).not.toMatch(/\b(Sep|September|Oct|October) (?!29, 2026)\d/u);
+    expect(JSON.stringify(cohort)).not.toMatch(/cutoff[^.]*2026-/u);
   });
 
   it("keeps the previous terms without a fabricated start date", () => {
     const timeline = resolvePlanTimeline(pro200, "2026-10-01");
     expect(timeline.previous?.startedAt).toBeUndefined();
-    expect(timeline.previous?.endedAt).toBe("2026-09-29");
-    expect(timeline.current?.startedAt).toBe("2026-09-30");
+    expect(timeline.previous?.endedAt).toBe("2026-09-28");
+    expect(timeline.current?.startedAt).toBe("2026-09-29");
     expect(timeline.current?.audience).toEqual(["new_subscribers"]);
   });
 
@@ -72,37 +130,68 @@ describe("ChatGPT Pro $200 revised terms", () => {
     expect(pause?.title).not.toMatch(/disabled|shut down|discontinued/i);
   });
 
-  it("lists the history in order, each entry dated", () => {
+  it("lists the history in order: the pause, then the Sep 29 reopening and revision", () => {
     const timeline = resolvePlanTimeline(pro200, "2026-10-01");
     expect(timeline.entries.map((entry) => [entry.date, entry.id])).toEqual([
       ["2026-09-10", "new-subscriptions-paused"],
-      ["2026-09-29", "revised-terms-announced"],
-      ["2026-09-30", "new-subscriptions-reopen"],
-      ["2026-09-30", "revised-usage-terms"],
+      ["2026-09-29", "new-subscriptions-reopen"],
+      ["2026-09-29", "revised-usage-allowance"],
     ]);
     expect(timeline.entries.filter((entry) => entry.startsCurrentTerms).map((e) => e.id)).toEqual([
-      "revised-usage-terms",
+      "revised-usage-allowance",
     ]);
-  });
-
-  it("does not describe the Sep 29 announcement before it was made", () => {
-    const earlier = resolvePlanTimeline(pro200, "2026-09-20");
-    expect(earlier.entries.map((entry) => entry.id)).toEqual(["new-subscriptions-paused"]);
-    expect(earlier.scheduled).toBeUndefined();
   });
 });
 
 describe("ChatGPT Pro $500", () => {
   const pro500 = catalog.plans["openai-chatgpt-pro-500"];
-  it("records only the published price and Ultrafast access, no invented allowance", () => {
-    const version =
-      pro500 === undefined ? undefined : selectPlanVersionAt(pro500.versions, "2026-09-29");
+  const version =
+    pro500 === undefined ? undefined : selectPlanVersionAt(pro500.versions, "2026-09-29");
+  const statements = (version?.qualitativeLimits ?? []).map((limit) => limit.statement).join(" ");
+
+  it("records the $500 price, Ultrafast and the highest-usage statement", () => {
     expect(version?.price).toEqual({ currency: "USD", amount: "500", interval: "month" });
-    expect(version?.limits).toEqual([]);
-    const statements = (version?.qualitativeLimits ?? []).map((limit) => limit.statement).join(" ");
-    expect(statements).toMatch(/Ultrafast/);
-    expect(statements).not.toMatch(/25x|25×/);
+    expect(statements).toContain("Ultrafast is available only on Pro 500");
+    expect(statements).toContain("Pro 500 offers the highest included usage of the three plans");
     expect(selectPlanVersionAt(pro500?.versions ?? [], "2026-09-28")).toBeUndefined();
+  });
+
+  it("records 25x as a relative usage claim from the keynote, never a quota", () => {
+    expect(version?.relativeAllowances).toEqual([
+      expect.objectContaining({
+        measure: "provider_usage",
+        multiple: "25",
+        comparedToPlanId: "openai-chatgpt-plus",
+      }),
+    ]);
+    expect(version?.relativeAllowances?.[0]?.evidence[0]).toMatchObject({
+      authority: "provider_keynote",
+      url: expect.stringContaining("youtube.com/watch?v=Fls_onRviPM"),
+    });
+    // No numeric limit, token count or API-dollar figure is derived from it.
+    expect(version?.limits).toEqual([]);
+    expect(JSON.stringify(version)).not.toMatch(
+      /25x (tokens|messages|API)|25 times the (tokens|API)/iu,
+    );
+  });
+
+  it("keeps the 8x speed claim and the 8x included-usage rate as separate, labelled facts", () => {
+    const speed = version?.qualitativeLimits?.find((limit) => limit.id === "ultrafast-speed-claim");
+    const rate = version?.qualitativeLimits?.find(
+      (limit) => limit.id === "ultrafast-included-usage-rate",
+    );
+    expect(speed?.label).toMatch(/speed/iu);
+    expect(speed?.statement).toContain("not billing rates");
+    expect(rate?.label).toMatch(/not a speed figure/iu);
+    expect(rate?.statement).toContain("don't describe speed increases");
+  });
+
+  it("states the five-hour position only as OpenAI's statement about Pro plans", () => {
+    const five = version?.qualitativeLimits?.find((limit) => limit.id === "no-five-hour-limit");
+    expect(five?.statement).toBe(
+      "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
+    );
+    expect(five?.sourceUrl).toBe("https://learn.chatgpt.com/docs/pricing");
   });
 });
 

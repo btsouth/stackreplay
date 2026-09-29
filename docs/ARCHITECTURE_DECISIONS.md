@@ -1210,9 +1210,10 @@ public links hundreds of characters long. Short links replace them in the produc
 
 ## 64. Plan terms change over time, and the catalog says when (plan history)
 
-A plan is not a timeless SKU. OpenAI paused new ChatGPT Pro $200 sign-ups on Sep 10, 2026,
-announced revised terms on Sep 29 (DevDay) and reopened the plan with them on Sep 30. The catalog
-records that as data, and every surface reads it through one resolver.
+A plan is not a timeless SKU. OpenAI paused new ChatGPT Pro $200 sign-ups on Sep 10, 2026, and on
+Sep 29 (DevDay) reopened the plan with a lower allowance for new subscriptions, while eligible
+existing subscribers keep the previous allowance through Oct 29. The catalog records that as data,
+and every surface reads it through one resolver.
 
 - **Versions and events are different things.** A plan version holds terms a replay calculates
   with (price, limits, model rules). A history event (`plan.history.events`) is something a
@@ -1258,6 +1259,24 @@ records that as data, and every surface reads it through one resolver.
   was not recorded; no version is assigned after the fact.
 - **No historical fit is invented.** "Would this workload have fit under the previous terms?" is
   not computed, because the evidence establishes only the relative change.
+- **One plan, several audiences.** Plan and date do not always pick one set of terms: from Sep 29
+  to Oct 29, 2026, Pro $200 has market terms (what a new subscriber gets) and grandfathered terms
+  (what eligible existing subscribers keep). A plan may declare `cohorts` (id, kind, label, the
+  provider's eligibility wording, evidence), and a version may name one. Versions without a cohort
+  are the market line; a cohort's versions are a parallel line that may overlap it in time but not
+  itself. `selectPlanVersionAt(versions, at, { cohort })` returns the cohort's version while one
+  covers the day and the market version otherwise, because a cohort's terms are an exception that
+  starts and ends; the default is always the market. A cohort version's id appends `~cohortId`
+  (`openai-chatgpt-pro-20x@2026-09-29~grandfathered`), so market ids are unchanged and ids stay
+  unique. A cutoff the provider does not publish is not recorded. The engine takes an optional
+  `cohort` on a subscription target (refused beside a pinned version, and refused for a cohort the
+  plan does not declare). The timeline reports cohort windows beside the market terms and derives
+  their start note and end step from the cohort version's own dates. A saved result stores the
+  requested cohort beside the resolved version id, so a grandfathered replay made after the window
+  closed is labelled as having used market terms.
+- **Relative allowances stay relative.** `relativeAllowances` records a stated multiple of another
+  plan's usage in the provider's own unit (Pro $500: 25 times Plus, from the DevDay keynote). It is
+  not tokens, API dollars, messages or a per-model limit, and never a numeric replay limit.
 
 ## 65. Processing tiers are a pricing dimension, not models (service tiers)
 
@@ -1279,6 +1298,10 @@ records that as data, and every surface reads it through one resolver.
   when a Fast request is downgraded under ramp limits). `billedServiceTierOf` states the rule:
   only the resolved tier is a billed fact. No importer reads either value yet, so no event field
   was added; when one does, the resolved tier is what actual-cost reconstruction uses.
+- An absent tier means different things by origin. A catalog price record without one is Standard
+  (every earlier record transcribed a Standard list price). A replay target without one asks for
+  Standard on purpose (`replayServiceTierOf`). An observed or imported call without one has an
+  unknown tier (`observedServiceTierOf`) unless the source's contract guarantees Standard.
 - Regional processing premiums are recorded as model notes, not priced: replay prices global
   processing and says so in its assumptions.
 

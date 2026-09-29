@@ -115,8 +115,8 @@ export function PlanExplorer({
               {plan.timeline !== undefined && (
                 <PlanTermsNotice
                   asOf={asOf}
-                  compact
                   followToday
+                  variant="line"
                   historyHref={`/plans/${plan.id}#history`}
                   plan={plan.timeline}
                 />

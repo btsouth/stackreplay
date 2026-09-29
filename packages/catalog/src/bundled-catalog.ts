@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4";
+export const BUNDLED_CATALOG_VERSION = "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
+  "catalogVersion": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -15110,135 +15110,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "effectiveFrom": "2026-09-29",
-          "effectiveTo": "2026-09-29",
-          "effectiveFromBasis": "provider",
-          "price": {
-            "currency": "USD",
-            "amount": "200",
-            "interval": "month"
-          },
-          "billingMechanics": "Included as a separate entry because ChatGPT Pro has several official price points and usage allowances under one plan name: $100, $200 and $500 per month from Sep 29, 2026.",
-          "limits": [],
-          "qualitativeLimits": [
-            {
-              "id": "included-usage-summary",
-              "label": "Included usage",
-              "statement": "20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-            },
-            {
-              "id": "compatible-tools",
-              "label": "Compatible tools",
-              "statement": "ChatGPT · Codex · ChatGPT Work",
-              "sourceUrl": "https://openai.com/index/gpt-5-6/"
-            },
-            {
-              "id": "pro-200-usage-relative-to-plus",
-              "label": "Pro $200 usage relative to Plus",
-              "statement": "Pro $200 unlocks 20x usage than Plus.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-            },
-            {
-              "id": "per-model-usage-allowances-temporary-model-unava",
-              "label": "Per-model usage allowances (temporary model unavailability)",
-              "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-              "topic": "after_limit"
-            },
-            {
-              "id": "new-sign-ups-and-upgrades-paused",
-              "label": "New sign-ups and upgrades paused",
-              "statement": "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-            },
-            {
-              "id": "what-the-provider-does-not-publish",
-              "label": "What the provider does not publish",
-              "statement": "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-            },
-            {
-              "id": "model-availability-scope",
-              "label": "Model availability scope",
-              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
-              "sourceUrl": "https://openai.com/chatgpt/pricing/"
-            }
-          ],
-          "modelRules": [
-            {
-              "model": "gpt-6-1-sol",
-              "pricingRef": "gpt-6-1-sol-pricing"
-            },
-            {
-              "model": "gpt-6-luna",
-              "pricingRef": "gpt-6-luna-pricing"
-            },
-            {
-              "model": "gpt-6-sol",
-              "pricingRef": "gpt-6-sol-pricing"
-            },
-            {
-              "model": "gpt-5-6-luna",
-              "pricingRef": "gpt-5-6-luna-pricing"
-            },
-            {
-              "model": "gpt-5-6-sol",
-              "pricingRef": "gpt-5-6-sol-pricing"
-            },
-            {
-              "model": "gpt-5-6-sol-pro"
-            },
-            {
-              "model": "gpt-5-6-terra",
-              "pricingRef": "gpt-5-6-terra-pricing"
-            },
-            {
-              "model": "gpt-5-thinking-mini"
-            },
-            {
-              "model": "gpt-6-astra",
-              "pricingRef": "gpt-6-astra-pricing"
-            }
-          ],
-          "sources": [
-            {
-              "url": "https://learn.chatgpt.com/docs/models",
-              "title": "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work",
-              "checkedAt": "2026-09-29"
-            },
-            {
-              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-              "title": "OpenAI plan documentation (official)",
-              "checkedAt": "2026-09-23"
-            },
-            {
-              "url": "https://openai.com/chatgpt/pricing/",
-              "title": "OpenAI pricing (official)",
-              "checkedAt": "2026-09-23"
-            },
-            {
-              "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
-              "title": "OpenAI model launch and paid plan availability",
-              "checkedAt": "2026-09-23"
-            },
-            {
-              "url": "https://chatgpt.com/pricing/",
-              "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
-              "checkedAt": "2026-09-23"
-            }
-          ],
-          "lastVerifiedAt": "2026-09-29",
-          "verificationStatus": "verified"
-        },
-        {
-          "effectiveFrom": "2026-09-30",
           "effectiveFromBasis": "provider",
           "announcedAt": "2026-09-29",
           "audience": [
             "new_subscribers"
           ],
           "revision": {
-            "title": "Revised usage terms",
+            "title": "Revised usage allowance",
             "relativeValue": {
               "measure": "api_equivalent_spend",
               "ratio": "0.5",
@@ -15260,32 +15138,51 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "amount": "200",
             "interval": "month"
           },
-          "billingMechanics": "ChatGPT Pro has three price points: $100, $200 and $500 per month.",
+          "billingMechanics": "ChatGPT Pro has three monthly price points: $100, $200 and $500.",
           "limits": [],
           "qualitativeLimits": [
             {
               "id": "included-usage-summary",
               "label": "Included usage",
-              "statement": "Revised Sep 30, 2026: about half the previous terms' API-equivalent spend. No numeric allowance is published.",
-              "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+              "statement": "From Sep 29, 2026, new and non-grandfathered subscriptions get a lower allowance than the previous Pro $200 terms. No numeric allowance is published.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "lower-allowance",
+              "label": "Lower allowance for new subscriptions",
+              "statement": "New subscriptions that aren't eligible for grandfathering include a lower usage allowance than previously offered with Pro 200 to reflect our increasingly efficient models. The monthly price remains $200.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             },
             {
               "id": "revised-usage-calculation",
-              "label": "Revised usage calculation (from Sep 30, 2026)",
+              "label": "How OpenAI staff describe the change",
               "statement": "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan.",
               "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
             },
             {
+              "id": "existing-subscriptions",
+              "label": "Existing Pro $200 subscriptions",
+              "statement": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription. After that date, your subscription will move to the lower included usage allowance. Your subscription price stays at $200/month.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "per-model-usage-allowances-temporary-model-unava",
+              "label": "Per-model usage allowances (temporary model unavailability)",
+              "statement": "Model allowances vary by tier. At a model's limit, it may be unavailable until its allowance resets. ChatGPT displays the reset time when available.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
+            },
+            {
               "id": "no-five-hour-limit",
-              "label": "No five-hour limit",
+              "label": "No five-hour limit (stated for Pro plans)",
               "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
               "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
             },
             {
-              "id": "existing-subscriptions-timing",
-              "label": "Existing Pro $200 subscriptions",
-              "statement": "The revised calculation is stated for new subscribers from Sep 30, 2026. When existing Pro $200 subscriptions move to it is not published in the sources this catalog records.",
-              "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+              "id": "ultrafast-not-included",
+              "label": "Ultrafast not included",
+              "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             },
             {
               "id": "compatible-tools",
@@ -15294,23 +15191,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
             },
             {
-              "id": "per-model-usage-allowances-temporary-model-unava",
-              "label": "Per-model usage allowances (temporary model unavailability)",
-              "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-              "topic": "after_limit"
-            },
-            {
-              "id": "what-the-provider-does-not-publish",
-              "label": "What the provider does not publish",
-              "statement": "No numeric allowance is published for the revised terms, and the sources recorded here do not restate them as a multiple of Plus. The change is stated as API-equivalent spend relative to the previous terms, not as a token count; cheaper models change how many tokens that spend buys.",
-              "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
-            },
-            {
               "id": "model-availability-scope",
               "label": "Model availability scope",
               "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
               "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "No numeric allowance is published for either allowance, and the current Help Center states no multiple of Plus for Pro 200. The change is described as API-equivalent spend relative to the previous terms, not as a token count; cheaper models change how many tokens that spend buys.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             }
           ],
           "modelRules": [
@@ -15351,13 +15241,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "sources": [
             {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1312s",
+              "title": "OpenAI DevDay 2026 keynote, official recording",
+              "checkedAt": "2026-09-29"
+            },
+            {
               "url": "https://x.com/thsottiaux/status/2104823812042940713",
               "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
               "checkedAt": "2026-09-29"
             },
             {
               "url": "https://learn.chatgpt.com/docs/pricing",
-              "title": "ChatGPT and Codex pricing: Pro at $100, $200 or $500 per month; no five-hour limit on Pro",
+              "title": "ChatGPT and Codex pricing: no five-hour limit on Pro plans",
               "checkedAt": "2026-09-29"
             },
             {
@@ -15373,6 +15273,180 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-29",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-09-29",
+          "effectiveTo": "2026-10-29",
+          "cohort": "grandfathered",
+          "effectiveFromBasis": "provider",
+          "announcedAt": "2026-09-29",
+          "audience": [
+            "existing_subscribers",
+            "returning_subscribers"
+          ],
+          "price": {
+            "currency": "USD",
+            "amount": "200",
+            "interval": "month"
+          },
+          "billingMechanics": "The same Pro $200 subscription at $200 per month, keeping the previous included usage allowance through Oct 29, 2026.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage-summary",
+              "label": "Included usage",
+              "statement": "The previous Pro $200 allowance, kept through Oct 29, 2026 while the subscription stays active. The Help Center described it as 20x Plus usage before the change.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "grandfathered-allowance",
+              "label": "Previous allowance kept through Oct 29, 2026",
+              "statement": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "grandfathered-allowance-ends",
+              "label": "After Oct 29, 2026",
+              "statement": "After that date, your subscription will move to the lower included usage allowance. Your subscription price stays at $200/month.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "previous-relative-allowance",
+              "label": "Previous allowance relative to Plus (archived wording)",
+              "statement": "Pro $200 unlocks 20x usage than Plus.",
+              "sourceUrl": "https://web.archive.org/web/20260919102801/https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "no-pro-500-features",
+              "label": "Not an upgrade",
+              "statement": "No. Your subscription remains Pro 200. Keeping your current allowance does not upgrade your plan or add Ultrafast.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "per-model-usage-allowances-temporary-model-unava",
+              "label": "Per-model usage allowances (temporary model unavailability)",
+              "statement": "Model allowances vary by tier. At a model's limit, it may be unavailable until its allowance resets. ChatGPT displays the reset time when available.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "topic": "after_limit"
+            },
+            {
+              "id": "no-five-hour-limit",
+              "label": "No five-hour limit (stated for Pro plans)",
+              "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
+              "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+            },
+            {
+              "id": "ultrafast-not-included",
+              "label": "Ultrafast not included",
+              "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "ChatGPT · Codex · ChatGPT Work. In participating apps, eligible Plus and Pro subscribers can also choose to use their ChatGPT plan for AI requests (Sign in with ChatGPT).",
+              "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability scope",
+              "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+              "sourceUrl": "https://openai.com/chatgpt/pricing/"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "No numeric allowance is published. The Help Center refers to an eligibility cutoff without stating its date here, so none is recorded.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-6-1-sol",
+              "pricingRef": "gpt-6-1-sol-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol-pro"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-pricing"
+            },
+            {
+              "model": "gpt-5-thinking-mini"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1312s",
+              "title": "OpenAI DevDay 2026 keynote, official recording",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://x.com/thsottiaux/status/2104823812042940713",
+              "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://learn.chatgpt.com/docs/pricing",
+              "title": "ChatGPT and Codex pricing: no five-hour limit on Pro plans",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://learn.chatgpt.com/docs/models",
+              "title": "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt",
+              "title": "Sign in with ChatGPT: plan usage in participating apps",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "cohorts": [
+        {
+          "id": "grandfathered",
+          "kind": "grandfathered",
+          "label": "Eligible existing subscribers",
+          "eligibility": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription. If your Pro 200 subscription lapsed during the seven days before the eligibility cutoff, you can still receive your previous included usage allowance through Oct 29, 2026 if you subscribe again. Subscribers who aren't eligible for grandfathering receive the updated allowance.",
+          "evidence": [
+            {
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+              "checkedAt": "2026-09-29",
+              "authority": "provider_help_center",
+              "excerpt": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription."
+            }
+          ]
         }
       ],
       "history": {
@@ -15393,8 +15467,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             ],
             "evidence": [
               {
-                "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-                "title": "About ChatGPT Pro tiers (OpenAI Help Center)",
+                "url": "https://web.archive.org/web/20260919102801/https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+                "title": "About ChatGPT Pro tiers (OpenAI Help Center), archived Sep 19, 2026",
                 "checkedAt": "2026-09-29",
                 "authority": "provider_help_center",
                 "excerpt": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause."
@@ -15402,66 +15476,56 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             ]
           },
           {
-            "id": "revised-terms-announced",
-            "kind": "announcement",
-            "title": "Revised terms officially announced",
-            "summary": "OpenAI announced the reopening and the new usage calculation on DevDay.",
-            "announcedAt": "2026-09-29",
-            "versionEffectiveFrom": "2026-09-30",
-            "evidence": [
-              {
-                "url": "https://x.com/thsottiaux/status/2104823812042940713",
-                "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
-                "checkedAt": "2026-09-29",
-                "authority": "provider_staff",
-                "excerpt": "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
-              }
-            ]
-          },
-          {
             "id": "new-subscriptions-reopen",
             "kind": "availability",
-            "title": "New subscriptions reopen",
+            "title": "Available to new subscribers again",
+            "summary": "Reopened at OpenAI DevDay.",
             "announcedAt": "2026-09-29",
-            "effectiveAt": "2026-09-30",
+            "effectiveAt": "2026-09-29",
             "appliesTo": [
               "new_subscribers"
             ],
             "evidence": [
               {
-                "url": "https://x.com/thsottiaux/status/2104823812042940713",
-                "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
+                "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+                "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
                 "checkedAt": "2026-09-29",
-                "authority": "provider_staff",
-                "excerpt": "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers"
+                "authority": "provider_help_center",
+                "excerpt": "Pro 200 is also available for new subscriptions again."
+              },
+              {
+                "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1312s",
+                "title": "OpenAI DevDay 2026 keynote, official recording, 21:52 (transcribed from the recording)",
+                "checkedAt": "2026-09-29",
+                "authority": "provider_keynote",
+                "excerpt": "We are also reopening the Pro 200 subscription today."
               }
             ]
           },
           {
-            "id": "revised-usage-terms",
+            "id": "revised-usage-allowance",
             "kind": "allowance",
-            "title": "Usage economics change",
-            "summary": "Pro plans have no five-hour limit.",
+            "title": "Lower usage allowance for new subscriptions",
             "announcedAt": "2026-09-29",
-            "effectiveAt": "2026-09-30",
+            "effectiveAt": "2026-09-29",
             "appliesTo": [
               "new_subscribers"
             ],
-            "versionEffectiveFrom": "2026-09-30",
+            "versionEffectiveFrom": "2026-09-29",
             "evidence": [
+              {
+                "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+                "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+                "checkedAt": "2026-09-29",
+                "authority": "provider_help_center",
+                "excerpt": "New subscriptions that aren't eligible for grandfathering include a lower usage allowance than previously offered with Pro 200 to reflect our increasingly efficient models. The monthly price remains $200."
+              },
               {
                 "url": "https://x.com/thsottiaux/status/2104823812042940713",
                 "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
                 "checkedAt": "2026-09-29",
                 "authority": "provider_staff",
                 "excerpt": "In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
-              },
-              {
-                "url": "https://learn.chatgpt.com/docs/pricing",
-                "title": "ChatGPT and Codex pricing",
-                "checkedAt": "2026-09-29",
-                "authority": "provider_docs",
-                "excerpt": "Pro plans currently have no five-hour limit."
               }
             ]
           }
@@ -15476,39 +15540,79 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-29",
-          "effectiveFromBasis": "catalog_recorded",
+          "effectiveFromBasis": "provider",
           "announcedAt": "2026-09-29",
+          "relativeAllowances": [
+            {
+              "measure": "provider_usage",
+              "multiple": "25",
+              "comparedToPlanId": "openai-chatgpt-plus",
+              "evidence": [
+                {
+                  "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s",
+                  "title": "OpenAI DevDay 2026 keynote, official recording, 21:45 (transcribed from the recording)",
+                  "checkedAt": "2026-09-29",
+                  "authority": "provider_keynote",
+                  "excerpt": "Pro 500 will have 25 times the usage of Plus"
+                }
+              ]
+            }
+          ],
           "price": {
             "currency": "USD",
             "amount": "500",
             "interval": "month"
           },
-          "billingMechanics": "ChatGPT Pro has three price points: $100, $200 and $500 per month.",
+          "billingMechanics": "ChatGPT Pro has three monthly price points: $100, $200 and $500.",
           "limits": [],
           "qualitativeLimits": [
             {
               "id": "included-usage-summary",
               "label": "Included usage",
-              "statement": "Pro's $500 price point, with Astra Ultrafast access. No numeric allowance is published.",
-              "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+              "statement": "The highest included usage of the three Pro plans, announced at DevDay as 25 times the usage of Plus. No numeric allowance is published.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "relative-to-plus",
+              "label": "Usage relative to Plus (DevDay keynote)",
+              "statement": "Pro 500 will have 25 times the usage of Plus.",
+              "sourceUrl": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s"
+            },
+            {
+              "id": "highest-included-usage",
+              "label": "Highest included usage of the Pro plans",
+              "statement": "Pro 200 includes more usage than Pro 100. Pro 500 offers the highest included usage of the three plans.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             },
             {
               "id": "astra-ultrafast",
-              "label": "Astra Ultrafast",
-              "statement": "Ultrafast is available in Codex and ChatGPT Work on Pro $500 and eligible Enterprise and Edu plans. On Pro $500, Ultrafast uses your included usage first, then your available credits after that allowance runs out. For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate.",
+              "label": "Astra Ultrafast included",
+              "statement": "Among Pro plans, Ultrafast is available only on Pro 500. You can select it in the model picker. It uses your plan's included usage first, then draws from your credit balance after that allowance is used.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+            },
+            {
+              "id": "ultrafast-included-usage-rate",
+              "label": "Ultrafast included-usage rate (not a speed figure)",
+              "statement": "For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate. Purchased credits and Enterprise pay-as-you-go usage are billed at 6x the Standard rate. These billing multipliers don't describe speed increases.",
+              "sourceUrl": "https://learn.chatgpt.com/docs/agent-configuration/speed"
+            },
+            {
+              "id": "ultrafast-speed-claim",
+              "label": "Ultrafast speed (provider claim)",
+              "statement": "GPT-6 Astra Ultrafast generates tokens up to 8x faster than GPT-6 Astra in Standard mode in Codex. This comparison measures token generation speed, not billing rates or overall task completion time.",
               "sourceUrl": "https://learn.chatgpt.com/docs/agent-configuration/speed"
             },
             {
               "id": "no-five-hour-limit",
-              "label": "No five-hour limit",
+              "label": "No five-hour limit (stated for Pro plans)",
               "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
               "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
             },
             {
               "id": "usage-credits-after-limit",
               "label": "After the included usage",
-              "statement": "ChatGPT Plus and Pro users who reach their usage limit can purchase additional credits to continue working without needing to upgrade their existing plan.",
-              "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+              "statement": "For eligible features, you can purchase credits to continue after using your plan's included allowance. Included usage is used first, followed by your credit balance.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
               "topic": "after_limit"
             },
             {
@@ -15520,8 +15624,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             {
               "id": "what-the-provider-does-not-publish",
               "label": "What the provider does not publish",
-              "statement": "The sources recorded here publish the $500 price and Ultrafast access. They do not publish a numeric allowance or a multiple of Plus for this plan, so none is recorded.",
-              "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+              "statement": "No numeric allowance is published. The 25x figure is relative to Plus, whose allowance is not quantified, and OpenAI does not say it applies to every model or feature, so it is recorded as a relative claim only.",
+              "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             },
             {
               "id": "model-availability-scope",
@@ -15568,13 +15672,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "sources": [
             {
-              "url": "https://learn.chatgpt.com/docs/pricing",
-              "title": "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month; Astra Ultrafast access on Pro $500",
+              "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+              "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page: Pro 500 at $500 with Astra Ultrafast",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s",
+              "title": "OpenAI DevDay 2026 keynote, official recording: Pro 500 announcement",
               "checkedAt": "2026-09-29"
             },
             {
               "url": "https://learn.chatgpt.com/docs/agent-configuration/speed",
-              "title": "Speed: Ultrafast availability and included-usage rate on Pro $500",
+              "title": "Speed: Ultrafast availability, included-usage rate and speed claim",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://learn.chatgpt.com/docs/pricing",
+              "title": "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month",
               "checkedAt": "2026-09-29"
             },
             {
@@ -15593,16 +15707,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "id": "plan-introduced",
             "kind": "availability",
             "title": "Plan introduced",
-            "summary": "A $500 Pro price point with Astra Ultrafast in Codex and ChatGPT Work.",
+            "summary": "Pro at $500 a month, with the highest Pro usage and Astra Ultrafast.",
             "announcedAt": "2026-09-29",
             "effectiveAt": "2026-09-29",
             "evidence": [
               {
-                "url": "https://learn.chatgpt.com/docs/pricing",
-                "title": "ChatGPT and Codex pricing",
+                "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+                "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
                 "checkedAt": "2026-09-29",
-                "authority": "provider_docs",
-                "excerpt": "Plans at $100, $200, or $500 USD per month. Astra Ultrafast access on Pro $500."
+                "authority": "provider_help_center",
+                "excerpt": "ChatGPT Pro now offers Pro 500, a new $500/month plan that includes Astra Ultrafast."
+              },
+              {
+                "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1298s",
+                "title": "OpenAI DevDay 2026 keynote, official recording, 21:38 (transcribed from the recording)",
+                "checkedAt": "2026-09-29",
+                "authority": "provider_keynote",
+                "excerpt": "We're introducing Pro 500 with our highest usage limits and access to Ultrafast in ChatGPT and Codex."
               }
             ]
           }
@@ -15908,9 +16029,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
             },
             {
-              "id": "pro-200-new-signup-pause-as-of-2026-09-10",
-              "label": "Pro $200 new-signup pause (as of 2026-09-10)",
-              "statement": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause.",
+              "id": "ultrafast-not-included",
+              "label": "Ultrafast not included",
+              "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
               "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
             },
             {
@@ -21907,139 +22028,13 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "openai-chatgpt-pro-20x@2026-09-29": {
       "effectiveFrom": "2026-09-29",
-      "effectiveTo": "2026-09-29",
-      "effectiveFromBasis": "provider",
-      "price": {
-        "currency": "USD",
-        "amount": "200",
-        "interval": "month"
-      },
-      "billingMechanics": "Included as a separate entry because ChatGPT Pro has several official price points and usage allowances under one plan name: $100, $200 and $500 per month from Sep 29, 2026.",
-      "limits": [],
-      "qualitativeLimits": [
-        {
-          "id": "included-usage-summary",
-          "label": "Included usage",
-          "statement": "20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-        },
-        {
-          "id": "compatible-tools",
-          "label": "Compatible tools",
-          "statement": "ChatGPT · Codex · ChatGPT Work",
-          "sourceUrl": "https://openai.com/index/gpt-5-6/"
-        },
-        {
-          "id": "pro-200-usage-relative-to-plus",
-          "label": "Pro $200 usage relative to Plus",
-          "statement": "Pro $200 unlocks 20x usage than Plus.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-        },
-        {
-          "id": "per-model-usage-allowances-temporary-model-unava",
-          "label": "Per-model usage allowances (temporary model unavailability)",
-          "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-          "topic": "after_limit"
-        },
-        {
-          "id": "new-sign-ups-and-upgrades-paused",
-          "label": "New sign-ups and upgrades paused",
-          "statement": "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-        },
-        {
-          "id": "what-the-provider-does-not-publish",
-          "label": "What the provider does not publish",
-          "statement": "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-        },
-        {
-          "id": "model-availability-scope",
-          "label": "Model availability scope",
-          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
-          "sourceUrl": "https://openai.com/chatgpt/pricing/"
-        }
-      ],
-      "modelRules": [
-        {
-          "model": "gpt-6-1-sol",
-          "pricingRef": "gpt-6-1-sol-pricing"
-        },
-        {
-          "model": "gpt-6-luna",
-          "pricingRef": "gpt-6-luna-pricing"
-        },
-        {
-          "model": "gpt-6-sol",
-          "pricingRef": "gpt-6-sol-pricing"
-        },
-        {
-          "model": "gpt-5-6-luna",
-          "pricingRef": "gpt-5-6-luna-pricing"
-        },
-        {
-          "model": "gpt-5-6-sol",
-          "pricingRef": "gpt-5-6-sol-pricing"
-        },
-        {
-          "model": "gpt-5-6-sol-pro"
-        },
-        {
-          "model": "gpt-5-6-terra",
-          "pricingRef": "gpt-5-6-terra-pricing"
-        },
-        {
-          "model": "gpt-5-thinking-mini"
-        },
-        {
-          "model": "gpt-6-astra",
-          "pricingRef": "gpt-6-astra-pricing"
-        }
-      ],
-      "sources": [
-        {
-          "url": "https://learn.chatgpt.com/docs/models",
-          "title": "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work",
-          "checkedAt": "2026-09-29"
-        },
-        {
-          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-          "title": "OpenAI plan documentation (official)",
-          "checkedAt": "2026-09-23"
-        },
-        {
-          "url": "https://openai.com/chatgpt/pricing/",
-          "title": "OpenAI pricing (official)",
-          "checkedAt": "2026-09-23"
-        },
-        {
-          "url": "https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925",
-          "title": "OpenAI model launch and paid plan availability",
-          "checkedAt": "2026-09-23"
-        },
-        {
-          "url": "https://chatgpt.com/pricing/",
-          "title": "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit",
-          "checkedAt": "2026-09-23"
-        }
-      ],
-      "lastVerifiedAt": "2026-09-29",
-      "verificationStatus": "verified",
-      "versionId": "openai-chatgpt-pro-20x@2026-09-29",
-      "planId": "openai-chatgpt-pro-20x",
-      "planName": "ChatGPT Pro $200",
-      "providerId": "openai"
-    },
-    "openai-chatgpt-pro-20x@2026-09-30": {
-      "effectiveFrom": "2026-09-30",
       "effectiveFromBasis": "provider",
       "announcedAt": "2026-09-29",
       "audience": [
         "new_subscribers"
       ],
       "revision": {
-        "title": "Revised usage terms",
+        "title": "Revised usage allowance",
         "relativeValue": {
           "measure": "api_equivalent_spend",
           "ratio": "0.5",
@@ -22061,32 +22056,51 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "amount": "200",
         "interval": "month"
       },
-      "billingMechanics": "ChatGPT Pro has three price points: $100, $200 and $500 per month.",
+      "billingMechanics": "ChatGPT Pro has three monthly price points: $100, $200 and $500.",
       "limits": [],
       "qualitativeLimits": [
         {
           "id": "included-usage-summary",
           "label": "Included usage",
-          "statement": "Revised Sep 30, 2026: about half the previous terms' API-equivalent spend. No numeric allowance is published.",
-          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+          "statement": "From Sep 29, 2026, new and non-grandfathered subscriptions get a lower allowance than the previous Pro $200 terms. No numeric allowance is published.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "lower-allowance",
+          "label": "Lower allowance for new subscriptions",
+          "statement": "New subscriptions that aren't eligible for grandfathering include a lower usage allowance than previously offered with Pro 200 to reflect our increasingly efficient models. The monthly price remains $200.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         },
         {
           "id": "revised-usage-calculation",
-          "label": "Revised usage calculation (from Sep 30, 2026)",
+          "label": "How OpenAI staff describe the change",
           "statement": "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan.",
           "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
         },
         {
+          "id": "existing-subscriptions",
+          "label": "Existing Pro $200 subscriptions",
+          "statement": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription. After that date, your subscription will move to the lower included usage allowance. Your subscription price stays at $200/month.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "per-model-usage-allowances-temporary-model-unava",
+          "label": "Per-model usage allowances (temporary model unavailability)",
+          "statement": "Model allowances vary by tier. At a model's limit, it may be unavailable until its allowance resets. ChatGPT displays the reset time when available.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
+        },
+        {
           "id": "no-five-hour-limit",
-          "label": "No five-hour limit",
+          "label": "No five-hour limit (stated for Pro plans)",
           "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
           "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
         },
         {
-          "id": "existing-subscriptions-timing",
-          "label": "Existing Pro $200 subscriptions",
-          "statement": "The revised calculation is stated for new subscribers from Sep 30, 2026. When existing Pro $200 subscriptions move to it is not published in the sources this catalog records.",
-          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+          "id": "ultrafast-not-included",
+          "label": "Ultrafast not included",
+          "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         },
         {
           "id": "compatible-tools",
@@ -22095,23 +22109,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
         },
         {
-          "id": "per-model-usage-allowances-temporary-model-unava",
-          "label": "Per-model usage allowances (temporary model unavailability)",
-          "statement": "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available.",
-          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-          "topic": "after_limit"
-        },
-        {
-          "id": "what-the-provider-does-not-publish",
-          "label": "What the provider does not publish",
-          "statement": "No numeric allowance is published for the revised terms, and the sources recorded here do not restate them as a multiple of Plus. The change is stated as API-equivalent spend relative to the previous terms, not as a token count; cheaper models change how many tokens that spend buys.",
-          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
-        },
-        {
           "id": "model-availability-scope",
           "label": "Model availability scope",
           "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
           "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "No numeric allowance is published for either allowance, and the current Help Center states no multiple of Plus for Pro 200. The change is described as API-equivalent spend relative to the previous terms, not as a token count; cheaper models change how many tokens that spend buys.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         }
       ],
       "modelRules": [
@@ -22152,13 +22159,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1312s",
+          "title": "OpenAI DevDay 2026 keynote, official recording",
+          "checkedAt": "2026-09-29"
+        },
+        {
           "url": "https://x.com/thsottiaux/status/2104823812042940713",
           "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
           "checkedAt": "2026-09-29"
         },
         {
           "url": "https://learn.chatgpt.com/docs/pricing",
-          "title": "ChatGPT and Codex pricing: Pro at $100, $200 or $500 per month; no five-hour limit on Pro",
+          "title": "ChatGPT and Codex pricing: no five-hour limit on Pro plans",
           "checkedAt": "2026-09-29"
         },
         {
@@ -22174,46 +22191,247 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified",
-      "versionId": "openai-chatgpt-pro-20x@2026-09-30",
+      "versionId": "openai-chatgpt-pro-20x@2026-09-29",
+      "planId": "openai-chatgpt-pro-20x",
+      "planName": "ChatGPT Pro $200",
+      "providerId": "openai"
+    },
+    "openai-chatgpt-pro-20x@2026-09-29~grandfathered": {
+      "effectiveFrom": "2026-09-29",
+      "effectiveTo": "2026-10-29",
+      "cohort": "grandfathered",
+      "effectiveFromBasis": "provider",
+      "announcedAt": "2026-09-29",
+      "audience": [
+        "existing_subscribers",
+        "returning_subscribers"
+      ],
+      "price": {
+        "currency": "USD",
+        "amount": "200",
+        "interval": "month"
+      },
+      "billingMechanics": "The same Pro $200 subscription at $200 per month, keeping the previous included usage allowance through Oct 29, 2026.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage-summary",
+          "label": "Included usage",
+          "statement": "The previous Pro $200 allowance, kept through Oct 29, 2026 while the subscription stays active. The Help Center described it as 20x Plus usage before the change.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "grandfathered-allowance",
+          "label": "Previous allowance kept through Oct 29, 2026",
+          "statement": "If your Pro 200 subscription was active at the eligibility cutoff or during the seven days before it, you're eligible to keep your previous included usage allowance through Oct 29, 2026 while you have an active Pro 200 subscription.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "grandfathered-allowance-ends",
+          "label": "After Oct 29, 2026",
+          "statement": "After that date, your subscription will move to the lower included usage allowance. Your subscription price stays at $200/month.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "previous-relative-allowance",
+          "label": "Previous allowance relative to Plus (archived wording)",
+          "statement": "Pro $200 unlocks 20x usage than Plus.",
+          "sourceUrl": "https://web.archive.org/web/20260919102801/https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "no-pro-500-features",
+          "label": "Not an upgrade",
+          "statement": "No. Your subscription remains Pro 200. Keeping your current allowance does not upgrade your plan or add Ultrafast.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "per-model-usage-allowances-temporary-model-unava",
+          "label": "Per-model usage allowances (temporary model unavailability)",
+          "statement": "Model allowances vary by tier. At a model's limit, it may be unavailable until its allowance resets. ChatGPT displays the reset time when available.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "topic": "after_limit"
+        },
+        {
+          "id": "no-five-hour-limit",
+          "label": "No five-hour limit (stated for Pro plans)",
+          "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "id": "ultrafast-not-included",
+          "label": "Ultrafast not included",
+          "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "ChatGPT · Codex · ChatGPT Work. In participating apps, eligible Plus and Pro subscribers can also choose to use their ChatGPT plan for AI requests (Sign in with ChatGPT).",
+          "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability scope",
+          "statement": "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans.",
+          "sourceUrl": "https://openai.com/chatgpt/pricing/"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "No numeric allowance is published. The Help Center refers to an eligibility cutoff without stating its date here, so none is recorded.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-6-1-sol",
+          "pricingRef": "gpt-6-1-sol-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol-pro"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-pricing"
+        },
+        {
+          "model": "gpt-5-thinking-mini"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1312s",
+          "title": "OpenAI DevDay 2026 keynote, official recording",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://x.com/thsottiaux/status/2104823812042940713",
+          "title": "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://learn.chatgpt.com/docs/pricing",
+          "title": "ChatGPT and Codex pricing: no five-hour limit on Pro plans",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://learn.chatgpt.com/docs/models",
+          "title": "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt",
+          "title": "Sign in with ChatGPT: plan usage in participating apps",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified",
+      "versionId": "openai-chatgpt-pro-20x@2026-09-29~grandfathered",
       "planId": "openai-chatgpt-pro-20x",
       "planName": "ChatGPT Pro $200",
       "providerId": "openai"
     },
     "openai-chatgpt-pro-500@2026-09-29": {
       "effectiveFrom": "2026-09-29",
-      "effectiveFromBasis": "catalog_recorded",
+      "effectiveFromBasis": "provider",
       "announcedAt": "2026-09-29",
+      "relativeAllowances": [
+        {
+          "measure": "provider_usage",
+          "multiple": "25",
+          "comparedToPlanId": "openai-chatgpt-plus",
+          "evidence": [
+            {
+              "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s",
+              "title": "OpenAI DevDay 2026 keynote, official recording, 21:45 (transcribed from the recording)",
+              "checkedAt": "2026-09-29",
+              "authority": "provider_keynote",
+              "excerpt": "Pro 500 will have 25 times the usage of Plus"
+            }
+          ]
+        }
+      ],
       "price": {
         "currency": "USD",
         "amount": "500",
         "interval": "month"
       },
-      "billingMechanics": "ChatGPT Pro has three price points: $100, $200 and $500 per month.",
+      "billingMechanics": "ChatGPT Pro has three monthly price points: $100, $200 and $500.",
       "limits": [],
       "qualitativeLimits": [
         {
           "id": "included-usage-summary",
           "label": "Included usage",
-          "statement": "Pro's $500 price point, with Astra Ultrafast access. No numeric allowance is published.",
-          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+          "statement": "The highest included usage of the three Pro plans, announced at DevDay as 25 times the usage of Plus. No numeric allowance is published.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "relative-to-plus",
+          "label": "Usage relative to Plus (DevDay keynote)",
+          "statement": "Pro 500 will have 25 times the usage of Plus.",
+          "sourceUrl": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s"
+        },
+        {
+          "id": "highest-included-usage",
+          "label": "Highest included usage of the Pro plans",
+          "statement": "Pro 200 includes more usage than Pro 100. Pro 500 offers the highest included usage of the three plans.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         },
         {
           "id": "astra-ultrafast",
-          "label": "Astra Ultrafast",
-          "statement": "Ultrafast is available in Codex and ChatGPT Work on Pro $500 and eligible Enterprise and Edu plans. On Pro $500, Ultrafast uses your included usage first, then your available credits after that allowance runs out. For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate.",
+          "label": "Astra Ultrafast included",
+          "statement": "Among Pro plans, Ultrafast is available only on Pro 500. You can select it in the model picker. It uses your plan's included usage first, then draws from your credit balance after that allowance is used.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "id": "ultrafast-included-usage-rate",
+          "label": "Ultrafast included-usage rate (not a speed figure)",
+          "statement": "For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate. Purchased credits and Enterprise pay-as-you-go usage are billed at 6x the Standard rate. These billing multipliers don't describe speed increases.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/agent-configuration/speed"
+        },
+        {
+          "id": "ultrafast-speed-claim",
+          "label": "Ultrafast speed (provider claim)",
+          "statement": "GPT-6 Astra Ultrafast generates tokens up to 8x faster than GPT-6 Astra in Standard mode in Codex. This comparison measures token generation speed, not billing rates or overall task completion time.",
           "sourceUrl": "https://learn.chatgpt.com/docs/agent-configuration/speed"
         },
         {
           "id": "no-five-hour-limit",
-          "label": "No five-hour limit",
+          "label": "No five-hour limit (stated for Pro plans)",
           "statement": "Pro plans currently have no five-hour limit. Weekly limits may also apply.",
           "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
         },
         {
           "id": "usage-credits-after-limit",
           "label": "After the included usage",
-          "statement": "ChatGPT Plus and Pro users who reach their usage limit can purchase additional credits to continue working without needing to upgrade their existing plan.",
-          "sourceUrl": "https://learn.chatgpt.com/docs/pricing",
+          "statement": "For eligible features, you can purchase credits to continue after using your plan's included allowance. Included usage is used first, followed by your credit balance.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
           "topic": "after_limit"
         },
         {
@@ -22225,8 +22443,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "id": "what-the-provider-does-not-publish",
           "label": "What the provider does not publish",
-          "statement": "The sources recorded here publish the $500 price and Ultrafast access. They do not publish a numeric allowance or a multiple of Plus for this plan, so none is recorded.",
-          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+          "statement": "No numeric allowance is published. The 25x figure is relative to Plus, whose allowance is not quantified, and OpenAI does not say it applies to every model or feature, so it is recorded as a relative claim only.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         },
         {
           "id": "model-availability-scope",
@@ -22273,13 +22491,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       ],
       "sources": [
         {
-          "url": "https://learn.chatgpt.com/docs/pricing",
-          "title": "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month; Astra Ultrafast access on Pro $500",
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers (OpenAI Help Center), live page: Pro 500 at $500 with Astra Ultrafast",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s",
+          "title": "OpenAI DevDay 2026 keynote, official recording: Pro 500 announcement",
           "checkedAt": "2026-09-29"
         },
         {
           "url": "https://learn.chatgpt.com/docs/agent-configuration/speed",
-          "title": "Speed: Ultrafast availability and included-usage rate on Pro $500",
+          "title": "Speed: Ultrafast availability, included-usage rate and speed claim",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://learn.chatgpt.com/docs/pricing",
+          "title": "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month",
           "checkedAt": "2026-09-29"
         },
         {
@@ -22596,9 +22824,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
         },
         {
-          "id": "pro-200-new-signup-pause-as-of-2026-09-10",
-          "label": "Pro $200 new-signup pause (as of 2026-09-10)",
-          "statement": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause.",
+          "id": "ultrafast-not-included",
+          "label": "Ultrafast not included",
+          "statement": "Among Pro plans, Ultrafast is available only on Pro 500. At launch, buying credits on Pro 100 or Pro 200 does not unlock Ultrafast.",
           "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
         },
         {

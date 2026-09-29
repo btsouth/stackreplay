@@ -46,21 +46,55 @@ describe("saved replay targets", () => {
       },
     });
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · terms before the Sep 30, 2026 revision",
+      "ChatGPT Pro $200 · terms before the Sep 29, 2026 revision",
     );
   });
 
   it("names revised terms for a result computed on them", () => {
     const record = parse({
       ...legacy,
-      rulesAt: "2026-09-30",
+      rulesAt: "2026-09-29",
       target: {
         type: "subscription",
         planId: "openai-chatgpt-pro-20x",
-        planVersionId: "openai-chatgpt-pro-20x@2026-09-30",
+        planVersionId: "openai-chatgpt-pro-20x@2026-09-29",
       },
     });
-    expect(savedReplayTargetLine(record)).toBe("ChatGPT Pro $200 · terms effective Sep 30, 2026");
+    expect(savedReplayTargetLine(record)).toBe("ChatGPT Pro $200 · terms effective Sep 29, 2026");
+  });
+
+  it("keeps a grandfathered result grandfathered, whenever it is read", () => {
+    const record = parse({
+      ...legacy,
+      rulesAt: "2026-10-01",
+      target: {
+        type: "subscription",
+        planId: "openai-chatgpt-pro-20x",
+        planVersionId: "openai-chatgpt-pro-20x@2026-09-29~grandfathered",
+        cohort: "grandfathered",
+      },
+    });
+    // The label reads only the stored version: Oct 29 passing does not change it.
+    expect(savedReplayTargetLine(record)).toBe(
+      "ChatGPT Pro $200 · eligible existing subscribers' previous allowance through Oct 29, 2026",
+    );
+    expect(record.target).toMatchObject({ cohort: "grandfathered" });
+  });
+
+  it("says when a grandfathered replay ran after the window and used market terms", () => {
+    const record = parse({
+      ...legacy,
+      rulesAt: "2026-11-02",
+      target: {
+        type: "subscription",
+        planId: "openai-chatgpt-pro-20x",
+        planVersionId: "openai-chatgpt-pro-20x@2026-09-29",
+        cohort: "grandfathered",
+      },
+    });
+    expect(savedReplayTargetLine(record)).toBe(
+      "ChatGPT Pro $200 · terms effective Sep 29, 2026 (cohort terms had ended; market terms used)",
+    );
   });
 
   it("keeps a Direct API result's provider and processing tier", () => {

@@ -37,16 +37,30 @@ export function PlanTermsNotice({
   asOf,
   followToday = false,
   historyHref,
-  compact = false,
+  planName,
+  providerName,
+  variant = "full",
 }: PlanHistoryInput & {
   historyHref?: string;
-  /** One linked line, for lists where the plan page carries the detail. */
-  compact?: boolean;
+  planName?: string;
+  providerName?: string;
+  /**
+   * `full` for the plan page; `summary` for Compare (headline and the cohort
+   * exception, no detail); `line` for lists (the headline alone, linked).
+   */
+  variant?: "full" | "summary" | "line";
 }) {
   const day = usePlanDay(asOf, followToday);
-  const notice = useMemo(() => planTermsNotice(resolvePlanTimeline(plan, day)), [plan, day]);
+  const notice = useMemo(
+    () =>
+      planTermsNotice(resolvePlanTimeline(plan, day), {
+        ...(planName !== undefined ? { planName } : {}),
+        ...(providerName !== undefined ? { providerName } : {}),
+      }),
+    [plan, day, planName, providerName],
+  );
   if (notice === undefined) return null;
-  if (compact)
+  if (variant === "line")
     return (
       <p className="plan-terms-compact" data-state={notice.state} data-testid="plan-terms-notice">
         {historyHref === undefined ? (
@@ -59,12 +73,25 @@ export function PlanTermsNotice({
       </p>
     );
   return (
-    <div className="plan-terms-notice" data-state={notice.state} data-testid="plan-terms-notice">
+    <div
+      className="plan-terms-notice"
+      data-state={notice.state}
+      data-testid="plan-terms-notice"
+      data-variant={variant}
+    >
       <p className="plan-terms-notice-headline">{notice.headline}</p>
-      {notice.detail !== undefined && <p className="plan-terms-notice-detail">{notice.detail}</p>}
+      {variant === "full" && notice.detail !== undefined && (
+        <p className="plan-terms-notice-detail">{notice.detail}</p>
+      )}
+      {notice.exception !== undefined && (
+        <p className="plan-terms-notice-exception" data-testid="plan-terms-exception">
+          <span className="plan-terms-notice-lead">{notice.exception.lead}</span>{" "}
+          {notice.exception.text}
+        </p>
+      )}
       {historyHref !== undefined && (
         <a className="market-link" href={historyHref}>
-          View plan history <span aria-hidden="true">↓</span>
+          View plan history <span aria-hidden="true">{variant === "full" ? "↓" : "→"}</span>
         </a>
       )}
     </div>
@@ -151,6 +178,12 @@ export function PlanHistory({
               ))}
               {step.audience !== undefined && (
                 <p className="plan-timeline-audience">{step.audience}</p>
+              )}
+              {step.note !== undefined && (
+                <p className="plan-timeline-note" data-testid="plan-timeline-note">
+                  <span className="plan-timeline-note-label">{step.note.label}</span>
+                  {step.note.text}
+                </p>
               )}
               {evidence.length > 0 && (
                 <details className="plan-timeline-evidence">

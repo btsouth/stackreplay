@@ -423,6 +423,9 @@ function TargetHeader({
           followToday
           historyHref={`/plans/${plan.id}#history`}
           plan={plan.timeline}
+          planName={plan.name}
+          providerName={plan.providerName}
+          variant="summary"
         />
       )}
       {plan.publishedTerms?.availabilityNote && (

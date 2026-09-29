@@ -23,6 +23,9 @@ function savedTargetOf(outcome: ReplayOutcome): CompletedReplay["target"] {
       type: "subscription",
       planId: result.subscription.planId,
       planVersionId: result.subscription.planVersionId,
+      ...(result.target.type === "subscription" && result.target.cohort !== undefined
+        ? { cohort: result.target.cohort }
+        : {}),
     };
   return undefined;
 }

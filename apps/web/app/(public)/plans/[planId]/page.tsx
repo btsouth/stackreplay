@@ -69,6 +69,8 @@ export default async function PlanPage({ params }: Props) {
               followToday
               historyHref="#history"
               plan={plan.timeline}
+              planName={plan.name}
+              providerName={plan.providerName}
             />
           )}
           {plan.publishedTerms?.availabilityNote && (
@@ -92,6 +94,15 @@ export default async function PlanPage({ params }: Props) {
             {facts.models.total ? `${facts.models.total} named models` : "Provider model lineup"}
           </p>
         </div>
+        {plan.relativeAllowances?.map((allowance) => (
+          <div data-testid="plan-relative-allowance" key={allowance.comparedToPlanName}>
+            <p className="market-kicker mb-3">Included usage</p>
+            <p className="text-lg">
+              {allowance.multiple}× {allowance.comparedToPlanName} usage
+            </p>
+            <p className="market-muted">A multiple, not a published quota</p>
+          </div>
+        ))}
         <div>
           <p className="market-kicker mb-3">Billing</p>
           <p className="text-lg">
@@ -230,12 +241,15 @@ export default async function PlanPage({ params }: Props) {
               <p className="market-muted" key={v.versionId}>
                 {v.effectiveFrom} · ${v.price.amount}/{v.price.interval} · checked{" "}
                 {v.lastVerifiedAt}
+                {v.cohort !== undefined
+                  ? ` · ${plan.timeline?.cohorts?.find((c) => c.id === v.cohort)?.label ?? v.cohort} only${v.effectiveTo === undefined ? "" : `, through ${v.effectiveTo}`}`
+                  : ""}
                 {v.withdrawn !== undefined
                   ? ` · ${v.withdrawn.reason}, never in effect`
                   : v.effectiveFrom > catalog.asOf
                     ? " · scheduled, not yet in effect"
                     : v.versionId === plan.versionId
-                      ? " · in effect"
+                      ? " · in effect for new subscribers"
                       : ""}
               </p>
             ))}

@@ -48,56 +48,88 @@ describe("plan change wording", () => {
   });
 });
 
+const noticeOf = (asOf: string) =>
+  planTermsNotice(timeline(asOf), { planName: "ChatGPT Pro $200", providerName: "OpenAI" });
+
 describe("ChatGPT Pro $200 notice", () => {
-  it("reads as an official scheduled change on Sep 29", () => {
-    expect(planTermsNotice(timeline("2026-09-29"))).toEqual({
-      state: "scheduled",
-      effectiveFrom: "2026-09-30",
-      headline: "Official change effective Sep 30, 2026",
-      detail: "For new subscribers: new terms provide ≈50% of the previous API-equivalent spend.",
+  it("says nothing on Sep 28, before the revision was announced", () => {
+    expect(noticeOf("2026-09-28")).toBeUndefined();
+  });
+
+  it("leads with the market offer from Sep 29, with grandfathering as a secondary exception", () => {
+    expect(noticeOf("2026-09-29")).toEqual({
+      state: "revised",
+      effectiveFrom: "2026-09-29",
+      headline: "Revised usage allowance since Sep 29, 2026",
+      detail:
+        "New and non-grandfathered subscriptions get the revised usage allowance, described by OpenAI staff as ≈50% of the previous API-equivalent spend.",
+      exception: {
+        lead: "Already on ChatGPT Pro $200?",
+        text: "Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+      },
     });
   });
 
-  it("reads as changed from Sep 30, with no second catalog edit", () => {
-    for (const day of ["2026-09-30", "2026-10-01", "2026-12-01"])
-      expect(planTermsNotice(timeline(day))).toMatchObject({
-        state: "revised",
-        headline: "Terms changed Sep 30, 2026",
-        detail: "For new subscribers: usage is ≈50% of the previous API-equivalent spend.",
-      });
+  it("keeps the exception through Oct 29 and drops it from Oct 30", () => {
+    expect(noticeOf("2026-10-29")?.exception).toBeDefined();
+    const after = noticeOf("2026-10-30");
+    expect(after?.exception).toBeUndefined();
+    expect(after?.detail).toBe(
+      "New subscribers get the revised usage allowance, described by OpenAI staff as ≈50% of the previous API-equivalent spend.",
+    );
   });
 
-  it("gives Replay its terms line", () => {
-    expect(planTermsInUse(timeline("2026-09-29"))).toEqual({
-      terms: "Current terms",
-      change: "Official revision takes effect Sep 30, 2026",
-    });
+  it("gives Replay the market terms by default, and offers the grandfathered terms", () => {
+    expect(planTermsInUse(timeline("2026-09-28"))).toEqual({ terms: "Current terms" });
     expect(planTermsInUse(timeline("2026-10-01"))).toEqual({
-      terms: "Using terms effective Sep 30, 2026",
+      terms: "Current market terms, revised Sep 29, 2026",
       change: "≈50% of the previous API-equivalent spend",
+      cohortOffer: {
+        id: "grandfathered",
+        label: "Eligible existing subscribers",
+        text: "Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+        through: "2026-10-29",
+      },
     });
+    const grandfathered = bundledPlanTimeline("openai-chatgpt-pro-20x", "2026-10-01", {
+      cohort: "grandfathered",
+    });
+    if (grandfathered === undefined) throw new Error("Pro $200 missing");
+    expect(planTermsInUse(grandfathered)).toEqual({
+      terms: "Eligible existing subscribers: previous allowance through Oct 29, 2026",
+    });
+    expect(planTermsInUse(timeline("2026-10-30")).cohortOffer).toBeUndefined();
   });
 
-  it("never calls the change a token cut, or the pause a shutdown", () => {
-    for (const day of ["2026-09-15", "2026-09-29", "2026-09-30", "2026-10-01"]) {
+  it("never calls the change a token cut, the pause a shutdown, or says everyone lost the old allowance", () => {
+    for (const day of ["2026-09-15", "2026-09-29", "2026-10-01", "2026-10-30"]) {
       const text = allText(day);
       expect(text).not.toMatch(/fewer tokens|less tokens|tokens? cut|half the tokens/i);
       expect(text).not.toMatch(/disabled|shut down|discontinued/i);
+      expect(text).not.toMatch(/all (existing )?subscribers (lose|lost)|everyone (lost|loses)/i);
     }
   });
 });
 
 describe("ChatGPT Pro $200 history steps", () => {
-  it("before Sep 30: current terms, the pause, the announcement, then the scheduled change", () => {
+  const rows = (asOf: string) =>
+    planHistorySteps(timeline(asOf)).map((step) => [step.dateLabel, step.state]);
+
+  it("on Sep 28: only the pause is known", () => {
+    expect(rows("2026-09-28")).toEqual([["Sep 10, 2026", "past"]]);
+  });
+
+  it("on Sep 29: previous terms, the pause, the reopening with a grandfathering note, and its end", () => {
     const steps = planHistorySteps(timeline("2026-09-29"));
     expect(steps.map((step) => [step.dateLabel, step.state])).toEqual([
-      ["Earlier", "current"],
+      ["Earlier", "previous"],
       ["Sep 10, 2026", "past"],
-      ["Sep 29, 2026", "past"],
-      ["Sep 30, 2026", "scheduled"],
+      ["Sep 29, 2026", "current"],
+      ["After Oct 29, 2026", "scheduled"],
     ]);
     expect(steps[0]?.lines[0]?.details).toEqual([
-      "In effect through Sep 29, 2026",
+      "Offered to new subscribers until Sep 28, 2026",
+      "Kept by eligible existing subscribers through Oct 29, 2026",
       "Start date not published",
     ]);
     const pause = steps[1]?.lines[0];
@@ -105,22 +137,31 @@ describe("ChatGPT Pro $200 history steps", () => {
     expect(pause?.audience).toBe(
       "Applies to new subscribers and upgrades · Existing subscribers not affected",
     );
-    expect(steps[3]?.lines.map((line) => line.title)).toEqual([
-      "New subscriptions reopen",
-      "Usage economics change",
+    const sep29 = steps[2];
+    expect(sep29?.lines.map((line) => line.title)).toEqual([
+      "Available to new subscribers again",
+      "Lower usage allowance for new subscriptions",
     ]);
-    expect(steps[3]?.lines[1]?.details[0]).toBe("≈50% of the previous API-equivalent spend");
+    expect(sep29?.lines[1]?.details[0]).toBe("≈50% of the previous API-equivalent spend");
+    expect(sep29?.note).toEqual({
+      label: "Grandfathered allowance",
+      text: "Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+    });
+    expect(steps[3]?.date).toBe("2026-10-30");
+    expect(steps[3]?.lines[0]?.title).toBe("Grandfathered allowance ends");
   });
 
-  it("after Sep 30: previous terms, then the Sep 30 step as the current terms", () => {
-    const steps = planHistorySteps(timeline("2026-10-01"));
+  it("after Oct 29: the end of grandfathering is past, and one step is current", () => {
+    const steps = planHistorySteps(timeline("2026-10-30"));
     expect(steps.map((step) => [step.dateLabel, step.state])).toEqual([
       ["Earlier", "previous"],
       ["Sep 10, 2026", "past"],
-      ["Sep 29, 2026", "past"],
-      ["Sep 30, 2026", "current"],
+      ["Sep 29, 2026", "current"],
+      ["After Oct 29, 2026", "past"],
     ]);
-    // Old and new terms are never both current.
+    expect(steps[2]?.note?.text).toBe(
+      "Eligible existing subscribers kept their previous allowance through Oct 29, 2026.",
+    );
     expect(steps.filter((step) => step.state === "current")).toHaveLength(1);
   });
 
@@ -140,11 +181,11 @@ describe("ChatGPT Pro $200 history steps", () => {
 
 describe("shared audiences", () => {
   it("says a step's shared audience once", () => {
-    const sep30 = planHistorySteps(timeline("2026-09-29")).find(
-      (step) => step.date === "2026-09-30",
+    const sep29 = planHistorySteps(timeline("2026-09-29")).find(
+      (step) => step.date === "2026-09-29",
     );
-    expect(sep30?.audience).toBe("Applies to new subscribers");
-    expect(sep30?.lines.every((line) => line.audience === undefined)).toBe(true);
+    expect(sep29?.audience).toBe("Applies to new subscribers");
+    expect(sep29?.lines.every((line) => line.audience === undefined)).toBe(true);
   });
 });
 
@@ -153,10 +194,13 @@ describe("the terms a stored result used", () => {
   if (input === undefined) throw new Error("Pro $200 missing");
   it("names terms from the result's own plan version, not today's", () => {
     expect(versionTermsLabel(input, "openai-chatgpt-pro-20x@2026-09-22")).toBe(
-      "terms before the Sep 30, 2026 revision",
+      "terms before the Sep 29, 2026 revision",
     );
-    expect(versionTermsLabel(input, "openai-chatgpt-pro-20x@2026-09-30")).toBe(
-      "terms effective Sep 30, 2026",
+    expect(versionTermsLabel(input, "openai-chatgpt-pro-20x@2026-09-29")).toBe(
+      "terms effective Sep 29, 2026",
+    );
+    expect(versionTermsLabel(input, "openai-chatgpt-pro-20x@2026-09-29~grandfathered")).toBe(
+      "eligible existing subscribers' previous allowance through Oct 29, 2026",
     );
   });
   it("says nothing for a plan that was never revised", () => {

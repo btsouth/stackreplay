@@ -42,7 +42,18 @@ export const completedReplaySchema = z
      */
     target: z
       .discriminatedUnion("type", [
-        z.object({ type: z.literal("subscription"), planId: text, planVersionId: text }),
+        z.object({
+          type: z.literal("subscription"),
+          planId: text,
+          planVersionId: text,
+          /**
+           * The subscriber cohort the replay asked for, when it asked for one.
+           * The version id says which terms applied; this says whose, so a
+           * grandfathered replay made after the window closed (and resolved
+           * to market terms) is not misread as a market replay.
+           */
+          cohort: text.optional(),
+        }),
         z.object({
           type: z.literal("api"),
           providerId: text,
