@@ -48,9 +48,8 @@ test("model comparison uses the published input label and corrected capability f
   await page.goto("/models");
   await page.getByLabel("Find a model, family name or exact alias").fill("Gemini 3.8 Flash");
   await page.getByRole("checkbox", { name: "Compare Gemini 3.8 Flash", exact: true }).check();
-  await expect(page.getByRole("region", { name: "Selected model specifications" })).toContainText(
-    "max input tokens",
-  );
+  const selected = page.getByRole("region", { name: "Selected model specifications" });
+  await expect(selected.getByRole("row", { name: /^Context/u })).toContainText("1.05M max input");
   await page.getByLabel("Find a model, family name or exact alias").fill("Kimi K3");
   await page.getByLabel("Capability").selectOption("Video input");
   await expect(page.getByTestId("model-row")).toContainText("Kimi K3");

@@ -843,6 +843,39 @@ html[data-model-filters] [data-model-results] > :not(.market-price-comparison) {
   }
 }
 
+/* Models page: the selected models side by side. */
+.market-selected-models {
+  padding: 1rem 0 2rem;
+  overflow-x: auto;
+}
+.market-side-by-side {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.market-side-by-side :is(thead, tbody) :is(th, td) {
+  padding: 0.6rem 1rem 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  text-align: left;
+  vertical-align: baseline;
+}
+.market-side-by-side thead :is(th, td) {
+  border-bottom-color: var(--border-strong);
+  font-weight: 500;
+}
+.market-side-by-side tbody th {
+  width: 10rem;
+  color: var(--muted-foreground);
+}
+.market-side-by-side tbody td {
+  white-space: nowrap;
+}
+.market-side-by-side thead th a:hover {
+  color: var(--accent);
+}
+
 /* Compare: a shared comparison waits for its plans, and the model-by-model matrix. */
 html[data-compare] [data-compare-results] {
   visibility: hidden;

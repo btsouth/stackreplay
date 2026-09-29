@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { ModelPriceComparison } from "@/components/public/model-price-comparison";
 import { ModelTable } from "@/components/public/model-table";
 import { PromoTag } from "@/components/public/promo-tag";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
+
 import { type ModelLayout, modelLibrarySearch, readModelLibraryUrl } from "@/lib/model-layout";
 import {
   defaultSortDirection,
@@ -47,6 +48,8 @@ const CAPABILITIES = [
   "Video input",
   "Structured output",
 ] as const;
+const maybePrice = (value: string | undefined) =>
+  value === undefined ? undefined : priceNumber(value);
 const sortDirection = (key: string) => defaultSortDirection(key as ModelSortKey);
 
 export function ModelExplorer({
@@ -305,34 +308,11 @@ export function ModelExplorer({
         </div>
       )}
       {selected.length > 0 && (
-        <section className="market-comparison" aria-label="Selected model specifications">
-          {models
-            .filter((m) => selected.includes(m.id))
-            .map((model) => (
-              <article key={model.id}>
-                <Link
-                  href={`/models/${model.id}`}
-                  className="text-base font-medium hover:text-accent"
-                >
-                  {model.name} ↗
-                </Link>
-                <p
-                  className={
-                    modelContext(model).value ? "market-profile-number" : "market-muted mt-4"
-                  }
-                >
-                  {tokenSize(modelContext(model).value)}
-                </p>
-                <p className="market-muted">{modelContext(model).label} tokens</p>
-                <p className="market-muted mt-4">
-                  Max output {tokenSize(modelSpecifications(model)?.maxOutputTokens)}
-                </p>
-                <p className="market-muted mt-2">
-                  {modelCapabilities(model).join(" · ") || "Capabilities on model page"}
-                </p>
-              </article>
-            ))}
-        </section>
+        <SelectedModels
+          models={models.filter((m) => selected.includes(m.id))}
+          prices={prices}
+          planCounts={planCounts}
+        />
       )}
       {visible.length === 0 && (
         <div className="py-10" data-testid="model-empty">
@@ -476,5 +456,80 @@ export function ModelExplorer({
         </button>
       )}
     </div>
+  );
+}
+
+/** The selected models side by side: the same figures as the table, one column each. */
+function SelectedModels({
+  models,
+  prices,
+  planCounts,
+}: {
+  models: readonly PublicModelSummary[];
+  prices: Record<string, ModelPrices[]>;
+  planCounts: Record<string, number>;
+}) {
+  const figure = (value: string | undefined) =>
+    value === undefined ? <span className="market-muted">Not published</span> : value;
+  const rows: [string, (model: PublicModelSummary) => ReactNode][] = [
+    ["Input $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.input))],
+    ["Output $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.output))],
+    ["Cache read $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.cacheRead))],
+    [
+      "Context",
+      (m) => {
+        const context = modelContext(m);
+        return context.value === undefined
+          ? figure(undefined)
+          : `${tokenSize(context.value)}${context.label === "max input" ? " max input" : ""}`;
+      },
+    ],
+    [
+      "Max output",
+      (m) => {
+        const tokens = modelSpecifications(m)?.maxOutputTokens;
+        return figure(tokens === undefined ? undefined : tokenSize(tokens));
+      },
+    ],
+    [
+      "Reasoning",
+      (m) => {
+        const reasoning = modelSpecifications(m)?.reasoning;
+        return figure(reasoning === undefined ? undefined : reasoning ? "Yes" : "No");
+      },
+    ],
+    ["Included in plans", (m) => String(planCounts[m.id] ?? 0)],
+  ];
+  return (
+    <section
+      className="market-selected-models"
+      aria-label="Selected model specifications"
+      data-testid="selected-models"
+    >
+      <table className="market-side-by-side">
+        <caption className="sr-only">Selected models side by side</caption>
+        <thead>
+          <tr>
+            <td />
+            {models.map((model) => (
+              <th key={model.id} scope="col">
+                <Link href={`/models/${model.id}`}>{model.name}</Link>
+                <PromoTag promotion={basePrice(prices[model.id] ?? [])?.promotion} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label}>
+              <th scope="row">{label}</th>
+              {models.map((model) => (
+                <td key={model.id}>{value(model)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
