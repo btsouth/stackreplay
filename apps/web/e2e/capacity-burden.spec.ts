@@ -128,8 +128,13 @@ for (const theme of ["dark", "light"] as const)
     const initial = await counts();
     const price = await page.getByTestId("overview-api-total").innerText();
     await inspector.getByText("Other AI histories", { exact: true }).click();
-    await inspector.getByRole("checkbox", { name: /d6-context/ }).check();
+    const contextImport = inspector.getByRole("checkbox", { name: /d6-context/ });
+    await contextImport.check();
     await expect(inspector.getByTestId("capacity-compact")).toContainText("1Continued elsewhere");
+    // Recalculating keeps the picker open with focus on the choice just made.
+    await expect(contextImport).toBeVisible();
+    await expect(contextImport).toBeChecked();
+    await expect(contextImport).toBeFocused();
     expect((await counts()).market).toBe(initial.market);
     await expect(page.getByTestId("overview-api-total")).toHaveText(price);
     const episode = burden.getByTestId("capacity-episode").first();

@@ -9,7 +9,8 @@
         "sourceUrl": "https://commandcode.ai/docs/plans/goat",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Luna",
@@ -55,10 +56,12 @@
             "note": "Headless mode and Provider API only."
           },
           {
-            "name": "MiMo V2.6 Flash"
+            "name": "MiMo V2.6 Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo V2.6 Pro"
+            "name": "MiMo V2.6 Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
             "name": "MiMo V2.6 Pro UltraSpeed"
@@ -67,7 +70,8 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -91,19 +95,23 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -124,7 +132,8 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
             "name": "DeepSeek V4 Flash (latest)"
@@ -161,7 +170,8 @@
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "Kimi K2.7 Code HighSpeed"
@@ -171,34 +181,42 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "Step 3.7 Flash"
           },
           {
-            "name": "MiMo V2.5"
+            "name": "MiMo V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "MiMo V2.5 Pro"
+            "name": "MiMo V2.5 Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -207,10 +225,12 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "Kimi K2.5"
@@ -232,7 +252,8 @@
         "sourceUrl": "https://commandcode.ai/docs/plans/pro",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Sol",
@@ -282,10 +303,12 @@
             "note": "Headless mode and Provider API only."
           },
           {
-            "name": "MiMo V2.6 Flash"
+            "name": "MiMo V2.6 Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo V2.6 Pro"
+            "name": "MiMo V2.6 Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
             "name": "MiMo V2.6 Pro UltraSpeed"
@@ -294,7 +317,8 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -318,19 +342,23 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -351,7 +379,8 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
             "name": "DeepSeek V4 Flash (latest)"
@@ -406,7 +435,8 @@
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "Kimi K2.7 Code HighSpeed"
@@ -416,25 +446,31 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "Step 3.7 Flash"
           },
           {
-            "name": "MiMo V2.5"
+            "name": "MiMo V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "MiMo V2.5 Pro"
+            "name": "MiMo V2.5 Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -447,14 +483,16 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
             "name": "GPT-5.5",
             "modelId": "gpt-5-5"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -463,14 +501,16 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
             "name": "GPT-5.4 Mini",
             "modelId": "gpt-5-4-mini"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "GPT-5.3 Codex",
@@ -516,7 +556,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Astra",
@@ -584,31 +625,38 @@
             "name": "Kimi K2.7 Code HighSpeed"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
             "name": "Kimi K2.5"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "MiniMax M2.5"
@@ -620,7 +668,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -635,10 +684,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -647,19 +698,23 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -671,22 +726,27 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "MiMo V2.6 Pro"
+            "name": "MiMo V2.6 Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
             "name": "MiMo V2.6 Pro UltraSpeed"
           },
           {
-            "name": "MiMo V2.6 Flash"
+            "name": "MiMo V2.6 Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo V2.5 Pro"
+            "name": "MiMo V2.5 Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiMo V2.5"
+            "name": "MiMo V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "Claude Fable 5",
@@ -705,7 +765,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Sonnet 5",
@@ -826,7 +887,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Astra",
@@ -894,31 +956,38 @@
             "name": "Kimi K2.7 Code HighSpeed"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
             "name": "Kimi K2.5"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "MiniMax M2.5"
@@ -930,7 +999,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -945,10 +1015,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -957,19 +1029,23 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -981,22 +1057,27 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "MiMo V2.6 Pro"
+            "name": "MiMo V2.6 Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
             "name": "MiMo V2.6 Pro UltraSpeed"
           },
           {
-            "name": "MiMo V2.6 Flash"
+            "name": "MiMo V2.6 Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo V2.5 Pro"
+            "name": "MiMo V2.5 Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiMo V2.5"
+            "name": "MiMo V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "Claude Fable 5",
@@ -1015,7 +1096,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Sonnet 5",
@@ -1161,7 +1243,8 @@
             "name": "Kimi K2.7 Code HighSpeed"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
             "name": "Kimi K2.5"
@@ -1171,29 +1254,35 @@
             "modelId": "glm-5-3-flash"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "GLM-5.3",
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "MiniMax M2.5"
@@ -1205,7 +1294,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -1224,10 +1314,12 @@
             "name": "Qwen 3.8 Max 0902"
           },
           {
-            "name": "Qwen 3.8 Max"
+            "name": "Qwen 3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen 3.8 27B"
+            "name": "Qwen 3.8 27B",
+            "modelId": "qwen-3-8-27b"
           },
           {
             "name": "Qwen 3.6 Max Preview"
@@ -1236,19 +1328,23 @@
             "name": "Qwen 3.6 Plus"
           },
           {
-            "name": "Qwen 3.7 Max"
+            "name": "Qwen 3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen 3.7 Plus"
+            "name": "Qwen 3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Qwen 3.8 Flash"
+            "name": "Qwen 3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -1260,19 +1356,24 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "MiMo V2.6 Pro"
+            "name": "MiMo V2.6 Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo V2.6 Flash"
+            "name": "MiMo V2.6 Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo V2.5 Pro"
+            "name": "MiMo V2.5 Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiMo V2.5"
+            "name": "MiMo V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "GPT-6 Luna",
@@ -1326,33 +1427,40 @@
             "modelId": "kimi-k3"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "DeepSeek V4.1 Flash",
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "MiMo-V2.5"
+            "name": "MiMo-V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "MiMo-V2.5-Pro"
+            "name": "MiMo-V2.5-Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
             "name": "Muse Spark 1.3 Contributor",
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.7 Max"
+            "name": "Qwen3.7 Max",
+            "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           }
         ]
       }
@@ -1384,7 +1492,8 @@
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT 6 Luna",
@@ -1403,32 +1512,40 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
-            "name": "LongCat-2.0"
+            "name": "LongCat-2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "LongCat 2.5 Preview Free",
             "note": "Temporary free or preview availability."
           },
           {
-            "name": "MiMo-V2.6-Flash"
+            "name": "MiMo-V2.6-Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo-V2.6-Pro"
+            "name": "MiMo-V2.6-Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo-V2.5"
+            "name": "MiMo-V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "MiMo-V2.5-Pro"
+            "name": "MiMo-V2.5-Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Muse Spark 1.3 Contributor",
@@ -1439,26 +1556,32 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.8 Flash"
+            "name": "Qwen3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "DeepSeek V4.1 Flash",
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "DeepSeek V4 Flash"
+            "name": "DeepSeek V4 Flash",
+            "modelId": "deepseek-v4-flash"
           },
           {
-            "name": "DeepSeek V4 Flash Vision Exp"
+            "name": "DeepSeek V4 Flash Vision Exp",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Hy4 preview"
@@ -1500,7 +1623,8 @@
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT 6 Luna",
@@ -1519,32 +1643,40 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
-            "name": "LongCat-2.0"
+            "name": "LongCat-2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "LongCat 2.5 Preview Free",
             "note": "Temporary free or preview availability."
           },
           {
-            "name": "MiMo-V2.6-Flash"
+            "name": "MiMo-V2.6-Flash",
+            "modelId": "mimo-v2-6-flash"
           },
           {
-            "name": "MiMo-V2.6-Pro"
+            "name": "MiMo-V2.6-Pro",
+            "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo-V2.5"
+            "name": "MiMo-V2.5",
+            "modelId": "mimo-v2-5"
           },
           {
-            "name": "MiMo-V2.5-Pro"
+            "name": "MiMo-V2.5-Pro",
+            "modelId": "mimo-v2-5-pro"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Muse Spark 1.3 Contributor",
@@ -1555,26 +1687,32 @@
             "note": "Regional availability applies."
           },
           {
-            "name": "Qwen3.8 Max"
+            "name": "Qwen3.8 Max",
+            "modelId": "qwen-3-8-max"
           },
           {
-            "name": "Qwen3.8 Flash"
+            "name": "Qwen3.8 Flash",
+            "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen3.7 Plus"
+            "name": "Qwen3.7 Plus",
+            "modelId": "qwen-3-7-plus"
           },
           {
             "name": "DeepSeek V4.1 Flash",
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "DeepSeek V4 Flash"
+            "name": "DeepSeek V4 Flash",
+            "modelId": "deepseek-v4-flash"
           },
           {
-            "name": "DeepSeek V4 Flash Vision Exp"
+            "name": "DeepSeek V4 Flash Vision Exp",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Hy4 preview"
@@ -1620,13 +1758,15 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "Gemma 4"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT-OSS 120B"
@@ -1635,13 +1775,16 @@
             "name": "GPT-OSS 20B"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Mistral Large 3"
@@ -1653,7 +1796,8 @@
             "name": "Nemotron 3 Super"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           }
         ]
       }
@@ -1689,13 +1833,15 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "Gemma 4"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT-OSS 120B"
@@ -1704,13 +1850,16 @@
             "name": "GPT-OSS 20B"
           },
           {
-            "name": "Kimi K2.6"
+            "name": "Kimi K2.6",
+            "modelId": "kimi-k2-6"
           },
           {
-            "name": "MiniMax M3"
+            "name": "MiniMax M3",
+            "modelId": "minimax-m3"
           },
           {
-            "name": "MiniMax M2.7"
+            "name": "MiniMax M2.7",
+            "modelId": "minimax-m2-7"
           },
           {
             "name": "Mistral Large 3"
@@ -1722,7 +1871,8 @@
             "name": "Nemotron 3 Super"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           }
         ]
       }
@@ -1746,7 +1896,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -1867,7 +2018,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2008,7 +2160,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2145,7 +2298,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2282,7 +2436,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2428,7 +2583,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2501,7 +2657,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2574,7 +2731,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2640,7 +2798,8 @@
             "modelId": "claude-opus-4-7"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2667,7 +2826,8 @@
             "name": "MiniMax M2.5"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "DeepSeek 3.2"
@@ -2724,10 +2884,12 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2794,10 +2956,12 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -2863,10 +3027,12 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
-            "name": "Claude Opus 4.6"
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
           },
           {
             "name": "Claude Opus 4.5"
@@ -3181,7 +3347,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },
@@ -3253,7 +3420,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },
@@ -3325,7 +3493,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },

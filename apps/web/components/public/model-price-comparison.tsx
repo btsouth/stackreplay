@@ -90,7 +90,7 @@ export function ModelPriceComparison({
         </p>
         <p data-testid="price-chart-scale">
           {max > 0
-            ? `Shared scale: $0 to ${priceNumber(String(max))}`
+            ? `Shared scale: $0 to $${max.toLocaleString("en-US", { maximumFractionDigits: 4 })}`
             : "No numeric rates in this comparison"}
         </p>
       </div>

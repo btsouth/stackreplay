@@ -1,0 +1,29 @@
+id: qwen-3-7-plus-pricing
+role: pricing
+modelId: qwen-3-7-plus
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.4'
+  output: '1.6'
+  cacheRead: '0.08'
+tiers:
+  - id: long-context
+    label: "Above 256K input tokens (all tokens in the request)"
+    when:
+      inputTokensAbove: 256000
+    rates:
+      input: '1.2'
+      output: '4.8'
+      cacheRead: '0.24'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus
+  title: 'Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.'
+  checkedAt: '2026-09-29'
+- url: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+  title: Model Studio pricing (standard prices; tier rule applies to all tokens in the request)
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

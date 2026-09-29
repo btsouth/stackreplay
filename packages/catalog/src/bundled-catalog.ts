@@ -8,11 +8,25 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064";
+export const BUNDLED_CATALOG_VERSION = "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:42c02f4d111a257844225b20bdcabb19b2699e73a05d431b59b8b659c51ba064",
+  "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
   "providers": {
+    "alibaba": {
+      "id": "alibaba",
+      "role": "provider",
+      "name": "Alibaba Cloud (Qwen)",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Alibaba Cloud Model Studio model inference pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "anthropic": {
       "id": "anthropic",
       "role": "provider",
@@ -163,6 +177,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-27",
       "verificationStatus": "verified"
     },
+    "meituan": {
+      "id": "meituan",
+      "role": "provider",
+      "name": "Meituan",
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/",
+          "title": "LongCat API Platform documentation",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "meta": {
       "id": "meta",
       "role": "provider",
@@ -191,6 +219,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "minimax": {
+      "id": "minimax",
+      "role": "provider",
+      "name": "MiniMax",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "moonshot": {
       "id": "moonshot",
       "role": "provider",
@@ -203,6 +245,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "nvidia": {
+      "id": "nvidia",
+      "role": "provider",
+      "name": "NVIDIA",
+      "sources": [
+        {
+          "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+          "title": "NVIDIA API catalog model page",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "ollama": {
@@ -264,6 +320,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "xiaomi": {
+      "id": "xiaomi",
+      "role": "provider",
+      "name": "Xiaomi",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "z-ai": {
@@ -540,6 +610,76 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-24",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6": {
+      "id": "claude-opus-4-6",
+      "role": "model",
+      "name": "Claude Opus 4.6",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "knowledgeCutoff": "May 2025",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "anthropic"
+      ],
+      "aliases": [
+        {
+          "id": "claude-opus-4-6-api-id",
+          "alias": "claude-opus-4-6",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+              "title": "Exact API identifier, model specifications and availability",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "claude-opus-4-6-router-anthropic-claude-opus-4-6",
+          "alias": "anthropic/claude-opus-4.6",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/anthropic/claude-opus-4.6",
+              "title": "OpenRouter model record `anthropic/claude-opus-4.6` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Exact API identifier, model specifications and availability",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "claude-opus-4-7": {
@@ -1858,6 +1998,168 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "glm-5-1": {
+      "id": "glm-5-1",
+      "role": "model",
+      "name": "GLM 5.1",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 200000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.1",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-1-api-id",
+          "alias": "glm-5.1",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5.1",
+              "title": "GLM 5.1 API model code glm-5.1",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-1-router-z-ai-glm-5-1",
+          "alias": "z-ai/glm-5.1",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.1",
+              "title": "OpenRouter model record `z-ai/glm-5.1` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5.1",
+          "title": "GLM 5.1 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "glm-5-2": {
+      "id": "glm-5-2",
+      "role": "model",
+      "name": "GLM 5.2",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.2",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-2-api-id",
+          "alias": "glm-5.2",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5.2",
+              "title": "GLM 5.2 API model code glm-5.2",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-2-router-z-ai-glm-5-2",
+          "alias": "z-ai/glm-5.2",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.2",
+              "title": "OpenRouter model record `z-ai/glm-5.2` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5.2",
+          "title": "GLM 5.2 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "glm-5-3-flash": {
       "id": "glm-5-3-flash",
       "role": "model",
@@ -2169,6 +2471,87 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "glm-5": {
+      "id": "glm-5",
+      "role": "model",
+      "name": "GLM 5",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 200000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-api-id",
+          "alias": "glm-5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5",
+              "title": "GLM 5 API model code glm-5",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-router-z-ai-glm-5",
+          "alias": "z-ai/glm-5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5",
+              "title": "OpenRouter model record `z-ai/glm-5` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5",
+          "title": "GLM 5 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex": {
@@ -3284,6 +3667,87 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "kimi-k2-6": {
+      "id": "kimi-k2-6",
+      "role": "model",
+      "name": "Kimi K2.6",
+      "developerId": "moonshot",
+      "specifications": {
+        "contextTokens": 262144,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is on by default and can be turned off per request."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.kimi.ai/docs/pricing/chat",
+            "title": "Context window",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "moonshot"
+      ],
+      "aliases": [
+        {
+          "id": "kimi-k2-6-api-id",
+          "alias": "kimi-k2.6",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+              "title": "Kimi K2.6 API model id kimi-k2.6",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "kimi-k2-6-router-moonshotai-kimi-k2-6",
+          "alias": "moonshotai/kimi-k2.6",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/moonshotai/kimi-k2.6",
+              "title": "OpenRouter model record `moonshotai/kimi-k2.6` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+          "title": "Kimi K2.6 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "title": "Kimi API token prices and context window",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "kimi-k2-7-code": {
       "id": "kimi-k2-7-code",
       "role": "model",
@@ -3377,6 +3841,85 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "longcat-2-0": {
+      "id": "longcat-2-0",
+      "role": "model",
+      "name": "LongCat 2.0",
+      "developerId": "meituan",
+      "specifications": {
+        "contextTokens": 1000000,
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is turned on or off per request with the thinking parameter."
+        ],
+        "sources": [
+          {
+            "url": "https://longcat.chat/platform/docs/change-log",
+            "title": "Context and tool calling at release",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://longcat.chat/platform/docs/api/chat",
+            "title": "Thinking parameter",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date. The regular rates are $0.75 input, $0.015 cached input and $2.95 output per 1M tokens. A separate yuan price table is also listed.",
+      "providerIds": [
+        "meituan"
+      ],
+      "aliases": [
+        {
+          "id": "longcat-2-0-api-id",
+          "alias": "LongCat-2.0",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://longcat.chat/platform/docs/api/models",
+              "title": "LongCat API model id LongCat-2.0",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "longcat-2-0-router-meituan-longcat-2-0",
+          "alias": "meituan/longcat-2.0",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/meituan/longcat-2.0",
+              "title": "OpenRouter model record `meituan/longcat-2.0` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/change-log",
+          "title": "LongCat API Platform change log (LongCat-2.0 release)",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://huggingface.co/meituan-longcat/LongCat-2.0",
+          "title": "Meituan LongCat model card",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
+          "title": "LongCat API pay-as-you-go pricing and payment methods",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "mai-code-1-1-flash": {
       "id": "mai-code-1-1-flash",
       "role": "model",
@@ -3426,13 +3969,520 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "mimo-v2-5-pro": {
+      "id": "mimo-v2-5-pro",
+      "role": "model",
+      "name": "MiMo V2.5 Pro",
+      "lifecycle": "legacy",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-5-pro-api-id",
+          "alias": "mimo-v2.5-pro",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.5 Pro API model id mimo-v2.5-pro",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-5-pro-router-xiaomi-mimo-v2-5-pro",
+          "alias": "xiaomi/mimo-v2.5-pro",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.5-pro",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.5-pro` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+          "title": "MiMo V2.5 Pro model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5": {
+      "id": "mimo-v2-5",
+      "role": "model",
+      "name": "MiMo V2.5",
+      "lifecycle": "legacy",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-5-api-id",
+          "alias": "mimo-v2.5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.5 API model id mimo-v2.5",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-5-router-xiaomi-mimo-v2-5",
+          "alias": "xiaomi/mimo-v2.5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.5",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.5` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+          "title": "MiMo V2.5 model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-flash": {
+      "id": "mimo-v2-6-flash",
+      "role": "model",
+      "name": "MiMo V2.6 Flash",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-6-flash-api-id",
+          "alias": "mimo-v2.6-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.6 Flash API model id mimo-v2.6-flash",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-flash-router-xiaomi-mimo-v2-6-flash",
+          "alias": "xiaomi/mimo-v2.6-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.6-flash",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.6-flash` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+          "title": "MiMo V2.6 Flash model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-pro": {
+      "id": "mimo-v2-6-pro",
+      "role": "model",
+      "name": "MiMo V2.6 Pro",
+      "developerId": "xiaomi",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled."
+        ],
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+            "title": "Official model specs",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "xiaomi"
+      ],
+      "aliases": [
+        {
+          "id": "mimo-v2-6-pro-api-id",
+          "alias": "mimo-v2.6-pro",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/docs/en-US/quick-start/summary/model",
+              "title": "MiMo V2.6 Pro API model id mimo-v2.6-pro",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-pro-router-xiaomi-mimo-v2-6-pro",
+          "alias": "xiaomi/mimo-v2.6-pro",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/xiaomi/mimo-v2.6-pro",
+              "title": "OpenRouter model record `xiaomi/mimo-v2.6-pro` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+          "title": "MiMo V2.6 Pro model page",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Xiaomi MiMo API pay-as-you-go pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m2-7": {
+      "id": "minimax-m2-7",
+      "role": "model",
+      "name": "MiniMax M2.7",
+      "developerId": "minimax",
+      "specifications": {
+        "contextTokens": 204800,
+        "maxOutputTokens": 204800,
+        "inputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is always on; a disabled thinking setting is accepted but ignored."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-generation",
+            "title": "Official context window",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+            "title": "Maximum max_completion_tokens",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+            "title": "Thinking control, text and tool-call content only (no image or video input)",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "minimax"
+      ],
+      "aliases": [
+        {
+          "id": "minimax-m2-7-api-id",
+          "alias": "MiniMax-M2.7",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "MiniMax-M2.7 API model name",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "minimax-m2-7-router-minimax-minimax-m2-7",
+          "alias": "minimax/minimax-m2.7",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/minimax/minimax-m2.7",
+              "title": "OpenRouter model record `minimax/minimax-m2.7` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "MiniMax-M2.7 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m3": {
+      "id": "minimax-m3",
+      "role": "model",
+      "name": "MiniMax M3",
+      "developerId": "minimax",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 524288,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is off unless requested with thinking type adaptive."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-generation",
+            "title": "Official context window",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+            "title": "Maximum max_completion_tokens",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+            "title": "Thinking control and supported message content (text, image, video) by model",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-m3-function-call",
+            "title": "Tool use and interleaved thinking",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "MiniMax lists M3 at $0.60 input, $2.40 output and $0.12 cache read per million tokens up to 512K input tokens, shown with a permanent 50% discount. The catalog records the discounted rates MiniMax charges. Priority service tier costs 1.5x standard. No cache-write rate is published for M3.",
+      "providerIds": [
+        "minimax"
+      ],
+      "aliases": [
+        {
+          "id": "minimax-m3-api-id",
+          "alias": "MiniMax-M3",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "MiniMax-M3 API model name",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "minimax-m3-router-minimax-minimax-m3",
+          "alias": "minimax/minimax-m3",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/minimax/minimax-m3",
+              "title": "OpenRouter model record `minimax/minimax-m3` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "MiniMax-M3 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "muse-spark-1-3": {
       "id": "muse-spark-1-3",
       "role": "model",
       "name": "Muse Spark 1.3",
       "developerId": "meta",
       "specifications": {
-        "contextTokens": 1000000,
+        "contextTokens": 1048576,
         "inputModalities": [
           "text",
           "image",
@@ -3445,9 +4495,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "toolCalling": true,
         "sources": [
           {
+            "url": "https://dev.meta.ai/docs/models",
+            "title": "Context window (1,048,576 tokens) and input modalities",
+            "checkedAt": "2026-09-29"
+          },
+          {
             "url": "https://developer.meta.com/ai/models/muse-spark/",
             "title": "Official model specifications",
-            "checkedAt": "2026-09-28"
+            "checkedAt": "2026-09-29"
           }
         ]
       },
@@ -3463,11 +4518,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "url": "https://cursor.com/docs/models-and-pricing",
-          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
-          "checkedAt": "2026-09-23"
+          "title": "Cursor current model and rate tables; Muse Spark 1.3 rechecked September 29",
+          "checkedAt": "2026-09-29"
         }
       ],
-      "lastVerifiedAt": "2026-09-28",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "nano-banana-pro": {
@@ -3519,6 +4574,467 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "nemotron-3-ultra": {
+      "id": "nemotron-3-ultra",
+      "role": "model",
+      "name": "Nemotron 3 Ultra",
+      "developerId": "nvidia",
+      "specifications": {
+        "contextTokens": 1000000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": false,
+        "notes": [
+          "Reasoning is turned on or off with enable_thinking in the chat template."
+        ],
+        "sources": [
+          {
+            "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+            "title": "Official model card",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+            "title": "Specifications and capabilities",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "NVIDIA offers a free trial endpoint on build.nvidia.com and does not publish its own per-token API rate. The partner endpoints listed there set their own prices.",
+      "providerIds": [
+        "nvidia"
+      ],
+      "aliases": [
+        {
+          "id": "nemotron-3-ultra-api-id",
+          "alias": "nvidia/nemotron-3-ultra-550b-a55b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+              "title": "NVIDIA API catalog model id nvidia/nemotron-3-ultra-550b-a55b",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "nemotron-3-ultra-router-nvidia-nemotron-3-ultra-550b-a55b",
+          "alias": "nvidia/nemotron-3-ultra-550b-a55b",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b",
+              "title": "OpenRouter model record `nvidia/nemotron-3-ultra-550b-a55b` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+          "title": "NVIDIA model card",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+          "title": "NVIDIA API catalog model page",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-max": {
+      "id": "qwen-3-7-max",
+      "role": "model",
+      "name": "Qwen 3.7 Max",
+      "lifecycle": "legacy",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-7-max-api-id",
+          "alias": "qwen3.7-max",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+              "title": "Qwen 3.7 Max API model id qwen3.7-max",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-7-max-router-qwen-qwen3-7-max",
+          "alias": "qwen/qwen3.7-max",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.7-max",
+              "title": "OpenRouter model record `qwen/qwen3.7-max` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+          "title": "Qwen 3.7 Max model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-plus": {
+      "id": "qwen-3-7-plus",
+      "role": "model",
+      "name": "Qwen 3.7 Plus",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-7-plus-api-id",
+          "alias": "qwen3.7-plus",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+              "title": "Qwen 3.7 Plus API model id qwen3.7-plus",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-7-plus-router-qwen-qwen3-7-plus",
+          "alias": "qwen/qwen3.7-plus",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.7-plus",
+              "title": "OpenRouter model record `qwen/qwen3.7-plus` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+          "title": "Qwen 3.7 Plus model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-27b": {
+      "id": "qwen-3-8-27b",
+      "role": "model",
+      "name": "Qwen 3.8 27B",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-27b-api-id",
+          "alias": "qwen3.8-27b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+              "title": "Qwen 3.8 27B API model id qwen3.8-27b",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-27b-router-qwen-qwen3-8-27b",
+          "alias": "qwen/qwen3.8-27b",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.8-27b",
+              "title": "OpenRouter model record `qwen/qwen3.8-27b` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+          "title": "Qwen 3.8 27B model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-flash": {
+      "id": "qwen-3-8-flash",
+      "role": "model",
+      "name": "Qwen 3.8 Flash",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-flash-api-id",
+          "alias": "qwen3.8-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+              "title": "Qwen 3.8 Flash API model id qwen3.8-flash",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-flash-router-qwen-qwen3-8-flash",
+          "alias": "qwen/qwen3.8-flash",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/qwen/qwen3.8-flash",
+              "title": "OpenRouter model record `qwen/qwen3.8-flash` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+          "title": "Qwen 3.8 Flash model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-max": {
+      "id": "qwen-3-8-max",
+      "role": "model",
+      "name": "Qwen 3.8 Max",
+      "developerId": "alibaba",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking."
+        ],
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+            "title": "Official model capabilities and context limits (Singapore, International)",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.",
+      "providerIds": [
+        "alibaba"
+      ],
+      "aliases": [
+        {
+          "id": "qwen-3-8-max-api-id",
+          "alias": "qwen3.8-max",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+              "title": "Qwen 3.8 Max API model id qwen3.8-max",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+          "title": "Qwen 3.8 Max model page on Alibaba Cloud Model Studio",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     }
   },
@@ -20484,6 +22000,103 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "claude-opus-4-6-api-reference-20260929-1h": {
+      "id": "claude-opus-4-6-api-reference-20260929-1h",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-1h",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "10",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official one-hour cache-write rate; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6-api-reference-20260929-5m": {
+      "id": "claude-opus-4-6-api-reference-20260929-5m",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "variantId": "cache-write-5m",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "cacheWrite": "6.25",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official five-minute cache-write rate; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "claude-opus-4-6-api-reference-20260929": {
+      "id": "claude-opus-4-6-api-reference-20260929",
+      "role": "pricing",
+      "modelId": "claude-opus-4-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "5",
+        "output": "25",
+        "cacheRead": "0.5",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+          "title": "Official standard token prices and cache rates; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "claude-opus-4-7-api-reference-20260928-1h": {
       "id": "claude-opus-4-7-api-reference-20260928-1h",
       "role": "pricing",
@@ -21669,6 +23282,52 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "glm-5-1-pricing": {
+      "id": "glm-5-1-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.4",
+        "output": "4.4",
+        "cacheRead": "0.26"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5.1 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "glm-5-2-pricing": {
+      "id": "glm-5-2-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-2",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.4",
+        "output": "4.4",
+        "cacheRead": "0.26"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5.2 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "glm-5-3-flash-pricing": {
       "id": "glm-5-3-flash-pricing",
       "role": "pricing",
@@ -21736,6 +23395,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "glm-5-pricing": {
+      "id": "glm-5-pricing",
+      "role": "pricing",
+      "modelId": "glm-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1",
+        "output": "3.2",
+        "cacheRead": "0.2"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex-github-pricing": {
@@ -23177,6 +24859,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "kimi-k2-6-api-reference-20260929": {
+      "id": "kimi-k2-6-api-reference-20260929",
+      "role": "pricing",
+      "modelId": "kimi-k2-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.95",
+        "output": "4",
+        "cacheRead": "0.16"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "title": "Official K2 series token prices; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "kimi-k2-7-code-api-reference-20260928": {
       "id": "kimi-k2-7-code-api-reference-20260928",
       "role": "pricing",
@@ -23269,6 +24974,34 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "longcat-2-0-pricing": {
+      "id": "longcat-2-0-pricing",
+      "role": "pricing",
+      "modelId": "longcat-2-0",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.006"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/pricing/longcat-2.0",
+          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\" column: uncached input, cached input and output. The \"Price $/1M Tokens\" column lists the regular rates. No end date or cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
+          "title": "Discounted USD rates and billing formula on the pay-as-you-go guide",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "mai-code-1-1-flash-github-pricing": {
       "id": "mai-code-1-1-flash-github-pricing",
       "role": "pricing",
@@ -23290,6 +25023,179 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5-pricing": {
+      "id": "mimo-v2-5-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.14",
+        "output": "0.28",
+        "cacheRead": "0.0028"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.5 (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-5-pro-pricing": {
+      "id": "mimo-v2-5-pro-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-5-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.435",
+        "output": "0.87",
+        "cacheRead": "0.0036"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.5-pro (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-flash-pricing": {
+      "id": "mimo-v2-6-flash-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-6-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.14",
+        "output": "0.28",
+        "cacheRead": "0.0028"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.6-flash (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mimo-v2-6-pro-pricing": {
+      "id": "mimo-v2-6-pro-pricing",
+      "role": "pricing",
+      "modelId": "mimo-v2-6-pro",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.435",
+        "output": "0.87",
+        "cacheRead": "0.0036"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+          "title": "Overseas pricing, real-time API row for mimo-v2.6-pro (USD); cache writes are listed as limited-time free and are not recorded as a rate.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+          "title": "Model page USD pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m2-7-pricing": {
+      "id": "minimax-m2-7-pricing",
+      "role": "pricing",
+      "modelId": "minimax-m2-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.3",
+        "output": "1.2",
+        "cacheRead": "0.06",
+        "cacheWrite": "0.375"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go LLM table, MiniMax-M2.7 row",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m3-pricing": {
+      "id": "minimax-m3-pricing",
+      "role": "pricing",
+      "modelId": "minimax-m3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.06"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 512K input tokens",
+          "when": {
+            "inputTokensAbove": 512000
+          },
+          "rates": {
+            "input": "0.60",
+            "output": "2.40",
+            "cacheRead": "0.12"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows \"≤ 512k input tokens\" and \"> 512k input tokens\" (permanent 50% off prices); no cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3-api-reference-20260928": {
@@ -23444,6 +25350,160 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-max-pricing": {
+      "id": "qwen-3-7-max-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-7-max",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2.5",
+        "output": "7.5",
+        "cacheRead": "0.5"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-plus-pricing": {
+      "id": "qwen-3-7-plus-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-7-plus",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.4",
+        "output": "1.6",
+        "cacheRead": "0.08"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 256K input tokens (all tokens in the request)",
+          "when": {
+            "inputTokensAbove": 256000
+          },
+          "rates": {
+            "input": "1.2",
+            "output": "4.8",
+            "cacheRead": "0.24"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-27b-pricing": {
+      "id": "qwen-3-8-27b-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-27b",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.5",
+        "output": "3",
+        "cacheRead": "0.1"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-flash-pricing": {
+      "id": "qwen-3-8-flash-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.15",
+        "output": "0.47",
+        "cacheRead": "0.016"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-max-pricing": {
+      "id": "qwen-3-8-max-pricing",
+      "role": "pricing",
+      "modelId": "qwen-3-8-max",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "2",
+        "output": "6",
+        "cacheRead": "0.25"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+          "title": "Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+          "title": "Model Studio pricing (standard prices; tier rule applies to all tokens in the request)",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "z-ai-api-glm-5-3-flash-current-rate": {

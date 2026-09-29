@@ -1,0 +1,47 @@
+id: claude-opus-4-6
+role: model
+name: Claude Opus 4.6
+familyId: claude-opus
+lifecycle: legacy
+developerId: anthropic
+providerIds:
+- anthropic
+aliases:
+- id: claude-opus-4-6-api-id
+  alias: claude-opus-4-6
+  kind: provider_id
+  sources:
+  - url: https://platform.claude.com/docs/en/models/opus-4-6/overview
+    title: Exact API identifier, model specifications and availability
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: claude-opus-4-6-router-anthropic-claude-opus-4-6
+  alias: anthropic/claude-opus-4.6
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/anthropic/claude-opus-4.6
+    title: OpenRouter model record `anthropic/claude-opus-4.6` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://platform.claude.com/docs/en/models/opus-4-6/overview
+  title: Exact API identifier, model specifications and availability
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  knowledgeCutoff: May 2025
+  sources:
+  - url: https://platform.claude.com/docs/en/models/opus-4-6/overview
+    title: Official model specifications
+    checkedAt: '2026-09-29'

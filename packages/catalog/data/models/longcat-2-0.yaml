@@ -1,0 +1,52 @@
+id: longcat-2-0
+role: model
+name: LongCat 2.0
+developerId: meituan
+providerIds:
+- meituan
+aliases:
+- id: longcat-2-0-api-id
+  alias: LongCat-2.0
+  kind: provider_id
+  sources:
+  - url: https://longcat.chat/platform/docs/api/models
+    title: LongCat API model id LongCat-2.0
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: longcat-2-0-router-meituan-longcat-2-0
+  alias: meituan/longcat-2.0
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/meituan/longcat-2.0
+    title: OpenRouter model record `meituan/longcat-2.0` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://longcat.chat/platform/docs/change-log
+  title: LongCat API Platform change log (LongCat-2.0 release)
+  checkedAt: '2026-09-29'
+- url: https://huggingface.co/meituan-longcat/LongCat-2.0
+  title: Meituan LongCat model card
+  checkedAt: '2026-09-29'
+- url: https://longcat.chat/platform/docs/api-pay-as-you-go
+  title: LongCat API pay-as-you-go pricing and payment methods
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  reasoning: true
+  toolCalling: true
+  notes:
+  - Thinking is turned on or off per request with the thinking parameter.
+  sources:
+  - url: https://longcat.chat/platform/docs/change-log
+    title: Context and tool calling at release
+    checkedAt: '2026-09-29'
+  - url: https://longcat.chat/platform/docs/api/chat
+    title: Thinking parameter
+    checkedAt: '2026-09-29'
+pricingNote: LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date. The regular
+  rates are $0.75 input, $0.015 cached input and $2.95 output per 1M tokens. A separate yuan price table is also listed.

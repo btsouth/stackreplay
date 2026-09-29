@@ -555,152 +555,153 @@ export function CapacityBurdenSurface({
                 </p>
               </div>
             ) : null}
-
-            <details className="border-b border-border pb-2">
-              <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-                Other AI histories
-              </summary>
-              <p className="my-2 max-w-2xl text-xs text-muted-foreground">
-                Add another saved import to see whether recorded work continued there. Its tokens
-                and spend stay separate. Activity from other accounts in this import is already
-                included.
-              </p>
-              {imports.map((record) => (
-                <label key={record.id} className="flex min-h-11 items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={ids?.includes(record.id) ?? false}
-                    onChange={(e) =>
-                      choose(
-                        e.target.checked
-                          ? [...(ids ?? []), record.id]
-                          : (ids ?? []).filter((id) => id !== record.id),
-                      )
-                    }
-                  />
-                  {record.label} · {number(record.eventCount)} records
-                </label>
-              ))}
-              {!imports.length ? (
-                <p className="text-xs text-muted-foreground">
-                  No other saved histories yet. Import another tool’s history to include it here.
-                </p>
-              ) : null}
-            </details>
-            <details
-              id={expanded ? "account-capacity-timeline" : "capacity-timeline"}
-              open={expanded || undefined}
-            >
-              <summary className="min-h-11 cursor-pointer content-center text-sm">
-                {expanded ? "Episode timeline" : "Review interruption timeline →"}
-              </summary>
-              <p className="mb-4 max-w-2xl text-xs text-muted-foreground">
-                Times are UTC. A later response shows recorded activity, not when a limit cleared.
-                Reset times are reported schedules.
-              </p>
-              <fieldset className="mb-4 flex flex-wrap gap-1">
-                <legend className="sr-only">Filter episodes by day</legend>
-                {["", ...new Set(burden.episodes.map((e) => e.firstBlockedAt.slice(0, 10)))].map(
-                  (value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={day === value}
-                      onClick={() => setDay(value)}
-                      className={`min-h-11 border px-3 font-mono text-xs ${day === value ? "border-accent bg-accent/10 text-accent" : "border-border text-muted-foreground"}`}
-                    >
-                      {value
-                        ? new Date(`${value}T00:00:00Z`).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            timeZone: "UTC",
-                          })
-                        : "All days"}
-                    </button>
-                  ),
-                )}
-              </fieldset>
-              {burden.episodes
-                .filter((e) => !day || e.firstBlockedAt.startsWith(day))
-                .map((e) => (
-                  <Episode
-                    key={`${binding}:${e.episodeId}`}
-                    episode={e}
-                    impact={impacts[e.episodeId]}
-                    onSave={(value) => {
-                      const next = { ...impacts };
-                      if (value) next[e.episodeId] = value;
-                      else delete next[e.episodeId];
-                      if (saveEpisodeImpacts(importId, binding, next)) {
-                        setImpacts(next);
-                        setStatus("Episode impact saved locally.");
-                      } else setError("Episode impact could not be saved locally.");
-                    }}
-                  />
-                ))}
-              <details className="mt-5 border-t border-border">
-                <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-                  Timing &amp; preceding workload statistics
-                </summary>
-                <dl className="my-3 space-y-3 text-xs">
-                  <div>
-                    <dt>Scheduled time remaining when first blocked</dt>
-                    <dd>{timing(burden.scheduledRemaining)}</dd>
-                  </div>
-                  <div>
-                    <dt>Retry span</dt>
-                    <dd>{timing(burden.retrySpan)}</dd>
-                  </div>
-                  <div>
-                    <dt>Time to next recorded main-account response</dt>
-                    <dd>{timing(burden.nextMainMs)}</dd>
-                  </div>
-                  <div>
-                    <dt>Time to next recorded AI activity</dt>
-                    <dd>{timing(burden.nextAnyMs)}</dd>
-                  </div>
-                  <div>
-                    <dt>Observed scheduled-block exposure</dt>
-                    <dd>
-                      {duration(burden.scheduledExposureMs)} of unique wall-clock exposure,
-                      overlapping schedules counted once and clipped to this selected period. Not
-                      downtime.
-                    </dd>
-                  </div>
-                </dl>
-                <p className="my-3 text-xs text-muted-foreground">
-                  No other-harness response was observed in {burden.noOtherBeforeBoundary} episodes
-                  before the next main-account response, or the scheduled reset/cycle end when no
-                  main response followed. That does not establish that work stopped. A main-account
-                  response may use a different model or arrive between retries; it does not prove
-                  the reported constraint cleared.
-                </p>
-                <details>
-                  <summary className="min-h-11 cursor-pointer content-center text-xs">
-                    Episode-onset workload statistics
-                  </summary>
-                  {burden.onset.map((v) => (
-                    <p className="my-2 text-xs" key={v.hours}>
-                      Prior {v.hours === 168 ? "7 days" : `${v.hours} hours`}:{" "}
-                      {v.tokens
-                        ? `${number(v.tokens.median)} median known tokens · ${number(v.tokens.min)} to ${number(v.tokens.max)} · ${v.tokens.count} episode onsets`
-                        : "No observations"}
-                      . {v.partialContexts} contexts contain incomplete token records.
-                    </p>
-                  ))}
-                  <p className="text-xs text-muted-foreground">
-                    Main-account workload only, restricted to this selected period. Retrospective
-                    descriptions, not quota estimates. Each episode onset counts once.
-                  </p>
-                </details>
-              </details>
-            </details>
           </>
         ) : (
           <p role="status" className="text-sm">
             {error || "Composing observed episodes…"}
           </p>
         )}
+        {/* Stays mounted while the episodes recalculate, so a choice keeps the section open and focused. */}
+        <details className="border-b border-border pb-2">
+          <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+            Other AI histories
+          </summary>
+          <p className="my-2 max-w-2xl text-xs text-muted-foreground">
+            Add another saved import to see whether recorded work continued there. Its tokens and
+            spend stay separate. Activity from other accounts in this import is already included.
+          </p>
+          {imports.map((record) => (
+            <label key={record.id} className="flex min-h-11 items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={ids?.includes(record.id) ?? false}
+                onChange={(e) =>
+                  choose(
+                    e.target.checked
+                      ? [...(ids ?? []), record.id]
+                      : (ids ?? []).filter((id) => id !== record.id),
+                  )
+                }
+              />
+              {record.label} · {number(record.eventCount)} records
+            </label>
+          ))}
+          {!imports.length ? (
+            <p className="text-xs text-muted-foreground">
+              No other saved histories yet. Import another tool’s history to include it here.
+            </p>
+          ) : null}
+        </details>
+        {burden ? (
+          <details
+            id={expanded ? "account-capacity-timeline" : "capacity-timeline"}
+            open={expanded || undefined}
+          >
+            <summary className="min-h-11 cursor-pointer content-center text-sm">
+              {expanded ? "Episode timeline" : "Review interruption timeline →"}
+            </summary>
+            <p className="mb-4 max-w-2xl text-xs text-muted-foreground">
+              Times are UTC. A later response shows recorded activity, not when a limit cleared.
+              Reset times are reported schedules.
+            </p>
+            <fieldset className="mb-4 flex flex-wrap gap-1">
+              <legend className="sr-only">Filter episodes by day</legend>
+              {["", ...new Set(burden.episodes.map((e) => e.firstBlockedAt.slice(0, 10)))].map(
+                (value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={day === value}
+                    onClick={() => setDay(value)}
+                    className={`min-h-11 border px-3 font-mono text-xs ${day === value ? "border-accent bg-accent/10 text-accent" : "border-border text-muted-foreground"}`}
+                  >
+                    {value
+                      ? new Date(`${value}T00:00:00Z`).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          timeZone: "UTC",
+                        })
+                      : "All days"}
+                  </button>
+                ),
+              )}
+            </fieldset>
+            {burden.episodes
+              .filter((e) => !day || e.firstBlockedAt.startsWith(day))
+              .map((e) => (
+                <Episode
+                  key={`${binding}:${e.episodeId}`}
+                  episode={e}
+                  impact={impacts[e.episodeId]}
+                  onSave={(value) => {
+                    const next = { ...impacts };
+                    if (value) next[e.episodeId] = value;
+                    else delete next[e.episodeId];
+                    if (saveEpisodeImpacts(importId, binding, next)) {
+                      setImpacts(next);
+                      setStatus("Episode impact saved locally.");
+                    } else setError("Episode impact could not be saved locally.");
+                  }}
+                />
+              ))}
+            <details className="mt-5 border-t border-border">
+              <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+                Timing &amp; preceding workload statistics
+              </summary>
+              <dl className="my-3 space-y-3 text-xs">
+                <div>
+                  <dt>Scheduled time remaining when first blocked</dt>
+                  <dd>{timing(burden.scheduledRemaining)}</dd>
+                </div>
+                <div>
+                  <dt>Retry span</dt>
+                  <dd>{timing(burden.retrySpan)}</dd>
+                </div>
+                <div>
+                  <dt>Time to next recorded main-account response</dt>
+                  <dd>{timing(burden.nextMainMs)}</dd>
+                </div>
+                <div>
+                  <dt>Time to next recorded AI activity</dt>
+                  <dd>{timing(burden.nextAnyMs)}</dd>
+                </div>
+                <div>
+                  <dt>Observed scheduled-block exposure</dt>
+                  <dd>
+                    {duration(burden.scheduledExposureMs)} of unique wall-clock exposure,
+                    overlapping schedules counted once and clipped to this selected period. Not
+                    downtime.
+                  </dd>
+                </div>
+              </dl>
+              <p className="my-3 text-xs text-muted-foreground">
+                No other-harness response was observed in {burden.noOtherBeforeBoundary} episodes
+                before the next main-account response, or the scheduled reset/cycle end when no main
+                response followed. That does not establish that work stopped. A main-account
+                response may use a different model or arrive between retries; it does not prove the
+                reported constraint cleared.
+              </p>
+              <details>
+                <summary className="min-h-11 cursor-pointer content-center text-xs">
+                  Episode-onset workload statistics
+                </summary>
+                {burden.onset.map((v) => (
+                  <p className="my-2 text-xs" key={v.hours}>
+                    Prior {v.hours === 168 ? "7 days" : `${v.hours} hours`}:{" "}
+                    {v.tokens
+                      ? `${number(v.tokens.median)} median known tokens · ${number(v.tokens.min)} to ${number(v.tokens.max)} · ${v.tokens.count} episode onsets`
+                      : "No observations"}
+                    . {v.partialContexts} contexts contain incomplete token records.
+                  </p>
+                ))}
+                <p className="text-xs text-muted-foreground">
+                  Main-account workload only, restricted to this selected period. Retrospective
+                  descriptions, not quota estimates. Each episode onset counts once.
+                </p>
+              </details>
+            </details>
+          </details>
+        ) : null}
         {error ? (
           <p role="alert" className="text-sm text-warning">
             {error}

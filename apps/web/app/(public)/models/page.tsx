@@ -3,12 +3,14 @@ import Link from "next/link";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { ModelExplorer } from "@/components/public/model-explorer";
 import { marketDiscovery } from "@/lib/market-discovery";
+import { modelPlanCounts } from "@/lib/model-library";
 export const metadata: Metadata = {
   title: "Models",
   description:
     "Explore current AI models, compare published API rates, find subscription access and test alternatives against your own workload.",
   alternates: { canonical: "/models" },
 };
+// The page stays static: the ?view=table layout is read in the browser (see ModelExplorer).
 export default function ModelsPage() {
   const { catalog, prices } = marketDiscovery();
   return (
@@ -30,7 +32,11 @@ export default function ModelsPage() {
           </Link>
         </aside>
       </MarketHeader>
-      <ModelExplorer models={catalog.models} prices={prices} />
+      <ModelExplorer
+        models={catalog.models}
+        prices={prices}
+        planCounts={modelPlanCounts(catalog.models)}
+      />
       <MarketFooter />
     </div>
   );

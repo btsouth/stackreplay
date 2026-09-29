@@ -1,0 +1,20 @@
+id: qwen-3-8-27b-pricing
+role: pricing
+modelId: qwen-3-8-27b
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.5'
+  output: '3'
+  cacheRead: '0.1'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b
+  title: 'Model page pricing, Singapore (Scope: International); cacheRead is the Input(Implicit Cache) rate. Explicit cache prices are listed separately.'
+  checkedAt: '2026-09-29'
+- url: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+  title: Model Studio pricing (standard prices; tier rule applies to all tokens in the request)
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

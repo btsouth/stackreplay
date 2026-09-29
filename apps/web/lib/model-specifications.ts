@@ -8,7 +8,12 @@ export function modelSpecifications(model: PublicModelSummary) {
   const specifications = {
     ...model.specifications,
     ...details?.specifications,
-    sources: [...(model.specifications?.sources ?? []), ...(details?.sources ?? [])],
+    // A source cited by both records is listed once.
+    sources: [...(model.specifications?.sources ?? []), ...(details?.sources ?? [])].filter(
+      (source, index, all) =>
+        all.findIndex((other) => other.url === source.url && other.title === source.title) ===
+        index,
+    ),
   };
   for (const key of details?.omitSpecifications ?? []) delete specifications[key];
   return specifications;
@@ -23,11 +28,13 @@ export function modelContext(model: PublicModelSummary) {
       : { value: undefined, label: "context" };
 }
 
+/** A compact token count at three significant digits ("131K", "1.05M"); exact counts are in Specifications. */
 export function tokenSize(value: number | undefined): string {
   if (value === undefined) return "Not documented";
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(
-    value,
-  );
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumSignificantDigits: 3,
+  }).format(value);
 }
 
 /** Only explicit positive capabilities become discovery filters or badges. */

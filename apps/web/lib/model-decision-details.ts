@@ -48,6 +48,49 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       knowledgeCutoff: "Jan 2026",
     },
   },
+  "claude-opus-4-6": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Adaptive (extended deprecated) · default effort high",
+      },
+      {
+        label: "API availability",
+        value: "Active (legacy)",
+      },
+      {
+        label: "Released",
+        value: "February 5, 2026",
+      },
+      {
+        label: "Retirement commitment",
+        value: "Not sooner than February 5, 2027",
+      },
+      {
+        label: "Extended output",
+        value:
+          "Maximum output is 300K tokens on the Batch API (beta). The standard maximum output limit remains 128K tokens.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Five-minute cache writes cost $6.25 per MTok, one-hour cache writes cost $10 per MTok and cache reads cost $0.50 per MTok.",
+      },
+      {
+        label: "Platforms",
+        value:
+          "Claude API, Amazon Bedrock (InvokeModel), Google Cloud, Microsoft Foundry and Claude Platform on AWS.",
+      },
+    ],
+  },
   "claude-opus-4-8": {
     checkedAt: "2026-09-29",
     sources: [
@@ -1289,6 +1332,139 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "glm-5": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "February 12, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.20 per MTok. Cached input storage is listed as limited-time free.",
+      },
+      {
+        label: "Coding Plan access",
+        value: "Z.ai's GLM-5 page says GLM-5 is available in the GLM Coding Plan on Pro and Max.",
+      },
+    ],
+  },
+  "glm-5-1": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5.1",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "April 7, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+      },
+    ],
+  },
+  "glm-5-2": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5.2",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "June 16, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+      },
+    ],
+  },
   "glm-5-3": {
     checkedAt: "2026-09-29",
     sources: [
@@ -1481,6 +1657,47 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "kimi-k2-6": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.kimi.ai/docs/pricing/chat",
+        title: "Token prices and context window",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.kimi.ai/docs/pricing/limits",
+        title: "Top-up requirement",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Thinking is on by default. Set thinking.type to disabled for non-thinking mode.",
+      },
+      {
+        label: "Sampling",
+        value:
+          "Temperature is fixed at 1.0 with thinking and 0.6 without. top_p is fixed at 0.95. Other values return an error.",
+      },
+      {
+        label: "Output limit",
+        value:
+          "max_tokens defaults to 32,768. A separate maximum output ceiling is not stated in the reviewed quickstart.",
+      },
+      {
+        label: "API identity",
+        value: "kimi-k2.6; OpenAI-compatible API. Text, image and video input.",
+      },
+      { label: "Access", value: "The Kimi API requires a top-up of at least $1 before first use." },
+    ],
+  },
   "kimi-k3": {
     checkedAt: "2026-09-29",
     sources: [
@@ -1554,6 +1771,640 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       inputModalities: ["text", "image", "video"],
     },
   },
+  "minimax-m3": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+        title: "Thinking control by model",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.minimax.io/models/text/m3",
+        title: "Context guarantee",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+        title: "Output limit",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/guides/pricing-paygo",
+        title: "Discounted rates, long-context tier and priority tier",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/release-notes/models",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is off when the thinking parameter is omitted. Set thinking type to adaptive to turn it on.",
+      },
+      { label: "Released", value: "June 1, 2026" },
+      {
+        label: "Context",
+        value:
+          "The API supports up to 1M tokens of context with a guaranteed minimum of 512K tokens.",
+      },
+      {
+        label: "Output limit",
+        value: "max_completion_tokens accepts up to 524,288 tokens; MiniMax recommends 131,072.",
+      },
+      {
+        label: "Long-context pricing",
+        value:
+          "Requests above 512K input tokens cost $0.60 input, $2.40 output and $0.12 cache read per MTok.",
+      },
+      {
+        label: "Billing",
+        value:
+          "MiniMax shows a permanent 50% discount from $0.60 input and $2.40 output. Priority service tier costs 1.5x standard.",
+      },
+      { label: "Input support", value: "Text, image and video input." },
+    ],
+  },
+  "minimax-m2-7": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+        title: "Thinking control by model",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+        title: "Output limit",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/guides/pricing-paygo",
+        title: "Cache and high-speed variant rates",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/release-notes/models",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Thinking is always on. A disabled thinking setting is accepted but ignored.",
+      },
+      { label: "Released", value: "March 18, 2026" },
+      {
+        label: "Input support",
+        value: "Text input only. MiniMax says M2.x models do not accept image or video input.",
+      },
+      {
+        label: "Output limit",
+        value: "max_completion_tokens accepts up to 204,800 tokens; MiniMax recommends 65,536.",
+      },
+      {
+        label: "Prompt caching",
+        value: "Cache reads cost $0.06 per MTok and cache writes cost $0.375 per MTok.",
+      },
+      {
+        label: "Variants",
+        value:
+          "MiniMax-M2.7-highspeed is a faster variant with its own id, at $0.60 input and $2.40 output per MTok.",
+      },
+    ],
+  },
+  "qwen-3-8-max": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 2, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.25 per MTok. Explicit cache creation costs $2.50 and explicit cache reads cost $0.17 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      {
+        label: "Snapshots",
+        value: "qwen3.8-max-0902 is a separate upgraded snapshot with its own model id.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
+  "qwen-3-8-flash": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 26, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.016 per MTok. Explicit cache creation costs $0.20 and explicit cache reads cost $0.016 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
+  "qwen-3-7-plus": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on June 1, 2026.",
+      },
+      {
+        label: "Long-context pricing",
+        value:
+          "Requests above 256K input tokens bill all tokens at $1.20 input and $4.80 output per MTok.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Up to 256K input: implicit cache hits $0.08, explicit cache creation $0.50 and explicit cache reads $0.04 per MTok. Above 256K: $0.24, $1.50 and $0.12.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+      {
+        label: "Snapshot",
+        value: "qwen3.7-plus is functionally equivalent to qwen3.7-plus-2026-05-26.",
+      },
+    ],
+  },
+  "qwen-3-7-max": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on May 21, 2026.",
+      },
+      {
+        label: "Status",
+        value: "Model Studio lists qwen3.7-max under legacy models that are no longer recommended.",
+      },
+      {
+        label: "Snapshot and input",
+        value:
+          "qwen3.7-max is functionally equivalent to qwen3.7-max-2026-05-20 and accepts text input only. The qwen3.7-max-2026-06-08 snapshot adds visual input under its own id.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.50 per MTok. Explicit cache creation costs $3.125 and explicit cache reads cost $0.25 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Rates shown are for Singapore (International). China (Beijing) and the Global regions (Frankfurt, Virginia, Tokyo, Hong Kong) list different rates.",
+      },
+    ],
+  },
+  "qwen-3-8-27b": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b",
+        title: "Official capabilities, limits and regional prices",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+        title: "Model Studio release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Hybrid thinking. Thinking is on by default and can be turned off per request with enable_thinking.",
+      },
+      {
+        label: "Released on Model Studio",
+        value: "Listed for Singapore (International) on August 17, 2026.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Implicit cache hits cost $0.10 per MTok. Explicit cache creation costs $0.625 and explicit cache reads cost $0.05 per MTok.",
+      },
+      {
+        label: "Regions",
+        value:
+          "Model Studio offers it in China (Beijing) and Singapore (International). Rates shown are for Singapore.",
+      },
+      { label: "Thinking length", value: "Maximum chain-of-thought length is 262,144 tokens." },
+    ],
+  },
+  "mimo-v2-6-pro": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "September 22, 2026" },
+      {
+        label: "Batch API",
+        value: "Batch requests cost $0.2175 input, $0.435 output and $0.0018 cache hit per MTok.",
+      },
+      {
+        label: "Variants",
+        value:
+          "mimo-v2.6-pro-ultraspeed is a faster variant with its own id, at $4.35 input, $8.70 output and $0.036 cache hit per MTok. It does not support the Batch API.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-6-flash": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "September 22, 2026" },
+      {
+        label: "Batch API",
+        value: "Batch requests cost $0.07 input, $0.14 output and $0.0014 cache hit per MTok.",
+      },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-5": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.5",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/deprecate",
+        title: "Deprecation schedule",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "April 23, 2026" },
+      {
+        label: "Deprecation",
+        value:
+          "Xiaomi will deprecate this model at 10:00 Beijing time on October 21, 2026. There is no replacement model; requests that use its name after that return an error.",
+      },
+      { label: "Batch API", value: "Not supported." },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "mimo-v2-5-pro": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+        title: "Official model specs and pricing",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/price/pay-as-you-go",
+        title: "Billing conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/model",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://mimo.mi.com/docs/en-US/updates/deprecate",
+        title: "Deprecation schedule",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
+      },
+      { label: "Released", value: "April 23, 2026" },
+      {
+        label: "Deprecation",
+        value:
+          "Xiaomi will deprecate this model at 10:00 Beijing time on October 21, 2026. There is no replacement model; requests that use its name after that return an error.",
+      },
+      { label: "Input support", value: "Text input only." },
+      { label: "Batch API", value: "Not supported." },
+      {
+        label: "Prompt caching",
+        value:
+          "Cache hits are billed at the cache-hit rate. Cache writes are listed as limited-time free.",
+      },
+      {
+        label: "Web search",
+        value:
+          "Web search is billed per call ($5 per 1,000 calls overseas), separately from token prices.",
+      },
+    ],
+  },
+  "nemotron-3-ultra": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+        title: "Official model card",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+        title: "API catalog specifications and access",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Reasoning is configurable on or off with enable_thinking in the chat template.",
+      },
+      { label: "Released", value: "June 4, 2026" },
+      {
+        label: "API access",
+        value:
+          "NVIDIA offers a free trial endpoint on build.nvidia.com that records inputs and outputs, which NVIDIA may use to improve its products. NVIDIA does not publish its own per-token rate; listed partner endpoints set their own prices.",
+      },
+      {
+        label: "API capabilities",
+        value: "Function calling is supported. Structured output is listed as not supported.",
+      },
+      {
+        label: "Output limit",
+        value:
+          "A separate maximum output ceiling is not stated; the model card gives a context length of up to 1M tokens.",
+      },
+      {
+        label: "Data cutoff",
+        value: "Pre-training data cutoff September 2025; post-training data cutoff May 2026.",
+      },
+      {
+        label: "Open weights",
+        value:
+          "The weights are downloadable. Use is governed by the OpenMDW License Agreement, version 1.1.",
+      },
+    ],
+  },
+  "longcat-2-0": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://longcat.chat/platform/docs/change-log",
+        title: "Release, context and tool calling",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://longcat.chat/platform/docs/api/chat",
+        title: "Thinking and output parameters",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://longcat.chat/platform/docs/api-pay-as-you-go",
+        title: "Discounted USD rates and payment methods",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://huggingface.co/meituan-longcat/LongCat-2.0",
+        title: "Official model card",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is turned on or off per request with thinking.type. The default is not stated.",
+      },
+      { label: "Released", value: "June 30, 2026" },
+      {
+        label: "Output limit",
+        value:
+          "A maximum output ceiling for LongCat-2.0 is not stated; the max_tokens ceiling on the API page is given only for LongCat-2.5-Preview.",
+      },
+      {
+        label: "Billing",
+        value:
+          "The USD pay-as-you-go rates are labeled a limited-time discount, with no end date or undiscounted rate published. A yuan price table is listed as well. Payment methods are Alipay, WeChat Pay, credit or debit card and Google Pay.",
+      },
+      { label: "Open weights", value: "The model weights are released under the MIT License." },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [
@@ -1596,12 +2447,22 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         title: "Official specifications and conditions",
         checkedAt: "2026-09-29",
       },
+      {
+        url: "https://dev.meta.ai/docs/models",
+        title: "Standard and Contributor tiers",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://dev.meta.ai/docs/pricing-rate-limits",
+        title: "Contributor tier pricing and rate limits",
+        checkedAt: "2026-09-29",
+      },
     ],
     facts: [
       {
         label: "Data choice",
         value:
-          "The standard muse-spark-1.3 endpoint is not used to improve Meta products. The cheaper contributor endpoint permits that use and is a separate choice.",
+          "The standard muse-spark-1.3 endpoint is not used to train Meta models. Meta also offers muse-spark-1.3-contributor, a discounted Contributor-tier variant of the same version that permits training on your prompts and completions. It costs $0.10 input, $0.20 output and $0.002 cached input per MTok, with a lower 100 RPM limit.",
       },
       {
         label: "Capabilities",
@@ -1610,7 +2471,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Output limit",
         value:
-          "The reviewed model page publishes a 1M context window but no separate output ceiling.",
+          "Meta's model docs list a 1,048,576-token context window but no separate output ceiling.",
       },
     ],
     specifications: {

@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 49 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 67 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -20,6 +20,7 @@ Existing prices and technical facts were checked against the linked documentatio
 | Claude Fable 5 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/fable-5/overview) |
 | Claude Fable 5.1 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/fable-5-1/overview) |
 | Claude Haiku 4.5 | Thinking, API availability, Released, Retirement commitment | [Official documentation](https://platform.claude.com/docs/en/models/haiku-4-5/overview) |
+| Claude Opus 4.6 | Thinking, API availability, Released, Retirement commitment, Extended output, Prompt caching, Platforms | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-6/overview) |
 | Claude Opus 4.7 | Thinking, API availability, Released, Retirement commitment, Extended output | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-7/overview) |
 | Claude Opus 4.8 | Thinking, API availability, Released, Retirement commitment, Extended output | [Official documentation](https://platform.claude.com/docs/en/models/opus-4-8/overview) |
 | Claude Opus 4.8 (fast mode) (preview) | Processing mode, Billing | [Official documentation](https://platform.claude.com/docs/en/about-claude/pricing) |
@@ -41,6 +42,9 @@ Existing prices and technical facts were checked against the linked documentatio
 | Gemini 3 Flash | API availability, Input limit, Multimodal input, Built-in capabilities, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview) |
 | Gemini 3 Flash-Lite | Identity, Comparison boundary | [Official documentation](https://ai.google.dev/gemini-api/docs/models) |
 | Gemini 3 Pro | API availability, Input limit, Multimodal input | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview) |
+| GLM 5 | Thinking, Input support, API capabilities, Released, Prompt caching, Coding Plan access | [Official documentation](https://docs.z.ai/guides/llm/glm-5) |
+| GLM 5.1 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.1) |
+| GLM 5.2 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.2) |
 | GLM 5.3 | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/llm/glm-5.3) |
 | GLM 5.3 Flash | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |
 | GLM 5.3 FlashX | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |
@@ -61,15 +65,29 @@ Existing prices and technical facts were checked against the linked documentatio
 | Grok 4.5 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.5) |
 | Grok 4.6 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.6) |
 | Grok 4.7 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.7) |
+| Kimi K2.6 | Thinking, Sampling, Output limit, API identity, Access | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart) |
 | Kimi K2.7 Code | Thinking, Variants, Output limit, API identity | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart) |
 | Kimi K3 | Thinking, Output control, Access, Prompt caching, Tools | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k3-quickstart) |
+| LongCat 2.0 | Thinking, Released, Output limit, Billing, Open weights | [Official documentation](https://longcat.chat/platform/docs/change-log) |
 | MAI-Code-1.1-Flash | Product access, Capabilities | [Official documentation](https://github.com/microsoft/MAI-Code) |
+| MiMo V2.5 | Thinking, Released, Deprecation, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5) |
+| MiMo V2.5 Pro | Thinking, Released, Deprecation, Input support, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5-pro) |
+| MiMo V2.6 Flash | Thinking, Released, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-flash) |
+| MiMo V2.6 Pro | Thinking, Released, Batch API, Variants, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-pro) |
+| MiniMax M2.7 | Thinking, Released, Input support, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
+| MiniMax M3 | Thinking, Released, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
+| Nemotron 3 Ultra | Thinking, Released, API access, API capabilities, Output limit, Data cutoff, Open weights | [Official documentation](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16) |
+| Qwen 3.7 Max | Thinking, Released on Model Studio, Status, Snapshot and input, Prompt caching, Regions | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
+| Qwen 3.7 Plus | Thinking, Released on Model Studio, Long-context pricing, Prompt caching, Regions, Snapshot | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus) |
+| Qwen 3.8 27B | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b) |
+| Qwen 3.8 Flash | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash) |
+| Qwen 3.8 Max | Thinking, Released on Model Studio, Prompt caching, Regions, Snapshots, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max) |
 
 ## Remaining boundaries
 
-Grok 4.5/4.6/4.7, Kimi K2.7 Code, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
+Grok 4.5/4.6/4.7, Kimi K2.6, Kimi K2.7 Code, LongCat 2.0, Nemotron 3 Ultra, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
 
 DeepSeek explicitly excludes Chinese public holidays from peak hours. This public condition is displayed; the existing replay admission boundary is unchanged. Model guide processing choices, regional surcharges, tools and provider-side discounts do not become executable replay options merely by being documented.
 

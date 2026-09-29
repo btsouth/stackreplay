@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCompareFacts } from "./compare-facts";
-import { loadPublicCatalog } from "./public-catalog";
-import { includedAccessModels, subscriptionAccess } from "./subscription-access";
+import { modelPlanCount, modelPlanCounts } from "./model-library";
+import { loadPublicCatalog, planIncludesModel } from "./public-catalog";
+import {
+  includedAccessModels,
+  type SubscriptionAccessModel,
+  subscriptionAccess,
+} from "./subscription-access";
 
 const date = "2026-09-28";
 const catalog = loadPublicCatalog(date);
@@ -78,5 +83,59 @@ describe("published subscription access", () => {
   });
   it("does not backdate current lineup observations", () => {
     expect(subscriptionAccess("command-code-max-20x", "2026-09-27")).toBeUndefined();
+  });
+});
+
+describe("included plan counts", () => {
+  const access = (models: SubscriptionAccessModel[], extra: SubscriptionAccessModel[] = []) => ({
+    modelRules: [],
+    modelAccess: {
+      checkedAt: date,
+      summary: "",
+      groups: [
+        {
+          label: "Included",
+          access: "included" as const,
+          sourceUrl: "https://example.com",
+          models,
+        },
+        {
+          label: "Extra",
+          access: "extra_usage" as const,
+          sourceUrl: "https://example.com",
+          models: extra,
+        },
+      ],
+    },
+  });
+
+  it("counts a published lineup only through explicit modelId links", () => {
+    expect(planIncludesModel(access([{ name: "Alpha", modelId: "alpha" }]), "alpha")).toBe(true);
+    expect(planIncludesModel(access([{ name: "alpha" }, { name: "Beta" }]), "alpha")).toBe(false);
+    expect(planIncludesModel(access([], [{ name: "Alpha", modelId: "alpha" }]), "alpha")).toBe(
+      false,
+    );
+  });
+
+  it("falls back to catalog model rules only for a plan without a lineup", () => {
+    const rules = [
+      { model: "alpha", access: "included" },
+      { model: "beta", access: "included", excluded: true },
+    ] as never;
+    expect(planIncludesModel({ modelRules: rules }, "alpha")).toBe(true);
+    expect(planIncludesModel({ modelRules: rules }, "beta")).toBe(false);
+    expect(planIncludesModel({ ...access([]), modelRules: rules }, "alpha")).toBe(false);
+  });
+
+  it("gives cards, the table and the model page one count per model", () => {
+    const counts = modelPlanCounts(catalog.models);
+    expect(counts["claude-sonnet-5-5"]).toBeGreaterThan(0);
+    for (const model of catalog.models) {
+      const listed = model.places.filter((place) => place.kind === "plan").length;
+      const including = catalog.plans.filter((plan) => planIncludesModel(plan, model.id)).length;
+      expect(counts[model.id] ?? 0, model.id).toBe(listed);
+      expect(modelPlanCount(model), model.id).toBe(listed);
+      expect(including, model.id).toBe(listed);
+    }
   });
 });

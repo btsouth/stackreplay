@@ -153,6 +153,7 @@ describe("launch catalog: Anthropic lineup (checked 2026-09-24)", () => {
 
   it("links each family to its releases through declared family ids", () => {
     expect(familyReleaseIds(catalog, "claude-opus")).toEqual([
+      "claude-opus-4-6",
       "claude-opus-4-7",
       "claude-opus-4-8",
       "claude-opus-4-8-fast-mode",

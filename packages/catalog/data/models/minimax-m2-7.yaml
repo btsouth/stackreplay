@@ -1,0 +1,53 @@
+id: minimax-m2-7
+role: model
+name: MiniMax M2.7
+developerId: minimax
+providerIds:
+- minimax
+aliases:
+- id: minimax-m2-7-api-id
+  alias: MiniMax-M2.7
+  kind: provider_id
+  sources:
+  - url: https://platform.minimax.io/docs/guides/text-generation
+    title: MiniMax-M2.7 API model name
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: minimax-m2-7-router-minimax-minimax-m2-7
+  alias: minimax/minimax-m2.7
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/minimax/minimax-m2.7
+    title: OpenRouter model record `minimax/minimax-m2.7` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://platform.minimax.io/docs/guides/text-generation
+  title: MiniMax-M2.7 model documentation
+  checkedAt: '2026-09-29'
+- url: https://platform.minimax.io/docs/guides/pricing-paygo
+  title: MiniMax pay-as-you-go API pricing
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 204800
+  maxOutputTokens: 204800
+  inputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  notes:
+  - Thinking is always on; a disabled thinking setting is accepted but ignored.
+  sources:
+  - url: https://platform.minimax.io/docs/guides/text-generation
+    title: Official context window
+    checkedAt: '2026-09-29'
+  - url: https://platform.minimax.io/docs/api-reference/text-chat-openai
+    title: Maximum max_completion_tokens
+    checkedAt: '2026-09-29'
+  - url: https://platform.minimax.io/docs/api-reference/text-anthropic-api
+    title: Thinking control, text and tool-call content only (no image or video input)
+    checkedAt: '2026-09-29'
