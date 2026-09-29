@@ -1,13 +1,21 @@
 import { bundledModelIdentity } from "@stackreplay/catalog/bundled";
 import { describe, expect, it } from "vitest";
+import { marketDiscovery } from "./market-discovery";
 import {
+  defaultSortDirection,
   developerOptions,
+  hasPublishedApiPrice,
+  isIncludedInSubscription,
   isInView,
+  type ModelSortKey,
+  modelSortValue,
   modelsInView,
   placesSummary,
   searchModels,
+  sortModels,
 } from "./model-library";
 import { loadPublicCatalog } from "./public-catalog";
+import { includedPlanCounts } from "./subscription-access";
 
 /**
  * The public model library (launch taxonomy): releases lead, legacy releases
@@ -117,5 +125,59 @@ describe("developer and routes", () => {
     expect(summary.labels[0]).toBe("Anthropic API");
     expect(summary.labels[1]).toMatch(/^Claude /u);
     expect(summary.more).toBeGreaterThan(0);
+  });
+});
+
+describe("model table sorting and filters", () => {
+  const current = marketDiscovery("2026-09-29");
+  const facts = {
+    prices: current.prices,
+    planCounts: includedPlanCounts(current.catalog.plans),
+  };
+  const releases = current.catalog.models.filter((model) => model.kind === "release");
+  const published = (key: ModelSortKey) =>
+    releases.filter((model) => modelSortValue(model, key, facts) !== undefined).length;
+
+  for (const key of ["input", "output", "cacheRead", "context", "maxOutput"] as const) {
+    for (const direction of ["ascending", "descending"] as const) {
+      it(`sorts ${key} ${direction} with unpublished values last`, () => {
+        const sorted = sortModels(releases, key, direction, facts);
+        const values = sorted.map((model) => modelSortValue(model, key, facts));
+        const count = published(key);
+        expect(count).toBeGreaterThan(0);
+        expect(count).toBeLessThan(releases.length);
+        expect(values.slice(count).every((value) => value === undefined)).toBe(true);
+        const known = values.slice(0, count) as number[];
+        const expected = [...known].sort((a, b) => (direction === "ascending" ? a - b : b - a));
+        expect(known).toEqual(expected);
+      });
+    }
+  }
+
+  it("counts plans from explicit links and treats zero as a real value", () => {
+    const sorted = sortModels(releases, "plans", "descending", facts);
+    expect(modelSortValue(sorted[0], "plans", facts)).toBeGreaterThan(0);
+    const last = sorted.at(-1);
+    expect(last && modelSortValue(last, "plans", facts)).toBe(0);
+  });
+
+  it("starts price sorts cheapest first and limits largest first", () => {
+    expect(defaultSortDirection("input")).toBe("ascending");
+    expect(defaultSortDirection("context")).toBe("descending");
+    expect(defaultSortDirection("maxOutput")).toBe("descending");
+  });
+
+  it("filters to published API prices and subscription access", () => {
+    const byId = (id: string) => {
+      const model = current.catalog.modelById(id);
+      if (!model) throw new Error(`missing ${id}`);
+      return model;
+    };
+    expect(hasPublishedApiPrice(byId("claude-sonnet-5-5"), facts)).toBe(true);
+    expect(hasPublishedApiPrice(byId("nemotron-3-ultra"), facts)).toBe(false);
+    expect(isIncludedInSubscription(byId("claude-sonnet-5-5"), facts)).toBe(true);
+    expect(isIncludedInSubscription(byId("claude-sonnet-5-5"), { ...facts, planCounts: {} })).toBe(
+      false,
+    );
   });
 });

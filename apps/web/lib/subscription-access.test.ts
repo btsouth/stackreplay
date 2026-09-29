@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCompareFacts } from "./compare-facts";
 import { loadPublicCatalog } from "./public-catalog";
-import { includedAccessModels, subscriptionAccess } from "./subscription-access";
+import {
+  includedAccessModels,
+  includedPlanCounts,
+  type SubscriptionAccessModel,
+  subscriptionAccess,
+} from "./subscription-access";
 
 const date = "2026-09-28";
 const catalog = loadPublicCatalog(date);
@@ -78,5 +83,52 @@ describe("published subscription access", () => {
   });
   it("does not backdate current lineup observations", () => {
     expect(subscriptionAccess("command-code-max-20x", "2026-09-27")).toBeUndefined();
+  });
+});
+
+describe("included plan counts", () => {
+  const access = (models: SubscriptionAccessModel[], extra: SubscriptionAccessModel[] = []) => ({
+    modelAccess: {
+      checkedAt: date,
+      summary: "",
+      groups: [
+        {
+          label: "Included",
+          access: "included" as const,
+          sourceUrl: "https://example.com",
+          models,
+        },
+        {
+          label: "Extra",
+          access: "extra_usage" as const,
+          sourceUrl: "https://example.com",
+          models: extra,
+        },
+      ],
+    },
+  });
+
+  it("counts only explicit modelId links, once per plan", () => {
+    const counts = includedPlanCounts([
+      access([
+        { name: "Alpha", modelId: "alpha" },
+        { name: "Alpha again", modelId: "alpha" },
+      ]),
+      access([{ name: "alpha" }, { name: "Beta" }]),
+      access([], [{ name: "Alpha", modelId: "alpha" }]),
+      {},
+    ]);
+    expect(counts).toEqual({ alpha: 1 });
+  });
+
+  it("matches the linked plans the public catalog lists for each model", () => {
+    const counts = includedPlanCounts(catalog.plans);
+    expect(counts["claude-sonnet-5-5"]).toBeGreaterThan(0);
+    for (const model of catalog.models) {
+      const linked = catalog.plans.filter((plan) =>
+        includedAccessModels(accessFor(plan.id)).some((entry) => entry.modelId === model.id),
+      );
+      expect(counts[model.id] ?? 0, model.id).toBe(linked.length);
+    }
   });
 });

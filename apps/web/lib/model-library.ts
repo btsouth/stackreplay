@@ -1,3 +1,6 @@
+import type { ModelPrices } from "./market-discovery";
+import { basePrice } from "./market-prices";
+import { modelContext, modelSpecifications } from "./model-specifications";
 import { lifecycleRank, type PublicModelSummary } from "./public-catalog";
 
 /**
@@ -147,4 +150,74 @@ export function placesSummary(
     labels: model.places.slice(0, shown).map((place) => place.label),
     more: Math.max(0, model.places.length - shown),
   };
+}
+
+export type ModelSortKey =
+  | "featured"
+  | "name"
+  | "input"
+  | "output"
+  | "cacheRead"
+  | "context"
+  | "maxOutput"
+  | "plans";
+export type SortDirection = "ascending" | "descending";
+
+/** The direction a sort starts in: cheapest prices first, largest limits and counts first. */
+export function defaultSortDirection(key: ModelSortKey): SortDirection {
+  return key === "context" || key === "maxOutput" || key === "plans" ? "descending" : "ascending";
+}
+
+export interface ModelFacts {
+  prices: Record<string, readonly ModelPrices[]>;
+  planCounts: Record<string, number>;
+}
+
+/** A published numeric value for a sortable column, or undefined when it is not published. */
+export function modelSortValue(
+  model: PublicModelSummary,
+  key: ModelSortKey,
+  facts: ModelFacts,
+): number | undefined {
+  if (key === "input" || key === "output" || key === "cacheRead") {
+    const rate = basePrice(facts.prices[model.id] ?? [])?.rates[key];
+    return rate === undefined ? undefined : Number(rate);
+  }
+  if (key === "context") return modelContext(model).value;
+  if (key === "maxOutput") return modelSpecifications(model)?.maxOutputTokens;
+  if (key === "plans") return facts.planCounts[model.id] ?? 0;
+  return undefined;
+}
+
+/**
+ * Sort by a published value. Records without that value always sort last, in
+ * either direction, and keep library order among themselves.
+ */
+export function sortModels(
+  models: readonly PublicModelSummary[],
+  key: ModelSortKey,
+  direction: SortDirection,
+  facts: ModelFacts,
+): PublicModelSummary[] {
+  if (key === "featured") return [...models].sort(byDiscoveryOrder);
+  const sign = direction === "ascending" ? 1 : -1;
+  if (key === "name")
+    return [...models].sort((left, right) => sign * left.name.localeCompare(right.name));
+  return [...models].sort((left, right) => {
+    const a = modelSortValue(left, key, facts);
+    const b = modelSortValue(right, key, facts);
+    if (a === undefined || b === undefined)
+      return Number(a === undefined) - Number(b === undefined) || byLibraryOrder(left, right);
+    return sign * (a - b) || byLibraryOrder(left, right);
+  });
+}
+
+/** A base API list price with at least an input or output rate is published. */
+export function hasPublishedApiPrice(model: PublicModelSummary, facts: ModelFacts): boolean {
+  const rates = basePrice(facts.prices[model.id] ?? [])?.rates;
+  return rates?.input !== undefined || rates?.output !== undefined;
+}
+
+export function isIncludedInSubscription(model: PublicModelSummary, facts: ModelFacts): boolean {
+  return (facts.planCounts[model.id] ?? 0) > 0;
 }
