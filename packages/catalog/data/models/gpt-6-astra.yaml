@@ -15,6 +15,45 @@ aliases:
     checkedAt: 2026-09-21
   lastVerifiedAt: 2026-09-21
   verificationStatus: verified
+serviceTiers:
+- tier: standard
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Standard table (gpt-6-astra row)
+    checkedAt: 2026-09-29
+- tier: batch
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Batch table (gpt-6-astra row)
+    checkedAt: 2026-09-29
+- tier: flex
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Flex table (gpt-6-astra row)
+    checkedAt: 2026-09-29
+- tier: fast
+  availability: available
+  note: Fast mode is not available with EU data residency for GPT-6 Astra.
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Fast table (gpt-6-astra row)
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/guides/fast-mode
+    title: Fast mode guide (data residency limits)
+    checkedAt: 2026-09-29
+- tier: ultrafast
+  availability: available
+  note: Available to all API users at low default rate limits; US data residency and global processing only.
+  sources:
+  - url: https://developers.openai.com/api/docs/guides/ultrafast-mode
+    title: '"Ultrafast mode for GPT-6 Astra is currently available to all API users at low rate limits."'
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Ultrafast table (gpt-6-astra row)
+    checkedAt: 2026-09-29
 sources:
 - url: https://openai.com/chatgpt/pricing/
   title: OpenAI pricing (official)

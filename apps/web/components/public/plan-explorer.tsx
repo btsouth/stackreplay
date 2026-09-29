@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { PlanTermsNotice } from "@/components/plan-history";
 import type { CompareFacts } from "@/lib/compare-facts";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
 export function PlanExplorer({
@@ -9,12 +10,15 @@ export function PlanExplorer({
   facts,
   tools = {},
   usage = {},
+  asOf,
 }: {
   plans: readonly PublicPlanSummary[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
   tools?: Record<string, string[]>;
   usage?: Record<string, string>;
+  /** The day plan terms were resolved on; the viewer's day takes over after hydration. */
+  asOf: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [provider, setProvider] = useState("all");
@@ -108,6 +112,15 @@ export function PlanExplorer({
               <p className="text-sm leading-relaxed">
                 {usage[plan.id] ?? "Included model access. Usage varies with your work."}
               </p>
+              {plan.timeline !== undefined && (
+                <PlanTermsNotice
+                  asOf={asOf}
+                  followToday
+                  variant="line"
+                  historyHref={`/plans/${plan.id}#history`}
+                  plan={plan.timeline}
+                />
+              )}
               <p className="market-muted mt-2" data-testid="plan-models-preview">
                 {facts[plan.id]?.models.featured.slice(0, 3).map((m, index) => (
                   <span key={m.id}>

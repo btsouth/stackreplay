@@ -20,14 +20,27 @@ export interface SubscriptionAccess {
   groups: readonly SubscriptionAccessGroup[];
 }
 
-const records: Readonly<Record<string, SubscriptionAccess>> = accessData as Record<
-  string,
-  SubscriptionAccess
->;
+/**
+ * A plan keeps one reviewed snapshot per review date, so a lineup change (a new
+ * model on a given day) does not rewrite what was true before it. A plan with a
+ * single review stores it on its own.
+ */
+const records: Readonly<Record<string, SubscriptionAccess | readonly SubscriptionAccess[]>> =
+  accessData as Record<string, SubscriptionAccess | SubscriptionAccess[]>;
 
+/** The latest reviewed snapshot on or before `asOf`. */
 export function subscriptionAccess(planId: string, asOf: string): SubscriptionAccess | undefined {
-  const record = records[planId];
-  return record && record.checkedAt <= asOf ? record : undefined;
+  const stored = records[planId];
+  const snapshots: readonly SubscriptionAccess[] =
+    stored === undefined ? [] : Array.isArray(stored) ? stored : [stored as SubscriptionAccess];
+  let selected: SubscriptionAccess | undefined;
+  for (const snapshot of snapshots)
+    if (
+      snapshot.checkedAt <= asOf &&
+      (selected === undefined || snapshot.checkedAt > selected.checkedAt)
+    )
+      selected = snapshot;
+  return selected;
 }
 
 /** Unique selectable names; separately purchased usage is not included usage. */

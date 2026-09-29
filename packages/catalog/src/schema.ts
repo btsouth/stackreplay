@@ -4,6 +4,8 @@ import {
   multiplierV1Schema,
   pricingRateSetV1Schema,
   pricingTierV1Schema,
+  serviceTierAvailabilityV1Schema,
+  serviceTierV1Schema,
   verificationStatusV1Schema,
 } from "@stackreplay/schema";
 import { z } from "zod";
@@ -147,9 +149,146 @@ export const qualitativeLimitV1Schema = z.strictObject({
 });
 export type QualitativeLimitV1 = z.infer<typeof qualitativeLimitV1Schema>;
 
+/**
+ * Where a plan fact comes from, and how much weight it carries.
+ *
+ * A provider can state a fact in its docs, in a product announcement, on
+ * stage, in its help center, or through an identifiable staff member before
+ * any page repeats it. All five are the provider speaking; an official keynote
+ * announcement does not wait for a help-center page to become a fact. Third
+ * parties never appear here.
+ */
+export const planEvidenceAuthorityV1Schema = z.enum([
+  "provider_docs",
+  "provider_announcement",
+  "provider_keynote",
+  "provider_help_center",
+  "provider_staff",
+]);
+export type PlanEvidenceAuthorityV1 = z.infer<typeof planEvidenceAuthorityV1Schema>;
+
+export const planEvidenceV1Schema = z.strictObject({
+  url: z.string().regex(/^https:\/\/\S+$/, "must be an https URL"),
+  title: z.string().min(1),
+  checkedAt: isoDateV1Schema,
+  authority: planEvidenceAuthorityV1Schema,
+  /** The source's own words for the fact, quoted rather than paraphrased. */
+  excerpt: z.string().min(1).optional(),
+});
+export type PlanEvidenceV1 = z.infer<typeof planEvidenceV1Schema>;
+
+/**
+ * Who a plan change applies to. A pause on new sign-ups is not a change for
+ * existing subscribers, and the catalog says so instead of letting a reader
+ * assume the plan was switched off.
+ */
+export const planAudienceV1Schema = z.enum([
+  "new_subscribers",
+  "upgrades",
+  "existing_subscribers",
+  "returning_subscribers",
+]);
+export type PlanAudienceV1 = z.infer<typeof planAudienceV1Schema>;
+
+/**
+ * An announced change that will never take effect: the provider cancelled it,
+ * or replaced it with a different change before its date. A withdrawn version
+ * is never selected, whatever its dates say.
+ */
+export const planWithdrawalV1Schema = z.strictObject({
+  reason: z.enum(["cancelled", "superseded"]),
+  at: isoDateV1Schema,
+  note: z.string().min(1).optional(),
+});
+export type PlanWithdrawalV1 = z.infer<typeof planWithdrawalV1Schema>;
+
+/**
+ * How new terms compare with the ones they replace, when the provider states
+ * the comparison but not the allowance itself.
+ *
+ * `api_equivalent_spend` is the only measure so far: the dollar value, at API
+ * list prices, of the usage the plan includes. A ratio of "0.5" with
+ * `approximate: true` reads "about half the previous API-equivalent spend". It
+ * is not a token ratio (cheaper models change how many tokens a dollar buys),
+ * and it never becomes a numeric replay limit, because neither allowance is
+ * published.
+ */
+export const planRelativeValueV1Schema = z.strictObject({
+  measure: z.literal("api_equivalent_spend"),
+  ratio: decimalAmountV1Schema,
+  approximate: z.boolean(),
+  comparedTo: z.literal("previous_terms"),
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanRelativeValueV1 = z.infer<typeof planRelativeValueV1Schema>;
+
+/**
+ * Marks a version that starts new commercial terms, as opposed to a version
+ * that only records a lineup or source update within the same terms. The
+ * plan's history reads its "previous terms" and "current terms" from these.
+ */
+export const planRevisionV1Schema = z.strictObject({
+  title: z.string().min(1),
+  relativeValue: planRelativeValueV1Schema.optional(),
+});
+export type PlanRevisionV1 = z.infer<typeof planRevisionV1Schema>;
+
+/**
+ * A plan's allowance stated as a multiple of another plan's, in the provider's
+ * own usage unit ("25 times the usage of Plus"). The unit is the provider's and
+ * is not defined further, so the multiple is never read as tokens, API dollars,
+ * messages or a per-model limit, and it never becomes a numeric replay limit.
+ */
+export const planRelativeAllowanceV1Schema = z.strictObject({
+  measure: z.literal("provider_usage"),
+  multiple: decimalAmountV1Schema,
+  /** The plan whose allowance is the unit, e.g. ChatGPT Plus. */
+  comparedToPlanId: catalogIdV1Schema,
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanRelativeAllowanceV1 = z.infer<typeof planRelativeAllowanceV1Schema>;
+
+/**
+ * A group of subscribers who hold different terms of the same plan for a
+ * while, such as existing subscribers kept on their previous allowance when a
+ * provider revises a plan. It is not a separate product: the plan, its price
+ * and its identity stay the same. `eligibility` is the provider's own wording,
+ * and a date the provider does not publish (a cutoff) is not invented.
+ */
+export const planCohortV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  kind: z.enum(["grandfathered"]),
+  /** Who is in the cohort, in a few words: "Eligible existing subscribers". */
+  label: z.string().min(1),
+  eligibility: z.string().min(1),
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanCohortV1 = z.infer<typeof planCohortV1Schema>;
+
 export const planVersionEntryV1Schema = z.strictObject({
   effectiveFrom: isoDateV1Schema,
   effectiveTo: isoDateV1Schema.optional(),
+  /**
+   * The cohort these terms apply to. Absent means the market terms: what
+   * someone subscribing on that day gets. A cohort's versions run beside the
+   * market versions and may overlap them in time.
+   */
+  cohort: catalogIdV1Schema.optional(),
+  /**
+   * What `effectiveFrom` means. `provider` is a date the provider stated;
+   * `catalog_recorded` is the day this catalog first recorded the terms, which
+   * says nothing about when the provider introduced them. Absent on older
+   * records, where it is not established either way.
+   */
+  effectiveFromBasis: z.enum(["provider", "catalog_recorded"]).optional(),
+  /** When the provider announced these terms, if before they took effect. */
+  announcedAt: isoDateV1Schema.optional(),
+  /** Who these terms apply to, when the provider limits them. */
+  audience: z.array(planAudienceV1Schema).min(1).optional(),
+  revision: planRevisionV1Schema.optional(),
+  withdrawn: planWithdrawalV1Schema.optional(),
+  /** Allowances the provider states relative to another plan's. */
+  relativeAllowances: z.array(planRelativeAllowanceV1Schema).min(1).optional(),
   price: planPriceV1Schema,
   billingMechanics: z.string().min(1).optional(),
   /**
@@ -174,6 +313,57 @@ export const planVersionEntryWithLimitsV1Schema = planVersionEntryV1Schema.refin
   { message: "a plan version must state at least one limit" },
 );
 
+/**
+ * Something that happened to a plan that a subscriber would want to know.
+ *
+ * An event is not a version. A version holds terms a replay calculates with;
+ * an event is history: a pause on new sign-ups, an announcement, a reopening.
+ * A pause can matter to a buyer without changing anything for an existing
+ * subscriber, so it is an event with no version behind it. An event that
+ * starts new terms names that version by its `effectiveFrom`.
+ *
+ * `announcement` events record the announcement itself and are dated by
+ * `announcedAt`. Every other kind is dated by `effectiveAt`; one with no
+ * `effectiveAt` is announced but undated and never takes effect by the
+ * passage of time.
+ */
+export const planEventKindV1Schema = z.enum([
+  "announcement",
+  "availability",
+  "price",
+  "allowance",
+  "model_access",
+  "promotion",
+  "feature_added",
+  "feature_removed",
+  "terms",
+]);
+export type PlanEventKindV1 = z.infer<typeof planEventKindV1Schema>;
+
+export const planEventV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  kind: planEventKindV1Schema,
+  /** A few words: "New subscriptions paused". */
+  title: z.string().min(1),
+  /** One short line of detail, shown under the title. */
+  summary: z.string().min(1).optional(),
+  announcedAt: isoDateV1Schema.optional(),
+  effectiveAt: isoDateV1Schema.optional(),
+  appliesTo: z.array(planAudienceV1Schema).min(1).optional(),
+  /** Audiences the provider explicitly says are not affected. */
+  unaffected: z.array(planAudienceV1Schema).min(1).optional(),
+  /** The version this event starts, by its `effectiveFrom`. */
+  versionEffectiveFrom: isoDateV1Schema.optional(),
+  withdrawn: planWithdrawalV1Schema.optional(),
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanEventV1 = z.infer<typeof planEventV1Schema>;
+
+export const planHistoryV1Schema = z.strictObject({
+  events: z.array(planEventV1Schema).min(1),
+});
+export type PlanHistoryV1 = z.infer<typeof planHistoryV1Schema>;
+
 export const planV1Schema = z
   .strictObject({
     id: catalogIdV1Schema,
@@ -181,6 +371,10 @@ export const planV1Schema = z
     name: z.string().min(1),
     providerId: catalogIdV1Schema,
     versions: z.array(planVersionEntryV1Schema),
+    /** Subscriber groups that hold their own terms for a while (grandfathering). */
+    cohorts: z.array(planCohortV1Schema).min(1).optional(),
+    /** Events a subscriber would want to know about, separate from the versions. */
+    history: planHistoryV1Schema.optional(),
     /** New accepted execution semantics. Legacy `versions` retain their original reader. */
     executionVersions: z.array(executionVersionSchema).optional(),
     executionOverlays: z.array(executionOverlaySchema).optional(),
@@ -266,6 +460,20 @@ export const modelSpecificationsV1Schema = z.strictObject({
   sources: z.array(catalogSourceV1Schema).min(1),
 });
 
+/**
+ * One processing tier a provider offers a model at, and whether it is offered
+ * yet. A tier the model does not list is unknown, not unavailable, and a
+ * listed tier carries no price: prices live on tier-scoped pricing records.
+ */
+export const modelServiceTierV1Schema = z.strictObject({
+  tier: serviceTierV1Schema,
+  availability: serviceTierAvailabilityV1Schema,
+  /** The provider's own words when it qualifies the tier ("coming later"). */
+  note: z.string().min(1).optional(),
+  sources: z.array(catalogSourceV1Schema).min(1),
+});
+export type ModelServiceTierV1 = z.infer<typeof modelServiceTierV1Schema>;
+
 export const modelV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("model"),
@@ -290,6 +498,8 @@ export const modelV1Schema = z.strictObject({
   apiAvailability: z.enum(["available", "not_established", "retired"]).optional(),
   /** Routes that offer this model (a Direct API, a subscription platform). */
   providerIds: z.array(catalogIdV1Schema).optional(),
+  /** API processing tiers, when the provider documents them for this model. */
+  serviceTiers: z.array(modelServiceTierV1Schema).optional(),
   aliases: z.array(modelAliasV1Schema).optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
   lastVerifiedAt: isoDateV1Schema,
@@ -374,6 +584,12 @@ export const pricingV1Schema = z.strictObject({
   rateVersion: catalogIdV1Schema.optional(),
   /** An explicitly selected interpretation/promotion; excluded from automatic price selection. */
   variantId: catalogIdV1Schema.optional(),
+  /**
+   * The processing tier these rates apply to. Absent means Standard. A record
+   * for any other tier is priced only when a replay asks for that tier, so a
+   * Batch price can never stand in for a Standard one or the reverse.
+   */
+  serviceTier: serviceTierV1Schema.optional(),
   rates: pricingRateSetV1Schema,
   /** Conditional rate sets that override `rates` when their condition matches. */
   tiers: z.array(pricingTierV1Schema).optional(),

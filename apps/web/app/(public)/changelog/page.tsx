@@ -115,6 +115,7 @@ export default function UpdatesPage() {
             >
               <p className="market-muted">
                 {change.effectiveFrom} · {change.kind.replaceAll("_", " ")}
+                {change.effectiveFrom > catalog.asOf ? " · scheduled, not yet in effect" : ""}
               </p>
               <Link href={`/plans/${change.planId}`} className="market-link">
                 {change.planName} ↗

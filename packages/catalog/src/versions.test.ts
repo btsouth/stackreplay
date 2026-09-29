@@ -57,3 +57,27 @@ describe("selectPlanVersionAt", () => {
     expect(selectLoadedPlanVersionAt(loaded, "plan-c", "2026-03-01")).toBeUndefined();
   });
 });
+
+describe("selectPlanVersionAt with cohorts", () => {
+  const versions = [
+    { effectiveFrom: "2026-01-01", effectiveTo: "2026-02-28" },
+    { effectiveFrom: "2026-03-01" },
+    { effectiveFrom: "2026-03-01", effectiveTo: "2026-03-31", cohort: "kept" },
+  ];
+
+  it("answers with market versions only by default, even while a cohort version overlaps", () => {
+    expect(selectPlanVersionAt(versions, "2026-03-10")).toBe(versions[1]);
+    expect(selectPlanVersionAt(versions, "2026-03-10")?.cohort).toBeUndefined();
+  });
+
+  it("answers with the cohort's own version while it lasts, and the market's before and after", () => {
+    expect(selectPlanVersionAt(versions, "2026-02-15", { cohort: "kept" })).toBe(versions[0]);
+    expect(selectPlanVersionAt(versions, "2026-03-01", { cohort: "kept" })).toBe(versions[2]);
+    expect(selectPlanVersionAt(versions, "2026-03-31", { cohort: "kept" })).toBe(versions[2]);
+    expect(selectPlanVersionAt(versions, "2026-04-01", { cohort: "kept" })).toBe(versions[1]);
+  });
+
+  it("falls back to the market for a cohort with no versions", () => {
+    expect(selectPlanVersionAt(versions, "2026-03-10", { cohort: "other" })).toBe(versions[1]);
+  });
+});

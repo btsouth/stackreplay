@@ -3088,9 +3088,381 @@
       }
     ]
   },
-  "openai-chatgpt-plus": {
-    "checkedAt": "2026-09-28",
-    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+  "openai-chatgpt-plus": [
+    {
+      "checkedAt": "2026-09-28",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-09-29",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6.1 Sol",
+              "modelId": "gpt-6-1-sol"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "openai-chatgpt-pro": [
+    {
+      "checkedAt": "2026-09-28",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-09-29",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6.1 Sol",
+              "modelId": "gpt-6-1-sol"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    }
+  ],
+  "openai-chatgpt-pro-20x": [
+    {
+      "checkedAt": "2026-09-28",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-09-29",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6.1 Sol",
+              "modelId": "gpt-6-1-sol"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    }
+  ],
+  "openai-chatgpt-pro-500": {
+    "checkedAt": "2026-09-29",
+    "summary": "Work and Codex models, with Astra Ultrafast. API usage is billed separately.",
     "groups": [
       {
         "label": "Work & Codex",
@@ -3100,6 +3472,10 @@
           {
             "name": "GPT-6 Astra",
             "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6.1 Sol",
+            "modelId": "gpt-6-1-sol"
           },
           {
             "name": "GPT-6 Sol",
@@ -3122,213 +3498,144 @@
             "modelId": "gpt-5-6-luna"
           }
         ],
-        "note": "Model and reasoning choices depend on the plan and client."
-      },
-      {
-        "label": "Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          }
-        ]
+        "note": "Model and reasoning choices depend on the plan and client. Astra Ultrafast is available on Pro $500."
       }
     ]
   },
-  "openai-chatgpt-pro": {
-    "checkedAt": "2026-09-28",
-    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
-    "groups": [
-      {
-        "label": "Work & Codex",
-        "access": "included",
-        "sourceUrl": "https://learn.chatgpt.com/docs/models",
-        "models": [
-          {
-            "name": "GPT-6 Astra",
-            "modelId": "gpt-6-astra"
-          },
-          {
-            "name": "GPT-6 Sol",
-            "modelId": "gpt-6-sol"
-          },
-          {
-            "name": "GPT-6 Luna",
-            "modelId": "gpt-6-luna"
-          },
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          },
-          {
-            "name": "GPT-5.6 Terra",
-            "modelId": "gpt-5-6-terra"
-          },
-          {
-            "name": "GPT-5.6 Luna",
-            "modelId": "gpt-5-6-luna"
-          }
-        ],
-        "note": "Model and reasoning choices depend on the plan and client."
-      },
-      {
-        "label": "Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          }
-        ]
-      },
-      {
-        "label": "Pro models in Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol Pro",
-            "modelId": "gpt-5-6-sol-pro"
-          },
-          {
-            "name": "GPT-6 Pro"
-          }
-        ],
-        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
-      }
-    ]
-  },
-  "openai-chatgpt-pro-20x": {
-    "checkedAt": "2026-09-28",
-    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
-    "groups": [
-      {
-        "label": "Work & Codex",
-        "access": "included",
-        "sourceUrl": "https://learn.chatgpt.com/docs/models",
-        "models": [
-          {
-            "name": "GPT-6 Astra",
-            "modelId": "gpt-6-astra"
-          },
-          {
-            "name": "GPT-6 Sol",
-            "modelId": "gpt-6-sol"
-          },
-          {
-            "name": "GPT-6 Luna",
-            "modelId": "gpt-6-luna"
-          },
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          },
-          {
-            "name": "GPT-5.6 Terra",
-            "modelId": "gpt-5-6-terra"
-          },
-          {
-            "name": "GPT-5.6 Luna",
-            "modelId": "gpt-5-6-luna"
-          }
-        ],
-        "note": "Model and reasoning choices depend on the plan and client."
-      },
-      {
-        "label": "Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          }
-        ]
-      },
-      {
-        "label": "Pro models in Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol Pro",
-            "modelId": "gpt-5-6-sol-pro"
-          },
-          {
-            "name": "GPT-6 Pro"
-          }
-        ],
-        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
-      }
-    ]
-  },
-  "openai-chatgpt-business": {
-    "checkedAt": "2026-09-28",
-    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
-    "groups": [
-      {
-        "label": "Work & Codex",
-        "access": "included",
-        "sourceUrl": "https://learn.chatgpt.com/docs/models",
-        "models": [
-          {
-            "name": "GPT-6 Astra",
-            "modelId": "gpt-6-astra"
-          },
-          {
-            "name": "GPT-6 Sol",
-            "modelId": "gpt-6-sol"
-          },
-          {
-            "name": "GPT-6 Luna",
-            "modelId": "gpt-6-luna"
-          },
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          },
-          {
-            "name": "GPT-5.6 Terra",
-            "modelId": "gpt-5-6-terra"
-          },
-          {
-            "name": "GPT-5.6 Luna",
-            "modelId": "gpt-5-6-luna"
-          }
-        ],
-        "note": "Model and reasoning choices depend on the plan and client."
-      },
-      {
-        "label": "Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
-          }
-        ]
-      },
-      {
-        "label": "Pro models in Chat",
-        "access": "included",
-        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
-        "models": [
-          {
-            "name": "GPT-5.6 Sol Pro",
-            "modelId": "gpt-5-6-sol-pro"
-          },
-          {
-            "name": "GPT-6 Pro"
-          }
-        ],
-        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
-      }
-    ]
-  },
+  "openai-chatgpt-business": [
+    {
+      "checkedAt": "2026-09-28",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-09-29",
+      "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+      "groups": [
+        {
+          "label": "Work & Codex",
+          "access": "included",
+          "sourceUrl": "https://learn.chatgpt.com/docs/models",
+          "models": [
+            {
+              "name": "GPT-6 Astra",
+              "modelId": "gpt-6-astra"
+            },
+            {
+              "name": "GPT-6.1 Sol",
+              "modelId": "gpt-6-1-sol"
+            },
+            {
+              "name": "GPT-6 Sol",
+              "modelId": "gpt-6-sol"
+            },
+            {
+              "name": "GPT-6 Luna",
+              "modelId": "gpt-6-luna"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Model and reasoning choices depend on the plan and client."
+        },
+        {
+          "label": "Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            }
+          ]
+        },
+        {
+          "label": "Pro models in Chat",
+          "access": "included",
+          "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol Pro",
+              "modelId": "gpt-5-6-sol-pro"
+            },
+            {
+              "name": "GPT-6 Pro"
+            }
+          ],
+          "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+        }
+      ]
+    }
+  ],
   "google-ai-pro": {
     "checkedAt": "2026-09-28",
     "summary": "Gemini Apps, coding tools and image generation have different model options and allowances. This subscription is not Gemini API credit.",

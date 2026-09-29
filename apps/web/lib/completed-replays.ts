@@ -1,4 +1,5 @@
 import { Decimal } from "@stackreplay/replay-engine";
+import { serviceTierV1Schema } from "@stackreplay/schema";
 import { z } from "zod";
 
 const amount = z
@@ -32,6 +33,34 @@ export const completedReplaySchema = z
       .max(500),
     contributions: z.array(z.object({ model: text, cost: range })).max(500),
     limitations: z.array(text).max(20),
+    /**
+     * The single target a saved replay ran against, pinned to what the engine
+     * resolved: a plan and the exact plan version, or a provider and the
+     * processing tier. Optional and additive: results saved before it existed
+     * stay readable and are shown as not recording their plan terms, never
+     * assigned a version after the fact. Multi-provider scenarios carry none.
+     */
+    target: z
+      .discriminatedUnion("type", [
+        z.object({
+          type: z.literal("subscription"),
+          planId: text,
+          planVersionId: text,
+          /**
+           * The subscriber cohort the replay asked for, when it asked for one.
+           * The version id says which terms applied; this says whose, so a
+           * grandfathered replay made after the window closed (and resolved
+           * to market terms) is not misread as a market replay.
+           */
+          cohort: text.optional(),
+        }),
+        z.object({
+          type: z.literal("api"),
+          providerId: text,
+          serviceTier: serviceTierV1Schema.optional(),
+        }),
+      ])
+      .optional(),
   })
   .refine(
     (r) =>

@@ -1,7 +1,18 @@
 import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
-import { type CatalogV1, catalogV1Schema } from "./catalog.js";
+import { type CatalogV1, catalogV1Schema, planVersionId } from "./catalog.js";
+import {
+  type PlanTimelineInputV1,
+  type PlanTimelineV1,
+  planTimelineInputOf,
+  resolvePlanTimeline,
+} from "./plan-timeline.js";
 import { createModelIdentityIndex, type ModelIdentityIndex } from "./resolve.js";
+import {
+  isDefaultPriceRecord,
+  modelServiceTiers,
+  type ServiceTierReadingV1,
+} from "./service-tiers.js";
 import { selectPlanVersionAt } from "./versions.js";
 
 /**
@@ -76,7 +87,7 @@ export function bundledPlansAt(rulesAsOf: string): BundledPlanSummary[] {
       id: plan.id,
       name: plan.name,
       providerId: plan.providerId,
-      versionId: `${plan.id}@${version.effectiveFrom}`,
+      versionId: planVersionId(plan.id, version.effectiveFrom, version.cohort),
       effectiveFrom: version.effectiveFrom,
       price: {
         amount: version.price.amount,
@@ -218,7 +229,7 @@ export function bundledApiProviders(rulesAsOf?: string): BundledApiProviderSumma
     Object.values(catalog.pricing)
       .filter(
         (pricing) =>
-          pricing.variantId === undefined &&
+          isDefaultPriceRecord(pricing) &&
           pricing.basis === "api_list_price" &&
           (rulesAsOf === undefined || coversInstant(rulesAsOf, pricing)),
       )
@@ -315,7 +326,7 @@ export function bundledPlanModelsAt(
     available: rule.excluded !== true,
   }));
   return {
-    versionId: `${plan.id}@${version.effectiveFrom}`,
+    versionId: planVersionId(plan.id, version.effectiveFrom, version.cohort),
     models: models.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
   };
 }
@@ -334,7 +345,7 @@ export function bundledApiProviderModels(
     Object.values(catalog.pricing)
       .filter(
         (pricing) =>
-          pricing.variantId === undefined &&
+          isDefaultPriceRecord(pricing) &&
           pricing.basis === "api_list_price" &&
           coversInstant(rulesAsOf, pricing),
       )
@@ -349,4 +360,75 @@ export function bundledApiProviderModels(
       priced: priced.has(model.id),
     }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+}
+
+/**
+ * A plan's terms and history on `asOf`, from the one resolver every surface
+ * uses. Undefined for a plan the bundled catalog does not hold.
+ */
+export function bundledPlanTimeline(
+  planId: string,
+  asOf: string,
+  options: { cohort?: string | undefined } = {},
+): PlanTimelineV1 | undefined {
+  const plan = loadBundledCatalog().plans[planId];
+  return plan === undefined ? undefined : resolvePlanTimeline(plan, asOf, options);
+}
+
+/** The timeline input for one plan, small enough to hand to a client component. */
+export function bundledPlanTimelineInput(planId: string): PlanTimelineInputV1 | undefined {
+  const plan = loadBundledCatalog().plans[planId];
+  return plan === undefined ? undefined : planTimelineInputOf(plan);
+}
+
+/** One processing tier a Direct API provider offers, across its models. */
+export interface BundledApiServiceTier {
+  tier: ServiceTierReadingV1["tier"];
+  /** Models of this provider that are offered and priced at the tier on `rulesAsOf`. */
+  pricedModelIds: readonly string[];
+  /** Models that list the tier but cannot be priced at it yet, with their reading. */
+  pendingModels: readonly { id: string; name: string; availability: string; note?: string }[];
+}
+
+/**
+ * The non-Standard tiers a provider's models document, for a tier picker. A
+ * tier is offered for replay only when at least one model is both available
+ * and priced at it; announced tiers are listed as pending so a picker can say
+ * "coming soon" without making them selectable.
+ */
+export function bundledApiServiceTiers(
+  providerId: string,
+  rulesAsOf: string,
+): BundledApiServiceTier[] {
+  const catalog = loadBundledCatalog();
+  const byTier = new Map<
+    string,
+    { priced: string[]; pending: BundledApiServiceTier["pendingModels"][number][] }
+  >();
+  const models = Object.values(catalog.models)
+    .filter((model) => model.providerIds?.includes(providerId) === true)
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  for (const model of models) {
+    for (const reading of modelServiceTiers(catalog, model.id, rulesAsOf)) {
+      if (reading.tier === "standard") continue;
+      const entry = byTier.get(reading.tier) ?? { priced: [], pending: [] };
+      if (reading.priceable) entry.priced.push(model.id);
+      else
+        entry.pending.push({
+          id: model.id,
+          name: model.name,
+          availability: reading.availability,
+          ...(reading.note !== undefined ? { note: reading.note } : {}),
+        });
+      byTier.set(reading.tier, entry);
+    }
+  }
+  const order = ["batch", "flex", "fast", "ultrafast"];
+  return [...byTier.entries()]
+    .sort(([a], [b]) => order.indexOf(a) - order.indexOf(b))
+    .map(([tier, entry]) => ({
+      tier: tier as BundledApiServiceTier["tier"],
+      pricedModelIds: entry.priced,
+      pendingModels: entry.pending,
+    }));
 }

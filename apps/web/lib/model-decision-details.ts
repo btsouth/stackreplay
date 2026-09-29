@@ -759,7 +759,58 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Regional processing",
         value:
-          "10% premium where available. EU data residency is available with Standard processing only.",
+          "10% premium where available. EU data residency is available with Standard, Flex and Batch processing.",
+      },
+    ],
+    omitSpecifications: ["maxInputTokens"],
+  },
+  "gpt-6-1-sol": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://developers.openai.com/api/docs/pricing",
+        title: "Processing tier prices",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Usage limits",
+        value:
+          "API request and token limits depend on your account usage tier. They are separate from ChatGPT and Codex subscription allowances.",
+      },
+      {
+        label: "Thinking",
+        value: "Effort: low, medium, high, xhigh, max. None and minimal are not supported.",
+      },
+      {
+        label: "Cached input",
+        value: "5% of the input price, half of GPT-6 Sol's cached input price.",
+      },
+      {
+        label: "Long prompts",
+        value:
+          "Above 272K input tokens: 2× input and cache prices, 1.5× output prices for the full request.",
+      },
+      {
+        label: "Processing options",
+        value:
+          "Batch and Flex: 50% of Standard token prices. Fast mode: 2× Standard. Ultrafast is coming later, with no published price yet.",
+      },
+      {
+        label: "Tool compatibility",
+        value:
+          "Use Responses for tool calling. Chat Completions is supported without tool calling.",
+      },
+      {
+        label: "Regional processing",
+        value:
+          "10% premium where available. US and EU data residency; Fast mode is unavailable with EU data residency.",
       },
     ],
     omitSpecifications: ["maxInputTokens"],

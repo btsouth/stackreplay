@@ -2,10 +2,34 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { saveCompletedReplay } from "@/lib/completed-replays";
+import { type CompletedReplay, saveCompletedReplay } from "@/lib/completed-replays";
 import { baselineRange, replayCost, replayDifference } from "@/lib/replay-strategies";
 import { getWorkerClient, type ReplayOutcome } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
+
+/** The target the engine resolved, pinned: the plan version it used, or the provider and tier. */
+function savedTargetOf(outcome: ReplayOutcome): CompletedReplay["target"] {
+  const { result } = outcome;
+  if (result.target.type === "api")
+    return {
+      type: "api",
+      providerId: result.target.providerId,
+      ...(result.target.serviceTier !== undefined
+        ? { serviceTier: result.target.serviceTier }
+        : {}),
+    };
+  if (result.subscription !== undefined)
+    return {
+      type: "subscription",
+      planId: result.subscription.planId,
+      planVersionId: result.subscription.planVersionId,
+      ...(result.target.type === "subscription" && result.target.cohort !== undefined
+        ? { cohort: result.target.cohort }
+        : {}),
+    };
+  return undefined;
+}
+
 /** Preserve a completed manual run, never rerun it when adding to Compare. */
 export function SaveCustomReplay({
   outcome,
@@ -70,6 +94,7 @@ export function SaveCustomReplay({
           calls: r.eventCount,
         })),
         contributions: [],
+        ...(savedTargetOf(outcome) !== undefined ? { target: savedTargetOf(outcome) } : {}),
         limitations: [
           "Saved from the manual replay, with its original scope and pricing date. Inspect the original replay for its detailed capacity trace.",
           ...(!api

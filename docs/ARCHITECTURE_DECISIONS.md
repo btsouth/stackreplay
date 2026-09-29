@@ -1207,3 +1207,117 @@ public links hundreds of characters long. Short links replace them in the produc
   `stackreplay-shares-preview`). The Node server the end-to-end suite runs keeps links in process
   memory; a Workers deployment without the binding reports short links unavailable rather than
   falling back.
+
+## 64. Plan terms change over time, and the catalog says when (plan history)
+
+A plan is not a timeless SKU. OpenAI paused new ChatGPT Pro $200 sign-ups on Sep 10, 2026, and on
+Sep 29 (DevDay) reopened the plan with a lower allowance for new subscriptions, while eligible
+existing subscribers keep the previous allowance through Oct 29. The catalog records that as data,
+and every surface reads it through one resolver.
+
+- **Versions and events are different things.** A plan version holds terms a replay calculates
+  with (price, limits, model rules). A history event (`plan.history.events`) is something a
+  subscriber would want to know: a pause, an announcement, a reopening. A pause on new sign-ups
+  changes nothing for an existing subscriber, so it is an event with no version behind it. An
+  event that starts new terms names that version by its `effectiveFrom`.
+- **Versions state their lifecycle.** Optional fields: `announcedAt`, `audience`,
+  `effectiveFromBasis` (`provider` for a provider-stated date, `catalog_recorded` for the day the
+  catalog first saw the terms, which is never shown as a start date), `revision` (marks a version
+  that starts new commercial terms, as opposed to a lineup or source update within the same
+  terms) and `withdrawn` (`cancelled` or `superseded` before taking effect). `selectPlanVersionAt`
+  never selects a withdrawn version.
+- **An announced date needs no second edit.** A future-dated version is scheduled until its
+  `effectiveFrom` and current from that day, because version selection already compares the
+  rules date with the version's dates. An event with no `effectiveAt` is announced but undated
+  and never activates by time alone. Announcements (`kind: announcement`) are dated by
+  `announcedAt`.
+- **One resolver, one day.** `resolvePlanTimeline(plan, asOf)` (`@stackreplay/catalog/timeline`)
+  returns the current, previous and scheduled terms and the events known on `asOf`, sorted
+  deterministically. It reads no clock. Dates are calendar days compared as strings, exactly like
+  version selection. Replay passes its own rules date (the viewer's calendar day by default,
+  `apps/web/lib/rules-date.ts`). A public page resolves on the server's UTC day and, after
+  hydration, on the viewer's calendar day, so the first client render matches the server and an
+  announced change becomes current on its date even on a page built earlier.
+- **Relative economics stay relative.** When a provider states new terms only against old ones,
+  the revision carries `relativeValue` (`measure: api_equivalent_spend`, a decimal `ratio`,
+  `approximate`, `comparedTo: previous_terms`, evidence). Pro $200's is `0.5`, approximate: "about
+  half the previous API-equivalent spend", never "half the tokens" (cheaper models change how many
+  tokens that spend buys). It never becomes a numeric replay limit, because neither allowance is
+  published.
+- **Evidence says who spoke.** `planEvidenceV1Schema` records the authority (provider docs,
+  announcement, keynote, help center, identifiable staff) and the source's own words. An official
+  announcement does not wait for a help-center page to repeat it.
+- **Words are composed once.** `apps/web/lib/plan-terms.ts` turns a timeline into the header
+  notice, the timeline steps and Replay's terms line; `components/plan-history.tsx` draws them for
+  any provider's plan. Curated display records (`subscription-access-data.json`,
+  `subscription-published-terms-data.json`) may hold one dated record per set of terms, selected
+  the same way, so a lineup or terms change does not rewrite what was true the day before.
+- **Results keep the terms they used.** A replay result already pins `subscription.planVersionId`.
+  A saved local result (`completed-replays`) now also stores its target: plan id and plan version,
+  or provider and processing tier. Its terms are described from that stored version, never from
+  today's catalog. Records saved before the field existed stay valid and say their plan version
+  was not recorded; no version is assigned after the fact.
+- **No historical fit is invented.** "Would this workload have fit under the previous terms?" is
+  not computed, because the evidence establishes only the relative change.
+- **One plan, several audiences.** Plan and date do not always pick one set of terms: from Sep 29
+  to Oct 29, 2026, Pro $200 has market terms (what a new subscriber gets) and grandfathered terms
+  (what eligible existing subscribers keep). A plan may declare `cohorts` (id, kind, label, the
+  provider's eligibility wording, evidence), and a version may name one. Versions without a cohort
+  are the market line; a cohort's versions are a parallel line that may overlap it in time but not
+  itself. `selectPlanVersionAt(versions, at, { cohort })` returns the cohort's version while one
+  covers the day and the market version otherwise, because a cohort's terms are an exception that
+  starts and ends; the default is always the market. A cohort version's id appends `~cohortId`
+  (`openai-chatgpt-pro-20x@2026-09-29~grandfathered`), so market ids are unchanged and ids stay
+  unique. A cutoff the provider does not publish is not recorded. The engine takes an optional
+  `cohort` on a subscription target (refused beside a pinned version, and refused for a cohort the
+  plan does not declare). The timeline reports cohort windows beside the market terms and derives
+  their start note and end step from the cohort version's own dates. A saved result stores the
+  requested cohort beside the resolved version id, so a grandfathered replay made after the window
+  closed is labelled as having used market terms.
+- **Relative allowances stay relative.** `relativeAllowances` records a stated multiple of another
+  plan's usage in the provider's own unit (Pro $500: 25 times Plus, from the DevDay keynote). It is
+  not tokens, API dollars, messages or a per-model limit, and never a numeric replay limit.
+
+## 65. Processing tiers are a pricing dimension, not models (service tiers)
+
+- A pricing record may declare `serviceTier` (`standard`, `batch`, `flex`, `fast`, `ultrafast`);
+  absent means Standard, which is what every earlier record priced. A model lists the tiers its
+  provider documents in `serviceTiers`, each with an availability (`available`, `preview`,
+  `coming_soon`, `unavailable`) and sources. A tier a model does not list is unknown.
+- Automatic price selection reads Standard records only (`isDefaultPriceRecord`), so a Batch or
+  Fast price can never answer for Standard. Validation keeps tier records non-overlapping per model,
+  basis, endpoint, variant and tier, and refuses a tier record for a tier the model does not list.
+- A Direct API target may name `serviceTier`. The replay then prices only that tier's records, and
+  only for models whose tier is `available`. A model without that tier, or with it only announced,
+  stays unpriced with a named warning; the Standard price is never borrowed. The result records the
+  tier in `versions.serviceTier` and in its target, and the verdict names it, so a share link
+  carries it.
+- Speed claims ("up to 8x faster") are display text at most. Replay prices recorded demand and
+  never scales time by a tier.
+- A provider can bill a different tier than was requested (OpenAI reports `service_tier: default`
+  when a Fast request is downgraded under ramp limits). `billedServiceTierOf` states the rule:
+  only the resolved tier is a billed fact. No importer reads either value yet, so no event field
+  was added; when one does, the resolved tier is what actual-cost reconstruction uses.
+- An absent tier means different things by origin. A catalog price record without one is Standard
+  (every earlier record transcribed a Standard list price). A replay target without one asks for
+  Standard on purpose (`replayServiceTierOf`). An observed or imported call without one has an
+  unknown tier (`observedServiceTierOf`) unless the source's contract guarantees Standard.
+- Regional processing premiums are recorded as model notes, not priced: replay prices global
+  processing and says so in its assumptions.
+
+## 66. Harness, provider, model and billing source are four facts (billing source)
+
+- `billingSourceKindV1Schema` names how a call is paid: `direct_api`, `subscription`,
+  `subscription_credits`, `provider_bundle`, `local`. A usage event may carry optional `billing`
+  context; no adapter emits it yet, and its absence means the billing source is unknown. None of
+  harness, provider or model decides it: OpenAI's Sign in with ChatGPT lets participating third-party
+  apps use a ChatGPT plan, and the same app can use an API key.
+- A replay target's billing source follows its type (`billingSourceOfTarget`), never the harness
+  the workload was recorded in.
+- **Composite costs.** `economics.breakdown` may list cost parts (`model_inference`, `tool`,
+  `hosted_compute`, `other`) that add up to `targetCost` exactly. No replay emits it yet, because
+  nothing in the catalog prices tools or hosted compute; `visibleCostComponents` hides zero parts
+  and a lone inference part, so a token replay stays one number.
+- **Agent structure.** Events stay a flat list with session identity. When an importer can record
+  root agents and subagents, an optional agent reference on the event is the additive path; none
+  is added before a source provides it.

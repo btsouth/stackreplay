@@ -578,6 +578,13 @@ function resolveTargetPlan(
     );
   }
 
+  if (hasVersion && subscriptionTarget.cohort !== undefined)
+    throw new ReplayEngineError(
+      "PLAN_COHORT_UNKNOWN",
+      "A pinned plan version already identifies its cohort, so a subscription target cannot also name one.",
+      [`planVersionId=${subscriptionTarget.planVersionId}`, `cohort=${subscriptionTarget.cohort}`],
+    );
+
   if (hasVersion) {
     const planVersion = getPlanVersion(catalog, subscriptionTarget.planVersionId as string);
     if (planVersion === undefined) {
@@ -591,10 +598,22 @@ function resolveTargetPlan(
   }
 
   const planId = subscriptionTarget.planId as string;
+  const cohort = subscriptionTarget.cohort;
+  if (
+    cohort !== undefined &&
+    catalog.plans[planId]?.cohorts?.some((entry) => entry.id === cohort) !== true
+  )
+    throw new ReplayEngineError(
+      "PLAN_COHORT_UNKNOWN",
+      "The subscription target names a subscriber cohort this plan does not declare.",
+      [`planId=${planId}`, `cohort=${cohort}`],
+    );
+  // Market terms by default; a named cohort's own terms while they last.
   const selected = selectLoadedPlanVersionAt(
     Object.values(catalog.planVersions),
     planId,
     rulesAsOf,
+    { cohort },
   );
   if (selected === undefined) {
     throw new ReplayEngineError(

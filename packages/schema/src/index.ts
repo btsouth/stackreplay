@@ -1,8 +1,27 @@
 export {
+  type BillingContextV1,
+  type BillingSourceKindV1,
+  billingContextV1Schema,
+  billingSourceKindV1Schema,
+  billingSourceOfTarget,
+  type TargetBillingSourceV1,
+} from "./billing-source.js";
+export {
   isSyntheticCatalogId,
   SYNTHETIC_CATALOG_PREFIX,
 } from "./catalog-namespace.js";
 export * from "./compiled-execution.js";
+export {
+  type CostBreakdownV1,
+  type CostComponentKindV1,
+  type CostComponentV1,
+  costBreakdownMatches,
+  costBreakdownV1Schema,
+  costComponentKindV1Schema,
+  costComponentV1Schema,
+  decimalTotalOf,
+  visibleCostComponents,
+} from "./cost-breakdown.js";
 export { STACKREPLAY_ERROR_CODES, type StackReplayErrorCode } from "./error-codes.js";
 export * from "./execution-rates.js";
 export {
@@ -170,6 +189,18 @@ export {
   type VerificationStatusV1,
   verificationStatusV1Schema,
 } from "./scalars.js";
+export {
+  billedServiceTierOf,
+  type ObservedServiceTierV1,
+  observedServiceTierOf,
+  replayServiceTierOf,
+  SERVICE_TIERS_V1,
+  type ServiceTierAvailabilityV1,
+  type ServiceTierObservationV1,
+  type ServiceTierV1,
+  serviceTierAvailabilityV1Schema,
+  serviceTierV1Schema,
+} from "./service-tier.js";
 export {
   type AttributionV1,
   attributionV1Schema,

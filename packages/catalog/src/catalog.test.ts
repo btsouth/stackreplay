@@ -809,3 +809,50 @@ describe("independent audit: semantic validation and catalog identity", () => {
     expect(rejectIssues.some((issue) => issue.code === "LIMIT_OVERAGE_RATE_INVALID")).toBe(true);
   });
 });
+
+describe("cohort versions", () => {
+  const base = validPlan().versions[0] as Record<string, unknown>;
+  const cohort = {
+    id: "kept",
+    kind: "grandfathered",
+    label: "Eligible existing subscribers",
+    eligibility: "Subscribers active before the change keep their terms for a while.",
+    evidence: [
+      {
+        url: "https://example.invalid/help",
+        title: "Example",
+        checkedAt: "2026-08-01",
+        authority: "provider_help_center",
+      },
+    ],
+  };
+  const plan = (versions: unknown[], withCohorts = true) =>
+    raw({
+      plans: [
+        rawEntry("plans/example.yaml", {
+          ...validPlan({ versions }),
+          ...(withCohorts ? { cohorts: [cohort] } : {}),
+        }),
+      ],
+    });
+  const codes = (data: RawCatalogData) => validateCatalogData(data).map((issue) => issue.code);
+
+  it("lets a cohort's version overlap the market's, but not another version of its own", () => {
+    const market = { ...base, effectiveFrom: "2026-08-01" };
+    const kept = {
+      ...base,
+      effectiveFrom: "2026-09-01",
+      effectiveTo: "2026-09-30",
+      cohort: "kept",
+    };
+    expect(codes(plan([market, kept]))).toEqual([]);
+    const overlapping = { ...kept, effectiveFrom: "2026-09-15" };
+    expect(codes(plan([market, kept, overlapping]))).toContain("VERSION_OVERLAP");
+  });
+
+  it("refuses a version naming a cohort the plan does not declare", () => {
+    const market = { ...base, effectiveFrom: "2026-08-01" };
+    const stray = { ...base, effectiveFrom: "2026-09-01", cohort: "kept" };
+    expect(codes(plan([market, stray], false))).toContain("PLAN_COHORT_UNKNOWN");
+  });
+});

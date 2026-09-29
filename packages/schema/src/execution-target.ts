@@ -4,6 +4,7 @@ import {
   workloadScopeDeclarationV1Schema,
 } from "./replay-semantics.js";
 import { isoDateV1Schema } from "./scalars.js";
+import { serviceTierV1Schema } from "./service-tier.js";
 
 /**
  * Execution targets (Addendum A point 115, decision 1) and the explicit replay
@@ -38,6 +39,13 @@ export const subscriptionTargetV1Schema = z
     planId: z.string().min(1).optional(),
     /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */
     modelTranslation: modelTranslationPolicyV1Schema.optional(),
+    /**
+     * A subscriber cohort of the plan, such as grandfathered subscribers who
+     * keep a previous allowance for a while. Only with `planId`: the cohort's
+     * version applies while one covers `rulesAsOf`, and the market version
+     * otherwise. Absent means market terms, what a new subscriber gets.
+     */
+    cohort: z.string().min(1).optional(),
     /**
      * Declares that the account's allowance reset phase is not established.
      * A scenario may only weaken what the plan's own windows establish.
@@ -119,6 +127,12 @@ export const apiTargetV1Schema = z.strictObject({
   providerId: z.string().min(1),
   /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */
   modelTranslation: modelTranslationPolicyV1Schema.optional(),
+  /**
+   * The processing tier every event is priced at. Absent means Standard, which
+   * is what every API target before this field priced. A model without a
+   * price for the chosen tier stays unpriced; it never falls back to Standard.
+   */
+  serviceTier: serviceTierV1Schema.optional(),
   /** @deprecated Refused for API execution; see the schema comment. */
   pricingVersionId: z.string().min(1).optional(),
   /** @deprecated Refused for API execution; use `modelTranslation`. */

@@ -21,12 +21,35 @@ export interface SubscriptionPublishedTerms {
   privacySummary?: string;
   billingSummary?: string;
   availabilityNote?: string;
+  /**
+   * The day these terms start, when a plan's terms change on a stated date.
+   * A plan with announced revised terms keeps one record per set of terms, so
+   * the page describes the terms in force on the day it is read.
+   */
+  effectiveFrom?: string;
 }
-const records: Record<string, SubscriptionPublishedTerms> = { ...subscriptions, ...opencode };
+const records = { ...subscriptions, ...opencode } as Record<
+  string,
+  SubscriptionPublishedTerms | SubscriptionPublishedTerms[]
+>;
+
+/** The reviewed terms in force on `asOf`: reviewed by then, and started by then. */
 export function subscriptionPublishedTerms(
   id: string,
   asOf: string,
 ): SubscriptionPublishedTerms | undefined {
-  const value = records[id];
-  return value && value.checkedAt <= asOf ? value : undefined;
+  const stored = records[id];
+  const candidates = stored === undefined ? [] : Array.isArray(stored) ? stored : [stored];
+  let selected: SubscriptionPublishedTerms | undefined;
+  for (const terms of candidates) {
+    if (terms.checkedAt > asOf || (terms.effectiveFrom ?? "") > asOf) continue;
+    if (
+      selected === undefined ||
+      (terms.effectiveFrom ?? "") > (selected.effectiveFrom ?? "") ||
+      ((terms.effectiveFrom ?? "") === (selected.effectiveFrom ?? "") &&
+        terms.checkedAt > selected.checkedAt)
+    )
+      selected = terms;
+  }
+  return selected;
 }

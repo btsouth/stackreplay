@@ -77,7 +77,7 @@ export function buildCatalog(raw: RawCatalogData): CatalogV1 {
     );
     plans[plan.id] = plan;
     for (const version of plan.versions) {
-      const versionId = planVersionId(plan.id, version.effectiveFrom);
+      const versionId = planVersionId(plan.id, version.effectiveFrom, version.cohort);
       const loaded: LoadedPlanVersionV1 = {
         ...version,
         versionId,

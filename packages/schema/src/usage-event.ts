@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { billingContextV1Schema } from "./billing-source.js";
 import { moneyV1Schema } from "./money.js";
 import { isoUtcTimestampV1Schema } from "./scalars.js";
 
@@ -209,6 +210,12 @@ export const textUsageEventV1Schema = z.strictObject({
   workloadCategory: workloadCategoryV1Schema.optional(),
   usage: textUsageV1Schema,
   nativeCost: moneyV1Schema.optional(),
+  /**
+   * How the call was paid, when the source records it. Separate from the
+   * harness, the provider and the model: none of those decides it. No adapter
+   * emits it yet, so its absence means the billing source is unknown.
+   */
+  billing: billingContextV1Schema.optional(),
   requestStartedAt: isoUtcTimestampV1Schema.optional(),
   requestEndedAt: isoUtcTimestampV1Schema.optional(),
   durationMs: z.number().int().nonnegative().optional(),

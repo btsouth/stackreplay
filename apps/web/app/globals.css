@@ -6,6 +6,7 @@
 @import "./scan-instrument.css";
 @import "./history-discovery.css";
 @import "./result.css";
+@import "./plan-history.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));

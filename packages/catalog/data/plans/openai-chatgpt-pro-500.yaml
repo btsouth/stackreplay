@@ -1,0 +1,124 @@
+id: openai-chatgpt-pro-500
+role: plan
+name: ChatGPT Pro $500
+providerId: openai
+versions:
+  - effectiveFrom: 2026-09-29
+    effectiveFromBasis: provider
+    announcedAt: 2026-09-29
+    relativeAllowances:
+      - measure: provider_usage
+        multiple: "25"
+        comparedToPlanId: openai-chatgpt-plus
+        evidence:
+          - url: https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s
+            title: "OpenAI DevDay 2026 keynote, official recording, 21:45 (transcribed from the recording)"
+            checkedAt: 2026-09-29
+            authority: provider_keynote
+            excerpt: "Pro 500 will have 25 times the usage of Plus"
+    price:
+      currency: USD
+      amount: "500"
+      interval: month
+    billingMechanics: "ChatGPT Pro has three monthly price points: $100, $200 and $500."
+    limits: []
+    qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: "The highest included usage of the three Pro plans, announced at DevDay as 25 times the usage of Plus. No numeric allowance is published."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: relative-to-plus
+        label: "Usage relative to Plus (DevDay keynote)"
+        statement: "Pro 500 will have 25 times the usage of Plus."
+        sourceUrl: https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s
+      - id: highest-included-usage
+        label: "Highest included usage of the Pro plans"
+        statement: "Pro 200 includes more usage than Pro 100. Pro 500 offers the highest included usage of the three plans."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: astra-ultrafast
+        label: "Astra Ultrafast included"
+        statement: "Among Pro plans, Ultrafast is available only on Pro 500. You can select it in the model picker. It uses your plan's included usage first, then draws from your credit balance after that allowance is used."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: ultrafast-included-usage-rate
+        label: "Ultrafast included-usage rate (not a speed figure)"
+        statement: "For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate. Purchased credits and Enterprise pay-as-you-go usage are billed at 6x the Standard rate. These billing multipliers don't describe speed increases."
+        sourceUrl: https://learn.chatgpt.com/docs/agent-configuration/speed
+      - id: ultrafast-speed-claim
+        label: "Ultrafast speed (provider claim)"
+        statement: "GPT-6 Astra Ultrafast generates tokens up to 8x faster than GPT-6 Astra in Standard mode in Codex. This comparison measures token generation speed, not billing rates or overall task completion time."
+        sourceUrl: https://learn.chatgpt.com/docs/agent-configuration/speed
+      - id: no-five-hour-limit
+        label: "No five-hour limit (stated for Pro plans)"
+        statement: "Pro plans currently have no five-hour limit. Weekly limits may also apply."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+      - id: usage-credits-after-limit
+        label: "After the included usage"
+        statement: "For eligible features, you can purchase credits to continue after using your plan's included allowance. Included usage is used first, followed by your credit balance."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        topic: after_limit
+      - id: compatible-tools
+        label: Compatible tools
+        statement: "ChatGPT · Codex · ChatGPT Work. In participating apps, eligible Plus and Pro subscribers can also choose to use their ChatGPT plan for AI requests (Sign in with ChatGPT)."
+        sourceUrl: https://learn.chatgpt.com/docs/sign-in-with-chatgpt
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "No numeric allowance is published. The 25x figure is relative to Plus, whose allowance is not quantified, and OpenAI does not say it applies to every model or feature, so it is recorded as a relative claim only."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-1-sol
+        pricingRef: gpt-6-1-sol-pricing
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        title: "About ChatGPT Pro tiers (OpenAI Help Center), live page: Pro 500 at $500 with Astra Ultrafast"
+        checkedAt: 2026-09-29
+      - url: https://www.youtube.com/watch?v=Fls_onRviPM&t=1305s
+        title: "OpenAI DevDay 2026 keynote, official recording: Pro 500 announcement"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/agent-configuration/speed
+        title: "Speed: Ultrafast availability, included-usage rate and speed claim"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/pricing
+        title: "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/models
+        title: "Model availability in ChatGPT Work and Codex"
+        checkedAt: 2026-09-29
+    lastVerifiedAt: 2026-09-29
+    verificationStatus: verified
+history:
+  events:
+    - id: plan-introduced
+      kind: availability
+      title: Plan introduced
+      summary: Pro at $500 a month, with the highest Pro usage and Astra Ultrafast.
+      announcedAt: 2026-09-29
+      effectiveAt: 2026-09-29
+      evidence:
+        - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+          title: "About ChatGPT Pro tiers (OpenAI Help Center), live page"
+          checkedAt: 2026-09-29
+          authority: provider_help_center
+          excerpt: "ChatGPT Pro now offers Pro 500, a new $500/month plan that includes Astra Ultrafast."
+        - url: https://www.youtube.com/watch?v=Fls_onRviPM&t=1298s
+          title: "OpenAI DevDay 2026 keynote, official recording, 21:38 (transcribed from the recording)"
+          checkedAt: 2026-09-29
+          authority: provider_keynote
+          excerpt: "We're introducing Pro 500 with our highest usage limits and access to Ultrafast in ChatGPT and Codex."
