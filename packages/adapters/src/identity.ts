@@ -2,6 +2,7 @@ import { hmac as nobleHmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { isRealCalendarDate } from "./parse.js";
+import { trimTrailingPathSeparators } from "./path-string.js";
 import type { AdapterId, SourceEnvironment } from "./types.js";
 
 /**
@@ -21,9 +22,22 @@ export function generateSalt(): string {
   return bytesToHex(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
 }
 
+const encoder = new TextEncoder();
+
+/**
+ * The HMAC keyed with the most recent salt. Keying hashes the padded salt
+ * twice; cloning a keyed instance per identity skips that work and produces the
+ * same bytes. Only one salt is kept, and only as noble's keyed hash state.
+ */
+let keyed: { salt: string; mac: ReturnType<typeof nobleHmac.create> } | undefined;
+
 function hmac(salt: string, purpose: string, value: string): string {
+  if (keyed?.salt !== salt) keyed = { salt, mac: nobleHmac.create(sha256, utf8ToBytes(salt)) };
   return bytesToHex(
-    nobleHmac(sha256, utf8ToBytes(salt), utf8ToBytes(`${purpose}\u0000${value}`)),
+    keyed.mac
+      .clone()
+      .update(encoder.encode(`${purpose}\u0000${value}`))
+      .digest(),
   ).slice(0, HASH_HEX_LENGTH);
 }
 
@@ -35,7 +49,7 @@ function hmac(salt: string, purpose: string, value: string): string {
 export function normalizeProjectKey(raw: string, platform: SourceEnvironment["platform"]): string {
   let value = raw.trim();
   if (value.length === 0) return value;
-  value = value.replace(/[\\/]+$/u, "");
+  value = trimTrailingPathSeparators(value);
   if (value.length === 0) value = raw.trim();
   if (platform === "win32") value = value.replace(/\//gu, "\\").toLowerCase();
   return value;
@@ -43,6 +57,10 @@ export function normalizeProjectKey(raw: string, platform: SourceEnvironment["pl
 
 export function projectHash(salt: string, projectKey: string): string {
   return `ph_${hmac(salt, "project", projectKey)}`;
+}
+
+export function sourceRootHash(salt: string, root: string): string {
+  return `sr_${hmac(salt, "source-root", root)}`;
 }
 
 export function nativeSessionHash(salt: string, sessionId: string): string {
@@ -55,7 +73,7 @@ export function nativeEventHash(salt: string, adapterId: AdapterId, identity: st
 
 /** Stable canonical event id derived from the adapter and native identity. */
 export function canonicalEventId(adapterId: AdapterId, nativeHash: string): string {
-  return `ev_${bytesToHex(sha256(utf8ToBytes(`${adapterId}\u0000${nativeHash}`))).slice(0, 24)}`;
+  return `ev_${bytesToHex(sha256(encoder.encode(`${adapterId}\u0000${nativeHash}`))).slice(0, 24)}`;
 }
 
 /** Canonical ISO-8601 UTC timestamp with millisecond precision. */

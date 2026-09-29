@@ -1,0 +1,59 @@
+id: minimax-m3
+role: model
+name: MiniMax M3
+developerId: minimax
+providerIds:
+- minimax
+aliases:
+- id: minimax-m3-api-id
+  alias: MiniMax-M3
+  kind: provider_id
+  sources:
+  - url: https://platform.minimax.io/docs/guides/text-generation
+    title: MiniMax-M3 API model name
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: minimax-m3-router-minimax-minimax-m3
+  alias: minimax/minimax-m3
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/minimax/minimax-m3
+    title: OpenRouter model record `minimax/minimax-m3` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://platform.minimax.io/docs/guides/text-generation
+  title: MiniMax-M3 model documentation
+  checkedAt: '2026-09-29'
+- url: https://platform.minimax.io/docs/guides/pricing-paygo
+  title: MiniMax pay-as-you-go API pricing
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 524288
+  inputModalities:
+  - text
+  - image
+  - video
+  reasoning: true
+  toolCalling: true
+  notes:
+  - Thinking is off unless requested with thinking type adaptive.
+  sources:
+  - url: https://platform.minimax.io/docs/guides/text-generation
+    title: Official context window
+    checkedAt: '2026-09-29'
+  - url: https://platform.minimax.io/docs/api-reference/text-chat-openai
+    title: Maximum max_completion_tokens
+    checkedAt: '2026-09-29'
+  - url: https://platform.minimax.io/docs/api-reference/text-anthropic-api
+    title: Thinking control and supported message content (text, image, video) by model
+    checkedAt: '2026-09-29'
+  - url: https://platform.minimax.io/docs/guides/text-m3-function-call
+    title: Tool use and interleaved thinking
+    checkedAt: '2026-09-29'
+pricingNote: Priority service tier costs 1.5x standard. No cache-write rate is published for M3.

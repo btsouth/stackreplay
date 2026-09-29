@@ -1,5 +1,10 @@
 import type { CatalogV1 } from "@stackreplay/catalog";
-import type { DetectedSourceV1, StackReplayExportV1, UsageEventV1 } from "@stackreplay/schema";
+import type {
+  DetectedSourceV1,
+  ObservedCapacityEvent,
+  StackReplayExportV1,
+  UsageEventV1,
+} from "@stackreplay/schema";
 import { createCcusageAdapter } from "./adapters/ccusage.js";
 import { createClaudeCodeAdapter } from "./adapters/claude-code.js";
 import { createCodexAdapter } from "./adapters/codex.js";
@@ -7,6 +12,7 @@ import { createCommandCodeAdapter } from "./adapters/command-code.js";
 import { createHermesAdapter } from "./adapters/hermes.js";
 import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import { createT3CodeAdapter } from "./adapters/t3-code.js";
+import { dedupeCapacityEvents } from "./claude-capacity.js";
 import { dedupeEvents } from "./dedup.js";
 import { ensureSalt } from "./identity-node.js";
 import { createModelMapper } from "./models.js";
@@ -55,6 +61,7 @@ export interface CollectRunOptions {
 }
 
 export interface CollectRunResult {
+  capacityEvents?: ObservedCapacityEvent[];
   detectedSources: DetectedSourceV1[];
   events: UsageEventV1[];
   warnings: AdapterWarning[];
@@ -194,6 +201,8 @@ export async function collectUsage(options: CollectRunOptions): Promise<CollectR
   }
 
   // 2. Collect from every selected, detected, supported usage source.
+  const capacityEvents: ObservedCapacityEvent[] = [];
+  let capacityInspected = false;
   const allEvents: UsageEventV1[] = [];
   const perAdapter: Partial<Record<AdapterId, CollectStats>> = {};
   for (const adapter of adapters) {
@@ -230,6 +239,8 @@ export async function collectUsage(options: CollectRunOptions): Promise<CollectR
       continue;
     }
     allEvents.push(...result.events);
+    capacityEvents.push(...(result.capacityEvents ?? []));
+    capacityInspected ||= result.capacityEvents !== undefined;
     warnings.push(...result.warnings);
     perAdapter[adapter.id] = result.stats;
   }
@@ -270,6 +281,7 @@ export async function collectUsage(options: CollectRunOptions): Promise<CollectR
   return {
     detectedSources,
     events: deduped.events,
+    ...(capacityInspected ? { capacityEvents: dedupeCapacityEvents(capacityEvents) } : {}),
     warnings,
     stats: {
       perAdapter,
@@ -355,6 +367,14 @@ export function createExport(
       source.note === undefined ? source : { ...source, note: redactExportPaths(source.note) },
     ),
     events: result.events,
+    ...(result.capacityEvents !== undefined
+      ? {
+          capacityObservations: {
+            methodology: "claude-native-capacity-v1" as const,
+            events: result.capacityEvents,
+          },
+        }
+      : {}),
     redactionReport: {
       promptsIncluded: false,
       responsesIncluded: false,

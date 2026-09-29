@@ -1,4 +1,5 @@
 import type { ModelRuleV1, PlanLimitV1 } from "@stackreplay/catalog";
+import Link from "next/link";
 import { durationText, lifecycleText } from "@/lib/catalog-copy";
 import type { PublicModelSummary } from "@/lib/public-catalog";
 
@@ -33,7 +34,7 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
   if (limits.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        The provider does not publish a numeric allowance for this plan.
+        No numeric allowance is recorded in this snapshot.
       </p>
     );
   }
@@ -98,9 +99,10 @@ function RuleRow({ rule, model }: { rule: ModelRuleV1; model: PublicModelSummary
   return (
     <li className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 border-b border-border py-2 text-sm">
       <span className="min-w-0 break-words [overflow-wrap:anywhere]">
-        <span className="text-foreground">{model?.name ?? rule.model}</span>
+        <Link href={`/models/${rule.model}`} className="text-foreground hover:text-accent">
+          {model?.name ?? rule.model}
+        </Link>
         {status === "Legacy" ? <span className="text-muted-foreground"> · Legacy</span> : null}
-        <span className="block font-mono text-xs text-muted-foreground">{rule.model}</span>
       </span>
       {rule.excluded === true ? (
         rule.access === "usage_credits" ? (

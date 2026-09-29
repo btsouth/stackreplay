@@ -1,8 +1,18 @@
 "use client";
 
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { CapacityBurden } from "./capacity-episodes";
+import type { MarketDecision } from "./market-decision";
+import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
+import { clearReviewState, localSourceRootSalt } from "./review-storage";
+import { browserTimeZone } from "./time-zone";
+import type { OptimizerConfiguration } from "./worker-protocol";
 import {
   type ImportPhase,
   type ImportRecord,
@@ -10,6 +20,8 @@ import {
   isWorkerResponse,
   protocolMismatch,
   type ReplayPhase,
+  type ReplayScope,
+  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
   type TimelinePoint,
@@ -26,7 +38,15 @@ export interface ReplayOutcome {
   /** The display contract for the same result (M4D). */
   projection: ProjectedReplayV1;
   /** Present when the replay ran under an explicit, user-chosen scope. */
-  scope?: { excludedUnresolvedEvents: number; recordedEvents: number } | undefined;
+  scope?: ReplayScope | undefined;
+  /** The engine's model × category arithmetic behind the result's money. */
+  receipt?: PriceReceiptV1 | undefined;
+  /** Direct API only: how many events fared each way. */
+  priceability?: ApiPriceabilityCountsV1 | undefined;
+  /** Direct API only: the resolved-only scope, when it completes the price. */
+  resolvedScope?: ResolvedScopeReplay | undefined;
+  /** Subscription targets: when each undecided call occurred, epoch ms. */
+  undecidedAtMs?: number[] | undefined;
 }
 
 /**
@@ -70,7 +90,15 @@ type ProgressHandler = (
  * start with IMPORT", which is true of the list response `IMPORTS` as well, so a
  * perfectly valid listing was dropped whenever an import was running.
  */
-type Channel = "import" | "replay" | "list" | "mutation" | "analyze" | "inspect";
+type Channel =
+  | "import"
+  | "replay"
+  | "list"
+  | "mutation"
+  | "analyze"
+  | "inspect"
+  | "optimizer"
+  | "optimizer-detail";
 
 interface Pending {
   resolve: (response: WorkerResponse) => void;
@@ -97,11 +125,15 @@ const IDLE_TIMEOUT_MS: Record<Channel, number> = {
   mutation: 900_000,
   analyze: 300_000,
   inspect: 120_000,
+  optimizer: 120_000,
+  "optimizer-detail": 30_000,
 };
 
 export class ReplayWorkerClient {
   private worker: Worker | undefined;
   private nextRequestId = 1;
+  private optimizerGeneration = 0;
+  private optimizerAbortCleanup: (() => void) | undefined;
   private readonly pending = new Map<number, Pending>();
   /** Newest request id per channel: an older request on that channel is stale. */
   private readonly latestByChannel: Partial<Record<Channel, number>> = {};
@@ -145,6 +177,10 @@ export class ReplayWorkerClient {
    * the next request starts a fresh Worker instead of queueing behind a dead one.
    */
   private failWorker(error: SafeError): void {
+    this.marketSummaries.clear();
+    this.capacitySummaries.clear();
+    this.capacityEpoch++;
+    this.invalidateOptimizer();
     this.clearReadyTimer();
     const worker = this.worker;
     this.worker = undefined;
@@ -186,8 +222,12 @@ export class ReplayWorkerClient {
       type: "module",
       name: "stackreplay-replay",
     });
-    worker.onmessage = (event: MessageEvent<unknown>) => this.receive(event.data);
-    worker.onerror = () => this.failWorker(ReplayWorkerClient.workerFailure());
+    worker.onmessage = (event: MessageEvent<unknown>) => {
+      if (this.worker === worker) this.receive(event.data);
+    };
+    worker.onerror = () => {
+      if (this.worker === worker) this.failWorker(ReplayWorkerClient.workerFailure());
+    };
     this.worker = worker;
     this.workerReady = false;
     this.clearReadyTimer();
@@ -228,6 +268,10 @@ export class ReplayWorkerClient {
     // even by reporting progress.
     const stale = response.requestId < (this.latestByChannel[entry.channel] ?? 0);
 
+    if (response.type === "OPTIMIZER_PHASE") {
+      if (!stale) this.armIdleTimer(response.requestId, entry);
+      return;
+    }
     if (response.type === "PROGRESS") {
       if (stale) return;
       this.armIdleTimer(response.requestId, entry);
@@ -238,6 +282,13 @@ export class ReplayWorkerClient {
     this.pending.delete(response.requestId);
     if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
     if (stale) {
+      entry.reject(new SupersededError());
+      return;
+    }
+    if (
+      response.type === "CANCELLED" &&
+      (entry.channel === "optimizer" || entry.channel === "optimizer-detail")
+    ) {
       entry.reject(new SupersededError());
       return;
     }
@@ -293,11 +344,43 @@ export class ReplayWorkerClient {
       channel === "replay" ||
       channel === "list" ||
       channel === "analyze" ||
-      channel === "inspect"
+      channel === "inspect" ||
+      channel === "optimizer" ||
+      channel === "optimizer-detail"
     ) {
       this.latestByChannel[channel] = requestId;
     }
     const request = build(requestId);
+    if (
+      [
+        "IMPORT_FILE",
+        "IMPORT_SOURCES",
+        "IMPORT_DEMO",
+        "CLEAR_LOCAL_DATA",
+        "DELETE_LOCAL_IMPORT",
+      ].includes(request.type)
+    ) {
+      this.marketSummaries.clear();
+      this.capacitySummaries.clear();
+      this.capacityEpoch++;
+    }
+    if (
+      [
+        "IMPORT_FILE",
+        "IMPORT_SOURCES",
+        "IMPORT_DEMO",
+        "CANCEL_IMPORT",
+        "CLEAR_LOCAL_DATA",
+        "DELETE_LOCAL_IMPORT",
+        "RUN_REPLAY",
+        "OPTIMIZE",
+        "API_MARKET",
+        "CANCEL_OPTIMIZER",
+      ].includes(request.type)
+    )
+      this.invalidateOptimizer();
+    if (request.type === "OPTIMIZE" || request.type === "API_MARKET")
+      this.optimizerGeneration = requestId;
     return new Promise<WorkerResponse>((resolve, reject) => {
       const entry: Pending = { resolve, reject, channel, ...(onProgress ? { onProgress } : {}) };
       this.pending.set(requestId, entry);
@@ -309,6 +392,163 @@ export class ReplayWorkerClient {
         this.failWorker(ReplayWorkerClient.workerFailure());
       }
     });
+  }
+
+  private marketSummaries = new Map<string, MarketDecision>();
+
+  private invalidateOptimizer(): void {
+    this.optimizerAbortCleanup?.();
+    this.optimizerAbortCleanup = undefined;
+    this.optimizerGeneration = 0;
+    for (const [id, entry] of this.pending)
+      if (entry.channel === "optimizer" || entry.channel === "optimizer-detail") {
+        if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+        this.pending.delete(id);
+        entry.reject(new SupersededError());
+      }
+  }
+  /** Call when leaving/changing optimizer scope. Existing import/clear/replay actions also invalidate it. */
+  async cancelOptimizer(): Promise<void> {
+    await this.send((requestId) => ({
+      protocol: WORKER_PROTOCOL_VERSION,
+      type: "CANCEL_OPTIMIZER",
+      requestId,
+    }));
+  }
+  private capacityEpoch = 0;
+  private capacitySummaries = new Map<string, CapacityBurden>();
+  async capacityBurden(input: {
+    importId: string;
+    resourceInstanceId: string;
+    planId: string | undefined;
+    period: import("./review-period").ReviewPeriod;
+    contextImportIds: string[];
+  }): Promise<CapacityBurden> {
+    const normalized = { ...input, contextImportIds: [...new Set(input.contextImportIds)].sort() };
+    const key = JSON.stringify(normalized);
+    const cached = this.capacitySummaries.get(key);
+    if (cached) return cached;
+    const epoch = this.capacityEpoch;
+    const response = await this.send((requestId) => ({
+      protocol: WORKER_PROTOCOL_VERSION,
+      type: "CAPACITY_EPISODES",
+      requestId,
+      ...normalized,
+    }));
+    if (epoch !== this.capacityEpoch) throw new SupersededError();
+    if (response.type !== "CAPACITY_EPISODES_OK") throw new Error("unexpected capacity response");
+    if (this.capacitySummaries.size >= 3)
+      this.capacitySummaries.delete(this.capacitySummaries.keys().next().value ?? "");
+    this.capacitySummaries.set(key, response.burden);
+    return response.burden;
+  }
+  async apiMarket(
+    importId: string,
+    signal?: AbortSignal,
+    period?: import("./review-period").ReviewPeriod,
+    resourceInstanceId?: string,
+  ): Promise<MarketDecision> {
+    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}`;
+    if (signal?.aborted) throw new SupersededError();
+    const cached = this.marketSummaries.get(cacheKey);
+    if (cached) return cached;
+    let generation = 0;
+    const pending = this.send(
+      (requestId) => {
+        generation = requestId;
+        return {
+          protocol: WORKER_PROTOCOL_VERSION,
+          type: "API_MARKET",
+          requestId,
+          importId,
+          ...(period ? { period } : {}),
+          ...(resourceInstanceId ? { resourceInstanceId } : {}),
+        };
+      },
+      undefined,
+      "optimizer",
+    );
+    const abort = () => {
+      if (this.optimizerGeneration === generation)
+        void this.cancelOptimizer().catch(() => undefined);
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
+    const response = await pending;
+    if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
+    if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
+    const oldest = this.marketSummaries.keys().next().value;
+    if (this.marketSummaries.size >= 3 && oldest !== undefined) this.marketSummaries.delete(oldest);
+    this.marketSummaries.set(cacheKey, response.decision);
+    this.optimizerAbortCleanup?.();
+    this.optimizerAbortCleanup = undefined;
+    return response.decision;
+  }
+  async optimize(
+    importId: string,
+    configuration: OptimizerConfiguration,
+    sources?: string[],
+    signal?: AbortSignal,
+  ): Promise<{ generation: number; summary: OptimizerSummary }> {
+    if (signal?.aborted) throw new SupersededError();
+    let generation = 0;
+    const pending = this.send(
+      (requestId) => {
+        generation = requestId;
+        return {
+          protocol: WORKER_PROTOCOL_VERSION,
+          type: "OPTIMIZE",
+          requestId,
+          importId,
+          configuration,
+          ...(sources ? { sources } : {}),
+        };
+      },
+      undefined,
+      "optimizer",
+    );
+    const abort = () => {
+      if (this.optimizerGeneration === generation)
+        void this.cancelOptimizer().catch(() => undefined);
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
+    const response = await pending;
+    if (response.type !== "OPTIMIZER_OK") throw new Error("unexpected worker response");
+    return { generation: response.requestId, summary: response.summary };
+  }
+  async optimizerDetail(generation: number, offset: number, limit = 100): Promise<OptimizerDetail> {
+    if (generation !== this.optimizerGeneration) throw new SupersededError();
+    const response = await this.send(
+      (requestId) => ({
+        protocol: WORKER_PROTOCOL_VERSION,
+        type: "OPTIMIZER_DETAIL",
+        requestId,
+        generation,
+        offset,
+        limit,
+      }),
+      undefined,
+      "optimizer-detail",
+    );
+    if (response.type !== "OPTIMIZER_DETAIL_OK") throw new Error("unexpected worker response");
+    return response.detail;
+  }
+  /** End all activity owned by this client, including child optimization, on owner teardown. */
+  dispose(): void {
+    this.marketSummaries.clear();
+    this.capacitySummaries.clear();
+    this.capacityEpoch++;
+    this.invalidateOptimizer();
+    this.clearReadyTimer();
+    this.worker?.terminate();
+    this.worker = undefined;
+    this.workerReady = false;
+    for (const entry of this.pending.values()) {
+      if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
+      entry.reject(new SupersededError());
+    }
+    this.pending.clear();
   }
 
   async ping(): Promise<boolean> {
@@ -362,18 +602,26 @@ export class ReplayWorkerClient {
   }
 
   async importSources(
-    files: { file: File; path: string }[],
-    options: { importId: string; now: string; saveLocal: boolean; onProgress?: ProgressHandler },
+    files: { file: File; path: string; group?: string; unavailable?: string }[],
+    options: {
+      importId: string;
+      now: string;
+      saveLocal: boolean;
+      label?: string;
+      onProgress?: ProgressHandler;
+    },
   ): Promise<ImportRecord> {
     const response = await this.send(
       (requestId) => ({
         protocol: WORKER_PROTOCOL_VERSION,
         type: "IMPORT_SOURCES",
+        ...(options.saveLocal ? { sourceRootSalt: localSourceRootSalt() } : {}),
         requestId,
         importId: options.importId,
         files,
         now: options.now,
         saveLocal: options.saveLocal,
+        ...(options.label === undefined ? {} : { label: options.label }),
       }),
       options.onProgress,
       "import",
@@ -418,7 +666,12 @@ export class ReplayWorkerClient {
     target: ExecutionTargetV1,
     rulesAsOf: string,
     onProgress?: ProgressHandler,
-    options: { excludeUnresolved?: boolean } = {},
+    options: {
+      excludeUnresolved?: boolean;
+      timeZone?: string;
+      /** Recording tools to keep, by adapter id. */
+      sources?: readonly string[] | undefined;
+    } = {},
   ): Promise<ReplayOutcome> {
     const response = await this.send(
       (requestId) => ({
@@ -428,7 +681,11 @@ export class ReplayWorkerClient {
         importId,
         target,
         rulesAsOf,
+        timeZone: options.timeZone ?? browserTimeZone(),
         ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
+        ...(options.sources === undefined || options.sources.length === 0
+          ? {}
+          : { sources: [...options.sources] }),
       }),
       onProgress,
       "replay",
@@ -439,11 +696,19 @@ export class ReplayWorkerClient {
       timeline: response.timeline,
       projection: response.projection,
       ...(response.scope === undefined ? {} : { scope: response.scope }),
+      ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
+      ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
+      ...(response.resolvedScope === undefined ? {} : { resolvedScope: response.resolvedScope }),
+      ...(response.undecidedAtMs === undefined ? {} : { undecidedAtMs: response.undecidedAtMs }),
     };
   }
 
   /** The workload profile, computed locally in the Worker from the stored events. */
-  async analyzeWorkload(importId: string, timeZone: string): Promise<WorkloadProfile> {
+  async analyzeWorkload(
+    importId: string,
+    timeZone: string,
+    rulesAsOf?: string,
+  ): Promise<WorkloadProfile> {
     const response = await this.send(
       (requestId) => ({
         protocol: WORKER_PROTOCOL_VERSION,
@@ -451,6 +716,7 @@ export class ReplayWorkerClient {
         requestId,
         importId,
         timeZone,
+        ...(rulesAsOf === undefined ? {} : { rulesAsOf }),
       }),
       undefined,
       "analyze",
@@ -505,6 +771,7 @@ export class ReplayWorkerClient {
       importId,
     }));
     if (response.type !== "DELETED") throw new Error("unexpected worker response");
+    clearReviewState(importId);
   }
 
   async clearLocalData(): Promise<void> {
@@ -514,6 +781,7 @@ export class ReplayWorkerClient {
       requestId,
     }));
     if (response.type !== "CLEARED") throw new Error("unexpected worker response");
+    clearReviewState();
   }
 }
 

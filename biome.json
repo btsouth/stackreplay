@@ -96,7 +96,10 @@
       }
     },
     {
-      "includes": ["packages/catalog/src/bundled-catalog.ts"],
+      "includes": [
+        "packages/catalog/src/bundled-catalog.ts",
+        "packages/catalog/src/decision-market.generated.ts"
+      ],
       "formatter": {
         "enabled": false
       },

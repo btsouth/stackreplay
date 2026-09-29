@@ -255,3 +255,164 @@ versions:
       checkedAt: '2026-09-23'
     lastVerifiedAt: '2026-09-23'
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: github-copilot-pro-current-20260927
+  productId: github-copilot-pro
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '10'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: GitHub Copilot Pro current at review; historical effective date not established.
+    normalizedClaimHash: sha256:e6978503ea77558c4930eb5689e242a0b392f8ee8e1824f08b35326b27c39f44
+    evidencePackageHash: sha256:0f47c9772899dd0a365ddd416e6590be99af04d61caaa3aa4c6bc34215aba690
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: GitHub Copilot Pro web individual subscription is USD 10 per month.
+    normalizedClaimHash: sha256:2c32c1e9022e7de78cac3fb1397ad8da14cb5479fa9eb1c0e524700262c8cd82
+    evidencePackageHash: sha256:21ea2128767dca2a7b9ce8d76689ca178d2aea41d4faf6c6ce452da3d22c7cd7
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/get-started/plans
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active GitHub Copilot Pro includes github-copilot-individual access; this is not a direct API entitlement.
+    normalizedClaimHash: sha256:66d834e04cde925ee0e7699924f5515376e29bdb36727790e0ecebb7d8ce78c8
+    evidencePackageHash: sha256:22b80c3ac72d0844f31f99047fe46fb21364a05c685d404982d799b4b30a6ded
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: raw.githubusercontent.com
+    sourceUrl: https://raw.githubusercontent.com/github/docs/main/data/tables/copilot/model-supported-plans.yml
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for github-copilot-individual: claude-sonnet-5.'
+    normalizedClaimHash: sha256:17d29791005ff95c16a529c7afa84a5856c87bbbbe9fe4a83c31abc4b3599181
+    evidencePackageHash: sha256:411f9ed689995fc6e52f10130a5eff14e6c3c64a05f25f6e3045bab001d292a3
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: provider_dynamic
+    locator: Usage or capacity mechanics
+    excerpt: Current Pro has 1000 base and 500 flex GitHub AI Credits per month, reset on the first UTC; the flex
+      allotment is variable, feature charges differ, and purchased overage is separate.
+    normalizedClaimHash: sha256:8f1f6569d3874f17500d05aeb2304e544ff52dc493e16ca9130032a19d75fb9d
+    evidencePackageHash: sha256:7c88984df06d2c3e768e9b1e6ce0d6dedb61d878cd31734482b82f056df4195a
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for GitHub Copilot Pro depends on optional purchase, changing limits, or account state
+      and is not established for deterministic replay.
+    normalizedClaimHash: sha256:88895bcecff7a64648e14b6442738a23b5c93e1079d583a8901547cd6003e28f
+    evidencePackageHash: sha256:77977fd41a2eedd063efefcd3372f2c4cec15a42b4bf516de23af7cec4f57c1f
+    reviewer: Codex C2B manual official-source review
+  - id: credits
+    sourceId: docs.github.com
+    sourceUrl: https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: AI Credits allowance
+    excerpt: Current Pro states 1000 base plus 500 flexible GitHub AI Credits per calendar month; 1 credit = USD
+      0.01.
+    normalizedClaimHash: sha256:ffa77b75d359c1400ef0a4d89f99eedaab72d5d017546d3d7f5263ac6d43dd54
+    evidencePackageHash: sha256:435a15dc22d2ae92ea8924d7fa8664016355b29b1a2e9ff2cc34566e824b811a
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-github-copilot-pro-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: github-copilot-individual
+    protocol: copilot-cli
+    harnessIds:
+    - copilot-cli
+    models:
+      kind: exact
+      modelIds:
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: variable-flex-and-feature-debit
+    claimRefs:
+    - capacity
+    - credits

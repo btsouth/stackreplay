@@ -1,5 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, openReplayDetails } from "./helpers";
+import { decodeAnyShareToken } from "@stackreplay/share";
+import { createShareToken, importDemo, openReplayDetails, setRulesAsOf } from "./helpers";
 
 /**
  * Direct API target (M4C): the same workload priced at a provider's published
@@ -7,8 +8,8 @@ import { importDemo, openReplayDetails } from "./helpers";
  */
 
 test("runs a replay against a provider's list prices", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   await runApiReplay(page, "example-cloud");
 
   // The result is an API result: no allowance constraints, and the panel says so
@@ -44,8 +45,8 @@ test("runs a replay against a provider's list prices", async ({ page }) => {
 });
 
 test("states a Direct API summary instead of plan rules", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   await runApiReplay(page, "example-cloud");
 
   await expect(page.getByTestId("headline-status")).toContainText(/Fully served|Partly served/);
@@ -64,10 +65,10 @@ test("states a Direct API summary instead of plan rules", async ({ page }) => {
 });
 
 test("explains an unpriced provider instead of inventing a cost", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   // anthropic offers catalogued models but no API list prices for them.
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("target-kind-api").click();
   await page.getByTestId("provider-anthropic").click();
   // The picker says up front that this provider's models have no list prices,
@@ -84,7 +85,7 @@ test("explains an unpriced provider instead of inventing a cost", async ({ page 
 
 test("keeps subscription billing platforms out of Direct API targets", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await page.getByTestId("target-kind-api").click();
   await expect(page.getByTestId("provider-deepseek")).toBeVisible();
   await expect(page.getByTestId("provider-example-cloud")).toBeVisible();
@@ -92,20 +93,23 @@ test("keeps subscription billing platforms out of Direct API targets", async ({ 
   await expect(page.getByTestId("provider-cursor")).toHaveCount(0);
 });
 
-test("refuses to share a Direct API result", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+test("shares a Direct API result, and the link keeps its caveat", async ({ page }) => {
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   await runApiReplay(page, "example-cloud");
 
-  const refused = page.getByTestId("share-refused");
-  await expect(refused).toBeVisible();
-  await expect(refused).toContainText("Direct API");
-  await expect(page.getByTestId("share-create")).toBeDisabled();
+  await expect(page.getByTestId("share-refused")).toHaveCount(0);
+  const token = await createShareToken(page);
+  const decoded = await decodeAnyShareToken(token);
+  expect(decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind).toBe("replay");
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-card-v2")).toBeVisible();
+  await expect(page.getByTestId("share-figure-caption")).toContainText("not what you paid");
 });
 
 /** Runs a Direct API replay against a provider and waits for the result. */
 async function runApiReplay(page: Page, providerId: string, rulesAsOf = "2026-09-15") {
-  await page.getByTestId("rules-as-of").fill(rulesAsOf);
+  await setRulesAsOf(page, rulesAsOf);
   await page.getByTestId("target-kind-api").click();
   await page.getByTestId(`provider-${providerId}`).click();
   await page.getByTestId("run-replay").click();

@@ -1,4 +1,4 @@
-import { tokenAccountingOf } from "@stackreplay/replay-engine";
+import { Temporal, tokenAccountingOf } from "@stackreplay/replay-engine";
 import type { TimelinePoint } from "./worker-protocol";
 
 /**
@@ -7,6 +7,10 @@ import type { TimelinePoint } from "./worker-protocol";
  * Aggregate counts only: no session, event or project identity leaves the
  * Worker, so the chart cannot leak private project information.
  *
+ * A day is a calendar day in the viewer's timezone, the same day basis the
+ * workload page uses, so "busiest day" names the same date on both surfaces
+ * (decision 57). A UTC day split one evening's work across two dates.
+ *
  * Exact and lower-bound token quantities stay in separate fields. A bucket used
  * to add the reported part of an event whose total is unknown into the same
  * number as fully known totals, which presented a lower bound as an exact total
@@ -14,12 +18,14 @@ import type { TimelinePoint } from "./worker-protocol";
  */
 export function buildTimeline(
   events: readonly { occurredAt: string; usage: unknown }[],
+  timeZone = "UTC",
 ): TimelinePoint[] {
   const buckets = new Map<string, TimelinePoint>();
+  const dayOf = localDayOf(timeZone);
   for (const event of events) {
-    const day = `${event.occurredAt.slice(0, 10)}T00:00:00.000Z`;
+    const day = dayOf(event.occurredAt);
     const bucket = buckets.get(day) ?? {
-      at: day,
+      day,
       events: 0,
       tokens: 0,
       partialTokens: 0,
@@ -35,5 +41,34 @@ export function buildTimeline(
     }
     buckets.set(day, bucket);
   }
-  return [...buckets.values()].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  return [...buckets.values()].sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+}
+
+const QUARTER_HOUR_MS = 900_000;
+
+/**
+ * The calendar date of an instant in one timezone. Every real UTC offset is a
+ * whole number of quarter hours, so one conversion serves a whole quarter-hour
+ * bucket, the same shortcut the workload profile takes.
+ */
+export function localDayOf(timeZone: string): (instant: string | number) => string {
+  const cache = new Map<number, string>();
+  let zone = timeZone;
+  try {
+    Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO(zone);
+  } catch {
+    zone = "UTC";
+  }
+  return (instant) => {
+    const ms = typeof instant === "number" ? instant : Date.parse(instant);
+    const bucket = Math.floor(ms / QUARTER_HOUR_MS);
+    const cached = cache.get(bucket);
+    if (cached !== undefined) return cached;
+    const date = Temporal.Instant.fromEpochMilliseconds(bucket * QUARTER_HOUR_MS)
+      .toZonedDateTimeISO(zone)
+      .toPlainDate()
+      .toString();
+    cache.set(bucket, date);
+    return date;
+  };
 }

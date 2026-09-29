@@ -2,6 +2,8 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { compareInitScript } from "@/lib/compare-url";
+import { modelLayoutInitScript } from "@/lib/model-layout";
 import {
   absoluteUrl,
   brandAssets,
@@ -82,6 +84,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Applies the stored (or system) theme before first paint. */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap script, no user input */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Shows the requested models layout (?view=table) before first paint. */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static layout bootstrap script, no user input */}
+        <script dangerouslySetInnerHTML={{ __html: modelLayoutInitScript }} />
+        {/* Holds a shared comparison (?left=&right=) back until its plans are applied. */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static compare bootstrap script, no user input */}
+        <script dangerouslySetInnerHTML={{ __html: compareInitScript }} />
       </head>
       <body>{children}</body>
     </html>

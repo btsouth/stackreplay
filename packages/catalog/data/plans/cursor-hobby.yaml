@@ -1,6 +1,6 @@
 id: cursor-hobby
 role: plan
-name: Hobby
+name: Cursor Hobby
 providerId: cursor
 versions:
   - effectiveFrom: 2026-09-21
@@ -11,6 +11,15 @@ versions:
     billingMechanics: "Pricing page card: 'Hobby / For the tinkerer / Free / Includes: No credit card required / Limited Agent requests / Access to Composer'."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Free access to Composer with limited Agent requests. No published numeric allowance.
+        sourceUrl: https://cursor.com/help/account-and-billing/pricing
+      - id: after-limit-not-published
+        label: After the limit
+        statement: The pricing page does not state a numeric Hobby allowance or an automatic paid-overage rule. Check the upgrade options in your account when a limit is reached.
+        sourceUrl: https://cursor.com/pricing
+        topic: after_limit
       - id: hobby-auto-only
         label: "Auto model only"
         statement: "Hobby offers limited Agent, Chat, and Tab usage with the Auto model. Named model selection is not established for this plan, so StackReplay cannot attribute a deterministic target model."
@@ -65,4 +74,4 @@ versions:
         title: "Cursor pricing (official)"
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
-    verificationStatus: unknown
+    verificationStatus: verified

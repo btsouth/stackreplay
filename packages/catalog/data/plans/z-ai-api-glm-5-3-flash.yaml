@@ -1,0 +1,109 @@
+id: z-ai-api-glm-5-3-flash
+role: plan
+name: "Z.AI API: GLM-5.3-Flash"
+providerId: z-ai
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: z-ai-api-glm-5-3-flash-current-20260927
+  productId: z-ai-direct-api
+  validity:
+    start: '2026-09-27T14:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    catalogActivatedAt: '2026-09-27T14:38:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: docs.z.ai
+    sourceUrl: https://docs.z.ai/guides/overview/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: current model or pricing listing
+    excerpt: Model and listed rates were current at review; provider effective date was not established.
+    normalizedClaimHash: sha256:d222a76ab3060b09b5009ad3790fdd732233c7cf842eba8b6bb9e7f877f50813
+    evidencePackageHash: sha256:b6d0176a7ff970a9f39c4d9a985aa8ac2c74caaf7b32f86e49072cfe99ccafda
+    reviewer: Codex C2A manual official-source review
+  - id: route
+    sourceId: docs.z.ai
+    sourceUrl: https://docs.z.ai/guides/develop/http/introduction
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: API endpoint and model request
+    excerpt: Exact glm-5-3-flash on z-ai-chat-completions through openai-chat-completions-compatible.
+    normalizedClaimHash: sha256:084ac72c6e105de0345bdde49c18ca7c9fbaaa907ec5985be49535c1e26e25a9
+    evidencePackageHash: sha256:f05d09cf0d6ca918b5d985fc1f8311f5827e57300cf420115e697d8ebacca691
+    reviewer: Codex C2A manual official-source review
+  - id: rate
+    sourceId: docs.z.ai
+    sourceUrl: https://docs.z.ai/guides/overview/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T14:38:00Z'
+    reviewedAt: '2026-09-27T14:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: model price row
+    excerpt: USD per 1M uncached input, output and cached-input tokens. Cached-input storage promotion
+      is omitted; cache-write and reasoning billing are unresolved.
+    normalizedClaimHash: sha256:8a5c6f6929cc6ef5ed372157a6d75062acfe3d4d2fb7d844d7b8ba8da6f89e2b
+    evidencePackageHash: sha256:ee4ac294e9b0bf37792ddd3b7846341e2bbf78974f337db95611d92af172231f
+    reviewer: Codex C2A manual official-source review
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: z-ai-api-glm-5-3-flash-current-rate
+    basis: api_list_price
+    endpointId: z-ai-chat-completions
+    rateVersion: current-20260927
+    denomination: USD
+    claimRefs:
+    - rate
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: z-ai-chat-completions
+    protocol: openai-chat-completions-compatible
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - glm-5-3-flash
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []

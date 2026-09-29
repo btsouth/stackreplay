@@ -1,0 +1,9 @@
+id: kiro
+role: provider
+name: Kiro
+sources:
+- url: https://kiro.dev/pricing/
+  title: Kiro official pricing
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

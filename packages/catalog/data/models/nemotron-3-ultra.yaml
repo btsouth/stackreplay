@@ -1,0 +1,54 @@
+id: nemotron-3-ultra
+role: model
+name: Nemotron 3 Ultra
+developerId: nvidia
+providerIds:
+- nvidia
+aliases:
+- id: nemotron-3-ultra-api-id
+  alias: nvidia/nemotron-3-ultra-550b-a55b
+  kind: provider_id
+  sources:
+  - url: https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b
+    title: NVIDIA API catalog model id nvidia/nemotron-3-ultra-550b-a55b
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: nemotron-3-ultra-router-nvidia-nemotron-3-ultra-550b-a55b
+  alias: nvidia/nemotron-3-ultra-550b-a55b
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b
+    title: OpenRouter model record `nvidia/nemotron-3-ultra-550b-a55b` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16
+  title: NVIDIA model card
+  checkedAt: '2026-09-29'
+- url: https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b
+  title: NVIDIA API catalog model page
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  inputModalities:
+  - text
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: false
+  notes:
+  - Reasoning is turned on or off with enable_thinking in the chat template.
+  sources:
+  - url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16
+    title: Official model card
+    checkedAt: '2026-09-29'
+  - url: https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b
+    title: Specifications and capabilities
+    checkedAt: '2026-09-29'
+pricingNote: NVIDIA offers a free trial endpoint on build.nvidia.com and does not publish its own per-token API rate. The
+  partner endpoints listed there set their own prices.

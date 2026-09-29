@@ -1,6 +1,6 @@
 id: cursor-pro
 role: plan
-name: Pro
+name: Cursor Pro
 providerId: cursor
 versions:
   - effectiveFrom: 2026-09-21
@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Monthly price $20/mo; yearly view shows $16/mo with the banner 'Save 20% with yearly billing' (read from the live Monthly/Yearly toggle on 2026-09-21)."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Included Cursor-model and third-party-model usage pools, unlimited Tab, Bugbot and Cloud Agents. Optional on-demand billing.
+        sourceUrl: https://cursor.com/docs/models-and-pricing
       - id: grok-route-pricing-unknown
         label: "Grok 4.7 route pricing depends on speed and context"
         statement: "Cursor documents standard and Fast rates plus a long-context tier. Fast is the paid-plan default, but this catalog cannot establish a specific speed route for a recorded workload, so it does not assign one token rate."
@@ -84,3 +88,148 @@ versions:
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: cursor-pro-current-20260927
+  productId: cursor-pro
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '20'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: Cursor Pro current at review; historical effective date not established.
+    normalizedClaimHash: sha256:ae50426ab2ee54ec4cf29046caf8f46292646c4fa0a79f2afba38aeaaac7b86b
+    evidencePackageHash: sha256:284f0ef1bb947d6ab09a203c81da0f49c47b432575e532618d055321c71494db
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: Cursor Pro web individual subscription is USD 20 per month.
+    normalizedClaimHash: sha256:cafefeb045041467d2199262915a5966bd2f36f9ce4875ff6fd802777afb24a0
+    evidencePackageHash: sha256:ed3fbd4db207dc026b5dfaedfabab70cb7738c55688e2e3e08078607664d9fe1
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/docs/models-and-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active Cursor Pro includes cursor-pro-agent access; this is not a direct API entitlement.
+    normalizedClaimHash: sha256:4af7c30cbe5de2beea990555dbbb8fe06c26645d20df3f82300336be745bee76
+    evidencePackageHash: sha256:f34db090b013be8913396d5adbed53c4e5205417e376c031cbcc398a1304ed23
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/docs/models-and-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for cursor-pro-agent: claude-sonnet-5.'
+    normalizedClaimHash: sha256:6bd59a5c691759f4ddd45e7433abcc091175c0e2bcd4b481390ba1022bce934a
+    evidencePackageHash: sha256:3f914aaeb7131c2f7b026a61ac81753f4fefc7a0d7bf496aa15b4db7877917ab
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/docs/models-and-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: provider_dynamic
+    locator: Usage or capacity mechanics
+    excerpt: Pro has separate Cursor Models and Other Models pools, but current official documentation does not
+      publish a fixed dollar amount for each pool. On-demand usage is optional.
+    normalizedClaimHash: sha256:06f19f53616a608c815b57ae3623d9dc6e132be2eb0011f25acbe13397a3707c
+    evidencePackageHash: sha256:d2877ce637c644d01ac704830472a295c1b6cc821c37df1f00e1db31fd225abb
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: cursor.com
+    sourceUrl: https://cursor.com/docs/models-and-pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for Cursor Pro depends on optional purchase, changing limits, or account state and is
+      not established for deterministic replay.
+    normalizedClaimHash: sha256:0d49f0d6ac394c75ef39f6bec7fd83b8089930bc14565ef6980d2ce6d7050988
+    evidencePackageHash: sha256:4e90cbe93b0257eec3847fe9d3f08a15a5192bea708141dddb33193ec85880ba
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-cursor-pro-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: cursor-pro-agent
+    protocol: cursor-agent
+    harnessIds:
+    - cursor
+    models:
+      kind: exact
+      modelIds:
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: unpublished-named-pool-amounts
+    claimRefs:
+    - capacity

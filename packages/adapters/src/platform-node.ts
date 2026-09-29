@@ -1,10 +1,11 @@
 import { createReadStream } from "node:fs";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, realpath, stat } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import type { FileSystem } from "./types.js";
 
 export function createNodeFileSystem(): FileSystem {
   return {
+    realPath: realpath,
     async exists(path: string): Promise<boolean> {
       try {
         await stat(path);

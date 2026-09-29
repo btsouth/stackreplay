@@ -55,6 +55,11 @@ export function epochMsFromIso(isoUtcTimestamp: string): number {
   return epochMs;
 }
 
+/** Nanosecond remainder of a schema-validated UTC timestamp (same representation as TimedEvent). */
+export function subMillisecondNanoseconds(isoUtcTimestamp: string): number {
+  return Number((isoUtcTimestamp.split(".")[1]?.slice(0, -1) ?? "").padEnd(9, "0").slice(3));
+}
+
 /** ISO-8601 UTC timestamp for epoch milliseconds, in the same style as Temporal. */
 export function isoFromEpochMs(epochMs: number, subMs = 0): string {
   const iso = new Date(epochMs).toISOString();

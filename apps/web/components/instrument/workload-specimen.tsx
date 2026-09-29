@@ -69,15 +69,19 @@ export function WorkloadSpecimen({
             value={formatCount(workload.eventCount) ?? "—"}
           />
           <LedgerRow
-            label="Models observed"
+            label="Models"
             note={
               workload.unresolvedEventCount === undefined
                 ? "this result carries no resolution count, so whether every identifier resolved is not established"
                 : workload.unresolvedEventCount === 0
                   ? "every identifier resolved against the catalog"
-                  : `${formatCount(workload.unresolvedEventCount) ?? "—"} events with no resolved identity`
+                  : `plus ${formatCount(workload.unresolvedIdCount) ?? "—"} unresolved ${workload.unresolvedIdCount === 1 ? "ID" : "IDs"} on ${formatCount(workload.unresolvedEventCount) ?? "—"} events`
             }
-            value={formatCount(workload.modelCount) ?? "—"}
+            value={
+              workload.resolvedModelCount === undefined
+                ? `${formatCount(workload.modelCount) ?? "—"} identities`
+                : (formatCount(workload.resolvedModelCount) ?? "—")
+            }
           />
         </div>
         <div className="flex flex-col">

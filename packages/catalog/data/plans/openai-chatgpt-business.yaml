@@ -75,6 +75,10 @@ versions:
     billingMechanics: "Price is per seat."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Managed workspace with Standard and Premium seats, included agentic usage and optional workspace credits. Two paid seats minimum.
+        sourceUrl: https://help.openai.com/en/articles/8792828-chatgpt-business
       - id: standard-seat-included-usage-unquantified-5-hour
         label: "Standard seat included usage (unquantified) + 5-hour usage limit"
         statement: "Premium seats cost $100 per user per month when billed annually, or $125 per user per month when billed monthly. Premium includes 5x more usage than Standard seats, no 5-hour usage limit, and the flexibility to mix, assign, and reassign seat types - all within one secure, centrally managed workspace."

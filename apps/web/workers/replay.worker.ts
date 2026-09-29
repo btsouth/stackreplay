@@ -1,28 +1,44 @@
 /// <reference lib="webworker" />
+
 import {
   type BrowserCandidate,
   BrowserIntakeBudget,
   BrowserIntakeBudgetError,
+  BrowserIntakeCancelledError,
   type CandidateOutcome,
   expandZipCandidate,
   intakeBrowserCandidates,
   safeCandidateName,
   safeIntakeMessage,
+  unavailableCandidate,
 } from "@stackreplay/adapters/browser";
 import {
   BUNDLED_CATALOG_VERSION,
   bundledModelIdentity,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { projectReplay, replay } from "@stackreplay/replay-engine";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
+import {
+  analyzeMarketCoverage,
+  type CompiledOptimizationInput,
+  marketDecisionInputs,
+  parseInstant,
+  toTimedEvents,
+} from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { type ActivityPoint, activityPoint, composeCapacityBurden } from "../lib/capacity-episodes";
 import * as storage from "../lib/idb";
 import {
   importSizeAdvice,
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import type { MarketDecision } from "../lib/market-decision";
+import { summarizeCapacity } from "../lib/observed-capacity";
+import { OptimizerCancelledError, OptimizerRuntime } from "../lib/optimizer-runtime";
+import { recordedEventsInPeriod, reviewWorkload } from "../lib/review-workload";
+import { runScopedReplay } from "../lib/scoped-replay";
 import { buildTimeline } from "../lib/timeline";
 import {
   type ImportRecord,
@@ -34,7 +50,7 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
-import { splitByIdentity } from "../lib/workload-scope";
+import { selectSources } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
 /**
@@ -52,6 +68,253 @@ import { summarizeExport } from "../lib/workload-summary";
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 const sessionWorkloads = new Map<string, { record: ImportRecord; exported: StackReplayExportV1 }>();
+const optimizer = new OptimizerRuntime();
+const marketOptimizer = new OptimizerRuntime<CompiledOptimizationInput>();
+let optimizerGeneration = 0;
+function cancelOptimizer(): void {
+  optimizerGeneration = 0;
+  optimizer.cancel();
+  marketOptimizer.cancel();
+}
+async function handleCapacityEpisodes(
+  request: Extract<WorkerRequest, { type: "CAPACITY_EPISODES" }>,
+): Promise<void> {
+  const loaded = await loadWorkloadEvents(request.importId);
+  if (!loaded.ok) {
+    post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
+    return;
+  }
+  const scoped = {
+    events: recordedEventsInPeriod(
+      loaded.exported.events,
+      request.period,
+      request.resourceInstanceId,
+    ),
+  };
+  const source = scoped.events[0]?.source.adapterId ?? "unknown";
+  const context: ActivityPoint[] = [];
+  const unavailable: string[] = [];
+  const warnings = new Set<string>();
+  let excluded = 0;
+  const from = Date.parse(`${request.period.start}T00:00:00Z`),
+    to = Date.parse(`${request.period.end}T00:00:00Z`);
+  const points = (exported: StackReplayExportV1, external: boolean) => {
+    for (const warning of exported.collectionWarnings ?? [])
+      if (
+        [
+          "RECORD_MALFORMED",
+          "USAGE_MISSING",
+          "SOURCE_TRUNCATED",
+          "SOURCE_UNREADABLE",
+          "TIMESTAMP_INVALID",
+        ].includes(warning.code)
+      )
+        warnings.add(warning.code);
+    for (const event of exported.events) {
+      if (Date.parse(event.occurredAt) < from || Date.parse(event.occurredAt) >= to) continue;
+      // A separate copy of this source cannot establish another local account.
+      if (external && event.source.adapterId === source) continue;
+      if (!external && event.source.resourceInstanceId === request.resourceInstanceId) continue;
+      const point = activityPoint(event);
+      if (point) context.push(point);
+      else excluded++;
+    }
+  };
+  points(loaded.exported, false);
+  for (const id of [...new Set(request.contextImportIds)]
+    .filter((id) => id !== request.importId)
+    .slice(0, 10)) {
+    const session = sessionWorkloads.get(id)?.exported;
+    const saved = session ? { ok: true as const, value: session } : await storage.loadImport(id);
+    if (saved.ok) points(saved.value, true);
+    else unavailable.push(id);
+  }
+  const mainActivity = scoped.events.flatMap((e) => {
+    const point = activityPoint(e);
+    return point ? [point] : [];
+  });
+  const burden = composeCapacityBurden({
+    capacity: summarizeCapacity(
+      loaded.exported.capacityObservations,
+      scoped.events,
+      request.period,
+      request.resourceInstanceId,
+      new Map((loaded.record?.localProjects ?? []).map((p) => [p.hash, p.label])),
+    ),
+    mainActivity,
+    contextActivity: context,
+    resourceInstanceId: request.resourceInstanceId,
+    planId: request.planId,
+    period: request.period,
+    mainSource: source,
+    excludedActivityRecords: excluded,
+    contextUnavailable: unavailable,
+    contextWarnings: [...warnings],
+  });
+  post({ type: "CAPACITY_EPISODES_OK", requestId: request.requestId, burden });
+}
+
+async function handleMarket(
+  request: Extract<WorkerRequest, { type: "API_MARKET" }>,
+): Promise<void> {
+  cancelOptimizer();
+  optimizerGeneration = request.requestId;
+  const current = () => optimizerGeneration === request.requestId;
+  try {
+    const loaded = await loadWorkloadEvents(request.importId, current);
+    if (!loaded.ok) throw new Error("Workload unavailable");
+    if (!current()) throw new OptimizerCancelledError();
+    const scoped = reviewWorkload(
+      loaded.exported.events,
+      request.period,
+      request.resourceInstanceId,
+    );
+    const gapCodes = new Set([
+      "SOURCE_UNREADABLE",
+      "SOURCE_TRUNCATED",
+      "RECORD_MALFORMED",
+      "TIMESTAMP_INVALID",
+      "USAGE_MISSING",
+      "ACCOUNTING_UNESTABLISHED",
+    ]);
+    const scanGapCodes = [
+      ...new Set(
+        (loaded.exported.collectionWarnings ?? [])
+          .filter((w) => gapCodes.has(w.code))
+          .map((w) => w.code),
+      ),
+    ];
+    if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
+    const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
+    const decision: MarketDecision = {
+      scenarios: [],
+      history: scoped.history,
+      capacity: summarizeCapacity(
+        loaded.exported.capacityObservations,
+        scoped.events,
+        request.period,
+        request.resourceInstanceId,
+      ),
+    };
+    const capacityEvents = (loaded.exported.capacityObservations?.events ?? []).filter((event) => {
+      const day = event.timestamp.slice(0, 10);
+      return (
+        (!request.resourceInstanceId || event.resourceInstanceId === request.resourceInstanceId) &&
+        (request.period
+          ? day >= request.period.start && day < request.period.end
+          : !!scoped.history.firstDate &&
+            !!scoped.history.lastDate &&
+            day >= scoped.history.firstDate &&
+            day <= scoped.history.lastDate)
+      );
+    });
+    const blocked = capacityEvents.filter((event) => event.eventType === "hard_limit_reached");
+    if (loaded.exported.capacityObservations)
+      decision.capacitySignal = {
+        blockedAttempts: blocked.length,
+        warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,
+        days: new Set(blocked.map((event) => event.timestamp.slice(0, 10))).size,
+        accounts: new Set(blocked.map((event) => event.resourceInstanceId)).size,
+        resourceInstanceIds: [...new Set(blocked.map((event) => event.resourceInstanceId))],
+      };
+    const analysis = analyzeMarketCoverage(inputs);
+    decision.coverage = analysis.coverage;
+    for (const [i, input] of inputs.entries()) {
+      if (!current()) throw new OptimizerCancelledError();
+      const summary = await marketOptimizer.run(async () => input, {
+        operation: "api-repricing",
+        onPhase: (phase) => {
+          if (current()) post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase });
+        },
+      });
+      if (!current()) throw new OptimizerCancelledError();
+      decision.scenarios.push({ id: DECISION_MARKET.scenarios[i]?.id ?? "unknown", summary });
+      marketOptimizer.cancel(); // Keep only durable aggregate receipts between interpretations.
+    }
+    if (analysis.coverage.priced > 0 && analysis.coverage.priced < analysis.coverage.recorded) {
+      const subset = marketDecisionInputs(
+        loadBundledCatalog(),
+        DECISION_MARKET,
+        analysis.pricedEvents,
+      );
+      decision.pricedScope = { scenarios: [] };
+      for (const [i, input] of subset.entries()) {
+        if (!current()) throw new OptimizerCancelledError();
+        const summary = await marketOptimizer.run(async () => input, {
+          operation: "api-repricing",
+        });
+        if (!current()) throw new OptimizerCancelledError();
+        decision.pricedScope.scenarios.push({
+          id: DECISION_MARKET.scenarios[i]?.id ?? "unknown",
+          summary,
+        });
+        marketOptimizer.cancel();
+      }
+    }
+    if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
+  } catch (error) {
+    if (!current() || error instanceof OptimizerCancelledError)
+      post({ type: "CANCELLED", requestId: request.requestId });
+    else
+      post({
+        type: "ERROR",
+        requestId: request.requestId,
+        error: {
+          code: "REPLAY_FAILED",
+          title: "The market calculation could not complete.",
+          message:
+            "Keep the workload and retry. Unsupported scope or missing pricing remains unknown.",
+        },
+      });
+  } finally {
+    if (current()) marketOptimizer.cancel();
+  }
+}
+async function handleOptimize(
+  request: Extract<WorkerRequest, { type: "OPTIMIZE" }>,
+): Promise<void> {
+  cancelOptimizer();
+  optimizerGeneration = request.requestId;
+  try {
+    const summary = await optimizer.run(
+      async () => {
+        const loaded = await loadWorkloadEvents(
+          request.importId,
+          () => optimizerGeneration === request.requestId,
+        );
+        if (!loaded.ok) throw new Error("Workload unavailable");
+        const start = parseInstant(request.configuration.period.start).epochNanoseconds;
+        const end = parseInstant(request.configuration.period.end).epochNanoseconds;
+        const events = toTimedEvents(selectSources(loaded.exported.events, request.sources))
+          .filter((t) => {
+            const at = BigInt(t.atMs) * 1000000n + BigInt(t.subMs);
+            return at >= start && at < end;
+          })
+          .map((t) => t.event);
+        return { ...request.configuration, events, catalog: loadBundledCatalog() };
+      },
+      {
+        onPhase: (phase) => post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase }),
+      },
+    );
+    if (optimizerGeneration === request.requestId)
+      post({ type: "OPTIMIZER_OK", requestId: request.requestId, summary });
+  } catch (error) {
+    if (error instanceof OptimizerCancelledError)
+      post({ type: "CANCELLED", requestId: request.requestId });
+    else
+      post({
+        type: "ERROR",
+        requestId: request.requestId,
+        error: {
+          code: "REPLAY_FAILED",
+          title: "Optimization did not complete.",
+          message:
+            "The supplied workload or execution options could not be evaluated within this browser's runtime budget.",
+        },
+      });
+  }
+}
 let currentImportRequestId = 0;
 let currentImportController: AbortController | undefined;
 
@@ -118,10 +381,21 @@ function scanProgressOf(
     modelEvents: Record<string, number>;
     projectCount: number;
     topProjects: { label: string; events: number }[];
+    groups?: { group: string; done: number; total: number; events: number }[];
   },
 ): ScanProgress {
   const catalog = loadBundledCatalog();
   return {
+    ...(metrics.groups === undefined
+      ? {}
+      : {
+          histories: metrics.groups.map((entry) => ({
+            id: entry.group,
+            filesDone: entry.done,
+            filesTotal: entry.total,
+            events: entry.events,
+          })),
+        }),
     filesDone: done,
     filesTotal: total,
     sessions: metrics.identifiedSessions,
@@ -347,6 +621,30 @@ async function handleImportFile(
   });
 }
 
+/**
+ * Files whose opening read may be in flight together. Measured in Chromium on
+ * synthetic and real histories: 2 overlapped most of the per-read latency
+ * (up to 29% faster); 4 and 8 added nothing on real histories, and 8 was 20%
+ * slower on a 3.5 GB one, where early reads compete with large streamed files.
+ */
+const READ_AHEAD = 2;
+
+/** A history group is an identifier the page chose, never a path or free text. */
+function safeGroup(group: unknown): string | undefined {
+  return typeof group === "string" && /^[a-z0-9][a-z0-9-]{0,39}$/u.test(group) ? group : undefined;
+}
+
+/** A workload name from the page: bounded, single-line, and never path-shaped. */
+function safeLabel(label: unknown): string | undefined {
+  if (typeof label !== "string") return undefined;
+  const singleLine = Array.from(label, (character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code < 32 || code === 127 ? " " : character;
+  }).join("");
+  const cleaned = safeIntakeMessage(singleLine.trim()).slice(0, 120);
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
 async function handleImportSources(
   request: Extract<WorkerRequest, { type: "IMPORT_SOURCES" }>,
   signal: AbortSignal,
@@ -417,10 +715,18 @@ async function handleImportSources(
   );
   const candidates: BrowserCandidate[] = [];
   const archiveOutcomes: CandidateOutcome[] = [];
-  for (const { file, path } of files) {
+  for (const { file, path, group, unavailable } of files) {
     if (!importIsCurrent(requestId, signal)) return;
+    const history = safeGroup(group);
+    if (unavailable !== undefined) {
+      // Discovered, but the browser would not hand it over: read as a failure.
+      const name = /^[A-Za-z]{1,40}$/u.test(unavailable) ? unavailable : undefined;
+      candidates.push(unavailableCandidate(path, history, name));
+      continue;
+    }
     const selected = {
       path,
+      ...(history === undefined ? {} : { group: history }),
       size: file.size,
       lastModified: file.lastModified,
       text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
@@ -446,18 +752,31 @@ async function handleImportSources(
       }
     } else candidates.push(selected);
   }
-  const result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
-    now,
-    budget,
-    onProgress: (done, total, metrics) =>
-      progress(
-        requestId,
-        "import",
-        "validating",
-        `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
-        scanProgressOf(done, total, metrics),
-      ),
-  });
+  let result: Awaited<ReturnType<typeof intakeBrowserCandidates>>;
+  try {
+    result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
+      now,
+      ...(request.sourceRootSalt ? { sourceRootSalt: request.sourceRootSalt } : {}),
+      budget,
+      signal,
+      // Real totals, at most ten times a second: a report per small file cost
+      // more in messages and renders than the scan itself.
+      progressIntervalMs: 100,
+      readAhead: READ_AHEAD,
+      onProgress: (done, total, metrics) =>
+        progress(
+          requestId,
+          "import",
+          "validating",
+          `${done} of ${total} files · ${metrics.identifiedSessions} sessions · ${metrics.reconstructedEvents} events · ${metrics.skippedFiles} skipped · ${(metrics.examinedBytes / (1024 * 1024)).toFixed(1)} MB examined`,
+          scanProgressOf(done, total, metrics),
+        ),
+    });
+  } catch (failure) {
+    // A cancelled scan already told the page; it stops here and saves nothing.
+    if (failure instanceof BrowserIntakeCancelledError) return;
+    throw failure;
+  }
   if (!importIsCurrent(requestId, signal)) return;
   result.outcomes.unshift(...archiveOutcomes);
   if (result.exported === undefined) {
@@ -478,9 +797,10 @@ async function handleImportSources(
   const record: ImportRecord = {
     id: importId,
     label:
-      files.length === 1
+      safeLabel(request.label) ??
+      (files.length === 1
         ? safeCandidateName(files[0]?.file.name ?? "Selected workload")
-        : `Selected workload (${files.length} files)`,
+        : `Selected workload (${files.length} files)`),
     createdAt: now,
     eventCount: summary.eventCount,
     summary,
@@ -595,45 +915,43 @@ async function handleImportDemo(
 async function handleRunReplay(
   request: Extract<WorkerRequest, { type: "RUN_REPLAY" }>,
 ): Promise<void> {
-  const { requestId, importId, target, rulesAsOf, excludeUnresolved } = request;
+  const { requestId, importId, target, rulesAsOf, excludeUnresolved, sources, timeZone } = request;
   progress(requestId, "replay", "loading", "Loading the local workload");
   const workload = await loadWorkloadEvents(importId);
   if (!workload.ok) {
     post({ type: "ERROR", requestId, error: workload.error });
     return;
   }
-  const scoped =
-    excludeUnresolved === true
-      ? splitByIdentity(workload.exported.events, bundledModelIdentity())
-      : undefined;
-  const events = scoped?.resolved ?? workload.exported.events;
 
   progress(requestId, "replay", "replaying", "Replaying the workload against the target");
   try {
-    const catalog = loadBundledCatalog();
-    const result = replay({
-      events,
+    const run = runScopedReplay({
+      events: workload.exported.events,
       target,
-      catalog,
-      context: { rulesAsOf },
+      catalog: loadBundledCatalog(),
+      identity: bundledModelIdentity(),
+      rulesAsOf,
+      timeZone,
+      sources,
+      sourceNames: new Map(
+        workload.exported.detectedSources.map((source) => [source.adapterId, source.name]),
+      ),
+      excludeUnresolved,
     });
     post({
       type: "REPLAY_OK",
       requestId,
-      result,
-      timeline: buildTimeline(events),
+      result: run.result,
+      timeline: buildTimeline(run.events, timeZone),
+      ...(run.receipt === undefined ? {} : { receipt: run.receipt }),
+      ...(run.priceability === undefined ? {} : { priceability: run.priceability }),
+      ...(run.resolvedScope === undefined ? {} : { resolvedScope: run.resolvedScope }),
+      ...(run.undecidedAtMs === undefined ? {} : { undecidedAtMs: run.undecidedAtMs }),
       // The projection is the display contract the surfaces read (M4D). It is
       // built here, next to the replay itself, so the app and the demonstration
       // cannot describe the same result differently.
-      projection: projectReplay(result, catalog),
-      ...(scoped === undefined
-        ? {}
-        : {
-            scope: {
-              excludedUnresolvedEvents: scoped.unresolved,
-              recordedEvents: workload.exported.events.length,
-            },
-          }),
+      projection: run.projection,
+      ...(run.scope === undefined ? {} : { scope: run.scope }),
     });
   } catch (error) {
     post({
@@ -658,6 +976,7 @@ let loadedWorkload: { importId: string; exported: StackReplayExportV1 } | undefi
 
 async function loadWorkloadEvents(
   importId: string,
+  isCurrent?: () => boolean,
 ): Promise<
   | { ok: true; exported: StackReplayExportV1; record: ImportRecord | undefined }
   | { ok: false; error: SafeError }
@@ -666,9 +985,11 @@ async function loadWorkloadEvents(
   if (session !== undefined)
     return { ok: true, exported: session.exported, record: session.record };
   const record = (await storage.listImports()).find((entry) => entry.id === importId);
+  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
   if (loadedWorkload?.importId === importId)
     return { ok: true, exported: loadedWorkload.exported, record };
   const loaded = await storage.loadImport(importId);
+  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
   if (!loaded.ok)
     return {
       ok: false,
@@ -709,10 +1030,10 @@ async function handleAnalyze(
     post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
     return;
   }
-  const profile = buildWorkloadProfile(
-    loaded.exported.events,
-    profileOptions(loaded.record, request.timeZone),
-  );
+  const profile = buildWorkloadProfile(loaded.exported.events, {
+    ...profileOptions(loaded.record, request.timeZone),
+    ...(request.rulesAsOf === undefined ? {} : { rulesAsOf: request.rulesAsOf }),
+  });
   post({ type: "PROFILE_OK", requestId: request.requestId, profile });
 }
 
@@ -771,8 +1092,44 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
     return;
   }
 
+  if (
+    [
+      "IMPORT_FILE",
+      "IMPORT_SOURCES",
+      "IMPORT_DEMO",
+      "CANCEL_IMPORT",
+      "CLEAR_LOCAL_DATA",
+      "DELETE_LOCAL_IMPORT",
+      "RUN_REPLAY",
+    ].includes(request.type)
+  )
+    cancelOptimizer();
   try {
     switch (request.type) {
+      case "CAPACITY_EPISODES":
+        await handleCapacityEpisodes(request);
+        return;
+      case "API_MARKET":
+        await handleMarket(request);
+        return;
+      case "OPTIMIZE":
+        await handleOptimize(request);
+        return;
+      case "CANCEL_OPTIMIZER":
+        cancelOptimizer();
+        post({ type: "CANCELLED", requestId: request.requestId });
+        return;
+      case "OPTIMIZER_DETAIL": {
+        if (optimizerGeneration !== request.generation) {
+          post({ type: "CANCELLED", requestId: request.requestId });
+          return;
+        }
+        const detail = await optimizer.detail(request.offset, request.limit);
+        if (optimizerGeneration === request.generation)
+          post({ type: "OPTIMIZER_DETAIL_OK", requestId: request.requestId, detail });
+        else post({ type: "CANCELLED", requestId: request.requestId });
+        return;
+      }
       case "PING":
         post({ type: "PONG", requestId: request.requestId, protocol: WORKER_PROTOCOL_VERSION });
         return;

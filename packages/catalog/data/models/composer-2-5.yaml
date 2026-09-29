@@ -1,14 +1,28 @@
 id: composer-2-5
 role: model
-name: "Composer 2.5"
+name: Composer 2.5
 providerIds:
-  - cursor
+- cursor
 sources:
-  - url: https://cursor.com/pricing
-    title: "Cursor pricing (official)"
-    checkedAt: 2026-09-23
-  - url: https://cursor.com/docs/models-and-pricing
-    title: "Cursor current model and rate tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+- url: https://cursor.com/pricing
+  title: Cursor pricing (official)
+  checkedAt: 2026-09-23
+- url: https://cursor.com/docs/models-and-pricing
+  title: Cursor current model and rate tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+developerId: cursor
+specifications:
+  contextTokens: 200000
+  toolCalling: true
+  notes:
+  - Designed for coding with Cursor agent tools. Fast is the default product variant.
+  sources:
+  - url: https://cursor.com/docs/models/cursor-composer-2-5
+    title: Official model specifications
+    checkedAt: '2026-09-28'
+pricingNote: 'Cursor on-demand rates per million tokens: standard $0.50 input, $0.20 cached input and $2.50 output;
+  Fast $3 input, $0.50 cached input and $15 output. These are Cursor product rates, not a separately established
+  direct API route.'
+apiAvailability: not_established

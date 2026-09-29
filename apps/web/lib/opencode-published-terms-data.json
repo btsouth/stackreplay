@@ -1,0 +1,952 @@
+{
+  "opencode-go": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://opencode.ai/v2/docs/console/go",
+      "https://opencode.ai/legal/terms-of-service"
+    ],
+    "allowanceSummary": "$15–$60 monthly usage value depending on the model. Five-hour limit: 20% of its monthly allowance; weekly: 50%.",
+    "terms": [
+      {
+        "label": "How usage is counted",
+        "value": "Input, output and cached tokens consume the selected model’s dollar-denominated allowance at Go rates. These are usage accounting rates, not an extra invoice on top of the subscription. Model allowance values are not balances to add together.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "label": "When you reach a limit",
+        "value": "Requests are blocked unless you enable Use balance and have paid Console credits. That opt-in continues requests using pay-as-you-go credits. Free models remain available.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-beyond-limits"
+      },
+      {
+        "label": "Privacy matters by model",
+        "value": "Muse Spark Contributor allows prompts and completions to be used for training and is not zero-data-retention. Grok and GPT Luna list 30-day retention. Other listed models show zero-day retention; DeepSeek’s agreement is currently valid through October 31, 2026.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#privacy"
+      },
+      {
+        "label": "Workspace and client requirements",
+        "value": "One Go or Go Plus subscriber per workspace. Designed for coding-agent requests. Clients need their own user agent and stable session identification. Validated clients and version restrictions are listed below.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#where-can-i-use-it"
+      },
+      {
+        "label": "Regional and temporary access",
+        "value": "Muse Spark Contributor is limited to regions allowed by Meta. LongCat 2.5 Preview Free and Space Bunny Free are temporary offers. OpenCode may change models and allowances.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+      },
+      {
+        "label": "Renewal and cancellation",
+        "value": "Recurring charges continue until you cancel through account settings. The general paid-service terms do not specify a Go-specific refund entitlement or when remaining access ends after cancellation.",
+        "sourceUrl": "https://opencode.ai/legal/terms-of-service"
+      },
+      {
+        "label": "Reset and billing details still to check",
+        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover or a Go-specific refund policy. Check the Console before relying on those details.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+      }
+    ],
+    "tables": [
+      {
+        "id": "allowances",
+        "title": "Allowance by model",
+        "columns": ["Model", "5 hours", "Week", "Month"],
+        "rows": [
+          ["GLM-5.3-Flash", "$12", "$30", "$60"],
+          ["GLM-5.3", "$3", "$7.5", "$15"],
+          ["GLM-5.2", "$12", "$30", "$60"],
+          ["Kimi K3", "$3", "$7.5", "$15"],
+          ["Kimi K2.7 Code", "$12", "$30", "$60"],
+          ["Kimi K2.6", "$12", "$30", "$60"],
+          ["LongCat-2.0", "$12", "$30", "$60"],
+          ["LongCat 2.5 Preview Free", "Unlimited*", "Unlimited*", "Unlimited*"],
+          ["MiMo-V2.6-Flash", "$12", "$30", "$60"],
+          ["MiMo-V2.6-Pro", "$3", "$7.5", "$15"],
+          ["MiMo-V2.5", "$12", "$30", "$60"],
+          ["MiMo-V2.5-Pro", "$3", "$7.5", "$15"],
+          ["MiniMax M3", "$12", "$30", "$60"],
+          ["MiniMax M2.7", "$12", "$30", "$60"],
+          ["Muse Spark 1.3 Contributor", "$12", "$30", "$60"],
+          ["Muse Spark 1.2 Contributor", "$12", "$30", "$60"],
+          ["Qwen3.8 Max", "$3", "$7.5", "$15"],
+          ["Qwen3.8 Flash", "$6", "$15", "$30"],
+          ["Qwen3.7 Plus", "$12", "$30", "$60"],
+          ["DeepSeek V4.1 Flash", "$12", "$30", "$60"],
+          ["DeepSeek V4 Pro", "$3", "$7.5", "$15"],
+          ["DeepSeek V4 Flash", "$6", "$15", "$30"],
+          ["DeepSeek V4 Flash Vision Exp", "$3", "$7.5", "$15"],
+          ["Hy4 preview", "$6", "$15", "$30"],
+          ["Hy3", "$12", "$30", "$60"],
+          ["Space Bunny Free", "Unlimited*", "Unlimited*", "Unlimited*"],
+          ["Grok 4.7", "$3", "$7.5", "$15"],
+          ["Grok 4.6", "$3", "$7.5", "$15"],
+          ["GPT 6 Luna", "$3", "$7.5", "$15"],
+          ["GPT 5.6 Luna", "$3", "$7.5", "$15"]
+        ],
+        "note": "USD usage value, not cash credit. Five-hour and weekly values are calculated from the published 20% and 50% rules. Do not sum across models. *Unlimited applies only to the named temporary free models.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "id": "rates",
+        "title": "Token accounting rates",
+        "columns": [
+          "Model / condition",
+          "Input",
+          "Output",
+          "Cache read",
+          "Cache write",
+          "Monthly limit"
+        ],
+        "rows": [
+          ["GLM-5.3-Flash", "$0.15", "$0.50", "$0.03", "-", "$60"],
+          ["GLM-5.3", "$1.40", "$4.40", "$0.26", "-", "$15"],
+          ["GLM-5.2", "$1.40", "$4.40", "$0.26", "-", "$60"],
+          ["Kimi K3", "$3.00", "$15.00", "$0.30", "-", "$15"],
+          ["Kimi K2.7 Code", "$0.95", "$4.00", "$0.19", "-", "$60"],
+          ["Kimi K2.6", "$0.95", "$4.00", "$0.16", "-", "$60"],
+          ["LongCat-2.0", "$0.30", "$1.20", "$0.006", "-", "$60"],
+          ["LongCat 2.5 Preview Free", "Free", "Free", "Free", "-", "Unlimited"],
+          ["MiMo-V2.6-Flash", "$0.14", "$0.28", "$0.0028", "-", "$60"],
+          ["MiMo-V2.6-Pro", "$0.435", "$0.87", "$0.003625", "-", "$15"],
+          ["MiMo-V2.5", "$0.14", "$0.28", "$0.0028", "-", "$60"],
+          ["MiMo-V2.5-Pro", "$0.435", "$0.87", "$0.003625", "-", "$15"],
+          ["MiniMax M3", "$0.30", "$1.20", "$0.06", "-", "$60"],
+          ["MiniMax M2.7", "$0.30", "$1.20", "$0.06", "$0.375", "$60"],
+          ["Muse Spark 1.3 Contributor", "$0.10", "$0.20", "$0.002", "-", "$60"],
+          ["Muse Spark 1.2 Contributor", "$0.10", "$0.20", "$0.002", "-", "$60"],
+          ["Qwen3.8 Max", "$2.00", "$6.00", "$0.25", "$2.50", "$15"],
+          ["Qwen3.8 Flash", "$0.15", "$0.47", "$0.016", "$0.20", "$30"],
+          ["Qwen3.7 Plus (≤ 256K tokens)", "$0.40", "$1.60", "$0.04", "$0.50", "$60"],
+          ["Qwen3.7 Plus (> 256K tokens)", "$1.20", "$4.80", "$0.12", "$1.50", "$60"],
+          ["DeepSeek V4.1 Flash (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$60"],
+          ["DeepSeek V4.1 Flash (Peak)", "$0.30", "$1.20", "$0.006", "-", "$60"],
+          ["DeepSeek V4 Pro (Off-Peak)", "$0.66", "$1.98", "$0.022", "-", "$15"],
+          ["DeepSeek V4 Pro (Peak)", "$1.32", "$3.96", "$0.044", "-", "$15"],
+          ["DeepSeek V4 Flash (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$30"],
+          ["DeepSeek V4 Flash (Peak)", "$0.30", "$1.20", "$0.006", "-", "$30"],
+          ["DeepSeek V4 Flash Vision Exp (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$15"],
+          ["DeepSeek V4 Flash Vision Exp (Peak)", "$0.30", "$1.20", "$0.006", "-", "$15"],
+          ["Hy4 preview", "$0.834", "$2.501", "$0.042", "-", "$30"],
+          ["Hy3", "$0.14", "$0.58", "$0.035", "-", "$60"],
+          ["Space Bunny Free", "Free", "Free", "Free", "-", "Unlimited"],
+          ["Grok 4.7 (≤ 200K tokens)", "$2.00", "$6.00", "$0.50", "-", "$15"],
+          ["Grok 4.7 (> 200K tokens)", "$4.00", "$12.00", "$1.00", "-", "$15"],
+          ["Grok 4.6 (≤ 200K tokens)", "$2.00", "$6.00", "$0.50", "-", "$15"],
+          ["Grok 4.6 (> 200K tokens)", "$4.00", "$12.00", "$1.00", "-", "$15"],
+          ["GPT 6 Luna (≤ 272K tokens)", "$0.10", "$0.50", "$0.01", "$0.125", "$15"],
+          ["GPT 6 Luna (> 272K tokens)", "$0.20", "$0.75", "$0.02", "$0.25", "$15"],
+          ["GPT 5.6 Luna (≤ 272K tokens)", "$0.20", "$1.20", "$0.02", "$0.25", "$15"],
+          ["GPT 5.6 Luna (> 272K tokens)", "$0.40", "$1.80", "$0.04", "$0.50", "$15"]
+        ],
+        "note": "USD per million tokens. A dash means no cache-write rate is listed, not a zero rate. DeepSeek peak: Monday–Friday 01:00–04:00 and 06:00–10:00 UTC; all other times are off-peak. Context thresholds and temporary free pricing are shown per row. These Go rates are identical on Go Plus.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "id": "requests",
+        "title": "Provider request estimates",
+        "columns": ["Model", "5 hours", "Week", "Month"],
+        "rows": [
+          ["GLM-5.3-Flash", "6,320", "15,790", "31,580"],
+          ["GLM-5.3", "220", "540", "1,080"],
+          ["GLM-5.2", "880", "2,150", "4,300"],
+          ["Kimi K3", "110", "250", "490"],
+          ["Kimi K2.7 Code", "1,350", "3,380", "6,750"],
+          ["Kimi K2.6", "1,150", "2,880", "5,750"],
+          ["LongCat-2.0", "11,400", "28,600", "57,200"],
+          ["LongCat 2.5 Preview Free", "Unlimited", "Unlimited", "Unlimited"],
+          ["MiMo-V2.6-Flash", "30,100", "75,200", "150,400"],
+          ["MiMo-V2.6-Pro", "3,250", "8,150", "16,300"],
+          ["MiMo-V2.5", "30,100", "75,200", "150,400"],
+          ["MiMo-V2.5-Pro", "3,250", "8,150", "16,300"],
+          ["MiniMax M3", "3,200", "8,000", "16,000"],
+          ["MiniMax M2.7", "3,400", "8,500", "17,000"],
+          ["Muse Spark 1.3 Contributor", "45,300", "113,300", "226,600"],
+          ["Muse Spark 1.2 Contributor", "45,300", "113,300", "226,600"],
+          ["Qwen3.8 Max", "160", "400", "810"],
+          ["Qwen3.8 Flash", "5,400", "13,500", "27,000"],
+          ["Qwen3.7 Plus", "4,300", "10,800", "21,600"],
+          ["DeepSeek V4.1 Flash", "26,000", "65,000", "130,000"],
+          ["DeepSeek V4 Pro", "1,050", "2,600", "5,200"],
+          ["DeepSeek V4 Flash", "13,000", "32,500", "65,000"],
+          ["DeepSeek V4 Flash Vision Exp", "6,500", "16,250", "32,500"],
+          ["Hy4 preview", "1,350", "3,380", "6,770"],
+          ["Hy3", "4,300", "10,750", "21,500"],
+          ["Space Bunny Free", "Unlimited", "Unlimited", "Unlimited"],
+          ["Grok 4.7", "169", "423", "845"],
+          ["Grok 4.6", "169", "423", "845"],
+          ["GPT 6 Luna", "4,230", "10,560", "21,130"],
+          ["GPT 5.6 Luna", "2,050", "5,100", "10,250"]
+        ],
+        "note": "OpenCode estimates, not guaranteed request quotas. They assume specific input, cached-input and output mixes. Actual workload and cache behavior can materially change these counts. Unlimited free-model rows are temporary offers.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#estimated-requests"
+      },
+      {
+        "id": "request-mix",
+        "title": "Token mix behind request estimates",
+        "columns": ["Model", "Input / request", "Cached / request", "Output / request"],
+        "rows": [
+          ["Grok 4.7/4.6", "390", "32,500", "120"],
+          ["GLM-5.3-Flash", "1,000", "55,000", "200"],
+          ["GLM-5.3/5.2", "700", "52,000", "150"],
+          ["GPT 6 Luna", "1,000", "50,000", "220"],
+          ["GPT 5.6 Luna", "1,000", "50,000", "220"],
+          ["Kimi K3", "1,050", "76,500", "300"],
+          ["Kimi K2.7/K2.6", "870", "55,000", "200"],
+          ["LongCat-2.0", "920", "88,900", "200"],
+          ["DeepSeek V4.1 Flash", "410", "71,300", "310"],
+          ["DeepSeek V4 Pro", "750", "82,000", "290"],
+          ["DeepSeek V4 Flash", "410", "71,300", "310"],
+          ["DeepSeek V4 Flash Vision Exp", "410", "71,300", "310"],
+          ["MiniMax M3", "510", "56,000", "190"],
+          ["MiniMax M2.7", "300", "55,000", "125"],
+          ["Muse Spark 1.3 Contributor", "620", "71,400", "300"],
+          ["Muse Spark 1.2 Contributor", "620", "71,400", "300"],
+          ["MiMo-V2.6-Flash", "830", "71,500", "295"],
+          ["MiMo-V2.6-Pro", "790", "86,000", "305"],
+          ["MiMo-V2.5", "830", "71,500", "295"],
+          ["MiMo-V2.5-Pro", "790", "86,000", "305"],
+          ["Qwen3.8 Max", "420", "66,000", "200"],
+          ["Qwen3.8 Flash", "600", "58,000", "200"],
+          ["Qwen3.7 Plus", "500", "57,000", "190"],
+          ["Hy4 preview", "830", "71,500", "295"],
+          ["Hy3", "830", "71,500", "295"]
+        ],
+        "note": "OpenCode’s assumed token mix, not a measurement of your workload. Its request estimates depend heavily on cache reads. Use your own recorded token categories for workload comparisons.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#estimated-requests"
+      },
+      {
+        "id": "privacy",
+        "title": "Training and data retention",
+        "columns": ["Model", "Model training", "Retention"],
+        "rows": [
+          ["Grok 4.7", "Not used", "30 days"],
+          ["Grok 4.6", "Not used", "30 days"],
+          ["GPT 6 Luna", "Not used", "30 days"],
+          ["GPT 5.6 Luna", "Not used", "30 days"],
+          ["GLM-5.3-Flash", "Not used", "0 days"],
+          ["GLM-5.3", "Not used", "0 days"],
+          ["GLM-5.2", "Not used", "0 days"],
+          ["Kimi K3", "Not used", "0 days"],
+          ["Kimi K2.7 Code", "Not used", "0 days"],
+          ["Kimi K2.6", "Not used", "0 days"],
+          ["LongCat-2.0", "Not used", "0 days"],
+          ["MiMo-V2.6-Pro", "Not used", "0 days"],
+          ["MiMo-V2.6-Flash", "Not used", "0 days"],
+          ["MiMo-V2.5-Pro", "Not used", "0 days"],
+          ["MiMo-V2.5", "Not used", "0 days"],
+          ["Qwen3.8 Max", "Not used", "0 days"],
+          ["Qwen3.8 Flash", "Not used", "0 days"],
+          ["Qwen3.7 Plus", "Not used", "0 days"],
+          ["MiniMax M3", "Not used", "0 days"],
+          ["MiniMax M2.7", "Not used", "0 days"],
+          ["Muse Spark 1.3 Contributor", "Yes", "Not ZDR"],
+          ["Muse Spark 1.2 Contributor", "Yes", "Not ZDR"],
+          ["DeepSeek V4.1 Flash", "Not used", "0 days*"],
+          ["DeepSeek V4 Pro", "Not used", "0 days*"],
+          ["DeepSeek V4 Flash", "Not used", "0 days*"],
+          ["DeepSeek V4 Flash Vision Exp", "Not used", "0 days*"],
+          ["Hy4 preview", "Not used", "0 days"],
+          ["Hy3", "Not used", "0 days"],
+          ["Space Bunny Free", "Not used", "0 days"],
+          ["LongCat 2.5 Preview Free", "Not used", "0 days"]
+        ],
+        "note": "Provider-published terms. DeepSeek zero-day retention depends on a monthly agreement currently valid through October 31, 2026. Muse Spark Contributor permits training and has regional restrictions. GPT Luna abuse-monitoring logs may be retained up to 30 days; Grok stored-data features affect retention.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#privacy"
+      },
+      {
+        "id": "clients",
+        "title": "Validated coding clients",
+        "columns": ["Client", "Session support / requirement"],
+        "rows": [
+          [
+            "OpenCode",
+            "Connect Go using /connect, then choose a model with the opencode-go/ prefix."
+          ],
+          [
+            "Hermes",
+            "Requires the session-header change in PR #101864, merged after v0.21.0. Version 0.21.0 alone is insufficient."
+          ],
+          [
+            "Claude Code",
+            "Native session identification is recognized; no custom-header wrapper required."
+          ],
+          [
+            "Codex",
+            "Native session identification is recognized. Some versions and proxies omit it; forwarding must retain it."
+          ],
+          [
+            "ZCode",
+            "Its native header is recognized. The separate x-opencode-session request is no longer required."
+          ],
+          ["Pi", "Use a current build that sends OpenCode session information."],
+          ["jcode", "Requires version 0.81.6 or later."],
+          [
+            "Kilo Code CLI",
+            "Requires the session-header fix in PR #13752. This validation covers the CLI, not the VS Code extension."
+          ]
+        ],
+        "note": "Validation is not a guarantee for every future client release. All clients must preserve stable session identification; proxies must forward it. Copilot Chat, Kimi Code, DeepSeek Harness and MiMo Code have documented missing or incomplete support in investigated versions.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#validated-clients"
+      },
+      {
+        "id": "endpoints",
+        "title": "API model IDs & endpoints",
+        "columns": ["Model", "API model ID", "Endpoint", "SDK package"],
+        "rows": [
+          ["Grok 4.7", "grok-4.7", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          ["Grok 4.6", "grok-4.6", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          ["GPT 6 Luna", "gpt-6-luna", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          [
+            "GPT 5.6 Luna",
+            "gpt-5.6-luna",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "GLM-5.3-Flash",
+            "glm-5.3-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "GLM-5.3",
+            "glm-5.3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "GLM-5.2",
+            "glm-5.2",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K3",
+            "kimi-k3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K2.7 Code",
+            "kimi-k2.7-code",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K2.6",
+            "kimi-k2.6",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "LongCat-2.0",
+            "longcat-2.0",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4.1 Flash",
+            "deepseek-v4.1-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Pro",
+            "deepseek-v4-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Flash",
+            "deepseek-v4-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Flash Vision Exp",
+            "deepseek-v4-flash-vision-exp",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.6-Flash",
+            "mimo-v2.6-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.6-Pro",
+            "mimo-v2.6-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.5",
+            "mimo-v2.5",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.5-Pro",
+            "mimo-v2.5-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiniMax M3",
+            "minimax-m3",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "MiniMax M2.7",
+            "minimax-m2.7",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Muse Spark 1.3 Contributor",
+            "muse-spark-1.3-contributor",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "Muse Spark 1.2 Contributor",
+            "muse-spark-1.2-contributor",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "Qwen3.8 Max",
+            "qwen3.8-max",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Qwen3.8 Flash",
+            "qwen3.8-flash",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Qwen3.7 Plus",
+            "qwen3.7-plus",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Hy4 preview",
+            "hy4-preview",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Hy3",
+            "hy3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Space Bunny Free",
+            "space-bunny-free",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "LongCat 2.5 Preview Free",
+            "longcat-2.5-preview-free",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ]
+        ],
+        "note": "These endpoints consume the Go subscription allowance. They do not establish direct-provider API pricing or a separate pay-as-you-go entitlement. Preserve the client and session headers required by Go.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#endpoints"
+      }
+    ],
+    "codingTools": [
+      "OpenCode",
+      "Claude Code",
+      "Codex",
+      "Hermes",
+      "ZCode",
+      "Pi",
+      "jcode",
+      "Kilo Code CLI"
+    ],
+    "afterLimit": "Free models remain available. Enable Use balance with paid Console credits to continue on pay-as-you-go pricing after an included limit. Otherwise requests are blocked.",
+    "privacySummary": "Model-dependent: Muse Spark Contributor permits training and is not ZDR. Grok/GPT Luna: 30-day retention. Other listed models: zero-day terms, with DeepSeek’s current agreement expiring October 31, 2026.",
+    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Recurring charges continue until canceled through account settings. Reset anchors, rollover and a Go-specific refund policy are not established by the reviewed documentation."
+  },
+  "opencode-go-plus": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://opencode.ai/v2/docs/console/go",
+      "https://opencode.ai/legal/terms-of-service"
+    ],
+    "allowanceSummary": "$60–$240 monthly usage value depending on the model. Five-hour limit: 20% of its monthly allowance; weekly: 50%.",
+    "terms": [
+      {
+        "label": "How usage is counted",
+        "value": "Input, output and cached tokens consume the selected model’s dollar-denominated allowance at Go rates. These are usage accounting rates, not an extra invoice on top of the subscription. Model allowance values are not balances to add together.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "label": "When you reach a limit",
+        "value": "Requests are blocked unless you enable Use balance and have paid Console credits. That opt-in continues requests using pay-as-you-go credits. Free models remain available.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-beyond-limits"
+      },
+      {
+        "label": "Privacy matters by model",
+        "value": "Muse Spark Contributor allows prompts and completions to be used for training and is not zero-data-retention. Grok and GPT Luna list 30-day retention. Other listed models show zero-day retention; DeepSeek’s agreement is currently valid through October 31, 2026.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#privacy"
+      },
+      {
+        "label": "Workspace and client requirements",
+        "value": "One Go or Go Plus subscriber per workspace. Designed for coding-agent requests. Clients need their own user agent and stable session identification. Validated clients and version restrictions are listed below.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#where-can-i-use-it"
+      },
+      {
+        "label": "Regional and temporary access",
+        "value": "Muse Spark Contributor is limited to regions allowed by Meta. LongCat 2.5 Preview Free and Space Bunny Free are temporary offers. OpenCode may change models and allowances.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+      },
+      {
+        "label": "Renewal and cancellation",
+        "value": "Recurring charges continue until you cancel through account settings. The general paid-service terms do not specify a Go-specific refund entitlement or when remaining access ends after cancellation.",
+        "sourceUrl": "https://opencode.ai/legal/terms-of-service"
+      },
+      {
+        "label": "Reset and billing details still to check",
+        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover or a Go-specific refund policy. Check the Console before relying on those details.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go"
+      }
+    ],
+    "tables": [
+      {
+        "id": "allowances",
+        "title": "Allowance by model",
+        "columns": ["Model", "5 hours", "Week", "Month"],
+        "rows": [
+          ["GLM-5.3-Flash", "$36", "$90", "$180"],
+          ["GLM-5.3", "$24", "$60", "$120"],
+          ["GLM-5.2", "$36", "$90", "$180"],
+          ["Kimi K3", "$12", "$30", "$60"],
+          ["Kimi K2.7 Code", "$36", "$90", "$180"],
+          ["Kimi K2.6", "$48", "$120", "$240"],
+          ["LongCat-2.0", "$48", "$120", "$240"],
+          ["LongCat 2.5 Preview Free", "Unlimited*", "Unlimited*", "Unlimited*"],
+          ["MiMo-V2.6-Flash", "$24", "$60", "$120"],
+          ["MiMo-V2.6-Pro", "$12", "$30", "$60"],
+          ["MiMo-V2.5", "$24", "$60", "$120"],
+          ["MiMo-V2.5-Pro", "$12", "$30", "$60"],
+          ["MiniMax M3", "$36", "$90", "$180"],
+          ["MiniMax M2.7", "$48", "$120", "$240"],
+          ["Muse Spark 1.3 Contributor", "$24", "$60", "$120"],
+          ["Muse Spark 1.2 Contributor", "$24", "$60", "$120"],
+          ["Qwen3.8 Max", "$12", "$30", "$60"],
+          ["Qwen3.8 Flash", "$18", "$45", "$90"],
+          ["Qwen3.7 Plus", "$36", "$90", "$180"],
+          ["DeepSeek V4.1 Flash", "$24", "$60", "$120"],
+          ["DeepSeek V4 Pro", "$12", "$30", "$60"],
+          ["DeepSeek V4 Flash", "$24", "$60", "$120"],
+          ["DeepSeek V4 Flash Vision Exp", "$12", "$30", "$60"],
+          ["Hy4 preview", "$24", "$60", "$120"],
+          ["Hy3", "$48", "$120", "$240"],
+          ["Space Bunny Free", "Unlimited*", "Unlimited*", "Unlimited*"],
+          ["Grok 4.7", "$12", "$30", "$60"],
+          ["Grok 4.6", "$12", "$30", "$60"],
+          ["GPT 6 Luna", "$12", "$30", "$60"],
+          ["GPT 5.6 Luna", "$12", "$30", "$60"]
+        ],
+        "note": "USD usage value, not cash credit. Five-hour and weekly values are calculated from the published 20% and 50% rules. Do not sum across models. *Unlimited applies only to the named temporary free models.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "id": "rates",
+        "title": "Token accounting rates",
+        "columns": [
+          "Model / condition",
+          "Input",
+          "Output",
+          "Cache read",
+          "Cache write",
+          "Monthly limit"
+        ],
+        "rows": [
+          ["GLM-5.3-Flash", "$0.15", "$0.50", "$0.03", "-", "$180"],
+          ["GLM-5.3", "$1.40", "$4.40", "$0.26", "-", "$120"],
+          ["GLM-5.2", "$1.40", "$4.40", "$0.26", "-", "$180"],
+          ["Kimi K3", "$3.00", "$15.00", "$0.30", "-", "$60"],
+          ["Kimi K2.7 Code", "$0.95", "$4.00", "$0.19", "-", "$180"],
+          ["Kimi K2.6", "$0.95", "$4.00", "$0.16", "-", "$240"],
+          ["LongCat-2.0", "$0.30", "$1.20", "$0.006", "-", "$240"],
+          ["LongCat 2.5 Preview Free", "Free", "Free", "Free", "-", "Unlimited"],
+          ["MiMo-V2.6-Flash", "$0.14", "$0.28", "$0.0028", "-", "$120"],
+          ["MiMo-V2.6-Pro", "$0.435", "$0.87", "$0.003625", "-", "$60"],
+          ["MiMo-V2.5", "$0.14", "$0.28", "$0.0028", "-", "$120"],
+          ["MiMo-V2.5-Pro", "$0.435", "$0.87", "$0.003625", "-", "$60"],
+          ["MiniMax M3", "$0.30", "$1.20", "$0.06", "-", "$180"],
+          ["MiniMax M2.7", "$0.30", "$1.20", "$0.06", "$0.375", "$240"],
+          ["Muse Spark 1.3 Contributor", "$0.10", "$0.20", "$0.002", "-", "$120"],
+          ["Muse Spark 1.2 Contributor", "$0.10", "$0.20", "$0.002", "-", "$120"],
+          ["Qwen3.8 Max", "$2.00", "$6.00", "$0.25", "$2.50", "$60"],
+          ["Qwen3.8 Flash", "$0.15", "$0.47", "$0.016", "$0.20", "$90"],
+          ["Qwen3.7 Plus (≤ 256K tokens)", "$0.40", "$1.60", "$0.04", "$0.50", "$180"],
+          ["Qwen3.7 Plus (> 256K tokens)", "$1.20", "$4.80", "$0.12", "$1.50", "$180"],
+          ["DeepSeek V4.1 Flash (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$120"],
+          ["DeepSeek V4.1 Flash (Peak)", "$0.30", "$1.20", "$0.006", "-", "$120"],
+          ["DeepSeek V4 Pro (Off-Peak)", "$0.66", "$1.98", "$0.022", "-", "$60"],
+          ["DeepSeek V4 Pro (Peak)", "$1.32", "$3.96", "$0.044", "-", "$60"],
+          ["DeepSeek V4 Flash (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$120"],
+          ["DeepSeek V4 Flash (Peak)", "$0.30", "$1.20", "$0.006", "-", "$120"],
+          ["DeepSeek V4 Flash Vision Exp (Off-Peak)", "$0.15", "$0.60", "$0.003", "-", "$60"],
+          ["DeepSeek V4 Flash Vision Exp (Peak)", "$0.30", "$1.20", "$0.006", "-", "$60"],
+          ["Hy4 preview", "$0.834", "$2.501", "$0.042", "-", "$120"],
+          ["Hy3", "$0.14", "$0.58", "$0.035", "-", "$240"],
+          ["Space Bunny Free", "Free", "Free", "Free", "-", "Unlimited"],
+          ["Grok 4.7 (≤ 200K tokens)", "$2.00", "$6.00", "$0.50", "-", "$60"],
+          ["Grok 4.7 (> 200K tokens)", "$4.00", "$12.00", "$1.00", "-", "$60"],
+          ["Grok 4.6 (≤ 200K tokens)", "$2.00", "$6.00", "$0.50", "-", "$60"],
+          ["Grok 4.6 (> 200K tokens)", "$4.00", "$12.00", "$1.00", "-", "$60"],
+          ["GPT 6 Luna (≤ 272K tokens)", "$0.10", "$0.50", "$0.01", "$0.125", "$60"],
+          ["GPT 6 Luna (> 272K tokens)", "$0.20", "$0.75", "$0.02", "$0.25", "$60"],
+          ["GPT 5.6 Luna (≤ 272K tokens)", "$0.20", "$1.20", "$0.02", "$0.25", "$60"],
+          ["GPT 5.6 Luna (> 272K tokens)", "$0.40", "$1.80", "$0.04", "$0.50", "$60"]
+        ],
+        "note": "USD per million tokens. A dash means no cache-write rate is listed, not a zero rate. DeepSeek peak: Monday–Friday 01:00–04:00 and 06:00–10:00 UTC; all other times are off-peak. Context thresholds and temporary free pricing are shown per row. These Go rates are identical on Go Plus.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#usage-limits"
+      },
+      {
+        "id": "requests",
+        "title": "Provider request estimates",
+        "columns": ["Model", "5 hours", "Week", "Month"],
+        "rows": [
+          ["GLM-5.3-Flash", "18,960", "47,370", "94,740"],
+          ["GLM-5.3", "1,760", "4,320", "8,640"],
+          ["GLM-5.2", "2,640", "6,450", "12,900"],
+          ["Kimi K3", "440", "1,000", "1,960"],
+          ["Kimi K2.7 Code", "4,050", "10,140", "20,250"],
+          ["Kimi K2.6", "4,600", "11,520", "23,000"],
+          ["LongCat-2.0", "45,600", "114,400", "228,800"],
+          ["LongCat 2.5 Preview Free", "Unlimited", "Unlimited", "Unlimited"],
+          ["MiMo-V2.6-Flash", "60,200", "150,400", "300,800"],
+          ["MiMo-V2.6-Pro", "13,000", "32,600", "65,200"],
+          ["MiMo-V2.5", "60,200", "150,400", "300,800"],
+          ["MiMo-V2.5-Pro", "13,000", "32,600", "65,200"],
+          ["MiniMax M3", "9,600", "24,000", "48,000"],
+          ["MiniMax M2.7", "13,600", "34,000", "68,000"],
+          ["Muse Spark 1.3 Contributor", "90,600", "226,600", "453,200"],
+          ["Muse Spark 1.2 Contributor", "90,600", "226,600", "453,200"],
+          ["Qwen3.8 Max", "640", "1,600", "3,240"],
+          ["Qwen3.8 Flash", "16,200", "40,500", "81,000"],
+          ["Qwen3.7 Plus", "12,900", "32,400", "64,800"],
+          ["DeepSeek V4.1 Flash", "52,000", "130,000", "260,000"],
+          ["DeepSeek V4 Pro", "4,200", "10,400", "20,800"],
+          ["DeepSeek V4 Flash", "52,000", "130,000", "260,000"],
+          ["DeepSeek V4 Flash Vision Exp", "26,000", "65,000", "130,000"],
+          ["Hy4 preview", "5,400", "13,520", "27,080"],
+          ["Hy3", "17,200", "43,000", "86,000"],
+          ["Space Bunny Free", "Unlimited", "Unlimited", "Unlimited"],
+          ["Grok 4.7", "676", "1,692", "3,380"],
+          ["Grok 4.6", "676", "1,692", "3,380"],
+          ["GPT 6 Luna", "16,920", "42,240", "84,520"],
+          ["GPT 5.6 Luna", "8,200", "20,400", "41,000"]
+        ],
+        "note": "OpenCode estimates, not guaranteed request quotas. They assume specific input, cached-input and output mixes. Actual workload and cache behavior can materially change these counts. Unlimited free-model rows are temporary offers.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#estimated-requests"
+      },
+      {
+        "id": "request-mix",
+        "title": "Token mix behind request estimates",
+        "columns": ["Model", "Input / request", "Cached / request", "Output / request"],
+        "rows": [
+          ["Grok 4.7/4.6", "390", "32,500", "120"],
+          ["GLM-5.3-Flash", "1,000", "55,000", "200"],
+          ["GLM-5.3/5.2", "700", "52,000", "150"],
+          ["GPT 6 Luna", "1,000", "50,000", "220"],
+          ["GPT 5.6 Luna", "1,000", "50,000", "220"],
+          ["Kimi K3", "1,050", "76,500", "300"],
+          ["Kimi K2.7/K2.6", "870", "55,000", "200"],
+          ["LongCat-2.0", "920", "88,900", "200"],
+          ["DeepSeek V4.1 Flash", "410", "71,300", "310"],
+          ["DeepSeek V4 Pro", "750", "82,000", "290"],
+          ["DeepSeek V4 Flash", "410", "71,300", "310"],
+          ["DeepSeek V4 Flash Vision Exp", "410", "71,300", "310"],
+          ["MiniMax M3", "510", "56,000", "190"],
+          ["MiniMax M2.7", "300", "55,000", "125"],
+          ["Muse Spark 1.3 Contributor", "620", "71,400", "300"],
+          ["Muse Spark 1.2 Contributor", "620", "71,400", "300"],
+          ["MiMo-V2.6-Flash", "830", "71,500", "295"],
+          ["MiMo-V2.6-Pro", "790", "86,000", "305"],
+          ["MiMo-V2.5", "830", "71,500", "295"],
+          ["MiMo-V2.5-Pro", "790", "86,000", "305"],
+          ["Qwen3.8 Max", "420", "66,000", "200"],
+          ["Qwen3.8 Flash", "600", "58,000", "200"],
+          ["Qwen3.7 Plus", "500", "57,000", "190"],
+          ["Hy4 preview", "830", "71,500", "295"],
+          ["Hy3", "830", "71,500", "295"]
+        ],
+        "note": "OpenCode’s assumed token mix, not a measurement of your workload. Its request estimates depend heavily on cache reads. Use your own recorded token categories for workload comparisons.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#estimated-requests"
+      },
+      {
+        "id": "privacy",
+        "title": "Training and data retention",
+        "columns": ["Model", "Model training", "Retention"],
+        "rows": [
+          ["Grok 4.7", "Not used", "30 days"],
+          ["Grok 4.6", "Not used", "30 days"],
+          ["GPT 6 Luna", "Not used", "30 days"],
+          ["GPT 5.6 Luna", "Not used", "30 days"],
+          ["GLM-5.3-Flash", "Not used", "0 days"],
+          ["GLM-5.3", "Not used", "0 days"],
+          ["GLM-5.2", "Not used", "0 days"],
+          ["Kimi K3", "Not used", "0 days"],
+          ["Kimi K2.7 Code", "Not used", "0 days"],
+          ["Kimi K2.6", "Not used", "0 days"],
+          ["LongCat-2.0", "Not used", "0 days"],
+          ["MiMo-V2.6-Pro", "Not used", "0 days"],
+          ["MiMo-V2.6-Flash", "Not used", "0 days"],
+          ["MiMo-V2.5-Pro", "Not used", "0 days"],
+          ["MiMo-V2.5", "Not used", "0 days"],
+          ["Qwen3.8 Max", "Not used", "0 days"],
+          ["Qwen3.8 Flash", "Not used", "0 days"],
+          ["Qwen3.7 Plus", "Not used", "0 days"],
+          ["MiniMax M3", "Not used", "0 days"],
+          ["MiniMax M2.7", "Not used", "0 days"],
+          ["Muse Spark 1.3 Contributor", "Yes", "Not ZDR"],
+          ["Muse Spark 1.2 Contributor", "Yes", "Not ZDR"],
+          ["DeepSeek V4.1 Flash", "Not used", "0 days*"],
+          ["DeepSeek V4 Pro", "Not used", "0 days*"],
+          ["DeepSeek V4 Flash", "Not used", "0 days*"],
+          ["DeepSeek V4 Flash Vision Exp", "Not used", "0 days*"],
+          ["Hy4 preview", "Not used", "0 days"],
+          ["Hy3", "Not used", "0 days"],
+          ["Space Bunny Free", "Not used", "0 days"],
+          ["LongCat 2.5 Preview Free", "Not used", "0 days"]
+        ],
+        "note": "Provider-published terms. DeepSeek zero-day retention depends on a monthly agreement currently valid through October 31, 2026. Muse Spark Contributor permits training and has regional restrictions. GPT Luna abuse-monitoring logs may be retained up to 30 days; Grok stored-data features affect retention.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#privacy"
+      },
+      {
+        "id": "clients",
+        "title": "Validated coding clients",
+        "columns": ["Client", "Session support / requirement"],
+        "rows": [
+          [
+            "OpenCode",
+            "Connect Go using /connect, then choose a model with the opencode-go/ prefix."
+          ],
+          [
+            "Hermes",
+            "Requires the session-header change in PR #101864, merged after v0.21.0. Version 0.21.0 alone is insufficient."
+          ],
+          [
+            "Claude Code",
+            "Native session identification is recognized; no custom-header wrapper required."
+          ],
+          [
+            "Codex",
+            "Native session identification is recognized. Some versions and proxies omit it; forwarding must retain it."
+          ],
+          [
+            "ZCode",
+            "Its native header is recognized. The separate x-opencode-session request is no longer required."
+          ],
+          ["Pi", "Use a current build that sends OpenCode session information."],
+          ["jcode", "Requires version 0.81.6 or later."],
+          [
+            "Kilo Code CLI",
+            "Requires the session-header fix in PR #13752. This validation covers the CLI, not the VS Code extension."
+          ]
+        ],
+        "note": "Validation is not a guarantee for every future client release. All clients must preserve stable session identification; proxies must forward it. Copilot Chat, Kimi Code, DeepSeek Harness and MiMo Code have documented missing or incomplete support in investigated versions.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#validated-clients"
+      },
+      {
+        "id": "endpoints",
+        "title": "API model IDs & endpoints",
+        "columns": ["Model", "API model ID", "Endpoint", "SDK package"],
+        "rows": [
+          ["Grok 4.7", "grok-4.7", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          ["Grok 4.6", "grok-4.6", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          ["GPT 6 Luna", "gpt-6-luna", "https://opencode.ai/zen/go/v1/responses", "@ai-sdk/openai"],
+          [
+            "GPT 5.6 Luna",
+            "gpt-5.6-luna",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "GLM-5.3-Flash",
+            "glm-5.3-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "GLM-5.3",
+            "glm-5.3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "GLM-5.2",
+            "glm-5.2",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K3",
+            "kimi-k3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K2.7 Code",
+            "kimi-k2.7-code",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Kimi K2.6",
+            "kimi-k2.6",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "LongCat-2.0",
+            "longcat-2.0",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4.1 Flash",
+            "deepseek-v4.1-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Pro",
+            "deepseek-v4-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Flash",
+            "deepseek-v4-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "DeepSeek V4 Flash Vision Exp",
+            "deepseek-v4-flash-vision-exp",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.6-Flash",
+            "mimo-v2.6-flash",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.6-Pro",
+            "mimo-v2.6-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.5",
+            "mimo-v2.5",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiMo-V2.5-Pro",
+            "mimo-v2.5-pro",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "MiniMax M3",
+            "minimax-m3",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "MiniMax M2.7",
+            "minimax-m2.7",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Muse Spark 1.3 Contributor",
+            "muse-spark-1.3-contributor",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "Muse Spark 1.2 Contributor",
+            "muse-spark-1.2-contributor",
+            "https://opencode.ai/zen/go/v1/responses",
+            "@ai-sdk/openai"
+          ],
+          [
+            "Qwen3.8 Max",
+            "qwen3.8-max",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Qwen3.8 Flash",
+            "qwen3.8-flash",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Qwen3.7 Plus",
+            "qwen3.7-plus",
+            "https://opencode.ai/zen/go/v1/messages",
+            "@ai-sdk/anthropic"
+          ],
+          [
+            "Hy4 preview",
+            "hy4-preview",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Hy3",
+            "hy3",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "Space Bunny Free",
+            "space-bunny-free",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ],
+          [
+            "LongCat 2.5 Preview Free",
+            "longcat-2.5-preview-free",
+            "https://opencode.ai/zen/go/v1/chat/completions",
+            "@ai-sdk/openai-compatible"
+          ]
+        ],
+        "note": "These endpoints consume the Go subscription allowance. They do not establish direct-provider API pricing or a separate pay-as-you-go entitlement. Preserve the client and session headers required by Go.",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go#endpoints"
+      }
+    ],
+    "codingTools": [
+      "OpenCode",
+      "Claude Code",
+      "Codex",
+      "Hermes",
+      "ZCode",
+      "Pi",
+      "jcode",
+      "Kilo Code CLI"
+    ],
+    "afterLimit": "Free models remain available. Enable Use balance with paid Console credits to continue on pay-as-you-go pricing after an included limit. Otherwise requests are blocked.",
+    "privacySummary": "Model-dependent: Muse Spark Contributor permits training and is not ZDR. Grok/GPT Luna: 30-day retention. Other listed models: zero-day terms, with DeepSeek’s current agreement expiring October 31, 2026.",
+    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Recurring charges continue until canceled through account settings. Reset anchors, rollover and a Go-specific refund policy are not established by the reviewed documentation."
+  }
+}

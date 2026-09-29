@@ -1,64 +1,84 @@
 id: deepseek-v4-1-flash
 role: model
-name: "DeepSeek-V4.1-Flash"
+name: DeepSeek-V4.1-Flash
 developerId: deepseek
 providerIds:
-  - deepseek
+- deepseek
 aliases:
-  - id: deepseek-v4-1-flash-router-deepseek-deepseek-v4-1-flash
-    alias: "deepseek/deepseek-v4.1-flash"
-    kind: harness_alias
-    sources:
-      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
-        title: "OpenRouter model record `deepseek/deepseek-v4.1-flash` (exact id as published in the model list)"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-t3-code
-    alias: "deepseek-v4.1-flash"
-    kind: harness_alias
-    harness: t3-code
-    sources:
-      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
-        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `t3-code` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-opencode
-    alias: "deepseek-v4.1-flash"
-    kind: harness_alias
-    harness: opencode
-    sources:
-      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
-        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `opencode` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-hermes
-    alias: "deepseek-v4.1-flash"
-    kind: harness_alias
-    harness: hermes
-    sources:
-      - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
-        title: "OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in the `hermes` harness and is scoped to it"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: estimated
-  - id: deepseek-v4-1-flash-observed-deepseek-flash
-    alias: "deepseek-flash"
-    kind: provider_id
-    sources:
-      - url: https://api-docs.deepseek.com/quick_start/pricing
-        title: "DeepSeek-V4.1-Flash API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
-sources:
+- id: deepseek-v4-1-flash-router-deepseek-deepseek-v4-1-flash
+  alias: deepseek/deepseek-v4.1-flash
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+    title: OpenRouter model record `deepseek/deepseek-v4.1-flash` (exact id as published in the model list)
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+- id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-t3-code
+  alias: deepseek-v4.1-flash
+  kind: harness_alias
+  harness: t3-code
+  sources:
+  - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+    title: OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in
+      the `t3-code` harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-opencode
+  alias: deepseek-v4.1-flash
+  kind: harness_alias
+  harness: opencode
+  sources:
+  - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+    title: OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in
+      the `opencode` harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: deepseek-v4-1-flash-router-deepseek-v4-1-flash-hermes
+  alias: deepseek-v4.1-flash
+  kind: harness_alias
+  harness: hermes
+  sources:
+  - url: https://openrouter.ai/deepseek/deepseek-v4.1-flash
+    title: OpenRouter publishes the prefixed id `deepseek/deepseek-v4.1-flash`; this bare spelling is observed in
+      the `hermes` harness and is scoped to it
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: estimated
+- id: deepseek-v4-1-flash-observed-deepseek-flash
+  alias: deepseek-flash
+  kind: provider_id
+  sources:
   - url: https://api-docs.deepseek.com/quick_start/pricing
-    title: "DeepSeek-V4.1-Flash model documentation"
-    checkedAt: 2026-09-23
-  - url: https://api-docs.deepseek.com/quick_start/pricing/
-    title: "DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+    title: DeepSeek-V4.1-Flash API model id
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
+sources:
+- url: https://api-docs.deepseek.com/quick_start/pricing
+  title: DeepSeek-V4.1-Flash model documentation
+  checkedAt: 2026-09-23
+- url: https://api-docs.deepseek.com/quick_start/pricing/
+  title: DeepSeek current API model and alias table; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 384000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Thinking and non-thinking modes. Prices vary between peak and off-peak hours.
+  sources:
+  - url: https://api-docs.deepseek.com/quick_start/pricing/
+    title: Official model specifications
+    checkedAt: '2026-09-28'

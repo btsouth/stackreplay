@@ -1,4 +1,5 @@
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import { isPositiveAmount } from "@/lib/money-display";
 import { formatCount, formatExactTokens, formatMoney, formatTokens } from "./format";
 import { LedgerRow, MicroLabel, SectionIndex, StatusWord } from "./primitives";
 
@@ -129,7 +130,7 @@ export function CostCounterfactual({
           <LedgerRow
             label="Billed above allowance"
             note={
-              economics.overageCost === undefined || Number.parseFloat(economics.overageCost) === 0
+              !isPositiveAmount(economics.overageCost)
                 ? "no demand was billed above the allowance"
                 : "served and charged at the rule's declared rate"
             }

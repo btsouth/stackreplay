@@ -7,7 +7,7 @@ import { loadHeroWorkload } from "@/lib/hero-workload";
 import { siteDescription, siteName } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `${siteName}: replay before you switch`,
+  title: `${siteName}: your AI coding history, measured`,
   description: siteDescription,
   alternates: { canonical: "/" },
 };
@@ -21,20 +21,21 @@ export default function HomePage() {
         data-testid="home-hero"
       >
         <div className="flex flex-col gap-4">
-          <MicroLabel>Historical workload simulator</MicroLabel>
+          <MicroLabel>Private workload analyzer</MicroLabel>
           <h1 className="text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-5xl">
-            Replay before you switch.
+            Your AI coding history, measured.
           </h1>
         </div>
         <div className="flex flex-col gap-4">
           <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Your AI coding tools already record every model call. StackReplay reads that history in
-            your browser and replays it against another plan, provider or API: what fits, where the
-            allowance runs out, and which rule decided it.
+            Claude Code, Codex and Command Code keep records of your AI coding work. StackReplay
+            reads supported history in your browser to show what drives usage, when it gets heavy
+            and what covered calls would cost at published API prices. Replay that work against
+            another plan or API to see how its documented rules apply.
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link className={buttonVariants({ size: "lg" })} href="/app/import">
-              Scan your history
+              Scan your AI history
             </Link>
             <Link
               className="min-h-11 content-center text-sm text-accent underline underline-offset-4"
@@ -50,6 +51,40 @@ export default function HomePage() {
         <HomeReplay hero={hero} />
       </section>
 
+      <section className="border-t border-border-strong py-6" aria-label="Explore the AI market">
+        <p className="market-kicker">Beyond your workload</p>
+        <div className="mt-5 grid gap-8 md:grid-cols-3">
+          {[
+            {
+              href: "/models",
+              title: "Know your models.",
+              text: "Compare published input, output and cache rates. Find model access across APIs and subscriptions.",
+              label: "Explore models",
+            },
+            {
+              href: "/plans",
+              title: "Find your next stack.",
+              text: "Claude, Codex, ClinePass, OpenCode, Ollama and more. Prices, compatible tools and usage terms together.",
+              label: "Explore subscriptions",
+            },
+            {
+              href: "/changelog",
+              title: "Keep up with changes.",
+              text: "New releases and newly verified offers, with the sources and dates that put them in context.",
+              label: "Market updates",
+            },
+          ].map((item) => (
+            <div key={item.href}>
+              <h2 className="text-2xl tracking-tight">{item.title}</h2>
+              <p className="market-muted mt-3 max-w-sm">{item.text}</p>
+              <Link href={item.href} className="market-link">
+                {item.label} ↗
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section
         className="grid gap-7 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
         data-testid="home-privacy"
@@ -58,16 +93,15 @@ export default function HomePage() {
           <MicroLabel>Your machine</MicroLabel>
           <h2 className="mt-2 text-xl font-medium text-foreground">Your history stays here.</h2>
           <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
-            Select a Claude Code or Codex folder. A browser-local Worker extracts usage and
-            chronology and shows you how you work: your hours, your heaviest windows, which projects
-            and models carry the demand, and where the tokens go. The raw sessions are never
-            uploaded. Prompts, responses, code, and paths are excluded from saved workloads.
+            Drop your home folder and StackReplay checks only the places AI coding tools keep their
+            history. A Worker in your browser extracts models, tokens and timestamps; the raw
+            sessions stay on your device, and prompts, responses, code and paths are never saved.
           </p>
           <Link
             className="mt-3 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
             href="/app/import"
           >
-            Connect a folder ↗
+            Scan your AI history ↗
           </Link>
         </div>
         <div>

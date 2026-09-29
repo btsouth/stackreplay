@@ -343,10 +343,18 @@ describe("loader", () => {
     // Every real entry carries a source and a verification state.
     for (const planId of Object.keys(first.plans).filter((id) => !id.startsWith("example-"))) {
       const plan = first.plans[planId];
-      expect(plan?.versions.length ?? 0).toBeGreaterThan(0);
+      expect((plan?.versions.length ?? 0) + (plan?.executionVersions?.length ?? 0)).toBeGreaterThan(
+        0,
+      );
       for (const version of plan?.versions ?? []) {
         expect(version.sources.length).toBeGreaterThan(0);
         expect(version.lastVerifiedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+      }
+      for (const version of plan?.executionVersions ?? []) {
+        expect(version.claims.length).toBeGreaterThan(0);
+        expect(version.claims.every((claim) => claim.sourceUrl && claim.evidencePackageHash)).toBe(
+          true,
+        );
       }
     }
   });
@@ -474,7 +482,7 @@ describe("launch catalog: model identity", () => {
       ["glm-5-3-flash", "0.15", "0.50"],
     ];
     for (const [modelId, input, output] of priced) {
-      const record = Object.values(catalog.pricing).find((entry) => entry.modelId === modelId);
+      const record = catalog.pricing[`${modelId}-pricing`];
       expect(record, modelId).toBeDefined();
       expect(record?.rates.input, modelId).toBe(input);
       expect(record?.rates.output, modelId).toBe(output);

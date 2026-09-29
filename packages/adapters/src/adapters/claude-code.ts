@@ -1,4 +1,5 @@
-import type { TextUsageV1 } from "@stackreplay/schema";
+import type { ObservedCapacityEvent, TextUsageV1 } from "@stackreplay/schema";
+import { claudeCapacityEvent, dedupeCapacityEvents } from "../claude-capacity.js";
 import {
   buildEvent,
   type EventDraft,
@@ -15,7 +16,7 @@ import {
   inWindow,
   listFilesRecursive,
 } from "../files.js";
-import { epochMsFromIso } from "../identity.js";
+import { epochMsFromIso, normalizeProjectKey, sourceRootHash } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
 import {
@@ -27,6 +28,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { CLAUDE_CODE_DISCOVERY } from "./claude-code.discovery.js";
 
 /**
  * Claude Code adapter (spec point 15).
@@ -65,7 +67,11 @@ function preferResponse(candidate: ResponseCandidate, previous: ResponseCandidat
 }
 
 export function claudeCodeRoots(env: SourceEnvironment): string[] {
-  return [joinPath(env.platform, env.homeDir, ".claude", "projects")];
+  if (env.env.CLAUDE_CONFIG_DIR)
+    return [joinPath(env.platform, env.env.CLAUDE_CONFIG_DIR, "projects")];
+  return CLAUDE_CODE_DISCOVERY.history.map((location) =>
+    joinPath(env.platform, env.homeDir, ...location.path),
+  );
 }
 
 export function claudeUsage(usage: Record<string, unknown>): {
@@ -113,7 +119,7 @@ export function claudeUsage(usage: Record<string, unknown>): {
 export function createClaudeCodeAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "Claude Code",
+    name: CLAUDE_CODE_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: claudeCodeRoots,
@@ -128,7 +134,10 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
         const readable = exists && info.kind === "directory";
         let rootSessionCount: number | undefined;
         if (readable) {
-          const files = await listFilesRecursive(env, root, { maxDepth: 2, extension: ".jsonl" });
+          const files = await listFilesRecursive(env, root, {
+            maxDepth: CLAUDE_CODE_DISCOVERY.inventory?.maxDepth ?? 8,
+            extension: ".jsonl",
+          });
           rootSessionCount = files.length;
           sessionCount += files.length;
           if (files.length === 0) supported = false;
@@ -160,6 +169,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
     async collect(env: SourceEnvironment, options: CollectOptions): Promise<CollectResult> {
       const warnings = new WarningCollector();
       const stats = emptyStats();
+      const capacityEvents: ObservedCapacityEvent[] = [];
       const responses = new Map<string, ResponseCandidate>();
       const roots = options.roots ?? claudeCodeRoots(env);
       const maxFiles = effectiveMaxFiles(options);
@@ -167,7 +177,26 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
       let truncated = false;
 
       for (const root of roots) {
-        const files = await listFilesRecursive(env, root, { maxDepth: 2, extension: ".jsonl" });
+        const rawRoot = env.selectedFiles
+          ? options.sessionRoot
+          : env.fs.realPath
+            ? await env.fs.realPath(root).catch(() => root)
+            : root;
+        const rootHash =
+          rawRoot === undefined
+            ? undefined
+            : sourceRootHash(
+                options.sourceRootSalt ?? options.salt,
+                normalizeProjectKey(rawRoot, env.platform),
+              );
+        const sourceRoot = rootHash
+          ? { resourceInstanceId: `claude-code:${rootHash}`, sessionRoot: rootHash }
+          : undefined;
+        if (sourceRoot && rawRoot) options.onSourceRoot?.(sourceRoot.resourceInstanceId, rawRoot);
+        const files = await listFilesRecursive(env, root, {
+          maxDepth: CLAUDE_CODE_DISCOVERY.inventory?.maxDepth ?? 8,
+          extension: ".jsonl",
+        });
         for (const file of files) {
           if (stats.filesScanned >= maxFiles) {
             truncated = true;
@@ -195,6 +224,19 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             }
             const record = asRecord(parsed.value);
             if (record === undefined) continue;
+            if (sourceRoot) {
+              const observation = claudeCapacityEvent(
+                record,
+                sourceRoot.resourceInstanceId,
+                options.salt,
+              );
+              if (observation) {
+                if (inWindow(Date.parse(observation.timestamp), options))
+                  capacityEvents.push(observation);
+                // Client capacity records are evidence, never missing-model usage calls.
+                continue;
+              }
+            }
             if (readString(record, "type") !== "assistant") continue;
             const message = asRecord(record.message);
             if (message === undefined) continue;
@@ -232,7 +274,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             const requestId = readString(record, "requestId");
             const identity =
               messageId !== undefined
-                ? `${messageId}\u0000${requestId ?? ""}`
+                ? messageId
                 : (requestId ?? readString(record, "uuid") ?? `${occurredAtMs}#${lineIndex}`);
             // Browser-selected single files have no established project folder.
             // The synthetic collection root must never become a project identity.
@@ -240,6 +282,8 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               readString(record, "cwd") ?? (env.selectedFiles ? undefined : projectSlug);
             const draft: EventDraft = {
               adapterId: ADAPTER_ID,
+              ...(sourceRoot ? { sourceRoot } : {}),
+              nativeResponse: { final: message.stop_reason != null, duplicateRows: 0 },
               sessionId,
               identity,
               ...(messageId !== undefined || requestId !== undefined
@@ -262,14 +306,24 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               workloadCategory: "coding",
             };
             const candidate = { draft, final: message.stop_reason != null };
-            const previous = responses.get(identity);
-            if (previous === undefined) responses.set(identity, candidate);
+            const responseKey = JSON.stringify([
+              rootHash ?? "unestablished",
+              messageId || requestId ? "global" : sessionId,
+              identity,
+            ]);
+            const previous = responses.get(responseKey);
+            if (previous === undefined) responses.set(responseKey, candidate);
             else {
               warnings.add(
                 "RECORD_DUPLICATE",
                 "Claude Code wrote more than one assistant row for an API response; usage was counted once",
               );
-              if (preferResponse(candidate, previous)) responses.set(identity, candidate);
+              const winner = preferResponse(candidate, previous) ? candidate : previous;
+              winner.draft.nativeResponse = {
+                final: winner.final,
+                duplicateRows: (previous.draft.nativeResponse?.duplicateRows ?? 0) + 1,
+              };
+              responses.set(responseKey, winner);
             }
           }
           stats.sessionsScanned += 1;
@@ -283,7 +337,13 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
       const context = eventContext(env, options);
       const events = [...responses.values()].map(({ draft }) => buildEvent(draft, context));
       stats.eventsEmitted = events.length;
-      return { adapterId: ADAPTER_ID, events, warnings: warnings.toArray(), stats };
+      return {
+        adapterId: ADAPTER_ID,
+        events,
+        capacityEvents: dedupeCapacityEvents(capacityEvents),
+        warnings: warnings.toArray(),
+        stats,
+      };
     },
   };
 }

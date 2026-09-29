@@ -77,7 +77,7 @@ export function ResultSettlement({
                 : modelsSupportedWithUnknownCapacity
                   ? "all observed models match, but the plan has no published numeric allowance"
                   : "the engine could not decide every event"
-              : `of modelled ${headline.dimension === "usage" ? "token demand" : "requests"} would have fit`}
+              : `of recorded ${headline.dimension === "usage" ? "token demand" : "calls"} ${projection.target.kind === "api" ? "served" : "served, within the allowance or as overage"}`}
           </span>
         </div>
         <div className="flex min-w-0 max-w-full flex-col gap-1 sm:items-end">
@@ -141,7 +141,7 @@ export function ResultSettlement({
           <span className="font-mono text-xs tabular-nums text-foreground">
             {formatCount(overage) ?? "unknown"}
           </span>
-          <MicroLabel>billed above allowance</MicroLabel>
+          <MicroLabel>served as overage</MicroLabel>
         </span>
         <span className="flex items-baseline gap-2">
           <span className="font-mono text-xs tabular-nums text-foreground">

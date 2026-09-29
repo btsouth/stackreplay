@@ -1,0 +1,9 @@
+id: minimax
+role: provider
+name: "MiniMax"
+sources:
+  - url: https://platform.minimax.io/docs/guides/pricing-paygo
+    title: "MiniMax pay-as-you-go API pricing"
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

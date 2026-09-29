@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-engine";
-import { decodeShareToken, encodeShareToken } from "@stackreplay/share";
-import { captureRequests, importDemo, runReplay } from "./helpers";
+import { decodeAnyShareToken, encodeShareToken } from "@stackreplay/share";
+import { captureRequests, createShareToken, importDemo, runReplay } from "./helpers";
 
 /**
  * Public site and sharing (M4).
@@ -15,12 +15,12 @@ import { captureRequests, importDemo, runReplay } from "./helpers";
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Replay before you switch." },
-  { path: "/plans", heading: "Plans" },
-  { path: "/models", heading: "Models" },
+  { path: "/", heading: "Your AI coding history, measured." },
+  { path: "/plans", heading: "Find your next stack." },
+  { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Compare plans" },
   { path: "/methodology", heading: "Methodology" },
-  { path: "/changelog", heading: "Catalog changelog" },
+  { path: "/changelog", heading: "Know what changed." },
 ] as const;
 
 test.describe("public site", () => {
@@ -30,7 +30,7 @@ test.describe("public site", () => {
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1, name: route.heading })).toBeVisible();
       // The public shell always offers the local application and the repository.
-      await expect(page.getByRole("link", { name: "Try Replay" }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: "Scan your AI history" }).first()).toBeVisible();
     });
   }
 
@@ -82,32 +82,20 @@ test.describe("public site", () => {
     const cards = page.getByTestId("plan-card");
     const count = await cards.count();
     test.skip(count === 0, "no sourced plan is catalogued in this build");
-    // A plan page publishes what the provider states: a numeric limit table where
-    // there is a number and a window, qualitative statements where there is not.
-    // Either way the card shows its sources and its verification state.
-    for (let index = 0; index < count; index += 1) {
-      const card = cards.nth(index);
-      await card.getByText("Inspect limits and sources").click();
-      await expect(card.getByTestId("source-list")).toBeVisible();
-      await expect(card.getByText(/verified|estimated|measured|unknown/u).first()).toBeVisible();
-      const numeric = await card.getByTestId("limit-table").count();
-      const qualitative = await card.getByTestId("qualitative-limits").count();
-      expect(numeric + qualitative).toBeGreaterThan(0);
-    }
+    await cards.first().getByRole("link", { name: "Explore plan" }).click();
+    await page.getByText("Published terms, sources & history", { exact: true }).click();
+    await expect(page.getByTestId("source-list").first()).toBeVisible();
+    await expect(page.getByText(/Published terms checked/).first()).toBeVisible();
+    await expect(page.getByTestId("qualitative-limits")).toBeVisible();
   });
 
-  test("a plan detail page links into a local replay", async ({ page }) => {
-    await page.goto("/plans");
-    const firstPlan = page.getByTestId("plan-card").first().getByRole("link").first();
-    const count = await page.getByTestId("plan-card").count();
-    test.skip(count === 0, "no sourced plan is catalogued in this build");
-    await firstPlan.click();
-    await expect(page).toHaveURL(/\/plans\/[^/]+$/u);
-    const replayLink = page.getByRole("link", { name: /^Replay against/u });
-    await expect(replayLink).toBeVisible();
-    const href = await replayLink.getAttribute("href");
-    expect(href).toContain("/app/import?target=");
-    await replayLink.click();
+  test("a plan detail page leads to comparison and local analysis", async ({ page }) => {
+    await page.goto("/plans/clinepass");
+    await expect(page.getByRole("link", { name: "Compare this plan" })).toHaveAttribute(
+      "href",
+      "/compare?left=clinepass",
+    );
+    await page.getByRole("link", { name: "Analyze my workload" }).click();
     await expect(page.getByTestId("import-dropzone")).toBeVisible();
   });
 
@@ -127,7 +115,7 @@ test.describe("public site", () => {
     for (const route of ["/models", "/compare", "/plans/github-copilot-business"]) {
       await page.goto(route);
       const facts = page.locator(
-        "main article, main table td, main [data-testid='compare-target']",
+        "main article, main table td, main [data-testid='compare-target'], main [data-testid='plan-models-summary']",
       );
       await expect(facts.first()).toBeVisible();
       const outside = await facts.evaluateAll((cells) => {
@@ -155,10 +143,14 @@ test.describe("public site", () => {
     for (const route of ["/plans", "/compare"]) {
       await page.goto(route);
       const action = page
-        .getByRole("link", { name: /Replay (this target|your workload here)/u })
+        .getByRole("link", {
+          name: route === "/plans" ? /Explore plan/u : /Replay (this target|your workload here)/u,
+        })
         .first();
       await expect(action).toBeVisible();
-      expect(await action.getAttribute("href")).toMatch(/^\/app\/import\?target=/u);
+      expect(await action.getAttribute("href")).toMatch(
+        route === "/plans" ? /^\/plans\//u : /^\/app\/import\?target=/u,
+      );
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -178,13 +170,16 @@ test.describe("public site", () => {
     await page.goto("/compare");
     await expect(page.getByTestId("compare-target")).toHaveCount(2);
     await expect(page.getByTestId("compare-price").first()).toContainText("/ month");
-    await expect(page.getByTestId("compare-row-models")).toContainText("Claude Opus 5.5");
-    await expect(page.getByTestId("compare-row-usage")).toContainText(
-      "Provider does not publish a numeric allowance.",
+    await expect(page.getByTestId("compare-row-models")).toContainText("13 models included");
+    await expect(page.getByTestId("compare-model-matrix")).toContainText("Claude Opus 5.5");
+    await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
+    await expect(page.getByTestId("compare-row-simulation")).toContainText(
+      "Exact capacity replay is not supported",
     );
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
     for (const row of [
       "models",
+      "model-matrix",
       "coding-tools",
       "usage",
       "simulation",
@@ -220,9 +215,9 @@ test.describe("public site", () => {
     await page.getByLabel("Find a model, family name or exact alias").fill("claude-opus");
     await expect(page.getByTestId("model-table")).toContainText("Family name");
     await page.goto("/models/claude-opus");
-    await expect(page.getByTestId("family-explainer")).toBeVisible();
-    await expect(page.getByTestId("family-releases")).toContainText("Claude Opus 5.5");
-    await expect(page.getByRole("heading", { name: "Aliases, routes and identity" })).toBeVisible();
+    await expect(page.getByText("A family of model releases.", { exact: true })).toBeVisible();
+    await expect(page.locator("main section")).toContainText("Claude Opus 5.5");
+    await expect(page.getByText("Aliases, routes and identity", { exact: true })).toBeVisible();
   });
 
   test("public navigation identifies the current section on desktop and mobile", async ({
@@ -231,7 +226,7 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -246,7 +241,7 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -265,8 +260,9 @@ test.describe("public site", () => {
     const catalog = page.getByRole("link", { name: "Catalog sources" });
     await expect(catalog).toHaveAttribute("href", "/plans");
     await catalog.click();
-    await page.getByTestId("plan-card").first().getByText("Inspect limits and sources").click();
-    await expect(page.getByTestId("plan-card").first().getByTestId("source-list")).toBeVisible();
+    await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();
+    await page.getByText("Published terms, sources & history", { exact: true }).click();
+    await expect(page.getByTestId("source-list").first()).toBeVisible();
   });
 });
 
@@ -484,40 +480,44 @@ test.describe("share links", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/u);
   });
 
-  test("creating a share link in the app uploads nothing and re-reads in public", async ({
+  test("creating a share link uploads only its aggregate token and re-reads in public", async ({
     page,
   }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
-    await page.goto("/app/replay");
+    await page.goto("/app/replay?mode=custom");
     await runReplay(page, "example-cloud-pro");
 
     await expect(page.getByTestId("share-panel")).toBeVisible();
-    await page.getByTestId("share-create").click();
-    const url = await page.getByTestId("share-url").textContent();
-    expect(url).toContain("/s/1.");
+    // The preview comes before any link exists.
+    await expect(page.getByTestId("share-preview")).toBeVisible();
+    const token = await createShareToken(page);
+    expect(token.startsWith("2.")).toBe(true);
 
-    // The token decodes to a valid snapshot with no forbidden field.
-    const token = (url ?? "").split("/s/")[1]?.trim() ?? "";
-    const decoded = await decodeShareToken(token);
+    // The token decodes to a valid V2 snapshot with no forbidden field.
+    const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
-    if (decoded.ok) {
-      expect(decoded.snapshot.workload.eventCount).toBeGreaterThan(0);
+    if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "replay") {
+      expect(decoded.snapshot.verdict.calls.total).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
-        /sessionhash|projecthash|eventhash|repository|filepath|prompt/u,
+        /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );
-    }
+    } else throw new Error("expected a V2 replay snapshot");
 
+    // The one upload is the aggregate token itself, to the share store.
     const uploads = requests.filter(
       (request) =>
         request.method !== "GET" && !request.url.includes("_next") && !request.url.includes("/s/"),
     );
-    expect(uploads, "creating a share link must not send a request").toEqual([]);
+    expect(uploads.map((request) => `${request.method} ${new URL(request.url).pathname}`)).toEqual([
+      "POST /api/share",
+    ]);
+    expect(JSON.parse(uploads[0]?.body ?? "{}")).toEqual({ token });
 
     await page.getByTestId("share-open").click();
-    await expect(page.getByTestId("share-card")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("events replayed");
-    await expect(page.getByTestId("share-card-plan")).toBeVisible();
+    await expect(page.getByTestId("share-card-v2")).toBeVisible();
+    // The page leads with the same verdict the app led with.
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Example");
 
     // Regression (benchmark F011): the public read model filters the synthetic
     // `example-` namespace, but a share link carries its target inside the token.
@@ -528,8 +528,8 @@ test.describe("share links", () => {
     // Regression (benchmark F004): the plan terms in a link are the sharer's
     // claim, so the page says so instead of borrowing the catalog's "verified"
     // badge language.
-    await expect(page.getByTestId("share-target-claim")).toContainText(
-      /not checked them against its own catalog/u,
+    await expect(page.getByTestId("share-provenance")).toContainText(
+      /this site has not re-checked the link's claim/u,
     );
   });
 });

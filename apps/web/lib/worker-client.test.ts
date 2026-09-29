@@ -351,3 +351,237 @@ describe("replay worker client", () => {
     await expect(pending).resolves.toEqual([]);
   });
 });
+
+describe("optimizer client generations", () => {
+  const config = {
+    period: { start: "2026-09-01T00:00:00Z", end: "2026-10-01T00:00:00Z" },
+    context: { rulesAsOf: "2026-09-01" },
+    resources: [],
+    initialAllowance: { kind: "fresh" },
+    chronology: { default: "request", evidence: "fixture" },
+  } as const;
+  it("supersedes optimizations immediately and drops queued old success", async () => {
+    const client = new ReplayWorkerClient();
+    const old = client.optimize("a", config);
+    const rejected = expect(old).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const oldId = (worker.sent.at(-1) as WorkerRequest).requestId;
+    const next = client.optimize("a", config);
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "OPTIMIZER_OK", requestId: oldId, summary: {} } as WorkerResponse);
+    worker.reply({
+      type: "OPTIMIZER_OK",
+      requestId: id,
+      summary: { status: "optimal" },
+    } as WorkerResponse);
+    await rejected;
+    expect((await next).generation).toBe(id);
+    client.dispose();
+  });
+  it("clearing or disposing cannot publish an optimizer result", async () => {
+    const client = new ReplayWorkerClient();
+    const result = client.optimize("a", config);
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const clear = client.clearLocalData();
+    worker.reply({ type: "CLEARED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await rejected;
+    await clear;
+    client.dispose();
+    expect(worker.terminated).toBe(true);
+  });
+  it("rejects detail from an obsolete generation", async () => {
+    const client = new ReplayWorkerClient();
+    const result = client.optimize("a", config);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "OPTIMIZER_OK", requestId: id, summary: {} } as WorkerResponse);
+    await result;
+    const cancel = client.cancelOptimizer();
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await cancel;
+    await expect(client.optimizerDetail(id, 0)).rejects.toBeInstanceOf(SupersededError);
+    client.dispose();
+  });
+});
+
+describe("optimizer AbortSignal lifetime", () => {
+  it("does not create a Worker for a pre-aborted request", async () => {
+    const client = new ReplayWorkerClient();
+    const before = FakeWorker.instances.length;
+    await expect(
+      client.optimize(
+        "a",
+        {} as import("./worker-protocol").OptimizerConfiguration,
+        undefined,
+        AbortSignal.abort(),
+      ),
+    ).rejects.toBeInstanceOf(SupersededError);
+    expect(FakeWorker.instances.length).toBe(before);
+  });
+  it("aborting while optimizing rejects immediately and requests termination", async () => {
+    const client = new ReplayWorkerClient();
+    const abort = new AbortController();
+    const result = client.optimize(
+      "a",
+      {} as import("./worker-protocol").OptimizerConfiguration,
+      undefined,
+      abort.signal,
+    );
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    abort.abort();
+    await rejected;
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    expect(worker.sent.at(-1)?.type).toBe("CANCEL_OPTIMIZER");
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    client.dispose();
+  });
+});
+
+describe("market decision cancellation and generations", () => {
+  it("keys market summaries by exact period and reuses a prior period without another replay", async () => {
+    const client = new ReplayWorkerClient();
+    const periods = [
+      { start: "2026-09-01", end: "2026-10-01" },
+      { start: "2026-09-04", end: "2026-10-04" },
+    ];
+    for (const period of periods) {
+      const run = client.apiMarket("same", undefined, period);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      expect(worker.sent.at(-1)).toMatchObject({ type: "API_MARKET", period });
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+        decision: { scenarios: [] },
+      });
+      await run;
+    }
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const count = worker.sent.length;
+    await client.apiMarket("same", undefined, periods[0]);
+    expect(worker.sent.length).toBe(count);
+    client.dispose();
+  });
+
+  it("keys market summaries by account and reuses only the matching account", async () => {
+    const client = new ReplayWorkerClient();
+    const periods = [
+      { start: "2026-09-01", end: "2026-10-01" },
+      { start: "2026-09-04", end: "2026-10-04" },
+    ];
+    for (const i of periods.keys()) {
+      const run = client.apiMarket("same", undefined, periods[0], `account-${i}`);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      expect(worker.sent.at(-1)).toMatchObject({
+        type: "API_MARKET",
+        period: periods[0],
+        resourceInstanceId: `account-${i}`,
+      });
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+        decision: { scenarios: [] },
+      });
+      await run;
+    }
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const count = worker.sent.length;
+    await client.apiMarket("same", undefined, periods[0], "account-0");
+    expect(worker.sent.length).toBe(count);
+    client.dispose();
+  });
+
+  it("reuses only completed summaries and releases them on teardown", async () => {
+    const client = new ReplayWorkerClient();
+    const run = client.apiMarket("a");
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    worker.reply({
+      type: "API_MARKET_OK",
+      requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+      decision: { scenarios: [] },
+    });
+    const result = await run;
+    const messages = worker.sent.length;
+    expect(await client.apiMarket("a")).toBe(result);
+    expect(worker.sent.length).toBe(messages);
+    await expect(client.apiMarket("a", AbortSignal.abort())).rejects.toBeInstanceOf(
+      SupersededError,
+    );
+    client.dispose();
+    const fresh = client.apiMarket("a");
+    const nextWorker = FakeWorker.instances.at(-1) as FakeWorker;
+    expect(nextWorker).not.toBe(worker);
+    nextWorker.reply({
+      type: "API_MARKET_OK",
+      requestId: (nextWorker.sent.at(-1) as WorkerRequest).requestId,
+      decision: { scenarios: [] },
+    });
+    await fresh;
+    client.dispose();
+  });
+  it("bounds summary retention and invalidates it when local data is cleared", async () => {
+    const client = new ReplayWorkerClient();
+    async function finish(id: string) {
+      const pending = client.apiMarket(id);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: (worker.sent.at(-1) as WorkerRequest).requestId,
+        decision: { scenarios: [] },
+      });
+      await pending;
+      return worker;
+    }
+    await finish("a");
+    await finish("b");
+    await finish("c");
+    const worker = await finish("d");
+    const messages = worker.sent.length;
+    await finish("a");
+    expect(worker.sent.length).toBe(messages + 1);
+    const cleared = client.clearLocalData();
+    worker.reply({ type: "CLEARED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    await cleared;
+    const afterClear = worker.sent.length;
+    await finish("a");
+    expect(worker.sent.length).toBe(afterClear + 1);
+    client.dispose();
+  });
+  it("never launches a pre-aborted market run", async () => {
+    const client = new ReplayWorkerClient();
+    const before = FakeWorker.instances.length;
+    await expect(client.apiMarket("a", AbortSignal.abort())).rejects.toBeInstanceOf(
+      SupersededError,
+    );
+    expect(FakeWorker.instances.length).toBe(before);
+    client.dispose();
+  });
+  it("rejects replaced market work and drops its late success", async () => {
+    const client = new ReplayWorkerClient();
+    const old = client.apiMarket("old");
+    const rejected = expect(old).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const oldId = (worker.sent.at(-1) as WorkerRequest).requestId;
+    const next = client.apiMarket("new");
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    worker.reply({ type: "API_MARKET_OK", requestId: oldId, decision: { scenarios: [] } });
+    worker.reply({ type: "API_MARKET_OK", requestId: id, decision: { scenarios: [] } });
+    await rejected;
+    expect(await next).toEqual({ scenarios: [] });
+    client.dispose();
+  });
+  it("aborts a running market child without publishing success", async () => {
+    const client = new ReplayWorkerClient(),
+      abort = new AbortController();
+    const result = client.apiMarket("a", abort.signal);
+    const rejected = expect(result).rejects.toBeInstanceOf(SupersededError);
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const id = (worker.sent.at(-1) as WorkerRequest).requestId;
+    abort.abort();
+    await rejected;
+    expect(worker.sent.at(-1)?.type).toBe("CANCEL_OPTIMIZER");
+    worker.reply({ type: "API_MARKET_OK", requestId: id, decision: { scenarios: [] } });
+    worker.reply({ type: "CANCELLED", requestId: (worker.sent.at(-1) as WorkerRequest).requestId });
+    client.dispose();
+  });
+});

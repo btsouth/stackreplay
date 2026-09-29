@@ -1,24 +1,46 @@
 id: gpt-5-4-mini
 role: model
-name: "GPT-5.4 mini"
+name: GPT-5.4 mini
 providerIds:
-  - github
+- github
+- openai
 aliases:
-  - id: gpt-5-4-mini-observed-gpt-5-4-mini
-    alias: "gpt-5.4-mini"
-    kind: provider_id
-    sources:
-      - url: https://developers.openai.com/api/docs/pricing
-        title: "GPT-5.4 mini API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
+- id: gpt-5-4-mini-observed-gpt-5-4-mini
+  alias: gpt-5.4-mini
+  kind: provider_id
+  sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+    title: GPT-5.4 mini API model id
+    checkedAt: 2026-09-27
+  lastVerifiedAt: 2026-09-27
+  verificationStatus: verified
 sources:
-  - url: https://github.com/features/copilot/plans
-    title: "GitHub pricing (official)"
-    checkedAt: 2026-09-23
-  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
-    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+- url: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+  title: OpenAI direct API model ID, token rates, and Responses endpoint
+  checkedAt: 2026-09-27
+- url: https://github.com/features/copilot/plans
+  title: GitHub pricing (official)
+  checkedAt: 2026-09-23
+- url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+  title: GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+developerId: openai
+specifications:
+  contextTokens: 400000
+  maxOutputTokens: 128000
+  maxInputTokens: 272000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  knowledgeCutoff: Aug 31, 2025
+  sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-5.4-mini
+    title: Official model specifications
+    checkedAt: '2026-09-28'

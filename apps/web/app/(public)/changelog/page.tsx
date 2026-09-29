@@ -1,96 +1,137 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SourceList, VerificationBadge } from "@/components/public/provenance";
+import { MarketFooter, MarketHeader } from "@/components/public/market-header";
+import { SourceList } from "@/components/public/provenance";
 import { deriveCatalogChanges, loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
-
 export const metadata: Metadata = {
-  title: "Catalog changelog",
+  title: "Market updates",
   description:
-    "Every change to the StackReplay catalog: plans added, prices changed, limits changed and model access changed, with effective dates and sources.",
+    "Verified model announcements, subscription additions and catalog changes, with sources and clear dates.",
   alternates: { canonical: "/changelog" },
 };
-
-const kindLabel: Record<string, string> = {
-  plan_added: "Plan added",
-  price_changed: "Price changed",
-  limit_changed: "Limit changed",
-  model_access_changed: "Model access changed",
-  rule_changed: "Rule changed",
-};
-
-export default function ChangelogPage() {
+export default function UpdatesPage() {
   const catalog = loadPublicCatalog();
   const changes = deriveCatalogChanges();
-
+  const groups = [
+    {
+      title: "Open coding subscriptions, now easier to compare",
+      description:
+        "ClinePass, OpenCode Go and Go Plus have joined the public catalog. Compare price, tool support and published usage terms before choosing a plan.",
+      ids: ["clinepass", "opencode-go", "opencode-go-plus"],
+    },
+    {
+      title: "More of your current stack, in one place",
+      description:
+        "Command Code, Ollama Cloud and Kiro are visible alongside the established coding subscriptions. Published credits remain separate from directly modeled capacity.",
+      ids: [
+        "command-code-goat",
+        "command-code-pro",
+        "ollama-cloud-pro",
+        "ollama-cloud-max",
+        "kiro-pro",
+      ],
+    },
+  ];
   return (
-    <div className="flex flex-col gap-8 pb-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold text-foreground">Catalog changelog</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Plans change and prices change with them. This page is derived from the catalog&apos;s own
-          version history, so it cannot drift from the data a replay uses: a version that took
-          effect on a date is a change on that date.
+    <div>
+      <MarketHeader
+        eyebrow="The market / In view"
+        title="Know what changed."
+        description="New models, subscription options and the facts behind them. A short route from the news to a useful comparison."
+      >
+        <aside className="market-feature">
+          <p className="market-kicker">Two different dates</p>
+          <h2>Announced. Then verified.</h2>
+          <p>
+            Provider announcements and StackReplay catalog updates are labeled separately. A checked
+            date is not a claim about when commercial terms began.
+          </p>
+        </aside>
+      </MarketHeader>
+      <section className="border-y border-border-strong py-8">
+        <div className="grid gap-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
+          <div>
+            <p className="market-kicker">Model announcement</p>
+            <p className="market-muted mt-2">Observed September 28, 2026</p>
+          </div>
+          <div>
+            <h2 className="text-3xl tracking-tight">Claude Sonnet 5.5 arrives.</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground leading-relaxed">
+              Sonnet 5.5 is available through the Claude API at $2 input and $10 output per million
+              tokens. Its exact API route, cache-read pricing and both cache-write durations are now
+              included in StackReplay.
+            </p>
+            <div className="flex flex-wrap gap-6">
+              <Link href="/models/claude-sonnet-5-5" className="market-link">
+                Explore the release ↗
+              </Link>
+              <a href="https://website.anthropic.com/" className="market-link" rel="noreferrer">
+                Anthropic announcement ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+      {groups.map((group) => (
+        <section
+          key={group.title}
+          className="grid gap-5 border-b border-border py-8 sm:grid-cols-[12rem_minmax(0,1fr)]"
+        >
+          <div>
+            <p className="market-kicker">Catalog addition</p>
+            <p className="market-muted mt-2">September 28, 2026</p>
+          </div>
+          <div>
+            <h2 className="text-2xl tracking-tight">{group.title}</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground leading-relaxed">
+              {group.description}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-6">
+              {group.ids.map((id) => {
+                const p = catalog.planById(id);
+                return p ? (
+                  <Link key={id} href={`/plans/${id}`} className="market-link">
+                    {p.name} · ${p.price.amount}/{p.price.interval} ↗
+                  </Link>
+                ) : null;
+              })}
+            </div>
+          </div>
+        </section>
+      ))}
+      <details className="mt-10 border-y border-border-strong py-4">
+        <summary className="min-h-11 cursor-pointer text-lg">
+          Catalog changelog & source evidence
+        </summary>
+        <p className="market-muted my-4">
+          Catalog {shortCatalogVersion(catalog.catalogVersion)}. These dates describe catalog rule
+          versions; newly recorded offers do not establish historical launch dates.
         </p>
-        <p className="text-xs text-muted-foreground">
-          Catalog version {shortCatalogVersion(catalog.catalogVersion)} · {changes.length} recorded
-          changes
-        </p>
-      </header>
-
-      {changes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No catalogued change yet. Changes appear here once a plan has more than one version.
-        </p>
-      ) : (
-        <ol className="flex flex-col gap-4" data-testid="changelog-list">
+        <ol data-testid="changelog-list">
           {changes.map((change) => (
             <li
-              key={`${change.planId}-${change.effectiveFrom}-${change.kind}-${change.summary}`}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-5"
+              key={`${change.planId}-${change.effectiveFrom}-${change.kind}`}
+              className="border-t border-border py-5"
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium text-foreground">
-                  {kindLabel[change.kind] ?? change.kind} ·{" "}
-                  <Link
-                    className="text-accent underline underline-offset-2"
-                    href={`/plans/${change.planId}`}
-                  >
-                    {change.planName}
-                  </Link>
-                </span>
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  effective {change.effectiveFrom}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">{change.summary}</p>
-              {change.modelDetails === undefined ? null : (
-                <details>
-                  <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
-                    Inspect model names
-                  </summary>
-                  <p className="max-w-[75ch] pb-2 text-sm text-muted-foreground">
-                    {change.modelDetails}
-                  </p>
-                </details>
-              )}
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <details>
-                  <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
-                    Sources
-                  </summary>
-                  <div className="pb-2">
-                    <SourceList sources={change.sources} />
-                  </div>
-                </details>
-                <VerificationBadge
-                  status={change.verificationStatus}
-                  lastVerifiedAt={change.lastVerifiedAt}
-                />
-              </div>
+              <p className="market-muted">
+                {change.effectiveFrom} · {change.kind.replaceAll("_", " ")}
+              </p>
+              <Link href={`/plans/${change.planId}`} className="market-link">
+                {change.planName} ↗
+              </Link>
+              <p className="text-sm">{change.summary}</p>
+              <details className="mt-2">
+                <summary className="min-h-11 cursor-pointer text-sm">
+                  Sources and changed models
+                </summary>
+                {change.modelDetails && <p className="market-muted mb-3">{change.modelDetails}</p>}
+                <SourceList sources={change.sources} />
+              </details>
             </li>
           ))}
         </ol>
-      )}
+      </details>
+      <MarketFooter />
     </div>
   );
 }

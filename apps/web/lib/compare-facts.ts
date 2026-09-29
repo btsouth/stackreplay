@@ -6,6 +6,8 @@ import {
   verificationText,
 } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
+import { includedAccessModels, type SubscriptionAccess } from "./subscription-access";
+import type { SubscriptionPublishedTerms } from "./subscription-published-terms";
 
 /**
  * Public plan comparison, in plain words (launch).
@@ -64,14 +66,16 @@ export interface CompareFacts {
   effective: string;
   /** Every model rule, for the inspect view. */
   rules: readonly CompareRule[];
+  modelAccess?: SubscriptionAccess;
+  publishedTerms?: SubscriptionPublishedTerms;
 }
 
 export const FEATURED_MODEL_COUNT = 4;
 
-export const NO_NUMERIC_ALLOWANCE = "Provider does not publish a numeric allowance.";
+export const NO_NUMERIC_ALLOWANCE = "No numeric allowance is recorded in this snapshot.";
 export const CAPACITY_REPLAY = "Numeric capacity replay available.";
 export const COMPATIBILITY_ONLY =
-  "Model compatibility and workload pressure only; exact capacity cannot be established.";
+  "Model compatibility and workload pressure only. Exact capacity replay is not supported for this plan.";
 export const NO_NAMED_MODEL =
   "No named model is recorded as selectable on this plan, so a replay cannot attribute usage to a model.";
 
@@ -129,12 +133,13 @@ export function statementExcerpt(text: string, max = 280): string {
 /**
  * The first few included releases: one per developer in turn, so a plan that
  * carries several developers' models does not lead with a single developer's
- * lineup just because its records are more complete. Legacy releases fill in
- * only after every other release.
+ * lineup just because its records are more complete. Names without a model
+ * record (stealth, preview or not yet catalogued) and legacy releases fill in
+ * only after every catalogued current release.
  */
 function featureModels(ranked: readonly CompareModel[], count: number): CompareModel[] {
   const groups = new Map<string, CompareModel[]>();
-  for (const model of ranked.filter((entry) => !entry.legacy)) {
+  for (const model of ranked.filter((entry) => !entry.legacy && entry.developerId)) {
     const key = model.developerId ?? "";
     groups.set(key, [...(groups.get(key) ?? []), model]);
   }
@@ -157,7 +162,7 @@ export function buildCompareFacts(
   plan: PublicPlanSummary,
   modelById: (id: string) => PublicModelSummary | undefined,
 ): CompareFacts {
-  const included = plan.modelRules
+  const replayIncluded = plan.modelRules
     .filter((rule) => rule.excluded !== true)
     .map((rule, index) => ({ index, model: modelById(rule.model), id: rule.model }))
     .filter((entry) => entry.model?.kind !== "family")
@@ -172,12 +177,37 @@ export function buildCompareFacts(
       legacy: model?.lifecycle === "legacy",
       ...(model?.developerId === undefined ? {} : { developerId: model.developerId }),
     }));
+  const included = plan.modelAccess
+    ? includedAccessModels(plan.modelAccess).map((entry) => ({
+        id: entry.modelId ?? `published:${entry.name}`,
+        name: entry.name,
+        legacy: false,
+        ...(entry.modelId && modelById(entry.modelId)?.developerId
+          ? { developerId: modelById(entry.modelId)?.developerId as string }
+          : {}),
+      }))
+    : replayIncluded;
   const featured = featureModels(included, FEATURED_MODEL_COUNT);
 
   const usageLines = plan.limits.map((limit) => ({
     text: limitSentence(limit),
     detail: limit.label,
   }));
+
+  if (plan.publishedTerms) {
+    usageLines.splice(0, usageLines.length, {
+      text: plan.publishedTerms.allowanceSummary,
+      detail: "Provider-published allowance terms",
+    });
+  }
+  if (!usageLines.length) {
+    const published = plan.qualitativeLimits.find((limit) => limit.label === "Included usage");
+    if (published)
+      usageLines.push({
+        text: published.statement,
+        detail: "Published terms; exact replay capacity not established",
+      });
+  }
 
   const exceedLines = [...new Set(plan.limits.map((limit) => exceedText(limit)))];
   const quotes = plan.qualitativeLimits
@@ -189,7 +219,7 @@ export function buildCompareFacts(
     }));
 
   const simulation =
-    included.length === 0
+    replayIncluded.length === 0
       ? NO_NAMED_MODEL
       : plan.limits.length > 0
         ? CAPACITY_REPLAY
@@ -222,13 +252,24 @@ export function buildCompareFacts(
       more: included.filter((model) => !featured.includes(model)),
       total: included.length,
     },
-    codingTools: codingToolsFor(plan),
-    usage: { numeric: usageLines.length > 0, lines: usageLines },
+    codingTools:
+      plan.publishedTerms?.codingTools ??
+      plan.qualitativeLimits
+        .find((limit) => limit.label === "Compatible tools")
+        ?.statement.split(" · ") ??
+      codingToolsFor(plan),
+    usage: { numeric: plan.limits.length > 0, lines: usageLines },
     simulation,
-    afterLimit: { lines: exceedLines, quotes },
-    evidence: verificationText(plan.verificationStatus, plan.lastVerifiedAt),
+    afterLimit: plan.publishedTerms?.afterLimit
+      ? { lines: [plan.publishedTerms.afterLimit], quotes: [] }
+      : { lines: exceedLines, quotes },
+    evidence: plan.publishedTerms
+      ? `Published terms checked ${formatCatalogDate(plan.publishedTerms.checkedAt)}`
+      : verificationText(plan.verificationStatus, plan.lastVerifiedAt),
     effective: `Rules in effect since ${formatCatalogDate(plan.effectiveFrom)}`,
     rules,
+    ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
+    ...(plan.publishedTerms ? { publishedTerms: plan.publishedTerms } : {}),
   };
 }
 
@@ -245,4 +286,42 @@ export function defaultComparePair(
     ? DEFAULT_COMPARE_PAIR[1]
     : (plans.find((plan) => plan.providerId !== firstProvider)?.id ?? plans[1]?.id ?? first);
   return [first, second];
+}
+
+export interface CompareMatrixRow {
+  /** The catalog model id, or `published:<name>` for a lineup name with no model page. */
+  id: string;
+  name: string;
+  legacy: boolean;
+  /** One entry per compared plan, in the order given. */
+  included: readonly boolean[];
+}
+
+/**
+ * Every model any compared plan includes, keyed the way Compare keys models
+ * (`modelId ?? name`). Models more plans share come first, then by name.
+ */
+export function compareModelMatrix(plans: readonly CompareFacts[]): CompareMatrixRow[] {
+  const rows = new Map<
+    string,
+    { id: string; name: string; legacy: boolean; included: boolean[] }
+  >();
+  plans.forEach((facts, index) => {
+    for (const model of [...facts.models.featured, ...facts.models.more]) {
+      const row = rows.get(model.id) ?? {
+        id: model.id,
+        name: model.name,
+        legacy: model.legacy,
+        included: plans.map(() => false),
+      };
+      row.included[index] = true;
+      rows.set(model.id, row);
+    }
+  });
+  const count = (row: CompareMatrixRow) => row.included.filter(Boolean).length;
+  return [...rows.values()].sort(
+    (left, right) =>
+      count(right) - count(left) ||
+      left.name.localeCompare(right.name, "en", { numeric: true, sensitivity: "base" }),
+  );
 }

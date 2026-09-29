@@ -16,7 +16,7 @@ const TARGET_EVENTS = 100_000;
 let cachedPath: string | undefined;
 
 export function largeExportPath(): string {
-  return cachedPath ?? join(tmpdir(), "stackreplay-large-export.json");
+  return cachedPath ?? join(tmpdir(), `stackreplay-large-export-${process.pid}.json`);
 }
 
 /** Builds (once per process) a ~100k-event export and returns its path. */

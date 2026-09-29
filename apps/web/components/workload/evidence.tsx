@@ -52,9 +52,11 @@ export function partialScanOf(record: ImportRecord): { unreadable: number; other
 export function PartialScanNotice({
   record,
   action,
+  briefing = false,
 }: {
   record: ImportRecord;
   action?: ReactNode;
+  briefing?: boolean;
 }) {
   const { unreadable, other } = partialScanOf(record);
   if (unreadable + other === 0) return null;
@@ -77,8 +79,9 @@ export function PartialScanNotice({
         <span className="font-mono text-[11px] tracking-[0.12em] text-warning uppercase">
           Partial scan
         </span>{" "}
-        {parts.join("; ")}. If a tool was still writing to a file, scanning again once it is idle
-        usually includes it.
+        {briefing
+          ? `${count(unreadable + other)} source ${unreadable + other === 1 ? "file was" : "files were"} incomplete; missing usage is outside these totals.`
+          : `${parts.join("; ")}. If a tool was still writing to a file, scanning again once it is idle usually includes it.`}
       </p>
       {action}
     </div>
@@ -93,7 +96,7 @@ export function IntakeFileReview({ record }: { record: ImportRecord }) {
   return (
     <div className="flex min-w-0 flex-col gap-2" data-testid="intake-file-review">
       <p className="text-xs text-muted-foreground">
-        {intake.exactDuplicates} exact event duplicates removed · {intake.overlaps} recognized
+        {intake.exactDuplicates} exact duplicate calls removed · {intake.overlaps} recognized
         overlaps
       </p>
       <ul className="divide-y divide-border text-xs">
@@ -106,7 +109,7 @@ export function IntakeFileReview({ record }: { record: ImportRecord }) {
               {item.status === "imported"
                 ? (item.source ?? item.status)
                 : `${item.status}${item.source === undefined ? "" : ` (${item.source})`}`}{" "}
-              · {item.reason} · {item.events} events
+              · {item.reason} · {item.events} calls
               {repeats > 1 ? ` · ${repeats} matching files` : ""}
             </span>
           </li>
@@ -167,8 +170,8 @@ export function ScanEvidence({
       ? "every model identity resolved"
       : `${count(profile.overview.unresolvedIds)} unresolved model ${profile.overview.unresolvedIds === 1 ? "ID" : "IDs"}`,
     profile.overview.unknownUsageEvents === 0
-      ? "token totals known for included events"
-      : `${count(profile.overview.unknownUsageEvents)} events with unknown usage`,
+      ? "token totals known for included calls"
+      : `${count(profile.overview.unknownUsageEvents)} calls with unknown usage`,
   ];
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -197,7 +200,7 @@ export function ScanEvidence({
                   <li key={source.adapterId} className="flex justify-between gap-3">
                     <span>{source.name}</span>
                     <span className="font-mono tabular-nums text-muted-foreground">
-                      {count(source.events)} events
+                      {count(source.events)} calls
                       {source.sessions === undefined ? "" : ` · ${count(source.sessions)} sessions`}
                     </span>
                   </li>
@@ -229,7 +232,7 @@ export function ScanEvidence({
             </div>
             {summary.otherSources.length > 0 ? (
               <p className="text-xs text-muted-foreground">
-                Detected with no events:{" "}
+                Detected with no calls:{" "}
                 {summary.otherSources.map((source) => source.name).join(", ")}.
               </p>
             ) : null}
@@ -250,7 +253,7 @@ export function ScanEvidence({
                         : ` → ${model.canonicalId}`}
                     </span>
                     <span className="tabular-nums text-muted-foreground">
-                      {count(model.events)} events
+                      {count(model.events)} calls
                       {model.canonicalId === undefined ? " · no catalog match" : ""}
                     </span>
                   </li>

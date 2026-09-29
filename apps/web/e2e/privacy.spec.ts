@@ -5,6 +5,7 @@ import {
   PRIVATE_MARKERS,
   runReplay,
   WORKLOAD_MARKERS,
+  waitForWorkload,
 } from "./helpers";
 
 /**
@@ -21,7 +22,7 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   const requests = captureRequests(page);
 
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   const offenders = requests.filter((request) => {
@@ -57,7 +58,8 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   expect(uploadLike.map((request) => request.url)).toEqual([]);
 
   // Every request must stay on our own origin.
-  const foreign = requests.filter((request) => !request.url.startsWith("http://localhost:3100"));
+  const origin = new URL(page.url()).origin;
+  const foreign = requests.filter((request) => !request.url.startsWith(origin));
   expect(foreign.map((request) => request.url)).toEqual([]);
 
   // The Worker is a same-origin asset; it must have been loaded and used.
@@ -77,7 +79,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
   await page.goto("/app/import");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("import-file-input").setInputFiles(path);
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 150_000 });
+  await waitForWorkload(page);
 
   const offenders = requests.filter((request) => {
     if (request.body === null || request.body.length === 0) return false;

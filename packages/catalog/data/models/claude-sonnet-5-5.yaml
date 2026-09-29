@@ -1,0 +1,40 @@
+id: claude-sonnet-5-5
+role: model
+name: Claude Sonnet 5.5
+familyId: claude-sonnet
+lifecycle: current
+developerId: anthropic
+providerIds:
+- anthropic
+aliases:
+- id: claude-sonnet-5-5-api-id
+  alias: claude-sonnet-5-5
+  kind: provider_id
+  sources:
+  - &id001
+    url: https://platform.claude.com/docs/en/models/sonnet-5-5/overview
+    title: Exact API identifier, model specifications and availability
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified
+sources:
+- *id001
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Sonnet 5.5 standard and cache token rates
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  toolCalling: true
+  reasoning: true
+  sources:
+  - url: https://platform.claude.com/docs/en/models/overview
+    title: Official model specifications
+    checkedAt: '2026-09-28'

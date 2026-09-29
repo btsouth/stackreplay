@@ -1,28 +1,34 @@
 import type { Metadata } from "next";
+import { CompletedReplayComparison } from "@/components/compare/completed-replays";
 import { WorkloadCompare } from "@/components/compare/workload-compare";
 import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
-  title: "Compare against my workload",
-  description:
-    "Replay the workload stored in this browser against several targets and compare the findings side by side.",
+  title: "Compare replays",
+  description: "Compare completed local replay strategies over the same recorded workload.",
 };
 
 /** Opaque local import id only; nothing about the workload appears in the URL. */
 export default async function WorkloadComparePage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string }>;
+  searchParams: Promise<{ import?: string; decision?: string; view?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
+  const decision =
+    params.decision === "claude" || params.decision === "codex" || params.decision === "stack"
+      ? params.decision
+      : undefined;
+  if (params.view !== "billing" && decision === undefined)
+    return <CompletedReplayComparison initialImportId={importId} />;
   return (
     <>
       <PageHeader
-        title="Compare against my workload"
-        description="Your recorded demand, replayed against each target you pick. Model support, capacity, historical crossings and cost, side by side, with no ranking."
+        title="Compare this workload"
+        description="What would a plan or direct API mean for the work you recorded?"
       />
-      <WorkloadCompare initialImportId={importId} />
+      <WorkloadCompare initialDecision={decision} initialImportId={importId} />
     </>
   );
 }

@@ -12,10 +12,12 @@ export interface NavLinkProps {
   size?: "sm" | "md";
   /** Called after the link is activated (used to close the mobile drawer). */
   onNavigate?: () => void;
+  /** A utility destination (Import, Settings): set smaller so the product sections lead. */
+  quiet?: boolean;
 }
 
 /** Quiet sidebar navigation link with aria-current for the active route. */
-export function NavLink({ href, label, size = "sm", onNavigate }: NavLinkProps) {
+export function NavLink({ href, label, size = "sm", onNavigate, quiet = false }: NavLinkProps) {
   const pathname = usePathname();
   const active = isNavItemActive(pathname, href);
   return (
@@ -26,7 +28,9 @@ export function NavLink({ href, label, size = "sm", onNavigate }: NavLinkProps) 
       className={cn(
         "block rounded-md transition-colors duration-150 ease-out",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        size === "md" ? "px-3 py-3 text-sm" : "inline-flex min-h-11 items-center px-3 text-sm",
+        size === "md"
+          ? "px-3 py-3 text-sm"
+          : cn("inline-flex min-h-11 items-center", quiet ? "px-2.5 text-[13px]" : "px-3 text-sm"),
         active
           ? "bg-surface-2 font-medium text-foreground shadow-[inset_2px_0_0_0_var(--color-accent)]"
           : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",

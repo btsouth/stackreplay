@@ -1,0 +1,29 @@
+id: gemini-3-7-flash-api-reference-20260928
+role: pricing
+modelId: gemini-3-7-flash
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.75'
+  output: '3.75'
+  reasoning:
+    billedAs: output
+  cacheRead: '0.075'
+promotion:
+  label: Promotional rate through December 31, 2026
+  regularRates:
+    input: '1.50'
+    output: '7.50'
+    cacheRead: '0.15'
+    reasoning:
+      billedAs: output
+  regularFrom: '2027-01-01'
+effectiveFrom: '2026-09-28'
+sources:
+- url: https://ai.google.dev/gemini-api/docs/pricing
+  title: Official standard token prices; checked September 28, 2026
+  checkedAt: '2026-09-28'
+lastVerifiedAt: '2026-09-28'
+verificationStatus: verified
+effectiveTo: '2026-12-31'

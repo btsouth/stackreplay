@@ -22,7 +22,7 @@ const sections = [
   {
     heading: "Local scan and workload analysis",
     body: [
-      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files are not uploaded. Saving the normalized workload in this browser is optional.",
+      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files stay on the device. Saving the normalized workload in this browser is optional.",
       "Project folder names label projects in this browser only. A portable workload export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
     ],
   },
@@ -32,6 +32,15 @@ const sections = [
       "Exact Replay uses the recorded model identities and chronology. If a target does not serve a recorded model, StackReplay shows that gap instead of silently choosing another model.",
       "Translated Replay runs only after you choose model substitutions. It keeps the recorded usage magnitude and chronology as a scenario assumption. It does not claim the substituted models would use the same tokens, behave the same way or produce equivalent work. Results name the substitutions and remain distinct from Exact Replay.",
       "Events whose model identity cannot be resolved remain unknown. You can explicitly leave them out to inspect the resolved part of a workload; the result states that narrower scope.",
+    ],
+  },
+  {
+    heading: "One definition per figure",
+    body: [
+      "A call is one recorded model request, which the scan records as one event. A day is a calendar day in your browser's timezone, on the workload page, in Replay and in Compare alike; the workload page can switch every figure to UTC at once.",
+      "The busiest five-hour window is ranked by calls. The heaviest five-hour window by tokens can be a different window, and it is always named as such. A sentence about a window never mixes figures from two windows.",
+      "Output is the output bucket only. Reasoning tokens are a separate bucket and are never added into output. Models are the catalog models a workload resolved to; identifiers StackReplay could not resolve are counted separately as unresolved IDs, never as models.",
+      "A call a target handles is served within its allowance, served as overage (billed above the allowance), not served (a model the target does not run, or refused by a limit), or undecided (the evidence cannot say, most often because its model ID is not recognized). Undecided calls are counted, never assigned to one of the other outcomes.",
     ],
   },
   {
@@ -64,6 +73,7 @@ const sections = [
     heading: "Money",
     body: [
       "Money is carried as decimal strings and computed with exact decimal arithmetic. A replay never presents a floating-point dollar figure, and every derived amount records the basis it was computed from (fixed plan price, plan price plus overage, or API list price equivalent).",
+      "Every list-price figure opens to its arithmetic: tokens by model and category, the published rate for each, the subtotal, and the source and effective date of the rate. The table is collected from the same per-call conversion that produced the figure, and its rows are rounded to the cent so the column adds up to the figure exactly.",
     ],
   },
   {
@@ -82,7 +92,7 @@ const sections = [
   {
     heading: "What a replay does not do",
     body: [
-      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action and currently supports only compatible, full-scope Exact Replay results.",
+      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action: only the aggregate result shown in the share preview is uploaded and stored, so the link can be short. Raw history is never uploaded.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
       "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
     ],

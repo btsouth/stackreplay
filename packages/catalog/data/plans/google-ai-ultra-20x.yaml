@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Google AI Ultra has a $199.99 per month tier with 20x the AI Pro usage limits."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 20× AI Pro usage in Gemini and Antigravity. Separate creative-tool and model limits apply.
+        sourceUrl: https://gemini.google/subscriptions/
       - id: gemini-apps-usage-limit-relative-to-google-ai-pr
         label: "Gemini Apps usage limit relative to Google AI Pro (20x tier)"
         statement: "$199.99 / month: 20x higher usage limits vs. AI Pro"

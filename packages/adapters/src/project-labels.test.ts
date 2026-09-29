@@ -27,6 +27,16 @@ describe("local project labels", () => {
     expect(labels.map((entry) => entry.label)).toEqual(["app · personal", "app · work", "other"]);
   });
 
+  it("names only the ancestor that differs, not the folders both share", () => {
+    const labels = localProjectLabels(
+      new Map([
+        ["ph_1", "/mnt/c/Users/bts/Windows/projects/api"],
+        ["ph_2", "/home/bts/Linux/projects/api"],
+      ]),
+    );
+    expect(labels.map((entry) => entry.label)).toEqual(["api · Windows", "api · Linux"]);
+  });
+
   it("stays deterministic and unique when folders cannot be told apart", () => {
     const keys = new Map([
       ["ph_2", "app"],

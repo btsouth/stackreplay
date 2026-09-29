@@ -76,7 +76,7 @@ describe("the homepage's anonymized real workload", () => {
 
     const chatgpt = view("chatgpt-pro");
     expect(chatgpt.result.status.map((status) => status.text)).toEqual([
-      "Models mapped",
+      "Models offered",
       "Capacity not published",
     ]);
     expect(chatgpt.result.figure.unit).toBe("/ month");

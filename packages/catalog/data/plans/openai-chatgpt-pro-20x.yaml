@@ -61,6 +61,14 @@ versions:
     billingMechanics: "Included as a separate entry because ChatGPT Pro has two official price points and usage allowances under one plan name."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: compatible-tools
+        label: Compatible tools
+        statement: ChatGPT · Codex · ChatGPT Work
+        sourceUrl: https://openai.com/index/gpt-5-6/
       - id: pro-200-usage-relative-to-plus
         label: "Pro $200 usage relative to Plus"
         statement: "Pro $200 unlocks 20x usage than Plus."

@@ -1,0 +1,219 @@
+id: anthropic-api-fable-5-1
+role: plan
+name: 'Anthropic API: Claude Fable 5.1'
+providerId: anthropic
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-api-fable-5-1-current-20260927-d3
+  productId: anthropic-direct-api
+  validity:
+    start: '2026-09-27T20:39:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    catalogActivatedAt: '2026-09-27T20:39:00Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/fable-5-1/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs; Availability'
+    excerpt: claude-fable-5-1 is an active Claude API model at review. Current-market admission only;
+      no historical effective-date claim.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:cdc05b6fbcbea667b10557aa0c3be84233b85bee4f7649caae6590ce5144de63
+    evidencePackageHash: sha256:80c08c60631e760dd97f338ceece2447e06a7970ec1800ecdc5a1c4d94933b56
+  - id: route
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/fable-5-1/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs / Claude API'
+    excerpt: Exact Claude API identifier claude-fable-5-1; standard direct global API execution; paid
+      API credentials required.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:902f2d5993aa4369f1a5d8c72d6ec70e72e2e59d1d0b268b144deef68c2c69ba
+    evidencePackageHash: sha256:aa452cbbf903de39f6f2935c846fbf08cedbc2e1048e6d38e0b675672584dda2
+  - id: endpoint
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/api/messages/create
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Create a Message: HTTP method and path'
+    excerpt: POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:df8c609e5b2eb59775cb359006d9dbc42815ca5e3e9519d613ea139199036ad2
+    evidencePackageHash: sha256:ea2a8d9da5e8a31b2817aac22d4f9ac1991c2ff0c1bfca75ee03507e18fa61a0
+  - id: rate
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/fable-5-1/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Pricing'
+    excerpt: 'USD per million: input 10, output 50, cache read 0.25; cache writes require an explicit
+      duration.'
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:7c3c735ad4c61cce9d23593035f2c5d67e5554e7b5181d2468ca6f20d8e1b939
+    evidencePackageHash: sha256:3d0dc130d56bd5c4fa669eac0c63615c4189c095dcff99a2312645949da97d40
+  - id: cache-duration-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/fable-5-1/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Pricing / 5m cache write and 1h cache write'
+    excerpt: 'USD per million cache write: five minutes 12.5; one hour 20. Imported duration is not observed.'
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:f2553ea82c88bdc65e9483b158f7f8547e9a73afdfc334617e0a8b41ee36a248
+    evidencePackageHash: sha256:f88a5b1c3923d74925703447e0c37b146005d53ab5dbd5e4e62c0b67d8bd3d5b
+  - id: thinking-output-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pricing / output_tokens remains inclusive
+    excerpt: Thinking is billed as output. Inclusive output telemetry already includes reasoning, which
+      must not be added again.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:4a179770dd6703a0de4d6e11ee5509e0f7ed629d7e0ed5790d113d54f70af89d
+    evidencePackageHash: sha256:22abc203efbae839f43c818beff77a018b1077cde20967885bca11c1081fed8e
+  - id: context
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-27T20:39:00Z'
+    reviewedAt: '2026-09-27T20:39:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Long context pricing
+    excerpt: Claude 4.6 and later use standard per-token pricing across the full 1M context window; no
+      long-context premium for this route.
+    reviewer: Codex D3 manual first-party review
+    normalizedClaimHash: sha256:842c08f3ee38110ca54949c94f516a73dc20c85d08e07d117fef0bba65003e5a
+    evidencePackageHash: sha256:f1cb4c34fb8e913cf3761553a4290dc0c89451bf3dd973de16074495d38a5cdd
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: anthropic-api-fable-5-1-current-rate-d3
+    basis: api_list_price
+    endpointId: anthropic-messages-global
+    rateVersion: current-20260927-d3
+    denomination: USD
+    claimRefs:
+    - rate
+    - thinking-output-d0
+    - context
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: anthropic-messages-global
+    protocol: anthropic-messages
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - claude-fable-5-1
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+    - endpoint
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []
+executionOverlays:
+- id: cache-write-5m-d0
+  validFrom: '2026-09-27T20:39:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-fable-5-1-current-20260927-d3
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-fable-5-1-cache-5m-d3
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-fable-5-1-cache-5m-d3
+    claimRefs:
+    - thinking-output-d0
+- id: cache-write-1h-d0
+  validFrom: '2026-09-27T20:39:00Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-fable-5-1-current-20260927-d3
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-fable-5-1-cache-1h-d3
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-fable-5-1-cache-1h-d3
+    claimRefs:
+    - thinking-output-d0

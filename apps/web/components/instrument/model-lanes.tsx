@@ -116,7 +116,10 @@ export function ModelLanes({
           >
             <span className="flex flex-col gap-0.5">
               <span className="font-mono text-sm text-foreground">
-                {workload.modelCount} identities observed ·{" "}
+                {workload.resolvedModelCount === undefined
+                  ? `${workload.modelCount} identities observed`
+                  : `${workload.resolvedModelCount} models + ${workload.unresolvedIdCount} unresolved ${workload.unresolvedIdCount === 1 ? "ID" : "IDs"}`}{" "}
+                ·{" "}
                 {unresolved === undefined
                   ? "unresolved events not established"
                   : `${formatCount(unresolved) ?? "—"} events unresolved`}

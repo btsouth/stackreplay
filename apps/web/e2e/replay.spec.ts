@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay } from "./helpers";
+import { gotoImport, importDemo, runReplay, setRulesAsOf, waitForWorkload } from "./helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -9,33 +9,39 @@ import { gotoImport, importDemo, runReplay } from "./helpers";
  */
 
 test("direct navigation without an import shows an intentional empty state", async ({ page }) => {
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await expect(page.getByTestId("replay-empty")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Scan your AI history" })).toBeVisible();
+  await expect(page.getByTestId("history-discovery")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Find my AI histories|Connect your AI history/u }),
+  ).toBeVisible();
   await expect(page.getByTestId("source-file-input")).toBeVisible();
 });
 
 test("keeps forensic result detail closed until requested", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await page.goto("/app/replay?mode=custom");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("replay-evidence-details")).not.toHaveAttribute("open");
   await expect(page.getByTestId("replay-detail")).not.toHaveAttribute("open");
-  await expect(page.getByTestId("result-settlement")).toBeVisible();
+  // The answer leads; the engine's own reading waits under Inspect.
+  await expect(page.getByTestId("verdict-headline")).toBeVisible();
+  await expect(page.getByTestId("result-settlement")).toBeHidden();
   await page.getByTestId("replay-evidence-details").locator(":scope > summary").click();
+  await expect(page.getByTestId("result-settlement")).toBeVisible();
   await expect(page.getByTestId("evidence-ledger")).toBeVisible();
   await page.getByTestId("replay-detail").locator(":scope > summary").click();
   await page.getByTestId("replay-model-distribution").locator(":scope > summary").click();
   await expect(page.getByTestId("replay-model-distribution")).toContainText("Exact catalog ID");
-  await expect(page.getByTestId("replay-model-distribution")).toContainText("events");
+  await expect(page.getByTestId("replay-model-distribution")).toContainText("calls");
 });
 
-test("replays a demo workload with full coverage", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+test("replays a demo workload with known coverage", async ({ page }) => {
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   await expect(page.getByTestId("headline-status")).toContainText(/Fully served|Partly served/);
@@ -51,7 +57,7 @@ test("replays a demo workload with full coverage", async ({ page }) => {
 
 test("shows exceeded constraints with violation detail and a timeline", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
   await expect(page.getByTestId("replay-headline")).toBeInViewport({ ratio: 0.1 });
 
@@ -96,7 +102,7 @@ test("shows exceeded constraints with violation detail and a timeline", async ({
 
 test("the timeline names what each shaded band did to the workload", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   // Regression (benchmark F030): every band used to be described as work the
@@ -191,10 +197,10 @@ test("a target change during a replay never displays the earlier result", async 
   });
 
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
 
   // Select target A, hold its replay at the Worker boundary, and start it.
-  await page.getByTestId("rules-as-of").fill("2026-09-15");
+  await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.evaluate(() => {
     (window as unknown as { __armReplayGate: () => void }).__armReplayGate();
@@ -265,7 +271,7 @@ test("a target change during a replay never displays the earlier result", async 
 
 test("states whether the replay was exact and how each event was treated", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   // Same-model replay: the headline states exact and the result never claims a
@@ -303,7 +309,7 @@ test("the result panel describes the replay it shows, not the current selection"
   page,
 }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   // Regression (benchmark F026): the panel was labelled with whatever was
@@ -322,7 +328,7 @@ test("the result panel describes the replay it shows, not the current selection"
 
 test("keeps unknown coverage visibly unknown instead of 0% or 100%", async ({ page }) => {
   await importDemo(page, "multistack");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-starter");
 
   const requests = page.getByTestId("coverage-requests");
@@ -336,9 +342,13 @@ test("keeps unknown coverage visibly unknown instead of 0% or 100%", async ({ pa
 
 test("explains how observed model names map onto the catalog", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
 
   const identities = page.getByTestId("model-identities");
+  // Every name resolved, so the raw identity map waits under the workload
+  // details instead of standing between the person and the target choice.
+  await expect(page.getByTestId("workload-details")).not.toHaveAttribute("open");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   await expect(identities).toBeVisible();
   await expect(identities.getByRole("heading", { name: "Models in this workload" })).toBeVisible();
   // The demo workloads use the catalog's synthetic namespace, which the bundled
@@ -365,9 +375,12 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(mutated)),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
-  await page.goto("/app/replay");
+  await waitForWorkload(page);
+  await page.goto("/app/replay?mode=custom");
 
+  // The strip says unmapped IDs exist; the raw map is one step down.
+  await expect(page.getByTestId("workload-strip-summary")).toContainText("1 unresolved model ID");
+  await page.getByTestId("workload-details").locator(":scope > summary").click();
   const identities = page.getByTestId("model-identities");
   await expect(identities).toBeVisible();
   await expect(identities).toContainText(unknown);
@@ -393,8 +406,8 @@ test("never reads as served while part of the demand is unavailable or undecided
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(mutated)),
   });
-  await expect(page.getByTestId("import-summary")).toBeVisible({ timeout: 30_000 });
-  await page.goto("/app/replay");
+  await waitForWorkload(page);
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   // An identifier no source establishes is undecided demand, so the result is
@@ -433,7 +446,7 @@ test("known unsupported demand rules out full coverage despite undecided events"
     buffer: Buffer.from(JSON.stringify(mutated)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "anthropic-claude-max-5x", "2026-09-24");
 
   await expect(page.getByTestId("headline-status")).toHaveText("Not fully served");
@@ -464,7 +477,7 @@ test("Max plan confirms model match while leaving unpublished capacity unknown",
     buffer: Buffer.from(JSON.stringify(matched)),
   });
   await expect(page.getByTestId("import-summary")).toBeVisible();
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "anthropic-claude-max-5x", "2026-09-24");
 
   await expect(page.getByTestId("headline-status")).toHaveText(
@@ -478,7 +491,7 @@ test("Max plan confirms model match while leaving unpublished capacity unknown",
 
 test("lists models the target does not serve", async ({ page }) => {
   await importDemo(page, "multistack");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-starter");
   // Secondary detail under the result: the engine's own per-model records, each
   // with its reason, so an unserved model is never folded into a served one.
@@ -492,7 +505,7 @@ test("lists models the target does not serve", async ({ page }) => {
 
 test("shows the rules instant and the plan version used", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-starter", "2026-09-15");
   await expect(page.getByTestId("replay-result")).toContainText("2026-09-15");
   await expect(page.getByTestId("replay-result")).toContainText("example-cloud-starter@2026-09-15");
@@ -500,12 +513,14 @@ test("shows the rules instant and the plan version used", async ({ page }) => {
 
 test("plan picker is searchable and keyboard operable", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
 
+  await expect(page.getByTestId("plan-coverage-example-cloud-pro")).toContainText("Offers");
   await page.getByTestId("plan-search").fill("example-cloud-pro");
   await expect(page.getByTestId("plan-list").getByRole("button")).toHaveCount(1);
 
   await page.getByTestId("plan-search").fill("");
+  await expect(page.getByTestId("plan-list").getByRole("button").nth(1)).toBeVisible();
   const firstOption = page.getByTestId("plan-list").getByRole("button").first();
   await firstOption.focus();
   await page.keyboard.press("ArrowDown");
@@ -517,37 +532,40 @@ test("plan picker is searchable and keyboard operable", async ({ page }) => {
 });
 
 test("a replay can be re-run for a different target without leaving the page", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await importDemo(page, "heavy");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-starter");
-  const firstHeadline = await page.getByTestId("headline-status").textContent();
+  await expect(page.getByTestId("replay-result-object")).toContainText("Example Cloud Starter");
 
   await page.getByTestId("plan-example-cloud-pro").click();
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
-  const secondHeadline = await page.getByTestId("headline-status").textContent();
-
-  expect(secondHeadline).not.toBe(firstHeadline);
-  await expect(page.getByTestId("replay-result")).toContainText("example-cloud-pro");
+  await expect(page.getByTestId("replay-result-object")).toContainText("Example Cloud Pro");
 });
 
 test("the share panel discloses what a link reveals before one is created", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay");
+  await page.goto("/app/replay?mode=custom");
   await runReplay(page, "example-cloud-starter");
 
   const panel = page.getByTestId("share-panel");
   await expect(panel).toBeVisible();
-  // Creation-time disclosure: possession of the URL is access, and the payload is not
-  // encrypted. It must not read as a security guarantee.
-  await expect(page.getByTestId("share-disclosure")).toHaveText(
-    /Anyone with this link can read the aggregate numbers it contains\. The link is not encrypted\./u,
+  // Creation-time disclosure: what is uploaded, and that possession of the URL
+  // is access. It must not read as a security guarantee.
+  await expect(page.getByTestId("share-upload-note")).toHaveText(
+    "Only the aggregate result shown in this preview is uploaded when you create a public link. Your raw history stays on this device.",
+  );
+  await expect(page.getByTestId("share-disclosure")).toContainText(
+    "Anyone with the link can see this result.",
   );
   await expect(panel).not.toContainText(/tamper-proof|authenticat|signed|verif/u);
 
   await panel.getByTestId("share-create").click();
-  const url = page.getByTestId("share-url");
-  await expect(url).toBeVisible();
-  expect(await url.textContent()).toContain("/s/");
   await expect(page.getByTestId("share-open")).toBeVisible();
+  // The short URL waits behind "Show link".
+  const url = page.getByTestId("share-url");
+  await expect(url).toBeHidden();
+  await page.getByTestId("share-show-link").locator(":scope > summary").click();
+  await expect(url).toBeVisible();
+  expect(await url.textContent()).toMatch(/\/s\/[A-Za-z0-9_-]{22}$/u);
 });

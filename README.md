@@ -67,8 +67,9 @@ Privacy is a design constraint here, not footer copy. The intended architecture:
 - **Project identity is hashed** with a locally generated salt before anything could leave a
   machine.
 
-Current reality: the local scan, workload analysis, Replay, Compare and stateless share links are
-implemented in the browser, and the CLI detects, scans, exports and replays. Cloud sync is not.
+Current reality: the local scan, workload analysis, Replay and Compare are implemented in the
+browser, and the CLI detects, scans, exports and replays. Share links are short: creating one
+stores only the aggregate result shown in its preview. Cloud sync is not implemented.
 [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) tracks exactly what exists today.
 
 ## Project status

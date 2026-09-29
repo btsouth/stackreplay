@@ -18,6 +18,7 @@
  * ExecutionReplayResult. API, local and hybrid targets are schema-only.
  */
 
+export type { ApiEventPriceability, ApiEventQuote } from "./api-replay.js";
 export {
   type BacktestAmountV1,
   type BacktestCaseInputV1,
@@ -38,9 +39,68 @@ export {
   reconstructListPrice,
   resolutionExpectation,
 } from "./backtest.js";
-export { type ReplayInput, type ReplayOptions, replay } from "./engine.js";
+export {
+  type CompiledReplay,
+  replayCompiledResource,
+  resourceReadiness,
+} from "./compiled-capacity.js";
+export { migrateLegacyObservation, migrateLegacyWindow } from "./compiled-legacy.js";
+export {
+  type CompiledCandidate,
+  type CompiledOptimizationInput,
+  type CompiledOptimizationResult,
+  compareCompiledCandidates,
+  optimizeCompiledExactModels,
+  repriceCompiledApiWorkload,
+} from "./compiled-optimizer.js";
+export type { ReplayObservers, SubscriptionEventObservation } from "./engine.js";
+export {
+  type ApiPriceabilityCountsV1,
+  type ReplayInput,
+  type ReplayOptions,
+  replay,
+  replayObservingPriceability,
+  replayObservingQuotes,
+  replayWithReceipt,
+} from "./engine.js";
 export { ReplayEngineError } from "./errors.js";
+export {
+  compareExactCandidates,
+  explainExactCandidate,
+  optimizeExactModels,
+} from "./exact-optimizer.js";
+export {
+  bindExecutionScenario,
+  type ExecutionScenarioDraftV2,
+  executionContentHash,
+  hashBoundExecutionScenario,
+  materializeFixedPartitions,
+  purchaseCycleEnd,
+} from "./execution-binding.js";
+export type { InitialCapacityEntry, SubscriptionInitialCapacity } from "./initial-capacity.js";
+export { analyzeMarketCoverage, type MarketCoverage } from "./market-coverage.js";
+export { marketDecisionInputs } from "./market-decision.js";
 export { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+export {
+  type CapacityEvidenceV1,
+  capacityEvidenceV1Schema,
+  evaluateStackCandidate,
+  type StackAssignment,
+  type StackAttempt,
+  type StackCandidateInput,
+  type StackCandidateResult,
+  type StackRouteEvaluation,
+} from "./optimizer.js";
+export type {
+  DemandGranularity,
+  ExactCandidateExplanation,
+  ExactCandidateSummary,
+  ExactExecutionResource,
+  ExactOptimizationInput,
+  ExactOptimizationResult,
+  InitialAllowanceState,
+  OptimizationScope,
+} from "./optimizer-types.js";
 export {
   crossingCount,
   dispositionCount,
@@ -59,8 +119,10 @@ export {
   type ProjectedTargetV1,
   type ProjectedWorkloadV1,
   type ProjectionCatalogV1,
+  type ProjectReplayOptionsV1,
   projectReplay,
 } from "./projection.js";
+export { PriceReceiptBuilder, type PriceReceiptLineV1, type PriceReceiptV1 } from "./receipt.js";
 export {
   deriveOverageMode,
   deriveResetAssumption,
@@ -100,11 +162,12 @@ export {
 export { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
 /**
  * Window slicing, exported so workload analysis reads demand through the same
- * rolling (anchored at first use) and calendar windows Replay applies to limits,
+ * first-use anchored and calendar windows Replay applies to limits,
  * instead of a second implementation of the same arithmetic.
  */
 export {
   sliceCalendarWindows,
+  sliceFirstUseAnchoredWindows,
   sliceRollingWindows,
   sortTimedEvents,
   type TimedEvent,

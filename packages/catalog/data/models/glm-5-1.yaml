@@ -1,0 +1,53 @@
+id: glm-5-1
+role: model
+name: GLM 5.1
+developerId: z-ai
+providerIds:
+- z-ai
+aliases:
+- id: glm-5-1-api-id
+  alias: glm-5.1
+  kind: provider_id
+  sources:
+  - url: https://docs.z.ai/guides/llm/glm-5.1
+    title: GLM 5.1 API model code glm-5.1
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: glm-5-1-router-z-ai-glm-5-1
+  alias: z-ai/glm-5.1
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/z-ai/glm-5.1
+    title: OpenRouter model record `z-ai/glm-5.1` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://docs.z.ai/guides/llm/glm-5.1
+  title: GLM 5.1 model documentation
+  checkedAt: '2026-09-29'
+- url: https://docs.z.ai/guides/overview/pricing
+  title: Z.AI API list pricing
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 200000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Thinking is on by default and can be turned off.
+  sources:
+  - url: https://docs.z.ai/guides/llm/glm-5.1
+    title: Official model specifications
+    checkedAt: '2026-09-29'
+  - url: https://docs.z.ai/guides/capabilities/thinking-mode
+    title: Default thinking behavior
+    checkedAt: '2026-09-29'

@@ -1,14 +1,26 @@
 "use client";
 
-import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
+import { shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { MissingWorkload } from "@/components/missing-workload";
+import { SharePanelV2 } from "@/components/share/share-panel-v2";
+import type { MarketDecision } from "@/lib/market-decision";
+import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
+import { defaultRulesDate } from "@/lib/rules-date";
+import { type ShareOptions, workloadShareV2 } from "@/lib/share-v2";
+import { localDayOf } from "@/lib/timeline";
+import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord, SafeError } from "@/lib/worker-protocol";
+import { cacheReadShareOf } from "@/lib/workload-facts";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { Measure, WorkloadProfile } from "@/lib/workload-profile";
+import { AutomaticWorkload } from "./automatic-workload";
 import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
 import { PartialScanNotice, ScanEvidence } from "./evidence";
@@ -19,6 +31,7 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
+import { CurrentSpend, WorkloadValueFigure } from "./value";
 
 function browserTimeZone(): string {
   try {
@@ -37,15 +50,60 @@ function segmented(active: boolean): string {
   ].join(" ");
 }
 
-/** Replay links carry an opaque local id and catalog ids only, never workload content. */
+/**
+ * Replay links carry an opaque local id, catalog ids and recording-tool ids
+ * only, never workload content.
+ */
 export function replayLink(
   importId: string,
-  options: { plan?: string | undefined; api?: string | undefined } = {},
+  options: {
+    plan?: string | undefined;
+    api?: string | undefined;
+    scope?: readonly string[] | undefined;
+  } = {},
 ): string {
   const params = new URLSearchParams({ import: importId });
   if (options.plan !== undefined) params.set("target", options.plan);
   if (options.api !== undefined) params.set("api", options.api);
+  if (options.scope !== undefined && options.scope.length > 0)
+    params.set("scope", options.scope.join(","));
   return `/app/replay?${params.toString()}`;
+}
+
+/** The replay a suggested route opens. */
+function routeLink(importId: string, route: SuggestedRoute): string {
+  return replayLink(importId, {
+    ...(route.target.kind === "api" ? { api: route.target.id } : { plan: route.target.id }),
+    scope: route.slice.sources,
+  });
+}
+
+/** Words for a suggested route: what it runs against, and what it can answer. */
+function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: string } {
+  const whole = route.slice.sources.length === 0;
+  const name = route.target.name;
+  const share = shareText(coverageShare(route.target));
+  const yourCalls = whole ? "your calls" : `your ${route.slice.label} calls`;
+  if (route.id === "api-value")
+    return {
+      kind: "Published API rates",
+      title: whole ? `Same models, ${name}` : `Your ${route.slice.label} work, ${name}`,
+      body: `What ${whole ? "this workload" : `your ${count(route.slice.events)} ${route.slice.label} calls`} would cost at the provider's published list prices. Not what you paid.`,
+    };
+  if (route.id === "numeric-limits")
+    return {
+      kind: "Numeric limits",
+      title: whole ? `Where ${name} would run out` : `Your ${route.slice.label} work on ${name}`,
+      body: `It offers the models for ${share} of ${yourCalls} and publishes its allowance, so Replay can show whether and when it would have run out.`,
+    };
+  return {
+    kind: "Translated replay",
+    title: `Move ${whole ? "this work" : `your ${route.slice.label} work`} to ${name}`,
+    body:
+      route.target.runnable > 0
+        ? `It offers the models for ${share} of your calls; you choose which of its models take the rest.`
+        : "It offers none of these models; you choose which of its models take your calls.",
+  };
 }
 
 /**
@@ -53,15 +111,28 @@ export function replayLink(
  * own, before any target is chosen. Replay is the second question, offered at
  * the end and from the sections that naturally raise it.
  */
-export function WorkloadSurface({ initialImportId }: { initialImportId?: string | undefined }) {
+export function WorkloadSurface({
+  initialImportId,
+  initialTarget,
+}: {
+  initialImportId?: string | undefined;
+  initialTarget?: string | undefined;
+}) {
   const client = getWorkerClient();
+  const [market, setMarket] = useState<{ id: string; result: MarketDecision }>();
+  const onMarket = useCallback(
+    (id: string, result: MarketDecision | undefined) =>
+      setMarket(result ? { id, result } : undefined),
+    [],
+  );
   const [imports, setImports] = useState<ImportRecord[] | undefined>(undefined);
+  const [importsError, setImportsError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialImportId);
   const [localZone, setLocalZone] = useState(() =>
     typeof window === "undefined" ? "UTC" : browserTimeZone(),
   );
   const [useUtc, setUseUtc] = useState(false);
-  const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
+  const [profileState, setProfileState] = useState<{ id: string; profile: WorkloadProfile }>();
   const [error, setError] = useState<SafeError | undefined>(undefined);
   const [measure, setMeasure] = useState<Measure>("events");
 
@@ -79,7 +150,7 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
         setImports(list);
         setSelectedId((current) => current ?? list[0]?.id);
       } catch {
-        if (!cancelled) setImports([]);
+        if (!cancelled) setImportsError(true);
       }
     })();
     return () => {
@@ -92,36 +163,63 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
     [imports, selectedId],
   );
   const timeZone = useUtc ? "UTC" : localZone;
+  const profile =
+    profileState?.id === record?.id && profileState?.profile.timeZone === timeZone
+      ? profileState.profile
+      : undefined;
 
-  const analyze = useCallback(
-    async (importId: string, zone: string, cancelled: () => boolean) => {
-      setError(undefined);
-      try {
-        const next = await client.analyzeWorkload(importId, zone);
-        if (!cancelled()) setProfile(next);
-      } catch (failure) {
-        if (failure instanceof SupersededError || cancelled()) return;
-        setError(describeWorkerFailure(failure));
-      }
-    },
-    [client],
-  );
+  // A workload chosen here replaces a stale id in the address, so a reload or
+  // Back returns to what is on screen rather than to the missing one.
+  const router = useRouter();
+  useEffect(() => {
+    if (record === undefined) return;
+    const current = new URLSearchParams(window.location.search).get("import");
+    if (current !== null && current !== record.id)
+      router.replace(`/app/workload?import=${record.id}`, { scroll: false });
+  }, [record, router]);
+
+  const analyze = useCallback(async (importId: string, zone: string, cancelled: () => boolean) => {
+    setError(undefined);
+    try {
+      const next = await loadWorkloadProfile(importId, zone);
+      if (!cancelled()) setProfileState({ id: importId, profile: next });
+    } catch (failure) {
+      if (failure instanceof SupersededError || cancelled()) return;
+      setError(describeWorkerFailure(failure));
+    }
+  }, []);
 
   useEffect(() => {
     if (record === undefined) return;
     let cancelled = false;
-    setProfile((current) => (current?.timeZone === timeZone ? current : undefined));
     void analyze(record.id, timeZone, () => cancelled);
     return () => {
       cancelled = true;
     };
   }, [analyze, record, timeZone]);
 
+  if (importsError)
+    return (
+      <div role="alert" className="border-l-2 border-warning pl-4 text-sm">
+        Local workloads could not be read from this browser. Reload to try again.
+      </div>
+    );
+
   if (imports === undefined)
     return (
-      <p className="text-sm text-muted-foreground" role="status">
-        Opening local workloads…
-      </p>
+      <div
+        className="flex max-w-2xl flex-col gap-3 border-t border-border pt-6"
+        role="status"
+        data-testid="workload-restoring"
+      >
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">
+          Opening your workload
+        </p>
+        <h1 className="text-2xl font-medium">Restoring your recorded work</h1>
+        <p className="text-sm text-muted-foreground">
+          Looking up the workload saved in this browser…
+        </p>
+      </div>
     );
 
   if (imports.length === 0 || (record === undefined && selectedId === undefined))
@@ -129,42 +227,79 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
       <div className="flex max-w-2xl flex-col gap-4" data-testid="workload-empty">
         <h1 className="text-2xl font-medium tracking-tight">Workload</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          No workload in this browser yet. Scan your Claude Code or Codex history, or load a demo
-          workload, to see how you actually use AI: when you work, your heaviest windows, which
-          projects and models carry the demand, and where the tokens go. Everything is read in this
-          browser; nothing in your history is uploaded.
+          No workload in this browser yet. Scan the history your AI coding tools already keep
+          (Claude Code, Codex, Command Code), or load a demo, to see what that work is worth at
+          published API prices, what drives it, and when it gets heavy. Everything is read in this
+          browser; nothing in your history leaves it.
         </p>
         <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
-          Scan your history
+          Scan your AI history
         </Link>
       </div>
     );
 
   if (record === undefined)
-    return (
-      <div
-        role="alert"
-        className="flex max-w-2xl flex-col gap-3 border-l-2 border-warning pl-4"
-        data-testid="workload-missing"
-      >
-        <h2 className="text-sm font-medium text-warning">
-          That workload is no longer stored in this browser
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          A scan that was not saved on this browser is kept only until the page reloads, and a saved
-          one may have been deleted. Choose a stored workload, or scan again.
-        </p>
-        <WorkloadPicker imports={imports} selectedId={selectedId} onSelect={setSelectedId} />
-      </div>
-    );
+    return <MissingWorkload latest={imports[0]} onOpenLatest={setSelectedId} />;
 
   return (
-    <div className="flex min-w-0 flex-col gap-12" data-testid="workload-surface">
+    <div className="flex min-w-0 flex-col gap-8" data-testid="workload-surface">
       <WorkloadOpening
+        onMarket={onMarket}
         record={record}
         profile={profile}
         imports={imports}
         onSelect={setSelectedId}
+        analysisContent={(decision) =>
+          profile ? (
+            <WorkloadAnalysis
+              decision={decision}
+              measure={measure}
+              onMeasure={setMeasure}
+              onUtc={setUseUtc}
+              profile={profile}
+              record={record}
+              useUtc={useUtc}
+              localZone={localZone}
+            />
+          ) : (
+            <p role="status" className="text-sm text-muted-foreground">
+              Reading workload analysis…
+            </p>
+          )
+        }
+        detailContent={
+          <>
+            {initialTarget === undefined ? null : (
+              <Link
+                className={ACTION_LINK}
+                href={replayLink(record.id, { plan: initialTarget })}
+                data-testid="selected-plan-replay"
+              >
+                Continue with your selected plan in Replay →
+              </Link>
+            )}
+            {profile === undefined ? (
+              error === undefined ? (
+                <div
+                  className="flex flex-col gap-3 border-t border-border pt-4"
+                  role="status"
+                  data-testid="workload-analyzing"
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Restoring {count(record.eventCount)} recorded calls and analyzing their
+                    chronology, projects and sessions in this browser…
+                  </p>
+                </div>
+              ) : null
+            ) : (
+              <WorkloadBody
+                decision={market?.id === record.id ? market.result : undefined}
+                profile={profile}
+                record={record}
+              />
+            )}
+          </>
+        }
       />
       {error !== undefined ? (
         <div role="alert" className="border-l-2 border-negative pl-4" data-testid="workload-error">
@@ -172,37 +307,26 @@ export function WorkloadSurface({ initialImportId }: { initialImportId?: string 
           <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       ) : null}
-      {profile === undefined ? (
-        error === undefined ? (
-          <div className="flex flex-col gap-3" role="status" data-testid="workload-analyzing">
-            <p className="text-sm text-muted-foreground">
-              Reading chronology, projects and sessions in this browser…
-            </p>
-            <div className="h-48 animate-pulse bg-surface-2 motion-reduce:animate-none" />
-          </div>
-        ) : null
-      ) : (
-        <WorkloadBody
-          measure={measure}
-          onMeasure={setMeasure}
-          onUtc={setUseUtc}
-          profile={profile}
-          record={record}
-          useUtc={useUtc}
-          localZone={localZone}
-        />
-      )}
     </div>
   );
 }
 
 /** A stored workload named by what it holds, not by how many files were selected. */
+function recordedRange(entry: ImportRecord): string {
+  const first = entry.summary.firstEventAt;
+  const last = entry.summary.lastEventAt;
+  if (first === undefined || last === undefined) return "no recorded dates";
+  const day = localDayOf(browserTimeZone());
+  return plainRange(day(first), day(last));
+}
+
 function workloadName(entry: ImportRecord): string {
   const sources = entry.summary.usageSources.map((source) => source.name).join(" + ");
-  const first = entry.summary.firstEventAt?.slice(0, 10);
-  const last = entry.summary.lastEventAt?.slice(0, 10);
-  const range = first === undefined || last === undefined ? "" : ` · ${plainRange(first, last)}`;
-  return `${sources.length > 0 ? sources : entry.label} · ${count(entry.eventCount)} events${range}`;
+  const range =
+    entry.summary.firstEventAt === undefined || entry.summary.lastEventAt === undefined
+      ? ""
+      : ` · ${recordedRange(entry)}`;
+  return `${sources.length > 0 ? sources : entry.label} · ${count(entry.eventCount)} calls${range}`;
 }
 
 function WorkloadPicker({
@@ -242,11 +366,88 @@ function WorkloadOpening({
   profile,
   imports,
   onSelect,
+  onMarket,
+  detailContent,
+  analysisContent,
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
   imports: ImportRecord[];
   onSelect: (id: string) => void;
+  onMarket: (id: string, result: MarketDecision | undefined) => void;
+  detailContent: ReactNode;
+  analysisContent: (decision: MarketDecision | undefined) => ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-4" data-testid="workload-opening">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-medium">Workload</h1>
+        <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
+      </div>
+      {record.savedLocally === false ? (
+        <p className="text-xs text-warning">
+          Not saved in this browser. This workload is available only until reload.
+        </p>
+      ) : null}
+      <PartialScanNotice
+        record={record}
+        briefing
+        action={
+          <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
+            Rescan history →
+          </Link>
+        }
+      />
+      <AutomaticWorkload
+        key={record.id}
+        record={record}
+        profile={profile}
+        onResult={onMarket}
+        projects={
+          profile ? (
+            <WorkloadSection
+              index="01"
+              eyebrow="Projects"
+              title="Where your work went"
+              id="projects"
+              testId="section-projects"
+            >
+              <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
+            </WorkloadSection>
+          ) : (
+            <p className="text-sm text-muted-foreground">Reading project distribution…</p>
+          )
+        }
+        analysis={analysisContent}
+        tools={detailContent}
+        evidence={
+          <>
+            <ImportedWorkloadEvidence record={record} profile={profile} />
+            {profile ? (
+              <div data-testid="section-evidence">
+                <ScanEvidence profile={profile} record={record} />
+              </div>
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              Models are grouped by exact canonical identity. Known processed tokens count recorded
+              input, cache reads, cache writes, output and separately reported reasoning. Unknown
+              categories are not estimated. Historical rolling demand windows start with the first
+              call after the previous window closes; they describe workload, not subscription
+              capacity.
+            </p>
+          </>
+        }
+      />
+    </div>
+  );
+}
+
+function ImportedWorkloadEvidence({
+  record,
+  profile,
+}: {
+  record: ImportRecord;
+  profile: WorkloadProfile | undefined;
 }) {
   const { summary } = record;
   const sources =
@@ -259,7 +460,7 @@ function WorkloadOpening({
         : "portable workload file";
   const overview = profile?.overview;
   const figures: { label: string; value: string; title?: string; testId: string }[] = [
-    { label: "events", value: count(summary.eventCount), testId: "opening-events" },
+    { label: "calls", value: count(summary.eventCount), testId: "opening-events" },
     {
       label: "sessions",
       value: summary.sessionCount === 0 ? "n/a" : count(summary.sessionCount),
@@ -278,72 +479,90 @@ function WorkloadOpening({
     },
   ];
   return (
-    <header className="flex min-w-0 flex-col gap-7" data-testid="workload-opening">
-      <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+    <header className="flex min-w-0 flex-col gap-6" data-testid="imported-workload-evidence">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-2">
-          <MicroLabel className="text-accent">Your workload</MicroLabel>
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
-            How you actually use AI
-          </h1>
-        </div>
-        <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
-      </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-6 border-y border-border py-6 sm:grid-cols-4">
-        {figures.map((figure) => (
-          <div
-            key={figure.label}
-            className="flex min-w-0 flex-col gap-1"
-            data-testid={figure.testId}
+          <MicroLabel className="text-accent">
+            {origin === "synthetic demo" ? "Synthetic demo workload" : "Your workload"}
+          </MicroLabel>
+          <h3 className="text-lg font-medium">Imported history</h3>
+          <p
+            className="text-sm text-muted-foreground [overflow-wrap:anywhere]"
+            data-testid="opening-meta"
           >
-            <dd
-              className="order-1 font-sans text-4xl font-semibold leading-none tracking-tight tabular-nums sm:text-5xl"
-              title={figure.title}
-            >
-              {figure.value}
-            </dd>
-            <dt className="order-2 font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase">
-              {figure.label}
-            </dt>
-          </div>
-        ))}
-      </dl>
-      <div className="flex min-w-0 flex-col gap-1.5 text-sm">
-        <p className="text-muted-foreground [overflow-wrap:anywhere]" data-testid="opening-meta">
-          <span className="text-foreground">
-            {plainRange(overview?.firstDate, overview?.lastDate)}
-          </span>{" "}
-          · {sources} · {origin}
-          {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
-        </p>
-        {record.savedLocally === false ? (
-          <p className="text-xs text-warning" data-testid="workload-not-saved">
-            Not saved in this browser: this workload is available only until the page reloads.
+            Imported history ({profile?.timeZone ?? "UTC"}) ·{" "}
+            {overview === undefined
+              ? recordedRange(record)
+              : plainRange(overview.firstDate, overview.lastDate)}{" "}
+            · {sources} · {origin}
+            {overview === undefined ? "" : ` · ${count(overview.activeDays)} active days`}
           </p>
-        ) : null}
-        <PartialScanNotice
-          record={record}
-          action={
-            <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
-              Rescan history →
-            </Link>
-          }
-        />
-        {overview === undefined ? null : (
-          <p className="text-xs text-muted-foreground" data-testid="opening-quality">
-            {overview.unresolvedEvents === 0
-              ? `All ${count(overview.events)} events resolved to catalog models`
-              : `${count(overview.resolvedEvents)} events fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "event needs" : "events need"} identity review`}
-            {overview.unknownUsageEvents === 0
-              ? " · token totals known for every event"
-              : ` · ${count(overview.unknownUsageEvents)} events with unknown usage`}
-          </p>
-        )}
+          <dl
+            className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground"
+            aria-label="Workload scale"
+          >
+            {figures.map((figure) => (
+              <div
+                key={figure.label}
+                className="flex items-baseline gap-1.5"
+                data-testid={figure.testId}
+              >
+                <dd
+                  className="font-mono font-medium tabular-nums text-foreground"
+                  title={figure.title}
+                >
+                  {figure.value}
+                </dd>
+                <dt>{figure.label}</dt>
+              </div>
+            ))}
+          </dl>
+          {overview === undefined ? null : (
+            <p className="text-xs text-muted-foreground" data-testid="opening-quality">
+              {overview.unresolvedEvents === 0
+                ? `All ${count(overview.events)} calls resolved to catalog models`
+                : `${count(overview.resolvedEvents)} calls fully resolved · ${count(overview.unresolvedEvents)} ${overview.unresolvedEvents === 1 ? "call needs" : "calls need"} identity review`}
+              {overview.unknownUsageEvents === 0
+                ? " · token totals known for every call"
+                : ` · ${count(overview.unknownUsageEvents)} calls with unknown usage`}
+            </p>
+          )}
+          {record.savedLocally === false ? (
+            <p className="text-xs text-warning" data-testid="workload-not-saved">
+              Not saved in this browser: this workload is available only until the page reloads.
+            </p>
+          ) : null}
+        </div>
       </div>
+
+      <details data-testid="legacy-workload">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Inspect earlier replay valuation
+        </summary>
+        <section
+          className="flex min-w-0 flex-col gap-2 border-t border-border pt-5"
+          aria-label="Published API valuation"
+        >
+          <MicroLabel>Recorded provider valuation</MicroLabel>
+          <p className="text-xs text-muted-foreground">
+            Historical replay pricing view. The admitted market calculation above uses its own
+            pinned evidence and explicit cache assumptions; these are distinct pricing methods.
+          </p>
+          {profile?.value === undefined ? (
+            <p className="text-sm text-muted-foreground" role="status" data-testid="value-pending">
+              Pricing each maker&apos;s calls at its own published API rates, in this browser…
+            </p>
+          ) : (
+            <WorkloadValueFigure value={profile.value} briefing />
+          )}
+        </section>
+      </details>
     </header>
   );
 }
 
-function WorkloadBody({
+function WorkloadAnalysis({
+  decision,
   profile,
   record,
   measure,
@@ -352,6 +571,7 @@ function WorkloadBody({
   onUtc,
   localZone,
 }: {
+  decision: MarketDecision | undefined;
   profile: WorkloadProfile;
   record: ImportRecord;
   measure: Measure;
@@ -360,11 +580,6 @@ function WorkloadBody({
   onUtc: (value: boolean) => void;
   localZone: string;
 }) {
-  const topProvider = profile.models.canonical[0]?.apiProviders[0]?.id;
-  const apiProvider = useMemo(() => {
-    const providers = bundledPublicApiProviders();
-    return providers.find((provider) => provider.id === topProvider);
-  }, [topProvider]);
   const peakDates = new Set<string>();
   for (const window of profile.topWindows[measure]) {
     peakDates.add(
@@ -373,47 +588,13 @@ function WorkloadBody({
       ),
     );
   }
-  const known = profile.overview.knownTokens;
-  const cacheShare = known === 0 ? 0 : profile.tokens.cacheRead / known;
   const median = measure === "events" ? profile.days.medianEvents : profile.days.medianTokens;
   const peakDay = measure === "events" ? profile.days.peakByEvents : profile.days.peakByTokens;
-  const crossProvider =
-    topProvider === "anthropic"
-      ? { plan: "openai-chatgpt-pro", name: "ChatGPT Pro" }
-      : { plan: "anthropic-claude-max-20x", name: "Claude Max 20x" };
 
   return (
-    <div className="flex min-w-0 flex-col gap-14">
-      {profile.insights.length > 0 ? (
-        <section
-          aria-labelledby="insights-heading"
-          className="flex flex-col gap-4"
-          data-testid="workload-insights"
-        >
-          <h2
-            id="insights-heading"
-            className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase"
-          >
-            What stands out
-          </h2>
-          <ol className="grid gap-x-10 gap-y-4 lg:grid-cols-2">
-            {profile.insights.map((insight, index) => (
-              <li
-                key={insight.id}
-                className="grid grid-cols-[2rem_minmax(0,1fr)] gap-2 border-t border-border pt-3"
-              >
-                <span className="font-mono text-xs text-accent">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="text-base leading-snug text-foreground">{insight.text}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-
+    <div className="flex min-w-0 flex-col gap-10 sm:gap-14" data-testid="analysis-region">
       <div
-        className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur"
+        className="sticky top-16 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-1 py-2 backdrop-blur sm:top-[4.5rem]"
         data-testid="measure-bar"
       >
         <fieldset className="flex flex-wrap items-center gap-2">
@@ -428,7 +609,7 @@ function WorkloadBody({
             onClick={() => onMeasure("events")}
             data-testid="measure-events"
           >
-            Events
+            Calls
           </button>
           <button
             type="button"
@@ -454,10 +635,31 @@ function WorkloadBody({
       </div>
 
       <WorkloadSection
-        index="01"
+        index="02"
+        eyebrow="Model mix"
+        title="Which models did the work"
+        id="models"
+        testId="section-models"
+      >
+        <ModelMix measure={measure} profile={profile} decision={decision} />
+        <div id="tokens" data-testid="section-tokens" className="space-y-3 pt-3">
+          <h3 className="text-sm font-medium">Token behavior</h3>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-mono text-foreground" data-testid="cache-share">
+              {percent(cacheReadShareOf(profile) ?? 0)}
+            </span>{" "}
+            of known tokens were cache reads.
+          </p>
+          <CompositionLedger buckets={profile.tokens} />
+        </div>
+      </WorkloadSection>
+
+      <WorkloadSection
+        index="03"
         eyebrow="Recorded demand"
         title="Your history, day by day"
-        lede={`${count(profile.overview.activeDays)} active days across ${count(profile.overview.spanDays)}. ${peakDay === undefined ? "" : `The busiest day, ${plainDay(peakDay.date)}, carried ${measure === "events" ? `${count(peakDay.events)} events` : `${formatTokens(peakDay.tokens) ?? "0"} known tokens`}; the median active day, ${measure === "events" ? count(Math.round(median)) : (formatTokens(Math.round(median)) ?? "0")}. `}This is the demand stream Replay sends through a target.`}
+        lede={`${count(profile.overview.activeDays)} active days. ${peakDay ? `Busiest day: ${plainDay(peakDay.date)} · ${measure === "events" ? `${count(peakDay.events)} calls` : `${formatTokens(peakDay.tokens)} known tokens`}.` : ""}`}
+        id="chronology"
         testId="section-chronology"
       >
         <DemandChronology
@@ -472,128 +674,66 @@ function WorkloadBody({
           testId="workload-chronology"
           unit={profile.chronology.unit}
         />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="02"
-        eyebrow="When you work"
-        title="Hours and weekdays"
-        lede={`Read in ${profile.timeZone}, from each event's recorded timestamp.`}
-        testId="section-rhythm"
-      >
-        <WorkRhythm measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="03"
-        eyebrow="Historical pressure"
-        title="Your heaviest windows"
-        lede="Monthly totals hide bursts. Rolling windows open at the first event after the previous one closes, the same way Replay applies a rolling plan limit, so these are the peaks a plan would have met."
-        testId="section-pressure"
-        action={
-          <Link
-            className={ACTION_LINK}
-            href={replayLink(record.id, { plan: "github-copilot-pro" })}
-            data-testid="pressure-replay-link"
-          >
-            See how a plan handles these peaks →
-          </Link>
-        }
-      >
-        <HistoricalPressure measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="04"
-        eyebrow="Projects"
-        title="Where the work came from"
-        lede="Named from folder names on this device. The names stay in this browser: they are not part of an export, a share link or any request."
-        testId="section-projects"
-      >
-        <ProjectLedger measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="05"
-        eyebrow="Model mix"
-        title="Which models did the work"
-        lede="Grouped by canonical model, so different spellings of one model are counted once."
-        testId="section-models"
-        action={
-          <Link
-            className={ACTION_LINK}
-            href={replayLink(record.id, { plan: crossProvider.plan })}
-            data-testid="models-translate-link"
-          >
-            Try these models' demand on {crossProvider.name} →
-          </Link>
-        }
-      >
-        <ModelMix measure={measure} profile={profile} />
-      </WorkloadSection>
-
-      <WorkloadSection
-        index="06"
-        eyebrow="Token composition"
-        title="Where the tokens go"
-        testId="section-tokens"
-        action={
-          apiProvider === undefined ? undefined : (
-            <Link
-              className={ACTION_LINK}
-              href={replayLink(record.id, { api: apiProvider.id })}
-              data-testid="tokens-api-link"
-            >
-              Estimate at {apiProvider.name} API rates →
-            </Link>
-          )
-        }
-      >
-        <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <div className="flex min-w-0 flex-col gap-3">
-            <p
-              className="font-sans text-5xl font-semibold leading-none tracking-tight tabular-nums sm:text-6xl"
-              data-testid="cache-share"
-            >
-              {percent(cacheShare)}
-            </p>
-            <p className="text-sm leading-relaxed">
-              of {formatTokens(known) ?? "0"} known processed tokens were cache reads.
-            </p>
-            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-              Processed tokens count everything a model read or wrote on each request, including
-              context it re-read from cache on every turn. They are not unique text, and a cache
-              read is not billed like fresh input. Fresh input was{" "}
-              <span className="font-mono text-foreground">
-                {formatTokens(profile.tokens.uncachedInput) ?? "0"}
-              </span>{" "}
-              and output{" "}
-              <span className="font-mono text-foreground">
-                {formatTokens(profile.tokens.output + profile.tokens.reasoning) ?? "0"}
-              </span>
-              .
-            </p>
-            {profile.overview.unknownUsageEvents > 0 ? (
-              <p className="text-xs text-warning">
-                {count(profile.overview.unknownUsageEvents)} events report an incomplete set of
-                token categories and are not in these totals. Their reported part is at least{" "}
-                {formatTokens(profile.overview.lowerBoundTokens) ?? "0"} tokens.
-              </p>
-            ) : null}
-          </div>
-          <CompositionLedger buckets={profile.tokens} />
+        <div id="rhythm" data-testid="section-rhythm" className="space-y-3 pt-4">
+          <h3 className="text-sm font-medium">Hours and weekdays</h3>
+          <WorkRhythm measure={measure} profile={profile} />
         </div>
       </WorkloadSection>
 
       <WorkloadSection
-        index="07"
+        index="04"
         eyebrow="Session shape"
-        title="How the sessions break down"
+        title="How intense the work became"
+        id="sessions"
         testId="section-sessions"
       >
         <SessionShape profile={profile} />
+        <div id="pressure" data-testid="section-pressure" className="space-y-4 pt-4">
+          <h3 className="text-lg font-medium">Your heaviest windows</h3>
+          <HistoricalPressure
+            measure={measure}
+            profile={profile}
+            sourceNames={
+              new Map(record.summary.usageSources.map((source) => [source.adapterId, source.name]))
+            }
+          />
+        </div>
       </WorkloadSection>
+    </div>
+  );
+}
 
+function WorkloadBody({
+  decision,
+  profile,
+  record,
+}: {
+  decision: MarketDecision | undefined;
+  profile: WorkloadProfile;
+  record: ImportRecord;
+}) {
+  // Every suggestion is chosen from how much of this workload the target runs
+  // (lib/routes.ts), never from a fixed list.
+  const routes = useMemo(() => {
+    const names = new Map(
+      record.summary.usageSources.map((source) => [source.adapterId, source.name]),
+    );
+    return suggestRoutes(workloadSlices(profile.sources, names), defaultRulesDate(), {
+      synthetic: isSyntheticWorkload(record),
+    });
+  }, [profile.sources, record]);
+  const shareBuild = useCallback(
+    (options: ShareOptions) => workloadShareV2(record, profile, options, decision),
+    [profile, record, decision],
+  );
+  return (
+    <details className="border-t border-border pt-2" data-testid="workload-tools">
+      <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+        Share or replay this workload
+      </summary>
+      <a href="#share" className={ACTION_LINK} data-testid="share-workload-link">
+        Share this workload →
+      </a>
       <section
         id="next"
         aria-labelledby="next-heading"
@@ -601,69 +741,76 @@ function WorkloadBody({
         data-testid="replay-transition"
       >
         <div className="flex max-w-3xl flex-col gap-2">
-          <MicroLabel className="text-accent">Replay</MicroLabel>
+          <MicroLabel className="text-accent">After the analysis</MicroLabel>
           <h2 id="next-heading" className="text-2xl font-medium tracking-tight">
-            What if you changed the stack?
+            What would you like to test next?
           </h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Test this recorded workload against another subscription, provider, or API. Replay keeps
-            your real chronology, the bursts above included, and applies the target&apos;s own rules
-            to it.
+            Choose a part of this recorded work to replay against a plan or API, or compare ways to
+            buy that same work. The chronology and peaks you just inspected stay in the analysis.
           </p>
         </div>
-        <ul
-          className={`grid gap-px border border-border bg-border ${apiProvider === undefined ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
-        >
-          {apiProvider === undefined ? null : (
-            <NextStep
-              href={replayLink(record.id, { api: apiProvider.id })}
-              kind="Exact replay"
-              title={`Same models, ${apiProvider.name} API`}
-              body="Your recorded tokens at published list prices, category by category."
-              testId="next-api"
-            />
-          )}
-          <NextStep
-            href={replayLink(record.id, { plan: crossProvider.plan })}
-            kind="Translated replay"
-            title={`Move to ${crossProvider.name}`}
-            body="Where the target lacks your models, you choose which of its models take the demand."
-            testId="next-cross-provider"
-          />
-          <NextStep
-            href={replayLink(record.id, { plan: "github-copilot-pro" })}
-            kind="Numeric limits"
-            title="A plan with a published allowance"
-            body="GitHub Copilot plans publish monthly credit pools, so Replay can show when yours would have run out."
-            testId="next-numeric"
-          />
-        </ul>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link
             href={replayLink(record.id)}
             className={buttonVariants({ size: "sm" })}
             data-testid="workload-replay-cta"
           >
-            Choose a target
+            Replay part of this workload
           </Link>
           <Link
-            href={`/app/compare?import=${record.id}`}
-            className={buttonVariants({ size: "sm", variant: "secondary" })}
-            data-testid="workload-compare-cta"
+            href={`/app/compare?view=billing&import=${record.id}`}
+            className={ACTION_LINK}
+            data-testid="legacy-workload-compare-cta"
           >
-            Compare several targets against this workload
+            Compare ways to buy this work →
           </Link>
         </div>
+        <CurrentSpend
+          periodDays={profile.overview.spanDays}
+          rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
+          value={profile.value}
+        />
+        {routes.length === 0 ? null : (
+          <ul
+            className={`grid gap-px border border-border bg-border ${routes.length === 1 ? "" : routes.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
+            data-testid="suggested-routes"
+          >
+            {routes.map((route) => {
+              const copy = routeCopy(route);
+              return (
+                <NextStep
+                  key={route.id}
+                  body={copy.body}
+                  href={routeLink(record.id, route)}
+                  kind={copy.kind}
+                  testId={
+                    route.id === "api-value"
+                      ? "next-api"
+                      : route.id === "numeric-limits"
+                        ? "next-numeric"
+                        : "next-cross-provider"
+                  }
+                  title={copy.title}
+                />
+              );
+            })}
+          </ul>
+        )}
       </section>
 
-      <WorkloadSection
-        index="08"
-        eyebrow="Scan quality"
-        title="Evidence behind these figures"
-        testId="section-evidence"
-      >
-        <ScanEvidence profile={profile} record={record} />
-      </WorkloadSection>
+      <div className="scroll-mt-36" id="share">
+        <SharePanelV2
+          key={`${record.id}:${decision ? "ready" : "pending"}`}
+          build={shareBuild}
+          kind="workload"
+          refusal={
+            decision === undefined
+              ? "The published market calculation must finish before creating this share."
+              : undefined
+          }
+        />
+      </div>
 
       <p
         className="max-w-prose border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground"
@@ -672,7 +819,7 @@ function WorkloadBody({
         Your workload stays local unless you explicitly choose to share something. This analysis ran
         in a Worker in this browser; project names, sessions and timestamps were not sent anywhere.
       </p>
-    </div>
+    </details>
   );
 }
 

@@ -2,7 +2,9 @@ export {
   isSyntheticCatalogId,
   SYNTHETIC_CATALOG_PREFIX,
 } from "./catalog-namespace.js";
+export * from "./compiled-execution.js";
 export { STACKREPLAY_ERROR_CODES, type StackReplayErrorCode } from "./error-codes.js";
+export * from "./execution-rates.js";
 export {
   type ApiModelMappingV1,
   type ApiTargetV1,
@@ -42,6 +44,12 @@ export {
   type SignedMoneyV1,
   signedMoneyV1Schema,
 } from "./money.js";
+export {
+  type CapacityObservations,
+  capacityObservationsSchema,
+  type ObservedCapacityEvent,
+  observedCapacityEventSchema,
+} from "./observed-capacity.js";
 export {
   type ConstraintExceedV1,
   type ConstraintKindV1,

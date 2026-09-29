@@ -1,24 +1,42 @@
 id: gpt-5-3-codex
 role: model
-name: "GPT-5.3-Codex"
+name: GPT-5.3-Codex
 providerIds:
-  - github
+- github
 aliases:
-  - id: gpt-5-3-codex-observed-gpt-5-3-codex
-    alias: "gpt-5.3-codex"
-    kind: provider_id
-    sources:
-      - url: https://developers.openai.com/api/docs/pricing
-        title: "GPT-5.3-Codex API model id"
-        checkedAt: 2026-09-21
-    lastVerifiedAt: 2026-09-21
-    verificationStatus: verified
+- id: gpt-5-3-codex-observed-gpt-5-3-codex
+  alias: gpt-5.3-codex
+  kind: provider_id
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: GPT-5.3-Codex API model id
+    checkedAt: 2026-09-21
+  lastVerifiedAt: 2026-09-21
+  verificationStatus: verified
 sources:
-  - url: https://github.com/features/copilot/plans
-    title: "GitHub pricing (official)"
-    checkedAt: 2026-09-23
-  - url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
-    title: "GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit"
-    checkedAt: 2026-09-23
-lastVerifiedAt: 2026-09-23
+- url: https://github.com/features/copilot/plans
+  title: GitHub pricing (official)
+  checkedAt: 2026-09-23
+- url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+  title: GitHub supported model and retirement tables; reviewed in the Sep 23 launch audit
+  checkedAt: 2026-09-23
+lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
+developerId: openai
+specifications:
+  contextTokens: 400000
+  maxOutputTokens: 128000
+  maxInputTokens: 272000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  knowledgeCutoff: Aug 31, 2025
+  sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-5.3-codex
+    title: Official model specifications
+    checkedAt: '2026-09-28'

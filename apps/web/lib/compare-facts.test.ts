@@ -5,6 +5,7 @@ import {
   COMPATIBILITY_ONLY,
   type CompareFacts,
   codingToolsFor,
+  compareModelMatrix,
   DEFAULT_COMPARE_PAIR,
   defaultComparePair,
   NO_NAMED_MODEL,
@@ -33,7 +34,7 @@ function primaryText(facts: CompareFacts): string {
     ...facts.models.more.map((model) => model.name),
     ...facts.codingTools,
     ...facts.usage.lines.map((line) => line.text),
-    facts.usage.numeric ? "" : "Provider does not publish a numeric allowance.",
+    facts.usage.lines.length ? "" : "No numeric allowance is recorded in this snapshot.",
     facts.simulation,
     ...facts.afterLimit.lines,
     ...facts.afterLimit.quotes.map((quote) => quote.text),
@@ -54,12 +55,15 @@ describe("public compare facts", () => {
     expect(facts.price).toBe("$200 / month");
     const featured = facts.models.featured.map((model) => model.name);
     expect(featured).toContain("Claude Opus 5.5");
-    expect(featured).toContain("Claude Sonnet 5");
     // Family identity records are not listed as models.
     const all = [...featured, ...facts.models.more.map((model) => model.name)];
+    expect(all).toContain("Claude Sonnet 5");
     for (const family of ["Opus", "Sonnet", "Haiku", "Fable"]) expect(all).not.toContain(family);
-    // Current releases lead; legacy ones follow under "+ N more".
-    expect(facts.models.featured.every((model) => !model.legacy)).toBe(true);
+    // Current releases lead. Remaining slots can include legacy releases.
+    const releases = [...facts.models.featured, ...facts.models.more];
+    const firstLegacy = releases.findIndex((model) => model.legacy);
+    expect(firstLegacy).toBeGreaterThan(0);
+    expect(releases.slice(firstLegacy).every((model) => model.legacy)).toBe(true);
     expect(facts.models.more.some((model) => model.name === "Claude Opus 4.7")).toBe(true);
     expect(facts.codingTools).toEqual(["Claude Code"]);
     expect(facts.usage.numeric).toBe(false);
@@ -103,8 +107,8 @@ describe("public compare facts", () => {
     const pro100 = catalog.planById("openai-chatgpt-pro");
     if (pro200 === undefined || pro100 === undefined) throw new Error("missing plans");
     expect(codingToolsFor(pro100)).toEqual(["Codex"]);
-    // The $200 record does not mention Codex, so none is claimed for it.
-    expect(codingToolsFor(pro200)).toEqual([]);
+    // First-party Pro documentation establishes Codex for both tiers.
+    expect(codingToolsFor(pro200)).toEqual(["Codex"]);
   });
 
   it("keeps every model rule, including identity records, for the inspect view", () => {
@@ -131,5 +135,32 @@ describe("public compare facts", () => {
         { id: "c", providerId: "y" },
       ]),
     ).toEqual(["a", "c"]);
+  });
+});
+
+describe("model by model", () => {
+  const current = loadPublicCatalog();
+  const factsFor = (planId: string) => {
+    const plan = current.planById(planId);
+    if (plan === undefined) throw new Error(`missing ${planId}`);
+    return buildCompareFacts(plan, current.modelById);
+  };
+  it("lists every included model once, shared models first", () => {
+    const left = factsFor("command-code-max-20x");
+    const right = factsFor("command-code-goat");
+    const rows = compareModelMatrix([left, right]);
+    expect(new Set(rows.map((row) => row.id)).size).toBe(rows.length);
+    expect(rows.filter((row) => row.included[0]).length).toBe(left.models.total);
+    expect(rows.filter((row) => row.included[1]).length).toBe(right.models.total);
+    const shared = rows.map((row) => row.included.every(Boolean));
+    expect(shared.indexOf(false)).toBeGreaterThan(0);
+    expect(shared.slice(shared.indexOf(false))).not.toContain(true);
+  });
+
+  it("previews catalogued models before names without a model page", () => {
+    const featured = factsFor("command-code-go").models.featured;
+    expect(featured.length).toBeGreaterThan(0);
+    expect(featured[0]?.id.startsWith("published:")).toBe(false);
+    expect(featured.map((model) => model.name)).not.toContain("Space Bunny Alpha");
   });
 });

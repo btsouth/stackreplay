@@ -1,0 +1,17 @@
+id: glm-5-2-pricing
+role: pricing
+modelId: glm-5-2
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '1.4'
+  output: '4.4'
+  cacheRead: '0.26'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://docs.z.ai/guides/overview/pricing
+  title: 'Z.AI API list pricing (GLM-5.2 row); no cache-write rate and no reasoning-token billing relationship is published.'
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

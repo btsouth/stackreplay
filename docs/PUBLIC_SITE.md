@@ -1,8 +1,8 @@
 # Public site and sharing
 
 Milestone 4 built two surfaces that did not exist before: a **public site** that
-publishes the catalog and the methodology, and **stateless sharing** that turns a
-replay result into a link. This document records how they are structured so the
+publishes the catalog and the methodology, and **sharing** that turns a result into
+a self-contained link (short links, which store only that link's token, followed in decision 63). This document records how they are structured so the
 next milestone does not have to rediscover it.
 
 Source of truth for the decisions behind this: `docs/ARCHITECTURE_DECISIONS.md`
@@ -124,8 +124,10 @@ A share link is `/s/<token>`, and the token carries the entire result:
 
 Properties, all enforced in `packages/share`:
 
-- **Stateless.** No database, no account, no server-side copy of a result. Nothing
-  is uploaded to create a link and nothing is looked up to read one.
+- **Self-contained.** A token needs no database or account to read. Short links
+  (decision 63) store exactly this token under a random id so the public URL stays
+  short; nothing else is uploaded, and a self-contained link still reads without a
+  lookup.
 - **Aggregate only.** `ShareReplaySnapshotV1` is a strict schema with no event,
   session, project, repository, path, prompt, response or file field. `FORBIDDEN_SHARE_KEYS`
   and `findForbiddenFields` scan for those names independently of the schema, so a

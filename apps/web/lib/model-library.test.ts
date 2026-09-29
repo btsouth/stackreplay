@@ -1,12 +1,20 @@
 import { bundledModelIdentity } from "@stackreplay/catalog/bundled";
 import { describe, expect, it } from "vitest";
+import { marketDiscovery } from "./market-discovery";
 import {
+  defaultSortDirection,
   developerOptions,
+  hasPublishedApiPrice,
+  isIncludedInSubscription,
   isInView,
+  type ModelSortKey,
+  modelPlanCounts,
+  modelSortValue,
   modelsInView,
   placesSummary,
   searchModels,
-  UNRECORDED_DEVELOPER,
+  sortDirectionLabels,
+  sortModels,
 } from "./model-library";
 import { loadPublicCatalog } from "./public-catalog";
 
@@ -40,7 +48,12 @@ describe("default model listing", () => {
   });
 
   it("leads with current releases", () => {
-    const current = ["claude-fable-5-1", "claude-haiku-4-5", "claude-opus-5-5", "claude-sonnet-5"];
+    const current = [
+      "claude-fable-5-1",
+      "claude-haiku-4-5",
+      "claude-opus-5-5",
+      "claude-sonnet-5-5",
+    ];
     expect(ids.slice(0, current.length).sort()).toEqual(current);
     expect(listed.slice(0, current.length).every((model) => model.lifecycle === "current")).toBe(
       true,
@@ -98,14 +111,14 @@ describe("developer and routes", () => {
     expect(opus47.places.map((place) => place.label)).toContain("Anthropic API");
   });
 
-  it("leaves the developer unrecorded when the record does not state one", () => {
+  it("uses sourced developers without confusing them with resellers", () => {
     const kimi = byId("kimi-k3");
-    expect(kimi.developerId).toBeUndefined();
+    expect(kimi.developerId).toBe("moonshot");
     expect(kimi.providerIds).toEqual(["github"]);
     const options = developerOptions(catalog.models).map((option) => option.id);
-    expect(options).toContain(UNRECORDED_DEVELOPER);
+    expect(options).toContain("moonshot");
     expect(options).not.toContain("github");
-    expect(options).not.toContain("cursor");
+    expect(options).toContain("cursor");
   });
 
   it("summarizes places by human name, Direct API first", () => {
@@ -113,5 +126,78 @@ describe("developer and routes", () => {
     expect(summary.labels[0]).toBe("Anthropic API");
     expect(summary.labels[1]).toMatch(/^Claude /u);
     expect(summary.more).toBeGreaterThan(0);
+  });
+});
+
+describe("model table sorting and filters", () => {
+  const current = marketDiscovery("2026-09-29");
+  const facts = {
+    prices: current.prices,
+    planCounts: modelPlanCounts(current.catalog.models),
+  };
+  const releases = current.catalog.models.filter((model) => model.kind === "release");
+  const published = (key: ModelSortKey) =>
+    releases.filter((model) => modelSortValue(model, key, facts) !== undefined).length;
+
+  for (const key of ["input", "output", "cacheRead", "context", "maxOutput"] as const) {
+    for (const direction of ["ascending", "descending"] as const) {
+      it(`sorts ${key} ${direction} with unpublished values last`, () => {
+        const sorted = sortModels(releases, key, direction, facts);
+        const values = sorted.map((model) => modelSortValue(model, key, facts));
+        const count = published(key);
+        expect(count).toBeGreaterThan(0);
+        expect(count).toBeLessThan(releases.length);
+        expect(values.slice(count).every((value) => value === undefined)).toBe(true);
+        const known = values.slice(0, count) as number[];
+        const expected = [...known].sort((a, b) => (direction === "ascending" ? a - b : b - a));
+        expect(known).toEqual(expected);
+      });
+    }
+  }
+
+  it("counts plans from explicit links and treats zero as a real value", () => {
+    const counts = sortModels(releases, "plans", "descending", facts).map((model) =>
+      modelSortValue(model, "plans", facts),
+    );
+    expect(counts[0]).toBeGreaterThan(0);
+    expect(counts.at(-1)).toBe(0);
+  });
+
+  it("starts price sorts cheapest first and limits largest first", () => {
+    expect(defaultSortDirection("input")).toBe("ascending");
+    expect(defaultSortDirection("context")).toBe("descending");
+    expect(defaultSortDirection("maxOutput")).toBe("descending");
+  });
+
+  it("names both directions for every sort except the fixed featured order", () => {
+    expect(sortDirectionLabels("featured")).toBeUndefined();
+    expect(sortDirectionLabels("name")).toEqual({ ascending: "A to Z", descending: "Z to A" });
+    for (const key of ["input", "output", "cacheRead", "context", "maxOutput", "plans"] as const)
+      expect(sortDirectionLabels(key)).toEqual({
+        ascending: "Low to high",
+        descending: "High to low",
+      });
+  });
+
+  it("sorts names both ways", () => {
+    const names = (direction: "ascending" | "descending") =>
+      sortModels(releases, "name", direction, facts).map((model) => model.name);
+    expect(names("ascending")).toEqual([...names("descending")].reverse());
+    const ascending = names("ascending");
+    expect((ascending[0] ?? "").localeCompare(ascending.at(-1) ?? "")).toBeLessThan(0);
+  });
+
+  it("filters to published API prices and subscription access", () => {
+    const byId = (id: string) => {
+      const model = current.catalog.modelById(id);
+      if (!model) throw new Error(`missing ${id}`);
+      return model;
+    };
+    expect(hasPublishedApiPrice(byId("claude-sonnet-5-5"), facts)).toBe(true);
+    expect(hasPublishedApiPrice(byId("nemotron-3-ultra"), facts)).toBe(false);
+    expect(isIncludedInSubscription(byId("claude-sonnet-5-5"), facts)).toBe(true);
+    expect(isIncludedInSubscription(byId("claude-sonnet-5-5"), { ...facts, planCounts: {} })).toBe(
+      false,
+    );
   });
 });

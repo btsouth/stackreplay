@@ -125,6 +125,18 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
 }
 
 /**
+ * The work inside a transaction, stopped as soon as the transaction aborts.
+ *
+ * When Chromium aborts a transaction (a value too large for an in-memory
+ * profile, a full disk), the pending request may never fire its own error
+ * event: only the transaction reports. Waiting on the request alone left an
+ * import waiting forever instead of finishing unsaved.
+ */
+export function untilTransactionEnds<T>(work: Promise<T>, finished: Promise<void>): Promise<T> {
+  return Promise.race([work, finished.then(() => work)]);
+}
+
+/**
  * Runs `run` inside ONE transaction spanning every listed store, and resolves
  * only once that transaction has committed.
  *
@@ -152,7 +164,7 @@ async function withStores<T>(
     });
     let result: T;
     try {
-      result = await run(transaction);
+      result = await untilTransactionEnds(run(transaction), finished);
     } catch (error) {
       // A request that fails aborts the whole transaction; wait for the abort so
       // the caller's rejection cannot race a later open.
@@ -265,48 +277,42 @@ export async function saveImport(
   }
 }
 
-/** Lists valid pairs only. Corrupt pairs are removed from both stores. */
+/**
+ * Lists metadata without cloning any event payload into the Worker. A saved
+ * pair is written atomically, so a payload key is enough to establish presence
+ * here. Full schema validation still happens when the workload is opened.
+ */
 export async function listImports(): Promise<ImportRecord[]> {
-  try {
-    const [records, payloads] = await withStores(
-      [IMPORTS_STORE, PAYLOADS_STORE],
-      "readonly",
-      async (transaction) =>
-        Promise.all([
-          requestToPromise(storeOf(transaction, IMPORTS_STORE).getAll() as IDBRequest<unknown[]>),
-          requestToPromise(storeOf(transaction, PAYLOADS_STORE).getAll() as IDBRequest<unknown[]>),
-        ]),
-    );
-    const byId = new Map(
-      payloads.map((value) => [
-        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined,
-        value,
+  const [records, payloadKeys] = await withStores(
+    [IMPORTS_STORE, PAYLOADS_STORE],
+    "readonly",
+    async (transaction) =>
+      Promise.all([
+        requestToPromise(storeOf(transaction, IMPORTS_STORE).getAll() as IDBRequest<unknown[]>),
+        requestToPromise(storeOf(transaction, PAYLOADS_STORE).getAllKeys()),
       ]),
-    );
-    const valid: ImportRecord[] = [];
-    const corruptIds: string[] = [];
-    const recordIds = new Set<string>();
-    for (const value of records) {
-      const id =
-        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
-      if (typeof id !== "string") continue;
-      recordIds.add(id);
-      const checked = validateStoredPair(value, byId.get(id));
-      if (checked === undefined) corruptIds.push(id);
-      else valid.push(checked);
-    }
-    for (const value of payloads) {
-      const id =
-        typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
-      if (typeof id === "string" && !recordIds.has(id)) corruptIds.push(id);
-    }
-    for (const id of corruptIds) await removeCorruptPair(id);
-    return valid.sort((a, b) =>
-      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
-    );
-  } catch {
-    return [];
+  );
+  const payloadIds = new Set(payloadKeys.filter((key): key is string => typeof key === "string"));
+  const valid: ImportRecord[] = [];
+  const corruptIds: string[] = [];
+  const recordIds = new Set<string>();
+  for (const value of records) {
+    const id =
+      typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
+    if (typeof id !== "string") continue;
+    recordIds.add(id);
+    const checked = importRecordSchema.safeParse(value);
+    if (
+      !checked.success ||
+      !payloadIds.has(id) ||
+      checked.data.eventCount !== checked.data.summary.eventCount
+    )
+      corruptIds.push(id);
+    else valid.push(checked.data as ImportRecord);
   }
+  for (const id of payloadIds) if (!recordIds.has(id)) corruptIds.push(id);
+  for (const id of corruptIds) await removeCorruptPair(id);
+  return valid.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
 async function removeCorruptPair(importId: string): Promise<void> {

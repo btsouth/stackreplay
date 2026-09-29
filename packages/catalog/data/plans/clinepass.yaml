@@ -1,0 +1,41 @@
+id: clinepass
+role: plan
+name: ClinePass
+providerId: cline
+versions:
+- effectiveFrom: '2026-09-28'
+  price:
+    currency: USD
+    amount: '9.99'
+    interval: month
+  billingMechanics: Current monthly offer recorded on September 28, 2026. Provider
+    usage credits follow provider-specific rates; they are not direct API dollars.
+    Exact subscription capacity is not admitted for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: Selected open coding models. Five-hour, weekly and monthly usage windows;
+      no deterministic allowance admitted.
+    sourceUrl: https://docs.cline.bot/getting-started/clinepass
+  - id: compatible-tools
+    label: Compatible tools
+    statement: Cline · OpenAI-compatible clients
+    sourceUrl: https://docs.cline.bot/getting-started/clinepass
+  - id: after-limit
+    label: After the limit
+    statement: Subscription quota and pay-as-you-go Cline are separate providers.
+    sourceUrl: https://docs.cline.bot/getting-started/clinepass
+    topic: after_limit
+  modelRules:
+  - model: glm-5-3
+  - model: glm-5-3-flash
+  - model: kimi-k3
+  - model: deepseek-v4-1-flash
+  sources:
+  - url: https://docs.cline.bot/getting-started/clinepass
+    title: Official current price, access and usage terms; catalog admission date,
+      not a historical launch date
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified

@@ -13,6 +13,10 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "@stackreplay/catalog#typecheck": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
@@ -23,6 +27,10 @@
     },
     "clean": {
       "cache": false
+    },
+    "@stackreplay/catalog#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "src/bundled-catalog.ts", "src/decision-market.generated.ts"]
     }
   }
 }

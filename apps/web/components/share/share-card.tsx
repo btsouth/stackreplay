@@ -1,5 +1,6 @@
 import type { ShareReplaySnapshotV1 } from "@stackreplay/share";
 import { cn } from "@stackreplay/ui";
+import { formatUnit } from "@/components/instrument/format";
 import { shortCatalogVersion } from "@/lib/public-catalog";
 import { describeShareTruncation } from "@/lib/share-truncation";
 
@@ -126,7 +127,9 @@ export function ShareCard({
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-muted-foreground">Models</dt>
+          {/* A V1 link counts resolved models and unresolved spellings together,
+              so the figure is named for what it is. */}
+          <dt className="text-xs text-muted-foreground">Model identities</dt>
           <dd className="font-medium tabular-nums text-foreground">
             {count(snapshot.workload.modelCount)}
           </dd>
@@ -154,7 +157,8 @@ export function ShareCard({
               >
                 <span className="text-foreground">{constraint.label}</span>
                 <span className="tabular-nums text-muted-foreground">
-                  {constraint.consumedUnits} accepted · limit {constraint.limitUnits} per{" "}
+                  {formatUnit(constraint.attemptedUnits, constraint.unit)} demanded ·{" "}
+                  {formatUnit(constraint.limitUnits, constraint.unit)} included per{" "}
                   {constraint.window.description}
                   {constraint.status === "exceeded" ? (
                     <span className="ml-2 font-medium text-negative">
@@ -178,7 +182,7 @@ export function ShareCard({
           <dd className="font-medium tabular-nums text-foreground">
             {snapshot.coverage.requests.status === "known" &&
             snapshot.coverage.requests.percent !== undefined
-              ? `${snapshot.coverage.requests.percent}%`
+              ? `${snapshot.coverage.requests.percent.toFixed(1)}%`
               : DASH}
           </dd>
         </div>
@@ -187,7 +191,7 @@ export function ShareCard({
           <dd className="font-medium tabular-nums text-foreground">
             {snapshot.coverage.usage.status === "known" &&
             snapshot.coverage.usage.percent !== undefined
-              ? `${snapshot.coverage.usage.percent}%`
+              ? `${snapshot.coverage.usage.percent.toFixed(1)}%`
               : DASH}
           </dd>
         </div>

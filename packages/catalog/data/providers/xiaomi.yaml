@@ -1,0 +1,9 @@
+id: xiaomi
+role: provider
+name: "Xiaomi"
+sources:
+  - url: https://mimo.mi.com/docs/en-US/price/pay-as-you-go
+    title: "Xiaomi MiMo API pay-as-you-go pricing"
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

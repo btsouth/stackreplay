@@ -10,7 +10,7 @@ const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 const DAYS = Array.from({ length: 7 }, (_, day) => day);
 
 function cellValue(value: number, measure: Measure): string {
-  return measure === "events" ? `${count(value)} events` : `${formatTokens(value) ?? "0"} tokens`;
+  return measure === "events" ? `${count(value)} calls` : `${formatTokens(value) ?? "0"} tokens`;
 }
 
 /**

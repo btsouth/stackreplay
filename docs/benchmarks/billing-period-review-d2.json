@@ -1,0 +1,88 @@
+{
+  "host": "devbox",
+  "runtime": "Node 24.21.0; production Next.js owner/child Workers; four concurrent browser test workers",
+  "workload": "synthetic repeated D1 workload",
+  "measurements": [
+    {
+      "count": 10000,
+      "ms": 1083.6999999284744,
+      "repeatMs": 834.8000000715256,
+      "cancelMs": 19.5,
+      "ticks": 212,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 34989,
+      "cases": [
+        {
+          "required": 10000,
+          "modeled": 10000,
+          "status": "feasible",
+          "assignments": 10000,
+          "hasEvents": false
+        },
+        {
+          "required": 10000,
+          "modeled": 10000,
+          "status": "feasible",
+          "assignments": 10000,
+          "hasEvents": false
+        }
+      ]
+    },
+    {
+      "count": 50000,
+      "ms": 4269.799999952316,
+      "repeatMs": 4607,
+      "cancelMs": 71.20000004768372,
+      "ticks": 952,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 35095,
+      "cases": [
+        {
+          "required": 50000,
+          "modeled": 50000,
+          "status": "feasible",
+          "assignments": 50000,
+          "hasEvents": false
+        },
+        {
+          "required": 50000,
+          "modeled": 50000,
+          "status": "feasible",
+          "assignments": 50000,
+          "hasEvents": false
+        }
+      ]
+    },
+    {
+      "count": 100000,
+      "ms": 6862.800000071526,
+      "repeatMs": 7023.5,
+      "cancelMs": 123,
+      "ticks": 1501,
+      "staleSuccess": false,
+      "cancelled": "CANCELLED",
+      "identical": true,
+      "summaryBytes": 35139,
+      "cases": [
+        {
+          "required": 100000,
+          "modeled": 100000,
+          "status": "feasible",
+          "assignments": 100000,
+          "hasEvents": false
+        },
+        {
+          "required": 100000,
+          "modeled": 100000,
+          "status": "feasible",
+          "assignments": 100000,
+          "hasEvents": false
+        }
+      ]
+    }
+  ]
+}

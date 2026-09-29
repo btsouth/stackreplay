@@ -11,6 +11,10 @@ versions:
     billingMechanics: "Google AI Pro costs $19.99 per month in the US. Google describes its usage as 4x the Free tier; it does not publish an absolute allowance."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 4× standard Gemini Apps usage, with five-hour and weekly limits. Separate allowances apply in other Google AI products.
+        sourceUrl: https://gemini.google/subscriptions/
       - id: gemini-apps-compute-based-usage-limit-relative-t
         label: "Gemini Apps compute-based usage limit (relative to no-plan users)"
         statement: "Gemini Apps have compute-based usage limits that determine how much you can interact with Gemini tools and features. These limits factor in the complexity of your prompt, the models and features you use, and the length of your chat. Your limit refreshes every 5 hours until you reach your weekly limit. ... AI Pro | 4x higher than standard limits | AI Ultra | 5x or 20x higher than AI Pro limits depending on your subscription"

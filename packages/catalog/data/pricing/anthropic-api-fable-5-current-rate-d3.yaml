@@ -1,0 +1,30 @@
+id: anthropic-api-fable-5-current-rate-d3
+role: pricing
+modelId: claude-fable-5
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: anthropic-messages-global
+rateVersion: current-20260927-d3
+rates:
+  input: '10'
+  output: '50'
+  cacheRead: '1'
+  reasoning:
+    billedAs: output
+effectiveFrom: '2026-09-27'
+effectiveFromInstant: '2026-09-27T20:39:00Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://platform.claude.com/docs/en/models/fable-5/overview
+  title: Exact claude-fable-5 identity and standard token/category prices; undifferentiated writes remain
+    unknown
+  checkedAt: '2026-09-27'
+- url: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+  title: Thinking billed as inclusive output
+  checkedAt: '2026-09-27'
+- url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: Standard pricing across 1M context
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

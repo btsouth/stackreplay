@@ -1,5 +1,9 @@
-import type { PricingRateSetV1, PricingTierConditionV1, PricingV1 } from "@stackreplay/catalog";
-import type { TextUsageV1 } from "@stackreplay/schema";
+import type {
+  ExecutionTokenRateV1,
+  PricingRateSetV1,
+  PricingTierConditionV1,
+  TextUsageV1,
+} from "@stackreplay/schema";
 import { Decimal, parseAmount, ZERO } from "./money.js";
 import { utcWallClock } from "./time.js";
 
@@ -178,7 +182,10 @@ function tierApplies(condition: PricingTierConditionV1, when: PricingSelectionCo
  * validation keeps tier conditions disjoint, so at most one tier can match and
  * selection never depends on declaration order.
  */
-export function selectRateSet(pricing: PricingV1, when: PricingSelectionContext): RateSetSelection {
+export function selectRateSet(
+  pricing: ExecutionTokenRateV1,
+  when: PricingSelectionContext,
+): RateSetSelection {
   for (const tier of pricing.tiers ?? []) {
     if (tierApplies(tier.when, when)) return { rates: tier.rates, tierId: tier.id };
   }
@@ -211,12 +218,48 @@ export interface MoneyConversionOutcome {
   missingCategories: readonly string[];
   /** Conditional tier that priced this event; absent means the base rates. */
   tierId?: string;
+  /**
+   * The priced buckets behind `units`, present only when the caller asked for
+   * them and the event is known. Each part is the published per-million rate
+   * string the bucket was multiplied by, so a receipt built from these parts is
+   * the same arithmetic as `units` rather than a second pricing pass.
+   */
+  parts?: readonly MoneyConversionPart[];
+}
+
+/** One priced bucket of one event: tokens times the published rate it used. */
+export interface MoneyConversionPart {
+  category: PricingCategory;
+  tokens: number;
+  /** The per-million amount string that priced this bucket. */
+  ratePerMillion: string;
+  /** Present when the category is priced at another category's documented rate. */
+  billedAs?: PricingCategory;
+  /**
+   * For a cache-read bucket: the same rate set's own uncached input rate, when
+   * that rate is published. It prices the "cache reads billed as fresh input"
+   * counterfactual and nothing else.
+   */
+  inputRatePerMillion?: string;
+}
+
+/** The published per-million amount a category resolves to, following `billedAs` once. */
+function rateStringFor(
+  rates: PricingRateSetV1,
+  category: PricingCategory,
+): { amount: string; billedAs?: PricingCategory } | undefined {
+  const value = rates[category];
+  if (value === undefined) return undefined;
+  if (typeof value === "string") return { amount: value };
+  const target = rates[value.billedAs];
+  return typeof target === "string" ? { amount: target, billedAs: value.billedAs } : undefined;
 }
 
 export function moneyUnitsForUsage(
   usage: TextUsageV1,
-  pricing: PricingV1 | undefined,
+  pricing: ExecutionTokenRateV1 | undefined,
   when: { atMs: number },
+  options?: { parts?: boolean },
 ): MoneyConversionOutcome {
   const accounting = tokenAccountingOf(usage);
 
@@ -256,6 +299,7 @@ export function moneyUnitsForUsage(
 
   let units = ZERO;
   const unpricedCategories: PricingCategory[] = [];
+  const parts: MoneyConversionPart[] | undefined = options?.parts === true ? [] : undefined;
   for (const [category, count] of quantities) {
     // Explicit zero consumption in an unpriced category is known data and must
     // not make the event's economics unknown. A non-positive bucket is not
@@ -267,15 +311,30 @@ export function moneyUnitsForUsage(
       continue;
     }
     units = units.plus(new Decimal(count).times(rate));
+    if (parts !== undefined) {
+      const published = rateStringFor(selection.rates, category);
+      if (published !== undefined) {
+        const input = category === "cacheRead" ? selection.rates.input : undefined;
+        parts.push({
+          category,
+          tokens: count,
+          ratePerMillion: published.amount,
+          ...(published.billedAs !== undefined ? { billedAs: published.billedAs } : {}),
+          ...(typeof input === "string" ? { inputRatePerMillion: input } : {}),
+        });
+      }
+    }
   }
 
+  const known = unpricedCategories.length === 0;
   return {
     // Never publish a partial number: unknown is not a subtotal.
-    known: unpricedCategories.length === 0,
-    units: unpricedCategories.length === 0 ? units : ZERO,
+    known,
+    units: known ? units : ZERO,
     missingPricing: false,
     unpricedCategories,
     missingCategories: [],
     ...(selection.tierId !== undefined ? { tierId: selection.tierId } : {}),
+    ...(parts !== undefined && known ? { parts } : {}),
   };
 }

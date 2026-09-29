@@ -2,6 +2,27 @@
 
 ## Current milestone
 
+### History discovery (feat/history-discovery, not released)
+
+Find my AI histories comes before the scan instrument (decision 55). The user drops their home or
+profile folder, or a tool folder, on the page; discovery asks it by name for each adapter-registered
+location (Claude Code, Codex, Command Code, OpenCode, Hermes) and reports found, not found,
+additional access required, empty, or not readable in the browser, with measured file counts and
+sizes. Nothing is parsed until the user selects histories and builds the workload; the scan
+instrument then shows per-history files read and events. Linked, WSL and relocated histories go
+through the existing folder chooser and join the same list, and Connect individually keeps the
+per-source cards as the manual, keyboard and touch path. Cancel scan stops a scan without touching
+saved workloads. The page remembers connected tool names only and asks for the folder again to
+refresh. StackReplay's own copy no longer says "upload".
+
+A follow-up from physical testing: a folder supplied directly (a tool folder, a history folder, a
+data folder such as OpenCode's, a custom root) is identified by name and registered children, by
+drop or by folder chooser, so OpenCode's store reads as found but not readable in the browser
+instead of not found. Claude Code workflow subagent transcripts nested five levels down are
+counted. Import of a real 3.5 GB history went from 67.5 s to 15.3 s in Chromium with identical
+results (decision 56), and a scan whose storage write is aborted by the browser now finishes
+unsaved instead of hanging.
+
 ### RC1: shipped to production
 
 RC1 consolidates Milestone 4I, the launch polish pass, the final launch audit and the folder-intake
@@ -81,6 +102,8 @@ checks, artifact identity, unknown-timezone preservation, accepted-reference rel
 incomplete-value findings, versioned source health, and strict HTTPS URL validation.
 This is the locked `f02a9112f17c7f9edbc204a7e80b200175b12697` foundation. No watcher, UI,
 accepted catalog fact, or deployment followed from it. See [catalog intelligence](CATALOG_INTELLIGENCE.md).
+The coverage, watcher and benchmark plan that builds on it is in the
+[models and providers roadmap](catalog-coverage-roadmap.md).
 
 ## Milestone 4E — browser workload intake
 
@@ -278,8 +301,10 @@ Metadata always describes the canonical production origin (`https://stackreplay.
 through `NEXT_PUBLIC_SITE_URL`), never localhost; `robots.txt` keeps `/app` out of search results and
 the sitemap lists public pages plus catalogued plans and models.
 
-**Sharing.** A share link is `/s/<token>` where the token carries the entire result:
-`<version>.<checksum>.<base64url(deflate(canonical JSON))>`. No database, no account, no server copy.
+**Sharing.** A share token carries the entire result:
+`<version>.<checksum>.<base64url(deflate(canonical JSON))>`, and needs no database or account to
+read. A self-contained link is `/s/<token>`; a short link (`/s/<id>`, decision 63) stores exactly
+this token in Workers KV when the person chooses Create share link, and nothing else is stored.
 `ShareReplaySnapshotV1` is a strict aggregate-only schema, `FORBIDDEN_SHARE_KEYS` scans for fields
 that must never be public independently of the schema, and the projection from a replay result
 (`apps/web/lib/share-snapshot.ts`) is a whitelist that names every field it copies, so a field added
@@ -580,8 +605,8 @@ Milestone 3 adds the first real product experience on top of them:
 - `/app/replay`: workload, target plan, explicit rules instant, and a result surface that explains
   what happened and why, including separate coverage dimensions, constraint states, confidence with
   reasons, violation detail and an activity/violation timeline.
-- Browser-local persistence in IndexedDB only, with real delete and clear, and no upload path of any
-  kind. A browser test records every request during import and replay and fails if any body carries
+- Browser-local persistence in IndexedDB only, with real delete and clear, and no upload path for
+  workload data (the only upload is the aggregate share token sent by Create share link, decision 63). A browser test records every request during import and replay and fails if any body carries
   events, token history or a project/session hash.
 - Deterministic demo workloads (`moderate`, `heavy`, `multistack`) that reach the interesting product
   states: served, exceeded and unknown.

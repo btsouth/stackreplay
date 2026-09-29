@@ -1,47 +1,53 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { PageHeader } from "@/components/page-header";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { PlansYouPayFor, SavedWorkloads, ThemeChoiceControl } from "@/components/settings-panels";
 
 export const metadata: Metadata = { title: "Settings" };
+
+function Setting({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[14rem_minmax(0,1fr)] sm:gap-8">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-base font-medium">{title}</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export default function SettingsPage() {
   return (
     <>
-      <PageHeader title="Settings" description="Appearance and local workspace information." />
-      <div className="flex max-w-3xl flex-col gap-6">
-        <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[11rem_minmax(0,1fr)]">
-          <h2 className="text-base font-medium">Appearance</h2>
-          <div className="flex items-center justify-between gap-4">
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Switch between dark and light themes. Your choice stays in this browser.
-            </p>
-            <ThemeToggle />
-          </div>
-        </section>
-        <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[11rem_minmax(0,1fr)]">
-          <h2 className="text-base font-medium">Local workspace</h2>
-          <div className="flex flex-col gap-4">
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Saved workloads stay in this browser. Use Import to scan a folder again, remove a
-              saved workload, or clear local data.
-            </p>
-            <div className="flex flex-wrap gap-5 text-sm">
-              <Link
-                href="/app/replay"
-                className="min-h-11 content-center text-accent underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                Open Replay
-              </Link>
-              <Link
-                href="/app/import"
-                className="min-h-11 content-center text-accent underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                Manage local data
-              </Link>
-            </div>
-          </div>
-        </section>
+      <PageHeader
+        title="Settings"
+        description="Everything here stays in this browser. Nothing is sent to StackReplay."
+      />
+      <div className="flex max-w-4xl flex-col gap-8">
+        <Setting
+          title="Plans you pay for"
+          description="Your history doesn't say which subscriptions you have. Choose them here and Compare's whole-stack decision and the Workload's “What you pay today” use them."
+        >
+          <PlansYouPayFor />
+        </Setting>
+        <Setting
+          title="Saved workloads"
+          description="Normalized usage from your scans: models, token counts and timestamps. Raw history is never stored."
+        >
+          <SavedWorkloads />
+        </Setting>
+        <Setting title="Appearance" description="Dark, or a warm paper theme for reading.">
+          <ThemeChoiceControl />
+        </Setting>
       </div>
     </>
   );

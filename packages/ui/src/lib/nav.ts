@@ -1,6 +1,10 @@
 /**
  * Application navigation (spec point 41). Navigation is not the visual focus:
  * quiet labels, no icons beside every line of text.
+ *
+ * The product is the workload: Workload leads, Replay and Compare investigate
+ * it. Import and Settings are utilities, so they sit in a quieter group after
+ * a divider rather than competing with the analysis for attention.
  */
 
 export interface AppNavItem {
@@ -14,11 +18,13 @@ export const appBrand = {
 } as const;
 
 export const appNavItems = [
-  { label: "Workspace", href: "/app" },
-  { label: "Import", href: "/app/import" },
   { label: "Workload", href: "/app/workload" },
   { label: "Replay", href: "/app/replay" },
   { label: "Compare", href: "/app/compare" },
+] as const satisfies readonly AppNavItem[];
+
+export const appUtilityNavItems = [
+  { label: "Import", href: "/app/import" },
   { label: "Settings", href: "/app/settings" },
 ] as const satisfies readonly AppNavItem[];
 

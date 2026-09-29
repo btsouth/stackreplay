@@ -38,10 +38,18 @@ import {
   type WorkloadScopeKindV1,
   type WorkloadSummaryV1,
 } from "@stackreplay/schema";
-import { replayApiTarget } from "./api-replay.js";
+import { type ApiEventPriceability, type ApiEventQuote, replayApiTarget } from "./api-replay.js";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
+import {
+  type InitialCapacityEntry,
+  initialSlices,
+  type SubscriptionInitialCapacity,
+  sliceHasInitial,
+  validateInitialCapacity,
+} from "./initial-capacity.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+import { PriceReceiptBuilder, type PriceReceiptV1 } from "./receipt.js";
 import {
   buildWarnings,
   CoverageBuilder,
@@ -59,7 +67,7 @@ import {
   type ReplayDispositionKindV1,
   SemanticsAccumulator,
 } from "./semantics.js";
-import { dateRangeContains, epochMsFromIso, isoFromEpochMs } from "./time.js";
+import { dateRangeContains, epochMsFromIso, isoFromEpochMs, parseInstant } from "./time.js";
 import {
   prepareTranslation,
   substituteFor,
@@ -74,13 +82,7 @@ import {
   tokenAccountingOf,
 } from "./units.js";
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "./version.js";
-import {
-  sliceWindows,
-  sortTimedEvents,
-  type TimedEvent,
-  toTimedEvents,
-  type WindowSlice,
-} from "./windows.js";
+import { sortTimedEvents, type TimedEvent, toTimedEvents, type WindowSlice } from "./windows.js";
 
 /**
  * The replay engine (spec point 22, decisions 1-5, 13-20).
@@ -116,9 +118,133 @@ export interface ReplayInput {
   /** Explicit rules context (decision 17): the engine never reads a clock. */
   context: ReplayContextV1;
   options?: ReplayOptions;
+  /** Explicit consumption before the supplied events, independent of billing. */
+  initialCapacity?: SubscriptionInitialCapacity | undefined;
 }
 
 export function replay(input: ReplayInput): ExecutionReplayResultV1 {
+  return replayWith(input, {});
+}
+
+/** How many events of a Direct API replay fared each way. */
+export type ApiPriceabilityCountsV1 = Record<ApiEventPriceability, number>;
+
+export interface SubscriptionEventObservation {
+  disposition: ReplayDispositionKindV1;
+  modelId: string | undefined;
+  blockingLimitIds: readonly string[];
+}
+
+export interface ReplayObservers {
+  subscription?: (event: TextUsageEventV1, observation: SubscriptionEventObservation) => void;
+  api?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+}
+
+/**
+ * A replay together with the price receipt behind its money (see `receipt.ts`).
+ *
+ * The result is exactly what `replay` returns for the same input; the receipt
+ * is collected from the same per-event conversions inside the same pass. A
+ * Direct API replay's receipt is its list price for the served and priced
+ * events; a plan's receipt is its credit-pool demand, and is absent for a plan
+ * with no credit pool. A Direct API replay also reports how many events fared
+ * each way (`priceability`), so an interface can say what would complete a
+ * cost from the questions the replay itself asked.
+ */
+export function replayWithReceipt(
+  input: ReplayInput,
+  observers: ReplayObservers = {},
+): {
+  result: ExecutionReplayResultV1;
+  receipt: PriceReceiptV1 | undefined;
+  priceability: ApiPriceabilityCountsV1 | undefined;
+  /**
+   * Subscription targets: when each undecided event occurred, in replay order,
+   * from the same per-event dispositions the result counts. An interface needs
+   * it to say whether undecided demand could move a limit crossing it reports;
+   * the result itself stays aggregate-only.
+   */
+  undecidedAt: readonly string[] | undefined;
+} {
+  const target = parseTarget(input.target);
+  const api = isApiTargetV1(target);
+  const receipt = new PriceReceiptBuilder(api ? "api_list_price" : "credit_demand");
+  const counts: ApiPriceabilityCountsV1 | undefined = api
+    ? {
+        priced: 0,
+        unresolved: 0,
+        not_offered: 0,
+        offering_unestablished: 0,
+        usage_incomplete: 0,
+        price_not_recorded: 0,
+        price_category_undocumented: 0,
+      }
+    : undefined;
+  const undecidedAt: string[] | undefined = api ? undefined : [];
+  const result = replayWith(input, {
+    receipt,
+    ...(counts === undefined
+      ? {}
+      : {
+          observe: (_event: TextUsageEventV1, outcome: ApiEventPriceability) => {
+            counts[outcome] += 1;
+            observers.api?.(_event, outcome);
+          },
+        }),
+    ...(undecidedAt === undefined
+      ? {}
+      : { onUndecided: (occurredAt: string) => undecidedAt.push(occurredAt) }),
+    ...(observers.subscription === undefined ? {} : { onSubscription: observers.subscription }),
+  });
+  const built = receipt.build();
+  return {
+    result,
+    receipt: built.pricedEvents === 0 ? undefined : built,
+    priceability: counts,
+    undecidedAt,
+  };
+}
+
+/**
+ * A Direct API replay whose observer is told how each event fared, so a caller
+ * can state an explicit scope (for example "the events this provider serves and
+ * prices") from the same questions the replay asked, instead of re-deriving
+ * them.
+ */
+export function replayObservingPriceability(
+  input: ReplayInput,
+  observe: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void,
+): ExecutionReplayResultV1 {
+  return replayWith(input, { observe });
+}
+
+/** Read exact event prices from the API replay pass without allocating receipt parts. */
+export function replayObservingQuotes(
+  input: ReplayInput,
+  observeQuote: (
+    event: TextUsageEventV1,
+    outcome: ApiEventPriceability,
+    quote: ApiEventQuote,
+  ) => void,
+): ExecutionReplayResultV1 {
+  return replayWith(input, { observeQuote });
+}
+
+function replayWith(
+  input: ReplayInput,
+  extras: {
+    receipt?: PriceReceiptBuilder;
+    observe?: (event: TextUsageEventV1, outcome: ApiEventPriceability) => void;
+    observeQuote?: (
+      event: TextUsageEventV1,
+      outcome: ApiEventPriceability,
+      quote: ApiEventQuote,
+    ) => void;
+    /** Subscription targets: told when each undecided event occurred. */
+    onUndecided?: (occurredAt: string) => void;
+    onSubscription?: ReplayObservers["subscription"];
+  },
+): ExecutionReplayResultV1 {
   const catalog = parseCatalog(input.catalog);
   const context = parseContext(input.context);
   const target = parseTarget(input.target);
@@ -129,13 +255,27 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
    * model's published API list price at the pinned instant (M4C).
    */
   if (isApiTargetV1(target)) {
-    return replayApiTarget({
-      target,
-      catalog,
-      context,
-      events: validateEvents(input.events),
-    });
+    if (input.initialCapacity !== undefined)
+      throw new ReplayEngineError(
+        "IMPORT_SCHEMA_INVALID",
+        "API targets do not accept subscription starting capacity.",
+      );
+    return replayApiTarget(
+      {
+        target,
+        catalog,
+        context,
+        events: validateEvents(input.events),
+      },
+      extras,
+    );
   }
+  if (extras.observe !== undefined || extras.observeQuote !== undefined)
+    throw new ReplayEngineError(
+      "TARGET_NOT_IMPLEMENTED",
+      "Per-event priceability is reported for Direct API targets only.",
+      [`targetType=${target.type}`],
+    );
 
   const planVersion = resolveTargetPlan(target, catalog, context.rulesAsOf);
   const events = validateEvents(input.events);
@@ -161,8 +301,36 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     translationPlan,
     translationApplication,
   );
-  const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker);
-  const evaluation = evaluateConstraints(timed, resolution, prepared, planVersion, tracker);
+  const prepared = prepareEvents(timed, resolution, catalog, planVersion, tracker, extras.receipt);
+  const initialCapacity = validateInitialCapacity(input.initialCapacity, planVersion);
+  if (initialCapacity !== undefined) {
+    const snapshotAt = parseInstant(initialCapacity.at).epochNanoseconds;
+    if (timed.some((t) => BigInt(t.atMs) * 1000000n + BigInt(t.subMs) < snapshotAt))
+      throw new ReplayEngineError(
+        "IMPORT_SCHEMA_INVALID",
+        "Events precede initial capacity snapshot.",
+      );
+  }
+  const evaluation = evaluateConstraints(
+    timed,
+    resolution,
+    prepared,
+    planVersion,
+    tracker,
+    extras.onSubscription !== undefined,
+    initialCapacity,
+  );
+  if (extras.onSubscription !== undefined) {
+    for (const { event } of timed) {
+      const entry = prepared.get(event.id);
+      if (entry === undefined) continue;
+      extras.onSubscription(event, {
+        disposition: dispositionOf(entry),
+        modelId: entry.resolution.sourceModelId,
+        blockingLimitIds: entry.blockingLimitIds ?? [],
+      });
+    }
+  }
   const coverage = computeCoverage(timed, prepared, planVersion, tracker);
   const confidence = computeConfidence(
     timed,
@@ -189,6 +357,7 @@ export function replay(input: ReplayInput): ExecutionReplayResultV1 {
     reset,
     translationPlan,
     translationApplication,
+    onUndecided: extras.onUndecided,
   });
 
   const pricingReferences = collectPricingReferences(planVersion);
@@ -261,6 +430,7 @@ function computeSemantics(input: {
   reset: ResetAssumptionV1;
   translationPlan: TranslationPlan | undefined;
   translationApplication: TranslationApplication;
+  onUndecided?: ((occurredAt: string) => void) | undefined;
 }): ReplaySemanticsV1 {
   const accumulator = new SemanticsAccumulator({
     target: { kind: "subscription", planVersion: input.planVersion, reset: input.reset },
@@ -307,6 +477,7 @@ function computeSemantics(input: {
       indeterminate: preparedEvent.outcome === "indeterminate",
       disposition: dispositionOf(preparedEvent),
     };
+    if (facts.disposition === "unknown") input.onUndecided?.(event.occurredAt);
     accumulator.observe(facts);
   }
   return accumulator.finish();
@@ -334,7 +505,7 @@ function dispositionOf(preparedEvent: PreparedEvent): ReplayDispositionKindV1 {
   }
 }
 
-function parseCatalog(catalog: CatalogV1): CatalogV1 {
+export function parseCatalog(catalog: CatalogV1): CatalogV1 {
   const parsed = catalogV1Schema.safeParse(catalog);
   if (!parsed.success) {
     throw new ReplayEngineError(
@@ -435,7 +606,7 @@ function resolveTargetPlan(
   return selected;
 }
 
-function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
+export function validateEvents(events: readonly TextUsageEventV1[]): TextUsageEventV1[] {
   if (!Array.isArray(events))
     throw new ReplayEngineError("IMPORT_SCHEMA_INVALID", "Events must be an array.");
   const validated: TextUsageEventV1[] = [];
@@ -629,6 +800,7 @@ function resolveModels(
 }
 
 interface PreparedEvent {
+  blockingLimitIds?: string[];
   resolution: ModelResolution;
   /** Disjoint canonical token accounting for this event. */
   tokens: TokenAccounting;
@@ -657,6 +829,7 @@ function prepareEvents(
   catalog: CatalogV1,
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
+  receipt: PriceReceiptBuilder | undefined,
 ): Map<string, PreparedEvent> {
   const needsMoney = planVersion.limits.some((limit) => limit.type === "credit_pool");
   const prepared = new Map<string, PreparedEvent>();
@@ -686,7 +859,26 @@ function prepareEvents(
     if (needsMoney && res.supported) {
       const pricing =
         res.rule?.pricingRef !== undefined ? getPricing(catalog, res.rule.pricingRef) : undefined;
-      const outcome = moneyUnitsForUsage(event.usage, pricing, { atMs: timedEvent.atMs });
+      const outcome = moneyUnitsForUsage(
+        event.usage,
+        pricing,
+        { atMs: timedEvent.atMs },
+        { parts: receipt !== undefined },
+      );
+      if (
+        receipt !== undefined &&
+        outcome.known &&
+        outcome.parts !== undefined &&
+        pricing !== undefined &&
+        res.effectiveModelId !== undefined
+      )
+        receipt.add({
+          modelId: res.effectiveModelId,
+          pricingId: pricing.id,
+          tierId: outcome.tierId,
+          multiplier: res.multiplier,
+          parts: outcome.parts,
+        });
       if (outcome.missingPricing) {
         tracker.warn(
           "PRICING_MISSING",
@@ -780,8 +972,12 @@ interface ConstraintEvaluation {
   unknownConstraints: number;
 }
 
-function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): ConstraintRuntime {
-  const sliced = sliceWindows(eligible, limit.window);
+function buildRuntime(
+  limit: PlanLimitV1,
+  eligible: readonly TimedEvent[],
+  initial?: InitialCapacityEntry,
+): ConstraintRuntime {
+  const sliced = { slices: initialSlices(eligible, limit, initial) };
   // The wire timestamp contract uses four-digit years. Never emit a result
   // outside that contract when a window extends beyond the event date range.
   if (
@@ -794,8 +990,8 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
   }
   const slices: SliceRun[] = sliced.slices.map((slice) => ({
     slice,
-    attempted: 0,
-    accepted: 0,
+    attempted: sliceHasInitial(slice, initial) ? parseAmount(initial?.consumedUnits ?? "0") : 0,
+    accepted: sliceHasInitial(slice, initial) ? parseAmount(initial?.consumedUnits ?? "0") : 0,
     affectedEvents: 0,
   }));
 
@@ -808,7 +1004,9 @@ function buildRuntime(limit: PlanLimitV1, eligible: readonly TimedEvent[]): Cons
     limitNumber: asNumber !== undefined && Number.isSafeInteger(asNumber) ? asNumber : undefined,
     slices,
     cursor: 0,
-    latchedSliceIndex: null,
+    latchedSliceIndex: initial?.latched
+      ? slices.findIndex((run) => sliceHasInitial(run.slice, initial))
+      : null,
     acceptedTotal: limit.type === "credit_pool" ? ZERO : 0,
     attemptedTotal: limit.type === "credit_pool" ? ZERO : 0,
     rejectedEvents: 0,
@@ -889,6 +1087,8 @@ function evaluateConstraints(
   prepared: ReadonlyMap<string, PreparedEvent>,
   planVersion: LoadedPlanVersionV1,
   tracker: Tracker,
+  captureBlockingLimits = false,
+  initialCapacity?: SubscriptionInitialCapacity,
 ): ConstraintEvaluation {
   const runtimes: ConstraintRuntime[] = planVersion.limits.map((limit) => {
     const eligible = timed.filter(({ event }) => {
@@ -900,7 +1100,11 @@ function evaluateConstraints(
       }
       return true;
     });
-    return buildRuntime(limit, eligible);
+    return buildRuntime(
+      limit,
+      eligible,
+      initialCapacity?.entries.find((entry) => entry.limitId === limit.id),
+    );
   });
 
   for (const timedEvent of timed) {
@@ -950,6 +1154,19 @@ function evaluateConstraints(
       const index = sliceIndexFor(rt, timedEvent);
       if (index === undefined) continue;
       if (rt.latchedSliceIndex !== null && rt.latchedSliceIndex === index) {
+        if (
+          initialCapacity?.entries.some(
+            (entry) =>
+              entry.limitId === rt.limit.id &&
+              entry.latched &&
+              rt.slices[index] !== undefined &&
+              sliceHasInitial((rt.slices[index] as SliceRun).slice, entry),
+          )
+        )
+          tracker.warn(
+            "LATCH_TRIGGERED",
+            "A supplied initial latch blocks calls until its stated window resets.",
+          );
         rejecting.push({ rt, index });
         continue;
       }
@@ -964,6 +1181,8 @@ function evaluateConstraints(
 
     if (rejecting.length > 0) {
       preparedEvent.outcome = "rejected";
+      if (captureBlockingLimits)
+        preparedEvent.blockingLimitIds = rejecting.map(({ rt }) => rt.limit.id);
       for (const rejection of rejecting) {
         const run = rejection.rt.slices[rejection.index] as SliceRun;
         run.affectedEvents += 1;
@@ -1056,7 +1275,7 @@ function evaluateConstraints(
         ? "not_applicable"
         : rt.unknownConsumption
           ? "unknown"
-          : windowViolations.length > 0
+          : windowViolations.length > 0 || rt.rejectedEvents > 0
             ? "exceeded"
             : "pass";
 

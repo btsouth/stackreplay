@@ -1,0 +1,54 @@
+id: qwen-3-8-flash
+role: model
+name: Qwen 3.8 Flash
+developerId: alibaba
+providerIds:
+- alibaba
+aliases:
+- id: qwen-3-8-flash-api-id
+  alias: qwen3.8-flash
+  kind: provider_id
+  sources:
+  - url: https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash
+    title: Qwen 3.8 Flash API model id qwen3.8-flash
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: qwen-3-8-flash-router-qwen-qwen3-8-flash
+  alias: qwen/qwen3.8-flash
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/qwen/qwen3.8-flash
+    title: OpenRouter model record `qwen/qwen3.8-flash` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash
+  title: Qwen 3.8 Flash model page on Alibaba Cloud Model Studio
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  maxOutputTokens: 131072
+  inputModalities:
+  - text
+  - image
+  - video
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+  - Hybrid thinking mode; thinking is on by default and can be turned off with enable_thinking.
+  sources:
+  - url: https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash
+    title: Official model capabilities and context limits (Singapore, International)
+    checkedAt: '2026-09-29'
+  - url: https://www.alibabacloud.com/help/en/model-studio/deep-thinking
+    title: Default thinking behavior
+    checkedAt: '2026-09-29'
+pricingNote: Rates are the Singapore (International) list prices. Other Model Studio regions list different rates, and
+  limited-time promotions are excluded. Explicit cache creation and explicit cache reads are billed at separate published rates.

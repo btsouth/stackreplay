@@ -19,7 +19,7 @@ import type { StackReplayExportV1, TextUsageEventV1, TextUsageV1 } from "@stackr
  * unknown categories, because honest unknown handling is a product feature.
  */
 
-export type DemoWorkloadPresetId = "moderate" | "heavy" | "multistack";
+export type DemoWorkloadPresetId = "billing" | "moderate" | "heavy" | "multistack";
 
 export interface DemoWorkloadPreset {
   id: DemoWorkloadPresetId;
@@ -29,6 +29,13 @@ export interface DemoWorkloadPreset {
 }
 
 export const demoWorkloadPresets: Record<DemoWorkloadPresetId, DemoWorkloadPreset> = {
+  billing: {
+    id: "billing",
+    name: "Complete billing period",
+    description:
+      "Synthetic 30-day history and sample paid subscriptions. See a same-period review.",
+    eventTarget: 3600,
+  },
   moderate: {
     id: "moderate",
     name: "Moderate week",
@@ -50,6 +57,7 @@ export const demoWorkloadPresets: Record<DemoWorkloadPresetId, DemoWorkloadPrese
 };
 
 export const demoWorkloadPresetIds: readonly DemoWorkloadPresetId[] = [
+  "billing",
   "moderate",
   "heavy",
   "multistack",
@@ -111,6 +119,21 @@ const DEMO_SOURCES: DemoSource[] = [
     models: ["example-large"],
   },
 ];
+
+// The first demo teaches Workload's published-price reading with recorded
+// calls on catalogued models. The other presets retain their example models
+// for the synthetic Replay scenarios they exercise.
+const MODERATE_MODELS: Record<string, string[]> = {
+  "claude-code": ["claude-sonnet-5", "claude-haiku-4-5"],
+  codex: ["gpt-6-sol", "gpt-5-6-sol"],
+  opencode: ["claude-sonnet-5", "gpt-5-6-sol"],
+  "command-code": ["gpt-5-6-sol", "claude-haiku-4-5"],
+  hermes: ["claude-sonnet-5"],
+};
+const MODERATE_SOURCES: DemoSource[] = DEMO_SOURCES.map((source) => ({
+  ...source,
+  models: MODERATE_MODELS[source.adapterId] ?? source.models,
+}));
 
 /** Fixed anchor so demo timestamps never depend on the wall clock. */
 const DEMO_END = Date.parse("2026-09-20T18:00:00.000Z");
@@ -243,7 +266,31 @@ function sessionHash(sessionId: string): string {
 
 /** Builds a deterministic demo export for a preset. */
 export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExportV1 {
+  if (preset === "billing") {
+    // A generated month, not a projection of a real week. The original week stays byte-identical.
+    const exported = buildDemoExport("moderate");
+    const start = Date.parse("2026-09-01T00:00:00Z");
+    const events = Array.from({ length: 3600 }, (_, i) => {
+      const original = exported.events[i % exported.events.length];
+      if (!original) throw new Error("Missing demo event");
+      return {
+        ...original,
+        id: `ev_billing_${i}`,
+        occurredAt: new Date(
+          start + Math.floor(i / 120) * DAY_MS + 8 * 3_600_000 + (1 + (i % 120)) * 300_000,
+        ).toISOString(),
+        source: { ...original.source, nativeEventHash: `ne_billing_${i}` },
+      };
+    });
+    return {
+      ...exported,
+      generatedAt: "2026-10-01T00:00:00Z",
+      range: { from: events[0]?.occurredAt ?? "", to: events.at(-1)?.occurredAt ?? "" },
+      events,
+    };
+  }
   const config = demoWorkloadPresets[preset];
+  const sources = preset === "moderate" ? MODERATE_SOURCES : DEMO_SOURCES;
   const random = createRandom(
     preset === "heavy" ? 0x51a3 : preset === "moderate" ? 0x2b71 : 0x77c1,
   );
@@ -253,7 +300,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
   const sessionIdsBySource = new Map<string, string[]>();
   const orchestratedSessions = new Set<string>();
 
-  for (const source of DEMO_SOURCES) {
+  for (const source of sources) {
     const count = Math.round(config.eventTarget * source.share);
     const sessionCount = Math.max(2, Math.round(count / (preset === "heavy" ? 60 : 25)));
     const sessions: string[] = [];
@@ -323,7 +370,7 @@ export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExport
     collectorVersion: "demo",
     range: { from: first, to: last },
     detectedSources: [
-      ...DEMO_SOURCES.map((source) => ({
+      ...sources.map((source) => ({
         adapterId: source.adapterId,
         name: source.name,
         detected: true,

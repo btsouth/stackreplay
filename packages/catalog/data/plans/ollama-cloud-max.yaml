@@ -1,0 +1,42 @@
+id: ollama-cloud-max
+role: plan
+name: Ollama Cloud Max
+providerId: ollama
+versions:
+- effectiveFrom: '2026-09-28'
+  price:
+    currency: USD
+    amount: '100'
+    interval: month
+  billingMechanics: Current monthly offer recorded on September 28, 2026. Provider
+    usage credits follow provider-specific rates; they are not direct API dollars.
+    Exact subscription capacity is not admitted for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: $300 monthly usage credits at Ollama rates; 10 concurrent requests.
+    sourceUrl: https://ollama.com/pricing
+  - id: compatible-tools
+    label: Compatible tools
+    statement: Ollama
+    sourceUrl: https://ollama.com/pricing
+  - id: after-limit
+    label: After the limit
+    statement: Purchased usage credits fund additional usage. Current credit-based
+      plan; older subscriptions have separate terms.
+    sourceUrl: https://ollama.com/pricing
+    topic: after_limit
+  modelRules:
+  - model: glm-5-3
+  - model: glm-5-3-flash
+  - model: kimi-k3
+  - model: kimi-k2-7-code
+  - model: deepseek-v4-1-flash
+  sources:
+  - url: https://ollama.com/pricing
+    title: Official current price, access and usage terms; catalog admission date,
+      not a historical launch date
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified

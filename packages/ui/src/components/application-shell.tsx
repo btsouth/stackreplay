@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "../lib/cn";
-import { appBrand, appNavItems } from "../lib/nav";
+import { appBrand, appNavItems, appUtilityNavItems } from "../lib/nav";
 import { MobileNav } from "./mobile-nav";
 import { NavLink } from "./nav-link";
 
@@ -64,6 +64,10 @@ export function ApplicationShell({
           <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 md:flex">
             {appNavItems.map((item) => (
               <NavLink key={item.href} href={item.href} label={item.label} />
+            ))}
+            <span aria-hidden="true" className="mx-2 h-5 w-px bg-border-strong" />
+            {appUtilityNavItems.map((item) => (
+              <NavLink key={item.href} href={item.href} label={item.label} quiet />
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1 md:ml-2">

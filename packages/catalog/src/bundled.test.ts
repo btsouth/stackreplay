@@ -61,3 +61,22 @@ describe("Direct API offering", () => {
     expect(directApiProviderIdsFor(loadBundledCatalog(), "claude-sonnet-5")).toEqual(["anthropic"]);
   });
 });
+
+describe("bundled promotions", () => {
+  it("hand over to a record with the published regular rates on the date they start", () => {
+    const pricing = Object.values(loadBundledCatalog().pricing);
+    const scheduled = pricing.filter((price) => price.promotion?.regularFrom);
+    expect(scheduled.length).toBeGreaterThan(0);
+    for (const price of scheduled) {
+      const next = pricing.find(
+        (other) =>
+          other.modelId === price.modelId &&
+          other.basis === price.basis &&
+          other.endpointId === price.endpointId &&
+          other.variantId === price.variantId &&
+          other.effectiveFrom === price.promotion?.regularFrom,
+      );
+      expect(next?.rates, price.id).toEqual(price.promotion?.regularRates);
+    }
+  });
+});

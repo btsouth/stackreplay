@@ -1,0 +1,220 @@
+id: anthropic-api-sonnet-5-5
+role: plan
+name: 'Anthropic API: Claude Sonnet 5.5'
+providerId: anthropic
+versions: []
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-api-sonnet-5-5-current-20260928-sonnet55
+  productId: anthropic-direct-api
+  validity:
+    start: '2026-09-28T19:51:32Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    catalogActivatedAt: '2026-09-28T19:51:32Z'
+  purchase:
+    kind: api
+  claims:
+  - id: current
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/sonnet-5-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs; Availability'
+    excerpt: claude-sonnet-5-5 is an active Claude API model at review. Current-market admission only;
+      no historical effective-date claim.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:c414fff3722d09b33da7fdbe2b429527412f962cc07b20390684171e3f647de2
+    evidencePackageHash: sha256:538ba2c2524fcb0b8eb14337de1e6bfa33ec3d76222da8ace23db9140c9953d4
+  - id: route
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/models/sonnet-5-5/overview
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Specifications: Model IDs / Claude API'
+    excerpt: Exact Claude API identifier claude-sonnet-5-5; standard direct global API execution; paid
+      API credentials required.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:f70365b79939e4cbd80a67287cb9b5d3818b8efb66e437d6af83b911cfb010b5
+    evidencePackageHash: sha256:7f989ed3170756aff6350dd7c97e6dc26ea51b53d506a849ee87a8175470bb86
+  - id: endpoint
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/api/messages/create
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: 'Create a Message: HTTP method and path'
+    excerpt: POST https://api.anthropic.com/v1/messages uses the Anthropic Messages protocol.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:de0f225f79406bad42dbf73dd1ba84d0acf4f1d52dc225c694b9cad56926bdce
+    evidencePackageHash: sha256:05ed482d773ae78e0192f6cbbbd7ac7d993ec241f4db98b69cabd29aa5571d7a
+  - id: rate
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Model pricing / Claude Sonnet 5.5
+    excerpt: 'USD per million tokens: input 2, output 10, cache read 0.2. Cache-write prices depend on
+      duration.'
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:a3efc5fcbddde737cc53583ad23e7b96a6b3f31b797418e20b765abccf3a9d61
+    evidencePackageHash: sha256:533c21d3706dbc0cba88f27804ef9ab29066e38d21fd06b7344b1f5e5cc793f0
+  - id: cache-duration-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Model pricing / Claude Sonnet 5.5 / 5m writes and 1h writes
+    excerpt: Sonnet 5.5 cache writes cost USD 2.5 per million for five minutes or USD 4 per million for
+      one hour. Imported duration is not assumed.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:ac5118075763aca853c939f7932cd7af90be5b43a88d546e4a6ad3ace9ffcb29
+    evidencePackageHash: sha256:a6c0ff0dfc4dfb1ba2b15ef065a8b3ebfe71fc6fcc2d538c89179c83d6f8b174
+  - id: thinking-output-d0
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Pricing / output_tokens remains inclusive
+    excerpt: Thinking is billed as output. Inclusive output telemetry already includes reasoning, which
+      must not be added again.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:842c039047f7fa6881f157e5e39be9b17d669d3050e7a95cdeb3b4425a32c497
+    evidencePackageHash: sha256:f7739214c0968a93d7f65fe8d8ce90e57ef985ba5b87f5d8c9f19684e62ac4f9
+  - id: context
+    sourceId: platform.claude.com
+    sourceUrl: https://platform.claude.com/docs/en/about-claude/pricing
+    sourceType: provider_docs
+    observedAt: '2026-09-28T19:51:32Z'
+    reviewedAt: '2026-09-28T19:51:32Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Long context pricing
+    excerpt: Claude 4.6 and later use standard per-token pricing across the full 1M context window; no
+      long-context premium for this route.
+    reviewer: Codex manual first-party Sonnet 5.5 pricing review
+    normalizedClaimHash: sha256:2c0362d16eac1dbc98a5b0ba90cf285c88446a2f2fa84f8b589563d751f5598e
+    evidencePackageHash: sha256:f92b6547b70799c772e89ed658dcb44922303366d92116a3527526cde8950e7a
+  requirements:
+  - id: paid-api-account
+    scope: plan
+    kind: purchase_state
+    value: active-paid-api-credentials
+    claimRefs:
+    - route
+  groups: []
+  rates:
+  - id: standard-token-rate
+    pricingRef: anthropic-api-sonnet-5-5-current-rate-sonnet55
+    basis: api_list_price
+    endpointId: anthropic-messages-global
+    rateVersion: current-20260928-sonnet55
+    denomination: USD
+    claimRefs:
+    - rate
+    - thinking-output-d0
+    - context
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: direct-standard
+    endpointId: anthropic-messages-global
+    protocol: anthropic-messages
+    harnessIds:
+    - direct-http
+    models:
+      kind: exact
+      modelIds:
+      - claude-sonnet-5-5
+    debitIds: []
+    cash:
+      rateId: standard-token-rate
+      cashRateFactor: '1'
+    requirementIds: []
+    claimRefs:
+    - route
+    - endpoint
+  continuation:
+    kind: hard_stop
+    claimRefs:
+    - route
+  capabilities: []
+executionOverlays:
+- id: cache-write-5m-d0
+  validFrom: '2026-09-28T19:51:32Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-sonnet-5-5-current-20260928-sonnet55
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-sonnet-5-5-cache-5m-sonnet55
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-sonnet-5-5-cache-5m-sonnet55
+    claimRefs:
+    - thinking-output-d0
+- id: cache-write-1h-d0
+  validFrom: '2026-09-28T19:51:32Z'
+  validUntil: '2026-10-27T00:00:00Z'
+  planVersionIds:
+  - anthropic-api-sonnet-5-5-current-20260928-sonnet55
+  requirementIds: []
+  precedence: 0
+  claimRefs:
+  - cache-duration-d0
+  - thinking-output-d0
+  modifications:
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: cacheWrite
+    pricingRef: anthropic-api-sonnet-5-5-cache-1h-sonnet55
+    claimRefs:
+    - cache-duration-d0
+  - kind: cash_category_override
+    rateId: standard-token-rate
+    category: reasoning
+    pricingRef: anthropic-api-sonnet-5-5-cache-1h-sonnet55
+    claimRefs:
+    - thinking-output-d0

@@ -1,0 +1,36 @@
+id: openai-api-gpt-6-sol-current-rate
+role: pricing
+modelId: gpt-6-sol
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+endpointId: openai-responses-standard
+rateVersion: current-20260927
+rates:
+  input: '2'
+  output: '10'
+  cacheRead: '0.20'
+  cacheWrite: '2.50'
+  reasoning:
+    billedAs: output
+tiers:
+- id: long-context
+  label: Above 272K input tokens; higher rates apply to the full request
+  when:
+    inputTokensAbove: 272000
+  rates:
+    input: '4'
+    output: '15'
+    cacheRead: '0.40'
+    cacheWrite: '5'
+    reasoning:
+      billedAs: output
+effectiveFrom: '2026-09-27'
+effectiveFromInstant: '2026-09-27T17:38:00Z'
+effectiveTo: '2026-10-27'
+sources:
+- url: https://developers.openai.com/api/docs/models/gpt-6-sol
+  title: Current standard text token prices and exact model route
+  checkedAt: '2026-09-27'
+lastVerifiedAt: '2026-09-27'
+verificationStatus: verified

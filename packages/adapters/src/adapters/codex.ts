@@ -20,6 +20,7 @@ import {
   type SourceEnvironment,
 } from "../types.js";
 import { WarningCollector } from "../warnings.js";
+import { CODEX_DISCOVERY } from "./codex.discovery.js";
 
 /**
  * Codex adapter.
@@ -42,13 +43,15 @@ import { WarningCollector } from "../warnings.js";
 const ADAPTER_ID = "codex" as const;
 
 export function codexRoots(env: SourceEnvironment): string[] {
-  return [joinPath(env.platform, env.homeDir, ".codex", "sessions")];
+  return CODEX_DISCOVERY.history.map((location) =>
+    joinPath(env.platform, env.homeDir, ...location.path),
+  );
 }
 
 export function createCodexAdapter(): LocalSourceAdapter {
   return {
     id: ADAPTER_ID,
-    name: "Codex",
+    name: CODEX_DISCOVERY.name,
     kind: "usage",
 
     defaultRoots: codexRoots,

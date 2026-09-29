@@ -64,7 +64,7 @@ describe("claude-code adapter", () => {
           uuid,
           requestId,
           message: {
-            id: "msg_shared",
+            id: requestId === "req-2" ? "msg_other" : "msg_shared",
             model: "example-medium",
             stop_reason: stop,
             usage: {
@@ -81,7 +81,9 @@ describe("claude-code adapter", () => {
       );
       await writeFixture(
         `${directory}/.claude/projects/demo/b.jsonl`,
-        [row("row-3", "req-1", 5, "tool_use"), row("row-4", "req-2", 7, "end_turn")].join("\n"),
+        [row("row-3", "req-changed", 5, "tool_use"), row("row-4", "req-2", 7, "end_turn")].join(
+          "\n",
+        ),
       );
       const env = createFixtureEnvironment({ homeDir: directory });
       return adapter.collect(env, { ...options(), roots: [`${directory}/.claude/projects`] });
@@ -89,12 +91,28 @@ describe("claude-code adapter", () => {
     expect(result.events).toHaveLength(2);
     expect(result.events.map((event) => event.usage.outputTokens).sort()).toEqual([5, 7]);
     expect(result.stats.eventsEmitted).toBe(2);
+    expect(
+      result.events.reduce((n, e) => n + (e.source.nativeResponse?.duplicateRows ?? 0), 0),
+    ).toBe(2);
     expect(result.warnings).toContainEqual(
       expect.objectContaining({
         code: "RECORD_DUPLICATE",
         message: expect.stringContaining("2 records affected"),
       }),
     );
+  });
+
+  it("collects nested subagent histories using the same depth as discovery", async () => {
+    await withTempDir(async (directory) => {
+      await writeFixture(
+        `${directory}/.claude/projects/demo/session/subagents/workflows/flow/agent.jsonl`,
+        CLAUDE_CODE_SESSION,
+      );
+      const env = createFixtureEnvironment({ homeDir: directory });
+      expect((await adapter.detect(env)).supported).toBe(true);
+      const result = await adapter.collect(env, options());
+      expect(result.events).toHaveLength(2);
+    });
   });
 
   it("reports cache categories as additional and reasoning as included in output", async () => {
@@ -207,9 +225,13 @@ describe("claude-code adapter", () => {
   });
 
   it("is idempotent for identical inputs", async () => {
-    const first = await collectFrom("$DIR/.claude/projects");
-    const second = await collectFrom("$DIR/.claude/projects");
-    expect(second.events).toEqual(first.events);
+    await withTempDir(async (directory) => {
+      await writeFixture(`${directory}/.claude/projects/project/a.jsonl`, CLAUDE_CODE_SESSION);
+      const env = createFixtureEnvironment({ homeDir: directory });
+      const first = await adapter.collect(env, options());
+      const second = await adapter.collect(env, options());
+      expect(second.events).toEqual(first.events);
+    });
   });
 
   it("honours the requested window", async () => {
@@ -258,6 +280,68 @@ describe("claude-code adapter", () => {
       const detection = await adapter.detect(env);
       expect(detection.detected).toBe(false);
       expect(detection.note).toContain("no Claude Code history found");
+    });
+  });
+});
+
+describe("Claude source-root boundaries", () => {
+  it("keeps matching response ids in different roots and never deduplicates identical text", async () => {
+    await withTempDir(async (directory) => {
+      const row = (id: string) =>
+        JSON.stringify({
+          type: "assistant",
+          sessionId: "session",
+          timestamp: "2026-09-19T10:00:00Z",
+          message: {
+            id,
+            model: "example-medium",
+            content: [{ type: "text", text: "identical" }],
+            stop_reason: "end_turn",
+            usage: {
+              input_tokens: 2,
+              output_tokens: 5,
+              cache_read_input_tokens: 0,
+              cache_creation_input_tokens: 0,
+            },
+          },
+        });
+      const roots = [`${directory}/.claude/projects`, `${directory}/.claude2/projects`];
+      for (const root of roots)
+        await writeFixture(
+          `${root}/project/a.jsonl`,
+          [row("one"), row("one"), row("two")].join("\n"),
+        );
+      const seen: string[] = [];
+      const result = await adapter.collect(createFixtureEnvironment({ homeDir: directory }), {
+        ...options(),
+        roots,
+        onSourceRoot: (_id, root) => seen.push(root),
+      });
+      expect(result.events).toHaveLength(4);
+      expect(new Set(result.events.map((e) => e.id)).size).toBe(4);
+      expect(new Set(result.events.map((e) => e.source.resourceInstanceId)).size).toBe(2);
+      expect(
+        result.events.reduce((n, e) => n + (e.source.nativeResponse?.duplicateRows ?? 0), 0),
+      ).toBe(2);
+      expect(seen).toEqual(roots);
+      expect(JSON.stringify(result.events)).not.toContain(directory);
+    });
+  });
+  it("resolves symlinks to one root identity and honors the configured root", async () => {
+    await withTempDir(async (directory) => {
+      const { symlink } = await import("node:fs/promises");
+      const root = `${directory}/primary/projects`;
+      await writeFixture(`${root}/project/a.jsonl`, CLAUDE_CODE_SESSION);
+      await symlink(root, `${directory}/alias`, "dir");
+      const env = createFixtureEnvironment({ homeDir: directory });
+      env.env.CLAUDE_CONFIG_DIR = `${directory}/primary`;
+      expect(adapter.defaultRoots(env)).toEqual([root]);
+      const result = await adapter.collect(env, {
+        ...options(),
+        roots: [root, `${directory}/alias`],
+      });
+      expect(result.events).toHaveLength(2);
+      expect(new Set(result.events.map((e) => e.source.resourceInstanceId)).size).toBe(1);
     });
   });
 });

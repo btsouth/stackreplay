@@ -17,8 +17,6 @@ import {
 import { WindowDetail } from "./pressure";
 import { ShareBar } from "./section";
 
-const INITIAL_ROWS = 8;
-
 function dateOf(ms: number, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(ms));
 }
@@ -31,9 +29,11 @@ function dateOf(ms: number, timeZone: string): string {
 export function ProjectLedger({
   profile,
   measure,
+  initialRows = 8,
 }: {
   profile: WorkloadProfile;
   measure: Measure;
+  initialRows?: number;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [selected, setSelected] = useState<string | undefined>(undefined);
@@ -44,7 +44,7 @@ export function ProjectLedger({
       ),
     [profile.projects, measure],
   );
-  const visible = showAll ? ranked : ranked.slice(0, INITIAL_ROWS);
+  const visible = showAll ? ranked : ranked.slice(0, initialRows);
   const whole = measure === "events" ? profile.overview.events : profile.overview.knownTokens;
   const top = measureValue(ranked[0] ?? { events: 0, tokens: 0 }, measure);
   const selectedProject = ranked.find((project) => project.key === selected);
@@ -70,7 +70,7 @@ export function ProjectLedger({
                 Project
               </th>
               <th className="hidden py-2 pr-3 text-right font-normal sm:table-cell" scope="col">
-                Events
+                Calls
               </th>
               <th className="hidden py-2 pr-3 text-right font-normal md:table-cell" scope="col">
                 Sessions
@@ -123,7 +123,7 @@ export function ProjectLedger({
                       : formatTokens(project.tokens)}
                     <span className="block text-[11px] text-muted-foreground">
                       {measure === "events"
-                        ? `${count(project.events)} events`
+                        ? `${count(project.events)} calls`
                         : percent(whole === 0 ? 0 : value / whole)}
                     </span>
                   </td>
@@ -136,7 +136,7 @@ export function ProjectLedger({
           </tbody>
         </table>
       </div>
-      {ranked.length > INITIAL_ROWS ? (
+      {ranked.length > initialRows ? (
         <button
           type="button"
           className="min-h-11 self-start text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
@@ -213,7 +213,7 @@ function ProjectDrilldown({
       </div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
         <div>
-          <dt className="text-xs text-muted-foreground">Events</dt>
+          <dt className="text-xs text-muted-foreground">Calls</dt>
           <dd className="font-mono text-xl tabular-nums">{count(project.events)}</dd>
         </div>
         <div>
@@ -256,7 +256,7 @@ function ProjectDrilldown({
                 <span className="flex justify-between gap-3">
                   <span className="truncate">{model.label}</span>
                   <span className="font-mono tabular-nums text-muted-foreground">
-                    {count(model.events)} events ·{" "}
+                    {count(model.events)} calls ·{" "}
                     {percent(project.events === 0 ? 0 : model.events / project.events)}
                   </span>
                 </span>
@@ -277,11 +277,11 @@ function ProjectDrilldown({
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Heaviest session:{" "}
               <span className="text-foreground">
-                {count(session.events)} events · {formatTokens(session.tokens)} tokens
+                {count(session.events)} calls · {formatTokens(session.tokens)} tokens
               </span>{" "}
               · {session.primaryModel ?? "unknown model"} · started{" "}
               {windowText(session.firstMs, session.firstMs + 60_000, timeZone).split(" to ")[0]} ·{" "}
-              {spanText(session.observedSpanMs)} between first and last event
+              {spanText(session.observedSpanMs)} between first and last call
             </p>
           )}
         </div>

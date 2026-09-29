@@ -21,6 +21,14 @@
     "./intelligence": {
       "types": "./dist/intelligence/index.d.ts",
       "default": "./dist/intelligence/index.js"
+    },
+    "./execution": {
+      "types": "./dist/execution.d.ts",
+      "default": "./dist/execution.js"
+    },
+    "./market": {
+      "types": "./dist/decision-market.d.ts",
+      "default": "./dist/decision-market.js"
     }
   },
   "files": [
@@ -28,7 +36,7 @@
     "data"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs && node scripts/build-decision-market.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

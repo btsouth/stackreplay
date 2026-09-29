@@ -78,6 +78,10 @@ versions:
     billingMechanics: "Claude Pro costs $20 per month. Annual billing is available at $200 upfront."
     limits: []
     qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: Claude and Claude Code access with five-hour and weekly usage limits. Optional paid usage credits after included usage.
+        sourceUrl: https://claude.com/pricing
       - id: 5-hour-session-usage-limit-rolling
         label: "5-hour session usage limit (rolling)"
         statement: "Your session-based usage limit will reset every five hours."
@@ -164,3 +168,149 @@ versions:
         checkedAt: 2026-09-24
     lastVerifiedAt: 2026-09-24
     verificationStatus: verified
+executionVersions:
+- schemaVersion: 1
+  id: anthropic-claude-pro-current-20260927
+  productId: claude-pro
+  validity:
+    start: '2026-09-27T17:38:00Z'
+    end: '2026-10-27T00:00:00Z'
+    basis: current-market
+    claimRefs:
+    - current
+  publication:
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    catalogActivatedAt: '2026-09-27T17:38:00Z'
+  purchase:
+    kind: subscription
+    term: month
+    fixedUsd: '20'
+    claimRefs:
+    - price
+  claims:
+  - id: current
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Current plan listing
+    excerpt: Claude Pro current at review; historical effective date not established.
+    normalizedClaimHash: sha256:125aec231f013036bb3f8b018609928fe32021e17c221309fd92e6288b85a8c2
+    evidencePackageHash: sha256:24e4d12cf9357570cb5b0d8274cf37afba1b921c85d31f16e02e7540930a312f
+    reviewer: Codex C2B manual official-source review
+  - id: price
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Monthly price
+    excerpt: Claude Pro web individual subscription is USD 20 per month.
+    normalizedClaimHash: sha256:fdecf994e9a28a2ad8979644c4cbd6fdc1acea30774541c679a186846daf602d
+    evidencePackageHash: sha256:43c6040f62147c8e1340f2a7c3a56065e39eb7fec53e05ff1d234ada6970a32c
+    reviewer: Codex C2B manual official-source review
+  - id: route
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Execution entitlement
+    excerpt: Active Claude Pro includes claude-code-subscription access; this is not a direct API entitlement.
+    normalizedClaimHash: sha256:fb5d9f3f659785a7f03105b318dc2ab739e363f2dd5895e8c8aded94e428a19c
+    evidencePackageHash: sha256:c080717438a5645ebabd74038c38c19159ac9af6ab96dd143eaab001c7c4e0ab
+    reviewer: Codex C2B manual official-source review
+  - id: models
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/11940350-claude-code-model-configuration
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: published_deterministic
+    locator: Supported model access
+    excerpt: 'Exact canonical models established for claude-code-subscription: claude-haiku-4-5, claude-sonnet-5.'
+    normalizedClaimHash: sha256:2eb766f30b5a69d67cda11ed10e052b372da23690320367b57786407e0f3a9e9
+    evidencePackageHash: sha256:36f4a63534ce7233af15748a048531f79b3fdd730253242b3c92b3d092150112
+    reviewer: Codex C2B manual official-source review
+  - id: capacity
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: provider
+    certainty: provider_dynamic
+    locator: Usage or capacity mechanics
+    excerpt: Five-hour and account-assigned weekly usage limits vary by model and usage; no deterministic allowance
+      is published.
+    normalizedClaimHash: sha256:dd0654333d7e5e97cde342168756e5bdf614dc9dc0c36f175dbf23f20e54d18c
+    evidencePackageHash: sha256:1b254a8b572dff6f16049eb96d2222d891c107f1c1f083cc572b2d5ce09d11fd
+    reviewer: Codex C2B manual official-source review
+  - id: continuation
+    sourceId: support.claude.com
+    sourceUrl: https://support.claude.com/en/articles/8325606-what-is-the-pro-plan
+    sourceType: provider_docs
+    observedAt: '2026-09-27T17:38:00Z'
+    reviewedAt: '2026-09-27T17:38:00Z'
+    effectiveDateBasis: catalog_activation
+    authority: reviewer
+    certainty: inferred
+    locator: After allowance
+    excerpt: Continuation for Claude Pro depends on optional purchase, changing limits, or account state and is
+      not established for deterministic replay.
+    normalizedClaimHash: sha256:1a4241bff97dbed4c1788b15cd747d4cd2499235df7f1fc72169717333b8e604
+    evidencePackageHash: sha256:4dd3a38c69585bb9ac3fb388290d7fadaaa9fcc28a8ea7b899d125164cadd6a8
+    reviewer: Codex C2B manual official-source review
+  requirements:
+  - id: active-subscription
+    scope: plan
+    kind: purchase_state
+    value: active-anthropic-claude-pro-monthly-web
+    claimRefs:
+    - route
+  groups: []
+  rates: []
+  meters: []
+  pools: []
+  debits: []
+  windows: []
+  constraints: []
+  routes:
+  - id: included-access
+    endpointId: claude-code-subscription
+    protocol: claude-code-login
+    harnessIds:
+    - claude-code
+    models:
+      kind: exact
+      modelIds:
+      - claude-haiku-4-5
+      - claude-sonnet-5
+    debitIds: []
+    requirementIds: []
+    claimRefs:
+    - route
+    - models
+  continuation:
+    kind: unknown
+    claimRefs:
+    - continuation
+  capabilities:
+  - code: opaque_capacity
+    subject: dynamic-session-and-weekly-capacity
+    claimRefs:
+    - capacity

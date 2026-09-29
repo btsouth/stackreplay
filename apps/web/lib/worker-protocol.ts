@@ -1,8 +1,19 @@
 import type { CandidateOutcome } from "@stackreplay/adapters/browser";
-import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
+import type {
+  ApiPriceabilityCountsV1,
+  ExactOptimizationInput,
+  PriceReceiptV1,
+  ProjectedReplayV1,
+} from "@stackreplay/replay-engine";
 import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
+import type { CapacityBurden } from "./capacity-episodes";
+import type { MarketDecision } from "./market-decision";
+import type { OptimizerDetail, OptimizerPhase, OptimizerSummary } from "./optimizer-runtime";
+import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
 import type { WindowFact, WorkloadProfile } from "./workload-profile";
+
+export type { ReplayScope, ResolvedScopeReplay };
 
 /**
  * Internal Worker protocol (spec point 12, M3 brief).
@@ -200,8 +211,8 @@ export interface ImportRecord {
  * (benchmark finding F031). `partialEvents` says how many events contributed to it.
  */
 export interface TimelinePoint {
-  /** Bucket start, ISO-8601 UTC (daily buckets). */
-  at: string;
+  /** The bucket's calendar date (YYYY-MM-DD) in the viewer's timezone. */
+  day: string;
   events: number;
   /** Sum of the events whose token total is fully known. */
   tokens: number;
@@ -211,15 +222,61 @@ export interface TimelinePoint {
   partialEvents: number;
 }
 
+export type OptimizerConfiguration = Omit<ExactOptimizationInput, "events" | "catalog">;
 export type WorkerRequest =
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "IMPORT_SOURCES";
+      type: "CAPACITY_EPISODES";
       requestId: number;
       importId: string;
-      files: { file: File; path: string }[];
+      resourceInstanceId: string;
+      planId: string | undefined;
+      period: import("./review-period").ReviewPeriod;
+      contextImportIds: string[];
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "API_MARKET";
+      resourceInstanceId?: string;
+      period?: import("./review-period").ReviewPeriod;
+      requestId: number;
+      importId: string;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "OPTIMIZE";
+      requestId: number;
+      importId: string;
+      configuration: OptimizerConfiguration;
+      sources?: string[];
+    }
+  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CANCEL_OPTIMIZER"; requestId: number }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "OPTIMIZER_DETAIL";
+      requestId: number;
+      generation: number;
+      offset: number;
+      limit: number;
+    }
+  | {
+      protocol: typeof WORKER_PROTOCOL_VERSION;
+      type: "IMPORT_SOURCES";
+      sourceRootSalt?: string;
+      requestId: number;
+      importId: string;
+      /**
+       * `group` names the history a file was selected for (a source id such as
+       * `claude-code`, or a connected location), so the scan can report
+       * progress per history. It is an identifier, never a path.
+       * `unavailable` marks a discovered file the browser would not hand over
+       * (the browser's error name); the scan reports it as unreadable.
+       */
+      files: { file: File; path: string; group?: string; unavailable?: string }[];
       now: string;
       saveLocal: boolean;
+      /** The workload's name in this browser, e.g. "Claude Code + Codex". */
+      label?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -257,6 +314,13 @@ export type WorkerRequest =
        * The response reports how many were left out.
        */
       excludeUnresolved?: boolean;
+      /**
+       * Explicit user scope: replay only the calls these recording tools made,
+       * by adapter id. The response states the slice.
+       */
+      sources?: string[];
+      /** IANA timezone the timeline's calendar days are read in. */
+      timeZone?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -265,6 +329,8 @@ export type WorkerRequest =
       importId: string;
       /** IANA timezone the clock positions are read in. */
       timeZone: string;
+      /** When given, the profile carries the workload's published-rate value at this date. */
+      rulesAsOf?: string;
     }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -304,9 +370,16 @@ export interface ScanProgress {
   models: { name: string; events: number }[];
   /** The busiest projects so far, by local label. */
   topProjects: { label: string; events: number }[];
+  /** Files read of files selected and events found, per selected history. */
+  histories?: { id: string; filesDone: number; filesTotal: number; events: number }[];
 }
 
 export type WorkerResponse =
+  | { type: "CAPACITY_EPISODES_OK"; requestId: number; burden: CapacityBurden }
+  | { type: "API_MARKET_OK"; requestId: number; decision: MarketDecision }
+  | { type: "OPTIMIZER_OK"; requestId: number; summary: OptimizerSummary }
+  | { type: "OPTIMIZER_PHASE"; requestId: number; phase: OptimizerPhase }
+  | { type: "OPTIMIZER_DETAIL_OK"; requestId: number; detail: OptimizerDetail }
   | { type: "READY"; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "PONG"; requestId: number; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "CANCELLED"; requestId: number }
@@ -335,7 +408,25 @@ export type WorkerResponse =
        */
       projection: ProjectedReplayV1;
       /** Present when the replay ran under an explicit scope. */
-      scope?: { excludedUnresolvedEvents: number; recordedEvents: number };
+      scope?: ReplayScope;
+      /**
+       * The model × category arithmetic behind the result's money: a Direct API
+       * list price, or a plan's credit demand. Collected in the same pass as the
+       * result, so it adds up to the engine's own figure.
+       */
+      receipt?: PriceReceiptV1;
+      /** Direct API only: how many events fared each way in that pass. */
+      priceability?: ApiPriceabilityCountsV1;
+      /**
+       * Direct API only, and only when unrecognized model IDs are the one thing
+       * standing between the workload and a complete price: the same replay
+       * over the calls whose identity resolves (decision 49's explicit scope),
+       * complete on its own terms. The interface states that scope wherever it
+       * shows this figure.
+       */
+      resolvedScope?: ResolvedScopeReplay;
+      /** Subscription targets: when each undecided call occurred, epoch ms. */
+      undecidedAtMs?: number[];
     }
   | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
   | { type: "WINDOW_OK"; requestId: number; window: WindowFact }

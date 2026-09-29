@@ -1,5 +1,16 @@
 export { type CanonicalValue, canonicalStringify } from "./canonical.js";
 export {
+  addAmounts,
+  apportionCents,
+  formatCents,
+  formatUsd,
+  formatUsdWhole,
+  isPositiveAmount,
+  prorateCents,
+  toCents,
+} from "./money.js";
+export { shareHeadline, shareTools, suggestedPost } from "./post.js";
+export {
   assertNoForbiddenFields,
   FORBIDDEN_SHARE_KEYS,
   type ForbiddenShareKey,
@@ -14,21 +25,56 @@ export {
   snapshotIsSynthetic,
 } from "./schema.js";
 export {
+  type AnyShareSnapshot,
+  type AnyShareTokenResult,
   base64UrlDecode,
   base64UrlEncode,
+  decodeAnyShareToken,
   decodeShareToken,
   decodeShareTokenOrThrow,
   encodeShareToken,
   encodeShareTokenFromCanonical,
+  encodeShareTokenV2,
   MAX_SHARE_ARRAY_LENGTH,
   MAX_SHARE_DECOMPRESSED_BYTES,
   MAX_SHARE_JSON_DEPTH,
   MAX_SHARE_STRING_LENGTH,
   MAX_SHARE_TOKEN_LENGTH,
   SHARE_CHECKSUM_BYTES,
+  SHARE_TOKEN_V2,
   SHARE_TOKEN_VERSION,
   ShareTokenError,
   type ShareTokenErrorCode,
   type ShareTokenResult,
   sharePath,
 } from "./token.js";
+export {
+  SHARE_SNAPSHOT_V2,
+  SHAREABLE_TOOLS,
+  type ShareableToolId,
+  type ShareReplayV2,
+  type ShareSnapshotV2,
+  type ShareWorkloadV2,
+  shareableToolId,
+  shareReplayV2Schema,
+  shareSnapshotV2Schema,
+  shareWorkloadV2Schema,
+} from "./v2.js";
+export { composeValueScope, type ValueScopeInput } from "./value-scope.js";
+export {
+  boundText,
+  composeVerdict,
+  partOfWhole,
+  shareText,
+  VERDICT_FACTS_VERSION,
+  type VerdictFactsV1,
+  type VerdictV1,
+  verdictDay,
+  verdictFactsV1Schema,
+} from "./verdict.js";
+export {
+  composeWorkloadFact,
+  WORKLOAD_FACT_IDS,
+  type WorkloadFactV1,
+  workloadFactV1Schema,
+} from "./workload-facts.js";

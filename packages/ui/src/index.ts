@@ -26,7 +26,13 @@ export { NavLink, type NavLinkProps } from "./components/nav-link";
 export { PublicNav } from "./components/public-nav";
 export { PublicSection, PublicShell, type PublicShellProps } from "./components/public-shell";
 export { cn } from "./lib/cn";
-export { type AppNavItem, appBrand, appNavItems, isNavItemActive } from "./lib/nav";
+export {
+  type AppNavItem,
+  appBrand,
+  appNavItems,
+  appUtilityNavItems,
+  isNavItemActive,
+} from "./lib/nav";
 export {
   isPublicNavItemActive,
   type PublicFooterGroup,

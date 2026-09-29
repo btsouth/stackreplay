@@ -21,6 +21,16 @@ import {
   directApiProviderIdsFor,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
+import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
+import {
+  includedAccessModels,
+  type SubscriptionAccess,
+  subscriptionAccess,
+} from "./subscription-access";
+import {
+  type SubscriptionPublishedTerms,
+  subscriptionPublishedTerms,
+} from "./subscription-published-terms";
 
 /**
  * Public catalog read model (M4).
@@ -32,8 +42,9 @@ import {
  * only. The synthetic namespace stays available to the application, where demo
  * data is explicitly labelled as demo data.
  *
- * Every public fact carries the provenance the schema requires: source URLs,
- * a verification state and the date the claim was last checked.
+ * Pricing and replay rules retain catalog provenance. Public product lineups
+ * additionally carry reviewed official sources and dates independently of
+ * which exact routes are admitted for Replay.
  */
 
 /**
@@ -93,6 +104,24 @@ export interface PublicPlanSummary {
   sources: readonly CatalogSourceV1[];
   billingMechanics: string | undefined;
   versionCount: number;
+  /** Current-market execution facts, not reconstructed historical terms. */
+  currentMarketOnly?: boolean;
+  /** Provider-published product lineup, separate from executable Replay rules. */
+  modelAccess?: SubscriptionAccess;
+  publishedTerms?: SubscriptionPublishedTerms;
+}
+
+/**
+ * Whether a plan includes a model. A published lineup decides through explicit
+ * `modelId` links only; a plan without one falls back to its catalog model rules.
+ */
+export function planIncludesModel(
+  plan: Pick<PublicPlanSummary, "modelAccess" | "modelRules">,
+  modelId: string,
+): boolean {
+  return plan.modelAccess
+    ? includedAccessModels(plan.modelAccess).some((entry) => entry.modelId === modelId)
+    : plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true);
 }
 
 /**
@@ -119,6 +148,8 @@ export interface PublicModelSummary {
   /** Only what the record states; absent is never read as current. */
   lifecycle: ModelLifecycleV1 | undefined;
   developerId: string | undefined;
+  specifications?: CatalogV1["models"][string]["specifications"];
+  pricingNote?: string | undefined;
   developerName: string | undefined;
   /** For a release: the family identity record it belongs to. */
   familyId: string | undefined;
@@ -245,22 +276,119 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
   for (const planId of realPlanIds) {
     const version = currentVersionOf(catalog, planId, date);
     if (version !== undefined) plans.push(toPlanSummary(catalog, planId, version));
+    else {
+      const plan = catalog.plans[planId];
+      const execution = selectExecutionVersionAt(
+        plan?.executionVersions ?? [],
+        `${date}T23:59:59Z`,
+      );
+      if (
+        !plan ||
+        !execution ||
+        execution.purchase.kind !== "subscription" ||
+        execution.purchase.fixedUsd === null ||
+        execution.purchase.term !== "month"
+      )
+        continue;
+      const claims = execution.claims;
+      plans.push({
+        id: planId,
+        name: plan.name,
+        providerId: plan.providerId,
+        providerName: catalog.providers[plan.providerId]?.name ?? plan.providerId,
+        versionId: execution.id,
+        effectiveFrom: (execution.publication.catalogActivatedAt ?? execution.validity.start).slice(
+          0,
+          10,
+        ),
+        price: { currency: "USD", amount: execution.purchase.fixedUsd, interval: "month" },
+        limits: [],
+        promotions: [],
+        modelRules: [
+          ...new Set(
+            execution.routes.flatMap((route) =>
+              route.models.kind === "exact" ? route.models.modelIds : [],
+            ),
+          ),
+        ].map((model) => ({ model })),
+        qualitativeLimits: claims
+          .filter((claim) => ["capacity", "credits", "continuation"].includes(claim.id))
+          .flatMap((claim) =>
+            claim.excerpt
+              ? [
+                  {
+                    id: claim.id,
+                    label: claim.id === "continuation" ? "After the limit" : "Included usage",
+                    statement: claim.excerpt,
+                    sourceUrl: claim.sourceUrl,
+                    ...(claim.id === "continuation" ? { topic: "after_limit" as const } : {}),
+                  },
+                ]
+              : [],
+          ),
+        verificationStatus: "verified",
+        lastVerifiedAt: execution.publication.reviewedAt.slice(0, 10),
+        sources: [
+          ...new Map(
+            claims.flatMap((claim) =>
+              claim.sourceUrl
+                ? [
+                    [
+                      claim.sourceUrl,
+                      {
+                        url: claim.sourceUrl,
+                        title: claim.locator,
+                        checkedAt: claim.reviewedAt.slice(0, 10),
+                      },
+                    ] as const,
+                  ]
+                : [],
+            ),
+          ).values(),
+        ],
+        billingMechanics: claims.find((claim) => claim.id === "price")?.excerpt,
+        versionCount: plan.executionVersions?.length ?? 1,
+        currentMarketOnly: true,
+      });
+    }
   }
 
+  for (const plan of plans) {
+    const access = subscriptionAccess(plan.id, date);
+    if (access) plan.modelAccess = access;
+    const terms = subscriptionPublishedTerms(plan.id, date);
+    if (terms) plan.publishedTerms = terms;
+  }
   const providerName = (id: string) => catalog.providers[id]?.name ?? id;
   const models: PublicModelSummary[] = realModelIds.map((modelId) => {
     const model = catalog.models[modelId];
     const providerIds = model?.providerIds ?? [];
     const developerId = model?.developerId;
-    const planIds = plans
-      .filter((plan) =>
-        plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
-      )
-      .map((plan) => plan.id);
+    const planIds = plans.filter((plan) => planIncludesModel(plan, modelId)).map((plan) => plan.id);
     // Places: a Direct API route first (an offering fact, not authorship), then
     // plans, the developer's own plans first so the row leads with the obvious
     // place to use the model.
-    const apiPlaces: PublicModelPlace[] = directApiProviderIdsFor(catalog, modelId).map((id) => ({
+    // A current first-party API reference price also documents public access.
+    // This display fact does not add an executable target or change admission.
+    const hasReferencePrice = Object.values(catalog.pricing).some(
+      (price) =>
+        price.modelId === modelId &&
+        price.basis === "api_list_price" &&
+        price.verificationStatus === "verified" &&
+        !price.variantId &&
+        price.effectiveFrom <= date &&
+        (!price.effectiveTo || price.effectiveTo >= date),
+    );
+    const apiProviderIds =
+      model?.apiAvailability === "not_established" || model?.apiAvailability === "retired"
+        ? []
+        : [
+            ...new Set([
+              ...directApiProviderIdsFor(catalog, modelId),
+              ...(developerId && hasReferencePrice ? [developerId] : []),
+            ]),
+          ];
+    const apiPlaces: PublicModelPlace[] = apiProviderIds.map((id) => ({
       kind: "api",
       label: `${providerName(id)} API`,
       providerId: id,
@@ -289,6 +417,8 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
       kind: model === undefined ? "release" : modelKindOf(model),
       lifecycle: model?.lifecycle,
       developerId,
+      specifications: model?.specifications,
+      pricingNote: model?.pricingNote,
       developerName: developerId === undefined ? undefined : providerName(developerId),
       familyId,
       familyName: familyId === undefined ? undefined : catalog.models[familyId]?.name,

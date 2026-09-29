@@ -65,6 +65,32 @@ const translationPolicy: ModelTranslationPolicyV1 = {
 };
 
 describe("projectReplay", () => {
+  it("counts the period in the viewer's calendar days when given a time zone", () => {
+    const catalog = makeFixtureCatalog({
+      limits: [
+        rollingLimit({ id: "req", type: "request_limit", amount: "500", exceed: "reject_request" }),
+      ],
+    });
+    // 00:45 UTC on Aug 21 is still Aug 20 in New York.
+    const result = replay({
+      events: ["2026-08-21T00:45:00.000Z", "2026-09-23T21:00:00.000Z"].map((occurredAt, index) =>
+        makeEvent({
+          id: `ev-${index}`,
+          occurredAt,
+          usage: completeUsage({ uncachedInputTokens: 10 }),
+        }),
+      ),
+      target: fixtureTarget,
+      catalog,
+      context: fixtureContext,
+    });
+    expect(projectReplay(result, catalog).workload.windowDays).toBe(34);
+    expect(
+      projectReplay(result, catalog, { timeZone: "America/New_York" }).workload.windowDays,
+    ).toBe(35);
+    expect(projectReplay(result, catalog, { timeZone: "UTC" }).workload.windowDays).toBe(34);
+  });
+
   it("keeps the rule's own behaviour on every crossing", () => {
     const catalog = makeFixtureCatalog({
       limits: [
@@ -693,7 +719,7 @@ describe("projectReplay", () => {
 
     const statement = projection.headline.statement;
     expect(statement).not.toMatch(/0 of 0|undefined|NaN/u);
-    expect(statement).toMatch(/does not report how many modeled requests fit/iu);
+    expect(statement).toMatch(/does not report how many modeled requests were served/iu);
     expect(projection.headline.percent).toBeUndefined();
   });
 });

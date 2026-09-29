@@ -1,0 +1,46 @@
+id: opencode-go
+role: plan
+name: OpenCode Go
+providerId: opencode
+versions:
+- effectiveFrom: '2026-09-28'
+  price:
+    currency: USD
+    amount: '10'
+    interval: month
+  billingMechanics: Current monthly offer recorded on September 28, 2026. Provider
+    usage credits follow provider-specific rates; they are not direct API dollars.
+    Exact subscription capacity is not admitted for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: Model-dependent monthly allowances, with five-hour and weekly limits.
+    sourceUrl: https://opencode.ai/v2/docs/console/go
+  - id: compatible-tools
+    label: Compatible tools
+    statement: OpenCode · Claude Code · Codex · Hermes
+    sourceUrl: https://opencode.ai/v2/docs/console/go
+  - id: after-limit
+    label: After the limit
+    statement: Optional Zen balance can fund usage after the included limit; free
+      models remain available.
+    sourceUrl: https://opencode.ai/v2/docs/console/go
+    topic: after_limit
+  modelRules:
+  - model: glm-5-3
+  - model: glm-5-3-flash
+  - model: kimi-k3
+  - model: kimi-k2-7-code
+  - model: deepseek-v4-1-flash
+  - model: gpt-6-luna
+  - model: gpt-5-6-luna
+  - model: grok-4-6
+  - model: grok-4-7
+  sources:
+  - url: https://opencode.ai/v2/docs/console/go
+    title: Official current price, access and usage terms; catalog admission date,
+      not a historical launch date
+    checkedAt: '2026-09-28'
+  lastVerifiedAt: '2026-09-28'
+  verificationStatus: verified

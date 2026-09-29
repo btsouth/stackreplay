@@ -72,7 +72,7 @@ function tokenSignature(event: UsageEventV1): string {
 function overlapKey(event: UsageEventV1): string | undefined {
   const session = event.source.nativeSessionHash;
   if (session === undefined) return undefined;
-  return `${session}\u0000${event.occurredAt}\u0000${tokenSignature(event)}`;
+  return `${event.source.resourceInstanceId ?? ""}\u0000${session}\u0000${event.occurredAt}\u0000${tokenSignature(event)}`;
 }
 
 function precisionRank(adapterId: string): number {
@@ -84,13 +84,35 @@ export function dedupeEvents(events: readonly UsageEventV1[]): DedupResult {
   const byExact = new Map<string, UsageEventV1>();
   let exactDuplicates = 0;
   for (const event of events) {
-    const key = `${event.source.adapterId}\u0000${event.source.nativeEventHash ?? event.id}`;
+    const key = `${event.source.adapterId}\u0000${event.source.resourceInstanceId ?? ""}\u0000${event.source.nativeEventHash ?? event.id}`;
     const existing = byExact.get(key);
     if (existing === undefined) {
       byExact.set(key, event);
       continue;
     }
     exactDuplicates += 1;
+    if (existing.source.nativeResponse && event.source.nativeResponse) {
+      const a = existing.source.nativeResponse,
+        b = event.source.nativeResponse;
+      const winner =
+        a.final !== b.final
+          ? b.final
+            ? event
+            : existing
+          : (event.usage.outputTokens ?? 0) > (existing.usage.outputTokens ?? 0)
+            ? event
+            : existing;
+      byExact.set(key, {
+        ...winner,
+        source: {
+          ...winner.source,
+          nativeResponse: {
+            final: winner.source.nativeResponse?.final ?? false,
+            duplicateRows: a.duplicateRows + b.duplicateRows + 1,
+          },
+        },
+      });
+    }
   }
 
   const byOverlap = new Map<string, UsageEventV1>();
@@ -139,12 +161,19 @@ export function dedupeEvents(events: readonly UsageEventV1[]): DedupResult {
   for (const event of byOverlap.values()) {
     const session = event.source.nativeSessionHash;
     if (session === undefined) continue;
-    if (precisionRank(event.source.adapterId) < AGGREGATE_RANK) nativeSessions.add(session);
+    if (precisionRank(event.source.adapterId) < AGGREGATE_RANK) {
+      nativeSessions.add(`${event.source.resourceInstanceId ?? ""}\u0000${session}`);
+      nativeSessions.add(`\u0000${session}`);
+    }
   }
   if (nativeSessions.size > 0) {
     for (const [key, event] of [...byOverlap.entries()]) {
       const session = event.source.nativeSessionHash;
-      if (session === undefined || !nativeSessions.has(session)) continue;
+      if (
+        session === undefined ||
+        !nativeSessions.has(`${event.source.resourceInstanceId ?? ""}\u0000${session}`)
+      )
+        continue;
       if (precisionRank(event.source.adapterId) < AGGREGATE_RANK) continue;
       byOverlap.delete(key);
       overlaps += 1;

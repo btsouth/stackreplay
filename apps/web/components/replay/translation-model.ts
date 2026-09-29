@@ -62,6 +62,55 @@ export function targetModels(target: TargetSelection, rulesAsOf: string): Bundle
     : bundledApiProviderModels(target.providerId, rulesAsOf);
 }
 
+/** One substitute a person can choose, labelled by what kind of record it is. */
+export interface SubstituteChoice extends BundledTargetModel {
+  /** The option text: the release name, marked legacy when the catalog says so. */
+  label: string;
+  lifecycle: "current" | "legacy" | undefined;
+}
+
+const LIFECYCLE_RANK = { current: 0, unrecorded: 1, legacy: 2 } as const;
+
+/**
+ * The substitutes to offer for a translated replay.
+ *
+ * A plan's rules name Claude Code's family aliases ("Opus", "Sonnet") so that
+ * recorded demand under those spellings resolves; they are not models anyone
+ * would pick as a target beside the concrete releases of the same family, and
+ * listing "Opus" next to "Claude Opus 5.5" reads as two different models. A
+ * family record is therefore offered only when no release of that family is
+ * available on the target. Releases the catalog records as legacy stay
+ * available and say so. Current releases come first.
+ */
+export function substituteChoices(available: readonly BundledTargetModel[]): SubstituteChoice[] {
+  const models = loadBundledCatalog().models;
+  const offered = available.filter((model) => model.available);
+  const familiesWithReleases = new Set(
+    offered
+      .map((model) => models[model.id])
+      .filter((record) => record !== undefined && record.kind !== "family")
+      .flatMap((record) => (record?.familyId === undefined ? [] : [record.familyId])),
+  );
+  return offered
+    .filter((model) => {
+      const record = models[model.id];
+      return !(record?.kind === "family" && familiesWithReleases.has(model.id));
+    })
+    .map((model) => {
+      const lifecycle = models[model.id]?.lifecycle;
+      return {
+        ...model,
+        lifecycle,
+        label: lifecycle === "legacy" ? `${model.name} (legacy)` : model.name,
+      };
+    })
+    .sort(
+      (a, b) =>
+        LIFECYCLE_RANK[a.lifecycle ?? "unrecorded"] - LIFECYCLE_RANK[b.lifecycle ?? "unrecorded"] ||
+        (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+    );
+}
+
 /** Which observed models the target serves as they are. */
 export function compatibility(
   workload: WorkloadModels,
