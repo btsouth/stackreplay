@@ -4,6 +4,7 @@ import {
   type ModelIdentityIndex,
   modelResolutionKindOf,
   type PricingV1,
+  pricesServiceTier,
   selectPlanVersionAt,
 } from "@stackreplay/catalog";
 import type {
@@ -16,6 +17,7 @@ import type {
   ReplayContextV1,
   ReplayTranslationV1,
   ResetAssumptionV1,
+  ServiceTierV1,
   TextUsageEventV1,
   WorkloadScopeKindV1,
 } from "@stackreplay/schema";
@@ -135,7 +137,13 @@ type ApiPricingOutcome =
   /** The model has pricing records, but none on the API list-price basis. */
   | { kind: "other-basis" }
   /** The model has API list-price records, but none in force at the instant. */
-  | { kind: "not-in-force" };
+  | { kind: "not-in-force" }
+  /**
+   * The replay asks for a processing tier the provider does not offer this
+   * model at (not listed, announced, in preview or unavailable). The model is
+   * unpriced; its Standard price is never borrowed.
+   */
+  | { kind: "tier-unavailable" };
 
 /** Whether the selected provider serves one effective model. */
 type ApiAvailability = "offered" | "not-offered" | "offering-unestablished";
@@ -177,7 +185,13 @@ export function replayApiTarget(
 
   const tracker = new Tracker();
   const identity = createModelIdentityIndex(catalog);
-  const pricingHistory = buildApiPricingHistory(catalog);
+  /**
+   * The processing tier every event is priced at. Standard reads exactly the
+   * records it always read; any other tier reads only that tier's records, for
+   * models the provider offers at that tier.
+   */
+  const serviceTier: ServiceTierV1 = target.serviceTier ?? "standard";
+  const pricingHistory = buildApiPricingHistory(catalog, serviceTier);
   /** Memoized per effective model: offering and price selection are per model. */
   const availabilityCache = new Map<string, ApiAvailability>();
   const pricingCache = new Map<string, ApiPricingOutcome>();
@@ -276,6 +290,11 @@ export function replayApiTarget(
           context.rulesAsOfInstant,
           pricingCache,
         );
+        if (pricing.kind === "tier-unavailable")
+          tracker.warn(
+            "API_TIER_NOT_AVAILABLE",
+            `One or more events use a model the provider does not offer at the ${serviceTier} processing tier (not listed, announced but not available, or in preview); their cost is unknown, and no other tier's price was used.`,
+          );
         const outcome = moneyUnitsForUsage(
           event.usage,
           pricing.kind === "selected" ? pricing.pricing : undefined,
@@ -293,7 +312,9 @@ export function replayApiTarget(
         if (pricing.kind === "not-recorded")
           tracker.warn(
             "API_PRICE_NOT_RECORDED",
-            "One or more events use a model with no API list-price record in the catalog; their cost could not be established.",
+            serviceTier === "standard"
+              ? "One or more events use a model with no API list-price record in the catalog; their cost could not be established."
+              : `One or more events use a model with no ${serviceTier} API list-price record in the catalog; their cost could not be established, and the Standard price was not used instead.`,
           );
         if (pricing.kind === "not-in-force")
           tracker.warn(
@@ -499,7 +520,7 @@ export function replayApiTarget(
     violations: [],
     unsupportedModels: unsupported.build(),
     ...(economics !== undefined ? { economics } : {}),
-    assumptions: buildApiAssumptions({ tracker, translation }),
+    assumptions: buildApiAssumptions({ tracker, translation, serviceTier }),
     confidence: apiConfidence({
       timed: events,
       catalog,
@@ -521,6 +542,7 @@ export function replayApiTarget(
       targetType: target.type,
       targetReference: target.providerId,
       ...(usedPricingIds.size > 0 ? { pricingReferences: [...usedPricingIds].sort() } : {}),
+      ...(serviceTier === "standard" ? {} : { serviceTier }),
       ...(translationPlan === undefined
         ? {}
         : {
@@ -604,14 +626,34 @@ function observeIdentity(
  * fall back to the id, which keeps the choice deterministic if a hand-built
  * catalog ever holds two.
  */
-function buildApiPricingHistory(catalog: CatalogV1): {
+function buildApiPricingHistory(
+  catalog: CatalogV1,
+  serviceTier: ServiceTierV1,
+): {
   byModel: Map<string, PricingV1[]>;
   otherBasisModels: Set<string>;
+  /** Models the provider offers at the tier; undefined for Standard, which needs no listing. */
+  tierOffered: ReadonlySet<string> | undefined;
 } {
   const byModel = new Map<string, PricingV1[]>();
   const otherBasisModels = new Set<string>();
+  const tierOffered =
+    serviceTier === "standard"
+      ? undefined
+      : new Set(
+          Object.values(catalog.models)
+            .filter((model) =>
+              model.serviceTiers?.some(
+                (entry) => entry.tier === serviceTier && entry.availability === "available",
+              ),
+            )
+            .map((model) => model.id),
+        );
   for (const pricing of Object.values(catalog.pricing)) {
-    if (pricing.variantId !== undefined) continue;
+    // One tier per replay: another tier's record, or an explicit variant, is
+    // never a candidate, so a Batch price cannot answer for Standard or the
+    // reverse.
+    if (!pricesServiceTier(pricing, serviceTier)) continue;
     if (pricing.basis !== "api_list_price") {
       otherBasisModels.add(pricing.modelId);
       continue;
@@ -633,7 +675,7 @@ function buildApiPricingHistory(catalog: CatalogV1): {
           : 1,
     );
   }
-  return { byModel, otherBasisModels };
+  return { byModel, otherBasisModels, tierOffered };
 }
 
 /**
@@ -670,7 +712,11 @@ function availabilityOf(
 
 /** The API list-price record in force for one model at the pinned instant. */
 function pricingAt(
-  history: { byModel: ReadonlyMap<string, PricingV1[]>; otherBasisModels: ReadonlySet<string> },
+  history: {
+    byModel: ReadonlyMap<string, PricingV1[]>;
+    otherBasisModels: ReadonlySet<string>;
+    tierOffered: ReadonlySet<string> | undefined;
+  },
   modelId: string,
   rulesAsOf: string,
   rulesAsOfInstant: string | undefined,
@@ -680,24 +726,26 @@ function pricingAt(
   if (cached !== undefined) return cached;
   const records = history.byModel.get(modelId);
   const outcome: ApiPricingOutcome =
-    records === undefined
-      ? history.otherBasisModels.has(modelId)
-        ? { kind: "other-basis" }
-        : { kind: "not-recorded" }
-      : (() => {
-          const atMs = Date.parse(rulesAsOfInstant ?? rulesAsOf);
-          const selected = selectPlanVersionAt(
-            records.filter(
-              (record) =>
-                record.effectiveFromInstant === undefined ||
-                atMs >= Date.parse(record.effectiveFromInstant),
-            ),
-            rulesAsOf,
-          );
-          return selected === undefined
-            ? { kind: "not-in-force" as const }
-            : { kind: "selected" as const, pricing: selected };
-        })();
+    history.tierOffered !== undefined && !history.tierOffered.has(modelId)
+      ? { kind: "tier-unavailable" }
+      : records === undefined
+        ? history.otherBasisModels.has(modelId)
+          ? { kind: "other-basis" }
+          : { kind: "not-recorded" }
+        : (() => {
+            const atMs = Date.parse(rulesAsOfInstant ?? rulesAsOf);
+            const selected = selectPlanVersionAt(
+              records.filter(
+                (record) =>
+                  record.effectiveFromInstant === undefined ||
+                  atMs >= Date.parse(record.effectiveFromInstant),
+              ),
+              rulesAsOf,
+            );
+            return selected === undefined
+              ? { kind: "not-in-force" as const }
+              : { kind: "selected" as const, pricing: selected };
+          })();
   cache.set(modelId, outcome);
   return outcome;
 }
@@ -739,8 +787,14 @@ function apiEconomics(input: {
 function buildApiAssumptions(input: {
   tracker: Tracker;
   translation: ReplayTranslationV1 | undefined;
+  serviceTier: ServiceTierV1;
 }): ReplayAssumptionV1[] {
   const assumptions = new Map(input.tracker.assumptions);
+  if (input.serviceTier !== "standard")
+    assumptions.set(
+      "SERVICE_TIER_PRICING",
+      `Every event is priced at the ${input.serviceTier} processing tier's published list price. A model without a price at that tier stays unpriced; the Standard price is never used in its place. Processing speed and completion time are not modelled: a provider's speed claim does not change the recorded demand or its timing.`,
+    );
   assumptions.set(
     "NO_ALLOWANCE_WINDOW",
     "A Direct API target has no included capacity, no allowance window, no admission decision and no reset phase: every recorded event is served and priced.",
@@ -755,7 +809,9 @@ function buildApiAssumptions(input: {
   );
   assumptions.set(
     "DIRECT_API_LIST_PRICE",
-    "Every event is priced at the selected provider's published API list price for the recorded token categories. Batch discounts, provisioned capacity, taxes, FX, minimums and negotiated account terms are not modelled, so a real invoice can differ.",
+    input.serviceTier === "standard"
+      ? "Every event is priced at the selected provider's published API list price for the recorded token categories. Batch discounts, provisioned capacity, taxes, FX, minimums and negotiated account terms are not modelled, so a real invoice can differ."
+      : "Every event is priced at the selected provider's published API list price for the recorded token categories at the selected processing tier. Provisioned capacity, regional processing premiums, taxes, FX, minimums and negotiated account terms are not modelled, so a real invoice can differ.",
   );
   assumptions.set(
     "MODEL_SCOPED_API_PRICE",

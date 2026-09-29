@@ -166,6 +166,60 @@ function checkVersionRanges(
   }
 }
 
+/**
+ * Plan history and version lifecycle. Dates have to be able to say what they
+ * claim: an event needs a day to sit at, an announcement is dated by its
+ * announcement, a link to a version names a version that exists, and a
+ * comparison with "previous terms" needs previous terms.
+ */
+function checkPlanHistory(plan: PlanV1, file: string, issues: CatalogValidationIssue[]): void {
+  const add = (code: string, message: string) =>
+    issues.push({ severity: "error", code, message: `${plan.id}: ${message}`, file });
+  const sorted = [...plan.versions].sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
+  const starts = new Set(plan.versions.map((version) => version.effectiveFrom));
+  for (const [index, version] of sorted.entries()) {
+    const where = `version ${version.effectiveFrom}`;
+    if (version.announcedAt !== undefined && version.announcedAt > version.effectiveFrom)
+      add("PLAN_HISTORY_DATE_ORDER", `${where} is announced after it takes effect`);
+    if (version.withdrawn !== undefined && version.withdrawn.at > version.effectiveFrom)
+      add(
+        "PLAN_HISTORY_DATE_ORDER",
+        `${where} is withdrawn after its effective date; a version that took effect ends with effectiveTo instead`,
+      );
+    if (
+      version.revision?.relativeValue !== undefined &&
+      sorted.slice(0, index).every((earlier) => earlier.withdrawn !== undefined)
+    )
+      add(
+        "PLAN_HISTORY_NO_PREVIOUS_TERMS",
+        `${where} compares itself with previous terms, but no earlier version exists`,
+      );
+  }
+  const ids = new Set<string>();
+  for (const event of plan.history?.events ?? []) {
+    const where = `event "${event.id}"`;
+    if (ids.has(event.id)) add("DUPLICATE_ID", `duplicate history ${where}`);
+    ids.add(event.id);
+    if (event.kind === "announcement" && event.announcedAt === undefined)
+      add("PLAN_HISTORY_UNDATED", `${where} is an announcement without announcedAt`);
+    if (event.announcedAt === undefined && event.effectiveAt === undefined)
+      add("PLAN_HISTORY_UNDATED", `${where} has neither announcedAt nor effectiveAt`);
+    if (
+      event.announcedAt !== undefined &&
+      event.effectiveAt !== undefined &&
+      event.announcedAt > event.effectiveAt
+    )
+      add("PLAN_HISTORY_DATE_ORDER", `${where} is announced after it takes effect`);
+    if (event.versionEffectiveFrom !== undefined && !starts.has(event.versionEffectiveFrom))
+      add("PLAN_HISTORY_VERSION_MISSING", `${where} names version ${event.versionEffectiveFrom}`);
+    const overlap = (event.appliesTo ?? []).filter((audience) =>
+      (event.unaffected ?? []).includes(audience),
+    );
+    if (overlap.length > 0)
+      add("PLAN_HISTORY_AUDIENCE", `${where} both applies to and leaves unaffected ${overlap[0]}`);
+  }
+}
+
 function checkLimits(
   plan: PlanV1,
   file: string,
@@ -568,6 +622,21 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
     }
   }
 
+  // Processing tiers (service tiers): one entry per tier per model, so a
+  // model's availability for a tier has exactly one answer.
+  const listedTiers = new Map<string, Set<string>>();
+  for (const entry of models) {
+    const tiers = (entry.value.serviceTiers ?? []).map((tier) => tier.tier);
+    listedTiers.set(entry.value.id, new Set(tiers));
+    if (new Set(tiers).size !== tiers.length)
+      issues.push({
+        severity: "error",
+        code: "DUPLICATE_ID",
+        message: `model "${entry.value.id}" lists a processing tier twice`,
+        file: entry.file,
+      });
+  }
+
   // Taxonomy (launch): a developer is a provider record, a family reference
   // points at a record that declares itself a family, and a family record is
   // an identity, not a release, so it has neither a family nor a lifecycle.
@@ -669,15 +738,19 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
         file: entry.file,
       });
     }
+    checkPlanHistory(plan, entry.file, issues);
     for (const version of plan.versions) {
-      planVersionRanges.push({
-        file: entry.file,
-        label: plan.id,
-        range: {
-          from: version.effectiveFrom,
-          ...(version.effectiveTo !== undefined ? { to: version.effectiveTo } : {}),
-        },
-      });
+      // A withdrawn version never takes effect, so it cannot overlap the
+      // version that replaced it.
+      if (version.withdrawn === undefined)
+        planVersionRanges.push({
+          file: entry.file,
+          label: plan.id,
+          range: {
+            from: version.effectiveFrom,
+            ...(version.effectiveTo !== undefined ? { to: version.effectiveTo } : {}),
+          },
+        });
       for (const rule of version.modelRules) {
         if (rule.access !== undefined && rule.excluded !== true)
           issues.push({
@@ -857,9 +930,17 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
       });
     }
     checkPricingSemantics(entry.value, entry.file, issues);
+    const tier = entry.value.serviceTier ?? "standard";
+    if (tier !== "standard" && listedTiers.get(entry.value.modelId)?.has(tier) !== true)
+      issues.push({
+        severity: "error",
+        code: "SERVICE_TIER_UNDECLARED",
+        message: `pricing "${entry.value.id}" prices the ${tier} tier, which model "${entry.value.modelId}" does not list`,
+        file: entry.file,
+      });
     pricingRanges.push({
       file: entry.file,
-      label: `pricing:${entry.value.modelId}:${entry.value.basis}:${entry.value.endpointId ?? "legacy"}:${entry.value.variantId ?? "base"}`,
+      label: `pricing:${entry.value.modelId}:${entry.value.basis}:${entry.value.endpointId ?? "legacy"}:${entry.value.variantId ?? "base"}:${tier}`,
       range: {
         from: entry.value.effectiveFrom,
         ...(entry.value.effectiveTo !== undefined ? { to: entry.value.effectiveTo } : {}),

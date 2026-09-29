@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { costBreakdownMatches, costBreakdownV1Schema } from "./cost-breakdown.js";
 import { executionTargetV1Schema } from "./execution-target.js";
 import { computedMoneyV1Schema, computedSignedMoneyV1Schema, moneyV1Schema } from "./money.js";
 import {
@@ -13,6 +14,7 @@ import {
   isoUtcTimestampV1Schema,
   verificationStatusV1Schema,
 } from "./scalars.js";
+import { serviceTierV1Schema } from "./service-tier.js";
 
 /**
  * Generalized replay result (Addendum A point 116, decisions 1-4, 13-20).
@@ -270,8 +272,23 @@ export const economicsV1Schema = z
     ratios: z
       .array(z.strictObject({ name: z.string().min(1), value: z.string().min(1) }))
       .optional(),
+    /**
+     * The parts of `targetCost`, for a target that bills more than tokens
+     * (tools, hosted compute). Absent on every result today; when present the
+     * parts add up to `targetCost` exactly.
+     */
+    breakdown: costBreakdownV1Schema.optional(),
   })
   .superRefine((economics, ctx) => {
+    if (
+      economics.breakdown !== undefined &&
+      !costBreakdownMatches(economics.breakdown, economics.targetCost.amount)
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["breakdown"],
+        message: "breakdown components must add up to targetCost",
+      });
     if (
       economics.costBasis !== "api_list_price" &&
       (economics.basePlanCost === undefined ||
@@ -392,6 +409,11 @@ export const replayVersionsV1Schema = z.strictObject({
   translationPolicy: z
     .strictObject({ id: z.string().min(1), version: z.string().min(1) })
     .optional(),
+  /**
+   * The processing tier a Direct API replay priced at, when it was not
+   * Standard. Absent on every Standard and subscription result.
+   */
+  serviceTier: serviceTierV1Schema.optional(),
 });
 export type ReplayVersionsV1 = z.infer<typeof replayVersionsV1Schema>;
 

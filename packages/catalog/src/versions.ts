@@ -20,7 +20,11 @@ import type { LoadedPlanVersionV1 } from "./catalog.js";
  *   and the later `effectiveFrom` breaks the tie;
  * - when no version applies, the answer is `undefined`. A version that starts
  *   after `at` is never returned as the version "in effect": a surface with no
- *   honest answer must say so rather than borrow a future one.
+ *   honest answer must say so rather than borrow a future one;
+ * - a withdrawn version (announced, then cancelled or superseded before it
+ *   took effect) is never selected, whatever its dates say. An announced
+ *   version whose date arrives needs no catalog edit to become current; a
+ *   withdrawn one can never become current.
  *
  * Comparison is on the date part (`YYYY-MM-DD`), which is how the catalog stores
  * `effectiveFrom`/`effectiveTo`, so a caller holding a full timestamp for `at`
@@ -31,6 +35,8 @@ export interface PlanVersionIntervalV1 {
   effectiveFrom: string;
   /** Absent when the version is open-ended; `undefined` allowed explicitly. */
   effectiveTo?: string | undefined;
+  /** Present on an announced version that will never take effect. */
+  withdrawn?: unknown;
 }
 
 const datePart = (value: string): string => value.slice(0, 10);
@@ -49,6 +55,7 @@ export function selectPlanVersionAt<T extends PlanVersionIntervalV1>(
   const instant = datePart(at);
   let selected: T | undefined;
   for (const version of versions) {
+    if (version.withdrawn !== undefined) continue;
     if (datePart(version.effectiveFrom) > instant) continue;
     if (version.effectiveTo !== undefined && datePart(version.effectiveTo) < instant) continue;
     if (

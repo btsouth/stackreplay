@@ -4,6 +4,7 @@ import {
   workloadScopeDeclarationV1Schema,
 } from "./replay-semantics.js";
 import { isoDateV1Schema } from "./scalars.js";
+import { serviceTierV1Schema } from "./service-tier.js";
 
 /**
  * Execution targets (Addendum A point 115, decision 1) and the explicit replay
@@ -119,6 +120,12 @@ export const apiTargetV1Schema = z.strictObject({
   providerId: z.string().min(1),
   /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */
   modelTranslation: modelTranslationPolicyV1Schema.optional(),
+  /**
+   * The processing tier every event is priced at. Absent means Standard, which
+   * is what every API target before this field priced. A model without a
+   * price for the chosen tier stays unpriced; it never falls back to Standard.
+   */
+  serviceTier: serviceTierV1Schema.optional(),
   /** @deprecated Refused for API execution; see the schema comment. */
   pricingVersionId: z.string().min(1).optional(),
   /** @deprecated Refused for API execution; use `modelTranslation`. */
