@@ -517,8 +517,17 @@ function checkPricingSemantics(
   const promotion = pricing.promotion;
   if (promotion?.regularRates)
     checkRateSet(promotion.regularRates, `${prefix}: promotion regular rates`, file, issues);
+  const regularTierIds = new Set<string>();
   for (const tier of promotion?.regularTiers ?? []) {
     checkRateSet(tier.rates, `${prefix}: promotion regular tier "${tier.id}"`, file, issues);
+    if (regularTierIds.has(tier.id))
+      issues.push({
+        severity: "error",
+        code: "PRICING_PROMOTION_TIER_DUPLICATE",
+        message: `${prefix}: promotion regular tier "${tier.id}" is listed more than once`,
+        file,
+      });
+    regularTierIds.add(tier.id);
     if (!tierIds.has(tier.id))
       issues.push({
         severity: "error",

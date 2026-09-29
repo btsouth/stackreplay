@@ -286,4 +286,19 @@ describe("catalog pricing: promotional standing", () => {
       ),
     ).toContain("PRICING_PROMOTION_TIER_UNKNOWN");
   });
+
+  it("rejects the same regular tier listed twice", () => {
+    const regular = {
+      id: "long-context",
+      rates: { input: "1.20", output: "4.80", cacheRead: "0.24" },
+    };
+    expect(
+      check(
+        promoted({
+          label: "Permanent 50% discount",
+          regularTiers: [regular, { ...regular, rates: { ...regular.rates, input: "1.30" } }],
+        }),
+      ),
+    ).toContain("PRICING_PROMOTION_TIER_DUPLICATE");
+  });
 });
