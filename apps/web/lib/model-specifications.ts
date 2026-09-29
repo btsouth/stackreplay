@@ -8,7 +8,12 @@ export function modelSpecifications(model: PublicModelSummary) {
   const specifications = {
     ...model.specifications,
     ...details?.specifications,
-    sources: [...(model.specifications?.sources ?? []), ...(details?.sources ?? [])],
+    // A source cited by both records is listed once.
+    sources: [...(model.specifications?.sources ?? []), ...(details?.sources ?? [])].filter(
+      (source, index, all) =>
+        all.findIndex((other) => other.url === source.url && other.title === source.title) ===
+        index,
+    ),
   };
   for (const key of details?.omitSpecifications ?? []) delete specifications[key];
   return specifications;
