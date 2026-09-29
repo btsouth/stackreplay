@@ -1,7 +1,10 @@
 {
   "opencode-go": {
     "checkedAt": "2026-09-29",
-    "sourceUrls": ["https://opencode.ai/v2/docs/console/go"],
+    "sourceUrls": [
+      "https://opencode.ai/v2/docs/console/go",
+      "https://opencode.ai/legal/terms-of-service"
+    ],
     "allowanceSummary": "$15–$60 monthly usage value depending on the model. Five-hour limit: 20% of its monthly allowance; weekly: 50%.",
     "terms": [
       {
@@ -30,8 +33,13 @@
         "sourceUrl": "https://opencode.ai/v2/docs/console/go"
       },
       {
+        "label": "Renewal and cancellation",
+        "value": "Recurring charges continue until you cancel through account settings. The general paid-service terms do not specify a Go-specific refund entitlement or when remaining access ends after cancellation.",
+        "sourceUrl": "https://opencode.ai/legal/terms-of-service"
+      },
+      {
         "label": "Reset and billing details still to check",
-        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover, refund or cancellation terms. Check the Console before relying on those details.",
+        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover or a Go-specific refund policy. Check the Console before relying on those details.",
         "sourceUrl": "https://opencode.ai/v2/docs/console/go"
       }
     ],
@@ -464,11 +472,14 @@
     ],
     "afterLimit": "Free models remain available. Enable Use balance with paid Console credits to continue on pay-as-you-go pricing after an included limit. Otherwise requests are blocked.",
     "privacySummary": "Model-dependent: Muse Spark Contributor permits training and is not ZDR. Grok/GPT Luna: 30-day retention. Other listed models: zero-day terms, with DeepSeek’s current agreement expiring October 31, 2026.",
-    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Reset anchors, rollover and refund/cancellation terms are not established by the cited Go documentation."
+    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Recurring charges continue until canceled through account settings. Reset anchors, rollover and a Go-specific refund policy are not established by the reviewed documentation."
   },
   "opencode-go-plus": {
     "checkedAt": "2026-09-29",
-    "sourceUrls": ["https://opencode.ai/v2/docs/console/go"],
+    "sourceUrls": [
+      "https://opencode.ai/v2/docs/console/go",
+      "https://opencode.ai/legal/terms-of-service"
+    ],
     "allowanceSummary": "$60–$240 monthly usage value depending on the model. Five-hour limit: 20% of its monthly allowance; weekly: 50%.",
     "terms": [
       {
@@ -497,8 +508,13 @@
         "sourceUrl": "https://opencode.ai/v2/docs/console/go"
       },
       {
+        "label": "Renewal and cancellation",
+        "value": "Recurring charges continue until you cancel through account settings. The general paid-service terms do not specify a Go-specific refund entitlement or when remaining access ends after cancellation.",
+        "sourceUrl": "https://opencode.ai/legal/terms-of-service"
+      },
+      {
         "label": "Reset and billing details still to check",
-        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover, refund or cancellation terms. Check the Console before relying on those details.",
+        "value": "The cited terms give five-hour, weekly and monthly limits but do not establish the exact reset anchor, cross-model consumption rules, rollover or a Go-specific refund policy. Check the Console before relying on those details.",
         "sourceUrl": "https://opencode.ai/v2/docs/console/go"
       }
     ],
@@ -931,6 +947,6 @@
     ],
     "afterLimit": "Free models remain available. Enable Use balance with paid Console credits to continue on pay-as-you-go pricing after an included limit. Otherwise requests are blocked.",
     "privacySummary": "Model-dependent: Muse Spark Contributor permits training and is not ZDR. Grok/GPT Luna: 30-day retention. Other listed models: zero-day terms, with DeepSeek’s current agreement expiring October 31, 2026.",
-    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Reset anchors, rollover and refund/cancellation terms are not established by the cited Go documentation."
+    "billingSummary": "Monthly subscription; one subscriber per workspace. Paid balance fallback is optional. Recurring charges continue until canceled through account settings. Reset anchors, rollover and a Go-specific refund policy are not established by the reviewed documentation."
   }
 }
