@@ -1,3 +1,8 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+overrides:
+  # miniflare pins undici 7.29.0 (GHSA WebSocket permessage-deflate DoS, fixed in 7.29.1).
+  # Remove once a miniflare release depends on 7.29.1 or later.
+  "miniflare>undici": "7.29.1"
