@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:6507ec005e30773ae3da21f8c0377a11e8951d21988e5a9b93f4400aadfdeaf8";
+export const BUNDLED_CATALOG_VERSION = "sha256:73587e1d9890f4dcd618ef8cec6469f7c94a48e52fe6c068a720c8cfceb666bd";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:6507ec005e30773ae3da21f8c0377a11e8951d21988e5a9b93f4400aadfdeaf8",
+  "catalogVersion": "sha256:73587e1d9890f4dcd618ef8cec6469f7c94a48e52fe6c068a720c8cfceb666bd",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -175,6 +175,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-27",
+      "verificationStatus": "verified"
+    },
+    "meituan": {
+      "id": "meituan",
+      "role": "provider",
+      "name": "Meituan",
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/",
+          "title": "LongCat API Platform documentation",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "meta": {
@@ -3825,6 +3839,80 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "longcat-2-0": {
+      "id": "longcat-2-0",
+      "role": "model",
+      "name": "LongCat 2.0",
+      "developerId": "meituan",
+      "specifications": {
+        "contextTokens": 1000000,
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is turned on or off per request with the thinking parameter."
+        ],
+        "sources": [
+          {
+            "url": "https://longcat.chat/platform/docs/change-log",
+            "title": "Context and tool calling at release",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://longcat.chat/platform/docs/api/chat",
+            "title": "Thinking parameter",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "LongCat's pay-as-you-go page lists limited-time discounted prices in yuan under a \"$/1M Tokens\" header and takes Alipay or WeChat Pay only. No USD rate is published, so no API price is recorded.",
+      "providerIds": [
+        "meituan"
+      ],
+      "aliases": [
+        {
+          "id": "longcat-2-0-api-id",
+          "alias": "LongCat-2.0",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://longcat.chat/platform/docs/api/models",
+              "title": "LongCat API model id LongCat-2.0",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "longcat-2-0-router-meituan-longcat-2-0",
+          "alias": "meituan/longcat-2.0",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/meituan/longcat-2.0",
+              "title": "OpenRouter model record `meituan/longcat-2.0` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/change-log",
+          "title": "LongCat API Platform change log (LongCat-2.0 release)",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://huggingface.co/meituan-longcat/LongCat-2.0",
+          "title": "Meituan LongCat model card",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "mai-code-1-1-flash": {

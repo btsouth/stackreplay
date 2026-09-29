@@ -95,7 +95,8 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Qwen 3.8 Flash",
@@ -341,7 +342,8 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Qwen 3.8 Flash",
@@ -711,7 +713,8 @@
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -1041,7 +1044,8 @@
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -1339,7 +1343,8 @@
             "name": "Qwen 3.7 Flash"
           },
           {
-            "name": "LongCat 2.0"
+            "name": "LongCat 2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "Step 5 Preview"
@@ -1511,7 +1516,8 @@
             "modelId": "kimi-k2-6"
           },
           {
-            "name": "LongCat-2.0"
+            "name": "LongCat-2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "LongCat 2.5 Preview Free",
@@ -1640,7 +1646,8 @@
             "modelId": "kimi-k2-6"
           },
           {
-            "name": "LongCat-2.0"
+            "name": "LongCat-2.0",
+            "modelId": "longcat-2-0"
           },
           {
             "name": "LongCat 2.5 Preview Free",

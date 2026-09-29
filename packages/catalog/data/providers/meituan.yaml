@@ -1,0 +1,9 @@
+id: meituan
+role: provider
+name: "Meituan"
+sources:
+  - url: https://longcat.chat/platform/docs/
+    title: "LongCat API Platform documentation"
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

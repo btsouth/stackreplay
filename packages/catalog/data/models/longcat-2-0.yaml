@@ -1,0 +1,49 @@
+id: longcat-2-0
+role: model
+name: LongCat 2.0
+developerId: meituan
+providerIds:
+- meituan
+aliases:
+- id: longcat-2-0-api-id
+  alias: LongCat-2.0
+  kind: provider_id
+  sources:
+  - url: https://longcat.chat/platform/docs/api/models
+    title: LongCat API model id LongCat-2.0
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+- id: longcat-2-0-router-meituan-longcat-2-0
+  alias: meituan/longcat-2.0
+  kind: harness_alias
+  sources:
+  - url: https://openrouter.ai/meituan/longcat-2.0
+    title: OpenRouter model record `meituan/longcat-2.0` (exact id as published in the model list)
+    checkedAt: '2026-09-29'
+  lastVerifiedAt: '2026-09-29'
+  verificationStatus: verified
+sources:
+- url: https://longcat.chat/platform/docs/change-log
+  title: LongCat API Platform change log (LongCat-2.0 release)
+  checkedAt: '2026-09-29'
+- url: https://huggingface.co/meituan-longcat/LongCat-2.0
+  title: Meituan LongCat model card
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified
+specifications:
+  contextTokens: 1000000
+  reasoning: true
+  toolCalling: true
+  notes:
+  - Thinking is turned on or off per request with the thinking parameter.
+  sources:
+  - url: https://longcat.chat/platform/docs/change-log
+    title: Context and tool calling at release
+    checkedAt: '2026-09-29'
+  - url: https://longcat.chat/platform/docs/api/chat
+    title: Thinking parameter
+    checkedAt: '2026-09-29'
+pricingNote: LongCat's pay-as-you-go page lists limited-time discounted prices in yuan under a "$/1M Tokens" header and
+  takes Alipay or WeChat Pay only. No USD rate is published, so no API price is recorded.

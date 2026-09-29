@@ -2349,6 +2349,50 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "longcat-2-0": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://longcat.chat/platform/docs/change-log",
+        title: "Release, context and tool calling",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://longcat.chat/platform/docs/api/chat",
+        title: "Thinking and output parameters",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://longcat.chat/platform/docs/api-pay-as-you-go",
+        title: "Billing and payment methods",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://huggingface.co/meituan-longcat/LongCat-2.0",
+        title: "Official model card",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is turned on or off per request with thinking.type. The default is not stated.",
+      },
+      { label: "Released", value: "June 30, 2026" },
+      {
+        label: "Output limit",
+        value:
+          "A maximum output ceiling for LongCat-2.0 is not stated; the max_tokens ceiling on the API page is given only for LongCat-2.5-Preview.",
+      },
+      {
+        label: "Billing",
+        value:
+          "Pay-as-you-go prices are listed in yuan as a limited-time discount. Top-ups use Alipay or WeChat Pay.",
+      },
+      { label: "Open weights", value: "The model weights are released under the MIT License." },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [
