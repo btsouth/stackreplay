@@ -1,10 +1,11 @@
 id: openai-chatgpt-pro-20x
 role: plan
-name: ChatGPT Pro $200 (Pro 20x tier)
+name: ChatGPT Pro $200
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-21
     effectiveTo: 2026-09-21
+    effectiveFromBasis: catalog_recorded
     price:
       currency: USD
       amount: "200"
@@ -54,6 +55,8 @@ versions:
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
   - effectiveFrom: 2026-09-22
+    effectiveTo: 2026-09-28
+    effectiveFromBasis: catalog_recorded
     price:
       currency: USD
       amount: "200"
@@ -120,3 +123,231 @@ versions:
         checkedAt: 2026-09-23
     lastVerifiedAt: 2026-09-23
     verificationStatus: verified
+  - effectiveFrom: 2026-09-29
+    effectiveTo: 2026-09-29
+    effectiveFromBasis: provider
+    price:
+      currency: USD
+      amount: "200"
+      interval: month
+    billingMechanics: "Included as a separate entry because ChatGPT Pro has several official price points and usage allowances under one plan name: $100, $200 and $500 per month from Sep 29, 2026."
+    limits: []
+    qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: 20× Plus usage. Existing subscriptions renew; new sign-ups and upgrades are currently paused.
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: compatible-tools
+        label: Compatible tools
+        statement: ChatGPT · Codex · ChatGPT Work
+        sourceUrl: https://openai.com/index/gpt-5-6/
+      - id: pro-200-usage-relative-to-plus
+        label: "Pro $200 usage relative to Plus"
+        statement: "Pro $200 unlocks 20x usage than Plus."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: per-model-usage-allowances-temporary-model-unava
+        label: "Per-model usage allowances (temporary model unavailability)"
+        statement: "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        topic: after_limit
+      - id: new-sign-ups-and-upgrades-paused
+        label: "New sign-ups and upgrades paused"
+        statement: "New sign-ups and upgrades to the ChatGPT Pro $200 plan are temporarily paused. Existing Pro $200 subscriptions will continue to renew as usual."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "The $200 tier cannot currently be purchased by new customers (pause since 2026-09-10), so its price is documented but not generally purchasable today. No numeric allowance published; 20x is relative to Plus, whose allowance is unquantified."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-1-sol
+        pricingRef: gpt-6-1-sol-pricing
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://learn.chatgpt.com/docs/models
+        title: "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work"
+        checkedAt: 2026-09-29
+      - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        title: "OpenAI plan documentation (official)"
+        checkedAt: 2026-09-23
+      - url: https://openai.com/chatgpt/pricing/
+        title: "OpenAI pricing (official)"
+        checkedAt: 2026-09-23
+      - url: https://community.openai.com/t/announcing-gpt-6-sol-and-gpt-6-luna/1399925
+        title: "OpenAI model launch and paid plan availability"
+        checkedAt: 2026-09-23
+      - url: https://chatgpt.com/pricing/
+        title: "OpenAI current ChatGPT subscription lineup; Sep 23 manual audit"
+        checkedAt: 2026-09-23
+    lastVerifiedAt: 2026-09-29
+    verificationStatus: verified
+  - effectiveFrom: 2026-09-30
+    effectiveFromBasis: provider
+    announcedAt: 2026-09-29
+    audience:
+      - new_subscribers
+    revision:
+      title: Revised usage terms
+      relativeValue:
+        measure: api_equivalent_spend
+        ratio: "0.5"
+        approximate: true
+        comparedTo: previous_terms
+        evidence:
+          - url: https://x.com/thsottiaux/status/2104823812042940713
+            title: "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation"
+            checkedAt: 2026-09-29
+            authority: provider_staff
+            excerpt: "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
+    price:
+      currency: USD
+      amount: "200"
+      interval: month
+    billingMechanics: "ChatGPT Pro has three price points: $100, $200 and $500 per month."
+    limits: []
+    qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: "Revised Sep 30, 2026: about half the previous terms' API-equivalent spend. No numeric allowance is published."
+        sourceUrl: https://x.com/thsottiaux/status/2104823812042940713
+      - id: revised-usage-calculation
+        label: "Revised usage calculation (from Sep 30, 2026)"
+        statement: "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
+        sourceUrl: https://x.com/thsottiaux/status/2104823812042940713
+      - id: no-five-hour-limit
+        label: "No five-hour limit"
+        statement: "Pro plans currently have no five-hour limit. Weekly limits may also apply."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+      - id: existing-subscriptions-timing
+        label: "Existing Pro $200 subscriptions"
+        statement: "The revised calculation is stated for new subscribers from Sep 30, 2026. When existing Pro $200 subscriptions move to it is not published in the sources this catalog records."
+        sourceUrl: https://x.com/thsottiaux/status/2104823812042940713
+      - id: compatible-tools
+        label: Compatible tools
+        statement: "ChatGPT · Codex · ChatGPT Work. In participating apps, eligible Plus and Pro subscribers can also choose to use their ChatGPT plan for AI requests (Sign in with ChatGPT)."
+        sourceUrl: https://learn.chatgpt.com/docs/sign-in-with-chatgpt
+      - id: per-model-usage-allowances-temporary-model-unava
+        label: "Per-model usage allowances (temporary model unavailability)"
+        statement: "When you reach a model's allowance, that model may be temporarily unavailable until the allowance resets. ChatGPT displays the reset time when available."
+        sourceUrl: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+        topic: after_limit
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "No numeric allowance is published for the revised terms, and the sources recorded here do not restate them as a multiple of Plus. The change is stated as API-equivalent spend relative to the previous terms, not as a token count; cheaper models change how many tokens that spend buys."
+        sourceUrl: https://x.com/thsottiaux/status/2104823812042940713
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-1-sol
+        pricingRef: gpt-6-1-sol-pricing
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://x.com/thsottiaux/status/2104823812042940713
+        title: "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/pricing
+        title: "ChatGPT and Codex pricing: Pro at $100, $200 or $500 per month; no five-hour limit on Pro"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/models
+        title: "GPT-6.1 Sol launch rollout: Plus, Pro, Business, Enterprise and Edu in Codex and ChatGPT Work"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/sign-in-with-chatgpt
+        title: "Sign in with ChatGPT: plan usage in participating apps"
+        checkedAt: 2026-09-29
+    lastVerifiedAt: 2026-09-29
+    verificationStatus: verified
+history:
+  events:
+    - id: new-subscriptions-paused
+      kind: availability
+      title: New subscriptions paused
+      summary: New sign-ups and upgrades paused. Existing subscriptions kept renewing.
+      announcedAt: 2026-09-10
+      effectiveAt: 2026-09-10
+      appliesTo:
+        - new_subscribers
+        - upgrades
+      unaffected:
+        - existing_subscribers
+      evidence:
+        - url: https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers
+          title: "About ChatGPT Pro tiers (OpenAI Help Center)"
+          checkedAt: 2026-09-29
+          authority: provider_help_center
+          excerpt: "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X). This includes sign-ups and upgrades from Free, Go, Plus, or Pro $100. Existing ChatGPT Pro $200 subscriptions and new or existing ChatGPT Pro $100 subscriptions are not affected by this pause."
+    - id: revised-terms-announced
+      kind: announcement
+      title: Revised terms officially announced
+      summary: OpenAI announced the reopening and the new usage calculation on DevDay.
+      announcedAt: 2026-09-29
+      versionEffectiveFrom: 2026-09-30
+      evidence:
+        - url: https://x.com/thsottiaux/status/2104823812042940713
+          title: "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation"
+          checkedAt: 2026-09-29
+          authority: provider_staff
+          excerpt: "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
+    - id: new-subscriptions-reopen
+      kind: availability
+      title: New subscriptions reopen
+      announcedAt: 2026-09-29
+      effectiveAt: 2026-09-30
+      appliesTo:
+        - new_subscribers
+      evidence:
+        - url: https://x.com/thsottiaux/status/2104823812042940713
+          title: "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation"
+          checkedAt: 2026-09-29
+          authority: provider_staff
+          excerpt: "Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers"
+    - id: revised-usage-terms
+      kind: allowance
+      title: Usage economics change
+      summary: About half the previous terms' API-equivalent spend. No five-hour limit.
+      announcedAt: 2026-09-29
+      effectiveAt: 2026-09-30
+      appliesTo:
+        - new_subscribers
+      versionEffectiveFrom: 2026-09-30
+      evidence:
+        - url: https://x.com/thsottiaux/status/2104823812042940713
+          title: "OpenAI (Tibo Sottiaux, Codex): Pro $200 reopening and usage calculation"
+          checkedAt: 2026-09-29
+          authority: provider_staff
+          excerpt: "In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan."
+        - url: https://learn.chatgpt.com/docs/pricing
+          title: "ChatGPT and Codex pricing"
+          checkedAt: 2026-09-29
+          authority: provider_docs
+          excerpt: "Pro plans currently have no five-hour limit."

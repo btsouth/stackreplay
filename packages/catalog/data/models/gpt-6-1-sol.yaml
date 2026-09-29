@@ -1,0 +1,93 @@
+id: gpt-6-1-sol
+role: model
+name: GPT-6.1 Sol
+developerId: openai
+lifecycle: current
+providerIds:
+- openai
+aliases:
+- id: gpt-6-1-sol-api-id
+  alias: gpt-6.1-sol
+  kind: provider_id
+  sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+    title: 'GPT-6.1 Sol API model ID: "Use `gpt-6.1-sol` to select this model."'
+    checkedAt: 2026-09-29
+  lastVerifiedAt: 2026-09-29
+  verificationStatus: verified
+pricingNote: >-
+  Prices are for global processing. OpenAI adds a 10% premium for regional (data residency)
+  processing where available and does not offer Fast mode with EU data residency; StackReplay
+  does not price regional processing.
+serviceTiers:
+- tier: standard
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Standard table (gpt-6.1-sol row)
+    checkedAt: 2026-09-29
+- tier: batch
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Batch table (gpt-6.1-sol row)
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+    title: 'Endpoints: Batch (`v1/batch`) supported'
+    checkedAt: 2026-09-29
+- tier: flex
+  availability: available
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Flex table (gpt-6.1-sol row)
+    checkedAt: 2026-09-29
+- tier: fast
+  availability: available
+  note: Fast mode is unavailable with EU data residency.
+  sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: OpenAI API pricing, Fast table (gpt-6.1-sol row)
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/guides/fast-mode
+    title: Fast mode guide (request examples use gpt-6.1-sol)
+    checkedAt: 2026-09-29
+- tier: ultrafast
+  availability: coming_soon
+  note: Ultrafast support for GPT-6.1 Sol is coming later. No Ultrafast price is published for it.
+  sources:
+  - url: https://learn.chatgpt.com/docs/models
+    title: '"Standard and Fast modes are available at launch. Ultrafast support for GPT-6.1 Sol is coming later."'
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/guides/ultrafast-mode
+    title: Ultrafast mode guide (broadly available for GPT-6 Astra only; no GPT-6.1 Sol price in the Ultrafast table)
+    checkedAt: 2026-09-29
+sources:
+- url: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+  title: GPT-6.1 Sol model specifications and API availability
+  checkedAt: 2026-09-29
+- url: https://learn.chatgpt.com/docs/models
+  title: GPT-6.1 Sol launch rollout in ChatGPT Work and Codex (Plus, Pro, Business, Enterprise, Edu)
+  checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified
+specifications:
+  contextTokens: 1050000
+  maxInputTokens: 922000
+  maxOutputTokens: 128000
+  inputModalities:
+  - text
+  - image
+  outputModalities:
+  - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  knowledgeCutoff: Apr 30, 2026
+  notes:
+  - 'Reasoning effort: low, medium (default), high, xhigh and max. The none and minimal efforts are not supported.'
+  - 'Endpoints: Responses, Chat Completions (without tool calling) and Batch.'
+  - A separate model from GPT-6 Sol with its own prices; cached input is billed at 5% of the input rate.
+  sources:
+  - url: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+    title: Official model specifications
+    checkedAt: 2026-09-29

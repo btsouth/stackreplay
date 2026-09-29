@@ -1,0 +1,39 @@
+id: gpt-6-astra-fast-pricing
+role: pricing
+modelId: gpt-6-astra
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+serviceTier: fast
+rates:
+  input: "20.00"
+  output: "100.00"
+  cacheRead: "2.00"
+  cacheWrite: "25.00"
+  reasoning:
+    billedAs: output
+tiers:
+  - id: long-context
+    label: "Above 272K input tokens; higher rates apply to the full request"
+    when:
+      inputTokensAbove: 272000
+    rates:
+      input: "40.00"
+      output: "150.00"
+      cacheRead: "4.00"
+      cacheWrite: "50.00"
+      reasoning:
+        billedAs: output
+effectiveFrom: 2026-09-29
+sources:
+  - url: https://developers.openai.com/api/docs/pricing
+    title: "GPT-6 Astra Fast short- and long-context API list prices"
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/models/gpt-6-astra
+    title: 'Long-context rule: "Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request."'
+    checkedAt: 2026-09-29
+  - url: https://developers.openai.com/api/docs/guides/reasoning
+    title: 'Reasoning tokens "are billed as output tokens."'
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

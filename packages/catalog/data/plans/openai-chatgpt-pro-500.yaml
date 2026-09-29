@@ -1,0 +1,87 @@
+id: openai-chatgpt-pro-500
+role: plan
+name: ChatGPT Pro $500
+providerId: openai
+versions:
+  - effectiveFrom: 2026-09-29
+    effectiveFromBasis: catalog_recorded
+    announcedAt: 2026-09-29
+    price:
+      currency: USD
+      amount: "500"
+      interval: month
+    billingMechanics: "ChatGPT Pro has three price points: $100, $200 and $500 per month."
+    limits: []
+    qualitativeLimits:
+      - id: included-usage-summary
+        label: Included usage
+        statement: "Pro's $500 price point, with Astra Ultrafast access. No numeric allowance is published."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+      - id: astra-ultrafast
+        label: "Astra Ultrafast"
+        statement: "Ultrafast is available in Codex and ChatGPT Work on Pro $500 and eligible Enterprise and Edu plans. On Pro $500, Ultrafast uses your included usage first, then your available credits after that allowance runs out. For GPT-6 Astra, Ultrafast uses included subscription limits at 8x the Standard rate."
+        sourceUrl: https://learn.chatgpt.com/docs/agent-configuration/speed
+      - id: no-five-hour-limit
+        label: "No five-hour limit"
+        statement: "Pro plans currently have no five-hour limit. Weekly limits may also apply."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+      - id: usage-credits-after-limit
+        label: "After the included usage"
+        statement: "ChatGPT Plus and Pro users who reach their usage limit can purchase additional credits to continue working without needing to upgrade their existing plan."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+        topic: after_limit
+      - id: compatible-tools
+        label: Compatible tools
+        statement: "ChatGPT · Codex · ChatGPT Work. In participating apps, eligible Plus and Pro subscribers can also choose to use their ChatGPT plan for AI requests (Sign in with ChatGPT)."
+        sourceUrl: https://learn.chatgpt.com/docs/sign-in-with-chatgpt
+      - id: what-the-provider-does-not-publish
+        label: "What the provider does not publish"
+        statement: "The sources recorded here publish the $500 price and Ultrafast access. They do not publish a numeric allowance or a multiple of Plus for this plan, so none is recorded."
+        sourceUrl: https://learn.chatgpt.com/docs/pricing
+      - id: model-availability-scope
+        label: "Model availability scope"
+        statement: "OpenAI publishes which models a subscription can use at provider level rather than per plan; this catalog records that lineup for each of its plans."
+        sourceUrl: https://openai.com/chatgpt/pricing/
+    modelRules:
+      - model: gpt-6-1-sol
+        pricingRef: gpt-6-1-sol-pricing
+      - model: gpt-6-luna
+        pricingRef: gpt-6-luna-pricing
+      - model: gpt-6-sol
+        pricingRef: gpt-6-sol-pricing
+      - model: gpt-5-6-luna
+        pricingRef: gpt-5-6-luna-pricing
+      - model: gpt-5-6-sol
+        pricingRef: gpt-5-6-sol-pricing
+      - model: gpt-5-6-sol-pro
+      - model: gpt-5-6-terra
+        pricingRef: gpt-5-6-terra-pricing
+      - model: gpt-5-thinking-mini
+      - model: gpt-6-astra
+        pricingRef: gpt-6-astra-pricing
+    sources:
+      - url: https://learn.chatgpt.com/docs/pricing
+        title: "ChatGPT and Codex pricing: Pro plans at $100, $200 or $500 per month; Astra Ultrafast access on Pro $500"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/agent-configuration/speed
+        title: "Speed: Ultrafast availability and included-usage rate on Pro $500"
+        checkedAt: 2026-09-29
+      - url: https://learn.chatgpt.com/docs/models
+        title: "Model availability in ChatGPT Work and Codex"
+        checkedAt: 2026-09-29
+    lastVerifiedAt: 2026-09-29
+    verificationStatus: verified
+history:
+  events:
+    - id: plan-introduced
+      kind: availability
+      title: Plan introduced
+      summary: A $500 Pro price point with Astra Ultrafast in Codex and ChatGPT Work.
+      announcedAt: 2026-09-29
+      effectiveAt: 2026-09-29
+      evidence:
+        - url: https://learn.chatgpt.com/docs/pricing
+          title: "ChatGPT and Codex pricing"
+          checkedAt: 2026-09-29
+          authority: provider_docs
+          excerpt: "Plans at $100, $200, or $500 USD per month. Astra Ultrafast access on Pro $500."
