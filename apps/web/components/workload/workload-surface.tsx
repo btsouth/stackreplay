@@ -32,7 +32,7 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
-import { WorkloadValueFigure } from "./value";
+import { CurrentSpend, WorkloadValueFigure } from "./value";
 
 export { replayLink } from "@/lib/replay-navigation";
 
@@ -746,6 +746,12 @@ function WorkloadBody({
           </Link>
         </div>
       </section>
+
+      <CurrentSpend
+        periodDays={profile.overview.spanDays}
+        rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
+        value={profile.value}
+      />
 
       <details className="border-t border-border pt-2" data-testid="workload-tools" id="share">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
