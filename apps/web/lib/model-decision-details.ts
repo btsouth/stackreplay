@@ -1657,6 +1657,47 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "kimi-k2-6": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.kimi.ai/docs/pricing/chat",
+        title: "Token prices and context window",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.kimi.ai/docs/pricing/limits",
+        title: "Top-up requirement",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Thinking is on by default. Set thinking.type to disabled for non-thinking mode.",
+      },
+      {
+        label: "Sampling",
+        value:
+          "Temperature is fixed at 1.0 with thinking and 0.6 without. top_p is fixed at 0.95. Other values return an error.",
+      },
+      {
+        label: "Output limit",
+        value:
+          "max_tokens defaults to 32,768. A separate maximum output ceiling is not stated in the reviewed quickstart.",
+      },
+      {
+        label: "API identity",
+        value: "kimi-k2.6; OpenAI-compatible API. Text, image and video input.",
+      },
+      { label: "Access", value: "The Kimi API requires a top-up of at least $1 before first use." },
+    ],
+  },
   "kimi-k3": {
     checkedAt: "2026-09-29",
     sources: [

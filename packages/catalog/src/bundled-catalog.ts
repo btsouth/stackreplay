@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:27b3494f88a6e051599e687ff9401c9541156174c38e6af8a3d19c4caeece133";
+export const BUNDLED_CATALOG_VERSION = "sha256:a91e78eba6257be6ac09e86da3206b4a989d8196430a1c33c53b820fa226f26d";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:27b3494f88a6e051599e687ff9401c9541156174c38e6af8a3d19c4caeece133",
+  "catalogVersion": "sha256:a91e78eba6257be6ac09e86da3206b4a989d8196430a1c33c53b820fa226f26d",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -3595,6 +3595,87 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "kimi-k2-6": {
+      "id": "kimi-k2-6",
+      "role": "model",
+      "name": "Kimi K2.6",
+      "developerId": "moonshot",
+      "specifications": {
+        "contextTokens": 262144,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is on by default and can be turned off per request."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.kimi.ai/docs/pricing/chat",
+            "title": "Context window",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "moonshot"
+      ],
+      "aliases": [
+        {
+          "id": "kimi-k2-6-api-id",
+          "alias": "kimi-k2.6",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+              "title": "Kimi K2.6 API model id kimi-k2.6",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "kimi-k2-6-router-moonshotai-kimi-k2-6",
+          "alias": "moonshotai/kimi-k2.6",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/moonshotai/kimi-k2.6",
+              "title": "OpenRouter model record `moonshotai/kimi-k2.6` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart",
+          "title": "Kimi K2.6 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "title": "Kimi API token prices and context window",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "kimi-k2-7-code": {
@@ -23644,6 +23725,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "kimi-k2-6-api-reference-20260929": {
+      "id": "kimi-k2-6-api-reference-20260929",
+      "role": "pricing",
+      "modelId": "kimi-k2-6",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.95",
+        "output": "4",
+        "cacheRead": "0.16"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "title": "Official K2 series token prices; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "kimi-k2-7-code-api-reference-20260928": {

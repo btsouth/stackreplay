@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 53 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 54 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -65,6 +65,7 @@ Existing prices and technical facts were checked against the linked documentatio
 | Grok 4.5 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.5) |
 | Grok 4.6 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.6) |
 | Grok 4.7 | Thinking, Long prompts, Batch, Tools and regions, Output limit | [Official documentation](https://docs.x.ai/developers/models/grok-4.7) |
+| Kimi K2.6 | Thinking, Sampling, Output limit, API identity, Access | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k2-6-quickstart) |
 | Kimi K2.7 Code | Thinking, Variants, Output limit, API identity | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart) |
 | Kimi K3 | Thinking, Output control, Access, Prompt caching, Tools | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k3-quickstart) |
 | MAI-Code-1.1-Flash | Product access, Capabilities | [Official documentation](https://github.com/microsoft/MAI-Code) |
@@ -73,7 +74,7 @@ Existing prices and technical facts were checked against the linked documentatio
 
 ## Remaining boundaries
 
-Grok 4.5/4.6/4.7, Kimi K2.7 Code, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
+Grok 4.5/4.6/4.7, Kimi K2.6, Kimi K2.7 Code, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
 
 DeepSeek explicitly excludes Chinese public holidays from peak hours. This public condition is displayed; the existing replay admission boundary is unchanged. Model guide processing choices, regional surcharges, tools and provider-side discounts do not become executable replay options merely by being documented.
 
