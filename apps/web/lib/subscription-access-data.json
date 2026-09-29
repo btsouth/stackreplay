@@ -1576,7 +1576,8 @@
             "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "DeepSeek V4 Flash"
+            "name": "DeepSeek V4 Flash",
+            "modelId": "deepseek-v4-flash"
           },
           {
             "name": "DeepSeek V4 Flash Vision Exp",
@@ -1706,7 +1707,8 @@
             "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "DeepSeek V4 Flash"
+            "name": "DeepSeek V4 Flash",
+            "modelId": "deepseek-v4-flash"
           },
           {
             "name": "DeepSeek V4 Flash Vision Exp",

@@ -64,12 +64,7 @@ Candidates are models that a catalogued plan lists but that have no model record
 
 ## Lineup entries that match an existing model but are not linked
 
-| Plan | Lineup name | Existing model |
-| --- | --- | --- |
-| opencode-go | DeepSeek V4 Flash | `deepseek-v4-flash` |
-| opencode-go-plus | DeepSeek V4 Flash | `deepseek-v4-flash` |
-
-A name match is not proof of identity. Confirm the plan serves that exact release before adding `modelId`.
+None.
 
 ## Recent OpenRouter releases from tracked developers (last 60 days)
 
