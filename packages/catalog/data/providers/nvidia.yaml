@@ -1,0 +1,9 @@
+id: nvidia
+role: provider
+name: "NVIDIA"
+sources:
+  - url: https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b
+    title: "NVIDIA API catalog model page"
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

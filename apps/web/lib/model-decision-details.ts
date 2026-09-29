@@ -2304,6 +2304,51 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "nemotron-3-ultra": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+        title: "Official model card",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+        title: "API catalog specifications and access",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Reasoning is configurable on or off with enable_thinking in the chat template.",
+      },
+      { label: "Released", value: "June 4, 2026" },
+      {
+        label: "API access",
+        value:
+          "NVIDIA offers a free trial endpoint on build.nvidia.com. NVIDIA does not publish its own per-token rate; listed partner endpoints set their own prices.",
+      },
+      {
+        label: "API capabilities",
+        value: "Function calling is supported. Structured output is listed as not supported.",
+      },
+      {
+        label: "Output limit",
+        value:
+          "A separate maximum output ceiling is not stated; the model card gives a context length of up to 1M tokens.",
+      },
+      {
+        label: "Data cutoff",
+        value: "Pre-training data cutoff September 2025; post-training data cutoff May 2026.",
+      },
+      {
+        label: "Open weights",
+        value:
+          "The weights are downloadable. Use is governed by the OpenMDW License Agreement, version 1.1.",
+      },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [

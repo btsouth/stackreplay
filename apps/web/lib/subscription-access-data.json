@@ -180,7 +180,8 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "MiniMax M3",
@@ -443,7 +444,8 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "MiniMax M3",
@@ -740,7 +742,8 @@
             "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "Claude Fable 5",
@@ -1069,7 +1072,8 @@
             "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "Claude Fable 5",
@@ -1363,7 +1367,8 @@
             "modelId": "mimo-v2-5"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           },
           {
             "name": "GPT-6 Luna",
@@ -1782,7 +1787,8 @@
             "name": "Nemotron 3 Super"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           }
         ]
       }
@@ -1856,7 +1862,8 @@
             "name": "Nemotron 3 Super"
           },
           {
-            "name": "Nemotron 3 Ultra"
+            "name": "Nemotron 3 Ultra",
+            "modelId": "nemotron-3-ultra"
           }
         ]
       }

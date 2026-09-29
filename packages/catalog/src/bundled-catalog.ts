@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:6ee69c120fcfeca7bece617912aa7169657ae937138f2738b20eb6d8d7806d24";
+export const BUNDLED_CATALOG_VERSION = "sha256:6507ec005e30773ae3da21f8c0377a11e8951d21988e5a9b93f4400aadfdeaf8";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:6ee69c120fcfeca7bece617912aa7169657ae937138f2738b20eb6d8d7806d24",
+  "catalogVersion": "sha256:6507ec005e30773ae3da21f8c0377a11e8951d21988e5a9b93f4400aadfdeaf8",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -231,6 +231,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "nvidia": {
+      "id": "nvidia",
+      "role": "provider",
+      "name": "NVIDIA",
+      "sources": [
+        {
+          "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+          "title": "NVIDIA API catalog model page",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "ollama": {
@@ -4460,6 +4474,87 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "nemotron-3-ultra": {
+      "id": "nemotron-3-ultra",
+      "role": "model",
+      "name": "Nemotron 3 Ultra",
+      "developerId": "nvidia",
+      "specifications": {
+        "contextTokens": 1000000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": false,
+        "notes": [
+          "Reasoning is turned on or off with enable_thinking in the chat template."
+        ],
+        "sources": [
+          {
+            "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+            "title": "Official model card",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+            "title": "Specifications and capabilities",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "NVIDIA offers a free trial endpoint on build.nvidia.com and does not publish its own per-token API rate. The partner endpoints listed there set their own prices.",
+      "providerIds": [
+        "nvidia"
+      ],
+      "aliases": [
+        {
+          "id": "nemotron-3-ultra-api-id",
+          "alias": "nvidia/nemotron-3-ultra-550b-a55b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+              "title": "NVIDIA API catalog model id nvidia/nemotron-3-ultra-550b-a55b",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "nemotron-3-ultra-router-nvidia-nemotron-3-ultra-550b-a55b",
+          "alias": "nvidia/nemotron-3-ultra-550b-a55b",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b",
+              "title": "OpenRouter model record `nvidia/nemotron-3-ultra-550b-a55b` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+          "title": "NVIDIA model card",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b",
+          "title": "NVIDIA API catalog model page",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "qwen-3-7-max": {

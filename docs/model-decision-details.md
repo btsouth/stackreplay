@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 65 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 66 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -77,6 +77,7 @@ Existing prices and technical facts were checked against the linked documentatio
 | MiniMax M3 | Thinking, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
+| Nemotron 3 Ultra | Thinking, Released, API access, API capabilities, Output limit, Data cutoff, Open weights | [Official documentation](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16) |
 | Qwen 3.7 Max | Thinking, Released on Model Studio, Status, Snapshot and input, Prompt caching, Regions | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
 | Qwen 3.7 Plus | Thinking, Released on Model Studio, Long-context pricing, Prompt caching, Regions, Snapshot | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus) |
 | Qwen 3.8 27B | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b) |
@@ -85,7 +86,7 @@ Existing prices and technical facts were checked against the linked documentatio
 
 ## Remaining boundaries
 
-Grok 4.5/4.6/4.7, Kimi K2.6, Kimi K2.7 Code, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
+Grok 4.5/4.6/4.7, Kimi K2.6, Kimi K2.7 Code, Nemotron 3 Ultra, Composer 2.5 and Muse Spark 1.3 do not state a separate maximum output ceiling on the reviewed pages. MAI-Code does not provide exact direct API token pricing or token ceilings in its reviewed release repository. ChatGPT Sol Pro / Thinking Mini and the Gemini 3 Flash-Lite subscription label are not assigned specifications or prices from similarly named API models. Retired DeepSeek names currently redirect to another model, which is not an exact-model replay. Gemini 3 Pro API retirement remains separate from subscription labels.
 
 DeepSeek explicitly excludes Chinese public holidays from peak hours. This public condition is displayed; the existing replay admission boundary is unchanged. Model guide processing choices, regional surcharges, tools and provider-side discounts do not become executable replay options merely by being documented.
 
