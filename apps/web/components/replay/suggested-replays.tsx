@@ -3,13 +3,14 @@ import { bundledApiProviderModels, loadBundledCatalog } from "@stackreplay/catal
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import { type CompletedReplay, saveCompletedReplay } from "@/lib/completed-replays";
 import { readCurrentStack, subscribeCurrentStack } from "@/lib/current-stack";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
+import { replayLink, routeCopy, routeLink } from "@/lib/replay-navigation";
 import {
   approvedPolicy,
   baselineRange,
@@ -22,7 +23,8 @@ import {
   TRANSLATION_PROFILES,
   type TranslationProfile,
 } from "@/lib/replay-strategies";
-import type { TargetKey } from "@/lib/routes";
+import { suggestRoutes, supportedModelsFor, type TargetKey, workloadSlices } from "@/lib/routes";
+import { defaultRulesDate } from "@/lib/rules-date";
 import { browserTimeZone } from "@/lib/time-zone";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { getWorkerClient, type ReplayOutcome, SupersededError } from "@/lib/worker-client";
@@ -61,20 +63,15 @@ export function SuggestedReplays({ initialImportId }: { initialImportId?: string
     };
   }, [initialImportId]);
   if (state.error) return <p role="alert">Local workloads could not be read. Reload to retry.</p>;
-  if (!state.loaded)
-    return (
-      <p role="status" data-testid="replay-restoring">
-        Opening your recorded workload…
-      </p>
-    );
+  if (!state.loaded) return <ReplayPreparation />;
   if (!state.record)
     return (
       <div className="space-y-4" data-testid="replay-empty">
-        <h2 className="text-2xl font-medium">
+        <h1 className="text-2xl font-medium">
           {initialImportId
             ? "That workload is no longer stored in this browser"
             : "Start with your recorded work"}
-        </h2>
+        </h1>
         <p className="text-sm text-muted-foreground">
           Import history to discover exact API routes and explicit counterfactual strategies.
           Everything runs locally.
@@ -86,7 +83,23 @@ export function SuggestedReplays({ initialImportId }: { initialImportId?: string
     );
   return <StrategyWorkspace key={state.record.id} record={state.record} />;
 }
+function ReplayPreparation() {
+  return (
+    <div
+      role="status"
+      data-testid="replay-restoring"
+      className="flex max-w-2xl flex-col gap-3 border-t border-border pt-6"
+    >
+      <MicroLabel className="text-accent">Opening your workload</MicroLabel>
+      <h1 className="text-2xl font-medium">Finding useful replays</h1>
+      <p className="text-sm text-muted-foreground">
+        Reading recorded models and finding useful replay strategies in this browser…
+      </p>
+    </div>
+  );
+}
 function StrategyWorkspace({ record }: { record: ImportRecord }) {
+  const [rulesDate] = useState(() => defaultRulesDate());
   const [baseline, setBaseline] = useState<MarketDecision>();
   const [profile, setProfile] = useState<WorkloadProfile>();
   const [error, setError] = useState<string>();
@@ -135,18 +148,41 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
   }, [record.id, retry]);
   useEffect(() => {
     if (choice) confirmation.current?.focus();
-    else if (lastChoice.current) document.getElementById(`suggest-${lastChoice.current}`)?.focus();
+    else if (lastChoice.current) {
+      const previous = document.getElementById(`suggest-${lastChoice.current}`);
+      if (previous?.closest("details:not([open])"))
+        previous.closest("details")?.querySelector("summary")?.focus();
+      else previous?.focus();
+    }
   }, [choice]);
   useEffect(() => {
     if (result) resultAnchor.current?.focus();
   }, [result]);
   const workload = workloadModels(record.summary.models);
   const selected = TRANSLATION_PROFILES.find((p) => p.id === choice);
+  const offered = selected
+    ? supportedModelsFor(`api:${selected.providerId}`, rulesDate)
+    : new Set<string>();
+  const routes = useMemo(() => {
+    if (!profile) return [];
+    const names = new Map(record.summary.usageSources.map((s) => [s.adapterId, s.name]));
+    return suggestRoutes(workloadSlices(profile.sources, names), rulesDate, {
+      synthetic: isSyntheticWorkload(record),
+    }).filter((route) => !route.translated && route.id !== "switch-provider");
+  }, [profile, record, rulesDate]);
   const suggestions = TRANSLATION_PROFILES.filter(
     (p) =>
-      Object.keys(suggestedMapping(p, workload)).length > 0 &&
+      Object.keys(suggestedMapping(p, workload, rulesDate)).length > 0 &&
       !(p.providerId === "anthropic" && record.summary.tokens.buckets.cacheWriteTokens > 0),
-  );
+  )
+    .sort(
+      (a, b) =>
+        mappingCoverage(workload, b.providerId, suggestedMapping(b, workload, rulesDate), rulesDate)
+          .applicable -
+        mappingCoverage(workload, a.providerId, suggestedMapping(a, workload, rulesDate), rulesDate)
+          .applicable,
+    )
+    .slice(0, 1);
   const market = baseline ? baselineRange(baseline) : undefined;
   const published = market ?? marketRange(baseline?.pricedScope);
   const currentPlans = stack
@@ -154,7 +190,9 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
     .map((k) => DECISION_MARKET.plans.find((p) => p.id === k.slice(5)))
     .filter((p) => p !== undefined);
   const currentApis = stack.filter((k) => k.startsWith("api:"));
-  const coverage = selected ? mappingCoverage(workload, selected.providerId, mapping) : undefined;
+  const coverage = selected
+    ? mappingCoverage(workload, selected.providerId, mapping, rulesDate)
+    : undefined;
   const choose = (value: typeof choice) => {
     if (value) lastChoice.current = value;
     guard.current++;
@@ -167,7 +205,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
     setEditing(false);
     setError(undefined);
     const p = TRANSLATION_PROFILES.find((p) => p.id === value);
-    setMapping(p ? suggestedMapping(p, workload) : {});
+    setMapping(p ? suggestedMapping(p, workload, rulesDate) : {});
   };
   const edit = (from: string, to: string) => {
     guard.current++;
@@ -263,16 +301,20 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
             providerId: selected.providerId,
             ...(policy.rules.length ? { modelTranslation: policy } : {}),
           },
-          DECISION_MARKET.rulesAt.slice(0, 10),
+          rulesDate,
         );
         if (guard.current !== token) return;
         setOutcome(next);
         const { cost, priced } = replayCost(next);
+        const sameRates =
+          next.result.versions.rulesAsOf === DECISION_MARKET.rulesAt.slice(0, 10) &&
+          next.result.versions.catalog === DECISION_MARKET.catalogHash;
+        const translatedBaseline = sameRates ? base : undefined;
         const totals = new Map<string, Decimal>();
         for (const line of next.receipt?.lines ?? [])
           totals.set(line.modelId, (totals.get(line.modelId) ?? new Decimal(0)).add(line.subtotal));
         const available = new Set(
-          bundledApiProviderModels(selected.providerId, DECISION_MARKET.rulesAt)
+          bundledApiProviderModels(selected.providerId, rulesDate)
             .filter((m) => m.available)
             .map((m) => m.id),
         );
@@ -285,6 +327,10 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         completed = {
           ...common,
           title: selected.name,
+          rulesAt: sameRates ? DECISION_MARKET.rulesAt : next.result.versions.rulesAsOf,
+          catalogHash: next.result.versions.catalog,
+          target: { type: "api", providerId: selected.providerId, serviceTier: "standard" },
+          baseline: translatedBaseline,
           mode: policy.rules.length ? "translated" : "exact",
           cost,
           priced,
@@ -292,7 +338,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
             .filter((m) => m.target !== "unmapped" && m.target !== m.source)
             .reduce((n, m) => n + m.calls, 0),
           policy: { id: policy.id, version: policy.version },
-          difference: replayDifference(base, cost, calls, priced),
+          difference: replayDifference(translatedBaseline, cost, calls, priced),
           mappings: rows,
           contributions: [...totals].map(([model, total]) => ({
             model,
@@ -303,6 +349,11 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
             ...(priced < calls
               ? [
                   `${calls - priced} retained calls could not be priced. No whole-workload difference is reported.`,
+                ]
+              : []),
+            ...(!sameRates
+              ? [
+                  `Recorded API receipts use ${DECISION_MARKET.rulesAt.slice(0, 10)} rules; this replay uses ${rulesDate}. No difference across catalog snapshots or rules dates is claimed.`,
                 ]
               : []),
             "Current accepted API list rates, including applicable context tiers and reasoning treatment. Taxes, tools and negotiated rates are excluded.",
@@ -324,6 +375,17 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
       : choice === "stack"
         ? "Current stack"
         : selected?.name;
+  if (!baseline || !profile) {
+    if (!error) return <ReplayPreparation />;
+    return (
+      <div role="alert">
+        <p>{error}</p>
+        <button type="button" className={action} onClick={() => setRetry((n) => n + 1)}>
+          Retry preparation
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="space-y-10" data-testid="suggested-replays">
       <header className="space-y-4">
@@ -345,7 +407,8 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         {!choice ? (
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 border-y border-border py-4">
             <span className="text-xs text-muted-foreground">
-              Current recorded API equivalent{baseline && !market ? " · priced scope" : ""}
+              Recorded API equivalent · {DECISION_MARKET.rulesAt.slice(0, 10)} rules
+              {baseline && !market ? " · priced scope" : ""}
             </span>
             <strong className="font-mono text-2xl font-normal" data-testid="strategy-baseline">
               {published
@@ -368,51 +431,94 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
           className="divide-y divide-border border-y border-border"
           data-testid="strategy-suggestions"
         >
-          {!baseline?.coverage || baseline.coverage.priced > 0 ? (
-            <Suggestion
-              number="01"
-              title="Same models → direct APIs"
-              mode="Exact models"
-              onClick={() => choose("exact")}
-              id="suggest-exact"
-              why={
-                baseline?.coverage
-                  ? `${baseline.coverage.priced.toLocaleString()} of ${record.eventCount.toLocaleString()} calls have complete published API pricing. Recorded models stay unchanged.`
-                  : "Use accepted API routes for the exact recorded models."
-              }
-            />
-          ) : null}
-          {suggestions.map((p, i) => {
-            const c = mappingCoverage(workload, p.providerId, suggestedMapping(p, workload));
+          {routes.map((route) => {
+            const copy = routeCopy(route);
+            return (
+              <section
+                key={route.id}
+                className="space-y-3 py-5"
+                data-testid={`suggest-route-${route.id}`}
+              >
+                <MicroLabel>{copy.kind}</MicroLabel>
+                <h2 className="text-xl font-medium tracking-tight">{copy.title}</h2>
+                <p className="text-xs text-muted-foreground">
+                  Scope: {route.slice.label} · {route.slice.events.toLocaleString()} calls retained
+                </p>
+                <p className="max-w-3xl text-sm text-muted-foreground">{copy.body}</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <Link
+                    className={action}
+                    href={routeLink(record.id, route)}
+                    data-testid={`suggest-target-${route.id}`}
+                  >
+                    Test {route.target.name} →
+                  </Link>
+                  {route.alternative ? (
+                    <Link
+                      className={action}
+                      data-testid="suggest-subscription"
+                      href={replayLink(record.id, {
+                        plan: route.alternative.id,
+                        scope: route.slice.sources,
+                      })}
+                    >
+                      Test {route.alternative.name} on the same work →
+                    </Link>
+                  ) : null}
+                </div>
+              </section>
+            );
+          })}
+          {suggestions.map((p) => {
+            const c = mappingCoverage(
+              workload,
+              p.providerId,
+              suggestedMapping(p, workload, rulesDate),
+              rulesDate,
+            );
             return (
               <Suggestion
                 key={p.id}
-                number={`0${i + 2}`}
-                title={p.name}
+                title={`Recorded models vs translated ${loadBundledCatalog().providers[p.providerId]?.name ?? p.providerId} frontier`}
                 mode="Explicit translation"
                 onClick={() => choose(p.id)}
                 id={`suggest-${p.id}`}
-                why={`${c.mapped.toLocaleString()} calls have an explicit frontier mapping. ${c.applicable === c.recorded ? "Every recorded call has an applicable target model." : `${c.recorded - c.applicable} calls need mapping or pricing review.`}`}
+                why={`Scope: Full workload · ${c.recorded.toLocaleString()} calls retained. ${c.mapped.toLocaleString()} calls have an explicit frontier mapping. ${c.applicable === c.recorded ? "Every recorded call has an applicable target model." : `${c.recorded - c.applicable} calls need mapping or pricing review.`}`}
               />
             );
           })}
-          {stack.length ? (
-            <Suggestion
-              number="+"
-              title="Current stack"
-              mode="Commercial assessment"
-              id="suggest-stack"
-              onClick={() => choose("stack")}
-              why={`${stack.length} locally selected targets. Inspect known access and price; opaque capacity remains unknown.`}
-            />
-          ) : null}
+          <details data-testid="strategy-assessments" className="py-3">
+            <summary className={`${action} cursor-pointer`}>Other assessments</summary>
+            {!baseline?.coverage || baseline.coverage.priced > 0 ? (
+              <Suggestion
+                title="Full workload at recorded API prices"
+                mode="Recorded API routes"
+                onClick={() => choose("exact")}
+                id="suggest-exact"
+                why={
+                  baseline?.coverage
+                    ? `${baseline.coverage.priced.toLocaleString()} of ${record.eventCount.toLocaleString()} calls have complete published API pricing. Recorded models stay unchanged.`
+                    : "Use accepted API routes for the exact recorded models."
+                }
+              />
+            ) : null}
+            {stack.length ? (
+              <Suggestion
+                title="Current stack"
+                mode="Commercial assessment"
+                id="suggest-stack"
+                onClick={() => choose("stack")}
+                why={`${stack.length} locally selected targets. Inspect known access and price; opaque capacity remains unknown.`}
+              />
+            ) : null}
+          </details>
           <Link
             href={`/app/replay?import=${encodeURIComponent(record.id)}&mode=custom`}
             data-testid="build-own"
             className="flex min-h-20 items-center justify-between gap-4 py-5"
           >
             <span className="text-lg">Build your own</span>
-            <span className="text-sm text-accent">Browse all targets →</span>
+            <span className="text-sm text-accent">Choose scope and target →</span>
           </Link>
         </div>
       ) : null}
@@ -436,7 +542,8 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
           <h1 className="text-2xl font-medium">{title}</h1>
           <p className="text-sm text-muted-foreground">
             Full imported workload · {record.eventCount.toLocaleString()} calls retained. No dates
-            or sources excluded.
+            or sources excluded.{" "}
+            {selected ? `API rules as of ${rulesDate} · Standard processing.` : ""}
           </p>
           {selected ? (
             <>
@@ -476,7 +583,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
                         onChange={(e) => edit(m.modelId, e.target.value)}
                       >
                         <option value="">Keep recorded model / no mapping</option>
-                        {bundledApiProviderModels(selected.providerId, DECISION_MARKET.rulesAt)
+                        {bundledApiProviderModels(selected.providerId, rulesDate)
                           .filter((m) => m.available && m.priced)
                           .map((m) => (
                             <option value={m.id} key={m.id}>
@@ -496,7 +603,9 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
                         {m.name} →{" "}
                         {mapping[m.modelId]
                           ? modelName(mapping[m.modelId] ?? "")
-                          : "No mapping supplied"}{" "}
+                          : offered.has(m.modelId)
+                            ? `${m.name} (as recorded)`
+                            : "No mapping supplied"}{" "}
                         · {m.events.toLocaleString()} calls
                       </li>
                     ))}
@@ -690,14 +799,12 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
   );
 }
 function Suggestion({
-  number,
   title,
   mode,
   why,
   onClick,
   id,
 }: {
-  number: string;
   title: string;
   mode: string;
   why: string;
@@ -707,12 +814,11 @@ function Suggestion({
   return (
     <button
       type="button"
-      className="group grid w-full gap-3 py-6 text-left sm:grid-cols-[2rem_minmax(0,1fr)_auto]"
+      className="group grid w-full gap-3 py-6 text-left sm:grid-cols-[minmax(0,1fr)_auto]"
       data-testid={id}
       id={id}
       onClick={onClick}
     >
-      <span className="font-mono text-xs text-muted-foreground">{number}</span>
       <span>
         <span className="block text-xl font-medium tracking-tight group-hover:text-accent">
           {title}

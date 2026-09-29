@@ -133,7 +133,7 @@ export function CompletedReplayComparison({
               {anchor.calls.toLocaleString()} recorded calls · baseline{" "}
               {priceRangeText(anchor.baseline)} · {anchor.rulesAt.slice(0, 10)} accepted pricing
               {anchor.catalogHash !== DECISION_MARKET.catalogHash
-                ? " · older saved catalog snapshot"
+                ? " · separate saved pricing snapshot"
                 : ""}
             </p>
           ) : null}

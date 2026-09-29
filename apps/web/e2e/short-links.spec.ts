@@ -84,7 +84,6 @@ test("a workload link is short, uploads only its aggregate token and renders fro
 
   const requests = captureRequests(page);
   await openWorkloadTools(page);
-  await page.getByTestId("share-workload-link").click();
   await expect(page.getByTestId("share-upload-note")).toHaveText(
     "Only the aggregate result shown in this preview is uploaded when you create a public link. Your raw history stays on this device.",
   );
@@ -182,7 +181,6 @@ test("when the store cannot be reached, a self-contained link is offered instead
     route.fulfill({ status: 503, json: { error: "Short links are unavailable right now." } }),
   );
   await openWorkloadTools(page);
-  await page.getByTestId("share-workload-link").click();
   const panel = page.getByTestId("share-panel");
   await panel.getByTestId("share-create").click();
   await expect(panel.getByRole("alert")).toContainText("A short link could not be created");

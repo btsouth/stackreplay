@@ -1,4 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { bundledModelIdentity, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkloadModels } from "@/components/replay/translation-model";
 import {
   type CompletedReplay,
@@ -13,8 +15,10 @@ import {
   mappingCoverage,
   replayDifference,
   suggestedMapping,
+  TRANSLATION_PROFILE_HISTORY,
   TRANSLATION_PROFILES,
 } from "./replay-strategies";
+import { runScopedReplay } from "./scoped-replay";
 
 const frontier = TRANSLATION_PROFILES[0];
 const workload = (ids: string[]): WorkloadModels => ({
@@ -42,7 +46,14 @@ const result: CompletedReplay = {
   contributions: [],
   limitations: [],
 };
-afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-09-29T12:00:00Z"));
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 describe("workload-aware counterfactual policies", () => {
   it("enumerates exact canonical identities without fuzzy family matching", () => {
     expect(
@@ -51,9 +62,92 @@ describe("workload-aware counterfactual policies", () => {
         workload(["claude-opus-5-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-opus-future"]),
       ),
     ).toEqual({
-      "claude-opus-5-5": "gpt-6-sol",
+      "claude-opus-5-5": "gpt-6-1-sol",
       "claude-sonnet-5": "gpt-5-6-terra",
       "claude-haiku-4-5": "gpt-6-luna",
+    });
+  });
+  it("preserves v1 explicit rules and recorded Sol identities after v2 approval", () => {
+    const v1 = TRANSLATION_PROFILE_HISTORY.find(
+      (p) => p.id === "openai-frontier" && p.version === "1",
+    );
+    if (!v1) throw Error("Missing historical policy");
+    const original = approvedPolicy(v1, suggestedMapping(v1, workload(["claude-opus-5-5"])));
+    const saved = JSON.parse(JSON.stringify(original));
+    expect(saved).toMatchObject({
+      id: "openai-frontier",
+      version: "1",
+      rules: [{ sourceModelId: "claude-opus-5-5", targetModelId: "gpt-6-sol" }],
+    });
+    expect(
+      approvedPolicy(frontier, suggestedMapping(frontier, workload(["claude-opus-5-5"]))),
+    ).toMatchObject({
+      version: "2",
+      rules: [{ sourceModelId: "claude-opus-5-5", targetModelId: "gpt-6-1-sol" }],
+    });
+    expect(original).toEqual(saved);
+    expect(
+      suggestedMapping(
+        frontier,
+        workload(["gpt-6-sol", "gpt-6-1-sol", "claude-opus-5-5-future", "CLAUDE-OPUS-5-5"]),
+      ),
+    ).toEqual({});
+    expect(
+      suggestedMapping(TRANSLATION_PROFILES[1], workload(["gpt-6-sol", "gpt-6-1-sol"])),
+    ).toEqual({});
+  });
+  it("replays a saved v1 explicit policy unchanged after v2, without changing source identity", () => {
+    const catalog = loadBundledCatalog();
+    const identity = bundledModelIdentity();
+    expect(identity.resolve("gpt-6-sol").canonicalId).toBe("gpt-6-sol");
+    expect(identity.resolve("gpt-6.1-sol").canonicalId).toBe("gpt-6-1-sol");
+    const base = buildDemoExport("moderate").events[0];
+    if (!base) throw Error("Missing fixture");
+    const events = ["claude-opus-5-5", "gpt-6-sol", "gpt-6-1-sol"].map((id, i) => ({
+      ...base,
+      id: `policy-${i}`,
+      model: { rawName: id, canonicalId: id },
+    }));
+    const historical = TRANSLATION_PROFILE_HISTORY[0];
+    const saved = JSON.parse(
+      JSON.stringify(approvedPolicy(historical, { "claude-opus-5-5": "gpt-6-sol" })),
+    );
+    const replay = (modelTranslation: typeof saved) =>
+      runScopedReplay({
+        events,
+        catalog,
+        identity,
+        rulesAsOf: "2026-09-29",
+        target: { type: "api", providerId: "openai", modelTranslation },
+      });
+    const first = replay(saved);
+    const next = replay(approvedPolicy(frontier, { "claude-opus-5-5": "gpt-6-1-sol" }));
+    expect(replay(saved).result).toEqual(first.result);
+    expect(first.projection.translation).toMatchObject({
+      policyId: "openai-frontier",
+      policyVersion: "1",
+    });
+    expect(next.projection.translation).toMatchObject({
+      policyId: "openai-frontier",
+      policyVersion: "2",
+    });
+    expect(first.result.semantics?.translation?.applied).toEqual([
+      { sourceModelId: "claude-opus-5-5", targetModelId: "gpt-6-sol", eventCount: 1 },
+    ]);
+    expect(next.result.semantics?.translation?.applied).toEqual([
+      { sourceModelId: "claude-opus-5-5", targetModelId: "gpt-6-1-sol", eventCount: 1 },
+    ]);
+    expect(next.receipt?.lines.map((l) => l.modelId)).toContain("gpt-6-sol");
+    expect(events.map((e) => e.model.canonicalId)).toEqual([
+      "claude-opus-5-5",
+      "gpt-6-sol",
+      "gpt-6-1-sol",
+    ]);
+  });
+  it("does not suggest a new target before its accepted pricing starts", () => {
+    expect(suggestedMapping(frontier, workload(["claude-opus-5-5"]), "2026-09-28")).toEqual({});
+    expect(suggestedMapping(frontier, workload(["claude-opus-5-5"]), "2026-09-29")).toEqual({
+      "claude-opus-5-5": "gpt-6-1-sol",
     });
   });
   it("does not invert many-to-one rules or manufacture an economy profile", () => {
@@ -63,9 +157,9 @@ describe("workload-aware counterfactual policies", () => {
     expect(TRANSLATION_PROFILES).toHaveLength(2);
   });
   it("pins version and local user approval and distinguishes edits", () => {
-    expect(approvedPolicy(frontier, { "claude-opus-5-5": "gpt-6-sol" })).toMatchObject({
+    expect(approvedPolicy(frontier, { "claude-opus-5-5": "gpt-6-1-sol" })).toMatchObject({
       id: "openai-frontier",
-      version: "1",
+      version: "2",
       provenance: "user",
       transform: "token-preserving",
     });
@@ -77,7 +171,7 @@ describe("workload-aware counterfactual policies", () => {
   it("keeps unmapped and unidentified calls in the coverage denominator", () => {
     expect(
       mappingCoverage(workload(["claude-opus-5-5", "claude-sonnet-5"]), "openai", {
-        "claude-opus-5-5": "gpt-6-sol",
+        "claude-opus-5-5": "gpt-6-1-sol",
       }),
     ).toEqual({ recorded: 22, mapped: 10, applicable: 10 });
   });

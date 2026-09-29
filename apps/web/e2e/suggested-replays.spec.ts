@@ -3,6 +3,10 @@ import { expect, type Page, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
 import { gotoImport, setRulesAsOf, waitForWorkload } from "./helpers";
 
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
+});
+
 async function setup(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem(
@@ -57,6 +61,10 @@ for (const theme of ["dark", "light"] as const)
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript((t) => localStorage.setItem("stackreplay-theme", t), theme);
     const baseline = await setup(page);
+    await expect(page.getByTestId("suggest-route-api-value")).toBeVisible();
+    await expect(page.getByTestId("suggest-exact")).toBeHidden();
+    await expect(page.getByTestId("suggest-stack")).toBeHidden();
+    await page.getByTestId("strategy-assessments").locator("summary").click();
     await expect(page.getByTestId("suggest-exact")).toBeVisible();
     await expect(page.getByTestId("suggest-openai-frontier")).toBeVisible();
     await expect(page.getByTestId("suggest-stack")).toBeVisible();
@@ -76,17 +84,20 @@ for (const theme of ["dark", "light"] as const)
     await expect(page.getByTestId("strategy-difference")).toHaveText("$0.00");
     await page.getByTestId("add-to-compare").click();
     await page.getByRole("button", { name: "← Try another strategy" }).click();
-    await expect(page.getByTestId("suggest-exact")).toBeFocused();
+    await expect(page.getByTestId("strategy-assessments").locator("summary")).toBeFocused();
     await page.getByTestId("suggest-openai-frontier").click();
     await expect(page.getByTestId("strategy-confirmation")).toContainText("5 model rules");
     await page.getByRole("button", { name: "Edit mapping" }).click();
-    await expect(page.getByLabel("Replay model for Claude Opus 5.5")).toHaveValue("gpt-6-sol");
+    await expect(page.getByLabel("Replay model for Claude Opus 5.5")).toHaveValue("gpt-6-1-sol");
     await page.getByTestId("run-strategy").click();
     await expect(page.getByTestId("strategy-result")).toBeVisible();
     await expect(page.getByTestId("strategy-coverage")).toContainText(
       "5 priced · 5 models translated",
     );
-    await expect(page.getByTestId("strategy-difference")).not.toContainText("No same-scope");
+    await expect(page.getByTestId("strategy-difference")).toHaveText("No same-scope difference");
+    await expect(page.getByTestId("strategy-result")).toContainText(
+      "No difference across catalog snapshots or rules dates",
+    );
     await page.getByTestId("strategy-evidence").locator("summary").first().click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -99,7 +110,16 @@ for (const theme of ["dark", "light"] as const)
     );
     await page.getByTestId("compare-completed").click();
     await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(
-      2,
+      1,
+    );
+    await expect(
+      page.getByText("Different workloads, scopes or price snapshots are kept separate.", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Open another result group →" }).click();
+    await expect(page.getByTestId("completed-comparison")).toContainText(
+      "Same models → direct APIs",
     );
     expect(await runs()).toBe(before);
     expect(
@@ -111,8 +131,11 @@ for (const theme of ["dark", "light"] as const)
     );
     await page.reload();
     await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(
-      2,
+      1,
     );
+    await expect(
+      page.getByRole("group", { name: "Choose completed results" }).getByRole("checkbox"),
+    ).toHaveCount(2);
     expect(await runs()).toBe(0);
   });
 test("edited unmapped calls remain in scope without a whole-workload difference", async ({
@@ -130,6 +153,7 @@ test("edited unmapped calls remain in scope without a whole-workload difference"
 });
 test("current stack stays honest and manual capabilities remain available", async ({ page }) => {
   await setup(page);
+  await page.getByTestId("strategy-assessments").locator("summary").click();
   await page.getByTestId("suggest-stack").click();
   await expect(page.getByTestId("strategy-confirmation")).toContainText("100 USD published price");
   await page.getByTestId("run-strategy").click();
@@ -163,4 +187,24 @@ test("a completed manual replay can be compared without rerunning it", async ({ 
   await expect(page.getByRole("button", { name: "Added to Compare" })).toBeDisabled();
   await page.getByRole("link", { name: "Compare completed replays →" }).click();
   await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(1);
+});
+
+test("Replay loading explains the local preparation before showing decisions", async ({ page }) => {
+  await page.addInitScript(() => {
+    const post = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (this: Worker, ...args: unknown[]) {
+      if ((args[0] as { type?: string })?.type === "LIST_LOCAL_IMPORTS") {
+        setTimeout(() => Reflect.apply(post, this, args), 1500);
+        return;
+      }
+      return Reflect.apply(post, this, args);
+    };
+  });
+  await page.goto("/app/replay");
+  await expect(page.getByTestId("replay-restoring")).toContainText("Opening your workload");
+  await expect(page.getByTestId("replay-restoring")).toContainText(
+    "Reading recorded models and finding useful replay strategies",
+  );
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await expect(page.getByTestId("replay-empty")).toBeVisible();
 });

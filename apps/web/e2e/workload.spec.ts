@@ -527,7 +527,6 @@ test("a workload share link carries aggregates only and reads as StackReplay in 
   await scanFixtures(page);
   await openWorkload(page);
   await openWorkloadTools(page);
-  await page.getByTestId("share-workload-link").click();
   const panel = page.getByTestId("share-panel");
   await expect(panel.getByTestId("share-preview")).toBeVisible();
   const token = await createShareToken(page);

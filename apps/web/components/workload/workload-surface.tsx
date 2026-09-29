@@ -1,6 +1,5 @@
 "use client";
 
-import { shareText } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +9,9 @@ import { MicroLabel } from "@/components/instrument/primitives";
 import { MissingWorkload } from "@/components/missing-workload";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import type { MarketDecision } from "@/lib/market-decision";
-import { coverageShare, type SuggestedRoute, suggestRoutes, workloadSlices } from "@/lib/routes";
+import { replayLink, routeCopy, routeLink } from "@/lib/replay-navigation";
+
+import { suggestRoutes, workloadSlices } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { type ShareOptions, workloadShareV2 } from "@/lib/share-v2";
 import { localDayOf } from "@/lib/timeline";
@@ -31,7 +32,9 @@ import { ProjectLedger } from "./projects";
 import { WorkRhythm } from "./rhythm";
 import { ACTION_LINK, WorkloadSection } from "./section";
 import { SessionShape } from "./sessions";
-import { CurrentSpend, WorkloadValueFigure } from "./value";
+import { WorkloadValueFigure } from "./value";
+
+export { replayLink } from "@/lib/replay-navigation";
 
 function browserTimeZone(): string {
   try {
@@ -48,62 +51,6 @@ function segmented(active: boolean): string {
       ? "border-accent bg-surface-2 text-foreground"
       : "border-control-border text-muted-foreground hover:text-foreground",
   ].join(" ");
-}
-
-/**
- * Replay links carry an opaque local id, catalog ids and recording-tool ids
- * only, never workload content.
- */
-export function replayLink(
-  importId: string,
-  options: {
-    plan?: string | undefined;
-    api?: string | undefined;
-    scope?: readonly string[] | undefined;
-  } = {},
-): string {
-  const params = new URLSearchParams({ import: importId });
-  if (options.plan !== undefined) params.set("target", options.plan);
-  if (options.api !== undefined) params.set("api", options.api);
-  if (options.scope !== undefined && options.scope.length > 0)
-    params.set("scope", options.scope.join(","));
-  return `/app/replay?${params.toString()}`;
-}
-
-/** The replay a suggested route opens. */
-function routeLink(importId: string, route: SuggestedRoute): string {
-  return replayLink(importId, {
-    ...(route.target.kind === "api" ? { api: route.target.id } : { plan: route.target.id }),
-    scope: route.slice.sources,
-  });
-}
-
-/** Words for a suggested route: what it runs against, and what it can answer. */
-function routeCopy(route: SuggestedRoute): { kind: string; title: string; body: string } {
-  const whole = route.slice.sources.length === 0;
-  const name = route.target.name;
-  const share = shareText(coverageShare(route.target));
-  const yourCalls = whole ? "your calls" : `your ${route.slice.label} calls`;
-  if (route.id === "api-value")
-    return {
-      kind: "Published API rates",
-      title: whole ? `Same models, ${name}` : `Your ${route.slice.label} work, ${name}`,
-      body: `What ${whole ? "this workload" : `your ${count(route.slice.events)} ${route.slice.label} calls`} would cost at the provider's published list prices. Not what you paid.`,
-    };
-  if (route.id === "numeric-limits")
-    return {
-      kind: "Numeric limits",
-      title: whole ? `Where ${name} would run out` : `Your ${route.slice.label} work on ${name}`,
-      body: `It offers the models for ${share} of ${yourCalls} and publishes its allowance, so Replay can show whether and when it would have run out.`,
-    };
-  return {
-    kind: "Translated replay",
-    title: `Move ${whole ? "this work" : `your ${route.slice.label} work`} to ${name}`,
-    body:
-      route.target.runnable > 0
-        ? `It offers the models for ${share} of your calls; you choose which of its models take the rest.`
-        : "It offers none of these models; you choose which of its models take your calls.",
-  };
 }
 
 /**
@@ -727,13 +674,7 @@ function WorkloadBody({
     [profile, record, decision],
   );
   return (
-    <details className="border-t border-border pt-2" data-testid="workload-tools">
-      <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-        Share or replay this workload
-      </summary>
-      <a href="#share" className={ACTION_LINK} data-testid="share-workload-link">
-        Share this workload →
-      </a>
+    <div className="space-y-6">
       <section
         id="next"
         aria-labelledby="next-heading"
@@ -750,27 +691,6 @@ function WorkloadBody({
             buy that same work. The chronology and peaks you just inspected stay in the analysis.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link
-            href={replayLink(record.id)}
-            className={buttonVariants({ size: "sm" })}
-            data-testid="workload-replay-cta"
-          >
-            Replay part of this workload
-          </Link>
-          <Link
-            href={`/app/compare?view=billing&import=${record.id}`}
-            className={ACTION_LINK}
-            data-testid="legacy-workload-compare-cta"
-          >
-            Compare ways to buy this work →
-          </Link>
-        </div>
-        <CurrentSpend
-          periodDays={profile.overview.spanDays}
-          rulesAsOf={profile.value?.rulesAsOf ?? defaultRulesDate()}
-          value={profile.value}
-        />
         {routes.length === 0 ? null : (
           <ul
             className={`grid gap-px border border-border bg-border ${routes.length === 1 ? "" : routes.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}
@@ -792,34 +712,68 @@ function WorkloadBody({
                         : "next-cross-provider"
                   }
                   title={copy.title}
+                  scope={`${route.slice.label} · ${count(route.slice.events)} calls`}
+                  alternative={
+                    route.alternative
+                      ? {
+                          name: route.alternative.name,
+                          href: replayLink(record.id, {
+                            plan: route.alternative.id,
+                            scope: route.slice.sources,
+                          }),
+                        }
+                      : undefined
+                  }
                 />
               );
             })}
           </ul>
         )}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link
+            href={replayLink(record.id)}
+            className={buttonVariants({ size: "sm" })}
+            data-testid="workload-replay-cta"
+          >
+            Replay this workload
+          </Link>
+          <Link
+            href={`/app/compare?view=billing&import=${record.id}`}
+            className={ACTION_LINK}
+            data-testid="legacy-workload-compare-cta"
+          >
+            Compare ways to buy this work →
+          </Link>
+        </div>
       </section>
 
-      <div className="scroll-mt-36" id="share">
-        <SharePanelV2
-          key={`${record.id}:${decision ? "ready" : "pending"}`}
-          build={shareBuild}
-          kind="workload"
-          refusal={
-            decision === undefined
-              ? "The published market calculation must finish before creating this share."
-              : undefined
-          }
-        />
-      </div>
+      <details className="border-t border-border pt-2" data-testid="workload-tools" id="share">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Share this workload
+        </summary>
+        <div className="scroll-mt-36">
+          <SharePanelV2
+            key={`${record.id}:${decision ? "ready" : "pending"}`}
+            build={shareBuild}
+            kind="workload"
+            refusal={
+              decision === undefined
+                ? "The published market calculation must finish before creating this share."
+                : undefined
+            }
+          />
+        </div>
 
-      <p
-        className="max-w-prose border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground"
-        data-testid="workload-privacy"
-      >
-        Your workload stays local unless you explicitly choose to share something. This analysis ran
-        in a Worker in this browser; project names, sessions and timestamps were not sent anywhere.
-      </p>
-    </details>
+        <p
+          className="max-w-prose border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground"
+          data-testid="workload-privacy"
+        >
+          Your workload stays local unless you explicitly choose to share something. This analysis
+          ran in a Worker in this browser; project names, sessions and timestamps were not sent
+          anywhere.
+        </p>
+      </details>
+    </div>
   );
 }
 
@@ -829,7 +783,11 @@ function NextStep({
   title,
   body,
   testId,
+  alternative,
+  scope,
 }: {
+  alternative?: { name: string; href: string } | undefined;
+  scope: string;
   href: string;
   kind: string;
   title: string;
@@ -837,10 +795,10 @@ function NextStep({
   testId: string;
 }) {
   return (
-    <li className="bg-background">
+    <li className="flex flex-col bg-background">
       <Link
         href={href}
-        className="group flex h-full min-h-11 flex-col gap-2 p-4 focus-visible:outline-2 focus-visible:outline-ring"
+        className="group flex flex-1 min-h-11 flex-col gap-2 p-4 focus-visible:outline-2 focus-visible:outline-ring"
         data-testid={testId}
       >
         <span className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
@@ -849,8 +807,14 @@ function NextStep({
         <span className="text-sm font-medium text-foreground group-hover:text-accent">
           {title} →
         </span>
+        <span className="text-xs text-muted-foreground">Scope: {scope}</span>
         <span className="text-xs leading-relaxed text-muted-foreground">{body}</span>
       </Link>
+      {alternative ? (
+        <Link href={alternative.href} className={`${ACTION_LINK} px-4 pb-3`}>
+          Test {alternative.name} on the same work →
+        </Link>
+      ) : null}
     </li>
   );
 }
