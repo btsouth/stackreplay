@@ -5,7 +5,8 @@
  * this script runs before first paint from the root layout and marks the
  * document so CSS shows only the requested layout, and holds back the results
  * while shared filters are applied. The explorer reads the URL as it hydrates
- * and clears both marks, so a shared link never flashes the default list.
+ * and clears both marks, so a shared link never flashes the default list. If
+ * the explorer never hydrates, the results come back after four seconds.
  */
 export type ModelLayout = "cards" | "table";
 
@@ -21,7 +22,7 @@ export const MODEL_FILTER_PARAMS = [
   "priced",
 ] as const;
 
-export const modelLayoutInitScript = `(function(){try{if(!/^\\/models\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search),d=document.documentElement;if(p.get("view")==="table")d.setAttribute("data-model-layout","table");if(${JSON.stringify(MODEL_FILTER_PARAMS)}.some(function(k){return p.has(k)}))d.setAttribute("data-model-filters","pending");}catch(e){}})();`;
+export const modelLayoutInitScript = `(function(){try{if(!/^\\/models\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search),d=document.documentElement;if(p.get("view")==="table")d.setAttribute("data-model-layout","table");if(${JSON.stringify(MODEL_FILTER_PARAMS)}.some(function(k){return p.has(k)})){d.setAttribute("data-model-filters","pending");setTimeout(function(){d.removeAttribute("data-model-filters")},4e3);}}catch(e){}})();`;
 
 export function modelLayoutFromSearch(search: string): ModelLayout {
   return new URLSearchParams(search).get("view") === "table" ? "table" : "cards";

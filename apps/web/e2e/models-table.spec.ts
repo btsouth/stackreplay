@@ -165,6 +165,8 @@ for (const theme of ["dark", "light"] as const) {
       await page.goto("/models?view=table&sort=input");
       await expect(page.getByTestId("model-data-table")).toBeHidden();
       await expect(page.getByRole("region", { name: "Published API rates" })).toBeVisible();
+      // If the explorer never hydrates, the default list comes back instead of staying hidden.
+      await expect(page.getByTestId("model-data-table")).toBeVisible({ timeout: 8_000 });
     });
 
     test("keeps filters and order in a shareable URL", async ({ page }) => {

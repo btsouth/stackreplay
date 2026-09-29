@@ -3,9 +3,10 @@
  * so a comparison can be shared, while the page itself stays static. This
  * script runs before first paint from the root layout and holds back the
  * comparison until the explorer has read the URL, so a shared link never
- * flashes the default pair.
+ * flashes the default pair. If the explorer never hydrates, the comparison
+ * comes back after four seconds.
  */
-export const compareInitScript = `(function(){try{if(!/^\\/compare\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search);if(p.has("left")||p.has("right")||p.has("third"))document.documentElement.setAttribute("data-compare","pending");}catch(e){}})();`;
+export const compareInitScript = `(function(){try{if(!/^\\/compare\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search),d=document.documentElement;if(p.has("left")||p.has("right")||p.has("third")){d.setAttribute("data-compare","pending");setTimeout(function(){d.removeAttribute("data-compare")},4e3);}}catch(e){}})();`;
 
 /** Two or three distinct plans from a shared URL; unknown ids fall back to the default pair. */
 export function readComparePlans(
