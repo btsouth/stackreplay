@@ -9,7 +9,8 @@
         "sourceUrl": "https://commandcode.ai/docs/plans/goat",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Luna",
@@ -67,7 +68,8 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -100,7 +102,8 @@
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Qwen 3.8 27B"
@@ -232,7 +235,8 @@
         "sourceUrl": "https://commandcode.ai/docs/plans/pro",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Sol",
@@ -294,7 +298,8 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "Qwen 3.8 Omni Flash"
@@ -327,7 +332,8 @@
             "name": "DeepSeek V4 Flash Fast"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Qwen 3.8 27B"
@@ -516,7 +522,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Astra",
@@ -590,7 +597,8 @@
             "name": "Kimi K2.5"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "GLM-5.2"
@@ -620,7 +628,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -826,7 +835,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-6 Astra",
@@ -900,7 +910,8 @@
             "name": "Kimi K2.5"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "GLM-5.2"
@@ -930,7 +941,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -1171,7 +1183,8 @@
             "modelId": "glm-5-3-flash"
           },
           {
-            "name": "GLM-5.3 FlashX"
+            "name": "GLM-5.3 FlashX",
+            "modelId": "glm-5-3-flashx"
           },
           {
             "name": "GLM-5.3",
@@ -1205,7 +1218,8 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "DeepSeek V4 Flash Vision (exp)"
+            "name": "DeepSeek V4 Flash Vision (exp)",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "DeepSeek V4 Flash Fast"
@@ -1326,7 +1340,8 @@
             "modelId": "kimi-k3"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "DeepSeek V4.1 Flash",
@@ -1452,13 +1467,15 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "DeepSeek V4 Flash"
           },
           {
-            "name": "DeepSeek V4 Flash Vision Exp"
+            "name": "DeepSeek V4 Flash Vision Exp",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Hy4 preview"
@@ -1568,13 +1585,15 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "DeepSeek V4 Flash"
           },
           {
-            "name": "DeepSeek V4 Flash Vision Exp"
+            "name": "DeepSeek V4 Flash Vision Exp",
+            "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
             "name": "Hy4 preview"
@@ -1620,7 +1639,8 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "Gemma 4"
@@ -1689,7 +1709,8 @@
             "modelId": "deepseek-v4-1-flash"
           },
           {
-            "name": "DeepSeek V4 Pro"
+            "name": "DeepSeek V4 Pro",
+            "modelId": "deepseek-v4-pro"
           },
           {
             "name": "Gemma 4"
@@ -1746,7 +1767,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -1867,7 +1889,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2008,7 +2031,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2145,7 +2169,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2282,7 +2307,8 @@
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Gemini 3.5 Flash",
@@ -2428,7 +2454,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2501,7 +2528,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2574,7 +2602,8 @@
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "GPT-5.6 Sol",
@@ -2724,7 +2753,8 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Claude Opus 4.6"
@@ -2794,7 +2824,8 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Claude Opus 4.6"
@@ -2863,7 +2894,8 @@
         "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
         "models": [
           {
-            "name": "Claude Sonnet 5.5"
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Claude Opus 4.6"
@@ -3181,7 +3213,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },
@@ -3253,7 +3286,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },
@@ -3325,7 +3359,8 @@
             "modelId": "gemini-3-flash"
           },
           {
-            "name": "Gemini 3 Flash-lite"
+            "name": "Gemini 3 Flash-lite",
+            "modelId": "gemini-3-flash-lite"
           }
         ]
       },
