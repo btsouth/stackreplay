@@ -128,7 +128,8 @@ test.describe("the homepage replay instrument", () => {
       await page.waitForFunction(
         () => (window as unknown as { lateFrames: number }).lateFrames >= 2,
         undefined,
-        { timeout: 15_000 },
+        // Poll independently of the animation frames this test delays.
+        { polling: 50, timeout: 15_000 },
       );
       await expect(hero).toHaveAttribute("data-run", "resolved");
       await expect(hero.getByTestId("hero-rerun")).toBeEnabled();
