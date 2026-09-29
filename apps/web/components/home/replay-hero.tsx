@@ -97,8 +97,12 @@ export function ReplayHero({
     let frame = 0;
     if (started.current) {
       setPhase("pending");
+      // A hidden tab pauses animation frames but not timers, so these frames
+      // can arrive after the run has resolved; they must not restart it.
       frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => setPhase("running"));
+        frame = requestAnimationFrame(() =>
+          setPhase((current) => (current === "pending" ? "running" : current)),
+        );
       });
     } else {
       setPhase("running");

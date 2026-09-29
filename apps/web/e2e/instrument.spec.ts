@@ -100,6 +100,44 @@ test.describe("the homepage replay instrument", () => {
     await expect(hero.getByTestId("hero-target-name")).toHaveText("OpenAI API");
   });
 
+  for (const trigger of ["target change", "Replay again"] as const) {
+    test(`settles after ${trigger} even when animation frames arrive late`, async ({ page }) => {
+      const hero = await openHero(page);
+      await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
+      // A hidden or occluded tab pauses animation frames while timers still fire,
+      // so a rerun's frames can land after its resolve timer. Delay every frame
+      // past the run and count the late ones.
+      await page.evaluate(() => {
+        const late = window as unknown as { lateFrames: number };
+        late.lateFrames = 0;
+        window.requestAnimationFrame = (callback) =>
+          window.setTimeout(() => {
+            late.lateFrames += 1;
+            callback(performance.now());
+          }, 2_500);
+        window.cancelAnimationFrame = (handle) => window.clearTimeout(handle);
+      });
+      const target = await hero.getAttribute("data-target");
+      if (trigger === "target change") {
+        await hero.getByTestId("hero-target-openai-api").click();
+        await expect(hero).toHaveAttribute("data-target", "openai-api");
+      } else {
+        await hero.getByTestId("hero-rerun").click();
+        await expect(hero).toHaveAttribute("data-target", target ?? "");
+      }
+      await page.waitForFunction(
+        () => (window as unknown as { lateFrames: number }).lateFrames >= 2,
+        undefined,
+        // Poll independently of the animation frames this test delays.
+        { polling: 50, timeout: 15_000 },
+      );
+      await expect(hero).toHaveAttribute("data-run", "resolved");
+      await expect(hero.getByTestId("hero-rerun")).toBeEnabled();
+      await expect(hero.getByTestId("hero-rerun")).toHaveText("Replay again");
+      await expect(hero.getByTestId("hero-status")).not.toContainText("Replaying");
+    });
+  }
+
   test("runs once and stops, and the rows below load the same instrument", async ({ page }) => {
     const hero = await openHero(page);
     await expect(hero).toHaveAttribute("data-run", "resolved", { timeout: 15_000 });
