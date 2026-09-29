@@ -576,8 +576,11 @@ places where two surfaces have to agree.
   file size to hold it, and an import that exhausts memory reports memory rather
   than a generic failure.
 - **Behavioural claims get a runtime control.** Public pages are served under a
-  content security policy whose `connect-src 'self'` is the runtime half of
-  "nothing leaves the browser".
+  content security policy whose `connect-src 'self'` blocks foreign connection
+  destinations. Browser request tests protect imported-history contents; explicit
+  aggregate sharing and Cloudflare page/performance metrics use same-origin
+  endpoints. The analytics script has a path-specific CSP exception, and an
+  origin-only referrer policy keeps local import IDs out of analytics headers.
 - **Aggregates are not exact.** A source row that aggregates many calls reports
   `estimated` usage confidence, so a request-count replay cannot treat it as a
   count of requests. A row that reports no call count at all is an aggregate

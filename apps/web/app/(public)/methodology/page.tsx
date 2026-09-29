@@ -93,6 +93,7 @@ const sections = [
     heading: "What a replay does not do",
     body: [
       "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action: only the aggregate result shown in the share preview is uploaded and stored, so the link can be short. Raw history is never uploaded.",
+      "The hosted site uses Cloudflare Web Analytics for page visits and performance metrics. It records page paths, including public share URLs, but removes query strings and fragments. Request referrers contain only the site origin. Imported history files, prompts, responses and local workload records are not sent to analytics.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
       "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
     ],
