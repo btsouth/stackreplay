@@ -1,0 +1,26 @@
+id: minimax-m3-pricing
+role: pricing
+modelId: minimax-m3
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.30'
+  output: '1.20'
+  cacheRead: '0.06'
+tiers:
+  - id: long-context
+    label: "Above 512K input tokens"
+    when:
+      inputTokensAbove: 512000
+    rates:
+      input: '0.60'
+      output: '2.40'
+      cacheRead: '0.12'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://platform.minimax.io/docs/guides/pricing-paygo
+  title: 'MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows "≤ 512k input tokens" and "> 512k input tokens" (permanent 50% off prices); no cache-write rate is published.'
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

@@ -1,0 +1,18 @@
+id: minimax-m2-7-pricing
+role: pricing
+modelId: minimax-m2-7
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.3'
+  output: '1.2'
+  cacheRead: '0.06'
+  cacheWrite: '0.375'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://platform.minimax.io/docs/guides/pricing-paygo
+  title: 'MiniMax pay-as-you-go LLM table, MiniMax-M2.7 row'
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

@@ -1771,6 +1771,101 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       inputModalities: ["text", "image", "video"],
     },
   },
+  "minimax-m3": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+        title: "Thinking control by model",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://www.minimax.io/models/text/m3",
+        title: "Context guarantee",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+        title: "Output limit",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/guides/pricing-paygo",
+        title: "Discounted rates, long-context tier and priority tier",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is off when the thinking parameter is omitted. Set thinking type to adaptive to turn it on.",
+      },
+      {
+        label: "Context",
+        value:
+          "The API supports up to 1M tokens of context with a guaranteed minimum of 512K tokens.",
+      },
+      {
+        label: "Output limit",
+        value: "max_completion_tokens accepts up to 524,288 tokens; MiniMax recommends 131,072.",
+      },
+      {
+        label: "Long-context pricing",
+        value:
+          "Requests above 512K input tokens cost $0.60 input, $2.40 output and $0.12 cache read per MTok.",
+      },
+      {
+        label: "Billing",
+        value:
+          "MiniMax shows a permanent 50% discount from $0.60 input and $2.40 output. Priority service tier costs 1.5x standard.",
+      },
+      {
+        label: "Input support",
+        value:
+          "MiniMax describes M3 as natively multimodal. The reviewed pages do not list its exact input types.",
+      },
+    ],
+  },
+  "minimax-m2-7": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+        title: "Thinking control by model",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+        title: "Output limit",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://platform.minimax.io/docs/guides/pricing-paygo",
+        title: "Cache and high-speed variant rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value: "Thinking is always on. A disabled thinking setting is accepted but ignored.",
+      },
+      {
+        label: "Output limit",
+        value: "max_completion_tokens accepts up to 204,800 tokens; MiniMax recommends 65,536.",
+      },
+      {
+        label: "Prompt caching",
+        value: "Cache reads cost $0.06 per MTok and cache writes cost $0.375 per MTok.",
+      },
+      {
+        label: "Variants",
+        value:
+          "MiniMax lists MiniMax-M2.7-highspeed with the same performance and faster output, at $0.60 input and $2.40 output per MTok.",
+      },
+    ],
+  },
   "composer-2-5": {
     checkedAt: "2026-09-29",
     sources: [

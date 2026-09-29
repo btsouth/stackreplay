@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:a91e78eba6257be6ac09e86da3206b4a989d8196430a1c33c53b820fa226f26d";
+export const BUNDLED_CATALOG_VERSION = "sha256:edcf147000501cfc1b2c9d8a5673e021c6136de6d4ca91241c2dc59fc466550f";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:a91e78eba6257be6ac09e86da3206b4a989d8196430a1c33c53b820fa226f26d",
+  "catalogVersion": "sha256:edcf147000501cfc1b2c9d8a5673e021c6136de6d4ca91241c2dc59fc466550f",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -189,6 +189,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "minimax": {
+      "id": "minimax",
+      "role": "provider",
+      "name": "MiniMax",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "moonshot": {
@@ -3818,6 +3832,176 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "minimax-m2-7": {
+      "id": "minimax-m2-7",
+      "role": "model",
+      "name": "MiniMax M2.7",
+      "developerId": "minimax",
+      "specifications": {
+        "contextTokens": 204800,
+        "maxOutputTokens": 204800,
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is always on; a disabled thinking setting is accepted but ignored."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-generation",
+            "title": "Official context window",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+            "title": "Maximum max_completion_tokens",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+            "title": "Thinking control by model",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/guides/local-deploy-m2-7",
+            "title": "Reasoning and tool calls",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "minimax"
+      ],
+      "aliases": [
+        {
+          "id": "minimax-m2-7-api-id",
+          "alias": "MiniMax-M2.7",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "MiniMax-M2.7 API model name",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "minimax-m2-7-router-minimax-minimax-m2-7",
+          "alias": "minimax/minimax-m2.7",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/minimax/minimax-m2.7",
+              "title": "OpenRouter model record `minimax/minimax-m2.7` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "MiniMax-M2.7 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m3": {
+      "id": "minimax-m3",
+      "role": "model",
+      "name": "MiniMax M3",
+      "developerId": "minimax",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 524288,
+        "reasoning": true,
+        "toolCalling": true,
+        "notes": [
+          "Thinking is off unless requested with thinking type adaptive.",
+          "MiniMax describes M3 as natively multimodal but does not list its exact input types on the reviewed pages."
+        ],
+        "sources": [
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-generation",
+            "title": "Official context window",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-chat-openai",
+            "title": "Maximum max_completion_tokens",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+            "title": "Thinking control by model",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://platform.minimax.io/docs/guides/text-m3-function-call",
+            "title": "Tool use and interleaved thinking",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "pricingNote": "MiniMax lists M3 at $0.60 input, $2.40 output and $0.12 cache read per million tokens up to 512K input tokens, shown with a permanent 50% discount. The catalog records the discounted rates MiniMax charges. Priority service tier costs 1.5x standard. No cache-write rate is published for M3.",
+      "providerIds": [
+        "minimax"
+      ],
+      "aliases": [
+        {
+          "id": "minimax-m3-api-id",
+          "alias": "MiniMax-M3",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "MiniMax-M3 API model name",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "minimax-m3-router-minimax-minimax-m3",
+          "alias": "minimax/minimax-m3",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/minimax/minimax-m3",
+              "title": "OpenRouter model record `minimax/minimax-m3` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "MiniMax-M3 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go API pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3": {
@@ -23863,6 +24047,67 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "minimax-m2-7-pricing": {
+      "id": "minimax-m2-7-pricing",
+      "role": "pricing",
+      "modelId": "minimax-m2-7",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.3",
+        "output": "1.2",
+        "cacheRead": "0.06",
+        "cacheWrite": "0.375"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go LLM table, MiniMax-M2.7 row",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "minimax-m3-pricing": {
+      "id": "minimax-m3-pricing",
+      "role": "pricing",
+      "modelId": "minimax-m3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.06"
+      },
+      "tiers": [
+        {
+          "id": "long-context",
+          "label": "Above 512K input tokens",
+          "when": {
+            "inputTokensAbove": 512000
+          },
+          "rates": {
+            "input": "0.60",
+            "output": "2.40",
+            "cacheRead": "0.12"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "title": "MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows \"≤ 512k input tokens\" and \"> 512k input tokens\" (permanent 50% off prices); no cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3-api-reference-20260928": {

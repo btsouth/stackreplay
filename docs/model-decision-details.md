@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 54 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 56 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -69,6 +69,8 @@ Existing prices and technical facts were checked against the linked documentatio
 | Kimi K2.7 Code | Thinking, Variants, Output limit, API identity | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart) |
 | Kimi K3 | Thinking, Output control, Access, Prompt caching, Tools | [Official documentation](https://platform.kimi.ai/docs/guide/kimi-k3-quickstart) |
 | MAI-Code-1.1-Flash | Product access, Capabilities | [Official documentation](https://github.com/microsoft/MAI-Code) |
+| MiniMax M2.7 | Thinking, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
+| MiniMax M3 | Thinking, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
 
