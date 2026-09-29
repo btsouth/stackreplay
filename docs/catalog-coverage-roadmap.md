@@ -19,6 +19,11 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 
 ## Dated follow-ups
 
+Promotional prices stay in the catalog only while they are kept current. Each promotional record carries the provider's label and, when published, the regular rate (`promotion` in the pricing schema); the model pages show both.
+
+- By 2026-11-21: OpenAI's GPT-5.6 Sol promotional rate is published as available "at least through November 21, 2026" with no later price. Recheck https://developers.openai.com/api/docs/pricing and record the new rate or a new end date.
+- 2027-01-01: Gemini 3.6, 3.7 and 3.8 Flash promotional records end on 2026-12-31 and their published 2027 records take over automatically. GitHub publishes no Copilot rate for them after that date; recheck https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing in December.
+- Monthly until the W1 watcher runs: MiniMax M3 ("Permanent 50% off") and LongCat 2.0 ("limited-time", no end date) publish no end date. Recheck https://platform.minimax.io/docs/guides/pricing-paygo and https://longcat.chat/platform/docs/pricing/longcat-2.0.
 - After 10:00 Beijing time on 2026-10-21: Xiaomi deprecates `mimo-v2.5` and `mimo-v2.5-pro` with no replacement model (https://mimo.mi.com/docs/en-US/updates/deprecate). Update the `mimo-v2-5` and `mimo-v2-5-pro` lifecycle, end their pricing records, and recheck the plan lineups that still list them.
 
 ## Rules every slice follows

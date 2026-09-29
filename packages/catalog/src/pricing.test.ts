@@ -247,3 +247,43 @@ describe("catalog pricing semantics: conditional tiers", () => {
     ).toContain("PRICING_TIER_WINDOW_INVALID");
   });
 });
+
+describe("catalog pricing: promotional standing", () => {
+  const rates = { input: "0.30", output: "1.20", cacheRead: "0.06" };
+  const tier = {
+    id: "long-context",
+    label: "Above 512K input tokens",
+    when: { inputTokensAbove: 512_000 },
+    rates: { input: "0.60", output: "2.40", cacheRead: "0.12" },
+  };
+  const promoted = (promotion: Record<string, unknown>) => ({
+    ...record(rates, [tier]),
+    promotion,
+  });
+
+  it("accepts a label with the provider's regular rates and tiers", () => {
+    expect(
+      check(
+        promoted({
+          label: "Permanent 50% discount",
+          regularRates: { input: "0.60", output: "2.40", cacheRead: "0.12" },
+          regularTiers: [
+            { id: "long-context", rates: { input: "1.20", output: "4.80", cacheRead: "0.24" } },
+          ],
+        }),
+      ),
+    ).toEqual([]);
+    expect(check(promoted({ label: "Limited-time discount" }))).toEqual([]);
+  });
+
+  it("rejects regular rates for a tier the record does not have", () => {
+    expect(
+      check(
+        promoted({
+          label: "Permanent 50% discount",
+          regularTiers: [{ id: "overnight", rates: { input: "1.20", output: "4.80" } }],
+        }),
+      ),
+    ).toContain("PRICING_PROMOTION_TIER_UNKNOWN");
+  });
+});

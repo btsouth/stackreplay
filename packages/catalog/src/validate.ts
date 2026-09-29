@@ -426,7 +426,7 @@ function checkRateSet(
 }
 
 function checkPricingSemantics(
-  pricing: Pick<PricingV1, "id" | "rates" | "tiers">,
+  pricing: Pick<PricingV1, "id" | "rates" | "tiers"> & Partial<Pick<PricingV1, "promotion">>,
   file: string,
   issues: CatalogValidationIssue[],
 ): void {
@@ -513,6 +513,19 @@ function checkPricingSemantics(
         });
       }
     }
+  }
+  const promotion = pricing.promotion;
+  if (promotion?.regularRates)
+    checkRateSet(promotion.regularRates, `${prefix}: promotion regular rates`, file, issues);
+  for (const tier of promotion?.regularTiers ?? []) {
+    checkRateSet(tier.rates, `${prefix}: promotion regular tier "${tier.id}"`, file, issues);
+    if (!tierIds.has(tier.id))
+      issues.push({
+        severity: "error",
+        code: "PRICING_PROMOTION_TIER_UNKNOWN",
+        message: `${prefix}: promotion regular tier "${tier.id}" names no tier on this record`,
+        file,
+      });
   }
 }
 

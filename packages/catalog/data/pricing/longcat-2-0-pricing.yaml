@@ -8,6 +8,8 @@ rates:
   input: '0.30'
   output: '1.20'
   cacheRead: '0.006'
+promotion:
+  label: Limited-time discount, no end date published
 effectiveFrom: '2026-09-29'
 sources:
 - url: https://longcat.chat/platform/docs/pricing/longcat-2.0

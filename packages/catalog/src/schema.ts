@@ -342,6 +342,26 @@ export {
 export const pricingBasisV1Schema = z.enum(["api_list_price", "target_billing_rate"]);
 export type PricingBasisV1 = z.infer<typeof pricingBasisV1Schema>;
 
+/**
+ * A price record's published promotional standing, for display only. Price
+ * selection and Replay never read it: the record's own dates decide when its
+ * rates apply. Regular rates are recorded only when the provider publishes
+ * them (a struck-through list price, or rates announced for after the
+ * promotion); otherwise surfaces say they are not published.
+ */
+export const pricingPromotionV1Schema = z.strictObject({
+  /** The provider's standing in a few plain words, e.g. "Permanent 50% discount". */
+  label: z.string().min(1),
+  regularRates: pricingRateSetV1Schema.optional(),
+  /** Regular rates for the record's conditional tiers, by tier id. */
+  regularTiers: z
+    .array(z.strictObject({ id: z.string().min(1), rates: pricingRateSetV1Schema }))
+    .optional(),
+  /** Set when the regular rates are a published later price rather than a current list price. */
+  regularFrom: isoDateV1Schema.optional(),
+});
+export type PricingPromotionV1 = z.infer<typeof pricingPromotionV1Schema>;
+
 export const pricingV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("pricing"),
@@ -357,6 +377,7 @@ export const pricingV1Schema = z.strictObject({
   rates: pricingRateSetV1Schema,
   /** Conditional rate sets that override `rates` when their condition matches. */
   tiers: z.array(pricingTierV1Schema).optional(),
+  promotion: pricingPromotionV1Schema.optional(),
   effectiveFrom: isoDateV1Schema,
   effectiveTo: isoDateV1Schema.optional(),
   /** Exact activation instant when the provider publishes one. */

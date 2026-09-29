@@ -23,6 +23,8 @@ tiers:
       cacheWrite: "10.00"
       reasoning:
         billedAs: output
+promotion:
+  label: Promotional rate, available at least through November 21, 2026
 effectiveFrom: 2026-09-21
 sources:
       - url: https://developers.openai.com/api/docs/pricing

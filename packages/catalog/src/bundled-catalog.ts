@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987";
+export const BUNDLED_CATALOG_VERSION = "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+  "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -1702,7 +1702,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
+      "pricingNote": "Cache storage and tools have separate charges.",
       "providerIds": [
         "github",
         "google"
@@ -1761,7 +1761,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
+      "pricingNote": "Cache storage and tools have separate charges.",
       "providerIds": [
         "github"
       ],
@@ -1809,7 +1809,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50 output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.",
+      "pricingNote": "Cache storage and tools have separate charges.",
       "providerIds": [
         "cursor",
         "github"
@@ -3866,7 +3866,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date. The regular rates are $0.75 input, $0.015 cached input and $2.95 output per 1M tokens. A separate yuan price table is also listed.",
+      "pricingNote": "A separate yuan price table is also listed.",
       "providerIds": [
         "meituan"
       ],
@@ -4427,7 +4427,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "MiniMax lists M3 at $0.60 input, $2.40 output and $0.12 cache read per million tokens up to 512K input tokens, shown with a permanent 50% discount. The catalog records the discounted rates MiniMax charges. Priority service tier costs 1.5x standard. No cache-write rate is published for M3.",
+      "pricingNote": "Priority service tier costs 1.5x standard. No cache-write rate is published for M3.",
       "providerIds": [
         "minimax"
       ],
@@ -23058,6 +23058,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "billedAs": "output"
         }
       },
+      "promotion": {
+        "label": "Promotional rate through December 31, 2026",
+        "regularRates": {
+          "input": "1.50",
+          "output": "7.50",
+          "cacheRead": "0.15",
+          "reasoning": {
+            "billedAs": "output"
+          }
+        },
+        "regularFrom": "2027-01-01"
+      },
       "effectiveFrom": "2026-09-28",
       "effectiveTo": "2026-12-31",
       "sources": [
@@ -23097,6 +23109,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "gemini-3-6-flash-pricing-2027": {
+      "id": "gemini-3-6-flash-pricing-2027",
+      "role": "pricing",
+      "modelId": "gemini-3-6-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.50",
+        "output": "7.50",
+        "cacheRead": "0.15",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2027-01-01",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3.6 Flash API list pricing \"starting January 1, 2027\": input \"$1.50\", output (including thinking tokens) \"$7.50\", context caching \"$0.15\".",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "gemini-3-7-flash-api-reference-20260928": {
       "id": "gemini-3-7-flash-api-reference-20260928",
       "role": "pricing",
@@ -23111,6 +23154,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "reasoning": {
           "billedAs": "output"
         }
+      },
+      "promotion": {
+        "label": "Promotional rate through December 31, 2026",
+        "regularRates": {
+          "input": "1.50",
+          "output": "7.50",
+          "cacheRead": "0.15",
+          "reasoning": {
+            "billedAs": "output"
+          }
+        },
+        "regularFrom": "2027-01-01"
       },
       "effectiveFrom": "2026-09-28",
       "effectiveTo": "2026-12-31",
@@ -23149,6 +23204,37 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "gemini-3-7-flash-pricing-2027": {
+      "id": "gemini-3-7-flash-pricing-2027",
+      "role": "pricing",
+      "modelId": "gemini-3-7-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.50",
+        "output": "7.50",
+        "cacheRead": "0.15",
+        "reasoning": {
+          "billedAs": "output"
+        }
+      },
+      "effectiveFrom": "2027-01-01",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Gemini 3.7 Flash API list pricing \"starting January 1, 2027\": input \"$1.50\", output (including thinking tokens) \"$7.50\", context caching \"$0.15\".",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/pricing",
+          "title": "Thinking-token billing relationship: \"Output price (including thinking tokens)\".",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "gemini-3-8-flash-github-pricing": {
@@ -23233,6 +23319,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "reasoning": {
           "billedAs": "output"
         }
+      },
+      "promotion": {
+        "label": "Promotional rate through December 31, 2026",
+        "regularRates": {
+          "input": "1.50",
+          "output": "7.50",
+          "cacheRead": "0.15",
+          "reasoning": {
+            "billedAs": "output"
+          }
+        },
+        "regularFrom": "2027-01-01"
       },
       "effectiveFrom": "2026-09-21",
       "effectiveTo": "2026-12-31",
@@ -24113,6 +24211,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         }
       ],
+      "promotion": {
+        "label": "Promotional rate, available at least through November 21, 2026"
+      },
       "effectiveFrom": "2026-09-21",
       "sources": [
         {
@@ -24986,16 +25087,19 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "output": "1.20",
         "cacheRead": "0.006"
       },
+      "promotion": {
+        "label": "Limited-time discount, no end date published"
+      },
       "effectiveFrom": "2026-09-29",
       "sources": [
         {
           "url": "https://longcat.chat/platform/docs/pricing/longcat-2.0",
-          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\" column: uncached input, cached input and output. The \"Price $/1M Tokens\" column lists the regular rates. No end date or cache-write rate is published.",
+          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.",
           "checkedAt": "2026-09-29"
         },
         {
           "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
-          "title": "Discounted USD rates and billing formula on the pay-as-you-go guide",
+          "title": "Same USD table and billing formula on the pay-as-you-go guide",
           "checkedAt": "2026-09-29"
         }
       ],
@@ -25187,11 +25291,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         }
       ],
+      "promotion": {
+        "label": "Permanent 50% discount",
+        "regularRates": {
+          "input": "0.60",
+          "output": "2.40",
+          "cacheRead": "0.12"
+        },
+        "regularTiers": [
+          {
+            "id": "long-context",
+            "rates": {
+              "input": "1.20",
+              "output": "4.80",
+              "cacheRead": "0.24"
+            }
+          }
+        ]
+      },
       "effectiveFrom": "2026-09-29",
       "sources": [
         {
           "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
-          "title": "MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows \"≤ 512k input tokens\" and \"> 512k input tokens\" (permanent 50% off prices); no cache-write rate is published.",
+          "title": "MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows \"≤ 512k input tokens\" and \"> 512k input tokens\" (permanent 50% off prices, with the undiscounted prices struck through); no cache-write rate is published.",
           "checkedAt": "2026-09-29"
         }
       ],

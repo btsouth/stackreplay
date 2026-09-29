@@ -122,7 +122,12 @@ describe("model and subscription detail completeness", () => {
   });
   it("does not extend temporary reference prices past their published period", () => {
     expect(basePrice(modelPrices("gemini-3-7-flash", "2026-09-28"))?.rates.input).toBe("0.75");
-    expect(basePrice(modelPrices("gemini-3-7-flash", "2027-01-01"))).toBeUndefined();
+    // The promotion ends; the rate Google publishes for January 1 takes over.
+    expect(basePrice(modelPrices("gemini-3-7-flash", "2027-01-01"))?.rates.input).toBe("1.50");
+    const sol = (date: string) =>
+      modelPrices("gpt-5-6-sol", date).some((price) => price.variantId === "promotion-d0");
+    expect(sol("2026-10-27")).toBe(true);
+    expect(sol("2026-10-28")).toBe(false);
   });
   it("shows relevant usage and tool facts without treating them as quotas", () => {
     const max = catalog.planById("anthropic-claude-max-5x");

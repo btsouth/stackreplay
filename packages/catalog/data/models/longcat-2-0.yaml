@@ -48,5 +48,4 @@ specifications:
   - url: https://longcat.chat/platform/docs/api/chat
     title: Thinking parameter
     checkedAt: '2026-09-29'
-pricingNote: LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date. The regular
-  rates are $0.75 input, $0.015 cached input and $2.95 output per 1M tokens. A separate yuan price table is also listed.
+pricingNote: A separate yuan price table is also listed.

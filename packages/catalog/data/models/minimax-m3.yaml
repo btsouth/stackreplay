@@ -56,6 +56,4 @@ specifications:
   - url: https://platform.minimax.io/docs/guides/text-m3-function-call
     title: Tool use and interleaved thinking
     checkedAt: '2026-09-29'
-pricingNote: MiniMax lists M3 at $0.60 input, $2.40 output and $0.12 cache read per million tokens up to 512K input
-  tokens, shown with a permanent 50% discount. The catalog records the discounted rates MiniMax charges. Priority
-  service tier costs 1.5x standard. No cache-write rate is published for M3.
+pricingNote: Priority service tier costs 1.5x standard. No cache-write rate is published for M3.

@@ -10,6 +10,15 @@ rates:
   cacheRead: "0.075"
   reasoning:
     billedAs: output
+promotion:
+  label: Promotional rate through December 31, 2026
+  regularRates:
+    input: "1.50"
+    output: "7.50"
+    cacheRead: "0.15"
+    reasoning:
+      billedAs: output
+  regularFrom: 2027-01-01
 effectiveFrom: 2026-09-21
 effectiveTo: 2026-12-31
 sources:

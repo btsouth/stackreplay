@@ -3,7 +3,7 @@
   "generatedBy": "apps/web/scripts/build-demo-artifact.mjs",
   "engineVersion": "0.0.4",
   "methodologyVersion": "1.4.0",
-  "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+  "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
   "rulesAsOf": "2026-09-20",
   "scenario": {
     "id": "m4d-demo",
@@ -385,7 +385,7 @@
         "provenance": {
           "planVersion": "example-cloud-pro@2026-08-01",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+          "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "Not established: the target's allowance windows mix rolling and calendar behaviour, so no single reset phase is established, and reset-phase sensitivity is not analysed in this milestone",
@@ -684,7 +684,7 @@
         "provenance": {
           "planVersion": "example-cloud-starter@2026-09-15",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+          "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "translationPolicy": {
@@ -964,7 +964,7 @@
         "provenance": {
           "apiProvider": "example-cloud",
           "rulesAsOf": "2026-09-20",
-          "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+          "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
           "engineVersion": "0.0.4",
           "methodologyVersion": "1.4.0",
           "resetPhase": "a Direct API target has no subscription allowance window, so no reset phase can apply to it",
@@ -1258,7 +1258,7 @@
       "provenance": {
         "planVersion": "example-cloud-starter@2026-09-15",
         "rulesAsOf": "2026-09-20",
-        "catalogVersion": "sha256:8a539613b578a92c2a5ed3ff1c3d5fdfdda8c74d8894fe4fdde82cf7fba68987",
+        "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
         "engineVersion": "0.0.4",
         "methodologyVersion": "1.4.0",
         "translationPolicy": {

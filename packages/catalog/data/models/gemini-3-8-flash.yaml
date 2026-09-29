@@ -57,5 +57,4 @@ specifications:
   - url: https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash
     title: Official model specifications
     checkedAt: '2026-09-28'
-pricingNote: 'Promotional standard rates through December 31, 2026. Published January 1 rates: $1.50 input, $7.50
-  output and $0.15 cached input per million tokens. Cache storage and tools have separate charges.'
+pricingNote: Cache storage and tools have separate charges.
