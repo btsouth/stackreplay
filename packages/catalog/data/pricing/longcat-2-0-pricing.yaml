@@ -1,0 +1,20 @@
+id: longcat-2-0-pricing
+role: pricing
+modelId: longcat-2-0
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.30'
+  output: '1.20'
+  cacheRead: '0.006'
+effectiveFrom: '2026-09-29'
+sources:
+- url: https://longcat.chat/platform/docs/pricing/longcat-2.0
+  title: 'Pay-as-you-go USD table, "Discounted Price $/1M Tokens (limited-time)": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.'
+  checkedAt: '2026-09-29'
+- url: https://longcat.chat/platform/docs/api-pay-as-you-go
+  title: Same USD table and billing formula on the pay-as-you-go guide
+  checkedAt: '2026-09-29'
+lastVerifiedAt: '2026-09-29'
+verificationStatus: verified

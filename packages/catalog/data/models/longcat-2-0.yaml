@@ -30,6 +30,9 @@ sources:
 - url: https://huggingface.co/meituan-longcat/LongCat-2.0
   title: Meituan LongCat model card
   checkedAt: '2026-09-29'
+- url: https://longcat.chat/platform/docs/api-pay-as-you-go
+  title: LongCat API pay-as-you-go pricing and payment methods
+  checkedAt: '2026-09-29'
 lastVerifiedAt: '2026-09-29'
 verificationStatus: verified
 specifications:
@@ -45,5 +48,5 @@ specifications:
   - url: https://longcat.chat/platform/docs/api/chat
     title: Thinking parameter
     checkedAt: '2026-09-29'
-pricingNote: LongCat's pay-as-you-go page lists limited-time discounted prices in yuan under a "$/1M Tokens" header and
-  takes Alipay or WeChat Pay only. No USD rate is published, so no API price is recorded.
+pricingNote: LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date or undiscounted
+  rate. A separate yuan price table is also listed.

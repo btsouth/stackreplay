@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:382a4f7ba176d702858f3e63b4149b6111965b4454ffb04de319e1a816cc5c32";
+export const BUNDLED_CATALOG_VERSION = "sha256:d7c2b09fb442ae436f0a3f829fc8489cc3a6983db65c70954f1a9762bfbc7652";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:382a4f7ba176d702858f3e63b4149b6111965b4454ffb04de319e1a816cc5c32",
+  "catalogVersion": "sha256:d7c2b09fb442ae436f0a3f829fc8489cc3a6983db65c70954f1a9762bfbc7652",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -3866,7 +3866,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "LongCat's pay-as-you-go page lists limited-time discounted prices in yuan under a \"$/1M Tokens\" header and takes Alipay or WeChat Pay only. No USD rate is published, so no API price is recorded.",
+      "pricingNote": "LongCat labels its USD pay-as-you-go rates a limited-time discount and publishes no end date or undiscounted rate. A separate yuan price table is also listed.",
       "providerIds": [
         "meituan"
       ],
@@ -3909,6 +3909,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://huggingface.co/meituan-longcat/LongCat-2.0",
           "title": "Meituan LongCat model card",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
+          "title": "LongCat API pay-as-you-go pricing and payment methods",
           "checkedAt": "2026-09-29"
         }
       ],
@@ -4513,11 +4518,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "url": "https://cursor.com/docs/models-and-pricing",
-          "title": "Cursor current model and rate tables; reviewed in the Sep 23 launch audit",
-          "checkedAt": "2026-09-23"
+          "title": "Cursor current model and rate tables; Muse Spark 1.3 rechecked September 29",
+          "checkedAt": "2026-09-29"
         }
       ],
-      "lastVerifiedAt": "2026-09-28",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "nano-banana-pro": {
@@ -24967,6 +24972,34 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "longcat-2-0-pricing": {
+      "id": "longcat-2-0-pricing",
+      "role": "pricing",
+      "modelId": "longcat-2-0",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.30",
+        "output": "1.20",
+        "cacheRead": "0.006"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://longcat.chat/platform/docs/pricing/longcat-2.0",
+          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
+          "title": "Same USD table and billing formula on the pay-as-you-go guide",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "mai-code-1-1-flash-github-pricing": {

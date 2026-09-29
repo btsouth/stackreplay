@@ -2376,7 +2376,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
       {
         url: "https://longcat.chat/platform/docs/api-pay-as-you-go",
-        title: "Billing and payment methods",
+        title: "Discounted USD rates and payment methods",
         checkedAt: "2026-09-29",
       },
       {
@@ -2400,7 +2400,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Billing",
         value:
-          "Pay-as-you-go prices are listed in yuan as a limited-time discount. Top-ups use Alipay or WeChat Pay.",
+          "The USD pay-as-you-go rates are labeled a limited-time discount, with no end date or undiscounted rate published. A yuan price table is listed as well. Payment methods are Alipay, WeChat Pay, credit or debit card and Google Pay.",
       },
       { label: "Open weights", value: "The model weights are released under the MIT License." },
     ],
