@@ -1,11 +1,10 @@
 /** Real nested Worker benchmark. Execute inside omabox; never uses a user browser. */
 
-import { readFile } from "node:fs/promises";
-import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { build } from "vite";
+import { createRuntimeBenchServer } from "./runtime-bench-server.mjs";
 
 const compiled = process.argv.includes("--compiled");
 const out = join(
@@ -32,14 +31,7 @@ for (const [entry, file] of [
       },
     },
   });
-const server = createServer(async (req, res) => {
-  res.setHeader("Content-Type", req.url?.endsWith(".js") ? "text/javascript" : "text/html");
-  res.end(
-    req.url === "/owner.js" || req.url === "/child.js"
-      ? await readFile(join(out, req.url.slice(1)))
-      : "<!doctype html><title>Optimizer runtime benchmark</title>",
-  );
-});
+const server = createRuntimeBenchServer(out);
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const browser = await chromium.launch({
   args: ["--js-flags=--expose-gc", "--enable-precise-memory-info"],

@@ -1,3 +1,4 @@
+import { trimTrailingPathSeparators } from "./path-string.js";
 import type { PlatformId, SourceEnvironment } from "./types.js";
 
 /**
@@ -47,7 +48,7 @@ export function joinPath(platform: PlatformId, ...parts: string[]): string {
   const cleaned = parts.filter((part) => part.length > 0);
   return cleaned
     .map((part, index) => {
-      const trimmed = part.replace(/[\\/]+$/u, "");
+      const trimmed = trimTrailingPathSeparators(part);
       if (index === 0) return trimmed;
       return trimmed.replace(/^[\\/]+/u, "");
     })

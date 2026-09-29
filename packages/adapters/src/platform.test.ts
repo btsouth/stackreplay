@@ -54,6 +54,14 @@ describe("platform paths", () => {
     expect(joinPath("linux", "/home/example/", "/.claude/")).toBe("/home/example/.claude");
   });
 
+  it("joins paths with long internal separator runs without trimming their contents", () => {
+    const slashRun = "/".repeat(100_000);
+    const backslashRun = "\\".repeat(100_000);
+    expect(joinPath("linux", `${slashRun}!/`, "/leaf/")).toBe(`${slashRun}!/leaf`);
+    expect(joinPath("win32", `${backslashRun}!\\`, "\\leaf\\")).toBe(`${backslashRun}!\\leaf`);
+    expect(joinPath("linux", "/", "/leaf/")).toBe("/leaf");
+  });
+
   it("places local state under the platform config directory", () => {
     const linux = createFixtureEnvironment({ homeDir: "/home/example", platform: "linux" });
     expect(stackReplayStateDir(linux)).toBe("/home/example/.config/stackreplay");

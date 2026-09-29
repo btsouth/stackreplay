@@ -52,6 +52,15 @@ describe("identity and hashing", () => {
     expect(normalizeProjectKey("/Home/Example", "darwin")).toBe("/Home/Example");
   });
 
+  it("preserves root keys and long internal separator runs", () => {
+    expect(normalizeProjectKey(" / ", "linux")).toBe("/");
+    expect(normalizeProjectKey("\\", "win32")).toBe("\\");
+    expect(normalizeProjectKey(" ", "linux")).toBe("");
+    const key = `${"/".repeat(100_000)}!`;
+    expect(normalizeProjectKey(`${key}/\\/`, "linux")).toBe(key);
+    expect(normalizeProjectKey(`${key}/`, "win32")).toBe(key.replaceAll("/", "\\"));
+  });
+
   it("derives stable native hashes and canonical ids", () => {
     const nativeHash = nativeEventHash(FIXTURE_SALT, "codex", "session#1");
     expect(nativeHash).toMatch(/^ne_[0-9a-f]{32}$/u);

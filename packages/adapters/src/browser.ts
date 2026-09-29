@@ -182,7 +182,9 @@ export function safeCandidateName(path: string): string {
 
 /** Intake explanations are metadata, so strip path-shaped tokens there too. */
 export function safeIntakeMessage(message: string): string {
-  return message.replace(/[^\s]*[/\\][^\s]*/gu, "<path>").slice(0, 240);
+  return message
+    .replace(/\S+/gu, (token) => (token.includes("/") || token.includes("\\") ? "<path>" : token))
+    .slice(0, 240);
 }
 
 /** Raw source dispatch does not need to open obvious non-source file types. */
