@@ -10,12 +10,16 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 | 2 | Link lineup entries to existing model pages | Done (`feat/models-batch-a`). OpenCode Go's `DeepSeek V4 Flash` stays unlinked: DeepSeek serves that legacy name with V4.1 Flash, not the retired release |
 | 3 | Add missing models, batch A | Done (`feat/models-batch-a`): 18 models. Muse Spark 1.3 Contributor is a tier of Muse Spark 1.3 and is described on that page |
 | 4 | Add missing models, batch B, and a coverage policy | Planned |
-| 5 | Models page usability pass | In progress (`feat/models-batch-a`) |
+| 5 | Models page usability pass | In progress (`feat/models-batch-a`): table view, access filters, sorts with a direction control, plan counts, key figures and API ids. Sorting by release date waits on a structured release date field |
 | 6 | Watcher W1: source change detection | Planned |
 | 7 | Watcher W2: new model detection | Planned |
 | 8 | Watcher W3: drafted catalog PRs | Planned |
 | 9 | Benchmarks: licensing decision | Needs owner decision |
 | 10 | Benchmarks: data and UI | Blocked on 9 |
+
+## Dated follow-ups
+
+- After 10:00 Beijing time on 2026-10-21: Xiaomi deprecates `mimo-v2.5` and `mimo-v2.5-pro` with no replacement model (https://mimo.mi.com/docs/en-US/updates/deprecate). Update the `mimo-v2-5` and `mimo-v2-5-pro` lifecycle, end their pricing records, and recheck the plan lineups that still list them.
 
 ## Rules every slice follows
 
@@ -33,7 +37,7 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 
 Offline it compares accepted model YAML with the plan lineups in `apps/web/lib/subscription-access-data.json`. `--online` adds OpenRouter slugs and release dates and a list of recent releases from developers we already track. It never edits data. The 2026-09-29 report is `docs/catalog-coverage-audit.md`: 71 models listed by our own plans have no model page, 37 lineup entries name a model we already have but are not linked, and 25 recent OpenRouter releases come from tracked developers.
 
-After batch A (2026-09-29) the report lists 53 candidates, 2 linkable entries (both deliberately unlinked) and 22 recent releases.
+After batch A (2026-09-29) the report lists 53 candidates, 2 linkable entries (both deliberately unlinked) and 21 recent releases.
 
 Rerun the audit at the start of every coverage slice and commit the refreshed report with the slice.
 

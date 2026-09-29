@@ -98,5 +98,4 @@ Developers count as tracked when one of their models is catalogued or listed by 
 | 2026-08-11 | Sakana: Sakana Namazu | `sakana/sakana-namazu` | 0 |
 | 2026-08-09 | Meta: Muse Glimmer 30B | `meta/muse-glimmer-30b` | 0 |
 | 2026-08-05 | Meta: Muse Spark 1.2 | `meta/muse-spark-1.2` | 4 |
-| 2026-07-31 | DeepSeek: DeepSeek V4 Flash 0731 | `deepseek/deepseek-v4-flash-0731` | 0 |
 

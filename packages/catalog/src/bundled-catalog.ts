@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:73587e1d9890f4dcd618ef8cec6469f7c94a48e52fe6c068a720c8cfceb666bd";
+export const BUNDLED_CATALOG_VERSION = "sha256:382a4f7ba176d702858f3e63b4149b6111965b4454ffb04de319e1a816cc5c32";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:73587e1d9890f4dcd618ef8cec6469f7c94a48e52fe6c068a720c8cfceb666bd",
+  "catalogVersion": "sha256:382a4f7ba176d702858f3e63b4149b6111965b4454ffb04de319e1a816cc5c32",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -4307,6 +4307,9 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "specifications": {
         "contextTokens": 204800,
         "maxOutputTokens": 204800,
+        "inputModalities": [
+          "text"
+        ],
         "reasoning": true,
         "toolCalling": true,
         "notes": [
@@ -4325,12 +4328,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           },
           {
             "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
-            "title": "Thinking control by model",
-            "checkedAt": "2026-09-29"
-          },
-          {
-            "url": "https://platform.minimax.io/docs/guides/local-deploy-m2-7",
-            "title": "Reasoning and tool calls",
+            "title": "Thinking control, text and tool-call content only (no image or video input)",
             "checkedAt": "2026-09-29"
           }
         ]
@@ -4391,11 +4389,15 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 524288,
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
         "reasoning": true,
         "toolCalling": true,
         "notes": [
-          "Thinking is off unless requested with thinking type adaptive.",
-          "MiniMax describes M3 as natively multimodal but does not list its exact input types on the reviewed pages."
+          "Thinking is off unless requested with thinking type adaptive."
         ],
         "sources": [
           {
@@ -4410,7 +4412,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           },
           {
             "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
-            "title": "Thinking control by model",
+            "title": "Thinking control and supported message content (text, image, video) by model",
             "checkedAt": "2026-09-29"
           },
           {
@@ -4475,7 +4477,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "Muse Spark 1.3",
       "developerId": "meta",
       "specifications": {
-        "contextTokens": 1000000,
+        "contextTokens": 1048576,
         "inputModalities": [
           "text",
           "image",
@@ -4488,9 +4490,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "toolCalling": true,
         "sources": [
           {
+            "url": "https://dev.meta.ai/docs/models",
+            "title": "Context window (1,048,576 tokens) and input modalities",
+            "checkedAt": "2026-09-29"
+          },
+          {
             "url": "https://developer.meta.com/ai/models/muse-spark/",
             "title": "Official model specifications",
-            "checkedAt": "2026-09-28"
+            "checkedAt": "2026-09-29"
           }
         ]
       },
@@ -22011,6 +22018,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
           "title": "Official one-hour cache-write rate; checked September 29, 2026",
           "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
+          "checkedAt": "2026-09-29"
         }
       ],
       "lastVerifiedAt": "2026-09-29",
@@ -22038,6 +22050,11 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         {
           "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
           "title": "Official five-minute cache-write rate; checked September 29, 2026",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+          "title": "Thinking tokens are billed as output tokens",
           "checkedAt": "2026-09-29"
         }
       ],

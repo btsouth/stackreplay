@@ -35,11 +35,14 @@ verificationStatus: verified
 specifications:
   contextTokens: 1000000
   maxOutputTokens: 524288
+  inputModalities:
+  - text
+  - image
+  - video
   reasoning: true
   toolCalling: true
   notes:
   - Thinking is off unless requested with thinking type adaptive.
-  - MiniMax describes M3 as natively multimodal but does not list its exact input types on the reviewed pages.
   sources:
   - url: https://platform.minimax.io/docs/guides/text-generation
     title: Official context window
@@ -48,7 +51,7 @@ specifications:
     title: Maximum max_completion_tokens
     checkedAt: '2026-09-29'
   - url: https://platform.minimax.io/docs/api-reference/text-anthropic-api
-    title: Thinking control by model
+    title: Thinking control and supported message content (text, image, video) by model
     checkedAt: '2026-09-29'
   - url: https://platform.minimax.io/docs/guides/text-m3-function-call
     title: Tool use and interleaved thinking

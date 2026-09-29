@@ -1794,6 +1794,11 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         title: "Discounted rates, long-context tier and priority tier",
         checkedAt: "2026-09-29",
       },
+      {
+        url: "https://platform.minimax.io/docs/release-notes/models",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
     ],
     facts: [
       {
@@ -1801,6 +1806,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Thinking is off when the thinking parameter is omitted. Set thinking type to adaptive to turn it on.",
       },
+      { label: "Released", value: "June 1, 2026" },
       {
         label: "Context",
         value:
@@ -1820,11 +1826,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "MiniMax shows a permanent 50% discount from $0.60 input and $2.40 output. Priority service tier costs 1.5x standard.",
       },
-      {
-        label: "Input support",
-        value:
-          "MiniMax describes M3 as natively multimodal. The reviewed pages do not list its exact input types.",
-      },
+      { label: "Input support", value: "Text, image and video input." },
     ],
   },
   "minimax-m2-7": {
@@ -1845,11 +1847,21 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         title: "Cache and high-speed variant rates",
         checkedAt: "2026-09-29",
       },
+      {
+        url: "https://platform.minimax.io/docs/release-notes/models",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
     ],
     facts: [
       {
         label: "Thinking",
         value: "Thinking is always on. A disabled thinking setting is accepted but ignored.",
+      },
+      { label: "Released", value: "March 18, 2026" },
+      {
+        label: "Input support",
+        value: "Text input only. MiniMax says M2.x models do not accept image or video input.",
       },
       {
         label: "Output limit",
@@ -1862,7 +1874,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Variants",
         value:
-          "MiniMax lists MiniMax-M2.7-highspeed with the same performance and faster output, at $0.60 input and $2.40 output per MTok.",
+          "MiniMax-M2.7-highspeed is a faster variant with its own id, at $0.60 input and $2.40 output per MTok.",
       },
     ],
   },
@@ -2134,7 +2146,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Variants",
         value:
-          "mimo-v2.6-pro-ultraspeed is listed as V2.6-Pro performance up to 20x faster, at $4.35 input and $8.70 output per MTok. It does not support the Batch API.",
+          "mimo-v2.6-pro-ultraspeed is a faster variant with its own id, at $4.35 input, $8.70 output and $0.036 cache hit per MTok. It does not support the Batch API.",
       },
       {
         label: "Prompt caching",
@@ -2234,7 +2246,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Deprecation",
         value:
-          "Xiaomi deprecates this model at 10:00 Beijing time on October 21, 2026, with no automatic replacement. Requests after that return an error.",
+          "Xiaomi will deprecate this model at 10:00 Beijing time on October 21, 2026. There is no replacement model; requests that use its name after that return an error.",
       },
       { label: "Batch API", value: "Not supported." },
       {
@@ -2288,7 +2300,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Deprecation",
         value:
-          "Xiaomi deprecates this model at 10:00 Beijing time on October 21, 2026, with no automatic replacement. Requests after that return an error.",
+          "Xiaomi will deprecate this model at 10:00 Beijing time on October 21, 2026. There is no replacement model; requests that use its name after that return an error.",
       },
       { label: "Input support", value: "Text input only." },
       { label: "Batch API", value: "Not supported." },
@@ -2327,7 +2339,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API access",
         value:
-          "NVIDIA offers a free trial endpoint on build.nvidia.com. NVIDIA does not publish its own per-token rate; listed partner endpoints set their own prices.",
+          "NVIDIA offers a free trial endpoint on build.nvidia.com that records inputs and outputs, which NVIDIA may use to improve its products. NVIDIA does not publish its own per-token rate; listed partner endpoints set their own prices.",
       },
       {
         label: "API capabilities",
@@ -2459,7 +2471,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Output limit",
         value:
-          "The reviewed model page publishes a 1M context window but no separate output ceiling.",
+          "Meta's model docs list a 1,048,576-token context window but no separate output ceiling.",
       },
     ],
     specifications: {

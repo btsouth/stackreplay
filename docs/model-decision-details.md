@@ -74,8 +74,8 @@ Existing prices and technical facts were checked against the linked documentatio
 | MiMo V2.5 Pro | Thinking, Released, Deprecation, Input support, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5-pro) |
 | MiMo V2.6 Flash | Thinking, Released, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-flash) |
 | MiMo V2.6 Pro | Thinking, Released, Batch API, Variants, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-pro) |
-| MiniMax M2.7 | Thinking, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
-| MiniMax M3 | Thinking, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
+| MiniMax M2.7 | Thinking, Released, Input support, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
+| MiniMax M3 | Thinking, Released, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
 | Nemotron 3 Ultra | Thinking, Released, API access, API capabilities, Output limit, Data cutoff, Open weights | [Official documentation](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16) |

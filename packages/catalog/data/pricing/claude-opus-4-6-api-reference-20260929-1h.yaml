@@ -16,6 +16,9 @@ sources:
 - url: https://platform.claude.com/docs/en/models/opus-4-6/overview
   title: Official one-hour cache-write rate; checked September 29, 2026
   checkedAt: '2026-09-29'
+- url: https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost
+  title: Thinking tokens are billed as output tokens
+  checkedAt: '2026-09-29'
 lastVerifiedAt: '2026-09-29'
 verificationStatus: verified
 variantId: cache-write-1h

@@ -35,6 +35,8 @@ verificationStatus: verified
 specifications:
   contextTokens: 204800
   maxOutputTokens: 204800
+  inputModalities:
+  - text
   reasoning: true
   toolCalling: true
   notes:
@@ -47,8 +49,5 @@ specifications:
     title: Maximum max_completion_tokens
     checkedAt: '2026-09-29'
   - url: https://platform.minimax.io/docs/api-reference/text-anthropic-api
-    title: Thinking control by model
-    checkedAt: '2026-09-29'
-  - url: https://platform.minimax.io/docs/guides/local-deploy-m2-7
-    title: Reasoning and tool calls
+    title: Thinking control, text and tool-call content only (no image or video input)
     checkedAt: '2026-09-29'
