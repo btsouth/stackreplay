@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { ModelPriceComparison } from "@/components/public/model-price-comparison";
 import { ModelTable } from "@/components/public/model-table";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
+import { type ModelLayout, modelLayoutFromSearch } from "@/lib/model-layout";
 import {
   defaultSortDirection,
   developerOptions,
@@ -16,6 +17,7 @@ import {
   modelsInView,
   type SortDirection,
   searchModels,
+  sortDirectionLabels,
   sortModels,
 } from "@/lib/model-library";
 import {
@@ -25,8 +27,6 @@ import {
   tokenSize,
 } from "@/lib/model-specifications";
 import type { PublicModelSummary } from "@/lib/public-catalog";
-
-export type ModelLayout = "cards" | "table";
 
 const SORT_OPTIONS: readonly [ModelSortKey, string][] = [
   ["featured", "Featured first"],
@@ -43,15 +43,20 @@ export function ModelExplorer({
   models,
   prices = {},
   planCounts = {},
-  initialLayout = "cards",
 }: {
   models: readonly PublicModelSummary[];
   prices?: Record<string, ModelPrices[]>;
   planCounts?: Record<string, number>;
-  initialLayout?: ModelLayout;
 }) {
   const [view, setView] = useState<ModelLibraryView>("models");
-  const [layout, setLayout] = useState<ModelLayout>(initialLayout);
+  // Undefined until the URL is read: both layouts render and the root layout's
+  // bootstrap script decides which one shows, so the static page never flashes.
+  const [layout, setLayout] = useState<ModelLayout>();
+  useLayoutEffect(() => {
+    setLayout(modelLayoutFromSearch(window.location.search));
+    document.documentElement.removeAttribute("data-model-layout");
+  }, []);
+  const pending = (part: ModelLayout) => (layout === undefined ? part : undefined);
   const [capability, setCapability] = useState("all");
   const [developer, setDeveloper] = useState("all");
   const [query, setQuery] = useState("");
@@ -93,6 +98,7 @@ export function ModelExplorer({
     setSort(key);
     setDirection(next);
   };
+  const directionLabels = sortDirectionLabels(sort);
   const changeLayout = (next: ModelLayout) => {
     setLayout(next);
     const url = new URL(window.location.href);
@@ -155,6 +161,25 @@ export function ModelExplorer({
             ))}
           </select>
         </label>
+        <label>
+          Direction
+          <select
+            value={directionLabels ? direction : "fixed"}
+            disabled={!directionLabels}
+            onChange={(e) => setDirection(e.target.value as SortDirection)}
+            data-testid="model-sort-direction"
+          >
+            {directionLabels ? (
+              (["ascending", "descending"] as const).map((id) => (
+                <option key={id} value={id}>
+                  {directionLabels[id]}
+                </option>
+              ))
+            ) : (
+              <option value="fixed">Fixed order</option>
+            )}
+          </select>
+        </label>
         <fieldset className="market-filter-checks">
           <legend>Access</legend>
           <label>
@@ -201,9 +226,14 @@ export function ModelExplorer({
         <div className="flex w-full items-center justify-between gap-x-5 gap-y-2 pb-2 sm:w-auto sm:justify-end sm:pb-0">
           <p role="status" className="market-muted min-w-0">
             {visible.length} {query ? "matches" : "models"}
-            {layout === "cards" ? " · Select up to 4 to compare rates" : ""}
+            {layout !== "table" && (
+              <span data-layout-pending={pending("cards")}> · Select up to 4 to compare rates</span>
+            )}
           </p>
-          <fieldset className="market-layout-toggle shrink-0">
+          <fieldset
+            className="market-layout-toggle shrink-0"
+            data-layout-pending={layout === undefined || undefined}
+          >
             <legend className="sr-only">Layout</legend>
             <div>
               {(
@@ -216,6 +246,7 @@ export function ModelExplorer({
                   type="button"
                   key={id}
                   aria-pressed={layout === id}
+                  data-layout={id}
                   data-testid={`model-layout-${id}`}
                   onClick={() => changeLayout(id)}
                 >
@@ -282,17 +313,19 @@ export function ModelExplorer({
           </button>
         </div>
       )}
-      {layout === "table" && visible.length > 0 && (
-        <ModelTable
-          models={visible}
-          facts={facts}
-          sort={sort}
-          direction={direction}
-          onSort={changeSort}
-        />
+      {layout !== "cards" && visible.length > 0 && (
+        <div data-layout-pending={pending("table")}>
+          <ModelTable
+            models={visible}
+            facts={facts}
+            sort={sort}
+            direction={direction}
+            onSort={changeSort}
+          />
+        </div>
       )}
-      {layout === "cards" && (
-        <div data-testid="model-table">
+      {layout !== "table" && (
+        <div data-testid="model-table" data-layout-pending={pending("cards")}>
           {visible.slice(0, expanded ? undefined : 12).map((model) => {
             const rate = basePrice(prices[model.id] ?? []);
             return (
@@ -388,15 +421,15 @@ export function ModelExplorer({
           })}
         </div>
       )}
-      {layout === "cards" && visible.length > 12 && (
-        <button type="button" className="market-link my-4" onClick={() => setExpanded(!expanded)}>
+      {layout !== "table" && visible.length > 12 && (
+        <button
+          type="button"
+          className="market-link my-4"
+          data-layout-pending={pending("cards")}
+          onClick={() => setExpanded(!expanded)}
+        >
           {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
         </button>
-      )}
-      {!visible.length && (
-        <p className="py-8 text-muted-foreground">
-          Nothing matches. Try another developer or model name.
-        </p>
       )}
     </div>
   );

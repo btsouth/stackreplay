@@ -495,6 +495,22 @@
 }
 
 /* Model library controls: access filters and the cards / table layout switch. */
+.market-filters select:disabled {
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+@media (max-width: 700px) {
+  /* Search on its own row, then the selects in pairs (Order by beside Direction). */
+  .market-filters > label.grow {
+    flex-basis: 100%;
+  }
+  .market-filters > label {
+    min-width: 0;
+  }
+  .market-filters select {
+    width: 100%;
+  }
+}
 .market-filter-checks,
 .market-layout-toggle {
   border: 0;
@@ -544,10 +560,26 @@
 .market-layout-toggle button + button {
   border-left: 1px solid var(--control-border);
 }
-.market-layout-toggle button[aria-pressed="true"] {
+.market-layout-toggle button[aria-pressed="true"],
+.market-layout-toggle[data-layout-pending] button[data-layout="cards"],
+html[data-model-layout="table"]
+  .market-layout-toggle[data-layout-pending]
+  button[data-layout="table"] {
   background: var(--surface-2);
   color: var(--foreground);
   border-bottom-color: var(--accent);
+}
+html[data-model-layout="table"]
+  .market-layout-toggle[data-layout-pending]
+  button[data-layout="cards"] {
+  background: none;
+  color: var(--muted-foreground);
+  border-bottom-color: transparent;
+}
+/* Before hydration both layouts are rendered; the URL decides which one shows. */
+html:not([data-model-layout="table"]) [data-layout-pending="table"],
+html[data-model-layout="table"] [data-layout-pending="cards"] {
+  display: none;
 }
 .market-layout-toggle button:focus-visible,
 .market-table button:focus-visible,
@@ -560,7 +592,7 @@
 /* Model page: key figures at a glance and the exact API ids. */
 .market-glance {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
   column-gap: 2rem;
   margin: 0 0 1.5rem;
   border-top: 1px solid var(--border-strong);
@@ -613,9 +645,6 @@
   font-size: 0.85rem;
 }
 .market-table thead th {
-  position: sticky;
-  top: 4.5rem;
-  z-index: 1;
   padding: 0.5rem 0.75rem 0.5rem 0;
   border-bottom: 1px solid var(--border-strong);
   background: var(--background);
@@ -681,12 +710,21 @@
 .market-table-label {
   font-family: var(--font-sans);
 }
-.market-table-label {
+.market-table-label,
+.market-table-heading {
   display: none;
 }
 @media (min-width: 1280px) {
+  .market-table thead th {
+    position: sticky;
+    top: 4.5rem;
+    z-index: 1;
+  }
   .market-table [data-numeric] + :not([data-numeric]) {
     padding-left: 1.5rem;
+  }
+  .market-table td > .market-muted {
+    white-space: nowrap;
   }
 }
 @media (max-width: 1279px) {
@@ -697,8 +735,24 @@
   .market-table td {
     display: block;
   }
+  /* As on the plan pages, the header row stays for screen readers only; each
+     stacked value also shows its column label. */
   .market-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .market-table thead button {
     display: none;
+  }
+  .market-table-heading {
+    display: inline;
   }
   .market-table tbody tr {
     display: grid;

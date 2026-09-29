@@ -17,6 +17,12 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 
+/** Both layouts are server-rendered; the explorer drops the unused one once it hydrates. */
+async function openModels(page: Page, path: string) {
+  await page.goto(path);
+  await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
+}
+
 const rows = (page: Page) => page.getByTestId("model-table-row");
 const cellTexts = (page: Page, column: number) =>
   rows(page).evaluateAll(
@@ -27,6 +33,7 @@ const cellTexts = (page: Page, column: number) =>
     column,
   );
 const INPUT = 2;
+const OUTPUT = 3;
 const CONTEXT = 5;
 const PLANS = 8;
 const amount = (text: string) => Number(text.replace(/[$,]/gu, ""));
@@ -40,7 +47,7 @@ for (const theme of ["dark", "light"] as const) {
     });
 
     test("switches to a shareable table view", async ({ page }) => {
-      await page.goto("/models");
+      await openModels(page, "/models");
       await expect(page.getByTestId("model-data-table")).toHaveCount(0);
       await page.getByRole("button", { name: "Table", exact: true }).click();
       await expect(page).toHaveURL(/[?&]view=table/u);
@@ -55,7 +62,7 @@ for (const theme of ["dark", "light"] as const) {
         "Context tokens",
         "Max output tokens",
         "Reasoning",
-        "Plans",
+        "Included in plans",
       ])
         await expect(table.getByRole("columnheader", { name: header })).toBeVisible();
       await expect(
@@ -79,7 +86,7 @@ for (const theme of ["dark", "light"] as const) {
     });
 
     test("sorts numeric columns both ways with unpublished values last", async ({ page }) => {
-      await page.goto("/models?view=table");
+      await openModels(page, "/models?view=table");
       const input = page.getByRole("columnheader", { name: "Input $/1M" });
       await expect(input).toHaveAttribute("aria-sort", "none");
       await input.getByRole("button").click();
@@ -107,10 +114,57 @@ for (const theme of ["dark", "light"] as const) {
       const contexts = await cellTexts(page, CONTEXT);
       expect(contexts.at(-1)).toContain("Not published");
       await expect(page.getByLabel("Order by")).toHaveValue("context");
+      await expect(page.getByLabel("Direction")).toHaveValue("descending");
+    });
+
+    test("keeps the direction control and column headers in sync", async ({ page }) => {
+      await openModels(page, "/models?view=table");
+      const direction = page.getByLabel("Direction");
+      await expect(direction).toBeDisabled();
+      await expect(direction).toHaveValue("fixed");
+      await page.getByLabel("Order by").selectOption("output");
+      await expect(direction).toBeEnabled();
+      await expect(direction).toHaveValue("ascending");
+      const output = page.getByRole("columnheader", { name: "Output $/1M" });
+      await expect(output).toHaveAttribute("aria-sort", "ascending");
+      await direction.selectOption({ label: "High to low" });
+      await expect(output).toHaveAttribute("aria-sort", "descending");
+      const published = (await cellTexts(page, OUTPUT))
+        .filter((value) => !value.includes("Not published"))
+        .map(amount);
+      expect(published).toEqual([...published].sort((a, b) => b - a));
+      await output.getByRole("button").click();
+      await expect(output).toHaveAttribute("aria-sort", "ascending");
+      await expect(direction).toHaveValue("ascending");
+      await page.getByLabel("Order by").selectOption("name");
+      await expect(direction.locator("option")).toHaveText(["A to Z", "Z to A"]);
+    });
+
+    test("shows rates at two decimals or more without dropping published digits", async ({
+      page,
+    }) => {
+      await openModels(page, "/models?view=table");
+      const row = (id: string) => page.locator(`[data-model-id="${id}"]`);
+      await expect(row("glm-5").locator("td").nth(1)).toContainText("$1.00");
+      await expect(row("glm-5").locator("td").nth(3)).toContainText("$0.20");
+      await expect(row("mimo-v2-6-flash").locator("td").nth(3)).toContainText("$0.0028");
+      await expect(row("qwen-3-8-max").locator("td").nth(5)).toContainText("131K");
+    });
+
+    test("renders the requested layout before the page hydrates", async ({ page }) => {
+      // With scripts blocked the page never hydrates; only the server HTML and the
+      // inline layout bootstrap run, which is what a visitor sees on first paint.
+      await page.route(/\.js(\?|$)/u, (route) => route.abort());
+      await page.goto("/models?view=table");
+      await expect(page.getByTestId("model-data-table")).toBeVisible();
+      await expect(page.getByTestId("model-row").first()).toBeHidden();
+      await page.goto("/models");
+      await expect(page.getByTestId("model-row").first()).toBeVisible();
+      await expect(page.getByTestId("model-data-table")).toBeHidden();
     });
 
     test("filters by subscription access and published API price", async ({ page }) => {
-      await page.goto("/models?view=table");
+      await openModels(page, "/models?view=table");
       const total = await rows(page).count();
       await page.getByLabel("Included in a subscription").check();
       const plans = (await cellTexts(page, PLANS)).map(amount);
@@ -143,8 +197,8 @@ for (const theme of ["dark", "light"] as const) {
       await context.grantPermissions(["clipboard-read", "clipboard-write"]);
       await page.goto("/models/minimax-m3");
       const glance = page.getByTestId("model-glance");
-      await expect(glance).toContainText("Input $/1M$0.3");
-      await expect(glance).toContainText("Output $/1M$1.2");
+      await expect(glance).toContainText("Input $/1M$0.30");
+      await expect(glance).toContainText("Output $/1M$1.20");
       await expect(glance).toContainText("Context1M");
       await expect(glance).toContainText("ReasoningYes");
       const planLink = glance.getByRole("link", { name: /\d+ plans/u });
@@ -172,15 +226,37 @@ for (const theme of ["dark", "light"] as const) {
     test("stacks each row with labels and keeps the page width", async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
-      await page.goto("/models?view=table");
+      await openModels(page, "/models?view=table");
       const first = rows(page).first();
       await expect(first).toBeVisible();
       await expect(first.getByText("Input $/1M")).toBeVisible();
       await expect(first.getByText("Included in plans")).toBeVisible();
+      // Headers stay for screen readers; their sort buttons are not focusable here.
+      const input = page.getByRole("columnheader", { name: "Input $/1M" });
+      await expect(input).toHaveCount(1);
+      await expect(input.getByRole("button")).toBeHidden();
+      await page.getByLabel("Order by").selectOption("input");
+      await page.getByLabel("Direction").selectOption("descending");
+      await expect(input).toHaveAttribute("aria-sort", "descending");
+      const published = (await cellTexts(page, INPUT))
+        .filter((value) => !value.includes("Not published"))
+        .map((value) => amount(value.replace("Input $/1M", "")));
+      expect(published.length).toBeGreaterThan(5);
+      expect(published).toEqual([...published].sort((a, b) => b - a));
       const box = await first.boundingBox();
       expect(box?.width ?? 0).toBeLessThanOrEqual(390);
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
+      await page.getByRole("button", { name: "Cards", exact: true }).click();
+      await page.getByLabel("Direction").selectOption("ascending");
+      const cardInputs = await page
+        .getByTestId("model-row")
+        .evaluateAll((cards) =>
+          cards.map((card) => card.querySelector(".market-rate")?.textContent ?? ""),
+        );
+      const cardPrices = cardInputs.filter((value) => value.startsWith("$")).map(amount);
+      expect(cardPrices.length).toBeGreaterThan(5);
+      expect(cardPrices).toEqual([...cardPrices].sort((a, b) => a - b));
       await page.goto("/models/qwen-3-8-max");
       await expect(page.getByTestId("model-glance")).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy API model id" })).toBeVisible();

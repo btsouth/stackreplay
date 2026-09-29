@@ -41,24 +41,3 @@ export function includedAccessModels(access: SubscriptionAccess): SubscriptionAc
     ).values(),
   ];
 }
-
-/**
- * Catalogued plans whose included or conditional lineup names a model by an
- * explicit `modelId`. Unlinked lineup names never count, even when the name
- * matches a model.
- */
-export function includedPlanCounts(
-  plans: readonly { modelAccess?: SubscriptionAccess }[],
-): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const plan of plans) {
-    if (!plan.modelAccess) continue;
-    const linked = new Set(
-      includedAccessModels(plan.modelAccess).flatMap((entry) =>
-        entry.modelId ? [entry.modelId] : [],
-      ),
-    );
-    for (const id of linked) counts[id] = (counts[id] ?? 0) + 1;
-  }
-  return counts;
-}

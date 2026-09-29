@@ -18,32 +18,27 @@ interface Column {
   numeric?: boolean;
 }
 
-const COLUMNS: readonly Column[] = [
-  { label: "Model", sort: "name" },
-  { label: "Developer" },
-  { label: "Input", unit: "$/1M", sort: "input", numeric: true },
-  { label: "Output", unit: "$/1M", sort: "output", numeric: true },
-  { label: "Cache read", unit: "$/1M", sort: "cacheRead", numeric: true },
-  { label: "Context", unit: "tokens", sort: "context", numeric: true },
-  { label: "Max output", unit: "tokens", sort: "maxOutput", numeric: true },
-  { label: "Reasoning" },
-  { label: "Plans", sort: "plans", numeric: true },
-];
+const COLUMNS = {
+  model: { label: "Model", sort: "name" },
+  developer: { label: "Developer" },
+  input: { label: "Input", unit: "$/1M", sort: "input", numeric: true },
+  output: { label: "Output", unit: "$/1M", sort: "output", numeric: true },
+  cacheRead: { label: "Cache read", unit: "$/1M", sort: "cacheRead", numeric: true },
+  context: { label: "Context", unit: "tokens", sort: "context", numeric: true },
+  maxOutput: { label: "Max output", unit: "tokens", sort: "maxOutput", numeric: true },
+  reasoning: { label: "Reasoning" },
+  plans: { label: "Included in", unit: "plans", sort: "plans", numeric: true },
+} as const satisfies Record<string, Column>;
+
+/** The column name a reader hears and, in stacked rows, sees beside each value. */
+const heading = (column: Column) => (column.unit ? `${column.label} ${column.unit}` : column.label);
 
 const notPublished = <span className="market-muted">Not published</span>;
 
-function Cell({
-  label,
-  numeric,
-  children,
-}: {
-  label: string;
-  numeric?: boolean;
-  children: ReactNode;
-}) {
+function Cell({ column, children }: { column: Column; children: ReactNode }) {
   return (
-    <td data-numeric={numeric || undefined}>
-      <span className="market-table-label">{label}</span>
+    <td data-numeric={column.numeric || undefined}>
+      <span className="market-table-label">{heading(column)}</span>
       {children}
     </td>
   );
@@ -72,7 +67,7 @@ export function ModelTable({
       </caption>
       <thead>
         <tr>
-          {COLUMNS.map((column) => {
+          {Object.values(COLUMNS).map((column: Column) => {
             const key = column.sort;
             const active = key !== undefined && key === sort;
             return (
@@ -85,25 +80,30 @@ export function ModelTable({
                 {key === undefined ? (
                   column.label
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSort(
-                        key,
-                        active
-                          ? direction === "ascending"
-                            ? "descending"
-                            : "ascending"
-                          : defaultSortDirection(key),
-                      )
-                    }
-                  >
-                    {column.label}
-                    {column.unit && <span className="market-table-unit">{column.unit}</span>}
-                    <span aria-hidden="true" className="market-table-arrow">
-                      {active ? (direction === "ascending" ? "↑" : "↓") : "↕"}
-                    </span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onSort(
+                          key,
+                          active
+                            ? direction === "ascending"
+                              ? "descending"
+                              : "ascending"
+                            : defaultSortDirection(key),
+                        )
+                      }
+                    >
+                      {column.label}
+                      {column.unit && <span className="market-table-unit">{column.unit}</span>}
+                      <span aria-hidden="true" className="market-table-arrow">
+                        {active ? (direction === "ascending" ? "↑" : "↓") : "↕"}
+                      </span>
+                    </button>
+                    {/* Stacked rows hide the sort buttons (the Order by and Direction
+                        controls sort there); the header keeps its name for screen readers. */}
+                    <span className="market-table-heading">{heading(column)}</span>
+                  </>
                 )}
               </th>
             );
@@ -123,17 +123,11 @@ export function ModelTable({
                 <Link href={`/models/${model.id}`}>{model.name}</Link>
                 {model.lifecycle === "legacy" && <span className="market-muted"> · Legacy</span>}
               </th>
-              <Cell label="Developer">{model.developerName ?? notPublished}</Cell>
-              <Cell label="Input $/1M" numeric>
-                {rate("input")}
-              </Cell>
-              <Cell label="Output $/1M" numeric>
-                {rate("output")}
-              </Cell>
-              <Cell label="Cache read $/1M" numeric>
-                {rate("cacheRead")}
-              </Cell>
-              <Cell label="Context tokens" numeric>
+              <Cell column={COLUMNS.developer}>{model.developerName ?? notPublished}</Cell>
+              <Cell column={COLUMNS.input}>{rate("input")}</Cell>
+              <Cell column={COLUMNS.output}>{rate("output")}</Cell>
+              <Cell column={COLUMNS.cacheRead}>{rate("cacheRead")}</Cell>
+              <Cell column={COLUMNS.context}>
                 {context.value === undefined ? (
                   notPublished
                 ) : (
@@ -145,21 +139,19 @@ export function ModelTable({
                   </>
                 )}
               </Cell>
-              <Cell label="Max output tokens" numeric>
+              <Cell column={COLUMNS.maxOutput}>
                 {specifications?.maxOutputTokens === undefined
                   ? notPublished
                   : tokenSize(specifications.maxOutputTokens)}
               </Cell>
-              <Cell label="Reasoning">
+              <Cell column={COLUMNS.reasoning}>
                 {specifications?.reasoning === undefined
                   ? notPublished
                   : specifications.reasoning
                     ? "Yes"
                     : "No"}
               </Cell>
-              <Cell label="Included in plans" numeric>
-                {facts.planCounts[model.id] ?? 0}
-              </Cell>
+              <Cell column={COLUMNS.plans}>{facts.planCounts[model.id] ?? 0}</Cell>
             </tr>
           );
         })}
