@@ -3,7 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyApiId } from "@/components/public/copy-api-id";
 import { MarketFooter } from "@/components/public/market-header";
-import { ModelPricingConditions } from "@/components/public/model-pricing-conditions";
+import {
+  ModelPricingConditions,
+  ModelRateTable,
+} from "@/components/public/model-pricing-conditions";
+import { PromoTag } from "@/components/public/promo-tag";
 import { SourceList } from "@/components/public/provenance";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
 import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
@@ -46,12 +50,12 @@ export default async function ModelPage({ params }: Props) {
   const apiIds = model.aliases.filter((alias) => alias.kind === "provider_id");
   const contextTokens = specifications?.contextTokens ?? specifications?.maxInputTokens;
   // The same records as the sections below; unpublished figures are left out.
-  const glance: { label: string; value: string; href?: string }[] = [
+  const glance: { label: string; value: string; href?: string; promo?: boolean }[] = [
     { label: "Input $/1M", value: base?.rates.input },
     { label: "Output $/1M", value: base?.rates.output },
   ]
     .filter((item): item is { label: string; value: string } => item.value !== undefined)
-    .map((item) => ({ label: item.label, value: priceNumber(item.value) }));
+    .map((item) => ({ label: item.label, value: priceNumber(item.value), promo: true }));
   if (contextTokens !== undefined)
     glance.push({
       label: specifications?.contextTokens !== undefined ? "Context" : "Max input",
@@ -88,33 +92,45 @@ export default async function ModelPage({ params }: Props) {
               ? "A family of model releases."
               : model.verificationStatus === "unknown"
                 ? "Newly announced. API identity, pricing and subscription access are under review."
-                : `${model.developerName ?? "Model"} · ${model.lifecycle === "legacy" ? "Legacy release" : model.lifecycle === "current" ? "Current release" : "Model release"}`}
+                : `${model.developerName ?? "Model"} · ${model.lifecycle === "legacy" ? "Legacy release" : "Model release"}`}
           </p>
           <p className="market-muted mt-3">Catalog checked {model.lastVerifiedAt}</p>
         </div>
-        <aside className="market-model-profile">
-          <p className="market-kicker">
-            {specifications?.contextTokens
-              ? "Context window"
-              : specifications?.maxInputTokens
-                ? "Maximum input"
-                : "Subscription access"}
-          </p>
-          <p className="market-profile-number">
-            {specifications?.contextTokens || specifications?.maxInputTokens
-              ? tokenSize(specifications.contextTokens ?? specifications.maxInputTokens)
-              : `${plans.length} plans`}
-          </p>
-          <p className="market-muted">
-            {specifications?.contextTokens || specifications?.maxInputTokens
-              ? "tokens · provider specification"
-              : "Documented access in this guide"}
-          </p>
-          <div className="market-capabilities mt-5">
-            {modelCapabilities(model).map((capability) => (
-              <span key={capability}>{capability}</span>
-            ))}
-          </div>
+        <aside className="market-model-profile" aria-label="API model ids">
+          {model.kind === "family" ? (
+            <>
+              <p className="market-kicker">Releases in this family</p>
+              <p className="market-profile-number">{related.length}</p>
+              <p className="market-muted">Each release has its own price and access.</p>
+            </>
+          ) : (
+            <>
+              <p className="market-kicker">
+                {apiIds.length > 1 ? "API model ids" : "API model id"}
+              </p>
+              {apiIds.length ? (
+                <div className="market-api-ids">
+                  {apiIds.map((alias) => (
+                    <CopyApiId key={alias.id} value={alias.alias} />
+                  ))}
+                </div>
+              ) : (
+                <p className="market-muted mt-3">
+                  None recorded for this release.{" "}
+                  <a href="#where-to-use" className="market-link">
+                    See where to use it
+                  </a>
+                </p>
+              )}
+            </>
+          )}
+          {modelCapabilities(model).length > 0 && (
+            <div className="market-capabilities mt-6">
+              {modelCapabilities(model).map((capability) => (
+                <span key={capability}>{capability}</span>
+              ))}
+            </div>
+          )}
         </aside>
       </header>
       {glance.length > 0 && (
@@ -122,38 +138,26 @@ export default async function ModelPage({ params }: Props) {
           {glance.map((item) => (
             <div key={item.label}>
               <dt>{item.label}</dt>
-              <dd>{item.href ? <a href={item.href}>{item.value}</a> : item.value}</dd>
+              <dd>
+                {item.href ? <a href={item.href}>{item.value}</a> : item.value}
+                {item.promo && <PromoTag promotion={base?.promotion} />}
+              </dd>
             </div>
           ))}
         </dl>
       )}
-      {apiIds.length > 0 && (
-        <section className="market-api-ids" aria-label="API model ids">
-          <p className="market-muted">{apiIds.length === 1 ? "API model id" : "API model ids"}</p>
-          {apiIds.map((alias) => (
-            <CopyApiId key={alias.id} value={alias.alias} />
-          ))}
-        </section>
-      )}
       {model.kind === "release" && (
         <>
           <div className="market-section-title">
-            <span>01 / Standard API price</span>
+            <span>01 / API price</span>
             <span>USD / 1M tokens</span>
           </div>
           {base && (
-            <div className="market-detail-stats">
-              {(["input", "output", "cacheRead"] as const).map((key, i) => (
-                <div key={key}>
-                  <p className="market-muted mb-2">{["Input", "Output", "Cache read"][i]}</p>
-                  <p className={base ? "market-stat" : "text-base"}>
-                    {priceNumber(base?.rates[key])}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <>
+              <ModelRateTable prices={prices} />
+              <ModelPricingConditions prices={prices} />
+            </>
           )}
-          {base && <ModelPricingConditions prices={prices} />}
           {model.pricingNote && (
             <p className="market-price-note" data-testid="pricing-note">
               {model.pricingNote}
@@ -219,11 +223,20 @@ export default async function ModelPage({ params }: Props) {
                 </div>
               ))}
           </dl>
-          {specifications.notes?.map((note) => (
-            <p key={note} className="market-muted mt-4 max-w-3xl">
-              {note}
-            </p>
-          ))}
+          {/* A Thinking fact below covers thinking behavior in more detail. */}
+          {specifications.notes
+            ?.filter(
+              (note) =>
+                !(
+                  decisionDetails?.facts.some((fact) => fact.label === "Thinking") &&
+                  /think|reason/iu.test(note)
+                ),
+            )
+            .map((note) => (
+              <p key={note} className="market-muted mt-4 max-w-3xl">
+                {note}
+              </p>
+            ))}
         </section>
       )}
       {decisionDetails && (
@@ -232,7 +245,7 @@ export default async function ModelPage({ params }: Props) {
             <span>Before you choose</span>
             <span>Checked {decisionDetails.checkedAt}</span>
           </div>
-          <dl className="market-fact-list">
+          <dl className="market-fact-list market-decision-list">
             {decisionDetails.facts.map((fact) => (
               <div key={fact.label}>
                 <dt>{fact.label}</dt>
@@ -320,7 +333,9 @@ export default async function ModelPage({ params }: Props) {
               className="flex justify-between gap-4 border-b border-border py-4 hover:text-accent"
             >
               <span>{m.name}</span>
-              <span className="market-muted">{m.lifecycle ?? "Release"} ↗</span>
+              <span className="market-muted">
+                {m.lifecycle === "legacy" ? "Legacy" : "Release"} ↗
+              </span>
             </Link>
           ))}
         </section>

@@ -5,6 +5,7 @@ import {
   COMPATIBILITY_ONLY,
   type CompareFacts,
   codingToolsFor,
+  compareModelMatrix,
   DEFAULT_COMPARE_PAIR,
   defaultComparePair,
   NO_NAMED_MODEL,
@@ -134,5 +135,32 @@ describe("public compare facts", () => {
         { id: "c", providerId: "y" },
       ]),
     ).toEqual(["a", "c"]);
+  });
+});
+
+describe("model by model", () => {
+  const current = loadPublicCatalog();
+  const factsFor = (planId: string) => {
+    const plan = current.planById(planId);
+    if (plan === undefined) throw new Error(`missing ${planId}`);
+    return buildCompareFacts(plan, current.modelById);
+  };
+  it("lists every included model once, shared models first", () => {
+    const left = factsFor("command-code-max-20x");
+    const right = factsFor("command-code-goat");
+    const rows = compareModelMatrix([left, right]);
+    expect(new Set(rows.map((row) => row.id)).size).toBe(rows.length);
+    expect(rows.filter((row) => row.included[0]).length).toBe(left.models.total);
+    expect(rows.filter((row) => row.included[1]).length).toBe(right.models.total);
+    const shared = rows.map((row) => row.included.every(Boolean));
+    expect(shared.indexOf(false)).toBeGreaterThan(0);
+    expect(shared.slice(shared.indexOf(false))).not.toContain(true);
+  });
+
+  it("previews catalogued models before names without a model page", () => {
+    const featured = factsFor("command-code-go").models.featured;
+    expect(featured.length).toBeGreaterThan(0);
+    expect(featured[0]?.id.startsWith("published:")).toBe(false);
+    expect(featured.map((model) => model.name)).not.toContain("Space Bunny Alpha");
   });
 });

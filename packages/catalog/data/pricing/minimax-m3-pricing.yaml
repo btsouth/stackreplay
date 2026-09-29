@@ -17,10 +17,22 @@ tiers:
       input: '0.60'
       output: '2.40'
       cacheRead: '0.12'
+promotion:
+  label: Permanent 50% discount
+  regularRates:
+    input: '0.60'
+    output: '2.40'
+    cacheRead: '0.12'
+  regularTiers:
+    - id: long-context
+      rates:
+        input: '1.20'
+        output: '4.80'
+        cacheRead: '0.24'
 effectiveFrom: '2026-09-29'
 sources:
 - url: https://platform.minimax.io/docs/guides/pricing-paygo
-  title: 'MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows "≤ 512k input tokens" and "> 512k input tokens" (permanent 50% off prices); no cache-write rate is published.'
+  title: 'MiniMax pay-as-you-go Standard tab, MiniMax-M3 rows "≤ 512k input tokens" and "> 512k input tokens" (permanent 50% off prices, with the undiscounted prices struck through); no cache-write rate is published.'
   checkedAt: '2026-09-29'
 lastVerifiedAt: '2026-09-29'
 verificationStatus: verified

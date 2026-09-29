@@ -103,35 +103,56 @@ export function PlanExplorer({
             <div>
               <p className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</p>
               <p className="market-muted">/ {plan.price.interval}</p>
-              {plan.publishedTerms?.availabilityNote && (
-                <p className="mt-3 text-xs text-warning">{plan.publishedTerms.availabilityNote}</p>
-              )}
             </div>
             <div>
               <p className="text-sm leading-relaxed">
                 {usage[plan.id] ?? "Included model access. Usage varies with your work."}
               </p>
-              <p className="market-muted mt-2">
-                {facts[plan.id]?.models.featured
-                  .slice(0, 3)
-                  .map((m) => m.name)
-                  .join(" · ") || "Model lineup in provider documentation"}
+              <p className="market-muted mt-2" data-testid="plan-models-preview">
+                {facts[plan.id]?.models.featured.slice(0, 3).map((m, index) => (
+                  <span key={m.id}>
+                    {index > 0 && " · "}
+                    {m.id.startsWith("published:") ? (
+                      m.name
+                    ) : (
+                      <Link
+                        href={`/models/${m.id}`}
+                        className="underline-offset-4 hover:text-accent hover:underline"
+                      >
+                        {m.name}
+                      </Link>
+                    )}
+                  </span>
+                ))}
+                {!facts[plan.id]?.models.featured.length &&
+                  "Model lineup in provider documentation"}
                 {(facts[plan.id]?.models.total ?? 0) > 3 && (
-                  <span> · +{(facts[plan.id]?.models.total ?? 0) - 3} more</span>
+                  <Link
+                    href={`/plans/${plan.id}#model-access`}
+                    className="underline-offset-4 hover:text-accent hover:underline"
+                  >
+                    {" "}
+                    · +{(facts[plan.id]?.models.total ?? 0) - 3} more
+                  </Link>
                 )}
               </p>
             </div>
             <div className="flex flex-col items-start gap-1">
-              <Link href={`/plans/${plan.id}`} className="market-link">
+              <Link href={`/plans/${plan.id}`} className="market-link whitespace-nowrap">
                 Explore plan ↗
               </Link>
               <Link
                 href={`/compare?left=${encodeURIComponent(plan.id)}`}
-                className="market-link block"
+                className="market-link block whitespace-nowrap"
               >
                 Compare plans →
               </Link>
             </div>
+            {plan.publishedTerms?.availabilityNote && (
+              <p className="market-plan-note text-xs text-warning">
+                {plan.publishedTerms.availabilityNote}
+              </p>
+            )}
           </article>
         ))}
       </div>

@@ -5,7 +5,7 @@ import { loadCatalog, loadPublicCatalog, type PublicPlanSummary } from "./public
 
 export type ModelPrices = Pick<
   PricingV1,
-  "id" | "rates" | "tiers" | "sources" | "lastVerifiedAt" | "variantId" | "endpointId"
+  "id" | "rates" | "tiers" | "promotion" | "sources" | "lastVerifiedAt" | "variantId" | "endpointId"
 >;
 
 /** Read existing accepted rates. No blended price or workload estimate is made here. */
@@ -28,10 +28,11 @@ export function modelPrices(modelId: string, date: string): ModelPrices[] {
   const hasEndpoint = [...latest.values()].some((rate) => rate.endpointId && !rate.variantId);
   return [...latest.values()]
     .filter((rate) => !hasEndpoint || rate.endpointId)
-    .map(({ id, rates, tiers, sources, lastVerifiedAt, variantId, endpointId }) => ({
+    .map(({ id, rates, tiers, promotion, sources, lastVerifiedAt, variantId, endpointId }) => ({
       id,
       rates,
       tiers,
+      promotion,
       sources,
       lastVerifiedAt,
       variantId,

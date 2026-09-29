@@ -68,7 +68,8 @@ function byLibraryOrder(left: PublicModelSummary, right: PublicModelSummary): nu
     lifecycleRank(left.lifecycle) - lifecycleRank(right.lifecycle) ||
     Number(left.developerName === undefined) - Number(right.developerName === undefined) ||
     (left.developerName ?? "").localeCompare(right.developerName ?? "") ||
-    left.name.localeCompare(right.name)
+    // Within a developer, higher version numbers first ("Gemini 3.8 Flash" before "Gemini 3 Flash").
+    right.name.localeCompare(left.name, "en", { numeric: true })
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PromoTag } from "@/components/public/promo-tag";
 import { basePrice, priceNumber } from "@/lib/market-prices";
 import {
   defaultSortDirection,
@@ -112,7 +113,8 @@ export function ModelTable({
       </thead>
       <tbody>
         {models.map((model) => {
-          const rates = basePrice(facts.prices[model.id] ?? [])?.rates;
+          const price = basePrice(facts.prices[model.id] ?? []);
+          const rates = price?.rates;
           const specifications = modelSpecifications(model);
           const context = modelContext(model);
           const rate = (key: "input" | "output" | "cacheRead") =>
@@ -122,6 +124,7 @@ export function ModelTable({
               <th scope="row">
                 <Link href={`/models/${model.id}`}>{model.name}</Link>
                 {model.lifecycle === "legacy" && <span className="market-muted"> · Legacy</span>}
+                <PromoTag promotion={price?.promotion} />
               </th>
               <Cell column={COLUMNS.developer}>{model.developerName ?? notPublished}</Cell>
               <Cell column={COLUMNS.input}>{rate("input")}</Cell>

@@ -82,7 +82,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Five-minute cache writes cost $6.25 per MTok, one-hour cache writes cost $10 per MTok and cache reads cost $0.50 per MTok.",
+          "Five-minute cache writes cost $6.25 per 1M tokens, one-hour cache writes cost $10 per 1M tokens and cache reads cost $0.50 per 1M tokens.",
       },
       {
         label: "Platforms",
@@ -640,11 +640,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "Long prompts",
         value:
           "Above 272K input tokens: 2× input and 1.5× output prices for the full request. Cache writes cost 1.25× the uncached input rate.",
-      },
-      {
-        label: "Promotion",
-        value:
-          "OpenAI states promotional pricing is available at least through November 21, 2026. Prices shown use the accepted current rate; no later price is predicted.",
       },
     ],
     omitSpecifications: ["maxInputTokens"],
@@ -1362,7 +1357,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Thinking is on by default and can be turned off with thinking.type set to disabled.",
       },
-      { label: "Input support", value: "Text input only." },
       {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
@@ -1371,7 +1365,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Cached input costs $0.20 per MTok. Cached input storage is listed as limited-time free.",
+          "Cached input costs $0.20 per 1M tokens. Cached input storage is listed as limited-time free.",
       },
       {
         label: "Coding Plan access",
@@ -1409,7 +1403,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Thinking is on by default and can be turned off with thinking.type set to disabled.",
       },
-      { label: "Input support", value: "Text input only." },
       {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
@@ -1418,7 +1411,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+          "Cached input costs $0.26 per 1M tokens. Cached input storage is listed as limited-time free.",
       },
     ],
   },
@@ -1452,7 +1445,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Thinking is on by default and can be turned off with thinking.type set to disabled.",
       },
-      { label: "Input support", value: "Text input only." },
       {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
@@ -1461,7 +1453,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+          "Cached input costs $0.26 per 1M tokens. Cached input storage is listed as limited-time free.",
       },
     ],
   },
@@ -1479,10 +1471,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "Thinking",
         value:
           "Reasoning is always enabled and cannot be disabled. Effort supports low, high and max; max is the default.",
-      },
-      {
-        label: "Input support",
-        value: "Text input only.",
       },
       {
         label: "API capabilities",
@@ -1817,16 +1805,9 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "max_completion_tokens accepts up to 524,288 tokens; MiniMax recommends 131,072.",
       },
       {
-        label: "Long-context pricing",
-        value:
-          "Requests above 512K input tokens cost $0.60 input, $2.40 output and $0.12 cache read per MTok.",
-      },
-      {
         label: "Billing",
-        value:
-          "MiniMax shows a permanent 50% discount from $0.60 input and $2.40 output. Priority service tier costs 1.5x standard.",
+        value: "Priority service tier costs 1.5x standard.",
       },
-      { label: "Input support", value: "Text, image and video input." },
     ],
   },
   "minimax-m2-7": {
@@ -1860,21 +1841,17 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
       { label: "Released", value: "March 18, 2026" },
       {
-        label: "Input support",
-        value: "Text input only. MiniMax says M2.x models do not accept image or video input.",
-      },
-      {
         label: "Output limit",
         value: "max_completion_tokens accepts up to 204,800 tokens; MiniMax recommends 65,536.",
       },
       {
         label: "Prompt caching",
-        value: "Cache reads cost $0.06 per MTok and cache writes cost $0.375 per MTok.",
+        value: "Cache reads cost $0.06 per 1M tokens and cache writes cost $0.375 per 1M tokens.",
       },
       {
         label: "Variants",
         value:
-          "MiniMax-M2.7-highspeed is a faster variant with its own id, at $0.60 input and $2.40 output per MTok.",
+          "MiniMax-M2.7-highspeed is a faster variant with its own id, at $0.60 input and $2.40 output per 1M tokens.",
       },
     ],
   },
@@ -1910,7 +1887,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Implicit cache hits cost $0.25 per MTok. Explicit cache creation costs $2.50 and explicit cache reads cost $0.17 per MTok.",
+          "Implicit cache hits cost $0.25 per 1M tokens. Explicit cache creation costs $2.50 and explicit cache reads cost $0.17 per 1M tokens.",
       },
       {
         label: "Regions",
@@ -1956,7 +1933,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Implicit cache hits cost $0.016 per MTok. Explicit cache creation costs $0.20 and explicit cache reads cost $0.016 per MTok.",
+          "Implicit cache hits cost $0.016 per 1M tokens. Explicit cache creation costs $0.20 and explicit cache reads cost $0.016 per 1M tokens.",
       },
       {
         label: "Regions",
@@ -1996,14 +1973,9 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Listed for Singapore (International) on June 1, 2026.",
       },
       {
-        label: "Long-context pricing",
-        value:
-          "Requests above 256K input tokens bill all tokens at $1.20 input and $4.80 output per MTok.",
-      },
-      {
         label: "Prompt caching",
         value:
-          "Up to 256K input: implicit cache hits $0.08, explicit cache creation $0.50 and explicit cache reads $0.04 per MTok. Above 256K: $0.24, $1.50 and $0.12.",
+          "Up to 256K input: implicit cache hits $0.08, explicit cache creation $0.50 and explicit cache reads $0.04 per 1M tokens. Above 256K: $0.24, $1.50 and $0.12.",
       },
       {
         label: "Regions",
@@ -2057,7 +2029,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Implicit cache hits cost $0.50 per MTok. Explicit cache creation costs $3.125 and explicit cache reads cost $0.25 per MTok.",
+          "Implicit cache hits cost $0.50 per 1M tokens. Explicit cache creation costs $3.125 and explicit cache reads cost $0.25 per 1M tokens.",
       },
       {
         label: "Regions",
@@ -2098,7 +2070,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Prompt caching",
         value:
-          "Implicit cache hits cost $0.10 per MTok. Explicit cache creation costs $0.625 and explicit cache reads cost $0.05 per MTok.",
+          "Implicit cache hits cost $0.10 per 1M tokens. Explicit cache creation costs $0.625 and explicit cache reads cost $0.05 per 1M tokens.",
       },
       {
         label: "Regions",
@@ -2141,12 +2113,13 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       { label: "Released", value: "September 22, 2026" },
       {
         label: "Batch API",
-        value: "Batch requests cost $0.2175 input, $0.435 output and $0.0018 cache hit per MTok.",
+        value:
+          "Batch requests cost $0.2175 input, $0.435 output and $0.0018 cache hit per 1M tokens.",
       },
       {
         label: "Variants",
         value:
-          "mimo-v2.6-pro-ultraspeed is a faster variant with its own id, at $4.35 input, $8.70 output and $0.036 cache hit per MTok. It does not support the Batch API.",
+          "mimo-v2.6-pro-ultraspeed is a faster variant with its own id, at $4.35 input, $8.70 output and $0.036 cache hit per 1M tokens. It does not support the Batch API.",
       },
       {
         label: "Prompt caching",
@@ -2193,7 +2166,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       { label: "Released", value: "September 22, 2026" },
       {
         label: "Batch API",
-        value: "Batch requests cost $0.07 input, $0.14 output and $0.0014 cache hit per MTok.",
+        value: "Batch requests cost $0.07 input, $0.14 output and $0.0014 cache hit per 1M tokens.",
       },
       {
         label: "Prompt caching",
@@ -2302,7 +2275,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Xiaomi will deprecate this model at 10:00 Beijing time on October 21, 2026. There is no replacement model; requests that use its name after that return an error.",
       },
-      { label: "Input support", value: "Text input only." },
       { label: "Batch API", value: "Not supported." },
       {
         label: "Prompt caching",
@@ -2400,7 +2372,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Billing",
         value:
-          "The USD pay-as-you-go rates are labeled a limited-time discount, with no end date or undiscounted rate published. A yuan price table is listed as well. Payment methods are Alipay, WeChat Pay, credit or debit card and Google Pay.",
+          "A yuan price table is listed as well. Payment methods are Alipay, WeChat Pay, credit or debit card and Google Pay.",
       },
       { label: "Open weights", value: "The model weights are released under the MIT License." },
     ],
@@ -2462,7 +2434,7 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "Data choice",
         value:
-          "The standard muse-spark-1.3 endpoint is not used to train Meta models. Meta also offers muse-spark-1.3-contributor, a discounted Contributor-tier variant of the same version that permits training on your prompts and completions. It costs $0.10 input, $0.20 output and $0.002 cached input per MTok, with a lower 100 RPM limit.",
+          "The standard muse-spark-1.3 endpoint is not used to train Meta models. Meta also offers muse-spark-1.3-contributor, a discounted Contributor-tier variant of the same version that permits training on your prompts and completions. It costs $0.10 input, $0.20 output and $0.002 cached input per 1M tokens, with a lower 100 RPM limit.",
       },
       {
         label: "Capabilities",

@@ -2,7 +2,10 @@ import { expect, test } from "@playwright/test";
 
 test("Command Code comparison and plan expose the provider lineup", async ({ page }) => {
   await page.goto("/compare?left=command-code-max-20x&right=command-code-goat");
-  await expect(page.getByText("Claude Fable 5.1", { exact: false }).first()).toBeVisible();
+  const matrix = page.getByTestId("compare-model-matrix");
+  await page.getByRole("button", { name: /^Show all \d+ models/u }).click();
+  await expect(matrix.getByRole("link", { name: "Claude Fable 5.1", exact: true })).toBeVisible();
+  await expect(matrix.getByRole("rowheader", { name: "MiMo V2.6 Pro UltraSpeed" })).toBeVisible();
   await page.getByRole("link", { name: "Full lineup & access conditions" }).first().click();
   await expect(
     page.getByRole("heading", { name: "Command Code Max 20×", exact: true }),

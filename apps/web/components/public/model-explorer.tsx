@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { ModelPriceComparison } from "@/components/public/model-price-comparison";
 import { ModelTable } from "@/components/public/model-table";
+import { PromoTag } from "@/components/public/promo-tag";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
-import { type ModelLayout, modelLayoutFromSearch } from "@/lib/model-layout";
+
+import { type ModelLayout, modelLibrarySearch, readModelLibraryUrl } from "@/lib/model-layout";
 import {
   defaultSortDirection,
   developerOptions,
@@ -38,6 +40,17 @@ const SORT_OPTIONS: readonly [ModelSortKey, string][] = [
   ["maxOutput", "Max output"],
   ["plans", "Most plans"],
 ];
+const CAPABILITIES = [
+  "Reasoning",
+  "Tool calling",
+  "Vision",
+  "Audio input",
+  "Video input",
+  "Structured output",
+] as const;
+const maybePrice = (value: string | undefined) =>
+  value === undefined ? undefined : priceNumber(value);
+const sortDirection = (key: string) => defaultSortDirection(key as ModelSortKey);
 
 export function ModelExplorer({
   models,
@@ -52,10 +65,6 @@ export function ModelExplorer({
   // Undefined until the URL is read: both layouts render and the root layout's
   // bootstrap script decides which one shows, so the static page never flashes.
   const [layout, setLayout] = useState<ModelLayout>();
-  useLayoutEffect(() => {
-    setLayout(modelLayoutFromSearch(window.location.search));
-    document.documentElement.removeAttribute("data-model-layout");
-  }, []);
   const pending = (part: ModelLayout) => (layout === undefined ? part : undefined);
   const [capability, setCapability] = useState("all");
   const [developer, setDeveloper] = useState("all");
@@ -66,7 +75,51 @@ export function ModelExplorer({
   const [withApiPrice, setWithApiPrice] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
-  const developers = developerOptions(models.filter((m) => m.kind === "release"));
+  const developers = useMemo(
+    () => developerOptions(models.filter((m) => m.kind === "release")),
+    [models],
+  );
+  // Apply a shared URL before first paint, then release the bootstrap marks.
+  useLayoutEffect(() => {
+    const state = readModelLibraryUrl(window.location.search, {
+      developers: developers.map((d) => d.id),
+      capabilities: [...CAPABILITIES, "long-context"],
+      sorts: SORT_OPTIONS.map(([id]) => id),
+      defaultDirection: sortDirection,
+    });
+    setLayout(state.layout);
+    setQuery(state.query);
+    setView(state.tab);
+    setDeveloper(state.developer);
+    setCapability(state.capability);
+    setSort(state.sort as ModelSortKey);
+    setDirection(state.direction);
+    setInSubscription(state.included);
+    setWithApiPrice(state.priced);
+    document.documentElement.removeAttribute("data-model-layout");
+    document.documentElement.removeAttribute("data-model-filters");
+  }, [developers]);
+  // Keep the URL shareable as the view changes, without adding history entries.
+  useEffect(() => {
+    if (layout === undefined) return;
+    const search = modelLibrarySearch(
+      {
+        layout,
+        query,
+        tab: view,
+        developer,
+        capability,
+        sort,
+        direction,
+        included: inSubscription,
+        priced: withApiPrice,
+      },
+      sortDirection,
+    );
+    const next = `${window.location.pathname}${search}${window.location.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
+      window.history.replaceState(window.history.state, "", next);
+  }, [layout, query, view, developer, capability, sort, direction, inSubscription, withApiPrice]);
   const facts = useMemo(() => ({ prices, planCounts }), [prices, planCounts]);
   const visible = useMemo(() => {
     const list = (query.trim() ? searchModels(models, query) : modelsInView(models, view)).filter(
@@ -99,19 +152,15 @@ export function ModelExplorer({
     setDirection(next);
   };
   const directionLabels = sortDirectionLabels(sort);
-  const changeLayout = (next: ModelLayout) => {
-    setLayout(next);
-    const url = new URL(window.location.href);
-    if (next === "table") url.searchParams.set("view", "table");
-    else url.searchParams.delete("view");
-    window.history.replaceState(window.history.state, "", url);
-  };
   return (
-    <div>
+    <div data-model-results>
       <ModelPriceComparison models={models} prices={prices} selected={selected} />
       <div className="market-section-title">
         <span>02 / Explore models</span>
-        <span>{models.filter((m) => m.kind === "release").length} releases</span>
+        <span>
+          {modelsInView(models, "models").length} models · {modelsInView(models, "legacy").length}{" "}
+          legacy
+        </span>
       </div>
       <div className="market-filters">
         <label className="grow">
@@ -138,14 +187,7 @@ export function ModelExplorer({
           Capability
           <select value={capability} onChange={(e) => setCapability(e.target.value)}>
             <option value="all">All capabilities</option>
-            {[
-              "Reasoning",
-              "Tool calling",
-              "Vision",
-              "Audio input",
-              "Video input",
-              "Structured output",
-            ].map((item) => (
+            {CAPABILITIES.map((item) => (
               <option key={item}>{item}</option>
             ))}
             <option value="long-context">1M+ input / context</option>
@@ -248,7 +290,7 @@ export function ModelExplorer({
                   aria-pressed={layout === id}
                   data-layout={id}
                   data-testid={`model-layout-${id}`}
-                  onClick={() => changeLayout(id)}
+                  onClick={() => setLayout(id)}
                 >
                   {label}
                 </button>
@@ -266,34 +308,11 @@ export function ModelExplorer({
         </div>
       )}
       {selected.length > 0 && (
-        <section className="market-comparison" aria-label="Selected model specifications">
-          {models
-            .filter((m) => selected.includes(m.id))
-            .map((model) => (
-              <article key={model.id}>
-                <Link
-                  href={`/models/${model.id}`}
-                  className="text-base font-medium hover:text-accent"
-                >
-                  {model.name} ↗
-                </Link>
-                <p
-                  className={
-                    modelContext(model).value ? "market-profile-number" : "market-muted mt-4"
-                  }
-                >
-                  {tokenSize(modelContext(model).value)}
-                </p>
-                <p className="market-muted">{modelContext(model).label} tokens</p>
-                <p className="market-muted mt-4">
-                  Max output {tokenSize(modelSpecifications(model)?.maxOutputTokens)}
-                </p>
-                <p className="market-muted mt-2">
-                  {modelCapabilities(model).join(" · ") || "Capabilities on model page"}
-                </p>
-              </article>
-            ))}
-        </section>
+        <SelectedModels
+          models={models.filter((m) => selected.includes(m.id))}
+          prices={prices}
+          planCounts={planCounts}
+        />
       )}
       {visible.length === 0 && (
         <div className="py-10" data-testid="model-empty">
@@ -358,10 +377,15 @@ export function ModelExplorer({
                         {model.name}
                       </Link>
                     </h2>
+                    <PromoTag promotion={rate?.promotion} />
                   </div>
                   <p className="market-muted mt-1">
-                    {model.developerName ?? "Model release"} ·{" "}
-                    {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
+                    {model.developerName ?? "Model release"}
+                    {model.kind === "family"
+                      ? " · Family name"
+                      : model.lifecycle === "legacy"
+                        ? " · Legacy"
+                        : ""}
                   </p>
                   {modelSpecifications(model) && (
                     <p className="market-model-spec-line">
@@ -432,5 +456,80 @@ export function ModelExplorer({
         </button>
       )}
     </div>
+  );
+}
+
+/** The selected models side by side: the same figures as the table, one column each. */
+function SelectedModels({
+  models,
+  prices,
+  planCounts,
+}: {
+  models: readonly PublicModelSummary[];
+  prices: Record<string, ModelPrices[]>;
+  planCounts: Record<string, number>;
+}) {
+  const figure = (value: string | undefined) =>
+    value === undefined ? <span className="market-muted">Not published</span> : value;
+  const rows: [string, (model: PublicModelSummary) => ReactNode][] = [
+    ["Input $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.input))],
+    ["Output $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.output))],
+    ["Cache read $/1M", (m) => figure(maybePrice(basePrice(prices[m.id] ?? [])?.rates.cacheRead))],
+    [
+      "Context",
+      (m) => {
+        const context = modelContext(m);
+        return context.value === undefined
+          ? figure(undefined)
+          : `${tokenSize(context.value)}${context.label === "max input" ? " max input" : ""}`;
+      },
+    ],
+    [
+      "Max output",
+      (m) => {
+        const tokens = modelSpecifications(m)?.maxOutputTokens;
+        return figure(tokens === undefined ? undefined : tokenSize(tokens));
+      },
+    ],
+    [
+      "Reasoning",
+      (m) => {
+        const reasoning = modelSpecifications(m)?.reasoning;
+        return figure(reasoning === undefined ? undefined : reasoning ? "Yes" : "No");
+      },
+    ],
+    ["Included in plans", (m) => String(planCounts[m.id] ?? 0)],
+  ];
+  return (
+    <section
+      className="market-selected-models"
+      aria-label="Selected model specifications"
+      data-testid="selected-models"
+    >
+      <table className="market-side-by-side">
+        <caption className="sr-only">Selected models side by side</caption>
+        <thead>
+          <tr>
+            <td />
+            {models.map((model) => (
+              <th key={model.id} scope="col">
+                <Link href={`/models/${model.id}`}>{model.name}</Link>
+                <PromoTag promotion={basePrice(prices[model.id] ?? [])?.promotion} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label}>
+              <th scope="row">{label}</th>
+              {models.map((model) => (
+                <td key={model.id}>{value(model)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
