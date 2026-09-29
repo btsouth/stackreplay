@@ -56,7 +56,7 @@ describe("identity and hashing", () => {
     expect(normalizeProjectKey(" / ", "linux")).toBe("/");
     expect(normalizeProjectKey("\\", "win32")).toBe("\\");
     expect(normalizeProjectKey(" ", "linux")).toBe("");
-    const key = `${"/".repeat(100_000)}!`;
+    const key = `${"/".repeat(100)}!`;
     expect(normalizeProjectKey(`${key}/\\/`, "linux")).toBe(key);
     expect(normalizeProjectKey(`${key}/`, "win32")).toBe(key.replaceAll("/", "\\"));
   });

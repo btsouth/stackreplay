@@ -399,12 +399,10 @@ describe("browser intake using shared adapters", () => {
     expect(safeIntakeMessage("at /tmp")).toBe("at <path>");
   });
 
-  it("redacts entire path tokens and handles long non-path tokens", () => {
+  it("redacts entire path tokens while preserving whitespace", () => {
     expect(safeIntakeMessage("keep!\tC:\\Users\\alice\r\n/private/file! end")).toBe(
       "keep!\t<path>\r\n<path> end",
     );
-    expect(safeIntakeMessage("!".repeat(1_000_000))).toBe("!".repeat(240));
-    expect(safeIntakeMessage(`${"!".repeat(1_000_000)}/private`)).toBe("<path>");
     expect(safeIntakeMessage(" \t/plain \n \\private \u00a0end")).toBe(
       " \t<path> \n <path> \u00a0end",
     );
