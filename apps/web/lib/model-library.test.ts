@@ -8,14 +8,15 @@ import {
   isIncludedInSubscription,
   isInView,
   type ModelSortKey,
+  modelPlanCounts,
   modelSortValue,
   modelsInView,
   placesSummary,
   searchModels,
+  sortDirectionLabels,
   sortModels,
 } from "./model-library";
 import { loadPublicCatalog } from "./public-catalog";
-import { includedPlanCounts } from "./subscription-access";
 
 /**
  * The public model library (launch taxonomy): releases lead, legacy releases
@@ -132,7 +133,7 @@ describe("model table sorting and filters", () => {
   const current = marketDiscovery("2026-09-29");
   const facts = {
     prices: current.prices,
-    planCounts: includedPlanCounts(current.catalog.plans),
+    planCounts: modelPlanCounts(current.catalog.models),
   };
   const releases = current.catalog.models.filter((model) => model.kind === "release");
   const published = (key: ModelSortKey) =>
@@ -166,6 +167,24 @@ describe("model table sorting and filters", () => {
     expect(defaultSortDirection("input")).toBe("ascending");
     expect(defaultSortDirection("context")).toBe("descending");
     expect(defaultSortDirection("maxOutput")).toBe("descending");
+  });
+
+  it("names both directions for every sort except the fixed featured order", () => {
+    expect(sortDirectionLabels("featured")).toBeUndefined();
+    expect(sortDirectionLabels("name")).toEqual({ ascending: "A to Z", descending: "Z to A" });
+    for (const key of ["input", "output", "cacheRead", "context", "maxOutput", "plans"] as const)
+      expect(sortDirectionLabels(key)).toEqual({
+        ascending: "Low to high",
+        descending: "High to low",
+      });
+  });
+
+  it("sorts names both ways", () => {
+    const names = (direction: "ascending" | "descending") =>
+      sortModels(releases, "name", direction, facts).map((model) => model.name);
+    expect(names("ascending")).toEqual([...names("descending")].reverse());
+    const ascending = names("ascending");
+    expect((ascending[0] ?? "").localeCompare(ascending.at(-1) ?? "")).toBeLessThan(0);
   });
 
   it("filters to published API prices and subscription access", () => {

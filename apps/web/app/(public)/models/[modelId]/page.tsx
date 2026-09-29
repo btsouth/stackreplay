@@ -7,6 +7,7 @@ import { ModelPricingConditions } from "@/components/public/model-pricing-condit
 import { SourceList } from "@/components/public/provenance";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
 import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
+import { modelPlanCount } from "@/lib/model-library";
 import { modelCapabilities, modelSpecifications, tokenSize } from "@/lib/model-specifications";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
@@ -60,10 +61,11 @@ export default async function ModelPage({ params }: Props) {
     glance.push({ label: "Max output", value: tokenSize(specifications.maxOutputTokens) });
   if (specifications?.reasoning !== undefined)
     glance.push({ label: "Reasoning", value: specifications.reasoning ? "Yes" : "No" });
-  if (plans.length > 0)
+  const planCount = modelPlanCount(model);
+  if (planCount > 0)
     glance.push({
       label: "Included in",
-      value: `${plans.length} ${plans.length === 1 ? "plan" : "plans"}`,
+      value: `${planCount} ${planCount === 1 ? "plan" : "plans"}`,
       href: "#where-to-use",
     });
   const related = catalog.models.filter(

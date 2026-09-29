@@ -168,6 +168,31 @@ export function defaultSortDirection(key: ModelSortKey): SortDirection {
   return key === "context" || key === "maxOutput" || key === "plans" ? "descending" : "ascending";
 }
 
+/** Plain labels for each direction of a sort, or undefined when the order is fixed. */
+export function sortDirectionLabels(key: ModelSortKey): Record<SortDirection, string> | undefined {
+  if (key === "featured") return undefined;
+  return key === "name"
+    ? { ascending: "A to Z", descending: "Z to A" }
+    : { ascending: "Low to high", descending: "High to low" };
+}
+
+/**
+ * Catalogued plans that include a model: the plan list on its model page.
+ * Cards, the table and the page's key figures all count this one list.
+ */
+export function modelPlanCount(model: PublicModelSummary): number {
+  return model.places.filter((place) => place.kind === "plan").length;
+}
+
+export function modelPlanCounts(models: readonly PublicModelSummary[]): Record<string, number> {
+  return Object.fromEntries(
+    models.flatMap((model) => {
+      const count = modelPlanCount(model);
+      return count > 0 ? [[model.id, count]] : [];
+    }),
+  );
+}
+
 export interface ModelFacts {
   prices: Record<string, readonly ModelPrices[]>;
   planCounts: Record<string, number>;

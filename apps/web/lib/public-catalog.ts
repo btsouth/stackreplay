@@ -112,6 +112,19 @@ export interface PublicPlanSummary {
 }
 
 /**
+ * Whether a plan includes a model. A published lineup decides through explicit
+ * `modelId` links only; a plan without one falls back to its catalog model rules.
+ */
+export function planIncludesModel(
+  plan: Pick<PublicPlanSummary, "modelAccess" | "modelRules">,
+  modelId: string,
+): boolean {
+  return plan.modelAccess
+    ? includedAccessModels(plan.modelAccess).some((entry) => entry.modelId === modelId)
+    : plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true);
+}
+
+/**
  * One place a person can use a model: a Direct API a provider runs, or a
  * subscription plan whose rules include the model. Built from catalog offering
  * and plan facts only.
@@ -351,13 +364,7 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     const model = catalog.models[modelId];
     const providerIds = model?.providerIds ?? [];
     const developerId = model?.developerId;
-    const planIds = plans
-      .filter((plan) =>
-        plan.modelAccess
-          ? includedAccessModels(plan.modelAccess).some((entry) => entry.modelId === modelId)
-          : plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
-      )
-      .map((plan) => plan.id);
+    const planIds = plans.filter((plan) => planIncludesModel(plan, modelId)).map((plan) => plan.id);
     // Places: a Direct API route first (an offering fact, not authorship), then
     // plans, the developer's own plans first so the row leads with the obvious
     // place to use the model.
