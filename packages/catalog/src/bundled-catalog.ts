@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:01c66acc6bf2ad65a36114216911701aa4853798b03961f6a38f05901f8289f0";
+export const BUNDLED_CATALOG_VERSION = "sha256:27b3494f88a6e051599e687ff9401c9541156174c38e6af8a3d19c4caeece133";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:01c66acc6bf2ad65a36114216911701aa4853798b03961f6a38f05901f8289f0",
+  "catalogVersion": "sha256:27b3494f88a6e051599e687ff9401c9541156174c38e6af8a3d19c4caeece133",
   "providers": {
     "anthropic": {
       "id": "anthropic",
@@ -1928,6 +1928,168 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "glm-5-1": {
+      "id": "glm-5-1",
+      "role": "model",
+      "name": "GLM 5.1",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 200000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.1",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-1-api-id",
+          "alias": "glm-5.1",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5.1",
+              "title": "GLM 5.1 API model code glm-5.1",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-1-router-z-ai-glm-5-1",
+          "alias": "z-ai/glm-5.1",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.1",
+              "title": "OpenRouter model record `z-ai/glm-5.1` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5.1",
+          "title": "GLM 5.1 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "glm-5-2": {
+      "id": "glm-5-2",
+      "role": "model",
+      "name": "GLM 5.2",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 1000000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.2",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-2-api-id",
+          "alias": "glm-5.2",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5.2",
+              "title": "GLM 5.2 API model code glm-5.2",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-2-router-z-ai-glm-5-2",
+          "alias": "z-ai/glm-5.2",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5.2",
+              "title": "OpenRouter model record `z-ai/glm-5.2` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5.2",
+          "title": "GLM 5.2 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "glm-5-3-flash": {
       "id": "glm-5-3-flash",
       "role": "model",
@@ -2239,6 +2401,87 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "glm-5": {
+      "id": "glm-5",
+      "role": "model",
+      "name": "GLM 5",
+      "developerId": "z-ai",
+      "specifications": {
+        "contextTokens": 200000,
+        "maxOutputTokens": 128000,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Thinking is on by default and can be turned off."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5",
+            "title": "Official model specifications",
+            "checkedAt": "2026-09-29"
+          },
+          {
+            "url": "https://docs.z.ai/guides/capabilities/thinking-mode",
+            "title": "Default thinking behavior",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
+      "providerIds": [
+        "z-ai"
+      ],
+      "aliases": [
+        {
+          "id": "glm-5-api-id",
+          "alias": "glm-5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.z.ai/guides/llm/glm-5",
+              "title": "GLM 5 API model code glm-5",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-router-z-ai-glm-5",
+          "alias": "z-ai/glm-5",
+          "kind": "harness_alias",
+          "sources": [
+            {
+              "url": "https://openrouter.ai/z-ai/glm-5",
+              "title": "OpenRouter model record `z-ai/glm-5` (exact id as published in the model list)",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/llm/glm-5",
+          "title": "GLM 5 model documentation",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex": {
@@ -21826,6 +22069,52 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
+    "glm-5-1-pricing": {
+      "id": "glm-5-1-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-1",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.4",
+        "output": "4.4",
+        "cacheRead": "0.26"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5.1 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "glm-5-2-pricing": {
+      "id": "glm-5-2-pricing",
+      "role": "pricing",
+      "modelId": "glm-5-2",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1.4",
+        "output": "4.4",
+        "cacheRead": "0.26"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5.2 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
     "glm-5-3-flash-pricing": {
       "id": "glm-5-3-flash-pricing",
       "role": "pricing",
@@ -21893,6 +22182,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-23",
+      "verificationStatus": "verified"
+    },
+    "glm-5-pricing": {
+      "id": "glm-5-pricing",
+      "role": "pricing",
+      "modelId": "glm-5",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "1",
+        "output": "3.2",
+        "cacheRead": "0.2"
+      },
+      "effectiveFrom": "2026-09-29",
+      "sources": [
+        {
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "title": "Z.AI API list pricing (GLM-5 row); no cache-write rate and no reasoning-token billing relationship is published.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "gpt-5-3-codex-github-pricing": {

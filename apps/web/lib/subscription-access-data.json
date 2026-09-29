@@ -164,7 +164,8 @@
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "Kimi K2.7 Code HighSpeed"
@@ -198,7 +199,8 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
             "name": "MiniMax M2.7"
@@ -213,7 +215,8 @@
             "name": "Kimi K2.6"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "Kimi K2.5"
@@ -412,7 +415,8 @@
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "Kimi K2.7 Code HighSpeed"
@@ -453,7 +457,8 @@
             "name": "Step 3.5 Flash"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
             "name": "GPT-5.5",
@@ -476,7 +481,8 @@
             "modelId": "gpt-5-4-mini"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "GPT-5.3 Codex",
@@ -601,16 +607,19 @@
             "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "MiniMax M3"
@@ -915,16 +924,19 @@
             "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "MiniMax M3"
@@ -1193,16 +1205,19 @@
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GLM-5.2 Fast"
           },
           {
-            "name": "GLM-5.1"
+            "name": "GLM-5.1",
+            "modelId": "glm-5-1"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "MiniMax M3"
@@ -1401,7 +1416,8 @@
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT 6 Luna",
@@ -1519,7 +1535,8 @@
             "modelId": "glm-5-3"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT 6 Luna",
@@ -1648,7 +1665,8 @@
             "name": "Gemma 4"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT-OSS 120B"
@@ -1718,7 +1736,8 @@
             "name": "Gemma 4"
           },
           {
-            "name": "GLM-5.2"
+            "name": "GLM-5.2",
+            "modelId": "glm-5-2"
           },
           {
             "name": "GPT-OSS 120B"
@@ -2699,7 +2718,8 @@
             "name": "MiniMax M2.5"
           },
           {
-            "name": "GLM-5"
+            "name": "GLM-5",
+            "modelId": "glm-5"
           },
           {
             "name": "DeepSeek 3.2"

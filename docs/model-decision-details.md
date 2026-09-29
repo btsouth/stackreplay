@@ -1,6 +1,6 @@
 # Model decision details
 
-The September 29, 2026 UTC pass reviews all 50 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
+The September 29, 2026 UTC pass reviews all 53 listed model releases against current first-party model documentation. Family aliases remain identity records, not extra models. The public guide supplements the existing accepted catalog; it never changes replay routes, quotas, token accounting or rate selection.
 
 ## What changed
 
@@ -42,6 +42,9 @@ Existing prices and technical facts were checked against the linked documentatio
 | Gemini 3 Flash | API availability, Input limit, Multimodal input, Built-in capabilities, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview) |
 | Gemini 3 Flash-Lite | Identity, Comparison boundary | [Official documentation](https://ai.google.dev/gemini-api/docs/models) |
 | Gemini 3 Pro | API availability, Input limit, Multimodal input | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview) |
+| GLM 5 | Thinking, Input support, API capabilities, Released, Prompt caching, Coding Plan access | [Official documentation](https://docs.z.ai/guides/llm/glm-5) |
+| GLM 5.1 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.1) |
+| GLM 5.2 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.2) |
 | GLM 5.3 | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/llm/glm-5.3) |
 | GLM 5.3 Flash | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |
 | GLM 5.3 FlashX | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |

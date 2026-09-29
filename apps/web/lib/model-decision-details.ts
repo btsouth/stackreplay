@@ -1332,6 +1332,139 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       },
     ],
   },
+  "glm-5": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "February 12, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.20 per MTok. Cached input storage is listed as limited-time free.",
+      },
+      {
+        label: "Coding Plan access",
+        value: "Z.ai's GLM-5 page says GLM-5 is available in the GLM Coding Plan on Pro and Max.",
+      },
+    ],
+  },
+  "glm-5-1": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5.1",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "April 7, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+      },
+    ],
+  },
+  "glm-5-2": {
+    checkedAt: "2026-09-29",
+    sources: [
+      {
+        url: "https://docs.z.ai/guides/llm/glm-5.2",
+        title: "Official specifications and conditions",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/capabilities/thinking-mode",
+        title: "Default thinking behavior",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/release-notes/new-released",
+        title: "Release date",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://docs.z.ai/guides/overview/pricing",
+        title: "Cached input rates",
+        checkedAt: "2026-09-29",
+      },
+    ],
+    facts: [
+      {
+        label: "Thinking",
+        value:
+          "Thinking is on by default and can be turned off with thinking.type set to disabled.",
+      },
+      { label: "Input support", value: "Text input only." },
+      {
+        label: "API capabilities",
+        value: "Function calling, streaming, context caching and structured output are supported.",
+      },
+      { label: "Released", value: "June 16, 2026" },
+      {
+        label: "Prompt caching",
+        value:
+          "Cached input costs $0.26 per MTok. Cached input storage is listed as limited-time free.",
+      },
+    ],
+  },
   "glm-5-3": {
     checkedAt: "2026-09-29",
     sources: [
