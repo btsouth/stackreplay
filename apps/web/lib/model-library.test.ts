@@ -155,10 +155,11 @@ describe("model table sorting and filters", () => {
   }
 
   it("counts plans from explicit links and treats zero as a real value", () => {
-    const sorted = sortModels(releases, "plans", "descending", facts);
-    expect(modelSortValue(sorted[0], "plans", facts)).toBeGreaterThan(0);
-    const last = sorted.at(-1);
-    expect(last && modelSortValue(last, "plans", facts)).toBe(0);
+    const counts = sortModels(releases, "plans", "descending", facts).map((model) =>
+      modelSortValue(model, "plans", facts),
+    );
+    expect(counts[0]).toBeGreaterThan(0);
+    expect(counts.at(-1)).toBe(0);
   });
 
   it("starts price sorts cheapest first and limits largest first", () => {

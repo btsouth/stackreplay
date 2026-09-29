@@ -493,3 +493,199 @@
   grid-column: span 3;
   max-width: 65ch;
 }
+
+/* Model library controls: access filters and the cards / table layout switch. */
+.market-filter-checks,
+.market-layout-toggle {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.market-filter-checks legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+.market-filter-checks > label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+.market-filter-checks {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+}
+.market-filter-checks input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  accent-color: var(--accent);
+}
+.market-layout-toggle > div {
+  display: inline-flex;
+  height: 44px;
+  border: 1px solid var(--control-border);
+}
+.market-layout-toggle button {
+  min-width: 4.5rem;
+  padding: 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid transparent;
+}
+.market-layout-toggle button + button {
+  border-left: 1px solid var(--control-border);
+}
+.market-layout-toggle button[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--foreground);
+  border-bottom-color: var(--accent);
+}
+.market-layout-toggle button:focus-visible,
+.market-table button:focus-visible,
+.market-table a:focus-visible,
+.market-glance a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Model table: one dense row per model, labeled stacked rows below 1280px. */
+.market-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+}
+.market-table thead th {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 1;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.market-table thead button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+.market-table thead button:hover,
+.market-table thead th[aria-sort="ascending"] button,
+.market-table thead th[aria-sort="descending"] button {
+  color: var(--foreground);
+}
+.market-table-arrow {
+  width: 0.6rem;
+  opacity: 0.55;
+}
+.market-table thead th[aria-sort="ascending"] .market-table-arrow,
+.market-table thead th[aria-sort="descending"] .market-table-arrow {
+  color: var(--accent);
+  opacity: 1;
+}
+.market-table tbody th,
+.market-table td {
+  padding: 0.8rem 0.75rem 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  text-align: left;
+  vertical-align: baseline;
+}
+.market-table tr > :last-child {
+  padding-right: 0;
+}
+.market-table tbody th a {
+  font-weight: 500;
+}
+.market-table tbody th a:hover {
+  color: var(--accent);
+}
+.market-table tbody tr:hover > * {
+  background: var(--surface-2);
+}
+.market-table [data-numeric] {
+  text-align: right;
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+.market-table [data-numeric] .market-muted,
+.market-table-label {
+  font-family: var(--font-sans);
+}
+.market-table-label {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .market-table [data-numeric] + :not([data-numeric]) {
+    padding-left: 1.5rem;
+  }
+}
+@media (max-width: 1279px) {
+  .market-table,
+  .market-table tbody,
+  .market-table tr,
+  .market-table th,
+  .market-table td {
+    display: block;
+  }
+  .market-table thead {
+    display: none;
+  }
+  .market-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .market-table tbody tr:hover > * {
+    background: none;
+  }
+  .market-table tbody th,
+  .market-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .market-table tbody th {
+    grid-column: 1 / -1;
+    font-size: 1rem;
+  }
+  .market-table [data-numeric] {
+    text-align: left;
+  }
+  .market-table-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--muted-foreground);
+    font-size: 0.7rem;
+  }
+}
+@media (min-width: 640px) and (max-width: 1279px) {
+  .market-table tbody tr {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

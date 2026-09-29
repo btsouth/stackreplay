@@ -2,15 +2,21 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ModelPriceComparison } from "@/components/public/model-price-comparison";
+import { ModelTable } from "@/components/public/model-table";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
 import {
-  byDiscoveryOrder,
+  defaultSortDirection,
   developerOptions,
+  hasPublishedApiPrice,
+  isIncludedInSubscription,
   type ModelLibraryView,
+  type ModelSortKey,
   matchesDeveloper,
   modelsInView,
+  type SortDirection,
   searchModels,
+  sortModels,
 } from "@/lib/model-library";
 import {
   modelCapabilities,
@@ -20,41 +26,80 @@ import {
 } from "@/lib/model-specifications";
 import type { PublicModelSummary } from "@/lib/public-catalog";
 
+export type ModelLayout = "cards" | "table";
+
+const SORT_OPTIONS: readonly [ModelSortKey, string][] = [
+  ["featured", "Featured first"],
+  ["name", "Model name"],
+  ["input", "Input price"],
+  ["output", "Output price"],
+  ["cacheRead", "Cache read price"],
+  ["context", "Context window"],
+  ["maxOutput", "Max output"],
+  ["plans", "Most plans"],
+];
+
 export function ModelExplorer({
   models,
   prices = {},
+  planCounts = {},
+  initialLayout = "cards",
 }: {
   models: readonly PublicModelSummary[];
   prices?: Record<string, ModelPrices[]>;
+  planCounts?: Record<string, number>;
+  initialLayout?: ModelLayout;
 }) {
   const [view, setView] = useState<ModelLibraryView>("models");
+  const [layout, setLayout] = useState<ModelLayout>(initialLayout);
   const [capability, setCapability] = useState("all");
   const [developer, setDeveloper] = useState("all");
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState("featured");
+  const [sort, setSort] = useState<ModelSortKey>("featured");
+  const [direction, setDirection] = useState<SortDirection>("ascending");
+  const [inSubscription, setInSubscription] = useState(false);
+  const [withApiPrice, setWithApiPrice] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const developers = developerOptions(models.filter((m) => m.kind === "release"));
+  const facts = useMemo(() => ({ prices, planCounts }), [prices, planCounts]);
   const visible = useMemo(() => {
     const list = (query.trim() ? searchModels(models, query) : modelsInView(models, view)).filter(
       (m) =>
         matchesDeveloper(m, developer) &&
+        (!inSubscription || isIncludedInSubscription(m, facts)) &&
+        (!withApiPrice || hasPublishedApiPrice(m, facts)) &&
         (capability === "all" ||
           (capability === "long-context"
             ? (modelContext(m).value ?? 0) >= 1_000_000
             : modelCapabilities(m).includes(capability))),
     );
-    if (sort === "featured") {
-      if (!query.trim()) list.sort(byDiscoveryOrder);
-    } else if (sort !== "name")
-      list.sort(
-        (a, b) =>
-          Number(basePrice(prices[a.id] ?? [])?.rates[sort as "input" | "output"] ?? Infinity) -
-          Number(basePrice(prices[b.id] ?? [])?.rates[sort as "input" | "output"] ?? Infinity),
-      );
-    else list.sort((a, b) => a.name.localeCompare(b.name));
-    return list;
-  }, [models, view, query, developer, capability, sort, prices]);
+    // A search keeps its relevance order until another order is chosen.
+    if (sort === "featured" && query.trim()) return list;
+    return sortModels(list, sort, direction, facts);
+  }, [
+    models,
+    view,
+    query,
+    developer,
+    capability,
+    sort,
+    direction,
+    inSubscription,
+    withApiPrice,
+    facts,
+  ]);
+  const changeSort = (key: ModelSortKey, next: SortDirection = defaultSortDirection(key)) => {
+    setSort(key);
+    setDirection(next);
+  };
+  const changeLayout = (next: ModelLayout) => {
+    setLayout(next);
+    const url = new URL(window.location.href);
+    if (next === "table") url.searchParams.set("view", "table");
+    else url.searchParams.delete("view");
+    window.history.replaceState(window.history.state, "", url);
+  };
   return (
     <div>
       <ModelPriceComparison models={models} prices={prices} selected={selected} />
@@ -102,13 +147,33 @@ export function ModelExplorer({
         </label>
         <label>
           Order by
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="featured">Featured first</option>
-            <option value="name">Model name</option>
-            <option value="input">Input price</option>
-            <option value="output">Output price</option>
+          <select value={sort} onChange={(e) => changeSort(e.target.value as ModelSortKey)}>
+            {SORT_OPTIONS.map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
           </select>
         </label>
+        <fieldset className="market-filter-checks">
+          <legend>Access</legend>
+          <label>
+            <input
+              type="checkbox"
+              checked={inSubscription}
+              onChange={(e) => setInSubscription(e.target.checked)}
+            />
+            Included in a subscription
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={withApiPrice}
+              onChange={(e) => setWithApiPrice(e.target.checked)}
+            />
+            Published API price
+          </label>
+        </fieldset>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
         <div className="market-tabs">
@@ -133,9 +198,33 @@ export function ModelExplorer({
             </button>
           ))}
         </div>
-        <p role="status" className="market-muted">
-          {visible.length} {query ? "matches" : "models"} · Select up to 4 to compare rates
-        </p>
+        <div className="flex w-full items-center justify-between gap-x-5 gap-y-2 pb-2 sm:w-auto sm:justify-end sm:pb-0">
+          <p role="status" className="market-muted min-w-0">
+            {visible.length} {query ? "matches" : "models"}
+            {layout === "cards" ? " · Select up to 4 to compare rates" : ""}
+          </p>
+          <fieldset className="market-layout-toggle shrink-0">
+            <legend className="sr-only">Layout</legend>
+            <div>
+              {(
+                [
+                  ["cards", "Cards"],
+                  ["table", "Table"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  type="button"
+                  key={id}
+                  aria-pressed={layout === id}
+                  data-testid={`model-layout-${id}`}
+                  onClick={() => changeLayout(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
       </div>
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
@@ -175,92 +264,131 @@ export function ModelExplorer({
             ))}
         </section>
       )}
-      <div data-testid="model-table">
-        {visible.slice(0, expanded ? undefined : 12).map((model) => {
-          const rate = basePrice(prices[model.id] ?? []);
-          return (
-            <article
-              key={model.id}
-              className="market-model-row"
-              data-testid="model-row"
-              data-model-kind={model.kind}
-            >
-              <div>
-                <div className="flex items-center gap-3">
-                  {model.kind === "release" && (
-                    <input
-                      type="checkbox"
-                      aria-label={`Compare ${model.name}`}
-                      checked={selected.includes(model.id)}
-                      disabled={selected.length >= 4 && !selected.includes(model.id)}
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? [...selected, model.id]
-                            : selected.filter((id) => id !== model.id),
-                        )
-                      }
-                      className="size-5 accent-accent"
-                    />
-                  )}
-                  <h2>
-                    <Link href={`/models/${model.id}`} className="hover:text-accent">
-                      {model.name}
-                    </Link>
-                  </h2>
-                </div>
-                <p className="market-muted mt-1">
-                  {model.developerName ?? "Model release"} ·{" "}
-                  {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
-                </p>
-                {modelSpecifications(model) && (
-                  <p className="market-model-spec-line">
-                    {modelContext(model).value
-                      ? `${tokenSize(modelContext(model).value)} ${modelContext(model).label}`
-                      : ""}
-                    {modelContext(model).value && modelCapabilities(model).length ? " · " : ""}
-                    {modelCapabilities(model).slice(0, 2).join(" · ")}
+      {visible.length === 0 && (
+        <div className="py-10" data-testid="model-empty">
+          <p>No models match these filters.</p>
+          <button
+            type="button"
+            className="market-link"
+            onClick={() => {
+              setQuery("");
+              setDeveloper("all");
+              setCapability("all");
+              setInSubscription(false);
+              setWithApiPrice(false);
+            }}
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+      {layout === "table" && visible.length > 0 && (
+        <ModelTable
+          models={visible}
+          facts={facts}
+          sort={sort}
+          direction={direction}
+          onSort={changeSort}
+        />
+      )}
+      {layout === "cards" && (
+        <div data-testid="model-table">
+          {visible.slice(0, expanded ? undefined : 12).map((model) => {
+            const rate = basePrice(prices[model.id] ?? []);
+            return (
+              <article
+                key={model.id}
+                className="market-model-row"
+                data-testid="model-row"
+                data-model-kind={model.kind}
+              >
+                <div>
+                  <div className="flex items-center gap-3">
+                    {model.kind === "release" && (
+                      <input
+                        type="checkbox"
+                        aria-label={`Compare ${model.name}`}
+                        checked={selected.includes(model.id)}
+                        disabled={selected.length >= 4 && !selected.includes(model.id)}
+                        onChange={(e) =>
+                          setSelected(
+                            e.target.checked
+                              ? [...selected, model.id]
+                              : selected.filter((id) => id !== model.id),
+                          )
+                        }
+                        className="size-5 accent-accent"
+                      />
+                    )}
+                    <h2>
+                      <Link href={`/models/${model.id}`} className="hover:text-accent">
+                        {model.name}
+                      </Link>
+                    </h2>
+                  </div>
+                  <p className="market-muted mt-1">
+                    {model.developerName ?? "Model release"} ·{" "}
+                    {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
                   </p>
-                )}
-              </div>
-              {rate ? (
-                (["input", "output", "cacheRead"] as const).map((key, i) => (
-                  <div key={key}>
-                    <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
-                    <p className={rate ? "market-rate" : "market-muted"}>
-                      {rate ? priceNumber(rate.rates[key]) : "See details"}
+                  {modelSpecifications(model) && (
+                    <p className="market-model-spec-line">
+                      {modelContext(model).value
+                        ? `${tokenSize(modelContext(model).value)} ${modelContext(model).label}`
+                        : ""}
+                      {modelContext(model).value && modelCapabilities(model).length ? " · " : ""}
+                      {modelCapabilities(model).slice(0, 2).join(" · ")}
+                    </p>
+                  )}
+                </div>
+                {rate ? (
+                  (["input", "output", "cacheRead"] as const).map((key, i) => (
+                    <div key={key}>
+                      <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
+                      <p className={rate ? "market-rate" : "market-muted"}>
+                        {rate ? priceNumber(rate.rates[key]) : "See details"}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="market-model-price-context">
+                    <p className="market-kicker mb-2">Pricing context</p>
+                    <p className="market-muted">
+                      {model.pricingNote?.split(/(?<=[.!?])\s+(?=[A-Z])/u)[0] ??
+                        (model.kind === "family"
+                          ? "Choose an exact release to inspect its pricing."
+                          : "See available plans and provider pricing details.")}
                     </p>
                   </div>
-                ))
-              ) : (
-                <div className="market-model-price-context">
-                  <p className="market-kicker mb-2">Pricing context</p>
+                )}
+                <div>
                   <p className="market-muted">
-                    {model.pricingNote?.split(/(?<=[.!?])\s+(?=[A-Z])/u)[0] ??
-                      (model.kind === "family"
-                        ? "Choose an exact release to inspect its pricing."
-                        : "See available plans and provider pricing details.")}
+                    {model.places.some((p) => p.kind === "api") ? "Published API" : undefined}
+                    {model.places.some((p) => p.kind === "api") && planCounts[model.id]
+                      ? " · "
+                      : undefined}
+                    {planCounts[model.id] ? (
+                      <Link
+                        href={`/models/${model.id}#where-to-use`}
+                        className="underline-offset-4 hover:text-accent hover:underline"
+                        data-testid="model-plan-count"
+                      >
+                        In {planCounts[model.id]} {planCounts[model.id] === 1 ? "plan" : "plans"}
+                      </Link>
+                    ) : undefined}
+                    {!model.places.some((p) => p.kind === "api") && !planCounts[model.id]
+                      ? "View access details"
+                      : undefined}
                   </p>
+                  <Link href={`/models/${model.id}`} className="market-link">
+                    Explore model <span aria-hidden="true">↗</span>
+                  </Link>
                 </div>
-              )}
-              <div>
-                <p className="market-muted">
-                  {[
-                    model.places.some((p) => p.kind === "api") ? "Published API" : undefined,
-                    model.planIds.length ? `${model.planIds.length} documented plans` : undefined,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ") || "View access details"}
-                </p>
-                <Link href={`/models/${model.id}`} className="market-link">
-                  Explore model <span aria-hidden="true">↗</span>
-                </Link>
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      {visible.length > 12 && (
+              </article>
+            );
+          })}
+        </div>
+      )}
+      {layout === "cards" && visible.length > 12 && (
         <button type="button" className="market-link my-4" onClick={() => setExpanded(!expanded)}>
           {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
         </button>

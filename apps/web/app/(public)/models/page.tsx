@@ -3,13 +3,19 @@ import Link from "next/link";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { ModelExplorer } from "@/components/public/model-explorer";
 import { marketDiscovery } from "@/lib/market-discovery";
+import { includedPlanCounts } from "@/lib/subscription-access";
 export const metadata: Metadata = {
   title: "Models",
   description:
     "Explore current AI models, compare published API rates, find subscription access and test alternatives against your own workload.",
   alternates: { canonical: "/models" },
 };
-export default function ModelsPage() {
+export default async function ModelsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
   const { catalog, prices } = marketDiscovery();
   return (
     <div>
@@ -30,7 +36,12 @@ export default function ModelsPage() {
           </Link>
         </aside>
       </MarketHeader>
-      <ModelExplorer models={catalog.models} prices={prices} />
+      <ModelExplorer
+        models={catalog.models}
+        prices={prices}
+        planCounts={includedPlanCounts(catalog.plans)}
+        initialLayout={view === "table" ? "table" : "cards"}
+      />
       <MarketFooter />
     </div>
   );
