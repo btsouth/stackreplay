@@ -135,6 +135,31 @@ describe("Command Code V4.1 Flash Fast: the Fast price record", () => {
 });
 
 describe("Command Code V4.1 Flash Fast: plan replay", () => {
+  it("recovers Fast after JSON persistence, including case and surrounding whitespace", () => {
+    const events = JSON.parse(
+      JSON.stringify([
+        commandCodeCall(
+          "fast",
+          `  ${FAST.toUpperCase()}  `,
+          "2026-09-29T12:00:00Z",
+          million("input"),
+        ),
+        commandCodeCall("regular", REGULAR, "2026-09-29T12:00:01Z", million("input")),
+      ]),
+    );
+    expect(consumed(commandCodeGo, "command-code-go", events).units).toBe("0.31");
+  });
+
+  it("does not invent a Fast route when only the canonical model name remains", () => {
+    const event = commandCodeCall(
+      "canonical-only",
+      "deepseek-v4-1-flash",
+      "2026-09-29T12:00:00Z",
+      million("input"),
+    );
+    expect(consumed(commandCodeGo, "command-code-go", [event]).units).toBe("0.15");
+  });
+
   it("prices an imported Fast call at the Fast rate, never regular V4.1 Flash's", () => {
     const { result, units } = consumed(commandCodeGo, "command-code-go", [
       commandCodeCall("fast", FAST, "2026-09-29T12:00:00Z", million("input")),

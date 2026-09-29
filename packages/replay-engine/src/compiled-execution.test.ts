@@ -1,5 +1,6 @@
 // biome-ignore-all lint/style/noNonNullAssertion: synthetic fixture shapes are constructed in this file.
 
+import { loadDefaultCatalog } from "@stackreplay/catalog/load";
 import { compiledExecutionPlanSchema } from "@stackreplay/schema";
 import { describe, expect, it } from "vitest";
 import { ns, replayCompiledResource, resourceReadiness } from "./compiled-capacity.js";
@@ -58,6 +59,29 @@ function seed(
   });
 }
 describe("compiled execution contract", () => {
+  it("never assigns recovered Command Code Fast calls to a compiled regular-only route", () => {
+    const p = syntheticPlan("command-code-go");
+    p.computation.routes[0]!.models = ["deepseek-v4-1-flash"];
+    const input = compiledScenario(0, [p]);
+    input.catalog = loadDefaultCatalog();
+    input.events = [
+      {
+        ...request("fast", 1000, "deepseek-v4-1-flash", "2026-09-29T12:00:00Z"),
+        harness: { id: "command-code", attribution: "exact" },
+        model: {
+          rawName: "deepseek/deepseek-v4.1-flash-fast",
+          canonicalId: "deepseek-v4-1-flash",
+        },
+      },
+    ];
+    const result = optimize(input);
+    expect(result.winnerId).toBeUndefined();
+    expect(result.candidates[0]?.subscriptionRecords).toBe(0);
+    expect(result.candidates[0]?.status).not.toBe("feasible");
+    input.events[0]!.model.rawName = "deepseek/deepseek-v4.1-flash";
+    expect(optimize(input).winnerId).toBe("command-code-go");
+  });
+
   it("F1 opaque capacity is not computable; known fixed fee can certify a cheaper API witness", () => {
     const p = {
       ...syntheticPlan("opaque", "0", "100"),
