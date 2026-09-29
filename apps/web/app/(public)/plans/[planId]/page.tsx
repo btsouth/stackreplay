@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketFooter } from "@/components/public/market-header";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
 import { SourceList } from "@/components/public/provenance";
+import { SubscriptionModelAccess } from "@/components/public/subscription-model-access";
 import { buildCompareFacts } from "@/lib/compare-facts";
 import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
@@ -71,9 +72,7 @@ export default async function PlanPage({ params }: Props) {
         <div>
           <p className="market-kicker mb-3">Model access</p>
           <p className="text-lg" data-testid="plan-models-summary">
-            {facts.models.total
-              ? `${facts.models.total} documented releases`
-              : "Provider model lineup"}
+            {facts.models.total ? `${facts.models.total} named models` : "Provider model lineup"}
           </p>
         </div>
         <div>
@@ -110,11 +109,13 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-muted mt-5 max-w-3xl">{plan.billingMechanics}</p>
         )}
       </section>
-      <section className="mt-10">
+      <section id="model-access" className="mt-10 scroll-mt-24">
         <div className="market-section-title">
           <span>02 / Included models & access</span>
         </div>
-        {facts.models.total > 0 ? (
+        {plan.modelAccess ? (
+          <SubscriptionModelAccess access={plan.modelAccess} />
+        ) : facts.models.total > 0 ? (
           <>
             <p className="market-muted mb-4">
               Exact releases verified in this catalog. The provider may offer additional models;

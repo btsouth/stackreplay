@@ -113,6 +113,9 @@ export function PlanExplorer({
                   .slice(0, 3)
                   .map((m) => m.name)
                   .join(" · ") || "Model lineup in provider documentation"}
+                {(facts[plan.id]?.models.total ?? 0) > 3 && (
+                  <span> · +{(facts[plan.id]?.models.total ?? 0) - 3} more</span>
+                )}
               </p>
             </div>
             <div className="flex flex-col items-start gap-1">

@@ -6,6 +6,7 @@ import {
   verificationText,
 } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
+import { includedAccessModels, type SubscriptionAccess } from "./subscription-access";
 
 /**
  * Public plan comparison, in plain words (launch).
@@ -64,6 +65,7 @@ export interface CompareFacts {
   effective: string;
   /** Every model rule, for the inspect view. */
   rules: readonly CompareRule[];
+  modelAccess?: SubscriptionAccess;
 }
 
 export const FEATURED_MODEL_COUNT = 4;
@@ -157,7 +159,7 @@ export function buildCompareFacts(
   plan: PublicPlanSummary,
   modelById: (id: string) => PublicModelSummary | undefined,
 ): CompareFacts {
-  const included = plan.modelRules
+  const replayIncluded = plan.modelRules
     .filter((rule) => rule.excluded !== true)
     .map((rule, index) => ({ index, model: modelById(rule.model), id: rule.model }))
     .filter((entry) => entry.model?.kind !== "family")
@@ -172,6 +174,16 @@ export function buildCompareFacts(
       legacy: model?.lifecycle === "legacy",
       ...(model?.developerId === undefined ? {} : { developerId: model.developerId }),
     }));
+  const included = plan.modelAccess
+    ? includedAccessModels(plan.modelAccess).map((entry) => ({
+        id: entry.modelId ?? `published:${entry.name}`,
+        name: entry.name,
+        legacy: false,
+        ...(entry.modelId && modelById(entry.modelId)?.developerId
+          ? { developerId: modelById(entry.modelId)?.developerId as string }
+          : {}),
+      }))
+    : replayIncluded;
   const featured = featureModels(included, FEATURED_MODEL_COUNT);
 
   const usageLines = plan.limits.map((limit) => ({
@@ -198,7 +210,7 @@ export function buildCompareFacts(
     }));
 
   const simulation =
-    included.length === 0
+    replayIncluded.length === 0
       ? NO_NAMED_MODEL
       : plan.limits.length > 0
         ? CAPACITY_REPLAY
@@ -241,6 +253,7 @@ export function buildCompareFacts(
     evidence: verificationText(plan.verificationStatus, plan.lastVerifiedAt),
     effective: `Rules in effect since ${formatCatalogDate(plan.effectiveFrom)}`,
     rules,
+    ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
   };
 }
 

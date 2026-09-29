@@ -52,12 +52,14 @@ for (const theme of ["dark", "light"] as const)
     file.events = [16, 17, 18].map((day) => ({
       ...base,
       id: `main-${day}`,
+      projectHash: "synthetic-project",
       occurredAt: `2026-09-${day}T13:00:00Z`,
       source: {
         ...base.source,
         adapterId: "claude-code",
         resourceInstanceId: "main",
         nativeEventHash: `main-${day}`,
+        nativeSessionHash: "first",
       },
     }));
     file.events.push(
@@ -113,6 +115,9 @@ for (const theme of ["dark", "light"] as const)
     const inspector = page.getByTestId("capacity-inspector");
     const burden = inspector.getByTestId("capacity-burden");
     await expect(inspector.getByTestId("capacity-episode")).toHaveCount(2);
+    await expect(
+      inspector.getByTestId("capacity-episode").first().getByTestId("episode-projects"),
+    ).toContainText("Project at block not recorded");
     await expect(page.getByTestId("billing-panel")).not.toBeVisible();
     await expect(inspector.getByLabel("Capacity account")).toHaveValue("main");
     const counts = () =>
@@ -132,6 +137,11 @@ for (const theme of ["dark", "light"] as const)
     await page.keyboard.press("Enter");
     await expect(episode).toContainText("codex");
     await expect(episode).toContainText("Blocked attempt 2");
+    await expect(episode).toContainText("Sep 16, 2026, 12:00:00 PM UTC");
+    await expect(
+      episode.getByRole("region", { name: "Work sessions at this interruption" }),
+    ).toContainText("Session first");
+    await expect(episode).toContainText("no matching workload response is available");
     const beforeImpact = await counts();
     await episode.getByLabel("Your impact (optional)").selectOption("Worked around it");
     await episode.getByLabel("Episode note (local only)").fill("Private synthetic episode note");

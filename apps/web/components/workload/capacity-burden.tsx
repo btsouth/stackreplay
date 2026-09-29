@@ -28,7 +28,18 @@ export const duration = (ms: number | undefined) =>
         : ms < 3600000
           ? `${number(ms / 60000)} min`
           : `${number(ms / 3600000)} h`;
-const at = (s: string) => `${s.slice(0, 10)} ${s.slice(11, 19)} UTC`;
+const at = (s: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(new Date(s));
+const sessionName = (id: string) => `Session ${id.replace(/^ns_/, "").slice(0, 8)}`;
 const timing = (d: Distribution | undefined) =>
   d
     ? `${duration(d.median)} median · ${duration(d.min)} to ${duration(d.max)} · ${d.count} episodes`
@@ -44,10 +55,20 @@ function Episode({
   impact: EpisodeImpact | undefined;
   onSave: (value: EpisodeImpact | undefined) => void;
 }) {
-  const events = [
+  const projects = [
+    ...new Set(
+      episode.blockedAttempts.flatMap((a) =>
+        a.sessionContext?.precedingResponse?.projectLabel
+          ? [a.sessionContext.precedingResponse.projectLabel]
+          : [],
+      ),
+    ),
+  ];
+  const events: { at: string; label: string; context?: string }[] = [
     ...episode.blockedAttempts.map((attempt, i) => ({
       at: attempt.at,
       label: i === 0 ? "First block" : `Blocked attempt ${i + 1}`,
+      context: `${attempt.sessionContext?.precedingResponse?.projectLabel || "Project at block not recorded"} · ${sessionName(attempt.sessionId)}`,
     })),
     ...(episode.resetAt ? [{ at: episode.resetAt, label: "Client-reported reset schedule" }] : []),
     ...(episode.nextMainSuccess
@@ -79,6 +100,18 @@ function Episode({
                 {episode.blockedAttemptIds.length === 1 ? "attempt" : "attempts"}
               </span>
             </span>
+            <span className="mt-2 block text-sm text-accent" data-testid="episode-projects">
+              {projects.length
+                ? `Last recorded project: ${projects.join(" · ")}`
+                : "Project at block not recorded"}
+              <span className="text-muted-foreground">
+                {" "}
+                ·{" "}
+                {episode.affectedSessionIds.length === 1
+                  ? sessionName(episode.affectedSessionIds[0] ?? "")
+                  : `${episode.affectedSessionIds.length} sessions`}
+              </span>
+            </span>
           </span>
           <span className="font-mono text-xs text-muted-foreground">
             {episode.nextMainSuccess
@@ -98,9 +131,64 @@ function Episode({
               {at(e.at)}
             </time>
             <span className="mt-1 block">{e.label}</span>
+            {e.context ? (
+              <span className="mt-1 block break-words text-xs text-muted-foreground">
+                {e.context}
+              </span>
+            ) : null}
           </li>
         ))}
       </ol>
+      <section
+        aria-label="Work sessions at this interruption"
+        className="my-6 border-y border-border py-4"
+      >
+        <h3 className="text-sm font-medium">Work sessions at this interruption</h3>
+        {episode.affectedSessionIds.map((id) => {
+          const context = episode.blockedAttempts.find(
+            (a) => a.sessionId === id && a.sessionContext,
+          )?.sessionContext;
+          return (
+            <div key={id} className="mt-4 text-sm">
+              <p>
+                Session projects:{" "}
+                {context?.projects.map((p) => p.label).join(" · ") || "Not recorded"}{" "}
+                <span className="text-muted-foreground">· {sessionName(id)}</span>
+              </p>
+              {context ? (
+                <>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {number(context.responses)} responses in the selected period · First recorded{" "}
+                    {at(context.firstResponseAt)}
+                  </p>
+                  {context.precedingResponse ? (
+                    <p className="mt-2 text-xs">
+                      Last response before this session was blocked:{" "}
+                      {context.precedingResponse.model} · {at(context.precedingResponse.at)}
+                      {context.precedingResponse.projectLabel
+                        ? ` · ${context.precedingResponse.projectLabel}`
+                        : ""}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      No earlier response from this session is recorded in the selected period.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The limit records this session, but no matching workload response is available.
+                  Project and model cannot be established.
+                </p>
+              )}
+            </div>
+          );
+        })}
+        <p className="mt-4 text-xs text-muted-foreground">
+          Linked by native session identity on this account. A preceding model is session context,
+          not proof of which model the blocked request used.
+        </p>
+      </section>
       <details>
         <summary className="min-h-11 cursor-pointer content-center text-xs text-accent">
           Timing details

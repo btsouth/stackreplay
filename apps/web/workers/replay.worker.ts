@@ -139,6 +139,7 @@ async function handleCapacityEpisodes(
       scoped.events,
       request.period,
       request.resourceInstanceId,
+      new Map((loaded.record?.localProjects ?? []).map((p) => [p.hash, p.label])),
     ),
     mainActivity,
     contextActivity: context,

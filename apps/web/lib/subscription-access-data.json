@@ -1,0 +1,3382 @@
+{
+  "command-code-goat": {
+    "checkedAt": "2026-09-28",
+    "summary": "Plan-specific published lineup. Model allowances, premium pools and regional restrictions still apply.",
+    "groups": [
+      {
+        "label": "Available models",
+        "access": "included",
+        "sourceUrl": "https://commandcode.ai/docs/plans/goat",
+        "models": [
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash Fast"
+          },
+          {
+            "name": "Pixel Canary",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Space Bunny Alpha",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Jev",
+            "note": "Headless mode and Provider API only."
+          },
+          {
+            "name": "MiMo V2.6 Flash"
+          },
+          {
+            "name": "MiMo V2.6 Pro"
+          },
+          {
+            "name": "MiMo V2.6 Pro UltraSpeed"
+          },
+          {
+            "name": "Step 5 Preview"
+          },
+          {
+            "name": "GLM-5.3 FlashX"
+          },
+          {
+            "name": "Qwen 3.8 Omni Flash"
+          },
+          {
+            "name": "Ling 3.0 Flash Sante",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen 3.8 Max 0902"
+          },
+          {
+            "name": "Tencent Hy4 Preview"
+          },
+          {
+            "name": "LongCat 2.0"
+          },
+          {
+            "name": "Qwen 3.8 Flash"
+          },
+          {
+            "name": "DeepSeek V4 Flash Fast"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision (exp)"
+          },
+          {
+            "name": "Qwen 3.8 27B"
+          },
+          {
+            "name": "DeepSeek V4 Pro (latest)"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Muse Spark 1.2"
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen 3.8 Max"
+          },
+          {
+            "name": "DeepSeek V4 Flash (latest)"
+          },
+          {
+            "name": "Inkling Small"
+          },
+          {
+            "name": "Qwen 3.7 Flash"
+          },
+          {
+            "name": "Laguna S 2.1",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Inkling"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Tencent Hy3"
+          },
+          {
+            "name": "GLM-5.2 Fast"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "Kimi K2.7 Code HighSpeed"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "Qwen 3.7 Plus"
+          },
+          {
+            "name": "Step 3.7 Flash"
+          },
+          {
+            "name": "MiMo V2.5"
+          },
+          {
+            "name": "MiMo V2.5 Pro"
+          },
+          {
+            "name": "Qwen 3.7 Max"
+          },
+          {
+            "name": "Step 3.5 Flash"
+          },
+          {
+            "name": "GLM-5.1"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Qwen 3.6 Max Preview"
+          },
+          {
+            "name": "Qwen 3.6 Plus"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "Kimi K2.5"
+          },
+          {
+            "name": "MiniMax M2.5"
+          }
+        ]
+      }
+    ]
+  },
+  "command-code-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Plan-specific published lineup. Model allowances, premium pools and regional restrictions still apply.",
+    "groups": [
+      {
+        "label": "Available models",
+        "access": "included",
+        "sourceUrl": "https://commandcode.ai/docs/plans/pro",
+        "models": [
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash Fast"
+          },
+          {
+            "name": "Pixel Canary",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Space Bunny Alpha",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Jev",
+            "note": "Headless mode and Provider API only."
+          },
+          {
+            "name": "MiMo V2.6 Flash"
+          },
+          {
+            "name": "MiMo V2.6 Pro"
+          },
+          {
+            "name": "MiMo V2.6 Pro UltraSpeed"
+          },
+          {
+            "name": "Step 5 Preview"
+          },
+          {
+            "name": "GLM-5.3 FlashX"
+          },
+          {
+            "name": "Qwen 3.8 Omni Flash"
+          },
+          {
+            "name": "Ling 3.0 Flash Sante",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen 3.8 Max 0902"
+          },
+          {
+            "name": "Tencent Hy4 Preview"
+          },
+          {
+            "name": "LongCat 2.0"
+          },
+          {
+            "name": "Qwen 3.8 Flash"
+          },
+          {
+            "name": "DeepSeek V4 Flash Fast"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision (exp)"
+          },
+          {
+            "name": "Qwen 3.8 27B"
+          },
+          {
+            "name": "DeepSeek V4 Pro (latest)"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Muse Spark 1.2"
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen 3.8 Max"
+          },
+          {
+            "name": "DeepSeek V4 Flash (latest)"
+          },
+          {
+            "name": "Inkling Small"
+          },
+          {
+            "name": "Qwen 3.7 Flash"
+          },
+          {
+            "name": "Gemini 3.5 Flash Lite"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Laguna S 2.1",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Inkling"
+          },
+          {
+            "name": "Muse Spark 1.1"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Tencent Hy3"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "GLM-5.2 Fast"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "Kimi K2.7 Code HighSpeed"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "Qwen 3.7 Plus"
+          },
+          {
+            "name": "Step 3.7 Flash"
+          },
+          {
+            "name": "MiMo V2.5"
+          },
+          {
+            "name": "MiMo V2.5 Pro"
+          },
+          {
+            "name": "Qwen 3.7 Max"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.1 Flash Lite"
+          },
+          {
+            "name": "Step 3.5 Flash"
+          },
+          {
+            "name": "GLM-5.1"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Qwen 3.6 Max Preview"
+          },
+          {
+            "name": "Qwen 3.6 Plus"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "GPT-5.4 Mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "GPT-5.3 Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "Kimi K2.5"
+          },
+          {
+            "name": "MiniMax M2.5"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          }
+        ]
+      }
+    ]
+  },
+  "command-code-max-10x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Plan-specific published lineup. Model allowances, premium pools and regional restrictions still apply.",
+    "groups": [
+      {
+        "label": "Available models",
+        "access": "included",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Space Bunny Alpha",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Pixel Canary",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Laguna S 2.1",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Ling 3.0 Flash Sante",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Tencent Hy4 Preview"
+          },
+          {
+            "name": "Tencent Hy3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K2.7 Code HighSpeed"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "Kimi K2.5"
+          },
+          {
+            "name": "GLM-5.3 FlashX"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GLM-5.2 Fast"
+          },
+          {
+            "name": "GLM-5.1"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "MiniMax M2.5"
+          },
+          {
+            "name": "DeepSeek V4 Pro (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision (exp)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Fast"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash Fast"
+          },
+          {
+            "name": "Qwen 3.8 Omni Flash"
+          },
+          {
+            "name": "Qwen 3.8 Max 0902"
+          },
+          {
+            "name": "Qwen 3.8 Max"
+          },
+          {
+            "name": "Qwen 3.8 27B"
+          },
+          {
+            "name": "Qwen 3.6 Max Preview"
+          },
+          {
+            "name": "Qwen 3.6 Plus"
+          },
+          {
+            "name": "Qwen 3.7 Max"
+          },
+          {
+            "name": "Qwen 3.7 Plus"
+          },
+          {
+            "name": "Qwen 3.8 Flash"
+          },
+          {
+            "name": "Qwen 3.7 Flash"
+          },
+          {
+            "name": "LongCat 2.0"
+          },
+          {
+            "name": "Step 5 Preview"
+          },
+          {
+            "name": "Step 3.7 Flash"
+          },
+          {
+            "name": "Step 3.5 Flash"
+          },
+          {
+            "name": "MiMo V2.6 Pro"
+          },
+          {
+            "name": "MiMo V2.6 Pro UltraSpeed"
+          },
+          {
+            "name": "MiMo V2.6 Flash"
+          },
+          {
+            "name": "MiMo V2.5 Pro"
+          },
+          {
+            "name": "MiMo V2.5"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 Mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.3 Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.5 Flash Lite"
+          },
+          {
+            "name": "Gemini 3.1 Flash Lite"
+          },
+          {
+            "name": "Fugu Ultra"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.2"
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.1"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Inkling"
+          },
+          {
+            "name": "Inkling Small"
+          },
+          {
+            "name": "Jev",
+            "note": "Headless mode and Provider API only."
+          }
+        ]
+      }
+    ]
+  },
+  "command-code-max-20x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Plan-specific published lineup. Model allowances, premium pools and regional restrictions still apply.",
+    "groups": [
+      {
+        "label": "Available models",
+        "access": "included",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Space Bunny Alpha",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Pixel Canary",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Laguna S 2.1",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Ling 3.0 Flash Sante",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Tencent Hy4 Preview"
+          },
+          {
+            "name": "Tencent Hy3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K2.7 Code HighSpeed"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "Kimi K2.5"
+          },
+          {
+            "name": "GLM-5.3 FlashX"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GLM-5.2 Fast"
+          },
+          {
+            "name": "GLM-5.1"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "MiniMax M2.5"
+          },
+          {
+            "name": "DeepSeek V4 Pro (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision (exp)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Fast"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash Fast"
+          },
+          {
+            "name": "Qwen 3.8 Omni Flash"
+          },
+          {
+            "name": "Qwen 3.8 Max 0902"
+          },
+          {
+            "name": "Qwen 3.8 Max"
+          },
+          {
+            "name": "Qwen 3.8 27B"
+          },
+          {
+            "name": "Qwen 3.6 Max Preview"
+          },
+          {
+            "name": "Qwen 3.6 Plus"
+          },
+          {
+            "name": "Qwen 3.7 Max"
+          },
+          {
+            "name": "Qwen 3.7 Plus"
+          },
+          {
+            "name": "Qwen 3.8 Flash"
+          },
+          {
+            "name": "Qwen 3.7 Flash"
+          },
+          {
+            "name": "LongCat 2.0"
+          },
+          {
+            "name": "Step 5 Preview"
+          },
+          {
+            "name": "Step 3.7 Flash"
+          },
+          {
+            "name": "Step 3.5 Flash"
+          },
+          {
+            "name": "MiMo V2.6 Pro"
+          },
+          {
+            "name": "MiMo V2.6 Pro UltraSpeed"
+          },
+          {
+            "name": "MiMo V2.6 Flash"
+          },
+          {
+            "name": "MiMo V2.5 Pro"
+          },
+          {
+            "name": "MiMo V2.5"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 Mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.3 Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.5 Flash Lite"
+          },
+          {
+            "name": "Gemini 3.1 Flash Lite"
+          },
+          {
+            "name": "Fugu Ultra"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.2"
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.1"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Inkling"
+          },
+          {
+            "name": "Inkling Small"
+          },
+          {
+            "name": "Jev",
+            "note": "Headless mode and Provider API only."
+          }
+        ]
+      }
+    ]
+  },
+  "command-code-go": {
+    "checkedAt": "2026-09-28",
+    "summary": "The Go-specific lineup includes open models and selected premium models. Pro and Max include additional premium choices.",
+    "groups": [
+      {
+        "label": "Available models",
+        "access": "included",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go",
+        "models": [
+          {
+            "name": "Space Bunny Alpha",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Pixel Canary",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Laguna S 2.1",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Ling 3.0 Flash Sante",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "Tencent Hy4 Preview"
+          },
+          {
+            "name": "Tencent Hy3"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K2.7 Code HighSpeed"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "Kimi K2.5"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3 FlashX"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GLM-5.2 Fast"
+          },
+          {
+            "name": "GLM-5.1"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "MiniMax M2.5"
+          },
+          {
+            "name": "DeepSeek V4 Pro (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash (latest)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision (exp)"
+          },
+          {
+            "name": "DeepSeek V4 Flash Fast"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash Fast"
+          },
+          {
+            "name": "Qwen 3.8 Omni Flash"
+          },
+          {
+            "name": "Qwen 3.8 Max 0902"
+          },
+          {
+            "name": "Qwen 3.8 Max"
+          },
+          {
+            "name": "Qwen 3.8 27B"
+          },
+          {
+            "name": "Qwen 3.6 Max Preview"
+          },
+          {
+            "name": "Qwen 3.6 Plus"
+          },
+          {
+            "name": "Qwen 3.7 Max"
+          },
+          {
+            "name": "Qwen 3.7 Plus"
+          },
+          {
+            "name": "Qwen 3.8 Flash"
+          },
+          {
+            "name": "Qwen 3.7 Flash"
+          },
+          {
+            "name": "LongCat 2.0"
+          },
+          {
+            "name": "Step 5 Preview"
+          },
+          {
+            "name": "Step 3.7 Flash"
+          },
+          {
+            "name": "Step 3.5 Flash"
+          },
+          {
+            "name": "MiMo V2.6 Pro"
+          },
+          {
+            "name": "MiMo V2.6 Flash"
+          },
+          {
+            "name": "MiMo V2.5 Pro"
+          },
+          {
+            "name": "MiMo V2.5"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Inkling"
+          },
+          {
+            "name": "Inkling Small"
+          }
+        ]
+      }
+    ]
+  },
+  "clinepass": {
+    "checkedAt": "2026-09-28",
+    "summary": "ClinePass model access is separate from Cline pay-as-you-go and bring-your-own-key providers.",
+    "groups": [
+      {
+        "label": "Included coding models",
+        "access": "included",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass",
+        "models": [
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "DeepSeek V4 Pro"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "MiMo-V2.5"
+          },
+          {
+            "name": "MiMo-V2.5-Pro"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen3.8 Max"
+          },
+          {
+            "name": "Qwen3.7 Max"
+          },
+          {
+            "name": "Qwen3.7 Plus"
+          }
+        ]
+      }
+    ]
+  },
+  "opencode-go": {
+    "checkedAt": "2026-09-28",
+    "summary": "Go and Go Plus share this model lineup, with different model-specific usage allowances. Temporary free models can change.",
+    "groups": [
+      {
+        "label": "Included coding models",
+        "access": "included",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "GLM-5.3-Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GPT 6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT 5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "LongCat-2.0"
+          },
+          {
+            "name": "LongCat 2.5 Preview Free",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "MiMo-V2.6-Flash"
+          },
+          {
+            "name": "MiMo-V2.6-Pro"
+          },
+          {
+            "name": "MiMo-V2.5"
+          },
+          {
+            "name": "MiMo-V2.5-Pro"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen3.8 Max"
+          },
+          {
+            "name": "Qwen3.8 Flash"
+          },
+          {
+            "name": "Qwen3.7 Plus"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "DeepSeek V4 Pro"
+          },
+          {
+            "name": "DeepSeek V4 Flash"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision Exp"
+          },
+          {
+            "name": "Hy4 preview"
+          },
+          {
+            "name": "Hy3"
+          },
+          {
+            "name": "Space Bunny Free",
+            "note": "Temporary free or preview availability."
+          }
+        ]
+      }
+    ]
+  },
+  "opencode-go-plus": {
+    "checkedAt": "2026-09-28",
+    "summary": "Go and Go Plus share this model lineup, with different model-specific usage allowances. Temporary free models can change.",
+    "groups": [
+      {
+        "label": "Included coding models",
+        "access": "included",
+        "sourceUrl": "https://opencode.ai/v2/docs/console/go",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "GLM-5.3-Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GPT 6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT 5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "LongCat-2.0"
+          },
+          {
+            "name": "LongCat 2.5 Preview Free",
+            "note": "Temporary free or preview availability."
+          },
+          {
+            "name": "MiMo-V2.6-Flash"
+          },
+          {
+            "name": "MiMo-V2.6-Pro"
+          },
+          {
+            "name": "MiMo-V2.5"
+          },
+          {
+            "name": "MiMo-V2.5-Pro"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Muse Spark 1.3 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Muse Spark 1.2 Contributor",
+            "note": "Regional availability applies."
+          },
+          {
+            "name": "Qwen3.8 Max"
+          },
+          {
+            "name": "Qwen3.8 Flash"
+          },
+          {
+            "name": "Qwen3.7 Plus"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "DeepSeek V4 Pro"
+          },
+          {
+            "name": "DeepSeek V4 Flash"
+          },
+          {
+            "name": "DeepSeek V4 Flash Vision Exp"
+          },
+          {
+            "name": "Hy4 preview"
+          },
+          {
+            "name": "Hy3"
+          },
+          {
+            "name": "Space Bunny Free",
+            "note": "Temporary free or preview availability."
+          }
+        ]
+      }
+    ]
+  },
+  "ollama-cloud-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Current credit-based cloud lineup. Max adds higher included usage and early access; local Ollama models are not subscription entitlements.",
+    "groups": [
+      {
+        "label": "Cloud models",
+        "access": "included",
+        "sourceUrl": "https://ollama.com/pricing",
+        "models": [
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "DeepSeek V4 Pro"
+          },
+          {
+            "name": "Gemma 4"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GPT-OSS 120B"
+          },
+          {
+            "name": "GPT-OSS 20B"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Mistral Large 3"
+          },
+          {
+            "name": "Nemotron 3 Nano"
+          },
+          {
+            "name": "Nemotron 3 Super"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          }
+        ]
+      }
+    ]
+  },
+  "ollama-cloud-max": {
+    "checkedAt": "2026-09-28",
+    "summary": "Current credit-based cloud lineup. Max adds higher included usage and early access; local Ollama models are not subscription entitlements.",
+    "groups": [
+      {
+        "label": "Cloud models",
+        "access": "included",
+        "sourceUrl": "https://ollama.com/pricing",
+        "models": [
+          {
+            "name": "GLM-5.3 Flash",
+            "modelId": "glm-5-3-flash"
+          },
+          {
+            "name": "GLM-5.3",
+            "modelId": "glm-5-3"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "DeepSeek V4.1 Flash",
+            "modelId": "deepseek-v4-1-flash"
+          },
+          {
+            "name": "DeepSeek V4 Pro"
+          },
+          {
+            "name": "Gemma 4"
+          },
+          {
+            "name": "GLM-5.2"
+          },
+          {
+            "name": "GPT-OSS 120B"
+          },
+          {
+            "name": "GPT-OSS 20B"
+          },
+          {
+            "name": "Kimi K2.6"
+          },
+          {
+            "name": "MiniMax M3"
+          },
+          {
+            "name": "MiniMax M2.7"
+          },
+          {
+            "name": "Mistral Large 3"
+          },
+          {
+            "name": "Nemotron 3 Nano"
+          },
+          {
+            "name": "Nemotron 3 Super"
+          },
+          {
+            "name": "Nemotron 3 Ultra"
+          }
+        ]
+      }
+    ]
+  },
+  "github-copilot-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Availability follows the plan-specific model matrix. Client version, organization policy and regional availability can restrict selection.",
+    "groups": [
+      {
+        "label": "Selectable models",
+        "access": "included",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "GPT-5 mini",
+            "modelId": "gpt-5-mini"
+          },
+          {
+            "name": "GPT-5.3-Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "MAI-Code-1.1-Flash",
+            "modelId": "mai-code-1-1-flash"
+          }
+        ],
+        "note": "Sonnet 4.6 is excluded from monthly plans. GPT-5.4 nano is restricted to the Codex VS Code extension on Pro+; Fable has separate data-retention terms."
+      }
+    ]
+  },
+  "github-copilot-pro-plus": {
+    "checkedAt": "2026-09-28",
+    "summary": "Availability follows the plan-specific model matrix. Client version, organization policy and regional availability can restrict selection.",
+    "groups": [
+      {
+        "label": "Selectable models",
+        "access": "included",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.8 (fast mode) (preview)",
+            "modelId": "claude-opus-4-8-fast-mode"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "GPT-5 mini",
+            "modelId": "gpt-5-mini"
+          },
+          {
+            "name": "GPT-5.3-Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.4 nano",
+            "modelId": "gpt-5-4-nano"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "MAI-Code-1.1-Flash",
+            "modelId": "mai-code-1-1-flash"
+          }
+        ],
+        "note": "Sonnet 4.6 is excluded from monthly plans. GPT-5.4 nano is restricted to the Codex VS Code extension on Pro+; Fable has separate data-retention terms."
+      }
+    ]
+  },
+  "github-copilot-max": {
+    "checkedAt": "2026-09-28",
+    "summary": "Availability follows the plan-specific model matrix. Client version, organization policy and regional availability can restrict selection.",
+    "groups": [
+      {
+        "label": "Selectable models",
+        "access": "included",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.8 (fast mode) (preview)",
+            "modelId": "claude-opus-4-8-fast-mode"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "GPT-5 mini",
+            "modelId": "gpt-5-mini"
+          },
+          {
+            "name": "GPT-5.3-Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "MAI-Code-1.1-Flash",
+            "modelId": "mai-code-1-1-flash"
+          }
+        ],
+        "note": "Sonnet 4.6 is excluded from monthly plans. GPT-5.4 nano is restricted to the Codex VS Code extension on Pro+; Fable has separate data-retention terms."
+      }
+    ]
+  },
+  "github-copilot-business": {
+    "checkedAt": "2026-09-28",
+    "summary": "Availability follows the plan-specific model matrix. Client version, organization policy and regional availability can restrict selection.",
+    "groups": [
+      {
+        "label": "Selectable models",
+        "access": "included",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.8 (fast mode) (preview)",
+            "modelId": "claude-opus-4-8-fast-mode"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "GPT-5 mini",
+            "modelId": "gpt-5-mini"
+          },
+          {
+            "name": "GPT-5.3-Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "MAI-Code-1.1-Flash",
+            "modelId": "mai-code-1-1-flash"
+          }
+        ],
+        "note": "Sonnet 4.6 is excluded from monthly plans. GPT-5.4 nano is restricted to the Codex VS Code extension on Pro+; Fable has separate data-retention terms."
+      }
+    ]
+  },
+  "github-copilot-enterprise": {
+    "checkedAt": "2026-09-28",
+    "summary": "Availability follows the plan-specific model matrix. Client version, organization policy and regional availability can restrict selection.",
+    "groups": [
+      {
+        "label": "Selectable models",
+        "access": "included",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.8 (fast mode) (preview)",
+            "modelId": "claude-opus-4-8-fast-mode"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Gemini 3.5 Flash",
+            "modelId": "gemini-3-5-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "GPT-5 mini",
+            "modelId": "gpt-5-mini"
+          },
+          {
+            "name": "GPT-5.3-Codex",
+            "modelId": "gpt-5-3-codex"
+          },
+          {
+            "name": "GPT-5.4",
+            "modelId": "gpt-5-4"
+          },
+          {
+            "name": "GPT-5.4 mini",
+            "modelId": "gpt-5-4-mini"
+          },
+          {
+            "name": "GPT-5.5",
+            "modelId": "gpt-5-5"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Kimi K2.7 Code",
+            "modelId": "kimi-k2-7-code"
+          },
+          {
+            "name": "Kimi K3",
+            "modelId": "kimi-k3"
+          },
+          {
+            "name": "MAI-Code-1.1-Flash",
+            "modelId": "mai-code-1-1-flash"
+          }
+        ],
+        "note": "Sonnet 4.6 is excluded from monthly plans. GPT-5.4 nano is restricted to the Codex VS Code extension on Pro+; Fable has separate data-retention terms."
+      }
+    ]
+  },
+  "github-copilot-free": {
+    "checkedAt": "2026-09-28",
+    "summary": "Copilot Free uses automatic model selection. Do not interpret the paid model list as a Free-plan entitlement.",
+    "groups": [
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+        "models": [],
+        "note": "Free users receive models through Auto selection, without choosing an individual model."
+      }
+    ]
+  },
+  "cursor-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Paid plans include both model pools. Choosing a model and its context or speed mode changes usage.",
+    "groups": [
+      {
+        "label": "Cursor Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Composer 2.5",
+            "modelId": "composer-2-5"
+          }
+        ],
+        "note": "Fast and extended-context modes have separate usage rates."
+      },
+      {
+        "label": "Other Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          }
+        ],
+        "note": "Third-party model usage draws from the Other Models pool."
+      }
+    ]
+  },
+  "cursor-pro-plus": {
+    "checkedAt": "2026-09-28",
+    "summary": "Paid plans include both model pools. Choosing a model and its context or speed mode changes usage.",
+    "groups": [
+      {
+        "label": "Cursor Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Composer 2.5",
+            "modelId": "composer-2-5"
+          }
+        ],
+        "note": "Fast and extended-context modes have separate usage rates."
+      },
+      {
+        "label": "Other Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          }
+        ],
+        "note": "Third-party model usage draws from the Other Models pool."
+      }
+    ]
+  },
+  "cursor-ultra": {
+    "checkedAt": "2026-09-28",
+    "summary": "Paid plans include both model pools. Choosing a model and its context or speed mode changes usage.",
+    "groups": [
+      {
+        "label": "Cursor Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Composer 2.5",
+            "modelId": "composer-2-5"
+          }
+        ],
+        "note": "Fast and extended-context modes have separate usage rates."
+      },
+      {
+        "label": "Other Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          }
+        ],
+        "note": "Third-party model usage draws from the Other Models pool."
+      }
+    ]
+  },
+  "cursor-hobby": {
+    "checkedAt": "2026-09-28",
+    "summary": "The free plan does not establish an included allowance for every model in the paid lineup.",
+    "groups": [
+      {
+        "label": "Limited agent access",
+        "access": "automatic",
+        "sourceUrl": "https://cursor.com/pricing",
+        "models": [],
+        "note": "Hobby includes limited agent requests. The paid-plan model pools are not promised for Hobby."
+      }
+    ]
+  },
+  "kiro-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Use Auto or choose a named model. Experimental and Enterprise-only access are distinguished from general Pro availability.",
+    "groups": [
+      {
+        "label": "Named model selection",
+        "access": "included",
+        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "models": [
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Opus 4.5"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 4.5"
+          },
+          {
+            "name": "Claude Sonnet 4.0"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "MiniMax M2.5"
+          },
+          {
+            "name": "GLM-5"
+          },
+          {
+            "name": "DeepSeek 3.2"
+          },
+          {
+            "name": "MiniMax M2.1"
+          },
+          {
+            "name": "Qwen3 Coder Next"
+          }
+        ],
+        "note": "Availability varies by AWS region and client."
+      },
+      {
+        "label": "Experimental rollout",
+        "access": "conditional",
+        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "models": [
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          }
+        ],
+        "note": "Paid-plan rollout in us-east-1 and eu-central-1. Fable 5.1 preview is Enterprise-only."
+      },
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "models": [],
+        "note": "Auto routes between supported models and is not one exact model."
+      }
+    ]
+  },
+  "anthropic-claude-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Claude app and Claude Code access. Model-specific limits and client availability apply.",
+    "groups": [
+      {
+        "label": "Included models",
+        "access": "included",
+        "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+        "models": [
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Opus 4.5"
+          },
+          {
+            "name": "Claude Sonnet 4.5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          }
+        ],
+        "note": "Sonnet 5.5 availability is documented in the current Claude Code model configuration."
+      },
+      {
+        "label": "Usage credits only",
+        "access": "extra_usage",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+        "models": [
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          }
+        ],
+        "note": "Not included in the Pro subscription allowance."
+      }
+    ]
+  },
+  "anthropic-claude-max-5x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Claude app and Claude Code access. Model-specific limits and client availability apply.",
+    "groups": [
+      {
+        "label": "Included models",
+        "access": "included",
+        "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+        "models": [
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Opus 4.5"
+          },
+          {
+            "name": "Claude Sonnet 4.5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          }
+        ],
+        "note": "Sonnet 5.5 availability is documented in the current Claude Code model configuration."
+      },
+      {
+        "label": "Fable allowance",
+        "access": "conditional",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+        "models": [],
+        "note": "Fable uses a model-specific share of the weekly allowance. It is not unlimited."
+      }
+    ]
+  },
+  "anthropic-claude-max-20x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Claude app and Claude Code access. Model-specific limits and client availability apply.",
+    "groups": [
+      {
+        "label": "Included models",
+        "access": "included",
+        "sourceUrl": "https://support.claude.com/en/articles/11940350-claude-code-model-configuration",
+        "models": [
+          {
+            "name": "Claude Sonnet 5.5"
+          },
+          {
+            "name": "Claude Opus 4.6"
+          },
+          {
+            "name": "Claude Opus 4.5"
+          },
+          {
+            "name": "Claude Sonnet 4.5"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Fable 5",
+            "modelId": "claude-fable-5"
+          },
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          }
+        ],
+        "note": "Sonnet 5.5 availability is documented in the current Claude Code model configuration."
+      },
+      {
+        "label": "Fable allowance",
+        "access": "conditional",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+        "models": [],
+        "note": "Fable uses a model-specific share of the weekly allowance. It is not unlimited."
+      }
+    ]
+  },
+  "openai-chatgpt-plus": {
+    "checkedAt": "2026-09-28",
+    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+    "groups": [
+      {
+        "label": "Work & Codex",
+        "access": "included",
+        "sourceUrl": "https://learn.chatgpt.com/docs/models",
+        "models": [
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          }
+        ],
+        "note": "Model and reasoning choices depend on the plan and client."
+      },
+      {
+        "label": "Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          }
+        ]
+      }
+    ]
+  },
+  "openai-chatgpt-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+    "groups": [
+      {
+        "label": "Work & Codex",
+        "access": "included",
+        "sourceUrl": "https://learn.chatgpt.com/docs/models",
+        "models": [
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          }
+        ],
+        "note": "Model and reasoning choices depend on the plan and client."
+      },
+      {
+        "label": "Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          }
+        ]
+      },
+      {
+        "label": "Pro models in Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol Pro",
+            "modelId": "gpt-5-6-sol-pro"
+          },
+          {
+            "name": "GPT-6 Pro"
+          }
+        ],
+        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+      }
+    ]
+  },
+  "openai-chatgpt-pro-20x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+    "groups": [
+      {
+        "label": "Work & Codex",
+        "access": "included",
+        "sourceUrl": "https://learn.chatgpt.com/docs/models",
+        "models": [
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          }
+        ],
+        "note": "Model and reasoning choices depend on the plan and client."
+      },
+      {
+        "label": "Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          }
+        ]
+      },
+      {
+        "label": "Pro models in Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol Pro",
+            "modelId": "gpt-5-6-sol-pro"
+          },
+          {
+            "name": "GPT-6 Pro"
+          }
+        ],
+        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+      }
+    ]
+  },
+  "openai-chatgpt-business": {
+    "checkedAt": "2026-09-28",
+    "summary": "Chat, Work and Codex have different model choices and usage rules. API usage is billed separately.",
+    "groups": [
+      {
+        "label": "Work & Codex",
+        "access": "included",
+        "sourceUrl": "https://learn.chatgpt.com/docs/models",
+        "models": [
+          {
+            "name": "GPT-6 Astra",
+            "modelId": "gpt-6-astra"
+          },
+          {
+            "name": "GPT-6 Sol",
+            "modelId": "gpt-6-sol"
+          },
+          {
+            "name": "GPT-6 Luna",
+            "modelId": "gpt-6-luna"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          }
+        ],
+        "note": "Model and reasoning choices depend on the plan and client."
+      },
+      {
+        "label": "Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          }
+        ]
+      },
+      {
+        "label": "Pro models in Chat",
+        "access": "included",
+        "sourceUrl": "https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol Pro",
+            "modelId": "gpt-5-6-sol-pro"
+          },
+          {
+            "name": "GPT-6 Pro"
+          }
+        ],
+        "note": "GPT-6 Pro is powered by Astra. Managed workspaces may restrict access."
+      }
+    ]
+  },
+  "google-ai-pro": {
+    "checkedAt": "2026-09-28",
+    "summary": "Gemini Apps, coding tools and image generation have different model options and allowances. This subscription is not Gemini API credit.",
+    "groups": [
+      {
+        "label": "Gemini Apps",
+        "access": "included",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805",
+        "models": [
+          {
+            "name": "Gemini 3 Pro",
+            "modelId": "gemini-3-pro"
+          },
+          {
+            "name": "Gemini 3 Flash",
+            "modelId": "gemini-3-flash"
+          },
+          {
+            "name": "Gemini 3 Flash-lite"
+          }
+        ]
+      },
+      {
+        "label": "Google Antigravity",
+        "access": "included",
+        "sourceUrl": "https://antigravity.google/docs/models",
+        "models": [
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Claude Sonnet 4.6 (thinking)"
+          },
+          {
+            "name": "Claude Opus 4.6 (thinking)"
+          },
+          {
+            "name": "GPT-OSS 120B"
+          }
+        ],
+        "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."
+      },
+      {
+        "label": "Image generation",
+        "access": "included",
+        "sourceUrl": "https://gemini.google/us/subscriptions/",
+        "models": [
+          {
+            "name": "Nano Banana Pro",
+            "modelId": "nano-banana-pro"
+          },
+          {
+            "name": "Gemini Omni Flash"
+          }
+        ],
+        "note": "Flow and image-generation access varies by app, region and plan."
+      }
+    ]
+  },
+  "google-ai-ultra": {
+    "checkedAt": "2026-09-28",
+    "summary": "Gemini Apps, coding tools and image generation have different model options and allowances. This subscription is not Gemini API credit.",
+    "groups": [
+      {
+        "label": "Gemini Apps",
+        "access": "included",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805",
+        "models": [
+          {
+            "name": "Gemini 3 Pro",
+            "modelId": "gemini-3-pro"
+          },
+          {
+            "name": "Gemini 3 Flash",
+            "modelId": "gemini-3-flash"
+          },
+          {
+            "name": "Gemini 3 Flash-lite"
+          }
+        ]
+      },
+      {
+        "label": "Google Antigravity",
+        "access": "included",
+        "sourceUrl": "https://antigravity.google/docs/models",
+        "models": [
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Claude Sonnet 4.6 (thinking)"
+          },
+          {
+            "name": "Claude Opus 4.6 (thinking)"
+          },
+          {
+            "name": "GPT-OSS 120B"
+          }
+        ],
+        "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."
+      },
+      {
+        "label": "Image generation",
+        "access": "included",
+        "sourceUrl": "https://gemini.google/us/subscriptions/",
+        "models": [
+          {
+            "name": "Nano Banana Pro",
+            "modelId": "nano-banana-pro"
+          },
+          {
+            "name": "Gemini Omni Flash"
+          }
+        ],
+        "note": "Flow and image-generation access varies by app, region and plan."
+      }
+    ]
+  },
+  "google-ai-ultra-20x": {
+    "checkedAt": "2026-09-28",
+    "summary": "Gemini Apps, coding tools and image generation have different model options and allowances. This subscription is not Gemini API credit.",
+    "groups": [
+      {
+        "label": "Gemini Apps",
+        "access": "included",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805",
+        "models": [
+          {
+            "name": "Gemini 3 Pro",
+            "modelId": "gemini-3-pro"
+          },
+          {
+            "name": "Gemini 3 Flash",
+            "modelId": "gemini-3-flash"
+          },
+          {
+            "name": "Gemini 3 Flash-lite"
+          }
+        ]
+      },
+      {
+        "label": "Google Antigravity",
+        "access": "included",
+        "sourceUrl": "https://antigravity.google/docs/models",
+        "models": [
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Gemini 3.7 Flash",
+            "modelId": "gemini-3-7-flash"
+          },
+          {
+            "name": "Gemini 3.6 Flash",
+            "modelId": "gemini-3-6-flash"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Claude Sonnet 4.6 (thinking)"
+          },
+          {
+            "name": "Claude Opus 4.6 (thinking)"
+          },
+          {
+            "name": "GPT-OSS 120B"
+          }
+        ],
+        "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."
+      },
+      {
+        "label": "Image generation",
+        "access": "included",
+        "sourceUrl": "https://gemini.google/us/subscriptions/",
+        "models": [
+          {
+            "name": "Nano Banana Pro",
+            "modelId": "nano-banana-pro"
+          },
+          {
+            "name": "Gemini Omni Flash"
+          }
+        ],
+        "note": "Flow and image-generation access varies by app, region and plan."
+      }
+    ]
+  }
+}

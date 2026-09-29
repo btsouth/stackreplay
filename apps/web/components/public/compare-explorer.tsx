@@ -20,11 +20,18 @@ import { SourceList, VerificationBadge } from "./provenance";
 function ModelsCell({ facts }: { facts: CompareFacts }) {
   const { featured, more, total } = facts.models;
   if (total === 0) {
-    return <p className="text-muted-foreground">No named model is listed for this plan.</p>;
+    return (
+      <p className="text-muted-foreground">
+        {facts.modelAccess?.summary ?? "No named model is listed for this plan."}
+      </p>
+    );
   }
   return (
     <div>
       <p className="text-foreground">{featured.map((model) => model.name).join(", ")}</p>
+      {facts.modelAccess && (
+        <p className="mt-2 text-sm text-muted-foreground">{facts.modelAccess.summary}</p>
+      )}
       {more.length === 0 ? null : (
         <details className="mt-1">
           <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
@@ -39,6 +46,14 @@ function ModelsCell({ facts }: { facts: CompareFacts }) {
             ))}
           </ul>
         </details>
+      )}
+      {facts.modelAccess && (
+        <Link
+          href={`/plans/${facts.planId}#model-access`}
+          className="market-link mt-2 inline-flex min-h-11 items-center text-sm"
+        >
+          Full lineup & access conditions ↗
+        </Link>
       )}
     </div>
   );

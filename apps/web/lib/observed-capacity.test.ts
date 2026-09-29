@@ -101,3 +101,43 @@ it("keeps user assertions local, invalidates every scope change and clears them 
   clearReviewState("import");
   expect(readManualCapacity("import", binding)).toEqual([]);
 });
+
+it("joins projects and preceding models only through exact account and session identity", () => {
+  const base = buildDemoExport("moderate").events[0];
+  if (!base) throw new Error("fixture missing");
+  const row = (session: string, account: string, at: string, project: string) => ({
+    ...base,
+    occurredAt: at,
+    projectHash: project,
+    source: { ...base.source, resourceInstanceId: account, nativeSessionHash: session },
+  });
+  const rows = [
+    row("session", "main", "2026-09-15T13:00:00Z", "project-after"),
+    row("session", "main", "2026-09-15T11:00:00Z", "project-a"),
+    row("unrelated", "main", "2026-09-15T11:59:59Z", "wrong-session"),
+    row("session", "secondary", "2026-09-15T11:59:58Z", "wrong-account"),
+  ];
+  const summary = summarizeCapacity(
+    { ...observations, events: [event, { ...event, id: "missing", sessionId: "missing" }] },
+    rows,
+    period,
+    "main",
+    new Map([["project-a", "Example project"]]),
+  );
+  expect(summary.events[0]?.sessionContext).toEqual({
+    sessionId: "session",
+    projects: [
+      { hash: "project-a", label: "Example project" },
+      { hash: "project-after", label: "Project project-" },
+    ],
+    firstResponseAt: "2026-09-15T11:00:00Z",
+    lastResponseAt: "2026-09-15T13:00:00Z",
+    responses: 2,
+    precedingResponse: {
+      at: "2026-09-15T11:00:00Z",
+      model: base.model.rawName,
+      projectLabel: "Example project",
+    },
+  });
+  expect(summary.events[1]?.sessionContext).toBeUndefined();
+});

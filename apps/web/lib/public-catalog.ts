@@ -22,6 +22,11 @@ import {
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
+import {
+  includedAccessModels,
+  type SubscriptionAccess,
+  subscriptionAccess,
+} from "./subscription-access";
 
 /**
  * Public catalog read model (M4).
@@ -33,8 +38,9 @@ import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
  * only. The synthetic namespace stays available to the application, where demo
  * data is explicitly labelled as demo data.
  *
- * Every public fact carries the provenance the schema requires: source URLs,
- * a verification state and the date the claim was last checked.
+ * Pricing and replay rules retain catalog provenance. Public product lineups
+ * additionally carry reviewed official sources and dates independently of
+ * which exact routes are admitted for Replay.
  */
 
 /**
@@ -96,6 +102,8 @@ export interface PublicPlanSummary {
   versionCount: number;
   /** Current-market execution facts, not reconstructed historical terms. */
   currentMarketOnly?: boolean;
+  /** Provider-published product lineup, separate from executable Replay rules. */
+  modelAccess?: SubscriptionAccess;
 }
 
 /**
@@ -327,6 +335,10 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     }
   }
 
+  for (const plan of plans) {
+    const access = subscriptionAccess(plan.id, date);
+    if (access) plan.modelAccess = access;
+  }
   const providerName = (id: string) => catalog.providers[id]?.name ?? id;
   const models: PublicModelSummary[] = realModelIds.map((modelId) => {
     const model = catalog.models[modelId];
@@ -334,7 +346,9 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
     const developerId = model?.developerId;
     const planIds = plans
       .filter((plan) =>
-        plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
+        plan.modelAccess
+          ? includedAccessModels(plan.modelAccess).some((entry) => entry.modelId === modelId)
+          : plan.modelRules.some((rule) => rule.model === modelId && rule.excluded !== true),
       )
       .map((plan) => plan.id);
     // Places: a Direct API route first (an offering fact, not authorship), then

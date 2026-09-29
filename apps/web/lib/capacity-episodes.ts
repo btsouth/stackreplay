@@ -1,5 +1,5 @@
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-import type { CapacityContext, CapacitySummary } from "./observed-capacity";
+import type { CapacityContext, CapacitySessionContext, CapacitySummary } from "./observed-capacity";
 import type { ReviewPeriod } from "./review-period";
 
 export interface ActivityPoint {
@@ -18,7 +18,12 @@ export interface ObservedCapacityEpisode {
   scope: string;
   grouping: "explicit-reset" | "unlinked-record";
   blockedAttemptIds: string[];
-  blockedAttempts: { id: string; at: string }[];
+  blockedAttempts: {
+    id: string;
+    at: string;
+    sessionId: string;
+    sessionContext?: CapacitySessionContext;
+  }[];
   affectedSessionIds: string[];
   nextMainSuccess?: ActivityPoint;
   nextAnyActivity?: ActivityPoint;
@@ -209,7 +214,12 @@ export function composeCapacityBurden(input: {
       scope: first.modelLabel ? `${first.windowType}: ${first.modelLabel}` : first.windowType,
       grouping: explicit ? "explicit-reset" : "unlinked-record",
       blockedAttemptIds: events.map((e) => e.id),
-      blockedAttempts: events.map((e) => ({ id: e.id, at: e.timestamp })),
+      blockedAttempts: events.map((e) => ({
+        id: e.id,
+        at: e.timestamp,
+        sessionId: e.sessionId,
+        ...(e.sessionContext ? { sessionContext: e.sessionContext } : {}),
+      })),
       affectedSessionIds: [...new Set(events.map((e) => e.sessionId))],
       ...(nextMain ? { nextMainSuccess: nextMain } : {}),
       ...(nextAny ? { nextAnyActivity: nextAny } : {}),
