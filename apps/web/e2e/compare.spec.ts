@@ -53,6 +53,22 @@ for (const theme of ["dark", "light"] as const) {
   });
 }
 
+test("a popular comparison opens its plans from the compare page itself", async ({ page }) => {
+  await page.goto("/compare?left=clinepass&right=opencode-go");
+  await expect(targets(page).nth(0)).toContainText("ClinePass");
+  const link = page
+    .getByRole("complementary", { name: "Popular comparisons" })
+    .getByRole("link")
+    .first();
+  const [left = "", right = ""] = (await link.innerText()).replace("↗", "").trim().split(" vs ");
+  await link.click();
+  await expect(page).toHaveURL(
+    /\/compare\?left=anthropic-claude-max-20x&right=openai-chatgpt-pro$/u,
+  );
+  await expect(targets(page).nth(0)).toContainText(left);
+  await expect(targets(page).nth(1)).toContainText(right);
+});
+
 test("a shared comparison never flashes the default pair before it applies", async ({ page }) => {
   // With scripts blocked the page never hydrates; only the server HTML and the
   // inline bootstrap run, which is what a visitor sees on first paint.

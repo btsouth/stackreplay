@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { CompareExplorer } from "@/components/public/compare-explorer";
 import { MarketHeader } from "@/components/public/market-header";
 import { buildCompareFacts, type CompareFacts, defaultComparePair } from "@/lib/compare-facts";
@@ -50,9 +49,11 @@ export default function ComparePage() {
             <ul className="mt-3 space-y-1">
               {quick.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="market-link min-h-9 text-sm">
+                  {/* A full load, not a client navigation: on /compare itself the explorer
+                      stays mounted and only reads the plans from the URL when the page loads. */}
+                  <a href={item.href} className="market-link min-h-9 text-sm">
                     {item.label} <span aria-hidden="true">↗</span>
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
