@@ -170,7 +170,8 @@ test.describe("public site", () => {
     await page.goto("/compare");
     await expect(page.getByTestId("compare-target")).toHaveCount(2);
     await expect(page.getByTestId("compare-price").first()).toContainText("/ month");
-    await expect(page.getByTestId("compare-row-models")).toContainText("Claude Opus 5.5");
+    await expect(page.getByTestId("compare-row-models")).toContainText("13 models included");
+    await expect(page.getByTestId("compare-model-matrix")).toContainText("Claude Opus 5.5");
     await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
     await expect(page.getByTestId("compare-row-simulation")).toContainText(
       "Exact capacity replay is not supported",
@@ -178,6 +179,7 @@ test.describe("public site", () => {
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
     for (const row of [
       "models",
+      "model-matrix",
       "coding-tools",
       "usage",
       "simulation",

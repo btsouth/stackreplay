@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultSortDirection, type ModelSortKey } from "./model-library";
 import { modelLibrarySearch, readModelLibraryUrl } from "./model-layout";
+import { defaultSortDirection, type ModelSortKey } from "./model-library";
 
 const direction = (sort: string) => defaultSortDirection(sort as ModelSortKey);
 const allowed = {

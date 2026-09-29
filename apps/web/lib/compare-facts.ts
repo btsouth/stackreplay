@@ -133,12 +133,13 @@ export function statementExcerpt(text: string, max = 280): string {
 /**
  * The first few included releases: one per developer in turn, so a plan that
  * carries several developers' models does not lead with a single developer's
- * lineup just because its records are more complete. Legacy releases fill in
- * only after every other release.
+ * lineup just because its records are more complete. Names without a model
+ * record (stealth, preview or not yet catalogued) and legacy releases fill in
+ * only after every catalogued current release.
  */
 function featureModels(ranked: readonly CompareModel[], count: number): CompareModel[] {
   const groups = new Map<string, CompareModel[]>();
-  for (const model of ranked.filter((entry) => !entry.legacy)) {
+  for (const model of ranked.filter((entry) => !entry.legacy && entry.developerId)) {
     const key = model.developerId ?? "";
     groups.set(key, [...(groups.get(key) ?? []), model]);
   }
@@ -285,4 +286,42 @@ export function defaultComparePair(
     ? DEFAULT_COMPARE_PAIR[1]
     : (plans.find((plan) => plan.providerId !== firstProvider)?.id ?? plans[1]?.id ?? first);
   return [first, second];
+}
+
+export interface CompareMatrixRow {
+  /** The catalog model id, or `published:<name>` for a lineup name with no model page. */
+  id: string;
+  name: string;
+  legacy: boolean;
+  /** One entry per compared plan, in the order given. */
+  included: readonly boolean[];
+}
+
+/**
+ * Every model any compared plan includes, keyed the way Compare keys models
+ * (`modelId ?? name`). Models more plans share come first, then by name.
+ */
+export function compareModelMatrix(plans: readonly CompareFacts[]): CompareMatrixRow[] {
+  const rows = new Map<
+    string,
+    { id: string; name: string; legacy: boolean; included: boolean[] }
+  >();
+  plans.forEach((facts, index) => {
+    for (const model of [...facts.models.featured, ...facts.models.more]) {
+      const row = rows.get(model.id) ?? {
+        id: model.id,
+        name: model.name,
+        legacy: model.legacy,
+        included: plans.map(() => false),
+      };
+      row.included[index] = true;
+      rows.set(model.id, row);
+    }
+  });
+  const count = (row: CompareMatrixRow) => row.included.filter(Boolean).length;
+  return [...rows.values()].sort(
+    (left, right) =>
+      count(right) - count(left) ||
+      left.name.localeCompare(right.name, "en", { numeric: true, sensitivity: "base" }),
+  );
 }

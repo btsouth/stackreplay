@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useState } from "react";
-import type { CompareFacts } from "@/lib/compare-facts";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
+import { compareSearch, readComparePlans } from "@/lib/compare-url";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
 import { limitUnitText, limitWindowText } from "./plan-facts";
 import { SourceList, VerificationBadge } from "./provenance";
@@ -13,40 +14,23 @@ import { PublishedUsageTable } from "./published-subscription-terms";
  *
  * Rows follow the questions a person asks before choosing a plan, in order:
  * price, models, coding tools, usage limits, what StackReplay can simulate,
- * what happens after the limit, and evidence. Every catalog detail (limit
- * types, provider statements, model rules, versions, sources) stays one level
- * down under "Inspect constraints and sources".
+ * what happens after the limit, and evidence. Two or three plans sit side by
+ * side; a row where every plan says the same thing is shown once. Every
+ * catalog detail (limit types, provider statements, model rules, versions,
+ * sources) stays one level down under "Inspect constraints and sources".
  */
 
 function ModelsCell({ facts }: { facts: CompareFacts }) {
-  const { featured, more, total } = facts.models;
-  if (total === 0) {
-    return (
-      <p className="text-muted-foreground">
-        {facts.modelAccess?.summary ?? "No named model is listed for this plan."}
-      </p>
-    );
-  }
+  const { total } = facts.models;
   return (
     <div>
-      <p className="text-foreground">{featured.map((model) => model.name).join(", ")}</p>
-      {facts.modelAccess && (
+      <p className="text-foreground">
+        {total === 0
+          ? (facts.modelAccess?.summary ?? "No named model is listed for this plan.")
+          : `${total} ${total === 1 ? "model" : "models"} included`}
+      </p>
+      {total > 0 && facts.modelAccess && (
         <p className="mt-2 text-sm text-muted-foreground">{facts.modelAccess.summary}</p>
-      )}
-      {more.length === 0 ? null : (
-        <details className="mt-1">
-          <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
-            + {more.length} more
-          </summary>
-          <ul className="space-y-1 pb-2 text-sm text-foreground" data-testid="compare-more-models">
-            {more.map((model) => (
-              <li key={model.id}>
-                {model.name}
-                {model.legacy ? <span className="text-muted-foreground"> · Legacy</span> : null}
-              </li>
-            ))}
-          </ul>
-        </details>
       )}
       {facts.modelAccess && (
         <Link
@@ -56,6 +40,87 @@ function ModelsCell({ facts }: { facts: CompareFacts }) {
           Full lineup & access conditions ↗
         </Link>
       )}
+    </div>
+  );
+}
+
+/** Short lineups show in full; long ones start with the most shared models. */
+const MATRIX_LIMIT = 24;
+const MATRIX_ROWS = 16;
+
+/** Which models each plan includes, shared ones first. Names link to model pages. */
+function ModelMatrix({
+  plans,
+}: {
+  plans: readonly { plan: PublicPlanSummary; facts: CompareFacts }[];
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const rows = compareModelMatrix(plans.map((entry) => entry.facts));
+  if (rows.length === 0) return null;
+  const shared = rows.filter((row) => row.included.every(Boolean)).length;
+  const only = plans.map(
+    (_, index) =>
+      rows.filter((row) => row.included[index] && row.included.filter(Boolean).length === 1).length,
+  );
+  const collapsible = rows.length > MATRIX_LIMIT;
+  const shown = expanded || !collapsible ? rows : rows.slice(0, MATRIX_ROWS);
+  return (
+    <div className="min-w-0">
+      <p className="text-foreground" data-testid="compare-model-summary">
+        {shared} in {plans.length === 2 ? "both" : "all three"}
+        {plans.map((entry, index) => (
+          <span key={entry.plan.id}>
+            {" "}
+            · {only[index]} only in {entry.plan.name}
+          </span>
+        ))}
+      </p>
+      <table className="market-matrix mt-3" data-testid="compare-model-matrix">
+        <caption className="sr-only">Models each compared plan includes</caption>
+        <thead>
+          <tr>
+            <th scope="col">Model</th>
+            {plans.map((entry) => (
+              <th key={entry.plan.id} scope="col">
+                {entry.plan.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((row) => (
+            <tr key={row.id}>
+              <th scope="row">
+                {row.id.startsWith("published:") ? (
+                  row.name
+                ) : (
+                  <Link href={`/models/${row.id}`}>{row.name}</Link>
+                )}
+                {row.legacy ? <span className="text-muted-foreground"> · Legacy</span> : null}
+              </th>
+              {row.included.map((included, index) => (
+                <td key={plans[index]?.plan.id} data-included={included || undefined}>
+                  <span aria-hidden="true">{included ? "✓" : "–"}</span>
+                  <span className="sr-only">{included ? "Included" : "Not listed"}</span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {collapsible && (
+        <button
+          type="button"
+          className="market-link mt-2 inline-flex min-h-11 items-center text-sm"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "Show fewer models ↑" : `Show all ${rows.length} models ↓`}
+        </button>
+      )}
+      <p className="mt-1 text-xs text-muted-foreground">
+        Included means the plan lists the model as included or available with conditions. Each
+        lineup link above has the conditions.
+      </p>
     </div>
   );
 }
@@ -225,57 +290,129 @@ function InspectCell({ plan, facts }: { plan: PublicPlanSummary; facts: CompareF
   );
 }
 
+/** Grid classes for two plans side by side from 640px, or three from 1024px. */
+function columns(count: number) {
+  return count === 3
+    ? {
+        grid: "lg:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]",
+        stackedOnly: "lg:hidden",
+        wideOnly: "hidden lg:block",
+        span: "lg:col-span-3",
+      }
+    : {
+        grid: "sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)]",
+        stackedOnly: "sm:hidden",
+        wideOnly: "hidden sm:block",
+        span: "sm:col-span-2",
+      };
+}
+
 function Row({
   label,
-  left,
-  right,
-  leftName,
-  rightName,
   testId,
+  names,
+  cells,
+  same,
 }: {
   label: string;
-  left: ReactNode;
-  right: ReactNode;
-  leftName: string;
-  rightName: string;
   testId: string;
+  names: readonly string[];
+  cells: readonly ReactNode[];
+  /** Shown once across every column when each plan says the same thing. */
+  same?: ReactNode;
 }) {
+  const layout = columns(names.length);
   return (
     <div
-      className="grid gap-x-6 gap-y-3 border-b border-border py-4 text-sm sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)]"
+      className={`grid gap-x-6 gap-y-3 border-b border-border py-4 text-sm ${layout.grid}`}
       data-testid={`compare-row-${testId}`}
     >
       <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:pt-0.5">
         {label}
       </h3>
-      <div className="min-w-0">
-        <p className="mb-1 text-xs text-muted-foreground sm:hidden">{leftName}</p>
-        {left}
-      </div>
-      <div className="min-w-0">
-        <p className="mb-1 text-xs text-muted-foreground sm:hidden">{rightName}</p>
-        {right}
-      </div>
+      {same !== undefined ? (
+        <div className={`min-w-0 ${layout.span}`}>
+          {same}
+          <p className="mt-1 text-xs text-muted-foreground">
+            {names.length === 2 ? "Same for both plans" : "Same for all three plans"}
+          </p>
+        </div>
+      ) : (
+        cells.map((cell, index) => (
+          <div key={names[index]} className="min-w-0">
+            <p className={`mb-1 text-xs text-muted-foreground ${layout.stackedOnly}`}>
+              {names[index]}
+            </p>
+            {cell}
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
-function TargetHeader({ plan, facts }: { plan: PublicPlanSummary; facts: CompareFacts }) {
+/** A row of plain statements, shown once when every plan's statement is the same. */
+function TextRow({
+  label,
+  testId,
+  names,
+  texts,
+  className = "text-foreground",
+}: {
+  label: string;
+  testId: string;
+  names: readonly string[];
+  texts: readonly string[];
+  className?: string;
+}) {
+  const same = texts.every((text) => text === texts[0]);
+  return (
+    <Row
+      label={label}
+      testId={testId}
+      names={names}
+      cells={texts.map((text) => (
+        <p key={text} className={className}>
+          {text}
+        </p>
+      ))}
+      same={same ? <p className={className}>{texts[0]}</p> : undefined}
+    />
+  );
+}
+
+function TargetHeader({
+  plan,
+  onRemove,
+}: {
+  plan: PublicPlanSummary;
+  onRemove?: (() => void) | undefined;
+}) {
   return (
     <section className="min-w-0 border-t border-border-strong pt-4" data-testid="compare-target">
-      <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-        {plan.providerName}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+          {plan.providerName}
+        </p>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="min-h-11 -mt-3 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            aria-label={`Remove ${plan.name} from the comparison`}
+          >
+            Remove
+          </button>
+        )}
+      </div>
       <h2 className="mt-1 text-xl font-medium text-foreground">
         <Link className="hover:text-accent hover:underline" href={`/plans/${plan.id}`}>
           {plan.name}
         </Link>
       </h2>
-      <p
-        className="mt-3 font-mono text-3xl tabular-nums text-foreground"
-        data-testid="compare-price"
-      >
-        {facts.price}
+      <p className="mt-3" data-testid="compare-price">
+        <span className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</span>
+        <span className="market-muted ml-2">/ {plan.price.interval}</span>
       </p>
       {plan.publishedTerms?.availabilityNote && (
         <p className="mt-3 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
@@ -290,29 +427,54 @@ function TargetHeader({ plan, facts }: { plan: PublicPlanSummary; facts: Compare
   );
 }
 
+const PRIVACY_FALLBACK =
+  "Privacy terms are not recorded here. Check the provider before sending sensitive work.";
+
 export function CompareExplorer({
   plans,
   providers,
   facts,
-  initialPair,
+  defaultPair,
 }: {
   plans: readonly PublicPlanSummary[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
-  initialPair: readonly [string, string];
+  defaultPair: readonly [string, string];
 }) {
-  const [leftId, setLeftId] = useState(initialPair[0]);
-  const [rightId, setRightId] = useState(initialPair[1]);
-  const left = plans.find((plan) => plan.id === leftId);
-  const right = plans.find((plan) => plan.id === rightId);
-  const leftFacts = facts[leftId];
-  const rightFacts = facts[rightId];
-  const selector = (label: string, value: string, change: (id: string) => void) => (
-    <label className="flex min-w-0 flex-col gap-2 text-xs text-muted-foreground">
+  const [ids, setIds] = useState<string[]>([...defaultPair]);
+  const [hydrated, setHydrated] = useState(false);
+  const planIds = useMemo(() => plans.map((plan) => plan.id), [plans]);
+  // Apply a shared URL before first paint, then release the bootstrap mark.
+  useLayoutEffect(() => {
+    setIds(readComparePlans(window.location.search, planIds, defaultPair));
+    setHydrated(true);
+    document.documentElement.removeAttribute("data-compare");
+  }, [planIds, defaultPair]);
+  useEffect(() => {
+    if (!hydrated) return;
+    const next = `${window.location.pathname}${compareSearch(ids, defaultPair)}${window.location.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
+      window.history.replaceState(window.history.state, "", next);
+  }, [ids, hydrated, defaultPair]);
+  const chosen = ids.flatMap((id) => {
+    const plan = plans.find((entry) => entry.id === id);
+    const planFacts = facts[id];
+    return plan && planFacts ? [{ plan, facts: planFacts }] : [];
+  });
+  const names = chosen.map((entry) => entry.plan.name);
+  const setAt = (index: number, id: string) =>
+    setIds((current) => current.map((value, at) => (at === index ? id : value)));
+  const addThird = () =>
+    setIds((current) => [
+      ...current,
+      planIds.find((id) => !current.includes(id)) ?? current[0] ?? "",
+    ]);
+  const selector = (label: string, index: number) => (
+    <label key={label} className="flex min-w-0 flex-col gap-2 text-xs text-muted-foreground">
       {label}
       <select
-        value={value}
-        onChange={(event) => change(event.target.value)}
+        value={ids[index]}
+        onChange={(event) => setAt(index, event.target.value)}
         className="min-h-11 w-full border border-control-border bg-surface px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring"
       >
         {providers.map((provider) => (
@@ -329,135 +491,132 @@ export function CompareExplorer({
       </select>
     </label>
   );
-  const ready =
-    left !== undefined &&
-    right !== undefined &&
-    leftFacts !== undefined &&
-    rightFacts !== undefined;
+  const duplicate = new Set(ids).size !== ids.length;
+  const ready = !duplicate && chosen.length === ids.length && chosen.length >= 2;
+  const layout = columns(chosen.length);
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-4 border-y border-border-strong py-4 sm:grid-cols-2">
-        {selector("First plan", leftId, setLeftId)}
-        {selector("Second plan", rightId, setRightId)}
+    <div className="flex flex-col gap-6" data-compare-results>
+      <div
+        className={`grid items-end gap-4 border-y border-border-strong py-4 ${ids.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"}`}
+      >
+        {selector("First plan", 0)}
+        {selector("Second plan", 1)}
+        {ids.length === 3 ? (
+          selector("Third plan", 2)
+        ) : (
+          <button
+            type="button"
+            onClick={addThird}
+            className="min-h-11 border border-control-border px-4 text-sm text-foreground hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            + Add a third plan
+          </button>
+        )}
       </div>
-      {leftId === rightId ? (
-        <p className="text-sm text-muted-foreground">
-          Choose a different second plan to see a comparison.
-        </p>
+      {duplicate ? (
+        <p className="text-sm text-muted-foreground">Choose different plans to see a comparison.</p>
       ) : null}
       {ready ? (
         <div className="flex min-w-0 flex-col" data-testid="compare-table">
-          <div className="grid gap-x-6 gap-y-5 sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="hidden sm:block" />
-            <TargetHeader plan={left} facts={leftFacts} />
-            <TargetHeader plan={right} facts={rightFacts} />
+          <div className={`grid gap-x-6 gap-y-5 ${layout.grid}`}>
+            <div className={layout.wideOnly} />
+            {chosen.map((entry, index) => (
+              <TargetHeader
+                key={entry.plan.id}
+                plan={entry.plan}
+                onRemove={
+                  chosen.length === 3
+                    ? () => setIds((current) => current.filter((_, at) => at !== index))
+                    : undefined
+                }
+              />
+            ))}
           </div>
           <div className="mt-4 border-t border-border">
             <Row
               label="Models"
               testId="models"
-              leftName={left.name}
-              rightName={right.name}
-              left={<ModelsCell facts={leftFacts} />}
-              right={<ModelsCell facts={rightFacts} />}
+              names={names}
+              cells={chosen.map((entry) => <ModelsCell key={entry.plan.id} facts={entry.facts} />)}
             />
-            <Row
+            <div
+              className={`grid gap-x-6 gap-y-3 border-b border-border py-4 text-sm ${layout.grid}`}
+              data-testid="compare-row-model-matrix"
+            >
+              <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:pt-0.5">
+                Model by model
+              </h3>
+              <div className={`min-w-0 ${layout.span}`}>
+                <ModelMatrix plans={chosen} />
+              </div>
+            </div>
+            <TextRow
               label="Coding tools"
               testId="coding-tools"
-              leftName={left.name}
-              rightName={right.name}
-              left={
-                <p className="text-foreground">
-                  {leftFacts.codingTools.join(", ") || "Not named in this plan's sources"}
-                </p>
-              }
-              right={
-                <p className="text-foreground">
-                  {rightFacts.codingTools.join(", ") || "Not named in this plan's sources"}
-                </p>
-              }
+              names={names}
+              texts={chosen.map(
+                (entry) => entry.facts.codingTools.join(", ") || "Not named in this plan's sources",
+              )}
             />
             <Row
               label="Usage limits"
               testId="usage"
-              leftName={left.name}
-              rightName={right.name}
-              left={<UsageCell facts={leftFacts} />}
-              right={<UsageCell facts={rightFacts} />}
+              names={names}
+              cells={chosen.map((entry) => <UsageCell key={entry.plan.id} facts={entry.facts} />)}
             />
-            <Row
+            <TextRow
               label="StackReplay can simulate"
               testId="simulation"
-              leftName={left.name}
-              rightName={right.name}
-              left={<p className="text-foreground">{leftFacts.simulation}</p>}
-              right={<p className="text-foreground">{rightFacts.simulation}</p>}
+              names={names}
+              texts={chosen.map((entry) => entry.facts.simulation)}
             />
             <Row
               label="After the limit"
               testId="after-limit"
-              leftName={left.name}
-              rightName={right.name}
-              left={<AfterLimitCell facts={leftFacts} />}
-              right={<AfterLimitCell facts={rightFacts} />}
+              names={names}
+              cells={chosen.map((entry) => (
+                <AfterLimitCell key={entry.plan.id} facts={entry.facts} />
+              ))}
             />
-            {(leftFacts.publishedTerms || rightFacts.publishedTerms) && (
+            {chosen.some((entry) => entry.facts.publishedTerms) && (
               <>
-                <Row
+                <TextRow
                   label="Privacy & data use"
                   testId="privacy"
-                  leftName={left.name}
-                  rightName={right.name}
-                  left={
-                    <p>
-                      {leftFacts.publishedTerms?.privacySummary ??
-                        "Privacy terms are not recorded here. Check the provider before sending sensitive work."}
-                    </p>
-                  }
-                  right={
-                    <p>
-                      {rightFacts.publishedTerms?.privacySummary ??
-                        "Privacy terms are not recorded here. Check the provider before sending sensitive work."}
-                    </p>
-                  }
+                  names={names}
+                  className=""
+                  texts={chosen.map(
+                    (entry) => entry.facts.publishedTerms?.privacySummary ?? PRIVACY_FALLBACK,
+                  )}
                 />
-                <Row
+                <TextRow
                   label="Billing & renewal"
                   testId="billing-terms"
-                  leftName={left.name}
-                  rightName={right.name}
-                  left={
-                    <p>
-                      {leftFacts.publishedTerms?.billingSummary ??
-                        left.billingMechanics ??
-                        "Check provider billing terms."}
-                    </p>
-                  }
-                  right={
-                    <p>
-                      {rightFacts.publishedTerms?.billingSummary ??
-                        right.billingMechanics ??
-                        "Check provider billing terms."}
-                    </p>
-                  }
+                  names={names}
+                  className=""
+                  texts={chosen.map(
+                    (entry) =>
+                      entry.facts.publishedTerms?.billingSummary ??
+                      entry.plan.billingMechanics ??
+                      "Check provider billing terms.",
+                  )}
                 />
               </>
             )}
-            <Row
+            <TextRow
               label="Evidence"
               testId="evidence"
-              leftName={left.name}
-              rightName={right.name}
-              left={<p className="text-xs text-muted-foreground">{leftFacts.evidence}</p>}
-              right={<p className="text-xs text-muted-foreground">{rightFacts.evidence}</p>}
+              names={names}
+              className="text-xs text-muted-foreground"
+              texts={chosen.map((entry) => entry.facts.evidence)}
             />
             <Row
               label="Details"
               testId="inspect"
-              leftName={left.name}
-              rightName={right.name}
-              left={<InspectCell plan={left} facts={leftFacts} />}
-              right={<InspectCell plan={right} facts={rightFacts} />}
+              names={names}
+              cells={chosen.map((entry) => (
+                <InspectCell key={entry.plan.id} plan={entry.plan} facts={entry.facts} />
+              ))}
             />
           </div>
         </div>
