@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CopyApiId } from "@/components/public/copy-api-id";
 import { MarketFooter } from "@/components/public/market-header";
 import { ModelPricingConditions } from "@/components/public/model-pricing-conditions";
 import { SourceList } from "@/components/public/provenance";
@@ -41,6 +42,30 @@ export default async function ModelPage({ params }: Props) {
           plan.modelRules.some((rule) => rule.model === model.familyId && rule.excluded !== true),
         );
   const apis = model.places.filter((p) => p.kind === "api");
+  const apiIds = model.aliases.filter((alias) => alias.kind === "provider_id");
+  const contextTokens = specifications?.contextTokens ?? specifications?.maxInputTokens;
+  // The same records as the sections below; unpublished figures are left out.
+  const glance: { label: string; value: string; href?: string }[] = [
+    { label: "Input $/1M", value: base?.rates.input },
+    { label: "Output $/1M", value: base?.rates.output },
+  ]
+    .filter((item): item is { label: string; value: string } => item.value !== undefined)
+    .map((item) => ({ label: item.label, value: priceNumber(item.value) }));
+  if (contextTokens !== undefined)
+    glance.push({
+      label: specifications?.contextTokens !== undefined ? "Context" : "Max input",
+      value: tokenSize(contextTokens),
+    });
+  if (specifications?.maxOutputTokens !== undefined)
+    glance.push({ label: "Max output", value: tokenSize(specifications.maxOutputTokens) });
+  if (specifications?.reasoning !== undefined)
+    glance.push({ label: "Reasoning", value: specifications.reasoning ? "Yes" : "No" });
+  if (plans.length > 0)
+    glance.push({
+      label: "Included in",
+      value: `${plans.length} ${plans.length === 1 ? "plan" : "plans"}`,
+      href: "#where-to-use",
+    });
   const related = catalog.models.filter(
     (m) =>
       m.kind === "release" &&
@@ -90,6 +115,24 @@ export default async function ModelPage({ params }: Props) {
           </div>
         </aside>
       </header>
+      {glance.length > 0 && (
+        <dl className="market-glance" aria-label="At a glance" data-testid="model-glance">
+          {glance.map((item) => (
+            <div key={item.label}>
+              <dt>{item.label}</dt>
+              <dd>{item.href ? <a href={item.href}>{item.value}</a> : item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {apiIds.length > 0 && (
+        <section className="market-api-ids" aria-label="API model ids">
+          <p className="market-muted">{apiIds.length === 1 ? "API model id" : "API model ids"}</p>
+          {apiIds.map((alias) => (
+            <CopyApiId key={alias.id} value={alias.alias} />
+          ))}
+        </section>
+      )}
       {model.kind === "release" && (
         <>
           <div className="market-section-title">
@@ -200,7 +243,7 @@ export default async function ModelPage({ params }: Props) {
           </div>
         </section>
       )}
-      <div className="market-section-title">
+      <div className="market-section-title" id="where-to-use">
         <span>
           {model.kind === "family" ? "01" : specifications ? "03" : "02"} / Where you can use it
         </span>

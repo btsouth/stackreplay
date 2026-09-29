@@ -557,6 +557,53 @@
   outline-offset: 2px;
 }
 
+/* Model page: key figures at a glance and the exact API ids. */
+.market-glance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  column-gap: 2rem;
+  margin: 0 0 1.5rem;
+  border-top: 1px solid var(--border-strong);
+}
+.market-glance > div {
+  min-width: 0;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.market-glance dt {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+}
+.market-glance dd {
+  margin-top: 0.35rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.market-glance a {
+  color: var(--accent);
+}
+.market-glance a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.market-api-ids {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+.market-api-id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+.market-section-title[id] {
+  scroll-margin-top: 5.5rem;
+}
+
 /* Model table: one dense row per model, labeled stacked rows below 1280px. */
 .market-table {
   width: 100%;
