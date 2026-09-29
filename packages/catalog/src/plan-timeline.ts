@@ -1,5 +1,6 @@
 import type {
   PlanAudienceV1,
+  PlanCohortV1,
   PlanEventKindV1,
   PlanEvidenceV1,
   PlanRevisionV1,
@@ -7,6 +8,10 @@ import type {
   PlanVersionEntryV1,
   PlanWithdrawalV1,
 } from "./schema.js";
+import { planVersionId } from "./version-id.js";
+
+export { cohortOfPlanVersionId, planIdOfPlanVersionId, planVersionId } from "./version-id.js";
+
 import { selectPlanVersionAt } from "./versions.js";
 
 /**
@@ -30,6 +35,13 @@ import { selectPlanVersionAt } from "./versions.js";
  * `asOf` is left out, so a look back at an earlier day shows what could have
  * been known then. A withdrawn change shows as cancelled or superseded from the
  * day it was withdrawn and never takes effect.
+ *
+ * Cohorts. The market line (versions without a cohort) is what someone
+ * subscribing that day gets, and it is the default reading. A cohort's own
+ * terms (grandfathered subscribers keeping a previous allowance) are reported
+ * as windows beside it, and are the terms that apply only when the caller asks
+ * for that cohort. Old and new terms can both be in force on one day, each for
+ * its own audience; neither is ever presented as the other's.
  */
 
 export type PlanTimelineStatusV1 =
@@ -80,11 +92,32 @@ export interface PlanTermsV1 {
   status: "previous" | "current" | "scheduled";
 }
 
+/** A cohort's own terms: when they start and end, and whether they apply on `asOf`. */
+export interface PlanCohortWindowV1 {
+  cohort: PlanCohortV1;
+  versionId: string;
+  effectiveFrom: string;
+  /** The last day the cohort keeps these terms, when the provider states one. */
+  effectiveTo?: string;
+  announcedAt?: string;
+  status: "scheduled" | "current" | "ended";
+}
+
 export interface PlanTimelineV1 {
   planId: string;
   asOf: string;
-  /** The terms in force on `asOf`; absent when no version is. */
+  /** The cohort the caller asked about; absent for the market reading. */
+  cohort?: string;
+  /** The market terms in force on `asOf`; absent when no version is. */
   current?: PlanTermsV1;
+  /**
+   * The terms that apply to the audience asked about: the cohort's while its
+   * window covers `asOf`, the market's otherwise. Equal to `current` for the
+   * market reading.
+   */
+  applied?: PlanTermsV1 & { cohort?: string };
+  /** Cohort windows known on `asOf`, in start order. */
+  cohortWindows: readonly PlanCohortWindowV1[];
   /** The terms the current ones replaced, when the current ones are a revision. */
   previous?: PlanTermsV1;
   /** The next announced revision after `asOf`, if one is scheduled. */
@@ -98,6 +131,8 @@ export type PlanTimelineVersionV1 = Pick<
   PlanVersionEntryV1,
   | "effectiveFrom"
   | "effectiveTo"
+  | "cohort"
+  | "relativeAllowances"
   | "effectiveFromBasis"
   | "announcedAt"
   | "audience"
@@ -109,18 +144,23 @@ export type PlanTimelineVersionV1 = Pick<
 export interface PlanTimelineInputV1 {
   id: string;
   versions: readonly PlanTimelineVersionV1[];
+  cohorts?: PlanV1["cohorts"];
   history?: PlanV1["history"];
 }
 
 /** A plan reduced to what its timeline needs, e.g. to hand to a client component. */
 export function planTimelineInputOf(
-  plan: Pick<PlanV1, "id" | "versions" | "history">,
+  plan: Pick<PlanV1, "id" | "versions" | "history" | "cohorts">,
 ): PlanTimelineInputV1 {
   return {
     id: plan.id,
     versions: plan.versions.map((version) => ({
       effectiveFrom: version.effectiveFrom,
       ...(version.effectiveTo !== undefined ? { effectiveTo: version.effectiveTo } : {}),
+      ...(version.cohort !== undefined ? { cohort: version.cohort } : {}),
+      ...(version.relativeAllowances !== undefined
+        ? { relativeAllowances: version.relativeAllowances }
+        : {}),
       ...(version.effectiveFromBasis !== undefined
         ? { effectiveFromBasis: version.effectiveFromBasis }
         : {}),
@@ -129,6 +169,7 @@ export function planTimelineInputOf(
       ...(version.revision !== undefined ? { revision: version.revision } : {}),
       ...(version.withdrawn !== undefined ? { withdrawn: version.withdrawn } : {}),
     })),
+    ...(plan.cohorts !== undefined ? { cohorts: plan.cohorts } : {}),
     ...(plan.history !== undefined ? { history: plan.history } : {}),
   };
 }
@@ -152,9 +193,12 @@ interface TermsRun {
  * version and at every version that declares a revision. Withdrawn versions
  * never took effect and belong to no run.
  */
-function termsRuns(versions: readonly PlanTimelineVersionV1[]): TermsRun[] {
+function termsRuns(
+  versions: readonly PlanTimelineVersionV1[],
+  cohort?: string | undefined,
+): TermsRun[] {
   const live = versions
-    .filter((version) => version.withdrawn === undefined)
+    .filter((version) => version.withdrawn === undefined && version.cohort === cohort)
     .sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
   const runs: TermsRun[] = [];
   for (const version of live) {
@@ -212,7 +256,11 @@ const STATUS_ORDER: Record<PlanTimelineStatusV1, number> = {
 /**
  * The plan's terms and history as of one calendar day.
  */
-export function resolvePlanTimeline(plan: PlanTimelineInputV1, asOf: string): PlanTimelineV1 {
+export function resolvePlanTimeline(
+  plan: PlanTimelineInputV1,
+  asOf: string,
+  options: { cohort?: string | undefined } = {},
+): PlanTimelineV1 {
   const day = asOf.slice(0, 10);
   const runs = termsRuns(plan.versions);
   const inForce = selectPlanVersionAt(plan.versions, day);
@@ -236,6 +284,58 @@ export function resolvePlanTimeline(plan: PlanTimelineInputV1, asOf: string): Pl
   );
   const scheduled =
     scheduledRun !== undefined ? termsOf(plan.id, scheduledRun, undefined, "scheduled") : undefined;
+
+  const cohortWindows: PlanCohortWindowV1[] = [];
+  for (const cohort of plan.cohorts ?? []) {
+    const line = plan.versions
+      .filter((version) => version.cohort === cohort.id && version.withdrawn === undefined)
+      .sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
+    for (const version of line) {
+      if ((version.announcedAt ?? version.effectiveFrom) > day) continue;
+      cohortWindows.push({
+        cohort,
+        versionId: planVersionId(plan.id, version.effectiveFrom, cohort.id),
+        effectiveFrom: version.effectiveFrom,
+        ...(version.effectiveTo !== undefined ? { effectiveTo: version.effectiveTo } : {}),
+        ...(version.announcedAt !== undefined ? { announcedAt: version.announcedAt } : {}),
+        status:
+          version.effectiveFrom > day
+            ? "scheduled"
+            : version.effectiveTo !== undefined && version.effectiveTo < day
+              ? "ended"
+              : "current",
+      });
+    }
+  }
+  cohortWindows.sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
+
+  const cohortVersion =
+    options.cohort === undefined
+      ? undefined
+      : selectPlanVersionAt(
+          plan.versions.filter((version) => version.cohort === options.cohort),
+          day,
+          { cohort: options.cohort },
+        );
+  const applied: PlanTimelineV1["applied"] =
+    cohortVersion !== undefined
+      ? {
+          versionId: planVersionId(plan.id, cohortVersion.effectiveFrom, options.cohort),
+          effectiveFrom: cohortVersion.effectiveFrom,
+          ...(cohortVersion.effectiveFromBasis === "provider"
+            ? { startedAt: cohortVersion.effectiveFrom }
+            : {}),
+          ...(cohortVersion.effectiveTo !== undefined
+            ? { endedAt: cohortVersion.effectiveTo }
+            : {}),
+          ...(cohortVersion.announcedAt !== undefined
+            ? { announcedAt: cohortVersion.announcedAt }
+            : {}),
+          ...(cohortVersion.audience !== undefined ? { audience: cohortVersion.audience } : {}),
+          status: "current",
+          cohort: options.cohort as string,
+        }
+      : current;
 
   const entries: PlanTimelineEntryV1[] = [];
   for (const event of plan.history?.events ?? []) {
@@ -282,7 +382,10 @@ export function resolvePlanTimeline(plan: PlanTimelineInputV1, asOf: string): Pl
   return {
     planId: plan.id,
     asOf: day,
+    ...(options.cohort !== undefined ? { cohort: options.cohort } : {}),
     ...(current !== undefined ? { current } : {}),
+    ...(applied !== undefined ? { applied } : {}),
+    cohortWindows,
     ...(previous !== undefined ? { previous } : {}),
     ...(scheduled !== undefined ? { scheduled } : {}),
     entries,
@@ -290,9 +393,12 @@ export function resolvePlanTimeline(plan: PlanTimelineInputV1, asOf: string): Pl
 }
 
 /** Whether a plan has any history worth a timeline: events or a revision. */
-export function planHasHistory(plan: Pick<PlanTimelineInputV1, "versions" | "history">): boolean {
+export function planHasHistory(
+  plan: Pick<PlanTimelineInputV1, "versions" | "history" | "cohorts">,
+): boolean {
   return (
     (plan.history?.events.length ?? 0) > 0 ||
+    (plan.cohorts?.length ?? 0) > 0 ||
     plan.versions.some((version) => version.revision !== undefined)
   );
 }
@@ -304,6 +410,10 @@ export interface PlanVersionTermsV1 {
   revision?: PlanRevisionV1;
   /** The start of the next revision after these terms, when one exists in the catalog. */
   nextRevisionFrom?: string;
+  /** Present when the version is a cohort's own terms. */
+  cohort?: PlanCohortV1;
+  /** The last day of a cohort version's terms, when stated. */
+  effectiveTo?: string;
 }
 
 /**
@@ -315,10 +425,23 @@ export function planTermsOfVersion(
   plan: PlanTimelineInputV1,
   versionId: string,
 ): PlanVersionTermsV1 | undefined {
-  const effectiveFrom = versionId.startsWith(`${plan.id}@`)
+  const suffix = versionId.startsWith(`${plan.id}@`)
     ? versionId.slice(plan.id.length + 1)
     : undefined;
-  if (effectiveFrom === undefined) return undefined;
+  if (suffix === undefined) return undefined;
+  const [effectiveFrom = "", cohortId] = suffix.split("~");
+  if (cohortId !== undefined) {
+    const cohort = plan.cohorts?.find((entry) => entry.id === cohortId);
+    const version = plan.versions.find(
+      (entry) => entry.cohort === cohortId && entry.effectiveFrom === effectiveFrom,
+    );
+    if (cohort === undefined || version === undefined) return undefined;
+    return {
+      effectiveFrom,
+      cohort,
+      ...(version.effectiveTo !== undefined ? { effectiveTo: version.effectiveTo } : {}),
+    };
+  }
   const runs = termsRuns(plan.versions);
   const index = runs.findIndex((run) =>
     run.versions.some((version) => version.effectiveFrom === effectiveFrom),

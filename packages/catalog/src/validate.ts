@@ -1,7 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 import type { z } from "zod";
 import { stableStringify } from "./canonical.js";
-import type { CatalogV1 } from "./catalog.js";
+import { type CatalogV1, planVersionId } from "./catalog.js";
 import {
   modelRuleV1Schema,
   modelV1Schema,
@@ -175,7 +175,17 @@ function checkVersionRanges(
 function checkPlanHistory(plan: PlanV1, file: string, issues: CatalogValidationIssue[]): void {
   const add = (code: string, message: string) =>
     issues.push({ severity: "error", code, message: `${plan.id}: ${message}`, file });
-  const sorted = [...plan.versions].sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
+  const cohortIds = new Set((plan.cohorts ?? []).map((cohort) => cohort.id));
+  if (cohortIds.size !== (plan.cohorts ?? []).length) add("DUPLICATE_ID", "duplicate cohort id");
+  for (const version of plan.versions)
+    if (version.cohort !== undefined && !cohortIds.has(version.cohort))
+      add(
+        "PLAN_COHORT_UNKNOWN",
+        `version ${version.effectiveFrom} names cohort "${version.cohort}", which the plan does not declare`,
+      );
+  const sorted = plan.versions
+    .filter((version) => version.cohort === undefined)
+    .sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
   const starts = new Set(plan.versions.map((version) => version.effectiveFrom));
   for (const [index, version] of sorted.entries()) {
     const where = `version ${version.effectiveFrom}`;
@@ -745,7 +755,9 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
       if (version.withdrawn === undefined)
         planVersionRanges.push({
           file: entry.file,
-          label: plan.id,
+          // One line of versions per cohort: a cohort's terms run beside the
+          // market's and may overlap them, but not each other.
+          label: version.cohort === undefined ? plan.id : `${plan.id}~${version.cohort}`,
           range: {
             from: version.effectiveFrom,
             ...(version.effectiveTo !== undefined ? { to: version.effectiveTo } : {}),
@@ -973,7 +985,7 @@ export function validateLoadedCatalog(catalog: CatalogV1): CatalogValidationIssu
   const expected: CatalogV1["planVersions"] = {};
   for (const plan of Object.values(catalog.plans)) {
     for (const version of plan.versions) {
-      const versionId = `${plan.id}@${version.effectiveFrom}`;
+      const versionId = planVersionId(plan.id, version.effectiveFrom, version.cohort);
       expected[versionId] = {
         ...version,
         versionId,

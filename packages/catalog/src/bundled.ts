@@ -1,6 +1,6 @@
 import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
-import { type CatalogV1, catalogV1Schema } from "./catalog.js";
+import { type CatalogV1, catalogV1Schema, planVersionId } from "./catalog.js";
 import {
   type PlanTimelineInputV1,
   type PlanTimelineV1,
@@ -87,7 +87,7 @@ export function bundledPlansAt(rulesAsOf: string): BundledPlanSummary[] {
       id: plan.id,
       name: plan.name,
       providerId: plan.providerId,
-      versionId: `${plan.id}@${version.effectiveFrom}`,
+      versionId: planVersionId(plan.id, version.effectiveFrom, version.cohort),
       effectiveFrom: version.effectiveFrom,
       price: {
         amount: version.price.amount,
@@ -326,7 +326,7 @@ export function bundledPlanModelsAt(
     available: rule.excluded !== true,
   }));
   return {
-    versionId: `${plan.id}@${version.effectiveFrom}`,
+    versionId: planVersionId(plan.id, version.effectiveFrom, version.cohort),
     models: models.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
   };
 }
@@ -366,9 +366,13 @@ export function bundledApiProviderModels(
  * A plan's terms and history on `asOf`, from the one resolver every surface
  * uses. Undefined for a plan the bundled catalog does not hold.
  */
-export function bundledPlanTimeline(planId: string, asOf: string): PlanTimelineV1 | undefined {
+export function bundledPlanTimeline(
+  planId: string,
+  asOf: string,
+  options: { cohort?: string | undefined } = {},
+): PlanTimelineV1 | undefined {
   const plan = loadBundledCatalog().plans[planId];
-  return plan === undefined ? undefined : resolvePlanTimeline(plan, asOf);
+  return plan === undefined ? undefined : resolvePlanTimeline(plan, asOf, options);
 }
 
 /** The timeline input for one plan, small enough to hand to a client component. */

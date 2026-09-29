@@ -11,9 +11,17 @@ import { z } from "zod";
  * display text at most; StackReplay replays recorded demand and does not model
  * completion time.
  *
- * `standard` is the default tier. A price record without a tier is a Standard
- * record, which is what every record written before this dimension existed
- * priced.
+ * What an absent tier means depends on who left it out, and the two are kept
+ * apart:
+ *
+ * - a catalog price record without a tier is a Standard price, because every
+ *   record written before tiers existed transcribed a Standard list price;
+ * - a Direct API replay target without a tier asks for Standard on purpose
+ *   (`replayServiceTierOf`);
+ * - an observed or imported call without a recorded tier has an unknown tier
+ *   (`observedServiceTierOf`), unless the source's own contract guarantees
+ *   Standard. Guessing Standard there would put false precision into an
+ *   actual-cost reconstruction.
  */
 export const serviceTierV1Schema = z.enum(["standard", "batch", "flex", "fast", "ultrafast"]);
 export type ServiceTierV1 = z.infer<typeof serviceTierV1Schema>;
@@ -58,4 +66,29 @@ export function billedServiceTierOf(
   observation: ServiceTierObservationV1 | undefined,
 ): ServiceTierV1 | undefined {
   return observation?.resolved;
+}
+
+/** A replay target's tier: omitted means Standard, as the caller's explicit default. */
+export function replayServiceTierOf(target: {
+  serviceTier?: ServiceTierV1 | undefined;
+}): ServiceTierV1 {
+  return target.serviceTier ?? "standard";
+}
+
+export type ObservedServiceTierV1 = ServiceTierV1 | "unknown";
+
+/**
+ * The billed tier of an observed or imported call. The resolved tier when the
+ * source records one; Standard only when the source's contract says an absent
+ * tier is Standard; unknown otherwise. The requested tier alone is never used.
+ */
+export function observedServiceTierOf(
+  observation: ServiceTierObservationV1 | undefined,
+  source: { absentTierMeans?: "standard" | undefined } = {},
+): ObservedServiceTierV1 {
+  const resolved = billedServiceTierOf(observation);
+  if (resolved !== undefined) return resolved;
+  if (observation?.requested === undefined && source.absentTierMeans === "standard")
+    return "standard";
+  return "unknown";
 }

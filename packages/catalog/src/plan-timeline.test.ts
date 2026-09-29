@@ -60,7 +60,7 @@ const events: PlanEventV1[] = [
   },
 ];
 
-const plan: Pick<PlanV1, "id" | "versions" | "history"> = {
+const plan: Pick<PlanV1, "id" | "versions" | "history" | "cohorts"> = {
   id: "example-pro",
   versions: [
     version({
@@ -273,5 +273,72 @@ describe("planTermsOfVersion", () => {
     );
     expect(planTermsOfVersion(plan, "other-plan@2026-09-30")).toBeUndefined();
     expect(planTermsOfVersion(plan, "example-pro@2026-01-01")).toBeUndefined();
+  });
+});
+
+describe("resolvePlanTimeline: a cohort keeping previous terms", () => {
+  const cohortPlan: typeof plan = {
+    id: "example-pro",
+    versions: [
+      version({ effectiveFrom: "2026-09-01", effectiveTo: "2026-09-28" }),
+      version({
+        effectiveFrom: "2026-09-29",
+        announcedAt: "2026-09-29",
+        revision: { title: "Revised allowance" },
+      }),
+      version({
+        effectiveFrom: "2026-09-29",
+        effectiveTo: "2026-10-29",
+        cohort: "kept",
+        announcedAt: "2026-09-29",
+      }),
+    ],
+    cohorts: [
+      {
+        id: "kept",
+        kind: "grandfathered",
+        label: "Eligible existing subscribers",
+        eligibility: "Active at the cutoff.",
+        evidence,
+      },
+    ],
+  };
+
+  it("reports the cohort window beside the market terms, with its status on each day", () => {
+    const status = (day: string) => resolvePlanTimeline(cohortPlan, day).cohortWindows[0]?.status;
+    expect(resolvePlanTimeline(cohortPlan, "2026-09-28").cohortWindows).toEqual([]);
+    expect(status("2026-09-29")).toBe("current");
+    expect(status("2026-10-29")).toBe("current");
+    expect(status("2026-10-30")).toBe("ended");
+  });
+
+  it("applies the cohort's terms only when asked, and the market's otherwise", () => {
+    const market = resolvePlanTimeline(cohortPlan, "2026-10-01");
+    expect(market.applied?.versionId).toBe("example-pro@2026-09-29");
+    const kept = resolvePlanTimeline(cohortPlan, "2026-10-01", { cohort: "kept" });
+    expect(kept.applied).toMatchObject({
+      versionId: "example-pro@2026-09-29~kept",
+      cohort: "kept",
+      endedAt: "2026-10-29",
+    });
+    expect(kept.current?.versionId).toBe("example-pro@2026-09-29");
+    const after = resolvePlanTimeline(cohortPlan, "2026-10-30", { cohort: "kept" });
+    expect(after.applied?.versionId).toBe("example-pro@2026-09-29");
+    expect(after.applied?.cohort).toBeUndefined();
+  });
+
+  it("keeps cohort versions out of the market's previous and current terms", () => {
+    const timeline = resolvePlanTimeline(cohortPlan, "2026-10-01");
+    expect(timeline.previous?.versionId).toBe("example-pro@2026-09-01");
+    expect(timeline.previous?.endedAt).toBe("2026-09-28");
+  });
+
+  it("describes a stored cohort version from its id alone", () => {
+    expect(planTermsOfVersion(cohortPlan, "example-pro@2026-09-29~kept")).toMatchObject({
+      effectiveFrom: "2026-09-29",
+      effectiveTo: "2026-10-29",
+      cohort: { id: "kept" },
+    });
+    expect(planTermsOfVersion(cohortPlan, "example-pro@2026-09-29~missing")).toBeUndefined();
   });
 });

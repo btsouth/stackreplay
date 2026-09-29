@@ -21,6 +21,7 @@ import type {
   TextUsageEventV1,
   WorkloadScopeKindV1,
 } from "@stackreplay/schema";
+import { replayServiceTierOf } from "@stackreplay/schema";
 import { type ConfidenceFactor, levelFromVerification, worstLevel } from "./confidence.js";
 import { ReplayEngineError } from "./errors.js";
 import { type Decimal, toUnitString, ZERO } from "./money.js";
@@ -190,7 +191,7 @@ export function replayApiTarget(
    * records it always read; any other tier reads only that tier's records, for
    * models the provider offers at that tier.
    */
-  const serviceTier: ServiceTierV1 = target.serviceTier ?? "standard";
+  const serviceTier: ServiceTierV1 = replayServiceTierOf(target);
   const pricingHistory = buildApiPricingHistory(catalog, serviceTier);
   /** Memoized per effective model: offering and price selection are per model. */
   const availabilityCache = new Map<string, ApiAvailability>();

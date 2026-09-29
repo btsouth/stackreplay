@@ -2,13 +2,16 @@ export { canonicalize, stableStringify } from "./canonical.js";
 export {
   type CatalogV1,
   catalogV1Schema,
+  cohortOfPlanVersionId,
   getPlanVersion,
   getPricing,
   type LoadedPlanVersionV1,
   loadedPlanVersionV1Schema,
+  planIdOfPlanVersionId,
   planVersionId,
 } from "./catalog.js";
 export {
+  type PlanCohortWindowV1,
   type PlanTermsV1,
   type PlanTimelineEntryV1,
   type PlanTimelineInputV1,
@@ -57,6 +60,7 @@ export {
   type OverageRateV1,
   overageRateV1Schema,
   type PlanAudienceV1,
+  type PlanCohortV1,
   type PlanEventKindV1,
   type PlanEventV1,
   type PlanEvidenceAuthorityV1,
@@ -64,6 +68,7 @@ export {
   type PlanHistoryV1,
   type PlanLimitV1,
   type PlanPriceV1,
+  type PlanRelativeAllowanceV1,
   type PlanRelativeValueV1,
   type PlanRevisionV1,
   type PlanV1,
@@ -80,6 +85,7 @@ export {
   type PromotionV1,
   type ProviderV1,
   planAudienceV1Schema,
+  planCohortV1Schema,
   planEventKindV1Schema,
   planEventV1Schema,
   planEvidenceAuthorityV1Schema,
@@ -87,6 +93,7 @@ export {
   planHistoryV1Schema,
   planLimitV1Schema,
   planPriceV1Schema,
+  planRelativeAllowanceV1Schema,
   planRelativeValueV1Schema,
   planRevisionV1Schema,
   planV1Schema,
@@ -133,6 +140,7 @@ export {
 } from "./validate.js";
 export {
   type PlanVersionIntervalV1,
+  type PlanVersionSelectionOptionsV1,
   selectLoadedPlanVersionAt,
   selectPlanVersionAt,
 } from "./versions.js";

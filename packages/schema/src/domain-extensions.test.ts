@@ -3,7 +3,12 @@ import { billingContextV1Schema, billingSourceOfTarget } from "./billing-source.
 import { costBreakdownMatches, decimalTotalOf, visibleCostComponents } from "./cost-breakdown.js";
 import { apiTargetV1Schema } from "./execution-target.js";
 import { economicsV1Schema } from "./replay-result.js";
-import { billedServiceTierOf, serviceTierV1Schema } from "./service-tier.js";
+import {
+  billedServiceTierOf,
+  observedServiceTierOf,
+  replayServiceTierOf,
+  serviceTierV1Schema,
+} from "./service-tier.js";
 import { textUsageEventV1Schema } from "./usage-event.js";
 
 const usd = (amount: string) => ({ amount, currency: "USD" as const });
@@ -26,6 +31,22 @@ describe("service tiers", () => {
       apiTargetV1Schema.safeParse({ type: "api", providerId: "openai", serviceTier: "priority" })
         .success,
     ).toBe(false);
+  });
+
+  it("reads an omitted replay-target tier as Standard, on purpose", () => {
+    expect(replayServiceTierOf({})).toBe("standard");
+    expect(replayServiceTierOf({ serviceTier: "batch" })).toBe("batch");
+  });
+
+  it("reads an omitted observed tier as unknown unless the source guarantees Standard", () => {
+    expect(observedServiceTierOf(undefined)).toBe("unknown");
+    expect(observedServiceTierOf({})).toBe("unknown");
+    expect(observedServiceTierOf(undefined, { absentTierMeans: "standard" })).toBe("standard");
+    // A requested tier with no resolved tier is not a billed fact, whatever the source says.
+    expect(observedServiceTierOf({ requested: "fast" }, { absentTierMeans: "standard" })).toBe(
+      "unknown",
+    );
+    expect(observedServiceTierOf({ requested: "fast", resolved: "standard" })).toBe("standard");
   });
 
   it("bills the resolved tier only, never the requested one", () => {

@@ -233,9 +233,47 @@ export const planRevisionV1Schema = z.strictObject({
 });
 export type PlanRevisionV1 = z.infer<typeof planRevisionV1Schema>;
 
+/**
+ * A plan's allowance stated as a multiple of another plan's, in the provider's
+ * own usage unit ("25 times the usage of Plus"). The unit is the provider's and
+ * is not defined further, so the multiple is never read as tokens, API dollars,
+ * messages or a per-model limit, and it never becomes a numeric replay limit.
+ */
+export const planRelativeAllowanceV1Schema = z.strictObject({
+  measure: z.literal("provider_usage"),
+  multiple: decimalAmountV1Schema,
+  /** The plan whose allowance is the unit, e.g. ChatGPT Plus. */
+  comparedToPlanId: catalogIdV1Schema,
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanRelativeAllowanceV1 = z.infer<typeof planRelativeAllowanceV1Schema>;
+
+/**
+ * A group of subscribers who hold different terms of the same plan for a
+ * while, such as existing subscribers kept on their previous allowance when a
+ * provider revises a plan. It is not a separate product: the plan, its price
+ * and its identity stay the same. `eligibility` is the provider's own wording,
+ * and a date the provider does not publish (a cutoff) is not invented.
+ */
+export const planCohortV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  kind: z.enum(["grandfathered"]),
+  /** Who is in the cohort, in a few words: "Eligible existing subscribers". */
+  label: z.string().min(1),
+  eligibility: z.string().min(1),
+  evidence: z.array(planEvidenceV1Schema).min(1),
+});
+export type PlanCohortV1 = z.infer<typeof planCohortV1Schema>;
+
 export const planVersionEntryV1Schema = z.strictObject({
   effectiveFrom: isoDateV1Schema,
   effectiveTo: isoDateV1Schema.optional(),
+  /**
+   * The cohort these terms apply to. Absent means the market terms: what
+   * someone subscribing on that day gets. A cohort's versions run beside the
+   * market versions and may overlap them in time.
+   */
+  cohort: catalogIdV1Schema.optional(),
   /**
    * What `effectiveFrom` means. `provider` is a date the provider stated;
    * `catalog_recorded` is the day this catalog first recorded the terms, which
@@ -249,6 +287,8 @@ export const planVersionEntryV1Schema = z.strictObject({
   audience: z.array(planAudienceV1Schema).min(1).optional(),
   revision: planRevisionV1Schema.optional(),
   withdrawn: planWithdrawalV1Schema.optional(),
+  /** Allowances the provider states relative to another plan's. */
+  relativeAllowances: z.array(planRelativeAllowanceV1Schema).min(1).optional(),
   price: planPriceV1Schema,
   billingMechanics: z.string().min(1).optional(),
   /**
@@ -331,6 +371,8 @@ export const planV1Schema = z
     name: z.string().min(1),
     providerId: catalogIdV1Schema,
     versions: z.array(planVersionEntryV1Schema),
+    /** Subscriber groups that hold their own terms for a while (grandfathering). */
+    cohorts: z.array(planCohortV1Schema).min(1).optional(),
     /** Events a subscriber would want to know about, separate from the versions. */
     history: planHistoryV1Schema.optional(),
     /** New accepted execution semantics. Legacy `versions` retain their original reader. */

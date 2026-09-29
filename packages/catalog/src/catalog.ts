@@ -38,10 +38,7 @@ export type CatalogV1 = z.infer<typeof catalogV1Schema>;
 
 export const verificationStatusSchema = verificationStatusV1Schema;
 
-/** Version id convention: `planId@effectiveFrom` (spec point 19). */
-export function planVersionId(planId: string, effectiveFrom: string): string {
-  return `${planId}@${effectiveFrom}`;
-}
+export { cohortOfPlanVersionId, planIdOfPlanVersionId, planVersionId } from "./version-id.js";
 
 export function getPlanVersion(
   catalog: CatalogV1,

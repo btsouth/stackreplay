@@ -191,6 +191,9 @@ export {
 } from "./scalars.js";
 export {
   billedServiceTierOf,
+  type ObservedServiceTierV1,
+  observedServiceTierOf,
+  replayServiceTierOf,
   SERVICE_TIERS_V1,
   type ServiceTierAvailabilityV1,
   type ServiceTierObservationV1,

@@ -40,6 +40,13 @@ export const subscriptionTargetV1Schema = z
     /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */
     modelTranslation: modelTranslationPolicyV1Schema.optional(),
     /**
+     * A subscriber cohort of the plan, such as grandfathered subscribers who
+     * keep a previous allowance for a while. Only with `planId`: the cohort's
+     * version applies while one covers `rulesAsOf`, and the market version
+     * otherwise. Absent means market terms, what a new subscriber gets.
+     */
+    cohort: z.string().min(1).optional(),
+    /**
      * Declares that the account's allowance reset phase is not established.
      * A scenario may only weaken what the plan's own windows establish.
      */

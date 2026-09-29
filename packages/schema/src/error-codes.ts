@@ -31,6 +31,11 @@ export const STACKREPLAY_ERROR_CODES = [
    * the unlabelled mapping is refused rather than executed as an assumption.
    */
   "API_MODEL_MAPPING_NOT_SUPPORTED",
+  /**
+   * A subscription target names a subscriber cohort the plan does not declare,
+   * or names a cohort beside a pinned version (which already identifies it).
+   */
+  "PLAN_COHORT_UNKNOWN",
 ] as const;
 
 export type StackReplayErrorCode = (typeof STACKREPLAY_ERROR_CODES)[number];
