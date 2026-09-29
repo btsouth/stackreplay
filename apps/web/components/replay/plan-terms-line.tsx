@@ -69,7 +69,7 @@ export function PlanTermsLine({
           <span>
             Existing subscriber?{" "}
             {offer === undefined
-              ? "Those terms have ended on this rules date, so the market terms apply."
+              ? "Those cohort terms do not apply on this rules date, so the market terms apply."
               : `Use the previous allowance, kept by eligible subscribers${
                   offer.through === undefined ? "" : ` through ${formatCatalogDate(offer.through)}`
                 }.`}

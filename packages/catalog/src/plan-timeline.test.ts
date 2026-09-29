@@ -340,5 +340,7 @@ describe("resolvePlanTimeline: a cohort keeping previous terms", () => {
       cohort: { id: "kept" },
     });
     expect(planTermsOfVersion(cohortPlan, "example-pro@2026-09-29~missing")).toBeUndefined();
+    expect(planTermsOfVersion(cohortPlan, "example-pro@2026-09-29~kept~extra")).toBeUndefined();
+    expect(planTermsOfVersion(cohortPlan, "example-pro@2026-09-29~")).toBeUndefined();
   });
 });

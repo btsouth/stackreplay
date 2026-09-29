@@ -429,7 +429,9 @@ export function planTermsOfVersion(
     ? versionId.slice(plan.id.length + 1)
     : undefined;
   if (suffix === undefined) return undefined;
-  const [effectiveFrom = "", cohortId] = suffix.split("~");
+  const parts = suffix.split("~");
+  if (parts.length > 2) return undefined;
+  const [effectiveFrom = "", cohortId] = parts;
   if (cohortId !== undefined) {
     const cohort = plan.cohorts?.find((entry) => entry.id === cohortId);
     const version = plan.versions.find(

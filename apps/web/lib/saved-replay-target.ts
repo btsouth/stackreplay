@@ -38,5 +38,5 @@ export function savedReplayTargetLine(record: CompletedReplay): string | undefin
   // A cohort that was asked for but did not apply on the replay's date.
   const unapplied =
     target.cohort !== undefined && cohortOfPlanVersionId(target.planVersionId) === undefined;
-  return unapplied ? `${label} (cohort terms had ended; market terms used)` : label;
+  return unapplied ? `${label} (cohort terms did not apply; market terms used)` : label;
 }

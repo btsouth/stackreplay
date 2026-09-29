@@ -93,7 +93,23 @@ describe("saved replay targets", () => {
       },
     });
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · terms effective Sep 29, 2026 (cohort terms had ended; market terms used)",
+      "ChatGPT Pro $200 · terms effective Sep 29, 2026 (cohort terms did not apply; market terms used)",
+    );
+  });
+
+  it("does not call a cohort ended when a saved replay predates its window", () => {
+    const record = parse({
+      ...legacy,
+      rulesAt: "2026-09-28",
+      target: {
+        type: "subscription",
+        planId: "openai-chatgpt-pro-20x",
+        planVersionId: "openai-chatgpt-pro-20x@2026-09-22",
+        cohort: "grandfathered",
+      },
+    });
+    expect(savedReplayTargetLine(record)).toBe(
+      "ChatGPT Pro $200 · terms before the Sep 29, 2026 revision (cohort terms did not apply; market terms used)",
     );
   });
 
