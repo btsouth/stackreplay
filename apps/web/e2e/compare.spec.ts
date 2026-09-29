@@ -77,6 +77,8 @@ test("a shared comparison never flashes the default pair before it applies", asy
   await expect(page.getByTestId("compare-table")).toBeHidden();
   // If the explorer never hydrates, the default pair comes back instead of staying hidden.
   await expect(page.getByTestId("compare-table")).toBeVisible({ timeout: 8_000 });
+  await expect(targets(page).nth(0)).toContainText("Claude Max 20x");
+  await expect(targets(page).nth(1)).toContainText("ChatGPT Pro");
   await page.goto("/compare");
   await expect(page.getByTestId("compare-table")).toBeVisible();
 });
