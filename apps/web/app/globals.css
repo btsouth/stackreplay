@@ -611,7 +611,6 @@ html[data-model-layout="table"] [data-layout-pending="cards"] {
   font-size: 1.4rem;
   font-weight: 500;
   letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
 }
 .market-glance a {
   color: var(--accent);

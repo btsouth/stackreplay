@@ -226,7 +226,7 @@ export function ModelExplorer({
         <div className="flex w-full items-center justify-between gap-x-5 gap-y-2 pb-2 sm:w-auto sm:justify-end sm:pb-0">
           <p role="status" className="market-muted min-w-0">
             {visible.length} {query ? "matches" : "models"}
-            {layout !== "table" && (
+            {layout !== "table" && visible.length > 0 && (
               <span data-layout-pending={pending("cards")}> · Select up to 4 to compare rates</span>
             )}
           </p>
