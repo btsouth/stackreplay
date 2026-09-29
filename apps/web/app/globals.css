@@ -970,6 +970,9 @@ html[data-compare] [data-compare-results] {
 .market-rate-table tbody tr[data-regular] td {
   color: var(--muted-foreground);
 }
+.market-rate-table .market-table-label {
+  display: none;
+}
 .market-rate-table .market-rate-missing {
   font-family: var(--font-sans);
   font-size: 0.8rem;

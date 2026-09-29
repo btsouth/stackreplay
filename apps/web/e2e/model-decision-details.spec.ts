@@ -76,3 +76,12 @@ test("promotional rates carry the provider's label and its regular rate", async 
   await expect(page.getByTestId("promotion-note")).toHaveCount(0);
   await expect(page.getByTestId("promo-tag")).toHaveCount(0);
 });
+
+test("rate labels only appear in the stacked phone layout", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("/models/minimax-m3");
+  const label = page.getByTestId("model-rate-table").locator(".market-table-label").first();
+  await expect(label).toBeHidden();
+  await page.setViewportSize({ width: 390, height: 800 });
+  await expect(label).toBeVisible();
+});

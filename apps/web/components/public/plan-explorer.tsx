@@ -138,12 +138,12 @@ export function PlanExplorer({
               </p>
             </div>
             <div className="flex flex-col items-start gap-1">
-              <Link href={`/plans/${plan.id}`} className="market-link">
+              <Link href={`/plans/${plan.id}`} className="market-link whitespace-nowrap">
                 Explore plan ↗
               </Link>
               <Link
                 href={`/compare?left=${encodeURIComponent(plan.id)}`}
-                className="market-link block"
+                className="market-link block whitespace-nowrap"
               >
                 Compare plans →
               </Link>
