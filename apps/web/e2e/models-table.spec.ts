@@ -161,6 +161,32 @@ for (const theme of ["dark", "light"] as const) {
       await page.goto("/models");
       await expect(page.getByTestId("model-row").first()).toBeVisible();
       await expect(page.getByTestId("model-data-table")).toBeHidden();
+      // A shared filtered link holds its results back rather than flashing the default list.
+      await page.goto("/models?view=table&sort=input");
+      await expect(page.getByTestId("model-data-table")).toBeHidden();
+      await expect(page.getByRole("region", { name: "Published API rates" })).toBeVisible();
+    });
+
+    test("keeps filters and order in a shareable URL", async ({ page }) => {
+      await openModels(page, "/models?view=table&developer=minimax&sort=input&dir=desc&included=1");
+      await expect(page.getByLabel("Developer")).toHaveValue("minimax");
+      await expect(page.getByLabel("Order by")).toHaveValue("input");
+      await expect(page.getByLabel("Direction")).toHaveValue("descending");
+      await expect(page.getByLabel("Included in a subscription")).toBeChecked();
+      await expect(page.getByRole("columnheader", { name: "Input $/1M" })).toHaveAttribute(
+        "aria-sort",
+        "descending",
+      );
+      expect((await cellTexts(page, 1)).every((name) => name === "MiniMax")).toBe(true);
+      await page.getByLabel("Order by").selectOption("context");
+      await expect(page).toHaveURL(/[?&]sort=context(&|$)/u);
+      await expect(page).not.toHaveURL(/dir=/u);
+      await page.getByRole("button", { name: "Cards", exact: true }).click();
+      await expect(page).not.toHaveURL(/view=/u);
+      await page.getByLabel("Developer").selectOption("all");
+      await page.getByLabel("Included in a subscription").uncheck();
+      await page.getByLabel("Order by").selectOption("featured");
+      await expect(page).toHaveURL(/\/models$/u);
     });
 
     test("filters by subscription access and published API price", async ({ page }) => {

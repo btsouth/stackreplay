@@ -443,6 +443,15 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+/* Decision facts are sentences: label beside, text read left to right. */
+.market-decision-list > div {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+}
+.market-decision-list dd {
+  text-align: left;
+  line-height: 1.6;
+}
 .market-comparison {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -581,6 +590,10 @@ html:not([data-model-layout="table"]) [data-layout-pending="table"],
 html[data-model-layout="table"] [data-layout-pending="cards"] {
   display: none;
 }
+/* A shared filtered link holds its results back until the filters apply. */
+html[data-model-filters] [data-model-results] > :not(.market-price-comparison) {
+  visibility: hidden;
+}
 .market-layout-toggle button:focus-visible,
 .market-table button:focus-visible,
 .market-table a:focus-visible,
@@ -633,6 +646,40 @@ html[data-model-layout="table"] [data-layout-pending="cards"] {
 }
 .market-section-title[id] {
   scroll-margin-top: 5.5rem;
+}
+.market-model-profile .market-api-ids {
+  margin: 0.9rem 0 0;
+}
+.market-model-profile .market-api-id code {
+  font-size: 1.05rem;
+}
+
+/* Promotional rates carry the provider's own label, with the regular rate beside them. */
+.market-promo-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0 0.3rem;
+  border: 1px solid currentColor;
+  color: var(--warning);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  vertical-align: 0.2em;
+  white-space: nowrap;
+}
+.market-promo-note {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.market-promo-note .market-promo-tag {
+  margin-left: 0;
 }
 
 /* Model table: one dense row per model, labeled stacked rows below 1280px. */
@@ -787,5 +834,103 @@ html[data-model-layout="table"] [data-layout-pending="cards"] {
 @media (min-width: 640px) and (max-width: 1279px) {
   .market-table tbody tr {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Model page rates: base, tiers and regular rates aligned in one table. */
+.market-rate-table {
+  width: 100%;
+  margin: 0.5rem 0 1.25rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.market-rate-table :is(thead, tbody) :is(th, td) {
+  padding: 0.9rem 0 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  text-align: right;
+  vertical-align: baseline;
+}
+.market-rate-table :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+}
+.market-rate-table thead th {
+  padding-block: 0.6rem;
+  border-bottom-color: var(--border-strong);
+  color: var(--muted-foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.market-rate-table tbody th {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.market-rate-table td {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.market-rate-table tbody tr:first-child td {
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.market-rate-table tbody tr:first-child th {
+  color: var(--foreground);
+}
+.market-rate-table tbody tr[data-regular] td {
+  color: var(--muted-foreground);
+}
+.market-rate-table .market-rate-missing {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}
+@media (max-width: 700px) {
+  .market-rate-table,
+  .market-rate-table tbody,
+  .market-rate-table tr,
+  .market-rate-table th,
+  .market-rate-table td {
+    display: block;
+  }
+  .market-rate-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .market-rate-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .market-rate-table tbody :is(th, td) {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .market-rate-table tbody th {
+    grid-column: 1 / -1;
+  }
+  .market-rate-table tbody tr:first-child td {
+    font-size: 1.5rem;
+  }
+  .market-rate-table .market-table-label {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--muted-foreground);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0;
   }
 }

@@ -10,6 +10,7 @@ The September 29, 2026 UTC pass reviews all 67 listed model releases against cur
 - Legacy Claude releases now show their documented limits, thinking behavior and availability. Legacy does not mean retired.
 - Kimi K3 adds the published completion parameter ceiling, default, video/structured output, top-up requirement and caching conditions.
 - Missing exact API identities, provider redirects, unpublished output ceilings and product-only rates stay explicit.
+- Promotional and discounted rates carry the provider's own label and, where the provider publishes it, the regular rate. Facts that only repeated a specification or a price row were removed.
 
 ## Review coverage
 
@@ -42,10 +43,10 @@ Existing prices and technical facts were checked against the linked documentatio
 | Gemini 3 Flash | API availability, Input limit, Multimodal input, Built-in capabilities, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview) |
 | Gemini 3 Flash-Lite | Identity, Comparison boundary | [Official documentation](https://ai.google.dev/gemini-api/docs/models) |
 | Gemini 3 Pro | API availability, Input limit, Multimodal input | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-preview) |
-| GLM 5 | Thinking, Input support, API capabilities, Released, Prompt caching, Coding Plan access | [Official documentation](https://docs.z.ai/guides/llm/glm-5) |
-| GLM 5.1 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.1) |
-| GLM 5.2 | Thinking, Input support, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.2) |
-| GLM 5.3 | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/llm/glm-5.3) |
+| GLM 5 | Thinking, API capabilities, Released, Prompt caching, Coding Plan access | [Official documentation](https://docs.z.ai/guides/llm/glm-5) |
+| GLM 5.1 | Thinking, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.1) |
+| GLM 5.2 | Thinking, API capabilities, Released, Prompt caching | [Official documentation](https://docs.z.ai/guides/llm/glm-5.2) |
+| GLM 5.3 | Thinking, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/llm/glm-5.3) |
 | GLM 5.3 Flash | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |
 | GLM 5.3 FlashX | Thinking, Input support, API capabilities, Access and billing | [Official documentation](https://docs.z.ai/guides/vlm/glm-5.3-flash) |
 | GPT-5.3-Codex | Usage limits, Thinking | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.3-codex) |
@@ -54,7 +55,7 @@ Existing prices and technical facts were checked against the linked documentatio
 | GPT-5.4 nano | Usage limits, Regional processing, Thinking | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.4-nano) |
 | GPT-5.5 | Usage limits, Long prompts, Regional processing | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.5) |
 | GPT-5.6 Luna | Usage limits, Long prompts | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna) |
-| GPT-5.6 Sol | Usage limits, Long prompts, Promotion | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.6-sol) |
+| GPT-5.6 Sol | Usage limits, Long prompts | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.6-sol) |
 | GPT-5.6 Sol Pro | Identity, Comparison boundary | [Official documentation](https://developers.openai.com/api/docs/models) |
 | GPT-5.6 Terra | Usage limits, Long prompts | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5.6-terra) |
 | GPT-5 mini | Usage limits | [Official documentation](https://developers.openai.com/api/docs/models/gpt-5-mini) |
@@ -71,16 +72,16 @@ Existing prices and technical facts were checked against the linked documentatio
 | LongCat 2.0 | Thinking, Released, Output limit, Billing, Open weights | [Official documentation](https://longcat.chat/platform/docs/change-log) |
 | MAI-Code-1.1-Flash | Product access, Capabilities | [Official documentation](https://github.com/microsoft/MAI-Code) |
 | MiMo V2.5 | Thinking, Released, Deprecation, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5) |
-| MiMo V2.5 Pro | Thinking, Released, Deprecation, Input support, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5-pro) |
+| MiMo V2.5 Pro | Thinking, Released, Deprecation, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.5-pro) |
 | MiMo V2.6 Flash | Thinking, Released, Batch API, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-flash) |
 | MiMo V2.6 Pro | Thinking, Released, Batch API, Variants, Prompt caching, Web search | [Official documentation](https://mimo.mi.com/models/en-US/mimo-v2.6-pro) |
-| MiniMax M2.7 | Thinking, Released, Input support, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
-| MiniMax M3 | Thinking, Released, Context, Output limit, Long-context pricing, Billing, Input support | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
+| MiniMax M2.7 | Thinking, Released, Output limit, Prompt caching, Variants | [Official documentation](https://platform.minimax.io/docs/api-reference/text-anthropic-api) |
+| MiniMax M3 | Thinking, Released, Context, Output limit, Billing | [Official documentation](https://platform.minimax.io/docs/guides/pricing-paygo) |
 | Muse Spark 1.3 | Data choice, Capabilities, Output limit | [Official documentation](https://developer.meta.com/ai/models/muse-spark/) |
 | Nano Banana Pro | API identity, Image generation, Tool limits, Processing options | [Official documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image) |
 | Nemotron 3 Ultra | Thinking, Released, API access, API capabilities, Output limit, Data cutoff, Open weights | [Official documentation](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16) |
 | Qwen 3.7 Max | Thinking, Released on Model Studio, Status, Snapshot and input, Prompt caching, Regions | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
-| Qwen 3.7 Plus | Thinking, Released on Model Studio, Long-context pricing, Prompt caching, Regions, Snapshot | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus) |
+| Qwen 3.7 Plus | Thinking, Released on Model Studio, Prompt caching, Regions, Snapshot | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus) |
 | Qwen 3.8 27B | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-27b) |
 | Qwen 3.8 Flash | Thinking, Released on Model Studio, Prompt caching, Regions, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-flash) |
 | Qwen 3.8 Max | Thinking, Released on Model Studio, Prompt caching, Regions, Snapshots, Thinking length | [Official documentation](https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max) |

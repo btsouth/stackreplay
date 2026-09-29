@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PromoTag } from "@/components/public/promo-tag";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
 import { FEATURED_ALTERNATIVE_MODELS, FEATURED_MODEL_PAIRS } from "@/lib/model-library";
@@ -45,7 +46,10 @@ export function ModelPriceComparison({
     const value = rate(id);
     return (
       <Link key={id} href={`/models/${id}`} className="market-price-bar" data-model-id={id}>
-        <span className="market-price-bar-name">{model.name}</span>
+        <span className="market-price-bar-name">
+          {model.name}
+          <PromoTag promotion={basePrice(prices[id] ?? [])?.promotion} />
+        </span>
         <span className="market-price-bar-value">
           {value === undefined ? "See details" : priceNumber(value)}
         </span>
