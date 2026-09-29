@@ -85,7 +85,7 @@ test.describe("public site", () => {
     await cards.first().getByRole("link", { name: "Explore plan" }).click();
     await page.getByText("Published terms, sources & history", { exact: true }).click();
     await expect(page.getByTestId("source-list").first()).toBeVisible();
-    await expect(page.getByText(/Published terms checked/)).toBeVisible();
+    await expect(page.getByText(/Published terms checked/).first()).toBeVisible();
     await expect(page.getByTestId("qualitative-limits")).toBeVisible();
   });
 

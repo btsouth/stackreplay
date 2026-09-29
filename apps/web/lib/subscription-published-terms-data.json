@@ -751,7 +751,7 @@
         "sourceUrl": "https://cline.bot/privacy"
       }
     ],
-    "codingTools": ["Cline IDE extension", "Cline CLI", "OpenAI-compatible API"],
+    "codingTools": ["Cline", "Cline CLI", "OpenAI-compatible API"],
     "afterLimit": "Check the account usage dashboard; separate usage-billing or another provider remains available.",
     "privacySummary": "No ClinePass-specific upstream ZDR guarantee established in the public guide.",
     "billingSummary": "$9.99 monthly; weekly and monthly usage windows follow the calendar.",
@@ -1837,7 +1837,7 @@
         "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
       }
     ],
-    "codingTools": ["Codex", "ChatGPT Work"],
+    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
     "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
     "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
     "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
@@ -1911,7 +1911,7 @@
         "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
       }
     ],
-    "codingTools": ["Codex", "ChatGPT Work"],
+    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
     "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
     "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
     "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
@@ -1990,7 +1990,7 @@
         "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
       }
     ],
-    "codingTools": ["Codex", "ChatGPT Work"],
+    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
     "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
     "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
     "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
@@ -2052,7 +2052,7 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       }
     ],
-    "codingTools": ["Codex", "ChatGPT Work"],
+    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
     "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
     "privacySummary": "Business inputs and outputs are excluded from model training by default.",
     "billingSummary": "Workspace subscription; allowance depends on seat tier.",

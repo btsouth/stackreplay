@@ -54,9 +54,9 @@ test("model comparison uses the published input label and corrected capability f
     "max input tokens",
   );
   await page.getByLabel("Find a model, family name or exact alias").fill("Kimi K3");
-  await page.getByLabel("Capability", { exact: true }).selectOption("Video input");
+  await page.getByLabel("Capability").selectOption("Video input");
   await expect(page.getByTestId("model-row")).toContainText("Kimi K3");
   await page.getByLabel("Find a model, family name or exact alias").fill("Nano Banana Pro");
-  await page.getByLabel("Capability", { exact: true }).selectOption("Tool calling");
+  await page.getByLabel("Capability").selectOption("Tool calling");
   await expect(page.getByTestId("model-row")).toHaveCount(0);
 });

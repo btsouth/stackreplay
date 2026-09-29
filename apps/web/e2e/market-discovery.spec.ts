@@ -222,8 +222,9 @@ test("special pricing and practical subscription terms have specific explanation
   await expect(page.getByTestId("pricing-note")).toContainText("$120");
   await page.goto("/plans/anthropic-claude-max-5x");
   await expect(page.locator(".market-description")).toContainText("5× Pro");
-  await page.getByText("Session usage limit reset", { exact: true }).first().click();
-  await expect(page.locator(".market-plan-terms details[open]")).toContainText("five hours");
+  await expect(page.getByTestId("published-subscription-terms")).toContainText(
+    "Sessions reset every five hours",
+  );
   await page.goto("/plans/openai-chatgpt-pro-20x");
   await expect(page.locator(".market-description")).toContainText("paused");
   await expect(
