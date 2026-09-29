@@ -27,6 +27,10 @@ import {
   type SubscriptionAccess,
   subscriptionAccess,
 } from "./subscription-access";
+import {
+  type SubscriptionPublishedTerms,
+  subscriptionPublishedTerms,
+} from "./subscription-published-terms";
 
 /**
  * Public catalog read model (M4).
@@ -104,6 +108,7 @@ export interface PublicPlanSummary {
   currentMarketOnly?: boolean;
   /** Provider-published product lineup, separate from executable Replay rules. */
   modelAccess?: SubscriptionAccess;
+  publishedTerms?: SubscriptionPublishedTerms;
 }
 
 /**
@@ -338,6 +343,8 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
   for (const plan of plans) {
     const access = subscriptionAccess(plan.id, date);
     if (access) plan.modelAccess = access;
+    const terms = subscriptionPublishedTerms(plan.id, date);
+    if (terms) plan.publishedTerms = terms;
   }
   const providerName = (id: string) => catalog.providers[id]?.name ?? id;
   const models: PublicModelSummary[] = realModelIds.map((modelId) => {

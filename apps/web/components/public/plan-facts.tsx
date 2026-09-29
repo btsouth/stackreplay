@@ -34,7 +34,7 @@ export function LimitTable({ limits }: { limits: readonly PlanLimitV1[] }) {
   if (limits.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        The provider does not publish a numeric allowance for this plan.
+        No numeric allowance is recorded in this snapshot.
       </p>
     );
   }

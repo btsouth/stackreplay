@@ -50,6 +50,7 @@ const HARNESS_NAMES: Record<string, string> = {
   "kiro-cli": "Kiro",
 };
 export function planTools(plan: PublicPlanSummary): string[] {
+  if (plan.publishedTerms?.codingTools) return plan.publishedTerms.codingTools;
   const explicit = plan.qualitativeLimits.find((limit) => limit.label === "Compatible tools");
   if (explicit) return explicit.statement.split(" · ");
   const catalog = loadCatalog();
@@ -64,6 +65,7 @@ export function planTools(plan: PublicPlanSummary): string[] {
 }
 export function planUsage(plan: PublicPlanSummary): string {
   return (
+    plan.publishedTerms?.allowanceSummary ??
     plan.qualitativeLimits.find((limit) => limit.label === "Included usage")?.statement ??
     (plan.limits.length > 0
       ? plan.limits.map((limit) => limitSentence(limit)).join(" · ")

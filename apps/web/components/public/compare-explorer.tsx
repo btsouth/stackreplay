@@ -6,6 +6,7 @@ import type { CompareFacts } from "@/lib/compare-facts";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
 import { limitUnitText, limitWindowText } from "./plan-facts";
 import { SourceList, VerificationBadge } from "./provenance";
+import { PublishedUsageTable } from "./published-subscription-terms";
 
 /**
  * Public plan comparison (launch).
@@ -61,17 +62,37 @@ function ModelsCell({ facts }: { facts: CompareFacts }) {
 
 function UsageCell({ facts }: { facts: CompareFacts }) {
   if (!facts.usage.lines.length) {
-    return <p className="text-foreground">Provider does not publish a numeric allowance.</p>;
+    return <p className="text-foreground">No numeric allowance is recorded in this snapshot.</p>;
   }
   return (
-    <ul className="space-y-2">
-      {facts.usage.lines.map((line) => (
-        <li key={`${line.text}-${line.detail}`}>
-          <span className="text-foreground">{line.text}</span>
-          <span className="block text-xs text-muted-foreground">{line.detail}</span>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <ul className="space-y-2">
+        {facts.usage.lines.map((line) => (
+          <li key={`${line.text}-${line.detail}`}>
+            <span className="text-foreground">{line.text}</span>
+            <span className="block text-xs text-muted-foreground">{line.detail}</span>
+          </li>
+        ))}
+      </ul>
+      {facts.publishedTerms && (
+        <>
+          {facts.publishedTerms.tables?.[0] && (
+            <details className="mt-3">
+              <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+                {facts.publishedTerms.tables[0].title}
+              </summary>
+              <PublishedUsageTable table={facts.publishedTerms.tables[0]} />
+            </details>
+          )}
+          <Link
+            className="market-link mt-2 inline-flex min-h-11 items-center text-sm"
+            href={`/plans/${facts.planId}#usage`}
+          >
+            Usage, privacy & plan conditions ↗
+          </Link>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -113,7 +134,11 @@ function InspectCell({ plan, facts }: { plan: PublicPlanSummary; facts: CompareF
             Numeric limits
           </p>
           {plan.limits.length === 0 ? (
-            <p className="mt-1 text-muted-foreground">No numeric limit is published.</p>
+            <p className="mt-1 text-muted-foreground">
+              {plan.publishedTerms
+                ? "Published allowances are shown in the usage row. They are not yet executable replay constraints."
+                : "No numeric limit is recorded here."}
+            </p>
           ) : (
             <ul className="mt-1 space-y-3">
               {plan.limits.map((limit) => (
@@ -252,6 +277,9 @@ function TargetHeader({ plan, facts }: { plan: PublicPlanSummary; facts: Compare
       >
         {facts.price}
       </p>
+      {plan.publishedTerms?.availabilityNote && (
+        <p className="mt-3 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
+      )}
       <Link
         className="mt-1 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
         href={`/app/import?target=${encodeURIComponent(plan.id)}`}
@@ -373,6 +401,48 @@ export function CompareExplorer({
               left={<AfterLimitCell facts={leftFacts} />}
               right={<AfterLimitCell facts={rightFacts} />}
             />
+            {(leftFacts.publishedTerms || rightFacts.publishedTerms) && (
+              <>
+                <Row
+                  label="Privacy & data use"
+                  testId="privacy"
+                  leftName={left.name}
+                  rightName={right.name}
+                  left={
+                    <p>
+                      {leftFacts.publishedTerms?.privacySummary ??
+                        "Privacy terms are not recorded here. Check the provider before sending sensitive work."}
+                    </p>
+                  }
+                  right={
+                    <p>
+                      {rightFacts.publishedTerms?.privacySummary ??
+                        "Privacy terms are not recorded here. Check the provider before sending sensitive work."}
+                    </p>
+                  }
+                />
+                <Row
+                  label="Billing & renewal"
+                  testId="billing-terms"
+                  leftName={left.name}
+                  rightName={right.name}
+                  left={
+                    <p>
+                      {leftFacts.publishedTerms?.billingSummary ??
+                        left.billingMechanics ??
+                        "Check provider billing terms."}
+                    </p>
+                  }
+                  right={
+                    <p>
+                      {rightFacts.publishedTerms?.billingSummary ??
+                        right.billingMechanics ??
+                        "Check provider billing terms."}
+                    </p>
+                  }
+                />
+              </>
+            )}
             <Row
               label="Evidence"
               testId="evidence"
@@ -393,8 +463,9 @@ export function CompareExplorer({
         </div>
       ) : null}
       <p className="max-w-[70ch] text-xs leading-relaxed text-muted-foreground">
-        These are the plans as their providers document them. There is no score or winner here. To
-        see how each plan handles the work you actually do, replay your own history against them.
+        Published usage values can use different model rates and multipliers. They are not cash
+        balances or interchangeable request quotas. Replay your history where exact plan mechanics
+        are supported.
       </p>
       <Link
         className="inline-flex min-h-11 items-center self-start text-sm text-accent underline underline-offset-4"

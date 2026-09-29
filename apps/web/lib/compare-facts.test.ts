@@ -33,7 +33,7 @@ function primaryText(facts: CompareFacts): string {
     ...facts.models.more.map((model) => model.name),
     ...facts.codingTools,
     ...facts.usage.lines.map((line) => line.text),
-    facts.usage.numeric ? "" : "Provider does not publish a numeric allowance.",
+    facts.usage.lines.length ? "" : "No numeric allowance is recorded in this snapshot.",
     facts.simulation,
     ...facts.afterLimit.lines,
     ...facts.afterLimit.quotes.map((quote) => quote.text),

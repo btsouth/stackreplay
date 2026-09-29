@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketFooter } from "@/components/public/market-header";
+import { ModelPricingConditions } from "@/components/public/model-pricing-conditions";
 import { SourceList } from "@/components/public/provenance";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
-import { modelCapabilities, tokenSize } from "@/lib/model-specifications";
+import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
+import { modelCapabilities, modelSpecifications, tokenSize } from "@/lib/model-specifications";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
 interface Props {
@@ -27,6 +29,8 @@ export default async function ModelPage({ params }: Props) {
   const catalog = loadPublicCatalog();
   const model = catalog.modelById(modelId);
   if (!model) notFound();
+  const specifications = modelSpecifications(model);
+  const decisionDetails = MODEL_DECISION_DETAILS[model.id];
   const prices = modelPrices(modelId, catalog.asOf);
   const base = basePrice(prices);
   const plans = model.places.filter((p) => p.kind === "plan");
@@ -63,19 +67,19 @@ export default async function ModelPage({ params }: Props) {
         </div>
         <aside className="market-model-profile">
           <p className="market-kicker">
-            {model.specifications?.contextTokens
+            {specifications?.contextTokens
               ? "Context window"
-              : model.specifications?.maxInputTokens
+              : specifications?.maxInputTokens
                 ? "Maximum input"
                 : "Subscription access"}
           </p>
           <p className="market-profile-number">
-            {model.specifications?.contextTokens || model.specifications?.maxInputTokens
-              ? tokenSize(model.specifications.contextTokens ?? model.specifications.maxInputTokens)
+            {specifications?.contextTokens || specifications?.maxInputTokens
+              ? tokenSize(specifications.contextTokens ?? specifications.maxInputTokens)
               : `${plans.length} plans`}
           </p>
           <p className="market-muted">
-            {model.specifications?.contextTokens || model.specifications?.maxInputTokens
+            {specifications?.contextTokens || specifications?.maxInputTokens
               ? "tokens · provider specification"
               : "Documented access in this guide"}
           </p>
@@ -104,6 +108,7 @@ export default async function ModelPage({ params }: Props) {
               ))}
             </div>
           )}
+          {base && <ModelPricingConditions prices={prices} />}
           {model.pricingNote && (
             <p className="market-price-note" data-testid="pricing-note">
               {model.pricingNote}
@@ -122,7 +127,7 @@ export default async function ModelPage({ params }: Props) {
           ) : null}
         </>
       )}
-      {model.specifications && (
+      {specifications && (
         <section className="market-specifications" aria-label="Model specifications">
           <div className="market-section-title">
             <span>02 / Capabilities & limits</span>
@@ -130,25 +135,33 @@ export default async function ModelPage({ params }: Props) {
           </div>
           <dl className="market-fact-list">
             {[
-              ["Context window", model.specifications.contextTokens?.toLocaleString("en-US")],
-              ["Maximum input", model.specifications.maxInputTokens?.toLocaleString("en-US")],
-              ["Maximum output", model.specifications.maxOutputTokens?.toLocaleString("en-US")],
-              ["Input", model.specifications.inputModalities?.join(" · ")],
-              ["Output", model.specifications.outputModalities?.join(" · ")],
-              ["Knowledge cutoff", model.specifications.knowledgeCutoff],
+              ["Context window", specifications.contextTokens?.toLocaleString("en-US")],
+              ["Maximum input", specifications.maxInputTokens?.toLocaleString("en-US")],
+              ["Maximum output", specifications.maxOutputTokens?.toLocaleString("en-US")],
+              ["Input", specifications.inputModalities?.join(" · ")],
+              ["Output", specifications.outputModalities?.join(" · ")],
+              ["Knowledge cutoff", specifications.knowledgeCutoff],
+              [
+                "Reasoning",
+                specifications.reasoning === undefined
+                  ? undefined
+                  : specifications.reasoning
+                    ? "Supported"
+                    : "Not supported",
+              ],
               [
                 "Tool calling",
-                model.specifications.toolCalling === undefined
+                specifications.toolCalling === undefined
                   ? undefined
-                  : model.specifications.toolCalling
+                  : specifications.toolCalling
                     ? "Supported"
                     : "Not supported",
               ],
               [
                 "Structured output",
-                model.specifications.structuredOutput === undefined
+                specifications.structuredOutput === undefined
                   ? undefined
-                  : model.specifications.structuredOutput
+                  : specifications.structuredOutput
                     ? "Supported"
                     : "Not supported",
               ],
@@ -161,17 +174,35 @@ export default async function ModelPage({ params }: Props) {
                 </div>
               ))}
           </dl>
-          {model.specifications.notes?.map((note) => (
+          {specifications.notes?.map((note) => (
             <p key={note} className="market-muted mt-4 max-w-3xl">
               {note}
             </p>
           ))}
         </section>
       )}
+      {decisionDetails && (
+        <section aria-label="Practical model details" className="my-10">
+          <div className="market-section-title">
+            <span>Before you choose</span>
+            <span>Checked {decisionDetails.checkedAt}</span>
+          </div>
+          <dl className="market-fact-list">
+            {decisionDetails.facts.map((fact) => (
+              <div key={fact.label}>
+                <dt>{fact.label}</dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-4">
+            <SourceList sources={decisionDetails.sources} />
+          </div>
+        </section>
+      )}
       <div className="market-section-title">
         <span>
-          {model.kind === "family" ? "01" : model.specifications ? "03" : "02"} / Where you can use
-          it
+          {model.kind === "family" ? "01" : specifications ? "03" : "02"} / Where you can use it
         </span>
         <span>
           {apis.length
@@ -279,7 +310,7 @@ export default async function ModelPage({ params }: Props) {
               </div>
             </section>
           ))}
-          {model.specifications && <SourceList sources={model.specifications.sources} />}
+          {specifications && <SourceList sources={specifications.sources} />}
           <SourceList sources={model.sources} />
           <p className="market-muted">
             Missing token-category prices are not zero. Workload pricing applies exact recorded

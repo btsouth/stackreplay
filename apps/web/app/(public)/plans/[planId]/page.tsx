@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketFooter } from "@/components/public/market-header";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
 import { SourceList } from "@/components/public/provenance";
+import { PublishedSubscriptionTerms } from "@/components/public/published-subscription-terms";
 import { SubscriptionModelAccess } from "@/components/public/subscription-model-access";
 import { buildCompareFacts } from "@/lib/compare-facts";
 import { planTools, planUsage } from "@/lib/market-discovery";
@@ -49,7 +50,9 @@ export default async function PlanPage({ params }: Props) {
           </Link>
           <h1>{plan.name}</h1>
           <p className="market-description">{planUsage(plan)}</p>
-          <p className="market-muted mt-3">Published terms checked {plan.lastVerifiedAt}</p>
+          <p className="market-muted mt-3">
+            Published terms checked {plan.publishedTerms?.checkedAt ?? plan.lastVerifiedAt}
+          </p>
         </div>
         <aside className="self-end border-l-2 border-accent pl-6">
           <p className="market-kicker">Published subscription price</p>
@@ -59,6 +62,11 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-muted">
             USD / {plan.price.interval} · actual paid amount may differ
           </p>
+          {plan.publishedTerms?.availabilityNote && (
+            <p className="my-3 max-w-sm text-sm text-warning">
+              {plan.publishedTerms.availabilityNote}
+            </p>
+          )}
           <Link href={`/compare?left=${plan.id}`} className="market-link">
             Compare this plan ↗
           </Link>
@@ -82,31 +90,37 @@ export default async function PlanPage({ params }: Props) {
           </p>
         </div>
       </section>
-      <section>
+      <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">
           <span>01 / What you get</span>
         </div>
-        {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
-        <div className="market-plan-terms">
-          {practicalTerms.map((term) => (
-            <details key={term.id}>
-              <summary>{term.label.replace(/ \(.*\)$/u, "")}</summary>
-              <p>{term.statement}</p>
-              {term.sourceUrl && (
-                <a
-                  href={term.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="market-link"
-                >
-                  Provider details ↗
-                </a>
-              )}
-            </details>
-          ))}
-        </div>
-        {plan.billingMechanics && (
-          <p className="market-muted mt-5 max-w-3xl">{plan.billingMechanics}</p>
+        {plan.publishedTerms ? (
+          <PublishedSubscriptionTerms terms={plan.publishedTerms} />
+        ) : (
+          <>
+            {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
+            <div className="market-plan-terms">
+              {practicalTerms.map((term) => (
+                <details key={term.id}>
+                  <summary>{term.label.replace(/ \(.*\)$/u, "")}</summary>
+                  <p>{term.statement}</p>
+                  {term.sourceUrl && (
+                    <a
+                      href={term.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="market-link"
+                    >
+                      Provider details ↗
+                    </a>
+                  )}
+                </details>
+              ))}
+            </div>
+            {plan.billingMechanics && (
+              <p className="market-muted mt-5 max-w-3xl">{plan.billingMechanics}</p>
+            )}
+          </>
         )}
       </section>
       <section id="model-access" className="mt-10 scroll-mt-24">

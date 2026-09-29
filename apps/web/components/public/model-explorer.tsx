@@ -12,7 +12,12 @@ import {
   modelsInView,
   searchModels,
 } from "@/lib/model-library";
-import { modelCapabilities, tokenSize } from "@/lib/model-specifications";
+import {
+  modelCapabilities,
+  modelContext,
+  modelSpecifications,
+  tokenSize,
+} from "@/lib/model-specifications";
 import type { PublicModelSummary } from "@/lib/public-catalog";
 
 export function ModelExplorer({
@@ -36,7 +41,7 @@ export function ModelExplorer({
         matchesDeveloper(m, developer) &&
         (capability === "all" ||
           (capability === "long-context"
-            ? (m.specifications?.contextTokens ?? 0) >= 1_000_000
+            ? (modelContext(m).value ?? 0) >= 1_000_000
             : modelCapabilities(m).includes(capability))),
     );
     if (sort === "featured") {
@@ -82,12 +87,17 @@ export function ModelExplorer({
           Capability
           <select value={capability} onChange={(e) => setCapability(e.target.value)}>
             <option value="all">All capabilities</option>
-            {["Reasoning", "Tool calling", "Vision", "Audio input", "Structured output"].map(
-              (item) => (
-                <option key={item}>{item}</option>
-              ),
-            )}
-            <option value="long-context">1M+ context</option>
+            {[
+              "Reasoning",
+              "Tool calling",
+              "Vision",
+              "Audio input",
+              "Video input",
+              "Structured output",
+            ].map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+            <option value="long-context">1M+ input / context</option>
           </select>
         </label>
         <label>
@@ -147,12 +157,16 @@ export function ModelExplorer({
                 >
                   {model.name} ↗
                 </Link>
-                <p className="market-profile-number">
-                  {tokenSize(model.specifications?.contextTokens)}
+                <p
+                  className={
+                    modelContext(model).value ? "market-profile-number" : "market-muted mt-4"
+                  }
+                >
+                  {tokenSize(modelContext(model).value)}
                 </p>
-                <p className="market-muted">context tokens</p>
+                <p className="market-muted">{modelContext(model).label} tokens</p>
                 <p className="market-muted mt-4">
-                  Max output {tokenSize(model.specifications?.maxOutputTokens)}
+                  Max output {tokenSize(modelSpecifications(model)?.maxOutputTokens)}
                 </p>
                 <p className="market-muted mt-2">
                   {modelCapabilities(model).join(" · ") || "Capabilities on model page"}
@@ -199,14 +213,12 @@ export function ModelExplorer({
                   {model.developerName ?? "Model release"} ·{" "}
                   {model.kind === "family" ? "Family name" : (model.lifecycle ?? "Release")}
                 </p>
-                {model.specifications && (
+                {modelSpecifications(model) && (
                   <p className="market-model-spec-line">
-                    {model.specifications.contextTokens
-                      ? `${tokenSize(model.specifications.contextTokens)} context`
+                    {modelContext(model).value
+                      ? `${tokenSize(modelContext(model).value)} ${modelContext(model).label}`
                       : ""}
-                    {model.specifications.contextTokens && modelCapabilities(model).length
-                      ? " · "
-                      : ""}
+                    {modelContext(model).value && modelCapabilities(model).length ? " · " : ""}
                     {modelCapabilities(model).slice(0, 2).join(" · ")}
                   </p>
                 )}

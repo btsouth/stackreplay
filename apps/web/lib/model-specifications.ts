@@ -1,7 +1,30 @@
+import { MODEL_DECISION_DETAILS } from "./model-decision-details";
 import type { PublicModelSummary } from "./public-catalog";
 
+/** Sourced display corrections are intentionally independent of execution admission. */
+export function modelSpecifications(model: PublicModelSummary) {
+  const details = MODEL_DECISION_DETAILS[model.id];
+  if (!model.specifications && !details?.specifications) return undefined;
+  const specifications = {
+    ...model.specifications,
+    ...details?.specifications,
+    sources: [...(model.specifications?.sources ?? []), ...(details?.sources ?? [])],
+  };
+  for (const key of details?.omitSpecifications ?? []) delete specifications[key];
+  return specifications;
+}
+
+export function modelContext(model: PublicModelSummary) {
+  const specs = modelSpecifications(model);
+  return specs?.contextTokens !== undefined
+    ? { value: specs.contextTokens, label: "context" }
+    : specs?.maxInputTokens !== undefined
+      ? { value: specs.maxInputTokens, label: "max input" }
+      : { value: undefined, label: "context" };
+}
+
 export function tokenSize(value: number | undefined): string {
-  if (value === undefined) return "Not published here";
+  if (value === undefined) return "Not documented";
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(
     value,
   );
@@ -9,13 +32,14 @@ export function tokenSize(value: number | undefined): string {
 
 /** Only explicit positive capabilities become discovery filters or badges. */
 export function modelCapabilities(model: PublicModelSummary): string[] {
-  const specs = model.specifications;
+  const specs = modelSpecifications(model);
   if (!specs) return [];
   return [
     ...(specs.reasoning ? ["Reasoning"] : []),
     ...(specs.toolCalling ? ["Tool calling"] : []),
     ...(specs.inputModalities?.includes("image") ? ["Vision"] : []),
     ...(specs.inputModalities?.includes("audio") ? ["Audio input"] : []),
+    ...(specs.inputModalities?.includes("video") ? ["Video input"] : []),
     ...(specs.structuredOutput ? ["Structured output"] : []),
   ];
 }

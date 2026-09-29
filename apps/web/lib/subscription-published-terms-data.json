@@ -1,0 +1,2230 @@
+{
+  "command-code-go": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://commandcode.ai/docs/plans/go",
+      "https://commandcode.ai/docs/resources/usage-limits",
+      "https://commandcode.ai/docs/resources/zdr"
+    ],
+    "allowanceSummary": "$6–$10 per-model monthly usage, sharing one $10 pool",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "One shared $10 pool. Each model has $6–$10 of usage if used alone for the month; mixing models spends the pool proportionally. Allowances are not additive.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      },
+      {
+        "label": "Short windows",
+        "value": "The Go plan page and migration guidance say 3 credits per five hours and 6 per week; the general usage table and FAQ still say 2 and 5. These official pages conflict. Check /usage for the limits actually applied to your account.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Five-hour and weekly windows begin on the first request after the previous window ends. Monthly allowance resets at the billing cycle.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "After the limit",
+        "value": "Purchased credits continue paid-model usage outside included-credit window limits. Without extra credits, paid models pause; available free models can continue.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Rollover",
+        "value": "Unused included credits reset each cycle. Purchased credits carry over and do not expire.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      },
+      {
+        "label": "Tools",
+        "value": "Command Code CLI.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      },
+      {
+        "label": "Privacy",
+        "value": "ZDR can be required with CMD_ZDR=1 or the API header. It restricts routing to eligible upstreams and fails when none is available; pricing can differ.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      },
+      {
+        "label": "Plan transition",
+        "value": "New subscriptions use per-model allowances from September 28, 2026. Existing flat-$10 subscriptions change at their next renewal.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      },
+      {
+        "label": "ZDR allowance",
+        "value": "Enforced ZDR uses the default allowance of $6 instead of boosted per-model allowances. Upstream token prices may also be higher.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      },
+      {
+        "label": "Plan-specific window guidance",
+        "value": "The current Go page quotes $3 per five hours and $6 per week at full-allowance model rates. General usage documentation has not reconciled every table with this guidance.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      }
+    ],
+    "codingTools": ["Command Code CLI"],
+    "afterLimit": "Extra credits continue usage; otherwise paid models pause until reset.",
+    "privacySummary": "Optional enforced ZDR; upstream availability and pricing can differ.",
+    "billingSummary": "Monthly cycle; purchased credits carry over without expiry.",
+    "tables": [
+      {
+        "id": "model-allowances",
+        "title": "Monthly model allowances",
+        "columns": ["Model", "Monthly credit limit"],
+        "rows": [
+          ["DeepSeek V4.1 Flash", "$10"],
+          ["GLM-5.2", "$10"],
+          ["Tencent Hy3", "$10"],
+          ["Qwen 3.8 27B", "$10"],
+          ["Qwen 3.7 Max", "$10"],
+          ["Qwen 3.7 Plus", "$10"],
+          ["Qwen 3.6 Plus", "$10"],
+          ["GLM-5.3 Flash", "$10"],
+          ["LongCat 2.0", "$10"],
+          ["GLM-5.3", "$10"],
+          ["Kimi K2.7 Code", "$9"],
+          ["GLM-5.2 Fast", "$9"],
+          ["MiniMax M3", "$8"],
+          ["DeepSeek V4 Flash Fast", "$8"],
+          ["Kimi K3", "$8"],
+          ["Qwen 3.8 Max", "$7"],
+          ["Qwen 3.8 Max 0902", "$7"],
+          ["DeepSeek V4 Flash (latest)", "$6"],
+          ["DeepSeek V4.1 Flash Fast", "$6"],
+          ["GPT-5.6 Luna", "$6"],
+          ["MiMo V2.5", "$6"],
+          ["DeepSeek V4 Pro (latest)", "$6"],
+          ["MiMo V2.5 Pro", "$6"],
+          ["GPT-6 Luna", "$6"],
+          ["Qwen 3.8 Omni Flash", "$6"],
+          ["Tencent Hy4 Preview", "$6"],
+          ["Qwen 3.8 Flash", "$6"],
+          ["GLM-5.3 FlashX", "$6"],
+          ["DeepSeek V4 Flash Vision (exp)", "$6"],
+          ["Muse Spark 1.3 Contributor", "$6"],
+          ["Muse Spark 1.2 Contributor", "$6"],
+          ["Kimi K2.7 Code HighSpeed", "$6"],
+          ["Grok 4.5", "$6"],
+          ["Inkling", "$6"],
+          ["Inkling Small", "$6"],
+          ["MiMo V2.6 Pro", "$6"],
+          ["MiMo V2.6 Flash", "$6"],
+          ["Step 5 Preview", "$6"],
+          ["Step 3.7 Flash", "$6"],
+          ["Step 3.5 Flash", "$6"],
+          ["Nemotron 3 Ultra", "$6"],
+          ["Kimi K2.6", "$6"],
+          ["Kimi K2.5", "$6"],
+          ["GLM-5.1", "$6"],
+          ["GLM-5", "$6"],
+          ["Qwen 3.7 Flash", "$6"],
+          ["Qwen 3.6 Max Preview", "$6"],
+          ["MiniMax M2.7", "$6"],
+          ["MiniMax M2.5", "$6"],
+          ["Space Bunny Alpha", "Free while available"],
+          ["Pixel Canary", "Free while available"],
+          ["Laguna S 2.1", "Free while available"],
+          ["Ling 3.0 Flash Sante", "Free while available"]
+        ],
+        "note": "One shared $10 pool, weighted by each model allowance. Rows are not additive balances. Purchased extra credits use regular model rates. Free models depend on provider availability.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/go"
+      }
+    ],
+    "availabilityNote": "New subscriptions use per-model allowances from September 28, 2026. Existing flat-$10 subscriptions change at their next renewal."
+  },
+  "command-code-goat": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://commandcode.ai/docs/plans/goat",
+      "https://commandcode.ai/docs/resources/usage-limits",
+      "https://commandcode.ai/docs/resources/zdr"
+    ],
+    "allowanceSummary": "$70 monthly usage; model-specific allowances",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$70 monthly usage; model-specific allowances. Per-model allowances share plan limits; do not add the rows together.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/goat"
+      },
+      {
+        "label": "Short windows",
+        "value": "14 plan credits per five hours; 35 per seven days. These equal $14/$35 of usage on full-allowance models; lower-allowance models consume the pool proportionally faster.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Five-hour and weekly windows begin on the first request after the previous window ends. Monthly allowance resets at the billing cycle.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "After the limit",
+        "value": "Purchased credits continue paid-model usage outside included-credit window limits. Without extra credits, paid models pause; available free models can continue.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Rollover",
+        "value": "Unused included credits reset each cycle. Purchased credits carry over and do not expire.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/goat"
+      },
+      {
+        "label": "Tools",
+        "value": "Command Code CLI and Provider API, including compatible OpenAI and Anthropic clients. The Go plan does not include API access.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/goat"
+      },
+      {
+        "label": "Privacy",
+        "value": "ZDR can be required with CMD_ZDR=1 or the API header. It restricts routing to eligible upstreams and fails when none is available; pricing can differ.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      },
+      {
+        "label": "ZDR allowance",
+        "value": "Enforced ZDR uses the default allowance of $20 instead of boosted per-model allowances. Upstream token prices may also be higher.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      }
+    ],
+    "codingTools": [
+      "Command Code CLI",
+      "Provider API",
+      "OpenAI-compatible clients",
+      "Anthropic-compatible clients"
+    ],
+    "afterLimit": "Extra credits continue usage; otherwise paid models pause until reset.",
+    "privacySummary": "Optional enforced ZDR; upstream availability and pricing can differ.",
+    "billingSummary": "Monthly cycle; purchased credits carry over without expiry.",
+    "tables": [
+      {
+        "id": "model-allowances",
+        "title": "Monthly model allowances",
+        "columns": ["Model", "Monthly credit limit"],
+        "rows": [
+          ["GPT-5.6 Sol", "$70"],
+          ["GLM-5.2", "$70"],
+          ["Tencent Hy3", "$70"],
+          ["Qwen 3.8 27B", "$70"],
+          ["DeepSeek V4 Flash (latest)", "$60"],
+          ["DeepSeek V4.1 Flash", "$60"],
+          ["DeepSeek V4.1 Flash Fast", "$60"],
+          ["Kimi K2.7 Code", "$60"],
+          ["LongCat 2.0", "$50"],
+          ["MiniMax M3", "$47"],
+          ["GLM-5.3 Flash", "$40"],
+          ["Gemini 3.8 Flash", "$40"],
+          ["Qwen 3.7 Max", "$33"],
+          ["Qwen 3.7 Plus", "$33"],
+          ["Qwen 3.6 Plus", "$33"],
+          ["MiMo V2.5", "$30"],
+          ["GPT-5.6 Luna", "$20"],
+          ["Qwen 3.8 Max", "$20"],
+          ["DeepSeek V4 Pro (latest)", "$20"],
+          ["MiMo V2.5 Pro", "$20"],
+          ["Claude Sonnet 5.5", "$10"],
+          ["GPT-6 Luna", "$20"],
+          ["Qwen 3.8 Omni Flash", "$20"],
+          ["Qwen 3.8 Max 0902", "$20"],
+          ["Tencent Hy4 Preview", "$20"],
+          ["Qwen 3.8 Flash", "$20"],
+          ["GLM-5.3 FlashX", "$20"],
+          ["DeepSeek V4 Flash Vision (exp)", "$20"],
+          ["DeepSeek V4 Flash Fast", "$20"],
+          ["GLM-5.3", "$20"],
+          ["Muse Spark 1.3", "$20"],
+          ["Muse Spark 1.3 Contributor", "$20"],
+          ["Muse Spark 1.2", "$20"],
+          ["Muse Spark 1.2 Contributor", "$20"],
+          ["Kimi K3", "$20"],
+          ["Kimi K2.7 Code HighSpeed", "$20"],
+          ["Grok 4.5", "$20"],
+          ["Grok 4.6", "$20"],
+          ["Grok 4.7", "$20"],
+          ["Gemini 3.7 Flash", "$40"],
+          ["GLM-5.2 Fast", "$20"],
+          ["Inkling", "$20"],
+          ["Inkling Small", "$20"],
+          ["MiMo V2.6 Pro", "$20"],
+          ["MiMo V2.6 Flash", "$20"],
+          ["MiMo V2.6 Pro UltraSpeed", "$10"],
+          ["Step 5 Preview", "$20"],
+          ["Step 3.7 Flash", "$20"],
+          ["Step 3.5 Flash", "$20"],
+          ["Nemotron 3 Ultra", "$20"],
+          ["Jev", "$20"],
+          ["Kimi K2.6", "$20"],
+          ["Kimi K2.5", "$20"],
+          ["GLM-5.1", "$20"],
+          ["GLM-5", "$20"],
+          ["Qwen 3.7 Flash", "$20"],
+          ["Qwen 3.6 Max Preview", "$20"],
+          ["MiniMax M2.7", "$20"],
+          ["MiniMax M2.5", "$20"],
+          ["Space Bunny Alpha", "Free while available"],
+          ["Pixel Canary", "Free while available"],
+          ["Laguna S 2.1", "Free while available"],
+          ["Ling 3.0 Flash Sante", "Free while available"]
+        ],
+        "note": "Provider-published per-model limits, sharing the plan limits above. They are not additive balances or guaranteed response counts. Deals and allowances may change.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/goat"
+      }
+    ]
+  },
+  "command-code-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://commandcode.ai/docs/plans/pro",
+      "https://commandcode.ai/docs/resources/usage-limits",
+      "https://commandcode.ai/docs/resources/zdr"
+    ],
+    "allowanceSummary": "$80 monthly usage; model-specific allowances",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$80 monthly usage; model-specific allowances. Per-model allowances share plan limits; do not add the rows together.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/pro"
+      },
+      {
+        "label": "Short windows",
+        "value": "16 plan credits per five hours; 40 per seven days. These equal $16/$40 of usage on full-allowance models; lower-allowance models consume the pool proportionally faster.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Five-hour and weekly windows begin on the first request after the previous window ends. Monthly allowance resets at the billing cycle.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "After the limit",
+        "value": "Purchased credits continue paid-model usage outside included-credit window limits. Without extra credits, paid models pause; available free models can continue.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Rollover",
+        "value": "Unused included credits reset each cycle. Purchased credits carry over and do not expire.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/pro"
+      },
+      {
+        "label": "Tools",
+        "value": "Command Code CLI and Provider API, including compatible OpenAI and Anthropic clients. The Go plan does not include API access.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/pro"
+      },
+      {
+        "label": "Privacy",
+        "value": "ZDR can be required with CMD_ZDR=1 or the API header. It restricts routing to eligible upstreams and fails when none is available; pricing can differ.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      },
+      {
+        "label": "ZDR allowance",
+        "value": "Enforced ZDR uses the default allowance of $30 for open models or $20 for premium models instead of boosted per-model allowances. Upstream token prices may also be higher.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      }
+    ],
+    "codingTools": [
+      "Command Code CLI",
+      "Provider API",
+      "OpenAI-compatible clients",
+      "Anthropic-compatible clients"
+    ],
+    "afterLimit": "Extra credits continue usage; otherwise paid models pause until reset.",
+    "privacySummary": "Optional enforced ZDR; upstream availability and pricing can differ.",
+    "billingSummary": "Monthly cycle; purchased credits carry over without expiry.",
+    "tables": [
+      {
+        "id": "model-allowances",
+        "title": "Monthly model allowances",
+        "columns": ["Model", "Monthly credit limit"],
+        "rows": [
+          ["GPT-5.6 Sol", "$80"],
+          ["GLM-5.2", "$80"],
+          ["Tencent Hy3", "$80"],
+          ["Qwen 3.8 27B", "$80"],
+          ["DeepSeek V4 Flash (latest)", "$70"],
+          ["DeepSeek V4.1 Flash", "$70"],
+          ["DeepSeek V4.1 Flash Fast", "$70"],
+          ["Kimi K2.7 Code", "$70"],
+          ["LongCat 2.0", "$60"],
+          ["MiniMax M3", "$57"],
+          ["GLM-5.3 Flash", "$50"],
+          ["Gemini 3.8 Flash", "$50"],
+          ["Qwen 3.7 Max", "$43"],
+          ["Qwen 3.7 Plus", "$43"],
+          ["Qwen 3.6 Plus", "$43"],
+          ["MiMo V2.5", "$40"],
+          ["GPT-5.6 Luna", "$30"],
+          ["Qwen 3.8 Max", "$30"],
+          ["DeepSeek V4 Pro (latest)", "$30"],
+          ["MiMo V2.5 Pro", "$30"],
+          ["Claude Sonnet 5.5", "$20"],
+          ["Claude Sonnet 5", "$20"],
+          ["Claude Sonnet 4.6", "$20"],
+          ["Claude Haiku 4.5", "$20"],
+          ["GPT-6 Sol", "$20"],
+          ["GPT-5.6 Terra", "$20"],
+          ["GPT-5.5", "$20"],
+          ["GPT-5.4", "$20"],
+          ["GPT-5.4 Mini", "$20"],
+          ["GPT-5.3 Codex", "$20"],
+          ["Gemini 3.6 Flash", "$20"],
+          ["Gemini 3.5 Flash", "$20"],
+          ["Gemini 3.5 Flash Lite", "$20"],
+          ["Gemini 3.1 Flash Lite", "$20"],
+          ["Muse Spark 1.1", "$20"],
+          ["GPT-6 Luna", "$30"],
+          ["Qwen 3.8 Omni Flash", "$30"],
+          ["Qwen 3.8 Max 0902", "$30"],
+          ["Tencent Hy4 Preview", "$30"],
+          ["Qwen 3.8 Flash", "$30"],
+          ["GLM-5.3 FlashX", "$30"],
+          ["DeepSeek V4 Flash Vision (exp)", "$30"],
+          ["DeepSeek V4 Flash Fast", "$30"],
+          ["GLM-5.3", "$30"],
+          ["Muse Spark 1.3", "$30"],
+          ["Muse Spark 1.3 Contributor", "$30"],
+          ["Muse Spark 1.2", "$30"],
+          ["Muse Spark 1.2 Contributor", "$30"],
+          ["Kimi K3", "$30"],
+          ["Kimi K2.7 Code HighSpeed", "$30"],
+          ["Grok 4.5", "$30"],
+          ["Grok 4.6", "$30"],
+          ["Grok 4.7", "$30"],
+          ["Gemini 3.7 Flash", "$50"],
+          ["GLM-5.2 Fast", "$30"],
+          ["Inkling", "$30"],
+          ["Inkling Small", "$30"],
+          ["MiMo V2.6 Pro", "$30"],
+          ["MiMo V2.6 Flash", "$30"],
+          ["MiMo V2.6 Pro UltraSpeed", "$20"],
+          ["Step 5 Preview", "$30"],
+          ["Step 3.7 Flash", "$30"],
+          ["Step 3.5 Flash", "$30"],
+          ["Nemotron 3 Ultra", "$30"],
+          ["Jev", "$30"],
+          ["Kimi K2.6", "$30"],
+          ["Kimi K2.5", "$30"],
+          ["GLM-5.1", "$30"],
+          ["GLM-5", "$30"],
+          ["Qwen 3.7 Flash", "$30"],
+          ["Qwen 3.6 Max Preview", "$30"],
+          ["MiniMax M2.7", "$30"],
+          ["MiniMax M2.5", "$30"],
+          ["Space Bunny Alpha", "Free while available"],
+          ["Pixel Canary", "Free while available"],
+          ["Laguna S 2.1", "Free while available"],
+          ["Ling 3.0 Flash Sante", "Free while available"]
+        ],
+        "note": "Provider-published per-model limits, sharing the plan limits above. They are not additive balances or guaranteed response counts. Deals and allowances may change.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/pro"
+      }
+    ]
+  },
+  "command-code-max-10x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://commandcode.ai/docs/plans/max",
+      "https://commandcode.ai/docs/resources/usage-limits",
+      "https://commandcode.ai/docs/resources/zdr"
+    ],
+    "allowanceSummary": "$150 monthly usage; $100 premium-model limit",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$150 monthly usage; $100 premium-model limit. Per-model allowances share plan limits; do not add the rows together.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Short windows",
+        "value": "$45 per five-hour window; $90 per seven-day window. Both also apply to the monthly allowance.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Five-hour and weekly windows begin on the first request after the previous window ends. Monthly allowance resets at the billing cycle.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "After the limit",
+        "value": "Purchased credits continue paid-model usage outside included-credit window limits. Without extra credits, paid models pause; available free models can continue.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Rollover",
+        "value": "Unused included credits reset each cycle. Purchased credits carry over and do not expire.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Tools",
+        "value": "Command Code CLI and Provider API, including compatible OpenAI and Anthropic clients. The Go plan does not include API access.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Privacy",
+        "value": "ZDR can be required with CMD_ZDR=1 or the API header. It restricts routing to eligible upstreams and fails when none is available; pricing can differ.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      }
+    ],
+    "codingTools": [
+      "Command Code CLI",
+      "Provider API",
+      "OpenAI-compatible clients",
+      "Anthropic-compatible clients"
+    ],
+    "afterLimit": "Extra credits continue usage; otherwise paid models pause until reset.",
+    "privacySummary": "Optional enforced ZDR; upstream availability and pricing can differ.",
+    "billingSummary": "Monthly cycle; purchased credits carry over without expiry.",
+    "tables": [
+      {
+        "id": "model-allowances",
+        "title": "Monthly model allowances",
+        "columns": ["Model", "Monthly credit limit"],
+        "rows": [
+          ["Space Bunny Alpha", "Free"],
+          ["Pixel Canary", "Free"],
+          ["Laguna S 2.1", "Free"],
+          ["Ling 3.0 Flash Sante", "Free"],
+          ["Tencent Hy4 Preview", "$150"],
+          ["Tencent Hy3", "$150"],
+          ["Kimi K3", "$150"],
+          ["Kimi K2.7 Code", "$150"],
+          ["Kimi K2.7 Code HighSpeed", "$150"],
+          ["Kimi K2.6", "$150"],
+          ["Kimi K2.5", "$150"],
+          ["GLM-5.3 Flash", "$150"],
+          ["GLM-5.3 FlashX", "$150"],
+          ["GLM-5.3", "$150"],
+          ["GLM-5.2", "$150"],
+          ["GLM-5.2 Fast", "$150"],
+          ["GLM-5.1", "$150"],
+          ["GLM-5", "$150"],
+          ["MiniMax M3", "$150"],
+          ["MiniMax M2.7", "$150"],
+          ["MiniMax M2.5", "$150"],
+          ["DeepSeek V4 Pro (latest)", "$150"],
+          ["DeepSeek V4 Flash (latest)", "$150"],
+          ["DeepSeek V4 Flash Vision (exp)", "$150"],
+          ["DeepSeek V4 Flash Fast", "$150"],
+          ["DeepSeek V4.1 Flash", "$150"],
+          ["DeepSeek V4.1 Flash Fast", "$150"],
+          ["Qwen 3.8 Omni Flash", "$150"],
+          ["Qwen 3.8 Max 0902", "$150"],
+          ["Qwen 3.8 Max", "$150"],
+          ["Qwen 3.8 27B", "$150"],
+          ["Qwen 3.6 Max Preview", "$150"],
+          ["Qwen 3.6 Plus", "$150"],
+          ["Qwen 3.7 Max", "$150"],
+          ["Qwen 3.7 Plus", "$150"],
+          ["Qwen 3.8 Flash", "$150"],
+          ["Qwen 3.7 Flash", "$150"],
+          ["LongCat 2.0", "$150"],
+          ["Step 5 Preview", "$150"],
+          ["Step 3.7 Flash", "$150"],
+          ["Step 3.5 Flash", "$150"],
+          ["MiMo V2.6 Pro", "$150"],
+          ["MiMo V2.6 Pro UltraSpeed", "$150"],
+          ["MiMo V2.6 Flash", "$150"],
+          ["MiMo V2.5 Pro", "$150"],
+          ["MiMo V2.5", "$150"],
+          ["Nemotron 3 Ultra", "$150"],
+          ["Claude Fable 5.1", "$100"],
+          ["Claude Fable 5", "$100"],
+          ["Claude Opus 5.5", "$100"],
+          ["Claude Opus 5", "$100"],
+          ["Claude Opus 4.8", "$100"],
+          ["Claude Opus 4.7", "$100"],
+          ["Claude Opus 4.6", "$100"],
+          ["Claude Sonnet 5.5", "$150"],
+          ["Claude Sonnet 5", "$100"],
+          ["Claude Sonnet 4.6", "$100"],
+          ["Claude Haiku 4.5", "$100"],
+          ["GPT-6 Astra", "$100"],
+          ["GPT-6 Sol", "$100"],
+          ["GPT-6 Luna", "$150"],
+          ["GPT-5.6 Sol", "$150"],
+          ["GPT-5.6 Terra", "$100"],
+          ["GPT-5.6 Luna", "$150"],
+          ["GPT-5.5", "$100"],
+          ["GPT-5.4", "$100"],
+          ["GPT-5.4 Mini", "$100"],
+          ["GPT-5.3 Codex", "$100"],
+          ["Gemini 3.8 Flash", "$150"],
+          ["Gemini 3.7 Flash", "$150"],
+          ["Gemini 3.6 Flash", "$100"],
+          ["Gemini 3.5 Flash", "$100"],
+          ["Gemini 3.5 Flash Lite", "$100"],
+          ["Gemini 3.1 Flash Lite", "$100"],
+          ["Fugu Ultra", "$100"],
+          ["Muse Spark 1.3", "$150"],
+          ["Muse Spark 1.3 Contributor", "$150"],
+          ["Muse Spark 1.2", "$150"],
+          ["Muse Spark 1.2 Contributor", "$150"],
+          ["Muse Spark 1.1", "$100"],
+          ["Grok 4.7", "$150"],
+          ["Grok 4.6", "$150"],
+          ["Grok 4.5", "$150"],
+          ["Inkling", "$150"],
+          ["Inkling Small", "$150"],
+          ["Jev", "$150"]
+        ],
+        "note": "Provider-published per-model limits, sharing the plan limits above. They are not additive balances or guaranteed response counts. Deals and allowances may change.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      }
+    ]
+  },
+  "command-code-max-20x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://commandcode.ai/docs/plans/max",
+      "https://commandcode.ai/docs/resources/usage-limits",
+      "https://commandcode.ai/docs/resources/zdr"
+    ],
+    "allowanceSummary": "$300 monthly usage; $200 premium-model limit",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$300 monthly usage; $200 premium-model limit. Per-model allowances share plan limits; do not add the rows together.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Short windows",
+        "value": "$90 per five-hour window; $180 per seven-day window. Both also apply to the monthly allowance.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Five-hour and weekly windows begin on the first request after the previous window ends. Monthly allowance resets at the billing cycle.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "After the limit",
+        "value": "Purchased credits continue paid-model usage outside included-credit window limits. Without extra credits, paid models pause; available free models can continue.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/usage-limits"
+      },
+      {
+        "label": "Rollover",
+        "value": "Unused included credits reset each cycle. Purchased credits carry over and do not expire.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Tools",
+        "value": "Command Code CLI and Provider API, including compatible OpenAI and Anthropic clients. The Go plan does not include API access.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      },
+      {
+        "label": "Privacy",
+        "value": "ZDR can be required with CMD_ZDR=1 or the API header. It restricts routing to eligible upstreams and fails when none is available; pricing can differ.",
+        "sourceUrl": "https://commandcode.ai/docs/resources/zdr"
+      }
+    ],
+    "codingTools": [
+      "Command Code CLI",
+      "Provider API",
+      "OpenAI-compatible clients",
+      "Anthropic-compatible clients"
+    ],
+    "afterLimit": "Extra credits continue usage; otherwise paid models pause until reset.",
+    "privacySummary": "Optional enforced ZDR; upstream availability and pricing can differ.",
+    "billingSummary": "Monthly cycle; purchased credits carry over without expiry.",
+    "tables": [
+      {
+        "id": "model-allowances",
+        "title": "Monthly model allowances",
+        "columns": ["Model", "Monthly credit limit"],
+        "rows": [
+          ["Space Bunny Alpha", "Free"],
+          ["Pixel Canary", "Free"],
+          ["Laguna S 2.1", "Free"],
+          ["Ling 3.0 Flash Sante", "Free"],
+          ["Tencent Hy4 Preview", "$300"],
+          ["Tencent Hy3", "$300"],
+          ["Kimi K3", "$300"],
+          ["Kimi K2.7 Code", "$300"],
+          ["Kimi K2.7 Code HighSpeed", "$300"],
+          ["Kimi K2.6", "$300"],
+          ["Kimi K2.5", "$300"],
+          ["GLM-5.3 Flash", "$300"],
+          ["GLM-5.3 FlashX", "$300"],
+          ["GLM-5.3", "$300"],
+          ["GLM-5.2", "$300"],
+          ["GLM-5.2 Fast", "$300"],
+          ["GLM-5.1", "$300"],
+          ["GLM-5", "$300"],
+          ["MiniMax M3", "$300"],
+          ["MiniMax M2.7", "$300"],
+          ["MiniMax M2.5", "$300"],
+          ["DeepSeek V4 Pro (latest)", "$300"],
+          ["DeepSeek V4 Flash (latest)", "$300"],
+          ["DeepSeek V4 Flash Vision (exp)", "$300"],
+          ["DeepSeek V4 Flash Fast", "$300"],
+          ["DeepSeek V4.1 Flash", "$300"],
+          ["DeepSeek V4.1 Flash Fast", "$300"],
+          ["Qwen 3.8 Omni Flash", "$300"],
+          ["Qwen 3.8 Max 0902", "$300"],
+          ["Qwen 3.8 Max", "$300"],
+          ["Qwen 3.8 27B", "$300"],
+          ["Qwen 3.6 Max Preview", "$300"],
+          ["Qwen 3.6 Plus", "$300"],
+          ["Qwen 3.7 Max", "$300"],
+          ["Qwen 3.7 Plus", "$300"],
+          ["Qwen 3.8 Flash", "$300"],
+          ["Qwen 3.7 Flash", "$300"],
+          ["LongCat 2.0", "$300"],
+          ["Step 5 Preview", "$300"],
+          ["Step 3.7 Flash", "$300"],
+          ["Step 3.5 Flash", "$300"],
+          ["MiMo V2.6 Pro", "$300"],
+          ["MiMo V2.6 Pro UltraSpeed", "$300"],
+          ["MiMo V2.6 Flash", "$300"],
+          ["MiMo V2.5 Pro", "$300"],
+          ["MiMo V2.5", "$300"],
+          ["Nemotron 3 Ultra", "$300"],
+          ["Claude Fable 5.1", "$200"],
+          ["Claude Fable 5", "$200"],
+          ["Claude Opus 5.5", "$200"],
+          ["Claude Opus 5", "$200"],
+          ["Claude Opus 4.8", "$200"],
+          ["Claude Opus 4.7", "$200"],
+          ["Claude Opus 4.6", "$200"],
+          ["Claude Sonnet 5.5", "$300"],
+          ["Claude Sonnet 5", "$200"],
+          ["Claude Sonnet 4.6", "$200"],
+          ["Claude Haiku 4.5", "$200"],
+          ["GPT-6 Astra", "$200"],
+          ["GPT-6 Sol", "$200"],
+          ["GPT-6 Luna", "$300"],
+          ["GPT-5.6 Sol", "$300"],
+          ["GPT-5.6 Terra", "$200"],
+          ["GPT-5.6 Luna", "$300"],
+          ["GPT-5.5", "$200"],
+          ["GPT-5.4", "$200"],
+          ["GPT-5.4 Mini", "$200"],
+          ["GPT-5.3 Codex", "$200"],
+          ["Gemini 3.8 Flash", "$300"],
+          ["Gemini 3.7 Flash", "$300"],
+          ["Gemini 3.6 Flash", "$200"],
+          ["Gemini 3.5 Flash", "$200"],
+          ["Gemini 3.5 Flash Lite", "$200"],
+          ["Gemini 3.1 Flash Lite", "$200"],
+          ["Fugu Ultra", "$200"],
+          ["Muse Spark 1.3", "$300"],
+          ["Muse Spark 1.3 Contributor", "$300"],
+          ["Muse Spark 1.2", "$300"],
+          ["Muse Spark 1.2 Contributor", "$300"],
+          ["Muse Spark 1.1", "$200"],
+          ["Grok 4.7", "$300"],
+          ["Grok 4.6", "$300"],
+          ["Grok 4.5", "$300"],
+          ["Inkling", "$300"],
+          ["Inkling Small", "$300"],
+          ["Jev", "$300"]
+        ],
+        "note": "Provider-published per-model limits, sharing the plan limits above. They are not additive balances or guaranteed response counts. Deals and allowances may change.",
+        "sourceUrl": "https://commandcode.ai/docs/plans/max"
+      }
+    ]
+  },
+  "clinepass": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://docs.cline.bot/getting-started/clinepass", "https://cline.bot/privacy"],
+    "allowanceSummary": "Model-dependent usage across five-hour, weekly and monthly limits",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Cline advertises 2–5× standard-API usage for the subscription. The public guide does not give a fixed dollar or token quota.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      },
+      {
+        "label": "Windows",
+        "value": "Rolling five hours, calendar week and calendar month. Track remaining usage in the Cline dashboard.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      },
+      {
+        "label": "Tools",
+        "value": "Cline IDE extension and CLI, plus scripts and other OpenAI-compatible clients through the Cline API.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      },
+      {
+        "label": "Separate billing",
+        "value": "ClinePass and Cline usage-billing are separate providers. The subscription is optional; other providers remain available.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      },
+      {
+        "label": "Reference rates",
+        "value": "Published token rates explain quota consumption; they are not separate per-token charges on the flat subscription.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      },
+      {
+        "label": "Privacy",
+        "value": "The ClinePass guide does not establish a model-by-model upstream retention or training guarantee. Check the current privacy policy before sending sensitive code.",
+        "sourceUrl": "https://cline.bot/privacy"
+      }
+    ],
+    "codingTools": ["Cline IDE extension", "Cline CLI", "OpenAI-compatible API"],
+    "afterLimit": "Check the account usage dashboard; separate usage-billing or another provider remains available.",
+    "privacySummary": "No ClinePass-specific upstream ZDR guarantee established in the public guide.",
+    "billingSummary": "$9.99 monthly; weekly and monthly usage windows follow the calendar.",
+    "tables": [
+      {
+        "id": "reference-rates",
+        "title": "Reference token rates",
+        "columns": ["Model", "Input / 1M", "Output / 1M", "Cache read / 1M", "Cache write / 1M"],
+        "rows": [
+          ["GLM-5.3", "$1.40", "$4.40", "$0.26", "-"],
+          ["GLM-5.3 Flash", "$0.15", "$0.50", "$0.03", "-"],
+          ["Kimi K3", "$3.00", "$15.00", "$0.30", "-"],
+          ["DeepSeek V4 Pro (Peak)", "$1.32", "$3.96", "$0.044", "-"],
+          ["DeepSeek V4 Pro (Off-peak)", "$0.66", "$1.98", "$0.022", "-"],
+          ["DeepSeek V4.1 Flash", "$0.30", "$1.20", "$0.006", "-"],
+          ["MiMo-V2.5", "$0.14", "$0.28", "$0.0028", "-"],
+          ["MiMo-V2.5-Pro", "$1.74", "$3.48", "$0.0145", "-"],
+          ["MiniMax M3", "$0.30", "$1.20", "$0.06", "-"],
+          ["Muse Spark 1.3 Contributor", "$0.10", "$0.20", "$0.002", "-"],
+          ["Qwen3.8 Max", "$2.00", "$6.00", "$0.25", "$2.50"],
+          ["Qwen3.7 Max", "$2.50", "$7.50", "$0.50", "$3.125"],
+          ["Qwen3.7 Plus (≤ 256K tokens)", "$0.40", "$1.60", "$0.04", "$0.50"],
+          ["Qwen3.7 Plus (> 256K tokens)", "$1.20", "$4.80", "$0.12", "$1.50"]
+        ],
+        "note": "USD reference rates used to explain subscription consumption, not extra charges. A dash is an unpublished category, not zero. DeepSeek peak/off-peak and Qwen context tiers remain separate.",
+        "sourceUrl": "https://docs.cline.bot/getting-started/clinepass"
+      }
+    ]
+  },
+  "ollama-cloud-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://ollama.com/pricing", "https://ollama.com/"],
+    "allowanceSummary": "$60 monthly cloud credits · 3 concurrent requests",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$60 of monthly cloud usage credits. Local models run without this cloud allowance.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Concurrency",
+        "value": "3 simultaneous requests. Additional requests queue; requests are rejected if the queue fills.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits renew monthly on the subscription anniversary, including annual plans. Unused included credits do not roll over.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Purchased usage credits fund continued usage after the included balance.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Legacy plans",
+        "value": "Current credit plans replace older session and weekly cloud limits only after switching plans. Switching resets usage, not the billing anniversary.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Ollama says cloud prompts and responses are not logged or used to train its models.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Ollama clients and cloud API; integrations include Claude Code, Codex, OpenCode and other supported coding tools.",
+        "sourceUrl": "https://ollama.com/"
+      }
+    ],
+    "codingTools": ["Ollama cloud API", "Claude Code", "Codex", "OpenCode"],
+    "afterLimit": "Purchased usage credits fund additional cloud use.",
+    "privacySummary": "Cloud prompts and responses are not logged or used for model training.",
+    "billingSummary": "Monthly credit anniversary; included credits do not carry over.",
+    "tables": [
+      {
+        "id": "cloud-rates",
+        "title": "Cloud usage rates",
+        "columns": ["Model", "Input / 1M", "Cached input / 1M", "Output / 1M"],
+        "rows": [
+          ["DeepSeek V4.1 Flash", "$0.30", "$0.006", "$1.20"],
+          ["DeepSeek V4.1 Flash (off-peak)", "$0.15", "$0.003", "$0.60"],
+          ["DeepSeek V4 Pro", "$1.32", "$0.044", "$3.96"],
+          ["DeepSeek V4 Pro (off-peak)", "$0.66", "$0.022", "$1.98"],
+          ["Gemma 4", "$0.14", "$0.05", "$0.40"],
+          ["GLM-5.3", "$1.40", "$0.26", "$4.40"],
+          ["GLM-5.3 Flash", "$0.15", "$0.03", "$0.50"],
+          ["GLM-5.2", "$1.40", "$0.26", "$4.40"],
+          ["GPT-OSS 120B", "$0.15", "$0.014", "$0.60"],
+          ["GPT-OSS 20B", "$0.07", "$0.035", "$0.30"],
+          ["Kimi K3", "$3.00", "$0.30", "$15.00"],
+          ["Kimi K2.7 Code", "$0.95", "$0.19", "$4.00"],
+          ["Kimi K2.6", "$0.95", "$0.16", "$4.00"],
+          ["MiniMax M3", "$0.60", "$0.12", "$2.40"],
+          ["MiniMax M2.7", "$0.30", "$0.06", "$1.20"],
+          ["Mistral Large 3", "$0.50", "Not published", "$1.50"],
+          ["Nemotron 3 Nano", "$0.06", "Not published", "$0.24"],
+          ["Nemotron 3 Super", "$0.015", "$0.015", "$0.60"],
+          ["Nemotron 3 Ultra", "$0.10", "$0.10", "$3.00"]
+        ],
+        "note": "USD per million tokens, charged against usage credits. Listed off-peak rates apply outside 12:00–18:00 UTC on weekdays and throughout weekends. Missing cache rates are not zero.",
+        "sourceUrl": "https://ollama.com/pricing"
+      }
+    ]
+  },
+  "ollama-cloud-max": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://ollama.com/pricing", "https://ollama.com/"],
+    "allowanceSummary": "$300 monthly cloud credits · 10 concurrent requests",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "$300 of monthly cloud usage credits. Local models run without this cloud allowance.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Concurrency",
+        "value": "10 simultaneous requests. Additional requests queue; requests are rejected if the queue fills.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits renew monthly on the subscription anniversary, including annual plans. Unused included credits do not roll over.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Purchased usage credits fund continued usage after the included balance.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Legacy plans",
+        "value": "Current credit plans replace older session and weekly cloud limits only after switching plans. Switching resets usage, not the billing anniversary.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Ollama says cloud prompts and responses are not logged or used to train its models.",
+        "sourceUrl": "https://ollama.com/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Ollama clients and cloud API; integrations include Claude Code, Codex, OpenCode and other supported coding tools.",
+        "sourceUrl": "https://ollama.com/"
+      }
+    ],
+    "codingTools": ["Ollama cloud API", "Claude Code", "Codex", "OpenCode"],
+    "afterLimit": "Purchased usage credits fund additional cloud use.",
+    "privacySummary": "Cloud prompts and responses are not logged or used for model training.",
+    "billingSummary": "Monthly credit anniversary; included credits do not carry over.",
+    "tables": [
+      {
+        "id": "cloud-rates",
+        "title": "Cloud usage rates",
+        "columns": ["Model", "Input / 1M", "Cached input / 1M", "Output / 1M"],
+        "rows": [
+          ["DeepSeek V4.1 Flash", "$0.30", "$0.006", "$1.20"],
+          ["DeepSeek V4.1 Flash (off-peak)", "$0.15", "$0.003", "$0.60"],
+          ["DeepSeek V4 Pro", "$1.32", "$0.044", "$3.96"],
+          ["DeepSeek V4 Pro (off-peak)", "$0.66", "$0.022", "$1.98"],
+          ["Gemma 4", "$0.14", "$0.05", "$0.40"],
+          ["GLM-5.3", "$1.40", "$0.26", "$4.40"],
+          ["GLM-5.3 Flash", "$0.15", "$0.03", "$0.50"],
+          ["GLM-5.2", "$1.40", "$0.26", "$4.40"],
+          ["GPT-OSS 120B", "$0.15", "$0.014", "$0.60"],
+          ["GPT-OSS 20B", "$0.07", "$0.035", "$0.30"],
+          ["Kimi K3", "$3.00", "$0.30", "$15.00"],
+          ["Kimi K2.7 Code", "$0.95", "$0.19", "$4.00"],
+          ["Kimi K2.6", "$0.95", "$0.16", "$4.00"],
+          ["MiniMax M3", "$0.60", "$0.12", "$2.40"],
+          ["MiniMax M2.7", "$0.30", "$0.06", "$1.20"],
+          ["Mistral Large 3", "$0.50", "Not published", "$1.50"],
+          ["Nemotron 3 Nano", "$0.06", "Not published", "$0.24"],
+          ["Nemotron 3 Super", "$0.015", "$0.015", "$0.60"],
+          ["Nemotron 3 Ultra", "$0.10", "$0.10", "$3.00"]
+        ],
+        "note": "USD per million tokens, charged against usage credits. Listed off-peak rates apply outside 12:00–18:00 UTC on weekdays and throughout weekends. Missing cache rates are not zero.",
+        "sourceUrl": "https://ollama.com/pricing"
+      }
+    ]
+  },
+  "kiro-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://kiro.dev/pricing/",
+      "https://kiro.dev/faq/",
+      "https://kiro.dev/docs/models/"
+    ],
+    "allowanceSummary": "1,000 credits per month; add-ons at $0.04 per credit",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "1,000 monthly credits. Credits measure work, with model multipliers and task complexity; they are not a fixed number of prompts.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Additional credits",
+        "value": "Individuals buy prepaid add-ons at $0.04 per credit. Organization overage must be enabled by an administrator.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits reset on the first of each calendar month and do not carry over. Purchased add-ons expire 12 months after purchase.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Billing",
+        "value": "Subscriptions bill on the first of the month; the initial partial month is prorated by Kiro. Taxes are additional.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Tools",
+        "value": "Kiro IDE, CLI, web, Crew and ACP-compatible IDEs. Routing subscription use through unrelated third-party automation harnesses is not permitted.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Privacy",
+        "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+        "sourceUrl": "https://kiro.dev/faq/"
+      }
+    ],
+    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro web", "ACP-compatible IDEs"],
+    "afterLimit": "Prepaid add-ons; enterprise overage only when enabled.",
+    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts excluded from improvement.",
+    "billingSummary": "Calendar-month billing; first month prorated; add-ons expire in 12 months.",
+    "tables": [
+      {
+        "id": "model-multipliers",
+        "title": "Credit use by model",
+        "columns": ["Model", "Relative to Auto"],
+        "rows": [
+          ["GPT-5.6 Sol", "4.4×; 8.8× above 272K"],
+          ["GPT-5.6 Terra", "2.2×; 4.4× above 272K"],
+          ["GPT-5.6 Luna", "1.1×; 2.2× above 272K"],
+          ["Claude Opus 5.5", "2.0×"],
+          ["Claude Opus 5", "2.2×"],
+          ["Claude Opus 4.8", "2.2×"],
+          ["Claude Opus 4.7", "2.2×"],
+          ["Claude Opus 4.6", "2.2×"],
+          ["Claude Opus 4.5", "2.2×"],
+          ["Claude Sonnet 5", "1.3×"],
+          ["Claude Sonnet 4.6", "1.3×"],
+          ["Claude Sonnet 4.5", "1.3×"],
+          ["Claude Sonnet 4.0", "1.3×"],
+          ["Auto", "1.0×"],
+          ["Claude Haiku 4.5", "0.4×"],
+          ["DeepSeek 3.2", "0.25×"],
+          ["MiniMax M2.5", "0.25×"],
+          ["GLM-5", "0.5×"],
+          ["MiniMax M2.1", "0.15×"],
+          ["Qwen3 Coder Next", "0.05×"]
+        ],
+        "note": "Task-cost multipliers, not credits per prompt or token quotas. Regional and experimental-model conditions apply. Enterprise-only Fable preview is excluded.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      }
+    ]
+  },
+  "github-copilot-free": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "2,000 completions/month; limited Auto-model AI usage",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "2,000 completions/month; limited Auto-model AI usage. No exact AI-credit amount is specified in the current plan table.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "AI usage is available through automatic model selection only.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Paid users can purchase additional usage; Free has no paid-credit top-up option.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Wait for the allowance reset or upgrade.",
+    "privacySummary": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "github-copilot-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "1,000 base AI credits + 500 variable flex/month",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "1,000 base AI credits + 500 variable flex/month. One AI credit represents $0.01 of model-priced usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "Model choice and token use determine credit consumption. Paid plans have unlimited code completions and next-edit suggestions outside credits.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Paid users can purchase additional usage; Free has no paid-credit top-up option.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Fable retention",
+        "value": "Fable models use provider safety retention by default. Enterprise ZDR requires approval and has separate time-limited conditions.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Flex allowance",
+        "value": "The current 500-credit flex amount is variable, rather than a permanent guaranteed allowance. Base credits are consumed first.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Buy more credits or wait for the monthly reset.",
+    "privacySummary": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "github-copilot-pro-plus": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "3,900 base AI credits + 3,100 variable flex/month",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "3,900 base AI credits + 3,100 variable flex/month. One AI credit represents $0.01 of model-priced usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "Model choice and token use determine credit consumption. Paid plans have unlimited code completions and next-edit suggestions outside credits.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Paid users can purchase additional usage; Free has no paid-credit top-up option.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Fable retention",
+        "value": "Fable models use provider safety retention by default. Enterprise ZDR requires approval and has separate time-limited conditions.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Flex allowance",
+        "value": "The current 3,100-credit flex amount is variable, rather than a permanent guaranteed allowance. Base credits are consumed first.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Buy more credits or wait for the monthly reset.",
+    "privacySummary": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "github-copilot-max": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "10,000 base AI credits + 10,000 variable flex/month",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "10,000 base AI credits + 10,000 variable flex/month. One AI credit represents $0.01 of model-priced usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "Model choice and token use determine credit consumption. Paid plans have unlimited code completions and next-edit suggestions outside credits.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Paid users can purchase additional usage; Free has no paid-credit top-up option.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Fable retention",
+        "value": "Fable models use provider safety retention by default. Enterprise ZDR requires approval and has separate time-limited conditions.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Flex allowance",
+        "value": "The current 10,000-credit flex amount is variable, rather than a permanent guaranteed allowance. Base credits are consumed first.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Buy more credits or wait for the monthly reset.",
+    "privacySummary": "Individual interaction data may train models unless opted out in Copilot settings; model-specific retention can apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "github-copilot-business": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "1,900 base AI credits/seat/month, pooled",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "1,900 base AI credits/seat/month, pooled. One AI credit represents $0.01 of model-priced usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "Model choice and token use determine credit consumption. Paid plans have unlimited code completions and next-edit suggestions outside credits.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Enabled by default for organizations; administrators can disable it or apply budgets. Exhausting a user or organization budget blocks usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Business and Enterprise content is not used for model training. Model-specific safety retention can still apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Fable retention",
+        "value": "Fable models use provider safety retention by default. Enterprise ZDR requires approval and has separate time-limited conditions.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Shared pool",
+        "value": "Credits from assigned licenses are pooled at the billing entity, rather than reserved per developer. Additional usage costs $0.01 per credit.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Administrator-controlled paid usage; budget exhaustion blocks access.",
+    "privacySummary": "Business and Enterprise content is not used for model training. Model-specific safety retention can still apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "github-copilot-enterprise": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://docs.github.com/en/copilot/get-started/plans",
+      "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+      "https://github.com/features/copilot/plans"
+    ],
+    "allowanceSummary": "3,900 base AI credits/seat/month, pooled",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "3,900 base AI credits/seat/month, pooled. One AI credit represents $0.01 of model-priced usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Allowance resets at 00:00 UTC on the first of each month, independently of subscription billing. Unused included credits expire.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Metering",
+        "value": "Model choice and token use determine credit consumption. Paid plans have unlimited code completions and next-edit suggestions outside credits.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Additional usage",
+        "value": "Enabled by default for organizations; administrators can disable it or apply budgets. Exhausting a user or organization budget blocks usage.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Business and Enterprise content is not used for model training. Model-specific safety retention can still apply.",
+        "sourceUrl": "https://github.com/features/copilot/plans"
+      },
+      {
+        "label": "Fable retention",
+        "value": "Fable models use provider safety retention by default. Enterprise ZDR requires approval and has separate time-limited conditions.",
+        "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+      },
+      {
+        "label": "Shared pool",
+        "value": "Credits from assigned licenses are pooled at the billing entity, rather than reserved per developer. Additional usage costs $0.01 per credit.",
+        "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+      }
+    ],
+    "codingTools": ["Copilot IDE extensions", "Copilot CLI", "Copilot app", "GitHub"],
+    "afterLimit": "Administrator-controlled paid usage; budget exhaustion blocks access.",
+    "privacySummary": "Business and Enterprise content is not used for model training. Model-specific safety retention can still apply.",
+    "billingSummary": "Credits reset on the first of the month; unused included credits do not carry over."
+  },
+  "cursor-hobby": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://cursor.com/pricing",
+      "https://cursor.com/docs/models-and-pricing",
+      "https://cursor.com/data-use"
+    ],
+    "allowanceSummary": "Limited Agent requests; Composer access",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Limited Agent requests; Composer access. The current public plan table does not publish an exact dollar or token size for these pools.",
+        "sourceUrl": "https://cursor.com/pricing"
+      },
+      {
+        "label": "Usage pools",
+        "value": "Hobby does not promise the two paid-plan pools. No credit card is required.",
+        "sourceUrl": "https://cursor.com/pricing"
+      },
+      {
+        "label": "After included usage",
+        "value": "Paid plans can enable on-demand usage at published model rates, billed monthly in arrears, or upgrade.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Cursor editor and coding agent; paid plans include unlimited Tab completions and access to Cloud Agents. Bugbot is usage-billed.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Privacy Mode prevents customer data from being used to train Cursor models. Other Cursor surfaces and model providers have their own data-handling terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor"],
+    "afterLimit": "Upgrade from Hobby.",
+    "privacySummary": "Enable Privacy Mode; review separate product and provider retention terms.",
+    "billingSummary": "Monthly pool reset follows billing cycle; on-demand usage billed in arrears."
+  },
+  "cursor-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://cursor.com/docs/models-and-pricing", "https://cursor.com/data-use"],
+    "allowanceSummary": "Two monthly pools: Cursor Models and Other Models",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Two monthly pools: Cursor Models and Other Models. The current public plan table does not publish an exact dollar or token size for these pools.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Usage pools",
+        "value": "Grok and Composer use the Cursor Models pool; third-party models use Other Models at model API rates. Both reset with the monthly billing cycle.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "After included usage",
+        "value": "Paid plans can enable on-demand usage at published model rates, billed monthly in arrears, or upgrade.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Cursor editor and coding agent; paid plans include unlimited Tab completions and access to Cloud Agents. Bugbot is usage-billed.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Privacy Mode prevents customer data from being used to train Cursor models. Other Cursor surfaces and model providers have their own data-handling terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor", "Cursor Agent", "Cloud Agents", "Cursor CLI"],
+    "afterLimit": "Optional on-demand usage at model rates, billed in arrears.",
+    "privacySummary": "Enable Privacy Mode; review separate product and provider retention terms.",
+    "billingSummary": "Monthly pool reset follows billing cycle; on-demand usage billed in arrears.",
+    "tables": [
+      {
+        "id": "rates-0",
+        "title": "Cursor Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Grok 4.7", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.7 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k (Fast)", "$6", "-", "$1.5", "$18"],
+          ["Grok 4.6", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.6 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.5", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.5 (Fast)", "$4", "-", "$1", "$18"],
+          ["Composer 2.5", "$0.5", "-", "$0.2", "$2.5"],
+          ["Composer 2.5 (Fast)", "$3", "-", "$0.5", "$15"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "id": "rates-1",
+        "title": "Other Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Claude Fable 5.1", "$10", "$12.5", "$0.25", "$50"],
+          ["Claude Opus 5.5", "$4", "$5", "$0.2", "$20"],
+          ["Claude Sonnet 5.5", "$2", "$2.5", "$0.2", "$10"],
+          ["Gemini 3.1 Pro", "$2", "-", "$0.2", "$12"],
+          ["Gemini 3.8 Flash", "$0.75", "-", "$0.075", "$3.5"],
+          ["GPT-5.6 Luna", "$0.2", "$0.25", "$0.02", "$1.2"],
+          ["GPT-5.6 Sol", "$4", "$5", "$0.4", "$20"],
+          ["GPT-5.6 Terra", "$2", "$2.5", "$0.2", "$12"],
+          ["Muse Spark 1.3", "$1.25", "-", "$0.15", "$4.25"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      }
+    ]
+  },
+  "cursor-pro-plus": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://cursor.com/docs/models-and-pricing", "https://cursor.com/data-use"],
+    "allowanceSummary": "Two monthly pools: Cursor Models and Other Models",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Two monthly pools: Cursor Models and Other Models. The current public plan table does not publish an exact dollar or token size for these pools.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Usage pools",
+        "value": "Grok and Composer use the Cursor Models pool; third-party models use Other Models at model API rates. Both reset with the monthly billing cycle.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "After included usage",
+        "value": "Paid plans can enable on-demand usage at published model rates, billed monthly in arrears, or upgrade.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Cursor editor and coding agent; paid plans include unlimited Tab completions and access to Cloud Agents. Bugbot is usage-billed.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Privacy Mode prevents customer data from being used to train Cursor models. Other Cursor surfaces and model providers have their own data-handling terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor", "Cursor Agent", "Cloud Agents", "Cursor CLI"],
+    "afterLimit": "Optional on-demand usage at model rates, billed in arrears.",
+    "privacySummary": "Enable Privacy Mode; review separate product and provider retention terms.",
+    "billingSummary": "Monthly pool reset follows billing cycle; on-demand usage billed in arrears.",
+    "tables": [
+      {
+        "id": "rates-0",
+        "title": "Cursor Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Grok 4.7", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.7 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k (Fast)", "$6", "-", "$1.5", "$18"],
+          ["Grok 4.6", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.6 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.5", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.5 (Fast)", "$4", "-", "$1", "$18"],
+          ["Composer 2.5", "$0.5", "-", "$0.2", "$2.5"],
+          ["Composer 2.5 (Fast)", "$3", "-", "$0.5", "$15"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "id": "rates-1",
+        "title": "Other Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Claude Fable 5.1", "$10", "$12.5", "$0.25", "$50"],
+          ["Claude Opus 5.5", "$4", "$5", "$0.2", "$20"],
+          ["Claude Sonnet 5.5", "$2", "$2.5", "$0.2", "$10"],
+          ["Gemini 3.1 Pro", "$2", "-", "$0.2", "$12"],
+          ["Gemini 3.8 Flash", "$0.75", "-", "$0.075", "$3.5"],
+          ["GPT-5.6 Luna", "$0.2", "$0.25", "$0.02", "$1.2"],
+          ["GPT-5.6 Sol", "$4", "$5", "$0.4", "$20"],
+          ["GPT-5.6 Terra", "$2", "$2.5", "$0.2", "$12"],
+          ["Muse Spark 1.3", "$1.25", "-", "$0.15", "$4.25"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      }
+    ]
+  },
+  "cursor-ultra": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": ["https://cursor.com/docs/models-and-pricing", "https://cursor.com/data-use"],
+    "allowanceSummary": "Two monthly pools: Cursor Models and Other Models",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Two monthly pools: Cursor Models and Other Models. The current public plan table does not publish an exact dollar or token size for these pools.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Usage pools",
+        "value": "Grok and Composer use the Cursor Models pool; third-party models use Other Models at model API rates. Both reset with the monthly billing cycle.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "After included usage",
+        "value": "Paid plans can enable on-demand usage at published model rates, billed monthly in arrears, or upgrade.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "Cursor editor and coding agent; paid plans include unlimited Tab completions and access to Cloud Agents. Bugbot is usage-billed.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Privacy Mode prevents customer data from being used to train Cursor models. Other Cursor surfaces and model providers have their own data-handling terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor", "Cursor Agent", "Cloud Agents", "Cursor CLI"],
+    "afterLimit": "Optional on-demand usage at model rates, billed in arrears.",
+    "privacySummary": "Enable Privacy Mode; review separate product and provider retention terms.",
+    "billingSummary": "Monthly pool reset follows billing cycle; on-demand usage billed in arrears.",
+    "tables": [
+      {
+        "id": "rates-0",
+        "title": "Cursor Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Grok 4.7", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.7 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k", "$4", "-", "$1", "$12"],
+          ["Grok 4.7 500k (Fast)", "$6", "-", "$1.5", "$18"],
+          ["Grok 4.6", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.6 (Fast)", "$4", "-", "$1", "$12"],
+          ["Grok 4.5", "$2", "-", "$0.5", "$6"],
+          ["Grok 4.5 (Fast)", "$4", "-", "$1", "$18"],
+          ["Composer 2.5", "$0.5", "-", "$0.2", "$2.5"],
+          ["Composer 2.5 (Fast)", "$3", "-", "$0.5", "$15"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "id": "rates-1",
+        "title": "Other Models usage rates",
+        "columns": ["Model", "Input / 1M", "Cache write / 1M", "Cache read / 1M", "Output / 1M"],
+        "rows": [
+          ["Claude Fable 5.1", "$10", "$12.5", "$0.25", "$50"],
+          ["Claude Opus 5.5", "$4", "$5", "$0.2", "$20"],
+          ["Claude Sonnet 5.5", "$2", "$2.5", "$0.2", "$10"],
+          ["Gemini 3.1 Pro", "$2", "-", "$0.2", "$12"],
+          ["Gemini 3.8 Flash", "$0.75", "-", "$0.075", "$3.5"],
+          ["GPT-5.6 Luna", "$0.2", "$0.25", "$0.02", "$1.2"],
+          ["GPT-5.6 Sol", "$4", "$5", "$0.4", "$20"],
+          ["GPT-5.6 Terra", "$2", "$2.5", "$0.2", "$12"],
+          ["Muse Spark 1.3", "$1.25", "-", "$0.15", "$4.25"]
+        ],
+        "note": "USD per million tokens. Fast and context variants are separate. A dash is not a zero rate. These plan-pool rates do not establish a direct API route.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      }
+    ]
+  },
+  "anthropic-claude-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.claude.com/en/articles/8324991-about-claude-s-pro-plan-usage",
+      "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+      "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+      "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+      "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
+      "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
+      "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+    ],
+    "allowanceSummary": "Pro usage allowance; five-hour and weekly limits",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Pro usage allowance; five-hour and weekly limits. Actual use depends on models, conversation length and features; this is not a universal token quota.",
+        "sourceUrl": "https://support.claude.com/en/articles/8324991-about-claude-s-pro-plan-usage"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Sessions reset every five hours. Weekly allowance has a fixed account-assigned reset time, independent of subscription renewal.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Shared tools",
+        "value": "Claude and Claude Code share the same included allowance and usage-credit balance.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Fable allowance",
+        "value": "Fable 5 and 5.1 require pay-as-you-go credits from the first use.",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Optional purchased credits continue usage beyond included limits. Set spend limits in Settings > Usage.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased credits generally do not expire; certain jurisdictions, including Japan, have a six-month expiry.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Consumer privacy settings control whether chats and coding sessions help improve Claude. Incognito chats are excluded from model improvement.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations"
+      },
+      {
+        "label": "Billing",
+        "value": "Pro is sold monthly or annually; usage limits remain separate from the billing cycle.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
+      },
+      {
+        "label": "Agent SDK",
+        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Cancellation",
+        "value": "Cancel at least 24 hours before renewal to avoid the next charge. Access continues until the paid billing period ends.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      }
+    ],
+    "codingTools": [
+      "Claude Code",
+      "Claude apps",
+      "Cowork",
+      "Claude Agent SDK (subscription authentication)"
+    ],
+    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
+    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
+    "billingSummary": "Monthly or annual subscription; usage resets are separate."
+  },
+  "anthropic-claude-max-5x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+      "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+      "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+      "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
+      "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+    ],
+    "allowanceSummary": "5× Pro session allowance; five-hour and weekly limits",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "5× Pro session allowance; five-hour and weekly limits. Actual use depends on models, conversation length and features; this is not a universal token quota.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Sessions reset every five hours. Weekly allowance has a fixed account-assigned reset time, independent of subscription renewal.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Shared tools",
+        "value": "Claude and Claude Code share the same included allowance and usage-credit balance.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Fable allowance",
+        "value": "Fable 5 and 5.1 can consume up to 50% of the regular weekly allowance. This is not an additional allowance.",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Optional purchased credits continue usage beyond included limits. Set spend limits in Settings > Usage.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased credits generally do not expire; certain jurisdictions, including Japan, have a six-month expiry.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Consumer privacy settings control whether chats and coding sessions help improve Claude. Incognito chats are excluded from model improvement.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations"
+      },
+      {
+        "label": "Billing",
+        "value": "Max subscriptions are monthly only. Web upgrades are prorated; app-store billing can differ.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Agent SDK",
+        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Cancellation",
+        "value": "Cancel at least 24 hours before renewal to avoid the next charge. Access continues until the paid billing period ends.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      }
+    ],
+    "codingTools": [
+      "Claude Code",
+      "Claude apps",
+      "Cowork",
+      "Claude Agent SDK (subscription authentication)"
+    ],
+    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
+    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
+    "billingSummary": "Monthly only; web upgrades prorated."
+  },
+  "anthropic-claude-max-20x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
+      "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
+      "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
+      "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
+      "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+    ],
+    "allowanceSummary": "20× Pro session allowance; five-hour and weekly limits",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "20× Pro session allowance; five-hour and weekly limits. Actual use depends on models, conversation length and features; this is not a universal token quota.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Sessions reset every five hours. Weekly allowance has a fixed account-assigned reset time, independent of subscription renewal.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Shared tools",
+        "value": "Claude and Claude Code share the same included allowance and usage-credit balance.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Fable allowance",
+        "value": "Fable 5 and 5.1 can consume up to 50% of the regular weekly allowance. This is not an additional allowance.",
+        "sourceUrl": "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Optional purchased credits continue usage beyond included limits. Set spend limits in Settings > Usage.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased credits generally do not expire; certain jurisdictions, including Japan, have a six-month expiry.",
+        "sourceUrl": "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans"
+      },
+      {
+        "label": "Privacy",
+        "value": "Consumer privacy settings control whether chats and coding sessions help improve Claude. Incognito chats are excluded from model improvement.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations"
+      },
+      {
+        "label": "Billing",
+        "value": "Max subscriptions are monthly only. Web upgrades are prorated; app-store billing can differ.",
+        "sourceUrl": "https://support.claude.com/en/articles/11049741-what-is-the-max-plan"
+      },
+      {
+        "label": "Agent SDK",
+        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Cancellation",
+        "value": "Cancel at least 24 hours before renewal to avoid the next charge. Access continues until the paid billing period ends.",
+        "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      }
+    ],
+    "codingTools": [
+      "Claude Code",
+      "Claude apps",
+      "Cowork",
+      "Claude Agent SDK (subscription authentication)"
+    ],
+    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
+    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
+    "billingSummary": "Monthly only; web upgrades prorated."
+  },
+  "openai-chatgpt-plus": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://learn.chatgpt.com/docs/pricing",
+      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+      "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+    ],
+    "allowanceSummary": "Standard shared Work/Codex allowance",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Standard shared Work/Codex allowance. Published per-model local-message estimates appear below, not fixed quotas.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Shared limits",
+        "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+        "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+      },
+      {
+        "label": "Plan changes",
+        "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
+        "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
+        "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+      },
+      {
+        "label": "Purchased resets",
+        "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
+        "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      }
+    ],
+    "codingTools": ["Codex", "ChatGPT Work"],
+    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+    "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
+    "tables": [
+      {
+        "id": "usage-estimates",
+        "title": "Estimated local messages per five hours",
+        "columns": ["Model", "Provider estimate"],
+        "rows": [
+          ["GPT-6 Astra", "5–45"],
+          ["GPT-6 Sol", "15–150"],
+          ["GPT-6 Luna", "350–3,000"],
+          ["GPT-5.6 Sol", "10–100"],
+          ["GPT-5.6 Terra", "25–200"],
+          ["GPT-5.6 Luna", "250–2,000"]
+        ],
+        "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      }
+    ]
+  },
+  "openai-chatgpt-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://learn.chatgpt.com/docs/pricing",
+      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+      "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+    ],
+    "allowanceSummary": "5× Plus usage allowance for Work/Codex",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "5× Plus usage allowance for Work/Codex. Published per-model local-message estimates appear below, not fixed quotas.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Shared limits",
+        "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+        "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+      },
+      {
+        "label": "Plan changes",
+        "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
+        "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
+        "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+      },
+      {
+        "label": "Purchased resets",
+        "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
+        "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      }
+    ],
+    "codingTools": ["Codex", "ChatGPT Work"],
+    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+    "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
+    "tables": [
+      {
+        "id": "usage-estimates",
+        "title": "Estimated local messages per five hours",
+        "columns": ["Model", "Provider estimate"],
+        "rows": [
+          ["GPT-6 Astra", "25–225"],
+          ["GPT-6 Sol", "70–700"],
+          ["GPT-6 Luna", "1,750–14,000"],
+          ["GPT-5.6 Sol", "50–500"],
+          ["GPT-5.6 Terra", "125–1,000"],
+          ["GPT-5.6 Luna", "1,250–10,000"]
+        ],
+        "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      }
+    ]
+  },
+  "openai-chatgpt-pro-20x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://learn.chatgpt.com/docs/pricing",
+      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+      "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+    ],
+    "allowanceSummary": "20× Plus usage allowance for Work/Codex",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "20× Plus usage allowance for Work/Codex. Published per-model local-message estimates appear below, not fixed quotas.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Shared limits",
+        "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+        "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+      },
+      {
+        "label": "Plan changes",
+        "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
+        "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+      },
+      {
+        "label": "Availability",
+        "value": "New subscriptions and upgrades paused since September 10, 2026. Existing $200 subscriptions still renew; some former subscribers qualify for a one-time return.",
+        "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+      },
+      {
+        "label": "Credit expiry",
+        "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
+        "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+      },
+      {
+        "label": "Purchased resets",
+        "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
+        "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      }
+    ],
+    "codingTools": ["Codex", "ChatGPT Work"],
+    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+    "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
+    "tables": [
+      {
+        "id": "usage-estimates",
+        "title": "Estimated local messages per five hours",
+        "columns": ["Model", "Provider estimate"],
+        "rows": [
+          ["GPT-6 Astra", "100–900"],
+          ["GPT-6 Sol", "300–3,000"],
+          ["GPT-6 Luna", "7,000–56,000"],
+          ["GPT-5.6 Sol", "200–2,000"],
+          ["GPT-5.6 Terra", "500–4,000"],
+          ["GPT-5.6 Luna", "5,000–40,000"]
+        ],
+        "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      }
+    ],
+    "availabilityNote": "New subscriptions and upgrades paused since September 10, 2026. Existing $200 subscriptions still renew; some former subscribers qualify for a one-time return."
+  },
+  "openai-chatgpt-business": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://learn.chatgpt.com/docs/pricing",
+      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+    ],
+    "allowanceSummary": "Standard shared Work/Codex allowance",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Standard shared Work/Codex allowance. Published per-model local-message estimates appear below, not fixed quotas.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Shared limits",
+        "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Tools",
+        "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      },
+      {
+        "label": "Privacy",
+        "value": "Business inputs and outputs are excluded from model training by default.",
+        "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+      },
+      {
+        "label": "Business seats",
+        "value": "The standard Business allowance uses Plus estimates; the $100 Business tier uses Pro 5x estimates. Workspace billing and controls apply.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      }
+    ],
+    "codingTools": ["Codex", "ChatGPT Work"],
+    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+    "privacySummary": "Business inputs and outputs are excluded from model training by default.",
+    "billingSummary": "Workspace subscription; allowance depends on seat tier.",
+    "tables": [
+      {
+        "id": "usage-estimates",
+        "title": "Estimated local messages per five hours",
+        "columns": ["Model", "Provider estimate"],
+        "rows": [
+          ["GPT-6 Astra", "5–45"],
+          ["GPT-6 Sol", "15–150"],
+          ["GPT-6 Luna", "350–3,000"],
+          ["GPT-5.6 Sol", "10–100"],
+          ["GPT-5.6 Terra", "25–200"],
+          ["GPT-5.6 Luna", "250–2,000"]
+        ],
+        "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+      }
+    ]
+  },
+  "google-ai-pro": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.google.com/gemini/answer/16275805",
+      "https://gemini.google/us/subscriptions/?hl=en",
+      "https://support.google.com/googleone/answer/16287445?hl=en",
+      "https://support.google.com/gemini/answer/13594961"
+    ],
+    "allowanceSummary": "4× Free Gemini limits; 1,000 Flow credits",
+    "terms": [
+      {
+        "label": "Gemini allowance",
+        "value": "4× standard Free compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Flow credits",
+        "value": "1,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Coding tools",
+        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+      },
+      {
+        "label": "Account and region",
+        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Privacy",
+        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+      }
+    ],
+    "codingTools": ["Google Antigravity", "Jules"],
+    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+  },
+  "google-ai-ultra": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.google.com/gemini/answer/16275805",
+      "https://gemini.google/us/subscriptions/?hl=en",
+      "https://support.google.com/googleone/answer/16287445?hl=en",
+      "https://support.google.com/gemini/answer/13594961"
+    ],
+    "allowanceSummary": "5× AI Pro Gemini limits; 10,000 Flow credits",
+    "terms": [
+      {
+        "label": "Gemini allowance",
+        "value": "5× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Flow credits",
+        "value": "10,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Coding tools",
+        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+      },
+      {
+        "label": "Account and region",
+        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Privacy",
+        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+      }
+    ],
+    "codingTools": ["Google Antigravity", "Jules"],
+    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+  },
+  "google-ai-ultra-20x": {
+    "checkedAt": "2026-09-29",
+    "sourceUrls": [
+      "https://support.google.com/gemini/answer/16275805",
+      "https://gemini.google/us/subscriptions/?hl=en",
+      "https://support.google.com/googleone/answer/16287445?hl=en",
+      "https://support.google.com/gemini/answer/13594961"
+    ],
+    "allowanceSummary": "20× AI Pro Gemini limits; 25,000 Flow credits",
+    "terms": [
+      {
+        "label": "Gemini allowance",
+        "value": "20× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Reset timing",
+        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Flow credits",
+        "value": "25,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Coding tools",
+        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+      },
+      {
+        "label": "Extra usage",
+        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+      },
+      {
+        "label": "Account and region",
+        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+      },
+      {
+        "label": "Privacy",
+        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+      }
+    ],
+    "codingTools": ["Google Antigravity", "Jules"],
+    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+  }
+}

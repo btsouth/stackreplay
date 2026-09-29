@@ -7,6 +7,7 @@ import {
 } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
 import { includedAccessModels, type SubscriptionAccess } from "./subscription-access";
+import type { SubscriptionPublishedTerms } from "./subscription-published-terms";
 
 /**
  * Public plan comparison, in plain words (launch).
@@ -66,14 +67,15 @@ export interface CompareFacts {
   /** Every model rule, for the inspect view. */
   rules: readonly CompareRule[];
   modelAccess?: SubscriptionAccess;
+  publishedTerms?: SubscriptionPublishedTerms;
 }
 
 export const FEATURED_MODEL_COUNT = 4;
 
-export const NO_NUMERIC_ALLOWANCE = "Provider does not publish a numeric allowance.";
+export const NO_NUMERIC_ALLOWANCE = "No numeric allowance is recorded in this snapshot.";
 export const CAPACITY_REPLAY = "Numeric capacity replay available.";
 export const COMPATIBILITY_ONLY =
-  "Model compatibility and workload pressure only; exact capacity cannot be established.";
+  "Model compatibility and workload pressure only. Exact capacity replay is not supported for this plan.";
 export const NO_NAMED_MODEL =
   "No named model is recorded as selectable on this plan, so a replay cannot attribute usage to a model.";
 
@@ -191,6 +193,12 @@ export function buildCompareFacts(
     detail: limit.label,
   }));
 
+  if (plan.publishedTerms) {
+    usageLines.splice(0, usageLines.length, {
+      text: plan.publishedTerms.allowanceSummary,
+      detail: "Provider-published allowance terms",
+    });
+  }
   if (!usageLines.length) {
     const published = plan.qualitativeLimits.find((limit) => limit.label === "Included usage");
     if (published)
@@ -244,16 +252,23 @@ export function buildCompareFacts(
       total: included.length,
     },
     codingTools:
+      plan.publishedTerms?.codingTools ??
       plan.qualitativeLimits
         .find((limit) => limit.label === "Compatible tools")
-        ?.statement.split(" · ") ?? codingToolsFor(plan),
+        ?.statement.split(" · ") ??
+      codingToolsFor(plan),
     usage: { numeric: plan.limits.length > 0, lines: usageLines },
     simulation,
-    afterLimit: { lines: exceedLines, quotes },
-    evidence: verificationText(plan.verificationStatus, plan.lastVerifiedAt),
+    afterLimit: plan.publishedTerms?.afterLimit
+      ? { lines: [plan.publishedTerms.afterLimit], quotes: [] }
+      : { lines: exceedLines, quotes },
+    evidence: plan.publishedTerms
+      ? `Published terms checked ${formatCatalogDate(plan.publishedTerms.checkedAt)}`
+      : verificationText(plan.verificationStatus, plan.lastVerifiedAt),
     effective: `Rules in effect since ${formatCatalogDate(plan.effectiveFrom)}`,
     rules,
     ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
+    ...(plan.publishedTerms ? { publishedTerms: plan.publishedTerms } : {}),
   };
 }
 

@@ -103,6 +103,9 @@ export function PlanExplorer({
             <div>
               <p className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</p>
               <p className="market-muted">/ {plan.price.interval}</p>
+              {plan.publishedTerms?.availabilityNote && (
+                <p className="mt-3 text-xs text-warning">{plan.publishedTerms.availabilityNote}</p>
+              )}
             </div>
             <div>
               <p className="text-sm leading-relaxed">
