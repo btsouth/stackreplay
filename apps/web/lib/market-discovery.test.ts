@@ -139,3 +139,14 @@ describe("model and subscription detail completeness", () => {
     expect(pro && planTools(pro)).toContain("Codex");
   });
 });
+
+describe("processing tiers stay out of a model's price", () => {
+  it("shows GPT-6 Astra and GPT-6.1 Sol at Standard rates, not a newer Batch or Ultrafast record", () => {
+    const astra = modelPrices("gpt-6-astra", "2026-09-29").filter((price) => !price.variantId);
+    expect(astra.map((price) => price.rates.input)).toEqual(["10.00"]);
+    const sol = modelPrices("gpt-6-1-sol", "2026-09-29").filter((price) => !price.variantId);
+    expect(sol.map((price) => [price.id, price.rates.input])).toEqual([
+      ["gpt-6-1-sol-pricing", "2.00"],
+    ]);
+  });
+});

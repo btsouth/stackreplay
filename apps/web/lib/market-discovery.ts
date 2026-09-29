@@ -1,4 +1,4 @@
-import type { PricingV1 } from "@stackreplay/catalog";
+import { type PricingV1, pricingServiceTierOf } from "@stackreplay/catalog";
 import { limitSentence } from "./catalog-copy";
 import { buildCompareFacts } from "./compare-facts";
 import { loadCatalog, loadPublicCatalog, type PublicPlanSummary } from "./public-catalog";
@@ -14,6 +14,8 @@ export function modelPrices(modelId: string, date: string): ModelPrices[] {
     (rate) =>
       rate.modelId === modelId &&
       rate.basis === "api_list_price" &&
+      // Batch, Flex, Fast and Ultrafast rates are their own tiers, never the model's price.
+      pricingServiceTierOf(rate) === "standard" &&
       rate.verificationStatus === "verified" &&
       rate.effectiveFrom <= date &&
       (!rate.effectiveFromInstant || rate.effectiveFromInstant <= `${date}T23:59:59Z`) &&
