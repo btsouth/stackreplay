@@ -2435,12 +2435,22 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         title: "Official specifications and conditions",
         checkedAt: "2026-09-29",
       },
+      {
+        url: "https://dev.meta.ai/docs/models",
+        title: "Standard and Contributor tiers",
+        checkedAt: "2026-09-29",
+      },
+      {
+        url: "https://dev.meta.ai/docs/pricing-rate-limits",
+        title: "Contributor tier pricing and rate limits",
+        checkedAt: "2026-09-29",
+      },
     ],
     facts: [
       {
         label: "Data choice",
         value:
-          "The standard muse-spark-1.3 endpoint is not used to improve Meta products. The cheaper contributor endpoint permits that use and is a separate choice.",
+          "The standard muse-spark-1.3 endpoint is not used to train Meta models. Meta also offers muse-spark-1.3-contributor, a discounted Contributor-tier variant of the same version that permits training on your prompts and completions. It costs $0.10 input, $0.20 output and $0.002 cached input per MTok, with a lower 100 RPM limit.",
       },
       {
         label: "Capabilities",
