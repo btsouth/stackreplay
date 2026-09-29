@@ -1,6 +1,7 @@
 id: qwen-3-7-max
 role: model
 name: Qwen 3.7 Max
+lifecycle: legacy
 developerId: alibaba
 providerIds:
 - alibaba

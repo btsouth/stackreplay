@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:3c9f702c5a6e536be33729dedfdd6346b3d8a2350522e631a0dfe22d74a8f02d";
+export const BUNDLED_CATALOG_VERSION = "sha256:b7760bd3160295d7fdaef3e38d4c237312715821a34635810d612dba17a42520";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:3c9f702c5a6e536be33729dedfdd6346b3d8a2350522e631a0dfe22d74a8f02d",
+  "catalogVersion": "sha256:b7760bd3160295d7fdaef3e38d4c237312715821a34635810d612dba17a42520",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -4117,6 +4117,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "id": "qwen-3-7-max",
       "role": "model",
       "name": "Qwen 3.7 Max",
+      "lifecycle": "legacy",
       "developerId": "alibaba",
       "specifications": {
         "contextTokens": 1000000,
