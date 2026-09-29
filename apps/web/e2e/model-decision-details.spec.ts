@@ -71,6 +71,10 @@ test("promotional rates carry the provider's label and its regular rate", async 
     "Regular rate from January 1, 2027",
   );
   await page.goto("/models/longcat-2-0");
+  await expect(
+    page.getByTestId("model-rate-table").getByRole("row", { name: /^Regular rate\b.*\$0\.75/u }),
+  ).toBeVisible();
+  await page.goto("/models/gpt-5-6-sol");
   await expect(page.getByTestId("promotion-note")).toContainText("No regular rate is published.");
   await page.goto("/models/claude-sonnet-5-5");
   await expect(page.getByTestId("promotion-note")).toHaveCount(0);

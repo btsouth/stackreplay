@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304";
+export const BUNDLED_CATALOG_VERSION = "sha256:22e2d658afd60802d45ed68c03c079fd904ac779fd15fa6a868f966417a2c98b";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:a6f8201199b528af04d0d46db9afcf4d23174f230894c8fea6f6ccd4fda8a304",
+  "catalogVersion": "sha256:22e2d658afd60802d45ed68c03c079fd904ac779fd15fa6a868f966417a2c98b",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -25088,18 +25088,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "cacheRead": "0.006"
       },
       "promotion": {
-        "label": "Limited-time discount, no end date published"
+        "label": "Limited-time discount, no end date published",
+        "regularRates": {
+          "input": "0.75",
+          "output": "2.95",
+          "cacheRead": "0.015"
+        }
       },
       "effectiveFrom": "2026-09-29",
       "sources": [
         {
           "url": "https://longcat.chat/platform/docs/pricing/longcat-2.0",
-          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\": uncached input, cached input and output. No end date, undiscounted rate or cache-write rate is published.",
+          "title": "Pay-as-you-go USD table, \"Discounted Price $/1M Tokens (limited-time)\" column: uncached input, cached input and output. The \"Price $/1M Tokens\" column lists the regular rates. No end date or cache-write rate is published.",
           "checkedAt": "2026-09-29"
         },
         {
           "url": "https://longcat.chat/platform/docs/api-pay-as-you-go",
-          "title": "Same USD table and billing formula on the pay-as-you-go guide",
+          "title": "Discounted USD rates and billing formula on the pay-as-you-go guide",
           "checkedAt": "2026-09-29"
         }
       ],
