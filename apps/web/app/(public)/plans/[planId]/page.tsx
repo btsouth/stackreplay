@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PlanHistory, PlanTermsNotice } from "@/components/plan-history";
 import { MarketFooter } from "@/components/public/market-header";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
 import { SourceList } from "@/components/public/provenance";
@@ -62,6 +63,14 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-muted">
             USD / {plan.price.interval} · actual paid amount may differ
           </p>
+          {plan.timeline !== undefined && (
+            <PlanTermsNotice
+              asOf={catalog.asOf}
+              followToday
+              historyHref="#history"
+              plan={plan.timeline}
+            />
+          )}
           {plan.publishedTerms?.availabilityNote && (
             <p className="my-3 max-w-sm text-sm text-warning">
               {plan.publishedTerms.availabilityNote}
@@ -90,6 +99,9 @@ export default async function PlanPage({ params }: Props) {
           </p>
         </div>
       </section>
+      {plan.timeline !== undefined && (
+        <PlanHistory asOf={catalog.asOf} followToday id="history" plan={plan.timeline} />
+      )}
       <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">
           <span>01 / What you get</span>
@@ -218,6 +230,13 @@ export default async function PlanPage({ params }: Props) {
               <p className="market-muted" key={v.versionId}>
                 {v.effectiveFrom} · ${v.price.amount}/{v.price.interval} · checked{" "}
                 {v.lastVerifiedAt}
+                {v.withdrawn !== undefined
+                  ? ` · ${v.withdrawn.reason}, never in effect`
+                  : v.effectiveFrom > catalog.asOf
+                    ? " · scheduled, not yet in effect"
+                    : v.versionId === plan.versionId
+                      ? " · in effect"
+                      : ""}
               </p>
             ))}
           </fieldset>

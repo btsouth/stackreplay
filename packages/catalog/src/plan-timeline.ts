@@ -93,6 +93,46 @@ export interface PlanTimelineV1 {
   entries: readonly PlanTimelineEntryV1[];
 }
 
+/** The version fields the timeline reads; a surface can send just these to a browser. */
+export type PlanTimelineVersionV1 = Pick<
+  PlanVersionEntryV1,
+  | "effectiveFrom"
+  | "effectiveTo"
+  | "effectiveFromBasis"
+  | "announcedAt"
+  | "audience"
+  | "revision"
+  | "withdrawn"
+>;
+
+/** The plan fields the timeline reads. */
+export interface PlanTimelineInputV1 {
+  id: string;
+  versions: readonly PlanTimelineVersionV1[];
+  history?: PlanV1["history"];
+}
+
+/** A plan reduced to what its timeline needs, e.g. to hand to a client component. */
+export function planTimelineInputOf(
+  plan: Pick<PlanV1, "id" | "versions" | "history">,
+): PlanTimelineInputV1 {
+  return {
+    id: plan.id,
+    versions: plan.versions.map((version) => ({
+      effectiveFrom: version.effectiveFrom,
+      ...(version.effectiveTo !== undefined ? { effectiveTo: version.effectiveTo } : {}),
+      ...(version.effectiveFromBasis !== undefined
+        ? { effectiveFromBasis: version.effectiveFromBasis }
+        : {}),
+      ...(version.announcedAt !== undefined ? { announcedAt: version.announcedAt } : {}),
+      ...(version.audience !== undefined ? { audience: version.audience } : {}),
+      ...(version.revision !== undefined ? { revision: version.revision } : {}),
+      ...(version.withdrawn !== undefined ? { withdrawn: version.withdrawn } : {}),
+    })),
+    ...(plan.history !== undefined ? { history: plan.history } : {}),
+  };
+}
+
 const versionIdOf = (planId: string, effectiveFrom: string) => `${planId}@${effectiveFrom}`;
 
 /** The day before an ISO date, in UTC calendar arithmetic. */
@@ -103,8 +143,8 @@ function dayBefore(date: string): string {
 }
 
 interface TermsRun {
-  first: PlanVersionEntryV1;
-  versions: PlanVersionEntryV1[];
+  first: PlanTimelineVersionV1;
+  versions: PlanTimelineVersionV1[];
 }
 
 /**
@@ -112,7 +152,7 @@ interface TermsRun {
  * version and at every version that declares a revision. Withdrawn versions
  * never took effect and belong to no run.
  */
-function termsRuns(versions: readonly PlanVersionEntryV1[]): TermsRun[] {
+function termsRuns(versions: readonly PlanTimelineVersionV1[]): TermsRun[] {
   const live = versions
     .filter((version) => version.withdrawn === undefined)
     .sort((a, b) => (a.effectiveFrom < b.effectiveFrom ? -1 : 1));
@@ -172,10 +212,7 @@ const STATUS_ORDER: Record<PlanTimelineStatusV1, number> = {
 /**
  * The plan's terms and history as of one calendar day.
  */
-export function resolvePlanTimeline(
-  plan: Pick<PlanV1, "id" | "versions" | "history">,
-  asOf: string,
-): PlanTimelineV1 {
+export function resolvePlanTimeline(plan: PlanTimelineInputV1, asOf: string): PlanTimelineV1 {
   const day = asOf.slice(0, 10);
   const runs = termsRuns(plan.versions);
   const inForce = selectPlanVersionAt(plan.versions, day);
@@ -253,9 +290,45 @@ export function resolvePlanTimeline(
 }
 
 /** Whether a plan has any history worth a timeline: events or a revision. */
-export function planHasHistory(plan: Pick<PlanV1, "versions" | "history">): boolean {
+export function planHasHistory(plan: Pick<PlanTimelineInputV1, "versions" | "history">): boolean {
   return (
     (plan.history?.events.length ?? 0) > 0 ||
     plan.versions.some((version) => version.revision !== undefined)
   );
+}
+
+/** The terms one plan version belongs to, read from the version alone. */
+export interface PlanVersionTermsV1 {
+  /** The first version of these terms. */
+  effectiveFrom: string;
+  revision?: PlanRevisionV1;
+  /** The start of the next revision after these terms, when one exists in the catalog. */
+  nextRevisionFrom?: string;
+}
+
+/**
+ * Which terms a specific version (for example the one a saved result was
+ * computed on) belongs to. It depends on the version id only, never on today,
+ * so a stored result keeps describing the terms it used.
+ */
+export function planTermsOfVersion(
+  plan: PlanTimelineInputV1,
+  versionId: string,
+): PlanVersionTermsV1 | undefined {
+  const effectiveFrom = versionId.startsWith(`${plan.id}@`)
+    ? versionId.slice(plan.id.length + 1)
+    : undefined;
+  if (effectiveFrom === undefined) return undefined;
+  const runs = termsRuns(plan.versions);
+  const index = runs.findIndex((run) =>
+    run.versions.some((version) => version.effectiveFrom === effectiveFrom),
+  );
+  const run = runs[index];
+  if (run === undefined) return undefined;
+  const next = runs.slice(index + 1).find((later) => later.first.revision !== undefined);
+  return {
+    effectiveFrom: run.first.effectiveFrom,
+    ...(run.first.revision !== undefined ? { revision: run.first.revision } : {}),
+    ...(next !== undefined ? { nextRevisionFrom: next.first.effectiveFrom } : {}),
+  };
 }

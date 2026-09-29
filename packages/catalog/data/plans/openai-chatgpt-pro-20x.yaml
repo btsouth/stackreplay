@@ -334,7 +334,7 @@ history:
     - id: revised-usage-terms
       kind: allowance
       title: Usage economics change
-      summary: About half the previous terms' API-equivalent spend. No five-hour limit.
+      summary: Pro plans have no five-hour limit.
       announcedAt: 2026-09-29
       effectiveAt: 2026-09-30
       appliesTo:

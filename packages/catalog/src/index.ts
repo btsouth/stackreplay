@@ -11,9 +11,14 @@ export {
 export {
   type PlanTermsV1,
   type PlanTimelineEntryV1,
+  type PlanTimelineInputV1,
   type PlanTimelineStatusV1,
   type PlanTimelineV1,
+  type PlanTimelineVersionV1,
+  type PlanVersionTermsV1,
   planHasHistory,
+  planTermsOfVersion,
+  planTimelineInputOf,
   resolvePlanTimeline,
 } from "./plan-timeline.js";
 export {

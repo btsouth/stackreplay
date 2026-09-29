@@ -18,6 +18,10 @@
       "types": "./dist/bundled.d.ts",
       "default": "./dist/bundled.js"
     },
+    "./timeline": {
+      "types": "./dist/plan-timeline.d.ts",
+      "default": "./dist/plan-timeline.js"
+    },
     "./intelligence": {
       "types": "./dist/intelligence/index.d.ts",
       "default": "./dist/intelligence/index.js"

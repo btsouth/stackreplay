@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlanTimeline } from "./plan-timeline.js";
+import { planTermsOfVersion, resolvePlanTimeline } from "./plan-timeline.js";
 import type { PlanEventV1, PlanV1, PlanVersionEntryV1 } from "./schema.js";
 import { selectPlanVersionAt } from "./versions.js";
 
@@ -259,5 +259,19 @@ describe("resolvePlanTimeline: changes that never take effect", () => {
     expect(timeline.scheduled).toBeUndefined();
     expect(timeline.previous).toBeUndefined();
     expect(timeline.current?.versionId).toBe("example-basic@2026-09-01");
+  });
+});
+
+describe("planTermsOfVersion", () => {
+  it("describes a stored version's terms from the version alone", () => {
+    expect(planTermsOfVersion(plan, "example-pro@2026-09-01")).toEqual({
+      effectiveFrom: "2026-09-01",
+      nextRevisionFrom: "2026-09-30",
+    });
+    expect(planTermsOfVersion(plan, "example-pro@2026-09-30")?.revision?.title).toBe(
+      "Revised usage terms",
+    );
+    expect(planTermsOfVersion(plan, "other-plan@2026-09-30")).toBeUndefined();
+    expect(planTermsOfVersion(plan, "example-pro@2026-01-01")).toBeUndefined();
   });
 });

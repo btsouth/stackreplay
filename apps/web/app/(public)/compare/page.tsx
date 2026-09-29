@@ -68,6 +68,7 @@ export default function ComparePage() {
           providers={catalog.providers}
           facts={facts}
           defaultPair={defaultComparePair(catalog.plans)}
+          asOf={catalog.asOf}
         />
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { PlanTermsNotice } from "@/components/plan-history";
 import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
 import { compareSearch, readComparePlans } from "@/lib/compare-url";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
@@ -383,9 +384,11 @@ function TextRow({
 
 function TargetHeader({
   plan,
+  asOf,
   onRemove,
 }: {
   plan: PublicPlanSummary;
+  asOf: string;
   onRemove?: (() => void) | undefined;
 }) {
   return (
@@ -414,6 +417,14 @@ function TargetHeader({
         <span className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</span>
         <span className="market-muted ml-2">/ {plan.price.interval}</span>
       </p>
+      {plan.timeline !== undefined && (
+        <PlanTermsNotice
+          asOf={asOf}
+          followToday
+          historyHref={`/plans/${plan.id}#history`}
+          plan={plan.timeline}
+        />
+      )}
       {plan.publishedTerms?.availabilityNote && (
         <p className="mt-3 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
       )}
@@ -435,11 +446,14 @@ export function CompareExplorer({
   providers,
   facts,
   defaultPair,
+  asOf,
 }: {
   plans: readonly PublicPlanSummary[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
   defaultPair: readonly [string, string];
+  /** The day the page resolved plan terms on; a plan's notice follows the viewer's day after hydration. */
+  asOf: string;
 }) {
   const [ids, setIds] = useState<string[]>([...defaultPair]);
   const [hydrated, setHydrated] = useState(false);
@@ -522,6 +536,7 @@ export function CompareExplorer({
             <div className={layout.wideOnly} />
             {chosen.map((entry, index) => (
               <TargetHeader
+                asOf={asOf}
                 key={entry.plan.id}
                 plan={entry.plan}
                 onRemove={

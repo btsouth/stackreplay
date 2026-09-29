@@ -2,6 +2,7 @@ import {
   type CatalogSourceV1,
   type CatalogV1,
   familyReleaseIds,
+  isDefaultPriceRecord,
   type LimitWindowV1,
   type LoadedPlanVersionV1,
   type ModelAliasV1,
@@ -11,7 +12,10 @@ import {
   modelKindOf,
   type PlanLimitV1,
   type PlanPriceV1,
+  type PlanTimelineInputV1,
   type PromotionV1,
+  planHasHistory,
+  planTimelineInputOf,
   planVersionId,
   type QualitativeLimitV1,
   selectPlanVersionAt,
@@ -22,6 +26,7 @@ import {
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
+import { audienceWords, relativeValuePhrase } from "./plan-terms";
 import {
   includedAccessModels,
   type SubscriptionAccess,
@@ -109,6 +114,8 @@ export interface PublicPlanSummary {
   /** Provider-published product lineup, separate from executable Replay rules. */
   modelAccess?: SubscriptionAccess;
   publishedTerms?: SubscriptionPublishedTerms;
+  /** Present when the plan has history or revised terms: the input its timeline reads. */
+  timeline?: PlanTimelineInputV1;
 }
 
 /**
@@ -246,6 +253,7 @@ function toPlanSummary(
     sources: version.sources,
     billingMechanics: version.billingMechanics,
     versionCount: plan?.versions.length ?? 1,
+    ...(plan !== undefined && planHasHistory(plan) ? { timeline: planTimelineInputOf(plan) } : {}),
   };
 }
 
@@ -375,7 +383,7 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
         price.modelId === modelId &&
         price.basis === "api_list_price" &&
         price.verificationStatus === "verified" &&
-        !price.variantId &&
+        isDefaultPriceRecord(price) &&
         price.effectiveFrom <= date &&
         (!price.effectiveTo || price.effectiveTo >= date),
     );
@@ -477,7 +485,13 @@ export interface CatalogChange {
   planName: string;
   providerName: string;
   effectiveFrom: string;
-  kind: "plan_added" | "price_changed" | "limit_changed" | "model_access_changed" | "rule_changed";
+  kind:
+    | "plan_added"
+    | "price_changed"
+    | "limit_changed"
+    | "model_access_changed"
+    | "rule_changed"
+    | "terms_revised";
   summary: string;
   modelDetails?: string;
   verificationStatus: LoadedPlanVersionV1["verificationStatus"];
@@ -533,9 +547,10 @@ export function deriveCatalogChanges(catalog: CatalogV1 = loadCatalog()): Catalo
     const plan = catalog.plans[planId];
     if (plan === undefined) continue;
     const providerName = catalog.providers[plan.providerId]?.name ?? plan.providerId;
-    const ordered = [...plan.versions].sort((left, right) =>
-      left.effectiveFrom.localeCompare(right.effectiveFrom),
-    );
+    // A withdrawn version never took effect, so it is not a change.
+    const ordered = plan.versions
+      .filter((version) => version.withdrawn === undefined)
+      .sort((left, right) => left.effectiveFrom.localeCompare(right.effectiveFrom));
     for (const [index, version] of ordered.entries()) {
       const previous = index === 0 ? undefined : ordered[index - 1];
       const base = {
@@ -555,6 +570,16 @@ export function deriveCatalogChanges(catalog: CatalogV1 = loadCatalog()): Catalo
           modelDetails: describeModels(version.modelRules, catalog),
         });
         continue;
+      }
+      if (version.revision !== undefined) {
+        const value = version.revision.relativeValue;
+        const scope =
+          version.audience === undefined ? "" : ` for ${audienceWords(version.audience)}`;
+        changes.push({
+          ...base,
+          kind: "terms_revised",
+          summary: `${version.revision.title}${scope}${value === undefined ? "." : `: ${relativeValuePhrase(value)}.`}`,
+        });
       }
       if (
         previous.price.amount !== version.price.amount ||

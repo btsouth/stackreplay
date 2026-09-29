@@ -1,7 +1,12 @@
 import type { VerificationStatusV1 } from "@stackreplay/schema";
 import { BUNDLED_CATALOG, BUNDLED_CATALOG_VERSION } from "./bundled-catalog.js";
 import { type CatalogV1, catalogV1Schema } from "./catalog.js";
-import { type PlanTimelineV1, resolvePlanTimeline } from "./plan-timeline.js";
+import {
+  type PlanTimelineInputV1,
+  type PlanTimelineV1,
+  planTimelineInputOf,
+  resolvePlanTimeline,
+} from "./plan-timeline.js";
 import { createModelIdentityIndex, type ModelIdentityIndex } from "./resolve.js";
 import {
   isDefaultPriceRecord,
@@ -364,6 +369,12 @@ export function bundledApiProviderModels(
 export function bundledPlanTimeline(planId: string, asOf: string): PlanTimelineV1 | undefined {
   const plan = loadBundledCatalog().plans[planId];
   return plan === undefined ? undefined : resolvePlanTimeline(plan, asOf);
+}
+
+/** The timeline input for one plan, small enough to hand to a client component. */
+export function bundledPlanTimelineInput(planId: string): PlanTimelineInputV1 | undefined {
+  const plan = loadBundledCatalog().plans[planId];
+  return plan === undefined ? undefined : planTimelineInputOf(plan);
 }
 
 /** One processing tier a Direct API provider offers, across its models. */

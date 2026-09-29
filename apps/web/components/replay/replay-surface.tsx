@@ -3,13 +3,14 @@
 import {
   bundledPlanFacts,
   bundledPlansAt,
+  bundledPlanTimelineInput,
   bundledProviderFacts,
   bundledPublicApiProviders,
   bundledUsageCreditModels,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
-import type { ExecutionTargetV1 } from "@stackreplay/schema";
+import type { ExecutionTargetV1, ServiceTierV1 } from "@stackreplay/schema";
 import { isSyntheticCatalogId, shareText } from "@stackreplay/share";
 import { Badge, Button, Card, CardContent, Metric } from "@stackreplay/ui";
 import dynamic from "next/dynamic";
@@ -32,8 +33,10 @@ import { ResultSettlement } from "@/components/instrument/result-settlement";
 import { useReplayChoreography } from "@/components/instrument/use-replay-choreography";
 import { WorkloadSpecimen } from "@/components/instrument/workload-specimen";
 import { MissingWorkload } from "@/components/missing-workload";
+import { PlanTermsLine } from "@/components/replay/plan-terms-line";
 import { ReplayReading } from "@/components/replay/replay-reading";
 import { ReplayVerdict } from "@/components/replay/replay-verdict";
+import { SERVICE_TIER_NAMES, ServiceTierPicker } from "@/components/replay/service-tier-picker";
 import {
   compatibility,
   type ModelMapping,
@@ -46,6 +49,7 @@ import {
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { plainRange } from "@/components/workload/format";
 import { formatUsd } from "@/lib/money-display";
+import { versionTermsLabel } from "@/lib/plan-terms";
 import { type TargetCoverage, targetCoverages, workloadSlice } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
@@ -161,6 +165,8 @@ export function ReplaySurface({
     initialApi !== undefined && initialTarget === undefined ? "api" : "subscription",
   );
   const [providerId, setProviderId] = useState<string | undefined>(initialApi);
+  /** The processing tier a Direct API replay prices at; Standard unless chosen. */
+  const [serviceTier, setServiceTier] = useState<ServiceTierV1>("standard");
   /**
    * Model substitutions the person chose, kept per target so switching back to a
    * target restores its scenario. Never pre-filled: an empty mapping is exact.
@@ -510,7 +516,12 @@ export function ReplaySurface({
       targetKind === "api"
         ? selectedProvider === undefined
           ? undefined
-          : { type: "api", providerId: selectedProvider.id, ...translation }
+          : {
+              type: "api",
+              providerId: selectedProvider.id,
+              ...(serviceTier === "standard" ? {} : { serviceTier }),
+              ...translation,
+            }
         : selectedPlan === undefined
           ? undefined
           : { type: "subscription", planId: selectedPlan.id, ...translation };
@@ -563,6 +574,7 @@ export function ReplaySurface({
     scope,
     selectedPlan,
     selectedProvider,
+    serviceTier,
     sourceNames,
     targetKind,
     unresolvedEvents,
@@ -586,6 +598,7 @@ export function ReplaySurface({
   const selectProvider = useCallback(
     (id: string) => {
       setProviderId(id);
+      setServiceTier("standard");
       setTranslationOpen(false);
       dropResult();
     },
@@ -997,6 +1010,20 @@ export function ReplaySurface({
               </ul>
             )}
           </div>
+          {targetKind === "subscription" && selectedPlan !== undefined ? (
+            <PlanTermsLine planId={selectedPlan.id} rulesAsOf={rulesAsOf} />
+          ) : null}
+          {targetKind === "api" && selectedProvider !== undefined ? (
+            <ServiceTierPicker
+              onChange={(tier) => {
+                setServiceTier(tier);
+                dropResult();
+              }}
+              providerId={selectedProvider.id}
+              rulesAsOf={rulesAsOf}
+              value={serviceTier}
+            />
+          ) : null}
 
           {compat !== undefined &&
           models !== undefined &&
@@ -1485,6 +1512,13 @@ function ReplayResult({
     [projection.constraints],
   );
   const planVersionId = projection.target.planVersionId;
+  // The terms this result used, from its own plan version (never today's).
+  const resultTerms = useMemo(() => {
+    if (apiTarget || planVersionId === undefined) return undefined;
+    const planId = planVersionId.slice(0, planVersionId.lastIndexOf("@"));
+    const input = bundledPlanTimelineInput(planId);
+    return input === undefined ? undefined : versionTermsLabel(input, planVersionId);
+  }, [apiTarget, planVersionId]);
   const shareTarget =
     apiTarget || planVersionId === undefined ? undefined : bundledPlanFacts(planVersionId);
   const providerFacts =
@@ -1503,7 +1537,12 @@ function ReplayResult({
     usageCreditModels.has(entry.canonicalId);
   const usageCreditEntries = result.unsupportedModels.filter(creditOnly);
 
-  const verdictTarget = apiTarget ? `${targetName} API` : targetName;
+  // A processing tier other than Standard is part of what was priced, so it is
+  // part of the target's name everywhere the verdict travels (share links too).
+  const resultTier = result.target.type === "api" ? result.target.serviceTier : undefined;
+  const verdictTarget = apiTarget
+    ? `${targetName} API${resultTier === undefined ? "" : ` (${SERVICE_TIER_NAMES[resultTier]} tier)`}`
+    : targetName;
   const composed = verdictOfOutcome(outcome, verdictTarget, {
     timeZone: browserTimeZone(),
     catalog: loadBundledCatalog(),
@@ -1540,6 +1579,15 @@ function ReplayResult({
         {formatCount(result.workload.eventCount)} calls · target{" "}
         <span className="font-mono">{computedFor.target}</span> · rules as of{" "}
         <span className="font-mono">{computedFor.rulesAsOf}</span>
+        {resultTerms === undefined ? null : (
+          <span data-testid="result-plan-terms"> · {resultTerms}</span>
+        )}
+        {result.target.type === "api" && result.target.serviceTier !== undefined ? (
+          <span data-testid="result-service-tier">
+            {" "}
+            · {SERVICE_TIER_NAMES[result.target.serviceTier]} processing
+          </span>
+        ) : null}
       </p>
     );
 

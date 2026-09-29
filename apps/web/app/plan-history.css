@@ -1,0 +1,272 @@
+/*
+ * Plan terms notice and plan history timeline (components/plan-history.tsx).
+ * Instrument-like and quiet: one rail, dated steps, state written in words.
+ * Colour only reinforces the state label; it never carries it alone.
+ */
+.plan-terms-notice {
+  margin: 1.25rem 0 0.25rem;
+  max-width: 26rem;
+  border-left: 2px solid var(--accent);
+  background: var(--surface-2);
+  padding: 0.75rem 1rem 0.25rem;
+}
+.plan-terms-notice-headline {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.plan-terms-notice-detail {
+  margin-top: 0.3rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.plan-terms-notice .market-link {
+  min-height: 40px;
+}
+
+.plan-terms-compact {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+.plan-terms-compact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.plan-history {
+  margin: 0 0 2.5rem;
+}
+
+/* Replay: the terms a subscription replay uses, with the history behind it. */
+.plan-terms-line {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.plan-terms-line > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.25rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+.plan-terms-line > summary::-webkit-details-marker {
+  display: none;
+}
+.plan-terms-line-terms {
+  color: var(--foreground);
+}
+.plan-terms-line-open {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.plan-terms-line .plan-history {
+  margin: 0.5rem 0;
+  padding-left: 0.4rem;
+}
+.plan-terms-line .plan-history .market-section-title {
+  padding: 0.75rem 0;
+}
+@media (min-width: 40rem) {
+  .plan-terms-line > summary {
+    min-height: 32px;
+  }
+}
+.plan-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0;
+  display: grid;
+}
+.plan-timeline-step {
+  --rail: var(--border-strong);
+  --marker: var(--muted-foreground);
+  position: relative;
+  min-width: 0;
+  padding: 0 0 1.5rem 1.6rem;
+  border-left: 1px solid var(--rail);
+}
+.plan-timeline-step:last-child {
+  border-left-color: transparent;
+}
+.plan-timeline-step::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 0.3rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--background);
+  border: 1.5px solid var(--marker);
+}
+.plan-timeline-step[data-state="past"]::before,
+.plan-timeline-step[data-state="previous"]::before {
+  background: var(--marker);
+}
+.plan-timeline-step[data-state="current"] {
+  --marker: var(--accent);
+}
+.plan-timeline-step[data-state="current"]::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 22%, transparent);
+}
+.plan-timeline-step[data-state="scheduled"],
+.plan-timeline-step[data-state="announced"] {
+  --marker: var(--accent);
+}
+/* The rail into a change that has not happened yet is dashed. */
+.plan-timeline-step:has(+ .plan-timeline-step[data-state="scheduled"]),
+.plan-timeline-step:has(+ .plan-timeline-step[data-state="announced"]) {
+  border-left-style: dashed;
+}
+.plan-timeline-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.plan-timeline-state {
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.plan-timeline-step[data-state="current"] .plan-timeline-state,
+.plan-timeline-step[data-state="scheduled"] .plan-timeline-state {
+  color: var(--accent);
+}
+.plan-timeline-line {
+  margin-top: 0.55rem;
+}
+.plan-timeline-line :is(h3, h4) {
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+.plan-timeline-line p {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.plan-timeline-audience,
+.plan-timeline-line .plan-timeline-audience {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+.plan-timeline-step > .plan-timeline-audience {
+  margin-top: 0.4rem;
+}
+.plan-timeline-evidence {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+}
+.plan-timeline-evidence summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+}
+.plan-timeline-evidence summary:hover {
+  color: var(--foreground);
+}
+.plan-timeline-evidence ul {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.plan-timeline-evidence q {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+.plan-timeline-evidence a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Wide screens: the same list read left to right on one rail. */
+@media (min-width: 64rem) {
+  .plan-timeline {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  .plan-timeline-step {
+    padding: 1.1rem 1.5rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--rail);
+  }
+  .plan-timeline-step:last-child {
+    border-top-color: transparent;
+    border-left: 0;
+  }
+  .plan-timeline-step::before {
+    left: 0;
+    top: -5px;
+  }
+  .plan-timeline-step:has(+ .plan-timeline-step[data-state="scheduled"]),
+  .plan-timeline-step:has(+ .plan-timeline-step[data-state="announced"]) {
+    border-top-style: dashed;
+  }
+  /* A timeline inside a narrow panel stays vertical. */
+  .plan-history[data-layout="stacked"] .plan-timeline {
+    grid-auto-flow: row;
+  }
+  .plan-history[data-layout="stacked"] .plan-timeline-step {
+    padding: 0 0 1.5rem 1.6rem;
+    border-top: 0;
+    border-left: 1px solid var(--rail);
+  }
+  .plan-history[data-layout="stacked"] .plan-timeline-step:last-child {
+    border-left-color: transparent;
+  }
+  .plan-history[data-layout="stacked"] .plan-timeline-step::before {
+    left: -5px;
+    top: 0.3rem;
+  }
+  .plan-history[data-layout="stacked"]
+    .plan-timeline-step:has(+ .plan-timeline-step[data-state="scheduled"]) {
+    border-left-style: dashed;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .plan-timeline-evidence summary {
+    transition: color 120ms ease;
+  }
+}
+
+/* Processing tiers on a model page: every tier at the same weight, status in words. */
+.market-rate-table.market-tier-table tbody tr:first-child td {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.market-rate-table.market-tier-table tbody tr:first-child th {
+  color: var(--muted-foreground);
+}
+.market-rate-table.market-tier-table tbody tr td.market-tier-status {
+  font-size: 0.85rem;
+  white-space: normal;
+}
+.market-tier-table .market-tier-status .market-muted {
+  max-width: 28rem;
+  margin-left: auto;
+}

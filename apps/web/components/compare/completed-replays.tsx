@@ -11,6 +11,7 @@ import {
   removeCompletedReplay,
 } from "@/lib/completed-replays";
 import { priceRangeText } from "@/lib/replay-strategies";
+import { savedReplayTargetLine } from "@/lib/saved-replay-target";
 import { getWorkerClient } from "@/lib/worker-client";
 export function CompletedReplayComparison({
   initialImportId,
@@ -144,6 +145,11 @@ export function CompletedReplayComparison({
               <section key={r.id} className="space-y-4 px-0 py-6 md:px-5">
                 <MicroLabel>{r.mode}</MicroLabel>
                 <h2 className="text-lg font-medium">{r.title}</h2>
+                {savedReplayTargetLine(r) !== undefined && (
+                  <p className="text-xs text-muted-foreground" data-testid="saved-replay-target">
+                    {savedReplayTargetLine(r)}
+                  </p>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground">
                     {r.priced < r.calls && r.cost ? "Priced-scope API cost" : "Published API cost"}

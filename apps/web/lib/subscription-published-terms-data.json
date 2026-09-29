@@ -1914,69 +1914,135 @@
     "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
     "billingSummary": "Monthly subscription; cancellation retains access until cycle end."
   },
-  "openai-chatgpt-pro-20x": {
-    "checkedAt": "2026-09-29",
-    "sourceUrls": [
-      "https://x.com/thsottiaux/status/2104823812042940713",
-      "https://learn.chatgpt.com/docs/pricing",
-      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
-      "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
-      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
-    ],
-    "allowanceSummary": "Usage terms revised Sep 30, 2026 (≈50% of the previous API-equivalent spend)",
-    "terms": [
-      {
-        "label": "Included usage",
-        "value": "Previous terms: 20× Plus usage allowance for Work/Codex. From Sep 30, 2026, new subscriptions get about half the previous API-equivalent spend. Pro plans currently have no five-hour limit.",
-        "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
-      },
-      {
-        "label": "Shared limits",
-        "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
-        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
-      },
-      {
-        "label": "Extra usage",
-        "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
-        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
-      },
-      {
-        "label": "Tools",
-        "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
-        "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
-      },
-      {
-        "label": "Privacy",
-        "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-        "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
-      },
-      {
-        "label": "Plan changes",
-        "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
-        "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
-      },
-      {
-        "label": "Availability",
-        "value": "New subscriptions and upgrades were paused from Sep 10, 2026; existing subscriptions kept renewing. OpenAI announced on Sep 29 that new subscriptions reopen on Sep 30, 2026.",
-        "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
-      },
-      {
-        "label": "Credit expiry",
-        "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
-        "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
-      },
-      {
-        "label": "Purchased resets",
-        "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
-        "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
-      }
-    ],
-    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
-    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-    "billingSummary": "Monthly subscription; cancellation retains access until cycle end."
-  },
+  "openai-chatgpt-pro-20x": [
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://x.com/thsottiaux/status/2104823812042940713",
+        "https://learn.chatgpt.com/docs/pricing",
+        "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+        "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+        "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+        "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      ],
+      "allowanceSummary": "20× Plus usage allowance for Work/Codex",
+      "terms": [
+        {
+          "label": "Included usage",
+          "value": "20× Plus usage allowance for Work/Codex. Pro plans currently have no five-hour limit; weekly limits may apply.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Shared limits",
+          "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Tools",
+          "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Privacy",
+          "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+          "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+        },
+        {
+          "label": "Plan changes",
+          "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "label": "Availability",
+          "value": "New subscriptions and upgrades paused since Sep 10, 2026; existing subscriptions still renew. OpenAI announced on Sep 29 that new subscriptions reopen on Sep 30, 2026 with revised usage terms.",
+          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+        },
+        {
+          "label": "Credit expiry",
+          "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
+          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+        },
+        {
+          "label": "Purchased resets",
+          "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        }
+      ],
+      "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
+      "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+      "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+      "billingSummary": "Monthly subscription; cancellation retains access until cycle end."
+    },
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://x.com/thsottiaux/status/2104823812042940713",
+        "https://learn.chatgpt.com/docs/pricing",
+        "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+        "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+        "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+        "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      ],
+      "allowanceSummary": "Work/Codex usage under the revised calculation. No numeric allowance is published.",
+      "terms": [
+        {
+          "label": "Included usage",
+          "value": "Set by the revised usage calculation for new subscribers (see plan history). No numeric allowance or multiple of Plus is published. Pro plans currently have no five-hour limit.",
+          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+        },
+        {
+          "label": "Shared limits",
+          "value": "Local messages and cloud chats share the allowance. Weekly limits may also apply; fast mode and image generation consume it faster.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Additional credits continue supported usage after included limits. API-key usage is separately metered and billed.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Tools",
+          "value": "ChatGPT Work and Codex clients use plan allowances. This does not include a general-purpose OpenAI API balance.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
+        },
+        {
+          "label": "Privacy",
+          "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+          "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+        },
+        {
+          "label": "Plan changes",
+          "value": "Available upgrades apply immediately and restart the billing cycle. Downgrades and cancellation take effect at the end of the paid period.",
+          "sourceUrl": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers"
+        },
+        {
+          "label": "Availability",
+          "value": "Open to new subscribers again from Sep 30, 2026. When existing subscriptions move to the revised calculation is not published.",
+          "sourceUrl": "https://x.com/thsottiaux/status/2104823812042940713"
+        },
+        {
+          "label": "Credit expiry",
+          "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
+          "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+        },
+        {
+          "label": "Purchased resets",
+          "value": "Eligible Plus and Pro accounts may buy an immediate five-hour and weekly reset. It advances the normal allowance, not an extra credit balance; the new weekly period begins with the next Work/Codex request.",
+          "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        }
+      ],
+      "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
+      "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+      "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
+      "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
+      "effectiveFrom": "2026-09-30"
+    }
+  ],
   "openai-chatgpt-pro-500": {
     "checkedAt": "2026-09-29",
     "sourceUrls": [

@@ -226,9 +226,11 @@ test("special pricing and practical subscription terms have specific explanation
     "Sessions reset every five hours",
   );
   await page.goto("/plans/openai-chatgpt-pro-20x");
-  await expect(page.locator(".market-header")).toContainText(
-    "New subscriptions and upgrades paused",
-  );
+  // The pause is plan history now: visible by default, scoped to new subscribers.
+  const history = page.getByTestId("plan-history");
+  await expect(history).toBeVisible();
+  await expect(history).toContainText("New subscriptions paused");
+  await expect(history).toContainText("Existing subscribers not affected");
   await expect(
     page.getByText("ChatGPT · Codex · ChatGPT Work", { exact: true }).first(),
   ).toBeVisible();

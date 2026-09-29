@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:34945ca6768f355dbe1608c7f70f0dd9e9b263af014a2fd5cb7cdc2ba03ead1a";
+export const BUNDLED_CATALOG_VERSION = "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:34945ca6768f355dbe1608c7f70f0dd9e9b263af014a2fd5cb7cdc2ba03ead1a",
+  "catalogVersion": "sha256:be330a193d734590a36df16de6200a07454872390c4c0eb67ebbf3eed1eb6bb4",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -15441,7 +15441,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             "id": "revised-usage-terms",
             "kind": "allowance",
             "title": "Usage economics change",
-            "summary": "About half the previous terms' API-equivalent spend. No five-hour limit.",
+            "summary": "Pro plans have no five-hour limit.",
             "announcedAt": "2026-09-29",
             "effectiveAt": "2026-09-30",
             "appliesTo": [

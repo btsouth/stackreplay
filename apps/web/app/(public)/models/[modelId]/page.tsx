@@ -7,6 +7,7 @@ import {
   ModelPricingConditions,
   ModelRateTable,
 } from "@/components/public/model-pricing-conditions";
+import { ModelServiceTiers } from "@/components/public/model-service-tiers";
 import { PromoTag } from "@/components/public/promo-tag";
 import { SourceList } from "@/components/public/provenance";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
@@ -158,6 +159,7 @@ export default async function ModelPage({ params }: Props) {
               <ModelPricingConditions prices={prices} />
             </>
           )}
+          <ModelServiceTiers asOf={catalog.asOf} modelId={model.id} />
           {model.pricingNote && (
             <p className="market-price-note" data-testid="pricing-note">
               {model.pricingNote}

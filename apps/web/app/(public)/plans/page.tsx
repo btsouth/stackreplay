@@ -40,6 +40,7 @@ export default function PlansPage() {
         facts={facts}
         tools={tools}
         usage={Object.fromEntries(catalog.plans.map((p) => [p.id, planUsage(p)]))}
+        asOf={catalog.asOf}
       />
       <p className="market-muted mt-6">
         Published subscription price is separate from what you actually paid. Listing a plan does
