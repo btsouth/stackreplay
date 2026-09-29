@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { modelLibrarySearch, readModelLibraryUrl } from "./model-layout";
+import {
+  MODEL_FILTER_PARAMS,
+  modelLayoutInitScript,
+  modelLibrarySearch,
+  readModelLibraryUrl,
+} from "./model-layout";
 import { defaultSortDirection, type ModelSortKey } from "./model-library";
 
 const direction = (sort: string) => defaultSortDirection(sort as ModelSortKey);
@@ -11,6 +16,10 @@ const allowed = {
 };
 
 describe("models page URL state", () => {
+  it("holds back results for every filter the page reads from the URL", () => {
+    expect(modelLayoutInitScript).toContain(`${JSON.stringify(MODEL_FILTER_PARAMS)}.some(`);
+  });
+
   it("round-trips a shared view and leaves every default out", () => {
     const search =
       "?view=table&q=glm&tab=legacy&developer=minimax&capability=long-context&sort=input&dir=desc&included=1&priced=1";

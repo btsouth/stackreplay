@@ -10,7 +10,10 @@
  */
 export type ModelLayout = "cards" | "table";
 
-/** Query keys other than the layout, in the order they are written. */
+/**
+ * Query keys other than the layout, in the order they are written. The init
+ * script below lists them literally; a unit test keeps the two in step.
+ */
 export const MODEL_FILTER_PARAMS = [
   "q",
   "tab",
@@ -22,7 +25,7 @@ export const MODEL_FILTER_PARAMS = [
   "priced",
 ] as const;
 
-export const modelLayoutInitScript = `(function(){try{if(!/^\\/models\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search),d=document.documentElement;if(p.get("view")==="table")d.setAttribute("data-model-layout","table");if(${JSON.stringify(MODEL_FILTER_PARAMS)}.some(function(k){return p.has(k)})){d.setAttribute("data-model-filters","pending");setTimeout(function(){d.removeAttribute("data-model-filters")},4e3);}}catch(e){}})();`;
+export const modelLayoutInitScript = `(function(){try{if(!/^\\/models\\/?$/.test(location.pathname))return;var p=new URLSearchParams(location.search),d=document.documentElement;if(p.get("view")==="table")d.setAttribute("data-model-layout","table");if(["q","tab","developer","capability","sort","dir","included","priced"].some(function(k){return p.has(k)})){d.setAttribute("data-model-filters","pending");setTimeout(function(){d.removeAttribute("data-model-filters")},4e3);}}catch(e){}})();`;
 
 export function modelLayoutFromSearch(search: string): ModelLayout {
   return new URLSearchParams(search).get("view") === "table" ? "table" : "cards";
