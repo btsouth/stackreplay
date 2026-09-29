@@ -5,7 +5,19 @@ export interface SubscriptionAccessModel {
   name: string;
   /** Explicit reviewed identity, never a fuzzy name match. */
   modelId?: string;
+  /**
+   * The provider's own route variant of `modelId` (for example Command Code's
+   * Fast route). The same model on a separately priced route: a separate row,
+   * never merged into the default route's.
+   */
+  variant?: string;
   note?: string;
+}
+
+/** One key per listed route: a model's variant never replaces its default route. */
+export function accessModelKey(model: SubscriptionAccessModel): string {
+  if (model.modelId === undefined) return `published:${model.name}`;
+  return model.variant === undefined ? model.modelId : `${model.modelId}~${model.variant}`;
 }
 export interface SubscriptionAccessGroup {
   label: string;
@@ -50,7 +62,7 @@ export function includedAccessModels(access: SubscriptionAccess): SubscriptionAc
       access.groups
         .filter((group) => group.access === "included" || group.access === "conditional")
         .flatMap((group) => group.models)
-        .map((model) => [model.modelId ?? model.name, model]),
+        .map((model) => [accessModelKey(model), model]),
     ).values(),
   ];
 }

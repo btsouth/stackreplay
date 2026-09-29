@@ -90,9 +90,30 @@ export const planLimitV1Schema = z.strictObject({
 });
 export type PlanLimitV1 = z.infer<typeof planLimitV1Schema>;
 
+/**
+ * One of the plan provider's route variants of a rule's model (see
+ * `modelRouteVariantV1Schema`), with its own price. A variant that has no
+ * entry here is not covered by the plan, whatever the rule says about the
+ * model's default route.
+ */
+export const modelRuleVariantV1Schema = z.strictObject({
+  id: catalogIdV1Schema,
+  /** Prices this variant only; the rule's own `pricingRef` never does. */
+  pricingRef: z.string().min(1).optional(),
+  /** This variant's own consumption multiplier; the rule's is not inherited. */
+  multiplier: multiplierV1Schema.optional(),
+});
+export type ModelRuleVariantV1 = z.infer<typeof modelRuleVariantV1Schema>;
+
 export const modelRuleV1Schema = z.strictObject({
   model: catalogIdV1Schema,
+  /** Prices the model's default route. */
   pricingRef: z.string().min(1).optional(),
+  /**
+   * Route variants of this model the plan's own provider offers. An event on
+   * one of the provider's variant routes is covered only by its entry here.
+   */
+  variants: z.array(modelRuleVariantV1Schema).min(1).optional(),
   /** Consumption multiplier for this model (spec point 22, step 6). */
   multiplier: multiplierV1Schema.optional(),
   /** Excluded models are not available on the plan (spec point 23). */
@@ -410,6 +431,29 @@ export type ProviderV1 = z.infer<typeof providerV1Schema>;
  * same model; none of them is a capability-equivalent substitute, and a route is
  * never a reason to expect equal quality, tokenization or tool behaviour.
  */
+/**
+ * A provider's own execution variant of a model, reached through its own
+ * identifier (for example Command Code's `deepseek/deepseek-v4.1-flash-fast`,
+ * a higher-throughput route to DeepSeek V4.1 Flash with its own rates).
+ *
+ * A variant is not a model. The alias still resolves to the canonical model,
+ * so model mix, identity and cross-target replay treat it as that model. The
+ * variant travels next to the identity and decides one thing: on the
+ * provider that sells it, only a price record or plan rule for the same
+ * variant may price it. The default route's price is never used in its place.
+ * On any other target the call runs on that target's own route for the same
+ * model, and the replay says so.
+ */
+export const modelRouteVariantV1Schema = z.strictObject({
+  /** Matches `variantId` on the provider's price records and `variants` on its plan rules. */
+  id: catalogIdV1Schema,
+  /** The provider that sells this route. */
+  providerId: catalogIdV1Schema,
+  /** Display name, for example "Fast". */
+  label: z.string().min(1),
+});
+export type ModelRouteVariantV1 = z.infer<typeof modelRouteVariantV1Schema>;
+
 export const modelAliasV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   /** The observed identifier, verbatim. */
@@ -417,6 +461,12 @@ export const modelAliasV1Schema = z.strictObject({
   kind: z.enum(["provider_id", "harness_alias", "provider_route"]),
   /** Harness this spelling is scoped to, when it is harness-specific. */
   harness: catalogIdV1Schema.optional(),
+  /**
+   * The provider route variant this identifier selects. Only a harness-scoped
+   * alias may declare one: the same spelling elsewhere is not established to
+   * mean the same route.
+   */
+  variant: modelRouteVariantV1Schema.optional(),
   sources: z.array(catalogSourceV1Schema).min(1),
   lastVerifiedAt: isoDateV1Schema,
   verificationStatus: verificationStatusV1Schema,

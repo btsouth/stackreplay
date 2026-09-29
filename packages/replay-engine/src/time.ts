@@ -149,11 +149,13 @@ export function utcDateOf(instant: Temporal.Instant): string {
  * UTC wall-clock position of an epoch-millisecond instant (M4A pricing
  * remediation). Used to select conditional pricing tiers with time-of-day
  * schedules. Reads no clock and no locale state; the weekday is 0 = Sunday
- * through 6 = Saturday and `minutes` counts minutes since midnight UTC.
+ * through 6 = Saturday, `minutes` counts minutes since midnight UTC and
+ * `date` is the UTC calendar date, for schedules that skip named dates.
  */
 export interface UtcWallClock {
   day: number;
   minutes: number;
+  date: string;
 }
 
 export function utcWallClock(atMs: number): UtcWallClock {
@@ -161,5 +163,6 @@ export function utcWallClock(atMs: number): UtcWallClock {
   return {
     day: date.getUTCDay(),
     minutes: date.getUTCHours() * 60 + date.getUTCMinutes(),
+    date: date.toISOString().slice(0, 10),
   };
 }

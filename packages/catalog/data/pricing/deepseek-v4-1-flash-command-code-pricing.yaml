@@ -1,0 +1,38 @@
+id: deepseek-v4-1-flash-command-code-pricing
+role: pricing
+modelId: deepseek-v4-1-flash
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+endpointId: command-code
+rates:
+  input: "0.15"
+  output: "0.6"
+  cacheRead: "0.003"
+tiers:
+  - id: peak-hours
+    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Command Code's listed off-peak dates"
+    when:
+      utcWindows:
+        - days: [mon, tue, wed, thu, fri]
+          start: "01:00"
+          end: "04:00"
+        - days: [mon, tue, wed, thu, fri]
+          start: "06:00"
+          end: "10:00"
+      exceptUtcDates: ["2026-09-25", "2026-09-26", "2026-09-27", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07"]
+      datesKnownThrough: "2026-12-31"
+    rates:
+      input: "0.3"
+      output: "1.2"
+      cacheRead: "0.006"
+effectiveFrom: 2026-09-10
+sources:
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash
+    title: 'Command Code model page for `deepseek/deepseek-v4.1-flash`: released September 10, 2026; off-peak $0.15 input, $0.60 output, $0.003 cache read per 1M; peak 7h/day, 01-04 and 06-10 UTC Monday to Friday, at $0.30, $1.20, $0.006; "Available on Go and above". No cache-write rate is published.'
+    checkedAt: 2026-09-29
+  - url: https://www.npmjs.com/package/command-code/v/1.70.0
+    title: 'Command Code CLI 1.70.0 billing table (dist/cli.mjs): `deepseek/deepseek-v4.1-flash` routes to DeepSeek (order ["deepseek"]) at promptCost 0.15, completionCost 0.6, cacheReadCost 0.003, with timeOfDay peak 0.3 / 1.2 / 0.006 on UTC weekdays 1-5, windows 01-04 and 06-10, and offPeakDatesUtc 2026-09-25 to 09-27 and 2026-10-01 to 10-07. The same rates appear from CLI 1.53.0 (Sep 10, 2026); the off-peak dates first appear in 1.65.3 (Sep 25, 2026). Those dates cover every 2026 Chinese public holiday after the table first appeared, so the calendar is taken as complete through Dec 31, 2026.'
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

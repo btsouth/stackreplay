@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4";
+export const BUNDLED_CATALOG_VERSION = "sha256:bbf21f5a7f219d03de02c5bd3ae5fd19b1a23f78358984fe1a4f1bc5f6f692d8";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:507d6a284a8db48272dce61b0654f58b4126b1c347bdcb9137a5cc685e9cf7e4",
+  "catalogVersion": "sha256:bbf21f5a7f219d03de02c5bd3ae5fd19b1a23f78358984fe1a4f1bc5f6f692d8",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -1307,6 +1307,51 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "estimated"
+        },
+        {
+          "id": "deepseek-v4-1-flash-command-code-model-code",
+          "alias": "deepseek/deepseek-v4.1-flash",
+          "kind": "harness_alias",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+              "title": "Command Code exact model code `deepseek/deepseek-v4.1-flash` (\"cmd --model deepseek/deepseek-v4.1-flash\")",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://www.npmjs.com/package/command-code/v/1.70.0",
+              "title": "Command Code CLI 1.70.0 model registry id `deepseek/deepseek-v4.1-flash`, label \"DeepSeek V4.1 Flash\", served by DeepSeek",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "deepseek-v4-1-flash-command-code-fast-route",
+          "alias": "deepseek/deepseek-v4.1-flash-fast",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "fast",
+            "providerId": "command-code",
+            "label": "Fast"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+              "title": "Command Code exact model code `deepseek/deepseek-v4.1-flash-fast`, \"High throughput V4.1 Flash\", with its own rates",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://www.npmjs.com/package/command-code/v/1.70.0",
+              "title": "Command Code CLI 1.70.0 model registry id `deepseek/deepseek-v4.1-flash-fast` (label \"DeepSeek V4.1 Flash Fast\"); its billing entry routes to DeepSeek with gateway slug `deepseek/deepseek-v4.1-flash`, the same model as regular V4.1 Flash on a separately priced route",
+              "checkedAt": "2026-09-29"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
         },
         {
           "id": "deepseek-v4-1-flash-observed-deepseek-flash",
@@ -8887,6 +8932,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "modelRules": [
             {
               "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "deepseek-v4-1-flash",
+              "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+              "variants": [
+                {
+                  "id": "fast",
+                  "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+                }
+              ]
             }
           ],
           "sources": [
@@ -8894,6 +8949,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "url": "https://commandcode.ai/docs/resources/pricing-limits",
               "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
               "checkedAt": "2026-09-28"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+              "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+              "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
             }
           ],
           "lastVerifiedAt": "2026-09-28",
@@ -9148,6 +9213,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "deepseek-v4-1-flash",
+              "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+              "variants": [
+                {
+                  "id": "fast",
+                  "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+                }
+              ]
             }
           ],
           "sources": [
@@ -9155,6 +9230,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "url": "https://commandcode.ai/docs/resources/pricing-limits",
               "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
               "checkedAt": "2026-09-28"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+              "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+              "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
             }
           ],
           "lastVerifiedAt": "2026-09-28",
@@ -9204,6 +9289,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "deepseek-v4-1-flash",
+              "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+              "variants": [
+                {
+                  "id": "fast",
+                  "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+                }
+              ]
             }
           ],
           "sources": [
@@ -9211,6 +9306,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "url": "https://commandcode.ai/docs/resources/pricing-limits",
               "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
               "checkedAt": "2026-09-28"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+              "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+              "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
             }
           ],
           "lastVerifiedAt": "2026-09-28",
@@ -9260,6 +9365,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             },
             {
               "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "deepseek-v4-1-flash",
+              "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+              "variants": [
+                {
+                  "id": "fast",
+                  "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+                }
+              ]
             }
           ],
           "sources": [
@@ -9267,6 +9382,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "url": "https://commandcode.ai/docs/resources/pricing-limits",
               "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
               "checkedAt": "2026-09-28"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+              "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
+            },
+            {
+              "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+              "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+              "checkedAt": "2026-09-29"
             }
           ],
           "lastVerifiedAt": "2026-09-28",
@@ -17561,6 +17686,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "modelRules": [
         {
           "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "deepseek-v4-1-flash",
+          "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+          "variants": [
+            {
+              "id": "fast",
+              "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+            }
+          ]
         }
       ],
       "sources": [
@@ -17568,6 +17703,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://commandcode.ai/docs/resources/pricing-limits",
           "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
           "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+          "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+          "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
         }
       ],
       "lastVerifiedAt": "2026-09-28",
@@ -17613,6 +17758,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "deepseek-v4-1-flash",
+          "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+          "variants": [
+            {
+              "id": "fast",
+              "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+            }
+          ]
         }
       ],
       "sources": [
@@ -17620,6 +17775,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://commandcode.ai/docs/resources/pricing-limits",
           "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
           "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+          "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+          "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
         }
       ],
       "lastVerifiedAt": "2026-09-28",
@@ -17665,6 +17830,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "deepseek-v4-1-flash",
+          "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+          "variants": [
+            {
+              "id": "fast",
+              "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+            }
+          ]
         }
       ],
       "sources": [
@@ -17672,6 +17847,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://commandcode.ai/docs/resources/pricing-limits",
           "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
           "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+          "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+          "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
         }
       ],
       "lastVerifiedAt": "2026-09-28",
@@ -17717,6 +17902,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "deepseek-v4-1-flash",
+          "pricingRef": "deepseek-v4-1-flash-command-code-pricing",
+          "variants": [
+            {
+              "id": "fast",
+              "pricingRef": "deepseek-v4-1-flash-fast-command-code-pricing"
+            }
+          ]
         }
       ],
       "sources": [
@@ -17724,6 +17919,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://commandcode.ai/docs/resources/pricing-limits",
           "title": "Official current price, access and usage terms; catalog admission date, not a historical launch date",
           "checkedAt": "2026-09-28"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+          "title": "DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+          "title": "DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: \"Available on Go and above\"",
+          "checkedAt": "2026-09-29"
         }
       ],
       "lastVerifiedAt": "2026-09-28",
@@ -24773,13 +24978,14 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified"
     },
-    "deepseek-v4-1-flash-pricing": {
-      "id": "deepseek-v4-1-flash-pricing",
+    "deepseek-v4-1-flash-command-code-pricing": {
+      "id": "deepseek-v4-1-flash-command-code-pricing",
       "role": "pricing",
       "modelId": "deepseek-v4-1-flash",
       "currency": "USD",
       "unit": "per_1m_tokens",
-      "basis": "api_list_price",
+      "basis": "target_billing_rate",
+      "endpointId": "command-code",
       "rates": {
         "input": "0.15",
         "output": "0.6",
@@ -24788,7 +24994,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Command Code's listed off-peak dates",
           "when": {
             "utcWindows": [
               {
@@ -24813,7 +25019,176 @@ export const BUNDLED_CATALOG: CatalogV1 = {
                 "start": "06:00",
                 "end": "10:00"
               }
-            ]
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-09-26",
+              "2026-09-27",
+              "2026-10-01",
+              "2026-10-02",
+              "2026-10-03",
+              "2026-10-04",
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
+          },
+          "rates": {
+            "input": "0.3",
+            "output": "1.2",
+            "cacheRead": "0.006"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-10",
+      "sources": [
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash",
+          "title": "Command Code model page for `deepseek/deepseek-v4.1-flash`: released September 10, 2026; off-peak $0.15 input, $0.60 output, $0.003 cache read per 1M; peak 7h/day, 01-04 and 06-10 UTC Monday to Friday, at $0.30, $1.20, $0.006; \"Available on Go and above\". No cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.npmjs.com/package/command-code/v/1.70.0",
+          "title": "Command Code CLI 1.70.0 billing table (dist/cli.mjs): `deepseek/deepseek-v4.1-flash` routes to DeepSeek (order [\"deepseek\"]) at promptCost 0.15, completionCost 0.6, cacheReadCost 0.003, with timeOfDay peak 0.3 / 1.2 / 0.006 on UTC weekdays 1-5, windows 01-04 and 06-10, and offPeakDatesUtc 2026-09-25 to 09-27 and 2026-10-01 to 10-07. The same rates appear from CLI 1.53.0 (Sep 10, 2026); the off-peak dates first appear in 1.65.3 (Sep 25, 2026). Those dates cover every 2026 Chinese public holiday after the table first appeared, so the calendar is taken as complete through Dec 31, 2026.",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-1-flash-fast-command-code-pricing": {
+      "id": "deepseek-v4-1-flash-fast-command-code-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-1-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "target_billing_rate",
+      "endpointId": "command-code",
+      "variantId": "fast",
+      "rates": {
+        "input": "0.16",
+        "output": "0.58",
+        "cacheRead": "0.016"
+      },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Command Code's listed off-peak dates",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-09-26",
+              "2026-09-27",
+              "2026-10-01",
+              "2026-10-02",
+              "2026-10-03",
+              "2026-10-04",
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
+          },
+          "rates": {
+            "input": "0.32",
+            "output": "1.16",
+            "cacheRead": "0.032"
+          }
+        }
+      ],
+      "effectiveFrom": "2026-09-28",
+      "sources": [
+        {
+          "url": "https://commandcode.ai/models/deepseek-v4-1-flash-fast",
+          "title": "Command Code model page for `deepseek/deepseek-v4.1-flash-fast`, \"High throughput V4.1 Flash\": released September 28, 2026; off-peak $0.16 input, $0.58 output per 1M; peak 01-04 and 06-10 UTC Monday to Friday at $0.32 and $1.16; \"Available on Go and above\". The page rounds cache reads to $0.02 off-peak and $0.03 peak; the exact rates come from the CLI below. No cache-write rate is published.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.npmjs.com/package/command-code/v/1.70.0",
+          "title": "Command Code CLI 1.70.0 billing table (dist/cli.mjs): `deepseek/deepseek-v4.1-flash-fast` has its own entry, routed to DeepSeek only (order [\"deepseek\"], gateway slug `deepseek/deepseek-v4.1-flash`), at promptCost 0.16, completionCost 0.58, cacheReadCost 0.016, with timeOfDay peak 0.32 / 1.16 / 0.032 and the same windows and offPeakDatesUtc as regular V4.1 Flash. The entry first appears in CLI 1.67.0 (Sep 28, 2026 21:39 UTC).",
+          "checkedAt": "2026-09-29"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v4-1-flash-pricing": {
+      "id": "deepseek-v4-1-flash-pricing",
+      "role": "pricing",
+      "modelId": "deepseek-v4-1-flash",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.15",
+        "output": "0.6",
+        "cacheRead": "0.003"
+      },
+      "tiers": [
+        {
+          "id": "peak-hours",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays",
+          "when": {
+            "utcWindows": [
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "01:00",
+                "end": "04:00"
+              },
+              {
+                "days": [
+                  "mon",
+                  "tue",
+                  "wed",
+                  "thu",
+                  "fri"
+                ],
+                "start": "06:00",
+                "end": "10:00"
+              }
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-10-01",
+              "2026-10-02"
+            ],
+            "unestablishedUtcDates": [
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
           },
           "rates": {
             "input": "0.3",
@@ -24827,8 +25202,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "sources": [
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-23"
+          "title": "Peak/off-peak schedule, current wording: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+          "title": "Chinese wording: \"北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。\" Both peak windows fall on the same calendar date in Beijing and in UTC, so the holiday calendar is dated in UTC.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://web.archive.org/web/20260922212416/https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "First archived copy with the holiday exclusion (Sep 22, 2026 21:24 UTC); the Sep 17 copy still reads \"Monday through Friday (all other hours are off-peak)\". No weekday Chinese public holiday falls between the start of this record and Sep 22, so the exclusion changes no earlier price.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.gov.cn/zhengce/content/202511/content_7047090.htm",
+          "title": "State Council notice 国办发明电〔2025〕7号 on the 2026 holidays: Mid-Autumn Festival Sep 25 (Fri) to 27; National Day Oct 1 (Thu) to 7 (Wed) with rest days swapped, and Sep 20 (Sun) and Oct 10 (Sat) worked. Sep 25, Oct 1 and Oct 2 are statutory holidays on weekdays, so they are off-peak. Oct 5 to 7 are weekday rest days inside the break; DeepSeek does not say whether its 法定节假日 includes them, so their peak hours are left unpriced. The worked Sunday and Saturday stay off-peak as weekends. No later 2026 holiday falls on a weekday, so the calendar is complete through Dec 31, 2026.",
+          "checkedAt": "2026-09-29"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
@@ -24841,7 +25231,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-pricing": {
@@ -24859,7 +25249,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays",
           "when": {
             "utcWindows": [
               {
@@ -24884,7 +25274,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
                 "start": "06:00",
                 "end": "10:00"
               }
-            ]
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-10-01",
+              "2026-10-02"
+            ],
+            "unestablishedUtcDates": [
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
           },
           "rates": {
             "input": "0.3",
@@ -24902,8 +25303,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-23"
+          "title": "Peak/off-peak schedule, current wording: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+          "title": "Chinese wording: \"北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。\" Both peak windows fall on the same calendar date in Beijing and in UTC, so the holiday calendar is dated in UTC.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://web.archive.org/web/20260922212416/https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "First archived copy with the holiday exclusion (Sep 22, 2026 21:24 UTC); the Sep 17 copy still reads \"Monday through Friday (all other hours are off-peak)\". No weekday Chinese public holiday falls between the start of this record and Sep 22, so the exclusion changes no earlier price.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.gov.cn/zhengce/content/202511/content_7047090.htm",
+          "title": "State Council notice 国办发明电〔2025〕7号 on the 2026 holidays: Mid-Autumn Festival Sep 25 (Fri) to 27; National Day Oct 1 (Thu) to 7 (Wed) with rest days swapped, and Sep 20 (Sun) and Oct 10 (Sat) worked. Sep 25, Oct 1 and Oct 2 are statutory holidays on weekdays, so they are off-peak. Oct 5 to 7 are weekday rest days inside the break; DeepSeek does not say whether its 法定节假日 includes them, so their peak hours are left unpriced. The worked Sunday and Saturday stay off-peak as weekends. No later 2026 holiday falls on a weekday, so the calendar is complete through Dec 31, 2026.",
+          "checkedAt": "2026-09-29"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
@@ -24916,7 +25332,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "deepseek-v4-flash-vision-exp-pricing": {
@@ -24934,7 +25350,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays",
           "when": {
             "utcWindows": [
               {
@@ -24959,7 +25375,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
                 "start": "06:00",
                 "end": "10:00"
               }
-            ]
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-10-01",
+              "2026-10-02"
+            ],
+            "unestablishedUtcDates": [
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
           },
           "rates": {
             "input": "0.3",
@@ -24977,8 +25404,23 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
-          "title": "DeepSeek-V4.1-Flash peak/off-peak schedule: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday (all other hours are off-peak).\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
-          "checkedAt": "2026-09-23"
+          "title": "Peak/off-peak schedule, current wording: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+          "title": "Chinese wording: \"北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。\" Both peak windows fall on the same calendar date in Beijing and in UTC, so the holiday calendar is dated in UTC.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://web.archive.org/web/20260922212416/https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "First archived copy with the holiday exclusion (Sep 22, 2026 21:24 UTC); the Sep 17 copy still reads \"Monday through Friday (all other hours are off-peak)\". No weekday Chinese public holiday falls between the start of this record and Sep 22, so the exclusion changes no earlier price.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.gov.cn/zhengce/content/202511/content_7047090.htm",
+          "title": "State Council notice 国办发明电〔2025〕7号 on the 2026 holidays: Mid-Autumn Festival Sep 25 (Fri) to 27; National Day Oct 1 (Thu) to 7 (Wed) with rest days swapped, and Sep 20 (Sun) and Oct 10 (Sat) worked. Sep 25, Oct 1 and Oct 2 are statutory holidays on weekdays, so they are off-peak. Oct 5 to 7 are weekday rest days inside the break; DeepSeek does not say whether its 法定节假日 includes them, so their peak hours are left unpriced. The worked Sunday and Saturday stay off-peak as weekends. No later 2026 holiday falls on a weekday, so the calendar is complete through Dec 31, 2026.",
+          "checkedAt": "2026-09-29"
         },
         {
           "url": "https://api-docs.deepseek.com/quick_start/pricing",
@@ -24991,7 +25433,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "checkedAt": "2026-09-23"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "deepseek-v4-pro-pricing": {
@@ -25009,7 +25451,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "tiers": [
         {
           "id": "peak-hours",
-          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday",
+          "label": "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays",
           "when": {
             "utcWindows": [
               {
@@ -25034,7 +25476,18 @@ export const BUNDLED_CATALOG: CatalogV1 = {
                 "start": "06:00",
                 "end": "10:00"
               }
-            ]
+            ],
+            "exceptUtcDates": [
+              "2026-09-25",
+              "2026-10-01",
+              "2026-10-02"
+            ],
+            "unestablishedUtcDates": [
+              "2026-10-05",
+              "2026-10-06",
+              "2026-10-07"
+            ],
+            "datesKnownThrough": "2026-12-31"
           },
           "rates": {
             "input": "1.32",
@@ -25055,9 +25508,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "url": "https://api-docs.deepseek.com/news/news260813/",
           "title": "DeepSeek V4 Pro price effective August 16",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "Peak/off-peak schedule, current wording: \"Off-peak rates are half of the peak rates. Peak hours are 01:00 - 04:00 and 06:00 - 10:00 UTC, Monday through Friday, excluding Chinese public holidays. All other hours are off-peak, including weekends and Chinese public holidays in full.\" Base rates are the documented off-peak rates; the tier is the documented peak window.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+          "title": "Chinese wording: \"北京时间周一至周五（不含中国法定节假日）9:00 - 12:00、14:00 - 18:00 为高峰时段；其余时段，包括周末及中国法定节假日全天均为空闲时段。\" Both peak windows fall on the same calendar date in Beijing and in UTC, so the holiday calendar is dated in UTC.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://web.archive.org/web/20260922212416/https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "First archived copy with the holiday exclusion (Sep 22, 2026 21:24 UTC); the Sep 17 copy still reads \"Monday through Friday (all other hours are off-peak)\". No weekday Chinese public holiday falls between the start of this record and Sep 22, so the exclusion changes no earlier price.",
+          "checkedAt": "2026-09-29"
+        },
+        {
+          "url": "https://www.gov.cn/zhengce/content/202511/content_7047090.htm",
+          "title": "State Council notice 国办发明电〔2025〕7号 on the 2026 holidays: Mid-Autumn Festival Sep 25 (Fri) to 27; National Day Oct 1 (Thu) to 7 (Wed) with rest days swapped, and Sep 20 (Sun) and Oct 10 (Sat) worked. Sep 25, Oct 1 and Oct 2 are statutory holidays on weekdays, so they are off-peak. Oct 5 to 7 are weekday rest days inside the break; DeepSeek does not say whether its 法定节假日 includes them, so their peak hours are left unpriced. The worked Sunday and Saturday stay off-peak as weekends. No later 2026 holiday falls on a weekday, so the calendar is complete through Dec 31, 2026.",
+          "checkedAt": "2026-09-29"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
     "example-large-pricing": {

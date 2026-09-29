@@ -29,10 +29,21 @@ versions:
     topic: after_limit
   modelRules:
   - model: gpt-5-6-luna
+  - model: deepseek-v4-1-flash
+    pricingRef: deepseek-v4-1-flash-command-code-pricing
+    variants:
+    - id: fast
+      pricingRef: deepseek-v4-1-flash-fast-command-code-pricing
   sources:
   - url: https://commandcode.ai/docs/resources/pricing-limits
     title: Official current price, access and usage terms; catalog admission date,
       not a historical launch date
     checkedAt: '2026-09-28'
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash
+    title: 'DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`): "Available on Go and above"'
+    checkedAt: '2026-09-29'
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash-fast
+    title: 'DeepSeek V4.1 Flash Fast (`deepseek/deepseek-v4.1-flash-fast`), released September 28, 2026: "Available on Go and above"'
+    checkedAt: '2026-09-29'
   lastVerifiedAt: '2026-09-28'
   verificationStatus: verified

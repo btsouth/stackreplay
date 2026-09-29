@@ -47,6 +47,36 @@ aliases:
     checkedAt: 2026-09-21
   lastVerifiedAt: 2026-09-21
   verificationStatus: estimated
+- id: deepseek-v4-1-flash-command-code-model-code
+  alias: deepseek/deepseek-v4.1-flash
+  kind: harness_alias
+  harness: command-code
+  sources:
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash
+    title: Command Code exact model code `deepseek/deepseek-v4.1-flash` ("cmd --model deepseek/deepseek-v4.1-flash")
+    checkedAt: 2026-09-29
+  - url: https://www.npmjs.com/package/command-code/v/1.70.0
+    title: Command Code CLI 1.70.0 model registry id `deepseek/deepseek-v4.1-flash`, label "DeepSeek V4.1 Flash", served by DeepSeek
+    checkedAt: 2026-09-29
+  lastVerifiedAt: 2026-09-29
+  verificationStatus: verified
+- id: deepseek-v4-1-flash-command-code-fast-route
+  alias: deepseek/deepseek-v4.1-flash-fast
+  kind: provider_route
+  harness: command-code
+  variant:
+    id: fast
+    providerId: command-code
+    label: Fast
+  sources:
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash-fast
+    title: Command Code exact model code `deepseek/deepseek-v4.1-flash-fast`, "High throughput V4.1 Flash", with its own rates
+    checkedAt: 2026-09-29
+  - url: https://www.npmjs.com/package/command-code/v/1.70.0
+    title: 'Command Code CLI 1.70.0 model registry id `deepseek/deepseek-v4.1-flash-fast` (label "DeepSeek V4.1 Flash Fast"); its billing entry routes to DeepSeek with gateway slug `deepseek/deepseek-v4.1-flash`, the same model as regular V4.1 Flash on a separately priced route'
+    checkedAt: 2026-09-29
+  lastVerifiedAt: 2026-09-29
+  verificationStatus: verified
 - id: deepseek-v4-1-flash-observed-deepseek-flash
   alias: deepseek-flash
   kind: provider_id

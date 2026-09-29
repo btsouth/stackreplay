@@ -1321,3 +1321,49 @@ and every surface reads it through one resolver.
 - **Agent structure.** Events stay a flat list with session identity. When an importer can record
   root agents and subagents, an optional agent reference on the event is the additive path; none
   is added before a source provides it.
+
+## 67. A provider's own route to a model is a variant, not a model (route variants)
+
+- Command Code sells DeepSeek V4.1 Flash twice: `deepseek/deepseek-v4.1-flash` and
+  `deepseek/deepseek-v4.1-flash-fast`, a higher-throughput route to the same DeepSeek model at its
+  own rates. The Fast name is not a new canonical model, and it is not a DeepSeek processing tier
+  (DeepSeek publishes none). It is a route variant: a harness-scoped alias maps it to the canonical
+  model and carries `variant: { id, providerId, label }`. Only a harness-scoped alias may carry one.
+- Identity stays canonical everywhere: model mix, cross-target replay, access lists. The variant
+  decides one thing, pricing. A variant price record has `variantId`, so automatic selection
+  (`isDefaultPriceRecord`, Direct API list prices, model pages) never reads it.
+- A plan rule lists the variants its own provider offers in `variants`, each with its own
+  `pricingRef` and multiplier. On that provider, a variant call is covered only by its entry: the
+  rule's own price never prices it, and a variant the rule does not list is not covered
+  (`MODEL_ROUTE_VARIANT_NOT_OFFERED`). On any other target the route does not exist, so the call runs
+  on that target's route for the same model and the result says so
+  (`MODEL_ROUTE_VARIANT_NOT_CARRIED`). A Direct API replay on the variant's own provider leaves it
+  unpriced (`API_ROUTE_VARIANT_UNPRICED`). Compiled execution routes name models only, so they never
+  cover a variant call on their own provider. A translated call runs the substitute's default route.
+- Importers attach the canonical id at import time, so the engine reads the variant from the
+  event's raw name and harness through the catalog (`observedRouteVariantOf`), not from a second
+  resolution. Histories imported before a variant was catalogued get it too.
+- Validation: a rule's own price must not be a variant record, a variant's price must be that
+  model's record for that variant, the variant must be declared for the plan's provider, and a
+  variant of a multiplied model states its own multiplier.
+- The earlier "fast mode" records (`claude-opus-4-8-fast-mode` on GitHub) are separate model ids.
+  They are left as they are; a later pass can move them onto this shape.
+
+## 68. A price schedule can skip dates, and says how far its calendar goes (schedule calendars)
+
+- DeepSeek's peak hours exclude Chinese public holidays. A time-of-day tier may list
+  `exceptUtcDates` (no window applies, base rates all day) and `unestablishedUtcDates` (the source
+  does not settle whether a window applies). Either list requires `datesKnownThrough`: past it, a
+  window's own hours are unestablished, because a holiday there would not be listed yet. Outside a
+  window's hours the base rates apply either way.
+- An event inside a window on an open date has no rate set (`selectRateSet` returns nothing): its
+  cost is unknown with its own warning (`PRICING_SCHEDULE_UNESTABLISHED`,
+  `API_PRICE_SCHEDULE_UNESTABLISHED`) and its own evidence reason, not a peak or off-peak guess.
+- Dates are UTC. That is only right when every window falls on the same calendar date in the
+  source's own zone, which holds for DeepSeek (01:00-04:00 and 06:00-10:00 UTC are 09:00-12:00 and
+  14:00-18:00 in Beijing). A source whose windows cross its local midnight needs a zone-aware
+  calendar first.
+- DeepSeek's records skip Sep 25, Oct 1 and Oct 2, 2026 (statutory holidays on weekdays) and leave
+  Oct 5 to 7 open: they are swapped rest days inside the National Day break, and DeepSeek's
+  "法定节假日" does not say whether they count. Command Code's records follow Command Code's own
+  published off-peak dates, which include Oct 5 to 7.

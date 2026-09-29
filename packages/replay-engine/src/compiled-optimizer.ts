@@ -1,4 +1,9 @@
-import { type CatalogV1, createModelIdentityIndex } from "@stackreplay/catalog";
+import {
+  type CatalogV1,
+  createModelIdentityIndex,
+  type ModelRouteVariantV1,
+  observedRouteVariantOf,
+} from "@stackreplay/catalog";
 import {
   type BoundExecutionScenario,
   boundExecutionScenarioSchema,
@@ -119,6 +124,8 @@ interface Event {
   event: TextUsageEventV1;
   modelId: string;
   at: bigint;
+  /** The provider route variant the call ran on, when its identifier selects one. */
+  variant?: ModelRouteVariantV1;
 }
 interface Choice {
   resource: number;
@@ -264,23 +271,51 @@ function evaluateCompiled(
   const identity = createModelIdentityIndex(input.catalog);
   const events: Event[] = [],
     excluded: string[] = [];
-  const identityCache = new Map<string, string | undefined>();
+  const identityCache = new Map<
+    string,
+    { modelId: string | undefined; variant: ModelRouteVariantV1 | undefined }
+  >();
   for (const t of demand.timed) {
     const key = JSON.stringify([t.event.model, t.event.harness?.id]);
     if (!identityCache.has(key))
-      identityCache.set(
-        key,
-        t.event.model.canonicalId && input.catalog.models[t.event.model.canonicalId]
-          ? t.event.model.canonicalId
-          : identity.resolve(
-              t.event.model.rawName,
-              t.event.harness ? { harness: t.event.harness.id } : undefined,
-            ).canonicalId,
-      );
-    const modelId = identityCache.get(key);
+      identityCache.set(key, {
+        modelId:
+          t.event.model.canonicalId && input.catalog.models[t.event.model.canonicalId]
+            ? t.event.model.canonicalId
+            : identity.resolve(
+                t.event.model.rawName,
+                t.event.harness ? { harness: t.event.harness.id } : undefined,
+              ).canonicalId,
+        variant: observedRouteVariantOf(identity, {
+          rawName: t.event.model.rawName,
+          harness: t.event.harness?.id,
+          canonicalId: t.event.model.canonicalId,
+        }),
+      });
+    const resolved = identityCache.get(key);
+    const modelId = resolved?.modelId;
     if (!modelId) excluded.push(t.event.id);
-    else events.push({ event: t.event, modelId, at: BigInt(t.atMs) * 1000000n + BigInt(t.subMs) });
+    else
+      events.push({
+        event: t.event,
+        modelId,
+        at: BigInt(t.atMs) * 1000000n + BigInt(t.subMs),
+        ...(resolved?.variant === undefined ? {} : { variant: resolved.variant }),
+      });
   }
+  /**
+   * Compiled routes name models, not route variants, so they cover a model's
+   * default route only. A call on a variant route is never matched to a route
+   * of the provider that sells the variant; elsewhere it is the same model.
+   */
+  const routeCovers = (
+    resource: CompiledResource,
+    route: { models: readonly string[] },
+    e: Event,
+  ): boolean =>
+    route.models.includes(e.modelId) &&
+    (e.variant === undefined ||
+      input.catalog.plans[resource.artifact.planId]?.providerId !== e.variant.providerId);
   // Aggregate adapters cannot acquire chronology through a caller override.
   if (events.some((e) => e.event.source.adapterId === "ccusage")) {
     scenario.chronology = "aggregate";
@@ -311,7 +346,7 @@ function evaluateCompiled(
       if (!resource || !ready) continue;
       if (
         resource.artifact.computation.kind === "executable" &&
-        !resource.artifact.computation.routes.some((route) => route.models.includes(e.modelId))
+        !resource.artifact.computation.routes.some((route) => routeCovers(resource, route, e))
       )
         continue;
       if (ready.status !== "feasible") {
@@ -321,7 +356,7 @@ function evaluateCompiled(
       const rules = resource.artifact.computation;
       if (rules.kind !== "executable") continue;
       for (const route of [...rules.routes].sort((a, b) => lexical(a.id, b.id))) {
-        if (!route.models.includes(e.modelId)) continue;
+        if (!routeCovers(resource, route, e)) continue;
         const eligibility = routeEligibility(route, resource.binding);
         if (eligibility) {
           remember([eligibility]);
@@ -442,9 +477,7 @@ function evaluateCompiled(
       for (const index of config.subs) {
         const r = resources[index];
         if (r?.artifact.computation.kind !== "executable") continue;
-        const route = r.artifact.computation.routes.find((route) =>
-          route.models.includes(e.modelId),
-        );
+        const route = r.artifact.computation.routes.find((route) => routeCovers(r, route, e));
         if (!route) continue;
         const eligibility = routeEligibility(route, r.binding);
         if (eligibility) {

@@ -83,10 +83,21 @@ routine bills `outputTokens` at a single rate with no separate reasoning charge 
 5m figure and is not added again. Reasoning is therefore a **known absence of a separate category**
 (`reasoningTokens: 0`, `reasoningIncludedInOutput: false`), and the token total is exact.
 
+**Identity.** `model` is Command Code's own model code, provider-prefixed
+(`deepseek/deepseek-v4.1-flash`). It is kept verbatim as `rawName` and resolved through aliases
+scoped to the `command-code` harness. Some codes select a separately priced route of a model:
+`deepseek/deepseek-v4.1-flash-fast` imports as canonical `deepseek-v4-1-flash`, and a replay reads
+its Fast route back from the raw name and harness (decision 67).
+
 **Limitations.** The 1h/5m cache-write split is not preserved: the canonical model has one
 cache-write bucket, so a 1h write is billed at the single cache-write rate of the target catalog.
 If a record's cache categories exceed its input (which the relationship forbids), those categories
 are reported as unknown and a warning is emitted.
+
+`costUsd` is the client's own estimate, not a bill. As of `command-code@1.70.0` it prices every
+call at the model's advertised rates, which for a time-of-day route (the DeepSeek models) are the
+off-peak rates at any hour, and it counts cache writes without a published rate as free. It is kept
+as `nativeCost` for reference only; replay never reads it.
 
 ## OpenCode
 

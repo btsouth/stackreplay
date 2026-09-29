@@ -1,0 +1,39 @@
+id: deepseek-v4-1-flash-fast-command-code-pricing
+role: pricing
+modelId: deepseek-v4-1-flash
+currency: USD
+unit: per_1m_tokens
+basis: target_billing_rate
+endpointId: command-code
+variantId: fast
+rates:
+  input: "0.16"
+  output: "0.58"
+  cacheRead: "0.016"
+tiers:
+  - id: peak-hours
+    label: "Peak: 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Command Code's listed off-peak dates"
+    when:
+      utcWindows:
+        - days: [mon, tue, wed, thu, fri]
+          start: "01:00"
+          end: "04:00"
+        - days: [mon, tue, wed, thu, fri]
+          start: "06:00"
+          end: "10:00"
+      exceptUtcDates: ["2026-09-25", "2026-09-26", "2026-09-27", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07"]
+      datesKnownThrough: "2026-12-31"
+    rates:
+      input: "0.32"
+      output: "1.16"
+      cacheRead: "0.032"
+effectiveFrom: 2026-09-28
+sources:
+  - url: https://commandcode.ai/models/deepseek-v4-1-flash-fast
+    title: 'Command Code model page for `deepseek/deepseek-v4.1-flash-fast`, "High throughput V4.1 Flash": released September 28, 2026; off-peak $0.16 input, $0.58 output per 1M; peak 01-04 and 06-10 UTC Monday to Friday at $0.32 and $1.16; "Available on Go and above". The page rounds cache reads to $0.02 off-peak and $0.03 peak; the exact rates come from the CLI below. No cache-write rate is published.'
+    checkedAt: 2026-09-29
+  - url: https://www.npmjs.com/package/command-code/v/1.70.0
+    title: 'Command Code CLI 1.70.0 billing table (dist/cli.mjs): `deepseek/deepseek-v4.1-flash-fast` has its own entry, routed to DeepSeek only (order ["deepseek"], gateway slug `deepseek/deepseek-v4.1-flash`), at promptCost 0.16, completionCost 0.58, cacheReadCost 0.016, with timeOfDay peak 0.32 / 1.16 / 0.032 and the same windows and offPeakDatesUtc as regular V4.1 Flash. The entry first appears in CLI 1.67.0 (Sep 28, 2026 21:39 UTC).'
+    checkedAt: 2026-09-29
+lastVerifiedAt: 2026-09-29
+verificationStatus: verified

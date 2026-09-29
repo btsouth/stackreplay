@@ -137,3 +137,64 @@ describe("command-code adapter: schema validity when cache fields are absent", (
     expect(result.events[0]?.usage.inputTokens).toBe(4000);
   });
 });
+
+describe("command-code adapter: DeepSeek V4.1 Flash and its Fast route", () => {
+  const record = (id: string, model: string, timestamp: string) =>
+    JSON.stringify({
+      type: "message",
+      id,
+      parentId: null,
+      timestamp,
+      model,
+      message: { role: "assistant", content: "ok", meta: {} },
+      usage: {
+        inputTokens: 1000,
+        outputTokens: 100,
+        cacheReadTokens: 600,
+        cacheWriteTokens: 0,
+        costUsd: 0.0002,
+      },
+    });
+  const session = [
+    COMMAND_CODE_SESSION.split("\n")[0],
+    record("regular", "deepseek/deepseek-v4.1-flash", "2026-09-29T12:00:00.000Z"),
+    record("fast", "deepseek/deepseek-v4.1-flash-fast", "2026-09-29T12:01:00.000Z"),
+  ].join("\n");
+
+  it("imports both as canonical V4.1 Flash, keeping the exact Command Code name and harness", async () => {
+    const result = await collectFrom(session);
+    expect(
+      result.events.map((event) => [event.model, event.confidence.model, event.harness?.id]),
+    ).toEqual([
+      [
+        { rawName: "deepseek/deepseek-v4.1-flash", canonicalId: "deepseek-v4-1-flash" },
+        "mapped",
+        "command-code",
+      ],
+      [
+        { rawName: "deepseek/deepseek-v4.1-flash-fast", canonicalId: "deepseek-v4-1-flash" },
+        "mapped",
+        "command-code",
+      ],
+    ]);
+  });
+
+  it("maps each name through Command Code's own declaration, and only the Fast name selects a route", () => {
+    const mapper = createModelMapper(syntheticCatalog());
+    const regular = mapper.identity.resolve("deepseek/deepseek-v4.1-flash", {
+      harness: "command-code",
+    });
+    const fast = mapper.identity.resolve("deepseek/deepseek-v4.1-flash-fast", {
+      harness: "command-code",
+    });
+    expect([regular.aliasId, regular.variant]).toEqual([
+      "deepseek-v4-1-flash-command-code-model-code",
+      undefined,
+    ]);
+    expect([fast.aliasId, fast.variant?.id, fast.variant?.providerId]).toEqual([
+      "deepseek-v4-1-flash-command-code-fast-route",
+      "fast",
+      "command-code",
+    ]);
+  });
+});

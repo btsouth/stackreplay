@@ -1,4 +1,4 @@
-import type { PricingRateSetV1, PricingV1 } from "@stackreplay/catalog";
+import { isDefaultPriceRecord, type PricingRateSetV1, type PricingV1 } from "@stackreplay/catalog";
 import { loadDefaultCatalog } from "@stackreplay/catalog/load";
 import { describe, expect, it } from "vitest";
 import { replay } from "./engine.js";
@@ -214,9 +214,9 @@ describe("pricing remediation: conditional rate tiers", () => {
 
   it("5. long-context boundaries select the base tier through the threshold and the tier above it", () => {
     const atMs = epochMsFromIso("2026-09-01T00:00:00Z");
-    expect(selectRateSet(tiered, { atMs, inputTokens: 271_999 }).tierId).toBeUndefined();
-    expect(selectRateSet(tiered, { atMs, inputTokens: 272_000 }).tierId).toBeUndefined();
-    expect(selectRateSet(tiered, { atMs, inputTokens: 272_001 }).tierId).toBe("long-context");
+    expect(selectRateSet(tiered, { atMs, inputTokens: 271_999 })?.tierId).toBeUndefined();
+    expect(selectRateSet(tiered, { atMs, inputTokens: 272_000 })?.tierId).toBeUndefined();
+    expect(selectRateSet(tiered, { atMs, inputTokens: 272_001 })?.tierId).toBe("long-context");
 
     const below = moneyUnitsForUsage(completeUsage({ uncachedInputTokens: 272_000 }), tiered, {
       atMs,
@@ -299,7 +299,7 @@ describe("pricing remediation: conditional rate tiers", () => {
         atMs: epochMsFromIso(instant),
         inputTokens: 1_000,
       });
-      expect(selection.tierId, instant).toBe(peak ? "weekday-peak" : undefined);
+      expect(selection?.tierId, instant).toBe(peak ? "weekday-peak" : undefined);
     }
   });
 
@@ -310,10 +310,10 @@ describe("pricing remediation: conditional rate tiers", () => {
       atMs: epochMsFromIso("2026-09-21T01:30:00Z"),
       inputTokens: 1_000,
     });
-    expect(selection.tierId).toBe("weekday-peak");
+    expect(selection?.tierId).toBe("weekday-peak");
   });
 
-  it("keeps the published weekday schedule on holidays; no holiday discount is documented", () => {
+  it("never infers a holiday: a schedule without a date calendar keeps its weekday rates", () => {
     const cases: Array<[string, boolean]> = [
       ["2026-09-24T00:59:59.999Z", false],
       ["2026-09-24T01:00:00.000Z", true],
@@ -335,7 +335,7 @@ describe("pricing remediation: conditional rate tiers", () => {
         atMs: epochMsFromIso(instant),
         inputTokens: 1_000,
       });
-      expect(selected.tierId, instant).toBe(peak ? "weekday-peak" : undefined);
+      expect(selected?.tierId, instant).toBe(peak ? "weekday-peak" : undefined);
     }
     // Beijing's local calendar date is Sep 25 at this instant. UTC is still
     // Sep 24, but outside both peak windows; no machine-local timezone applies.
@@ -343,31 +343,48 @@ describe("pricing remediation: conditional rate tiers", () => {
       selectRateSet(scheduled, {
         atMs: epochMsFromIso("2026-09-24T16:00:00.000Z"),
         inputTokens: 1_000,
-      }).tierId,
+      })?.tierId,
     ).toBeUndefined();
   });
 
-  it("charges the current DeepSeek catalog weekday rate on a holiday date", () => {
+  it("prices DeepSeek's own API off-peak on a weekday Chinese public holiday, and leaves open dates unpriced", () => {
     const catalog = loadDefaultCatalog();
     for (const [modelId, peakCost, offPeakCost] of [
       ["deepseek-v4-1-flash", "0.3", "0.15"],
       ["deepseek-v4-pro", "1.32", "0.66"],
     ] as const) {
-      const pricing = Object.values(catalog.pricing).find((row) => row.modelId === modelId);
+      const pricing = Object.values(catalog.pricing).find(
+        (row) =>
+          row.modelId === modelId && row.basis === "api_list_price" && isDefaultPriceRecord(row),
+      );
       expect(pricing, modelId).toBeDefined();
       const usage = completeUsage({ uncachedInputTokens: 1_000_000 });
-      expect(
-        moneyUnitsForUsage(usage, pricing, {
-          atMs: epochMsFromIso("2026-09-25T07:00:00Z"),
-        }).units.toString(),
-        modelId,
-      ).toBe(peakCost);
-      expect(
-        moneyUnitsForUsage(usage, pricing, {
-          atMs: epochMsFromIso("2026-09-25T10:00:00Z"),
-        }).units.toString(),
-        modelId,
-      ).toBe(offPeakCost);
+      const at = (instant: string) =>
+        moneyUnitsForUsage(usage, pricing, { atMs: epochMsFromIso(instant) });
+      // Mid-Autumn Festival (Friday) and National Day (Thursday, Friday): statutory
+      // holidays, off-peak all day even inside the peak windows.
+      for (const holiday of [
+        "2026-09-25T07:00:00Z",
+        "2026-10-01T02:00:00Z",
+        "2026-10-02T09:59:00Z",
+      ])
+        expect(at(holiday).units.toString(), `${modelId} ${holiday}`).toBe(offPeakCost);
+      // An ordinary weekday before and after the holidays keeps the peak rate.
+      for (const weekday of ["2026-09-24T07:00:00Z", "2026-10-08T07:00:00Z"])
+        expect(at(weekday).units.toString(), `${modelId} ${weekday}`).toBe(peakCost);
+      // Oct 5 to 7 are rest days inside the National Day break, and DeepSeek's
+      // "Chinese public holidays" (法定节假日) does not settle whether they count.
+      for (const open of ["2026-10-05T01:00:00Z", "2026-10-06T07:00:00Z", "2026-10-07T09:00:00Z"]) {
+        const outcome = at(open);
+        expect(outcome.known, `${modelId} ${open}`).toBe(false);
+        expect(outcome.scheduleUnestablished, `${modelId} ${open}`).toBe(true);
+        expect(outcome.missingPricing).toBe(false);
+      }
+      // Outside the windows' hours the base rate applies whatever the calendar says.
+      expect(at("2026-10-06T05:00:00Z").units.toString()).toBe(offPeakCost);
+      // After the last date the holiday calendar covers, peak hours are open too.
+      expect(at("2027-01-04T07:00:00Z").known).toBe(false);
+      expect(at("2027-01-04T12:00:00Z").units.toString()).toBe(offPeakCost);
     }
   });
 

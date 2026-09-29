@@ -3,11 +3,13 @@ import type { z } from "zod";
 import { stableStringify } from "./canonical.js";
 import { type CatalogV1, planVersionId } from "./catalog.js";
 import {
+  type ModelRuleV1,
   modelRuleV1Schema,
   modelV1Schema,
   type PlanLimitV1,
   type PlanV1,
   type PricingRateSetV1,
+  type PricingTierScheduleConditionV1,
   type PricingV1,
   planV1Schema,
   pricingV1Schema,
@@ -489,6 +491,105 @@ function checkRateSet(
   }
 }
 
+/**
+ * A rule's route variants are the plan provider's own, declared by an alias of
+ * the rule's model, and each is priced only by a record of the same model and
+ * the same variant. An excluded model has no variants to offer.
+ */
+function checkRuleVariants(
+  rule: ModelRuleV1,
+  plan: PlanV1,
+  effectiveFrom: string,
+  file: string,
+  context: {
+    routeVariants: ReadonlySet<string>;
+    pricing: ReadonlyArray<{ value: PricingV1 }>;
+    pricingIds: ReadonlySet<string>;
+    issues: CatalogValidationIssue[];
+  },
+): void {
+  const variants = rule.variants ?? [];
+  const where = `${plan.id}@${effectiveFrom}: ${rule.model}`;
+  const add = (code: string, message: string) =>
+    context.issues.push({ severity: "error", code, message: `${where}: ${message}`, file });
+  if (variants.length > 0 && rule.excluded === true)
+    add("MODEL_RULE_INVALID", "an excluded model cannot list route variants");
+  const seen = new Set<string>();
+  for (const variant of variants) {
+    if (seen.has(variant.id)) add("DUPLICATE_ID", `route variant "${variant.id}" is listed twice`);
+    seen.add(variant.id);
+    if (rule.multiplier !== undefined && variant.multiplier === undefined)
+      add(
+        "MODEL_RULE_INVALID",
+        `route variant "${variant.id}" must state its own multiplier; the rule's ${rule.multiplier} is not inherited`,
+      );
+    if (variant.multiplier !== undefined && exceedsMaxMultiplier(variant.multiplier))
+      add(
+        "MULTIPLIER_OUT_OF_RANGE",
+        `route variant "${variant.id}" multiplier exceeds ${MAX_MULTIPLIER}`,
+      );
+    if (!context.routeVariants.has(`${rule.model}|${plan.providerId}|${variant.id}`))
+      add(
+        "RULE_VARIANT_UNDECLARED",
+        `route variant "${variant.id}" is not declared by any alias of ${rule.model} for provider "${plan.providerId}"`,
+      );
+    if (variant.pricingRef === undefined) continue;
+    if (!context.pricingIds.has(variant.pricingRef)) {
+      add("PRICING_REF_UNKNOWN", `variant pricingRef "${variant.pricingRef}" does not exist`);
+      continue;
+    }
+    const price = context.pricing.find((row) => row.value.id === variant.pricingRef)?.value;
+    if (price !== undefined && (price.modelId !== rule.model || price.variantId !== variant.id))
+      add(
+        "PRICING_VARIANT_MISMATCH",
+        `route variant "${variant.id}" names pricing "${price.id}", which prices ${price.modelId}${price.variantId === undefined ? "'s default route" : ` variant "${price.variantId}"`}`,
+      );
+  }
+}
+
+/**
+ * A schedule's date calendar must be complete through a stated date, so a
+ * holiday the list does not reach yet is never read as an ordinary weekday.
+ * The lists are sorted, free of repeats and disjoint: a date is either skipped
+ * or left open, never both.
+ */
+function checkScheduleCalendar(
+  when: PricingTierScheduleConditionV1,
+  tierPrefix: string,
+  file: string,
+  issues: CatalogValidationIssue[],
+): void {
+  const except = when.exceptUtcDates ?? [];
+  const open = when.unestablishedUtcDates ?? [];
+  const problem = (message: string) =>
+    issues.push({
+      severity: "error",
+      code: "PRICING_TIER_CALENDAR_INVALID",
+      message: `${tierPrefix}: ${message}`,
+      file,
+    });
+  if ((except.length > 0 || open.length > 0) && when.datesKnownThrough === undefined)
+    problem(
+      "a date calendar must state datesKnownThrough, the last date its lists are complete for",
+    );
+  for (const [name, dates] of [
+    ["exceptUtcDates", except],
+    ["unestablishedUtcDates", open],
+  ] as const) {
+    for (let i = 1; i < dates.length; i += 1) {
+      const previous = dates[i - 1];
+      const current = dates[i];
+      if (previous !== undefined && current !== undefined && previous >= current)
+        problem(`${name} must be sorted with no repeats`);
+    }
+    for (const date of dates)
+      if (when.datesKnownThrough !== undefined && date > when.datesKnownThrough)
+        problem(`${name} lists ${date}, after datesKnownThrough ${when.datesKnownThrough}`);
+  }
+  const skipped = new Set(except);
+  for (const date of open) if (skipped.has(date)) problem(`${date} is both skipped and left open`);
+}
+
 function checkPricingSemantics(
   pricing: Pick<PricingV1, "id" | "rates" | "tiers"> & Partial<Pick<PricingV1, "promotion">>,
   file: string,
@@ -561,6 +662,7 @@ function checkPricingSemantics(
       }
       windows.push({ tier: tier.id, window });
     }
+    checkScheduleCalendar(tier.when, tierPrefix, file, issues);
   }
 
   for (let i = 0; i < windows.length; i += 1) {
@@ -690,6 +792,8 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
   // another model's canonical id or name are all catalog authoring errors.
   const aliasIds = new Set<string>();
   const aliasOwners = new Map<string, string>();
+  /** `model|provider|variant` for every route variant an alias declares. */
+  const routeVariants = new Set<string>();
   const canonicalNames = new Map<string, string>();
   for (const entry of models) {
     for (const candidate of [entry.value.id.toLowerCase(), entry.value.name.toLowerCase()]) {
@@ -731,6 +835,24 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
           message: `alias "${alias.alias}" on "${entry.value.id}" is the canonical id or name of "${shadowed}" and would never apply`,
           file: entry.file,
         });
+      }
+
+      if (alias.variant !== undefined) {
+        if (alias.harness === undefined)
+          issues.push({
+            severity: "error",
+            code: "ALIAS_VARIANT_UNSCOPED",
+            message: `alias "${alias.alias}" on "${entry.value.id}" selects route variant "${alias.variant.id}" but is not scoped to a harness`,
+            file: entry.file,
+          });
+        if (!providerIds.has(alias.variant.providerId))
+          issues.push({
+            severity: "error",
+            code: "PROVIDER_REF_MISSING",
+            message: `alias "${alias.alias}" on "${entry.value.id}" names unknown provider "${alias.variant.providerId}" for its route variant`,
+            file: entry.file,
+          });
+        routeVariants.add(`${entry.value.id}|${alias.variant.providerId}|${alias.variant.id}`);
       }
     }
   }
@@ -787,6 +909,21 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
             file: entry.file,
           });
         }
+        // The rule's own price is the default route's. A variant record there
+        // would price every default-route call at the variant's rates.
+        if (price?.variantId !== undefined)
+          issues.push({
+            severity: "error",
+            code: "PRICING_VARIANT_MISMATCH",
+            message: `${plan.id}@${version.effectiveFrom}: ${rule.model}'s own pricingRef "${price.id}" is a "${price.variantId}" variant record; a variant is priced only from its entry in the rule's variants`,
+            file: entry.file,
+          });
+        checkRuleVariants(rule, plan, version.effectiveFrom, entry.file, {
+          routeVariants,
+          pricing,
+          pricingIds,
+          issues,
+        });
       }
     }
     const executionVersions = [...(plan.executionVersions ?? [])].sort((a, b) =>

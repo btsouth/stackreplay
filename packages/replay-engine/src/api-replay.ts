@@ -2,7 +2,9 @@ import {
   type CatalogV1,
   createModelIdentityIndex,
   type ModelIdentityIndex,
+  type ModelRouteVariantV1,
   modelResolutionKindOf,
+  observedRouteVariantOf,
   type PricingV1,
   pricesServiceTier,
   selectPlanVersionAt,
@@ -144,7 +146,13 @@ type ApiPricingOutcome =
    * model at (not listed, announced, in preview or unavailable). The model is
    * unpriced; its Standard price is never borrowed.
    */
-  | { kind: "tier-unavailable" };
+  | { kind: "tier-unavailable" }
+  /**
+   * The event ran on one of this provider's own route variants of the model
+   * (for example a Fast route). Direct API list prices are the default route's,
+   * so they never price it.
+   */
+  | { kind: "variant-unpriced" };
 
 /** Whether the selected provider serves one effective model. */
 type ApiAvailability = "offered" | "not-offered" | "offering-unestablished";
@@ -273,6 +281,7 @@ export function replayApiTarget(
       : undefined;
     let pricing: ApiPricingOutcome = { kind: "not-recorded" };
     let moneyUnits: Decimal | undefined;
+    let scheduleUnestablished = false;
     let pendingReceipt:
       | {
           modelId: string;
@@ -283,7 +292,19 @@ export function replayApiTarget(
       | undefined;
 
     if (identityEstablished) {
-      if (availability === "offered") {
+      const variant = observed.routeVariant;
+      if (variant !== undefined && variant.providerId !== target.providerId)
+        tracker.warn(
+          "MODEL_ROUTE_VARIANT_NOT_CARRIED",
+          "One or more events ran on another provider's route variant of their model (for example a Fast route). This provider has no such route, so they are priced at its own list price for the same model.",
+        );
+      if (availability === "offered" && variant?.providerId === target.providerId) {
+        pricing = { kind: "variant-unpriced" };
+        tracker.warn(
+          "API_ROUTE_VARIANT_UNPRICED",
+          "One or more events ran on a route variant this provider sells at its own rates; the model's default list price was not used for them, so their cost is unknown.",
+        );
+      } else if (availability === "offered") {
         pricing = pricingAt(
           pricingHistory,
           effectiveModelId,
@@ -332,6 +353,13 @@ export function replayApiTarget(
             "API_PRICE_CATEGORY_UNDOCUMENTED",
             "One or more events consume nonzero tokens in a category the selected API price does not establish; their cost is unknown rather than guessed.",
           );
+        if (outcome.scheduleUnestablished === true) {
+          scheduleUnestablished = true;
+          tracker.warn(
+            "API_PRICE_SCHEDULE_UNESTABLISHED",
+            "One or more events fall inside a peak window on a date the provider's price schedule does not settle (for example a holiday its wording leaves open); neither the peak nor the off-peak rate was used for them.",
+          );
+        }
         if (outcome.known) moneyUnits = outcome.units;
       }
     } else {
@@ -421,7 +449,10 @@ export function replayApiTarget(
      * usage evidence dimension reports it) rather than a gap in the price.
      */
     const pricingCategoryGap =
-      pricing.kind === "selected" && tokens.known && moneyUnits === undefined;
+      pricing.kind === "selected" &&
+      tokens.known &&
+      moneyUnits === undefined &&
+      !scheduleUnestablished;
     facts = {
       occurredOn: event.occurredAt.slice(0, 10),
       resolutionKind: observed.resolutionKind,
@@ -434,6 +465,7 @@ export function replayApiTarget(
       priced: moneyUnits !== undefined,
       missingPricingEntry: needsPrice && pricingRecordMissing,
       unpricedCategories: pricingCategoryGap,
+      scheduleUnestablished,
       /**
        * Consumption is indeterminate when the event's own token accounting is
        * incomplete, not when its disposition is unknown: an unresolved model
@@ -583,6 +615,8 @@ function observeIdentity(
   resolutionKind: ModelResolutionKindV1;
   sourceModelId?: string;
   effectiveModelId?: string;
+  /** The provider route variant the call ran on; absent after a substitution. */
+  routeVariant?: ModelRouteVariantV1;
 } {
   const canonicalId = event.model.canonicalId;
   let sourceModelId: string | undefined;
@@ -609,11 +643,21 @@ function observeIdentity(
 
   const substitute = substituteFor(translationPlan, sourceModelId);
   if (substitute !== undefined) translationApplication.record(sourceModelId);
+  // A variant is a route of the observed model; a substitute runs its own default route.
+  const routeVariant =
+    substitute === undefined
+      ? observedRouteVariantOf(identity, {
+          rawName: event.model.rawName,
+          harness: event.harness?.id,
+          canonicalId: event.model.canonicalId,
+        })
+      : undefined;
   return {
     quality,
     resolutionKind,
     sourceModelId,
     effectiveModelId: substitute ?? sourceModelId,
+    ...(routeVariant === undefined ? {} : { routeVariant }),
   };
 }
 
