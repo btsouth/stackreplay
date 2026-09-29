@@ -102,6 +102,8 @@ checks, artifact identity, unknown-timezone preservation, accepted-reference rel
 incomplete-value findings, versioned source health, and strict HTTPS URL validation.
 This is the locked `f02a9112f17c7f9edbc204a7e80b200175b12697` foundation. No watcher, UI,
 accepted catalog fact, or deployment followed from it. See [catalog intelligence](CATALOG_INTELLIGENCE.md).
+The coverage, watcher and benchmark plan that builds on it is in the
+[models and providers roadmap](catalog-coverage-roadmap.md).
 
 ## Milestone 4E — browser workload intake
 
