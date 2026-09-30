@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import {
   type CompiledExecutionPlanV2,
   compiledExecutionPlanV2Schema,
@@ -8,6 +7,7 @@ import {
 } from "@stackreplay/schema";
 import { stableStringify } from "./canonical.js";
 import type { CatalogV1 } from "./catalog.js";
+import { hashCanonicalContent as hash } from "./content-hash.js";
 import {
   type ExecutionSelector,
   type ExecutionVersion,
@@ -18,8 +18,6 @@ import {
 export const EXECUTION_COMPILER_VERSION = "catalog-execution-c2a-v2";
 const lexical = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 const sorted = (values: string[]) => [...new Set(values)].sort(lexical);
-const hash = (value: unknown) =>
-  `sha256:${createHash("sha256").update(stableStringify(value)).digest("hex")}`;
 
 /** C1 execution pricing references use half-open UTC validity, unlike legacy lookups. */
 function pricingValidAt(price: CatalogV1["pricing"][string] | undefined, rulesAt: string): boolean {

@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
 });
 
-async function setup(page: Page) {
+async function setup(page: Page, models?: string[]) {
   await page.addInitScript(() => {
     localStorage.setItem(
       "stackreplay.current-stack",
@@ -38,13 +38,15 @@ async function setup(page: Page) {
   if (!base) throw Error("Missing fixture");
   file.collectorVersion = "synthetic-strategy-test";
   file.detectedSources = file.detectedSources.map(({ note: _note, ...s }) => s);
-  file.events = [
-    "claude-opus-5-5",
-    "claude-fable-5-1",
-    "claude-opus-5",
-    "claude-fable-5",
-    "claude-opus-4-8",
-  ].map((model, i) => ({
+  file.events = (
+    models ?? [
+      "claude-opus-5-5",
+      "claude-fable-5-1",
+      "claude-opus-5",
+      "claude-fable-5",
+      "claude-opus-4-8",
+    ]
+  ).map((model, i) => ({
     ...base,
     id: `s${i}`,
     occurredAt: `2026-09-${String(i + 1).padStart(2, "0")}T12:00:00Z`,
@@ -190,6 +192,14 @@ test("a completed manual replay can be compared without rerunning it", async ({ 
   await expect(page.getByTestId("replay-result")).toBeVisible();
   await page.getByRole("button", { name: "Add completed replay to Compare →" }).click();
   await expect(page.getByRole("button", { name: "Added to Compare" })).toBeDisabled();
+  const saved = await page.evaluate(
+    () =>
+      JSON.parse(
+        localStorage.getItem("stackreplay.completed-replays.v1") ?? "[]",
+      ) as CompletedReplay[],
+  );
+  expect(saved[0]?.decisionSnapshotHash).toBeUndefined();
+  expect(saved[0]?.catalogHash).toBe(DECISION_MARKET.catalogHash);
   await page.getByRole("link", { name: "Compare completed replays →" }).click();
   await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(1);
 });
@@ -280,3 +290,66 @@ test("Sep 30 viewer gets pinned suggested comparisons and independently dated cu
   await setRulesAsOf(page, "2026-09-28");
   await expect(page.getByLabel("Rules as of")).toHaveValue("2026-09-28");
 });
+
+for (const theme of ["dark", "light"] as const)
+  test(`saved execution snapshot grouping and provenance in ${theme}`, async ({ page }) => {
+    await page.addInitScript((t) => localStorage.setItem("stackreplay-theme", t), theme);
+    await setup(page, ["claude-opus-5-5"]);
+    await page.getByTestId("strategy-assessments").locator("summary").click();
+    await page.getByTestId("suggest-exact").click();
+    await page.getByTestId("run-strategy").click();
+    await page.getByTestId("add-to-compare").click();
+    await page.getByRole("button", { name: "← Try another strategy" }).click();
+    await page.getByTestId("suggest-openai-frontier").click();
+    await page.getByTestId("run-strategy").click();
+    await page.getByTestId("add-to-compare").click();
+    const saved = await page.evaluate(
+      () =>
+        JSON.parse(
+          localStorage.getItem("stackreplay.completed-replays.v1") ?? "[]",
+        ) as CompletedReplay[],
+    );
+    expect(saved).toHaveLength(2);
+    for (const record of saved)
+      expect(record.decisionSnapshotHash).toBe(DECISION_MARKET.decisionSnapshotHash);
+    expect(saved[0]?.difference).toBeDefined();
+    const metadataCatalog = `sha256:${"1".repeat(64)}`;
+    await page.evaluate(
+      ({ metadataCatalog }) => {
+        const key = "stackreplay.completed-replays.v1";
+        const records = JSON.parse(localStorage.getItem(key) ?? "[]") as CompletedReplay[];
+        records[1] = { ...records[1], catalogHash: metadataCatalog } as CompletedReplay;
+        records.push({
+          ...records[0],
+          id: "other-execution",
+          title: "Different execution rules",
+          decisionSnapshotHash: `sha256:${"2".repeat(64)}`,
+        } as CompletedReplay);
+        localStorage.setItem(key, JSON.stringify(records));
+      },
+      { metadataCatalog },
+    );
+    await page.getByTestId("compare-completed").click();
+    const sections = page.getByTestId("completed-comparison").locator(":scope > section");
+    await expect(sections).toHaveCount(2);
+    await expect(page.getByTestId("completed-compare")).toContainText("same execution snapshot");
+    await expect(page.getByRole("checkbox", { name: /Different execution rules/ })).toBeDisabled();
+    for (const section of await sections.all()) {
+      await section.locator("summary").first().click();
+      await section.getByTestId("saved-snapshot-provenance").locator("summary").click();
+    }
+    await expect(sections.nth(0)).toContainText(DECISION_MARKET.catalogHash);
+    await expect(sections.nth(1)).toContainText(metadataCatalog);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.reload();
+    await expect(sections).toHaveCount(2);
+    await page.getByRole("button", { name: "Open another result group →" }).click();
+    await expect(sections).toHaveCount(1);
+    await expect(sections).toContainText("Different execution rules");
+    await expect(page.getByTestId("completed-compare")).toContainText(
+      "separate execution snapshot",
+    );
+  });

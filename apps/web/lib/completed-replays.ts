@@ -16,6 +16,7 @@ export const completedReplaySchema = z
     importId: text,
     scopeDigest: text,
     catalogHash: text,
+    decisionSnapshotHash: text.regex(/^sha256:[a-f0-9]{64}$/).optional(),
     rulesAt: text,
     title: text,
     mode: z.enum(["exact", "translated", "assessment"]),
@@ -104,12 +105,35 @@ export function removeCompletedReplay(id: string) {
     return false;
   }
 }
+/** New records use execution identity; missing provenance keeps the legacy guard. */
+export function compatibleReplaySnapshots(
+  a: Pick<CompletedReplay, "rulesAt" | "catalogHash" | "decisionSnapshotHash">,
+  b: Pick<CompletedReplay, "rulesAt" | "catalogHash" | "decisionSnapshotHash">,
+): boolean {
+  return (
+    a.rulesAt === b.rulesAt &&
+    (a.decisionSnapshotHash !== undefined && b.decisionSnapshotHash !== undefined
+      ? a.decisionSnapshotHash === b.decisionSnapshotHash
+      : a.catalogHash === b.catalogHash)
+  );
+}
 export function comparableReplays(a: CompletedReplay, b: CompletedReplay): boolean {
   return (
     a.importId === b.importId &&
     a.scopeDigest === b.scopeDigest &&
     a.calls === b.calls &&
-    a.catalogHash === b.catalogHash &&
-    a.rulesAt === b.rulesAt
+    compatibleReplaySnapshots(a, b)
   );
+}
+
+/** Fallback compatibility is not transitive: a legacy record cannot bridge revisions. */
+export function comparableReplayGroup(
+  anchor: CompletedReplay,
+  records: readonly CompletedReplay[],
+): CompletedReplay[] {
+  const group = [anchor];
+  for (const record of records)
+    if (record.id !== anchor.id && group.every((member) => comparableReplays(member, record)))
+      group.push(record);
+  return group;
 }

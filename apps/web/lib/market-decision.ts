@@ -1,9 +1,11 @@
+import type { DecisionMarket } from "@stackreplay/catalog/market";
 import type { MarketCoverage } from "@stackreplay/replay-engine";
 import type { CapacitySummary } from "./observed-capacity";
 import type { CompiledOptimizerSummary } from "./optimizer-runtime";
 import type { ReviewComposition, ReviewHistory } from "./review-period";
 /** Bounded durable summaries only; imported events never reach the page. */
 export interface MarketDecision {
+  snapshot?: Pick<DecisionMarket, "rulesAt" | "catalogHash" | "decisionSnapshotHash">;
   history?: ReviewHistory;
   capacity?: CapacitySummary;
   /** Direct imported evidence only, across explicitly identified local accounts. */

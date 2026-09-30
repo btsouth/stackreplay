@@ -17,7 +17,11 @@ export function StrategyResult({
   const name = (id: string) => models[id]?.name ?? id;
   const mapped = result.mappings.filter((m) => m.source !== m.target && m.target !== "unmapped");
   return (
-    <section className="space-y-6" data-testid="strategy-result" aria-label="Completed replay">
+    <section
+      className="space-y-6"
+      data-testid="strategy-result"
+      aria-label={primary ? "Completed replay" : undefined}
+    >
       <div>
         <MicroLabel>
           {result.mode === "assessment"
@@ -63,6 +67,19 @@ export function StrategyResult({
           <p key={t}>{t}</p>
         ))}
       </div>
+      <details data-testid="saved-snapshot-provenance">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Snapshot provenance
+        </summary>
+        <dl className="space-y-2 break-all text-xs text-muted-foreground">
+          <dt>Full catalog</dt>
+          <dd>{result.catalogHash}</dd>
+          <dt>Execution snapshot</dt>
+          <dd>{result.decisionSnapshotHash ?? "Not recorded (legacy catalog fallback)"}</dd>
+          <dt>Rules at</dt>
+          <dd>{result.rulesAt}</dd>
+        </dl>
+      </details>
       {result.mappings.length ? (
         <div className="space-y-3" data-testid="strategy-mapping-result">
           <Subheading className="text-lg font-medium">Recorded model → replay model</Subheading>

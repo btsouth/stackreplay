@@ -187,6 +187,11 @@ async function handleMarket(
     if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
     const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
     const decision: MarketDecision = {
+      snapshot: {
+        rulesAt: DECISION_MARKET.rulesAt,
+        catalogHash: DECISION_MARKET.catalogHash,
+        decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
+      },
       scenarios: [],
       history: scoped.history,
       capacity: summarizeCapacity(

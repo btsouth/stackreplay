@@ -22,7 +22,7 @@ Purchase eligibility is separate from validity. Region, cohort, billing term, pu
 
 Rate and evidence objects are interned at artifact level. Routes point to debit and cash-rate IDs. A debit factor changes capacity drain; an allowance factor changes a constraint amount; a cash-rate factor changes only the paid route; a fixed-fee modification changes only purchase cost. Overlay records are not mutated. Selected overlays must be valid at `rulesAt` and applicable to the version. They apply in precedence order. Equal-precedence changes to the same operation are rejected. Cohort and redemption requirements on an overlay are retained as required facts, so an unknown redemption state cannot silently qualify. Normal annual billing is a distinct unsupported purchase term, not an automatic promotion.
 
-The compiler sorts IDs and model sets, canonicalizes object keys, normalizes derived decimals, then SHA-256 hashes the artifact content excluding `artifactHash`. `catalogHash` is the existing catalog content hash. There is no generated-at field in the content identity. Hashes establish reproducibility and integrity, not source authority. Claim authority and review live in the accepted catalog.
+The compiler sorts IDs and model sets, canonicalizes object keys, normalizes derived decimals, then SHA-256 hashes the artifact content excluding `artifactHash` and `catalogHash`. `catalogHash` is the existing catalog content hash. There is no generated-at field in the content identity. Hashes establish reproducibility and integrity, not source authority. Claim authority and review live in the accepted catalog.
 
 ## Binding and replay
 
@@ -58,3 +58,11 @@ The six synthetic families in `packages/catalog/test-fixtures/execution.ts` pass
 - Ollama/Kiro-like: deterministic fixed-fee allowance replays; hidden concurrency/task measurement does not acquire a fabricated debit.
 
 The compiler metric test records JSON artifact bytes for all six and build/compile time for 500 synthetic immutable versions. It is a size/regression diagnostic, not a browser performance claim. No production execution-market plan was added.
+
+## Saved decision snapshot identity
+
+`catalogHash` identifies the complete accepted catalog loaded for a computation. It remains in the decision market, results and saved evidence. `decisionSnapshotHash` separately identifies the admitted execution market: a versioned canonical SHA-256 of the fixed rules instant, review horizon, sorted scenario IDs with their plan/artifact identities, and sorted admitted plan IDs with their compiled `artifactHash` values. The normal decision-market generator creates it. Target strategy, viewer time, full catalog hash, release dates, browsing metadata and display copy are excluded. Compiler artifact identity still includes executable rates, routes, versions, overlays, validity and claim evidence, so changes to those dependencies remain conservative snapshot changes.
+
+Metadata-only catalog maintenance can therefore retain a decision snapshot while changing full provenance. New saved results compare only with the same import, scope digest, call count and rules instant. When both record the execution snapshot, that hash must match; otherwise exact `catalogHash` equality remains mandatory. Legacy records are never migrated or assigned a reconstructed hash. Both full catalog revisions remain visible in saved result details. Compare groups require pairwise compatibility, so a legacy record cannot bridge otherwise incompatible revisions.
+
+Recorded Suggested Replay results carry the snapshot of their compiled market calculation. A translated Standard API run carries it only when its full receipt matches directly referenced admitted routes and rates without overrides, at the pinned date and full catalog. Unadmitted routes, partial pricing, other service tiers and arbitrary custom Replay retain the catalog fallback. Baseline differences require the same snapshot compatibility rule; a hash never supplies a missing price or a different scope. Strategy and mapping differences stay in the saved result, not the common market digest.
