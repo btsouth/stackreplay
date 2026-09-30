@@ -71,6 +71,39 @@ it("confirms through Current Stack with no second authoritative selected-plan li
   expect(readDiscoveryPreferences().groups).toEqual({});
   expect(data.get(DISCOVERY_STORAGE_KEY)).not.toContain("plan:");
 });
+it("multiple-plan editing without history reuses Current Stack and clears only onboarding response state", () => {
+  confirmDiscovery(undefined, groups, { claude: "not-sure" }, now);
+  writeCurrentStack(["plan:command-code-goat", "api:openai"]);
+  confirmDiscovery(
+    undefined,
+    groups,
+    { claude: { planTargets: ["plan:anthropic-claude-pro", "plan:anthropic-claude-max-5x"] } },
+    now + 1,
+  );
+  expect(readCurrentStack()).toEqual([
+    "plan:command-code-goat",
+    "api:openai",
+    "plan:anthropic-claude-pro",
+    "plan:anthropic-claude-max-5x",
+  ]);
+  expect(readDiscoveryPreferences().groups).toEqual({});
+  expect(data.get(DISCOVERY_STORAGE_KEY)).not.toContain("plan:");
+});
+it("synthetic multiple-plan edits cannot reach real stack or preferences", () => {
+  writeCurrentStack(["plan:command-code-goat"]);
+  confirmDiscovery(
+    demo,
+    groups,
+    { claude: { planTargets: ["plan:anthropic-claude-pro", "plan:anthropic-claude-max-5x"] } },
+    now,
+  );
+  expect(readCurrentStack()).toEqual(["plan:command-code-goat"]);
+  expect(readCurrentStack(".demo.demo")).toEqual([
+    "plan:anthropic-claude-pro",
+    "plan:anthropic-claude-max-5x",
+  ]);
+  expect(readDiscoveryPreferences().groups).toEqual({});
+});
 it("Not sure and other responses prevent repeat prompting without a fake plan or API target", () => {
   for (const answer of ["not-sure", "api-other", "none", "work"] as const) {
     confirmDiscovery(real, groups, { claude: answer }, now);

@@ -38,7 +38,8 @@ including GOAT's current-market execution-only record.
 replaces only explicitly listed members of the answered family. Other families,
 manual unrelated plans and API targets survive. Existing personal/manual/organization
 selections suppress automatic prompting and are pre-respected when reopening.
-Multiple manual plans have an explicit keep option. No four-plan cap is needed;
+Multiple plans have an explicit keep option and a shared editor for selecting
+several distinct plans within a family. No four-plan cap is needed;
 the leftover Settings cap is removed. Settings shows the selected summary and
 links to Workload, with the full picker under **Advanced / choose manually**.
 
@@ -62,8 +63,32 @@ confirmation cannot alter real selections or preferences.
 `event.billing` facts. Exact subscription evidence can mark historical billing
 as observed; inferred context cannot. Even exact past billing does not establish
 a current subscription. No adapter manufactures billing context, and this phase
-does not aggregate it in the worker. No My Stack dashboard or recommendations
-are included.
+does not aggregate it in the worker. No recommendations are included.
+
+## My Stack v1
+
+`/app/stack` reads the same Current Stack, with a pure aggregate-only view model
+in `lib/my-stack.ts`. Settings and Workload link here; Workload's quick radios
+and My Stack use the same family choices, including explicit multiple-plan edits.
+Choices show the reviewed published lineup's compact model count even without
+resolved workload identities; workload coverage is separate supporting evidence.
+Missing workload identities never turn a known published lineup into "unknown".
+Unknown or retired selected keys stay visible and are never silently dropped.
+The advanced manual catalog chooser remains in Settings. Removing one target
+preserves all others and snoozes its family's discovery prompt for seven days.
+
+Published price subtotals use exact decimal arithmetic, grouped by currency and
+interval. They include one published price per selected plan, excluding API
+targets and unknown prices. These are not actual spend: quantities, multiple
+accounts on one plan, taxes and discounts are not represented. Duplicate plan
+instances require a future versioned extension of the canonical store.
+
+Tool activity is a separate section for one explicitly selected saved workload;
+overlapping imports are never combined. No history is required to edit plans.
+Synthetic workloads are excluded, and an explicitly opened demo context is read
+only for the real stack. No new storage, billing attribution, actual-paid form,
+telemetry or Replay economics is introduced. Links continue to existing Replay,
+Compare and billing-period review with the selected workload's scope.
 
 ## Optional billing comparison
 

@@ -120,8 +120,9 @@ test("one click per family confirms, survives reload and can edit one family wit
   await expect(page.getByTestId("settings-plans-summary")).toContainText("Claude Pro");
   await expect(page.getByTestId("settings-plans-summary")).toContainText("ChatGPT Pro 200");
   await expect(page.getByTestId("settings-manual-plans")).not.toHaveAttribute("open", "");
-  await page.getByRole("link", { name: "Review discovered stack →" }).click();
-  await expect(panel(page)).toBeVisible();
+  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await expect(page.getByRole("heading", { name: "My Stack", exact: true })).toBeVisible();
+  await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toBeVisible();
 });
 
 test("Not now keeps Workload usable, does not recur through Replay/Compare or reload, and can reopen", async ({
@@ -188,7 +189,8 @@ test("panel supports keyboard focus, native radio arrows, confirmation and Escap
 test("unresolved models still offer source choices, with no tier selected", async ({ page }) => {
   await scan(page, false, true);
   await expect(panel(page)).toContainText("unresolved model identities");
-  await expect(panel(page)).toContainText("Model access unknown");
+  await expect(panel(page)).toContainText("Published access:");
+  await expect(panel(page)).not.toContainText("Model access unknown");
   await expect(panel(page).locator('input[type="radio"]:checked')).toHaveCount(0);
 });
 

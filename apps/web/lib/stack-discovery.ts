@@ -9,6 +9,7 @@ import type { SourceDemand } from "./workload-profile";
 export const DISCOVERY_FAMILIES = [
   {
     groupId: "claude",
+    name: "Claude",
     sourceIds: ["claude-code"],
     question: "Which Claude plan do you currently pay for?",
     planIds: ["anthropic-claude-pro", "anthropic-claude-max-5x", "anthropic-claude-max-20x"],
@@ -16,6 +17,7 @@ export const DISCOVERY_FAMILIES = [
   },
   {
     groupId: "chatgpt",
+    name: "ChatGPT",
     sourceIds: ["codex"],
     question: "Which ChatGPT plan do you currently pay for?",
     planIds: [
@@ -29,6 +31,7 @@ export const DISCOVERY_FAMILIES = [
   },
   {
     groupId: "command-code",
+    name: "Command Code",
     sourceIds: ["command-code"],
     question: "Which Command Code plan do you currently pay for?",
     planIds: [
@@ -42,6 +45,7 @@ export const DISCOVERY_FAMILIES = [
   },
   {
     groupId: "opencode",
+    name: "OpenCode",
     sourceIds: ["opencode"],
     question: "Do you currently pay for an OpenCode plan?",
     planIds: ["opencode-go", "opencode-go-plus"],
@@ -49,6 +53,7 @@ export const DISCOVERY_FAMILIES = [
   },
   {
     groupId: "hermes",
+    name: "Hermes",
     sourceIds: ["hermes"],
     question: undefined,
     planIds: [],
@@ -59,7 +64,31 @@ export const DISCOVERY_FAMILIES = [
 export type DiscoveryGroupId = (typeof DISCOVERY_FAMILIES)[number]["groupId"];
 export type DiscoveryState = "observed" | "narrowed" | "confirmed" | "unknown";
 export type NonPlanResponse = "work" | "api-other" | "none" | "not-sure";
-export type DiscoveryAnswer = TargetKey | NonPlanResponse | "keep-current";
+/** Explicit multiple distinct plans; never account quantities or duplicate seats. */
+export type DiscoveryAnswer =
+  | TargetKey
+  | NonPlanResponse
+  | "keep-current"
+  | { planTargets: readonly TargetKey[] };
+
+export function isNonPlanResponse(answer: DiscoveryAnswer): answer is NonPlanResponse {
+  return typeof answer === "string" && ["work", "api-other", "none", "not-sure"].includes(answer);
+}
+
+export function initialDiscoveryAnswer(
+  group: DiscoveryGroup,
+  response?: NonPlanResponse,
+): DiscoveryAnswer | undefined {
+  const first = group.currentTargets[0];
+  if (
+    group.currentTargets.length === 1 &&
+    first &&
+    group.candidates.some((candidate) => `plan:${candidate.planId}` === first)
+  )
+    return first;
+  if (group.currentTargets.length > 0) return "keep-current";
+  return response;
+}
 
 export interface DiscoveryPlan {
   id: string;
@@ -72,6 +101,8 @@ export interface DiscoveryCandidate {
   planName: string;
   publishedPrice: DiscoveryPlan["price"];
   access: {
+    /** Published lineup size, independent of whether workload identities resolved. */
+    publishedModelCount: number | undefined;
     listedModelIds: string[];
     observedModelCount: number;
     checkedAt: string | undefined;
@@ -93,7 +124,7 @@ export interface DiscoveryGroup {
   shareOfWorkload: number;
   observedModelIds: string[];
   unresolvedCalls: number;
-  sourceState: "observed";
+  sourceState: "observed" | "unknown";
   state: DiscoveryState;
   question: string | undefined;
   candidates: DiscoveryCandidate[];
@@ -130,13 +161,15 @@ export function discoverStack(input: {
   currentStack: readonly TargetKey[];
   plans?: readonly DiscoveryPlan[];
   billingEvidence?: readonly DiscoveryBillingEvidence[];
+  /** The explicit editor can offer families without claiming recorded activity. */
+  includeUnobserved?: boolean;
 }): DiscoveryGroup[] {
   const plans = input.plans ?? discoveryPlansAt(input.rulesAsOf);
   return DISCOVERY_FAMILIES.flatMap((family): DiscoveryGroup[] => {
     const sources = input.sources.filter(
       (source) => (family.sourceIds as readonly string[]).includes(source.id) && source.events > 0,
     );
-    if (sources.length === 0) return [];
+    if (sources.length === 0 && (!input.includeUnobserved || !family.question)) return [];
     const recordedCalls = sources.reduce((sum, source) => sum + source.events, 0);
     const observedModelIds = [
       ...new Set(sources.flatMap((source) => source.models.map((m) => m.modelId))),
@@ -151,15 +184,18 @@ export function discoverStack(input: {
       const plan = plans.find((entry) => entry.id === planId);
       if (!plan) return [];
       const access = subscriptionAccess(planId, input.rulesAsOf.slice(0, 10));
-      const listed = new Set(
-        access ? includedAccessModels(access).flatMap((m) => (m.modelId ? [m.modelId] : [])) : [],
-      );
+      const publishedModels = access ? includedAccessModels(access) : [];
+      const listed = new Set(publishedModels.flatMap((m) => (m.modelId ? [m.modelId] : [])));
       return [
         {
           planId,
           planName: plan.name,
           publishedPrice: plan.price,
           access: {
+            // Variants of the same exact reviewed model identity count once.
+            publishedModelCount: access
+              ? new Set(publishedModels.map((model) => model.modelId ?? model.name)).size
+              : undefined,
             listedModelIds: observedModelIds.filter((id) => listed.has(id)),
             observedModelCount: observedModelIds.length,
             checkedAt: access?.checkedAt,
@@ -190,13 +226,13 @@ export function discoverStack(input: {
         shareOfWorkload: input.recordedCalls > 0 ? recordedCalls / input.recordedCalls : 0,
         observedModelIds,
         unresolvedCalls: sources.reduce((sum, source) => sum + source.unresolvedEvents, 0),
-        sourceState: "observed",
+        sourceState: sources.length > 0 ? "observed" : "unknown",
         state:
           currentTargets.length > 0
             ? "confirmed"
             : exactSubscription
               ? "observed"
-              : candidates.length > 0
+              : candidates.length > 0 && sources.length > 0
                 ? "narrowed"
                 : "unknown",
         question: family.question,
@@ -218,14 +254,22 @@ export function applyDiscoveryAnswers(
   for (const group of groups) {
     const answer = answers[group.groupId];
     if (!answer || answer === "keep-current") continue;
-    if (
-      answer.startsWith("plan:") &&
-      !group.candidates.some((candidate) => `plan:${candidate.planId}` === answer)
-    )
-      continue;
-    if (answer.startsWith("api:")) continue;
+    const targets = typeof answer === "object" ? [...new Set(answer.planTargets)] : [answer];
+    if (!isNonPlanResponse(answer)) {
+      // Validate the whole edit before replacing anything. Existing manual or
+      // no-longer-offered family entries may be retained explicitly in a multi-edit.
+      if (
+        targets.length === 0 ||
+        targets.some(
+          (key) =>
+            !group.candidates.some((candidate) => `plan:${candidate.planId}` === key) &&
+            !(typeof answer === "object" && group.currentTargets.includes(key as TargetKey)),
+        )
+      )
+        continue;
+    }
     next = next.filter((key) => !familyTargetKeys(group.groupId).includes(key));
-    if (answer.startsWith("plan:")) next.push(answer as TargetKey);
+    if (!isNonPlanResponse(answer)) next.push(...(targets as TargetKey[]));
   }
   return [...new Set(next)];
 }

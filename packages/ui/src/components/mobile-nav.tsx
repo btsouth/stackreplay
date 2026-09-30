@@ -26,7 +26,7 @@ export function MobileNav({
 
   useEffect(() => {
     setReady(true);
-    const desktop = window.matchMedia("(min-width: 768px)");
+    const desktop = window.matchMedia("(min-width: 1024px)");
     const closeOnDesktop = () => {
       if (desktop.matches) setOpen(false);
     };
@@ -41,7 +41,7 @@ export function MobileNav({
         disabled={!ready}
         className={[
           "inline-flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground",
-          "transition-colors duration-150 ease-out hover:bg-surface-2 hover:text-foreground md:hidden",
+          "transition-colors duration-150 ease-out hover:bg-surface-2 hover:text-foreground lg:hidden",
           "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         ].join(" ")}
       >

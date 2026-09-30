@@ -16,9 +16,12 @@ import { getWorkerClient } from "@/lib/worker-client";
  */
 export function PlansYouPayFor() {
   const [stack, setStack] = useState<TargetKey[] | undefined>(undefined);
+  const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => {
     const refresh = () => setStack(readCurrentStack());
     refresh();
+    if (window.location.hash === "#manual-plans")
+      document.getElementById("manual-plans")?.setAttribute("open", "");
     return subscribeCurrentStack(refresh);
   }, []);
   const plans = useMemo(
@@ -28,9 +31,9 @@ export function PlansYouPayFor() {
   );
   const chosen = stack ?? [];
   const toggle = (key: TargetKey) => {
-    const next = chosen.includes(key) ? chosen.filter((entry) => entry !== key) : [...chosen, key];
-    setStack(next);
-    writeCurrentStack(next);
+    const latest = readCurrentStack();
+    const next = latest.includes(key) ? latest.filter((entry) => entry !== key) : [...latest, key];
+    setSaveFailed(!writeCurrentStack(next));
   };
   const names = chosen.map((key) => plans.find((plan) => `plan:${plan.id}` === key)?.name ?? key);
   return (
@@ -43,16 +46,16 @@ export function PlansYouPayFor() {
             : names.join(" + ")}
       </p>
       <Link
-        href="/app/workload#current-stack-review"
+        href="/app/stack"
         className="inline-flex min-h-11 items-center self-start text-sm text-accent"
       >
-        Review discovered stack →
+        Manage My Stack →
       </Link>
       <p className="text-xs text-muted-foreground">
-        Scan your history, then confirm the relevant plans on Workload. Published prices are not
-        your actual bill.
+        Confirm or edit the plans you currently pay for in My Stack. Published prices are not your
+        actual bill.
       </p>
-      <details data-testid="settings-manual-plans">
+      <details id="manual-plans" data-testid="settings-manual-plans">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Advanced / choose manually
         </summary>
@@ -80,6 +83,11 @@ export function PlansYouPayFor() {
           })}
         </fieldset>
       </details>
+      {saveFailed ? (
+        <p role="alert" className="text-sm text-warning">
+          Could not save this selection. Browser storage is unavailable.
+        </p>
+      ) : null}
       <p className="text-xs text-muted-foreground">Kept in this browser.</p>
     </div>
   );

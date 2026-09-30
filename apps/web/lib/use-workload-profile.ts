@@ -39,19 +39,19 @@ export function loadWorkloadProfile(
 
 /** The profile of a stored workload in the viewer's time zone, once it is ready. */
 export function useWorkloadProfile(importId: string | undefined): WorkloadProfile | undefined {
-  const [profile, setProfile] = useState<WorkloadProfile | undefined>(undefined);
+  const [profile, setProfile] = useState<{ importId: string; value: WorkloadProfile }>();
   useEffect(() => {
     setProfile(undefined);
     if (importId === undefined) return;
     let cancelled = false;
     loadWorkloadProfile(importId, browserTimeZone())
       .then((next) => {
-        if (!cancelled) setProfile(next);
+        if (!cancelled) setProfile({ importId, value: next });
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
   }, [importId]);
-  return profile;
+  return profile && profile.importId === importId ? profile.value : undefined;
 }

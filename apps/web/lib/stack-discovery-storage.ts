@@ -6,6 +6,7 @@ import {
   type DiscoveryAnswer,
   type DiscoveryGroup,
   type DiscoveryGroupId,
+  isNonPlanResponse,
 } from "./stack-discovery";
 import type { ImportRecord } from "./worker-protocol";
 import { isSyntheticWorkload } from "./workload-kind";
@@ -97,23 +98,26 @@ export function dismissDiscovery(
 
 /** Namespace is derived here so a demo caller cannot accidentally save real selections. */
 export function confirmDiscovery(
-  record: Pick<ImportRecord, "id" | "summary">,
+  record: Pick<ImportRecord, "id" | "summary"> | undefined,
   groups: readonly DiscoveryGroup[],
   answers: Readonly<Partial<Record<DiscoveryGroupId, DiscoveryAnswer>>>,
   now: number,
 ): { stackSaved: boolean; preferencesSaved: boolean } {
-  const namespace = discoveryNamespace(record);
+  const namespace = record ? discoveryNamespace(record) : "";
   const next = applyDiscoveryAnswers(readCurrentStack(namespace), groups, answers);
   const stackSaved = writeCurrentStack(next, namespace);
   const preferences = dismissDiscovery(groups, readDiscoveryPreferences(namespace), now);
   for (const group of groups) {
     const answer = answers[group.groupId];
-    if (answer && ["work", "api-other", "none", "not-sure"].includes(answer))
+    if (answer && isNonPlanResponse(answer))
       preferences.groups[group.groupId] = {
-        response: answer as "work" | "api-other" | "none" | "not-sure",
+        response: answer,
         answeredAt: now,
       };
-    else if (answer && (answer.startsWith("plan:") || answer === "keep-current"))
+    else if (
+      answer &&
+      (typeof answer === "object" || answer.startsWith("plan:") || answer === "keep-current")
+    )
       delete preferences.groups[group.groupId];
   }
   return { stackSaved, preferencesSaved: writeDiscoveryPreferences(preferences, namespace) };

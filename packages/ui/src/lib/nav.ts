@@ -3,7 +3,7 @@
  * quiet labels, no icons beside every line of text.
  *
  * The product is the workload: Workload leads, Replay and Compare investigate
- * it. Import and Settings are utilities, so they sit in a quieter group after
+ * it. My Stack holds confirmed targets. Import and Settings are utilities after
  * a divider rather than competing with the analysis for attention.
  */
 
@@ -19,6 +19,7 @@ export const appBrand = {
 
 export const appNavItems = [
   { label: "Workload", href: "/app/workload" },
+  { label: "My Stack", href: "/app/stack" },
   { label: "Replay", href: "/app/replay" },
   { label: "Compare", href: "/app/compare" },
 ] as const satisfies readonly AppNavItem[];

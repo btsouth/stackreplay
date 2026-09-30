@@ -13,6 +13,7 @@ import {
   discoverStack,
   discoveryPlansAt,
 } from "./stack-discovery";
+import { includedAccessModels, subscriptionAccess } from "./subscription-access";
 import { buildWorkloadProfile, type SourceDemand } from "./workload-profile";
 import { summarizeExport } from "./workload-summary";
 
@@ -50,6 +51,87 @@ const candidateIds = (sourceId: string) =>
   discover([source(sourceId)])[0]
     ?.candidates.map((plan) => plan.planId)
     .sort();
+
+it("known published lineups stay known without workload models; counts come from reviewed access", () => {
+  for (const family of DISCOVERY_FAMILIES.filter((family) => family.planIds.length > 0)) {
+    const [group] = discover([source(family.sourceIds[0], 10, [], 10)]);
+    for (const candidate of group?.candidates ?? []) {
+      const access = subscriptionAccess(candidate.planId, rulesAsOf.slice(0, 10));
+      expect(access, candidate.planId).toBeDefined();
+      const models = access ? includedAccessModels(access) : [];
+      expect(candidate.access.publishedModelCount).toBe(
+        new Set(models.map((model) => model.modelId ?? model.name)).size,
+      );
+      expect(candidate.access.publishedModelCount).toBeGreaterThan(0);
+      expect(candidate.access.observedModelCount).toBe(0);
+      expect(candidate.access.listedModelIds).toEqual([]);
+    }
+  }
+});
+
+it("explicit multi-plan edits validate as a whole and replace only the answered family", () => {
+  const current: TargetKey[] = [
+    "plan:anthropic-claude-pro",
+    "plan:command-code-goat",
+    "api:openai",
+    "plan:cursor-ultra",
+  ];
+  const groups = discover([source("claude-code")], current);
+  expect(
+    applyDiscoveryAnswers(current, groups, {
+      claude: {
+        planTargets: [
+          "plan:anthropic-claude-max-5x",
+          "plan:anthropic-claude-max-20x",
+          "plan:anthropic-claude-max-5x",
+        ],
+      },
+    }),
+  ).toEqual([
+    "plan:command-code-goat",
+    "api:openai",
+    "plan:cursor-ultra",
+    "plan:anthropic-claude-max-5x",
+    "plan:anthropic-claude-max-20x",
+  ]);
+  for (const planTargets of [
+    [],
+    ["plan:anthropic-claude-max-5x", "plan:openai-chatgpt-plus"],
+    ["api:openai"],
+  ] as TargetKey[][]) {
+    expect(applyDiscoveryAnswers(current, groups, { claude: { planTargets } })).toEqual(current);
+  }
+});
+
+it("a multi-plan edit may explicitly retain an existing organization or unavailable family choice", () => {
+  const current: TargetKey[] = [
+    "plan:openai-chatgpt-business",
+    "plan:openai-chatgpt-pro-500",
+    "plan:command-code-goat",
+  ];
+  const groups = discover([source("codex")], current).map((group) => ({
+    ...group,
+    candidates: group.candidates.filter(
+      (candidate) => candidate.planId !== "openai-chatgpt-pro-500",
+    ),
+  }));
+  expect(
+    applyDiscoveryAnswers(current, groups, {
+      chatgpt: {
+        planTargets: [
+          "plan:openai-chatgpt-business",
+          "plan:openai-chatgpt-pro-500",
+          "plan:openai-chatgpt-plus",
+        ],
+      },
+    }),
+  ).toEqual([
+    "plan:command-code-goat",
+    "plan:openai-chatgpt-business",
+    "plan:openai-chatgpt-pro-500",
+    "plan:openai-chatgpt-plus",
+  ]);
+});
 
 describe("source → reviewed commercial questions", () => {
   it("Claude Code narrows to three personal choices without selecting a plan, even for Opus", () => {

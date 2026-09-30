@@ -12,7 +12,7 @@ test("the app entry opens Import on a first visit, with working navigation", asy
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(5);
+    await expect(nav.getByRole("link")).toHaveCount(6);
     await expect(nav.getByRole("link", { name: "Import" })).toHaveAttribute("aria-current", "page");
   }
 });
@@ -158,8 +158,8 @@ test("invalid stored theme falls back to system", async ({ page }) => {
 test("all workspace routes have a matching heading and navigation state", async ({
   page,
 }, info) => {
-  for (const label of ["Import", "Workload", "Replay", "Compare", "Settings"]) {
-    await page.goto(`/app/${label.toLowerCase()}`);
+  for (const label of ["Import", "Workload", "My Stack", "Replay", "Compare", "Settings"]) {
+    await page.goto(`/app/${label === "My Stack" ? "stack" : label.toLowerCase()}`);
     await expect(
       page.getByRole("heading", {
         name:
@@ -191,7 +191,7 @@ test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ pag
   await expect(
     dialog.getByRole("link", { name: "StackReplay home" }).locator("img").first(),
   ).toHaveAttribute("src", /\/brand\/navbar-64-/);
-  for (const route of ["Workload", "Replay", "Compare", "Import", "Settings"]) {
+  for (const route of ["Workload", "My Stack", "Replay", "Compare", "Import", "Settings"]) {
     await expect(dialog.getByRole("link", { name: route, exact: true })).toBeVisible();
   }
   // Base UI transfers focus through an offscreen guard asynchronously.

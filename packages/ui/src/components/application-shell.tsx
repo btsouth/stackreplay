@@ -61,7 +61,7 @@ export function ApplicationShell({
               className="hidden h-14 w-40 object-cover object-left dark:block sm:h-16 sm:w-[182px]"
             />
           </Link>
-          <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 md:flex">
+          <nav aria-label="Primary" className="ml-auto hidden items-center gap-1 lg:flex">
             {appNavItems.map((item) => (
               <NavLink key={item.href} href={item.href} label={item.label} />
             ))}
@@ -70,7 +70,7 @@ export function ApplicationShell({
               <NavLink key={item.href} href={item.href} label={item.label} quiet />
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-1 md:ml-2">
+          <div className="ml-auto flex items-center gap-1 lg:ml-2">
             {right}
             <MobileNav logoSrc={logoSrc} logoWidth={logoWidth} logoHeight={logoHeight} />
           </div>
