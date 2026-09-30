@@ -198,8 +198,8 @@ describe("model table sorting and filters", () => {
     expect(undated?.releaseDate).toBeUndefined();
     expect(modelSortValue(undated, "releaseDate", facts)).toBeUndefined();
     const newest = sortModels(releases, "releaseDate", "descending", facts);
-    expect(newest[0]?.id).toBe("gpt-6-1-sol");
-    expect(newest[0]?.releaseDate?.sources[0]?.url).toContain("developers.openai.com");
+    expect(newest[0]?.id).toBe("gemini-4-argon");
+    expect(newest[0]?.releaseDate?.sources[0]?.url).toContain("blog.google");
     expect(
       sortModels([...releases].reverse(), "releaseDate", "descending", facts).map(
         (model) => model.id,
