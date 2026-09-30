@@ -43,8 +43,10 @@
     "build": "tsc -p tsconfig.build.json && node scripts/build-bundled.mjs && node scripts/build-decision-market.mjs && tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "clean": "rm -rf dist .turbo coverage"
+    "test": "vitest run && node --test scripts/watcher/*.test.mjs scripts/coverage-core.test.mjs",
+    "clean": "rm -rf dist .turbo coverage",
+    "test:watcher": "node --test scripts/watcher/*.test.mjs scripts/coverage-core.test.mjs",
+    "watcher": "node scripts/catalog-watcher.mjs"
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
@@ -54,6 +56,9 @@
   },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
+    "diff": "^9.0.0",
+    "htmlparser2": "^12.0.0",
+    "robots-parser": "^3.0.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"

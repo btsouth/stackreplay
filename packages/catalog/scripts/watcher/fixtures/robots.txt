@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /private
+User-agent: StackReplayCatalogWatcher
+Disallow: /blocked
+Allow: /blocked/public
+Crawl-delay: 2
