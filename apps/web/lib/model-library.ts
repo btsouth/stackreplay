@@ -25,7 +25,7 @@ export const UNRECORDED_DEVELOPER = "unrecorded";
 /** Editorial browsing pairs, not equivalence claims or replay translation rules. */
 export const FEATURED_MODEL_PAIRS = [
   ["claude-fable-5-1", "gpt-6-astra"],
-  ["claude-opus-5-5", "gpt-6-sol"],
+  ["claude-opus-5-5", "gpt-6-1-sol"],
   ["claude-sonnet-5-5", "gpt-5-6-terra"],
   ["claude-haiku-4-5", "gpt-6-luna"],
 ] as const;
@@ -42,7 +42,7 @@ export const FEATURED_ALTERNATIVE_MODELS = [
 // catalog entry remains accessible through search, filters and the full list.
 const DISCOVERY_ORDER: readonly string[] = [
   "claude-opus-5-5",
-  "gpt-6-sol",
+  "gpt-6-1-sol",
   "claude-sonnet-5-5",
   "gpt-5-6-terra",
   "claude-haiku-4-5",
