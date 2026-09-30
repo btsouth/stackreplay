@@ -14,6 +14,7 @@ import { replayLink, routeCopy, routeLink } from "@/lib/replay-navigation";
 import {
   approvedPolicy,
   baselineRange,
+  DECISION_RULES_DATE,
   mappingCoverage,
   marketModelCosts,
   priceRangeText,
@@ -24,7 +25,6 @@ import {
   type TranslationProfile,
 } from "@/lib/replay-strategies";
 import { suggestRoutes, supportedModelsFor, type TargetKey, workloadSlices } from "@/lib/routes";
-import { defaultRulesDate } from "@/lib/rules-date";
 import { browserTimeZone } from "@/lib/time-zone";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { getWorkerClient, type ReplayOutcome, SupersededError } from "@/lib/worker-client";
@@ -99,7 +99,7 @@ function ReplayPreparation() {
   );
 }
 function StrategyWorkspace({ record }: { record: ImportRecord }) {
-  const [rulesDate] = useState(() => defaultRulesDate());
+  const rulesDate = DECISION_RULES_DATE;
   const [baseline, setBaseline] = useState<MarketDecision>();
   const [profile, setProfile] = useState<WorkloadProfile>();
   const [error, setError] = useState<string>();
@@ -169,7 +169,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
     return suggestRoutes(workloadSlices(profile.sources, names), rulesDate, {
       synthetic: isSyntheticWorkload(record),
     }).filter((route) => !route.translated && route.id !== "switch-provider");
-  }, [profile, record, rulesDate]);
+  }, [profile, record]);
   const suggestions = TRANSLATION_PROFILES.filter(
     (p) =>
       Object.keys(suggestedMapping(p, workload, rulesDate)).length > 0 &&
@@ -407,7 +407,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         {!choice ? (
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2 border-y border-border py-4">
             <span className="text-xs text-muted-foreground">
-              Recorded API equivalent · {DECISION_MARKET.rulesAt.slice(0, 10)} rules
+              Recorded API equivalent · accepted pricing {rulesDate}
               {baseline && !market ? " · priced scope" : ""}
             </span>
             <strong className="font-mono text-2xl font-normal" data-testid="strategy-baseline">

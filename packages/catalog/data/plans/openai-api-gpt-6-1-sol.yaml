@@ -1,0 +1,176 @@
+id: openai-api-gpt-6-1-sol
+role: plan
+name: "OpenAI API: GPT-6.1 Sol"
+providerId: openai
+versions: []
+executionVersions:
+  - schemaVersion: 1
+    id: openai-api-gpt-6-1-sol-effective-20260929
+    productId: openai-direct-api
+    validity:
+      start: 2026-09-29T00:00:00Z
+      end: 2026-10-27T00:00:00Z
+      basis: effective
+      claimRefs:
+        - release
+    publication:
+      observedAt: 2026-09-30T00:14:17Z
+      reviewedAt: 2026-09-30T00:14:17Z
+    purchase:
+      kind: api
+    claims:
+      - id: release
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/changelog
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: provider_stated
+        authority: provider
+        certainty: published_deterministic
+        locator: "2026-09-29: GPT-6.1 Sol release"
+        excerpt: September 29 release establishes gpt-6.1-sol API availability and Standard pricing. The
+          existing accepted pricing record starts on that provider-stated date; midnight UTC
+          normalizes its date-only boundary, not a claimed publication hour.
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:f14fcac1ced35c96c23322da523ac0f3ce388bc89e3d47d69f59434fe0219e4b
+        evidencePackageHash: sha256:92a676f3e4216f390667e18254334b1ebcee467a60848feae8380f93d79513fe
+      - id: route
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: API model ID and supported endpoints
+        excerpt: Exact API identity gpt-6.1-sol supports /v1/responses. This Standard direct-HTTP route
+          admits only canonical gpt-6-1-sol using the OpenAI Responses protocol.
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:f46d2f4f3a03110cb071969e160dc0da200db33902b4d2df79eb68f6a1d13835
+        evidencePackageHash: sha256:1b0d4b65e77714596ca1080e0c607b7804cea828ed6b41ae22f06ee257ec5fc9
+      - id: credentials
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/quickstart
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: Create and export an API key; Add credits to keep building
+        excerpt: Create an API-platform key and fund API billing for normal paid use.
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:4c6536ca38f2951f18261a5dd095f272851ac02146c823eb9285ae58ca97a7ed
+        evidencePackageHash: sha256:98978322473df12e33a1601241a1330133c2c936ead685552ab4a6c9e2226f6e
+      - id: billing
+        sourceId: help.openai.com
+        sourceUrl: https://help.openai.com/en/articles/9039756-managing-billing-for-chatgpt-and-the-api-platform
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: Set up API billing separately from ChatGPT
+        excerpt: Normal paid API usage requires an API billing payment method. API usage is billed
+          separately from a ChatGPT subscription.
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:ba5a850d09d4e7d9f2d67cbd2dd94aec53757d73242884d32142bc51a043a21f
+        evidencePackageHash: sha256:82978b00b324ac9b6e3d2eb61464db8242cc906f37132d46cacbd58313242ec3
+      - id: rate
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/pricing
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: "Standard text token prices: GPT-6.1 Sol"
+        excerpt: "Standard USD per 1M tokens: input 2, cached input 0.10, cache write 2.50, output 10. Above
+          272K input: input 4, cached input 0.20, cache write 5, output 15. Reuse accepted
+          gpt-6-1-sol-pricing; no Fast, Flex, Batch or Ultrafast admission."
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:eca00f67d869923dee3f2238a03cdeb5dae4c2648eb31aa4aefef460f4b7cfb8
+        evidencePackageHash: sha256:95d5e3ead44a7f54c806fd00e81a923f04dd8e06464d0a0d4cd4420b6b310794
+      - id: tier
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/models/gpt-6.1-sol
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: Long-context pricing above 272K input tokens
+        excerpt: "Above 272000 input tokens the long-context rates apply to the whole request: input and
+          cache categories are doubled, output is multiplied by 1.5. Requests at the threshold
+          retain short-context pricing."
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:00a58748f2fc4518d4272efa6fa29ed737639b3fc23636246130a11ef99f3db8
+        evidencePackageHash: sha256:a14fc1c3b4a7cfa5bf4afe7ac5f3b06b22ca6687da6cb38f5182dd33da4085ee
+      - id: reasoning
+        sourceId: developers.openai.com
+        sourceUrl: https://developers.openai.com/api/docs/guides/reasoning
+        sourceType: provider_docs
+        observedAt: 2026-09-30T00:14:17Z
+        reviewedAt: 2026-09-30T00:14:17Z
+        effectiveDateBasis: unknown
+        authority: provider
+        certainty: published_deterministic
+        locator: "How reasoning works: token billing"
+        excerpt: Reasoning tokens are billed as output tokens. The accepted pricing record preserves this
+          output treatment in short and long contexts; inclusive output accounting must not bill
+          reasoning twice.
+        reviewer: Codex manual first-party admission review
+        normalizedClaimHash: sha256:5588687a2cd138ec773191fd0c2886053763263ebc2d8d0c3ae68c76c2fe5ef4
+        evidencePackageHash: sha256:5335f05648188ea2bf6928759e7c58492b54e41b609e12dcc9027f73c656dda0
+    requirements:
+      - id: paid-api-account
+        scope: plan
+        kind: purchase_state
+        value: active-paid-api-credentials
+        claimRefs:
+          - credentials
+          - billing
+    groups: []
+    rates:
+      - id: standard-token-rate
+        pricingRef: gpt-6-1-sol-pricing
+        basis: api_list_price
+        endpointId: openai-responses-standard
+        rateVersion: standard-20260929
+        denomination: USD
+        claimRefs:
+          - rate
+          - tier
+          - reasoning
+    meters: []
+    pools: []
+    debits: []
+    windows: []
+    constraints: []
+    routes:
+      - id: direct-standard
+        endpointId: openai-responses-standard
+        protocol: openai-responses
+        harnessIds:
+          - direct-http
+        models:
+          kind: exact
+          modelIds:
+            - gpt-6-1-sol
+        debitIds: []
+        cash:
+          rateId: standard-token-rate
+          cashRateFactor: "1"
+        requirementIds: []
+        claimRefs:
+          - route
+    continuation:
+      kind: hard_stop
+      claimRefs:
+        - route
+    capabilities: []

@@ -5,8 +5,12 @@ import type { ModelTranslationPolicyV1 } from "@stackreplay/schema";
 import type { ModelMapping, WorkloadModels } from "@/components/replay/translation-model";
 import { marketRange } from "./decision-presentation";
 import type { MarketDecision } from "./market-decision";
-import { defaultRulesDate } from "./rules-date";
 import type { ReplayOutcome } from "./worker-client";
+
+/** Suggested decisions share the admitted baseline date, never the viewer clock.
+ * Custom Replay independently defaults to today via defaultRulesDate().
+ */
+export const DECISION_RULES_DATE = DECISION_MARKET.rulesAt.slice(0, 10);
 
 /** Product counterfactual policies, never catalog identity or model-quality claims.
  * Each pair is deliberately enumerated. Family membership does not generate rules.
@@ -69,7 +73,7 @@ export type TranslationProfile = (typeof TRANSLATION_PROFILE_HISTORY)[number];
 export function suggestedMapping(
   profile: TranslationProfile,
   workload: WorkloadModels,
-  rulesAsOf: string = defaultRulesDate(),
+  rulesAsOf: string = DECISION_RULES_DATE,
 ): Record<string, string> {
   const catalog = loadBundledCatalog();
   const available = new Set(
@@ -111,7 +115,7 @@ export function mappingCoverage(
   workload: WorkloadModels,
   providerId: string,
   mapping: ModelMapping,
-  rulesAsOf: string = defaultRulesDate(),
+  rulesAsOf: string = DECISION_RULES_DATE,
 ) {
   const available = new Set(
     bundledApiProviderModels(providerId, rulesAsOf)

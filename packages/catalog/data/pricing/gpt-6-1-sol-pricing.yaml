@@ -5,6 +5,8 @@ currency: USD
 unit: per_1m_tokens
 basis: api_list_price
 serviceTier: standard
+endpointId: openai-responses-standard
+rateVersion: standard-20260929
 rates:
   input: "2.00"
   output: "10.00"

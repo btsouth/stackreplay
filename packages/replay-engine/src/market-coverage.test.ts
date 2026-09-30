@@ -80,6 +80,38 @@ describe("D3 exact real-mix admission and coverage", () => {
       ).toEqual(expected);
     }
   });
+  it("prices recorded GPT-6.1 Sol through the admitted Standard route at the context boundary", () => {
+    for (const [inputTokens, expected] of [
+      [267000, "0.5691"],
+      [267001, "1.125704"],
+    ] as const) {
+      // Input including cache is 272000 / 272001. Reasoning is separate output here.
+      const recorded = event("gpt-6.1-sol", inputTokens);
+      const events = [
+        {
+          ...recorded,
+          usage: {
+            ...recorded.usage,
+            cacheReadTokens: 1000,
+            accounting: { ...recorded.usage.accounting, reasoningIncludedInOutput: false },
+          },
+        },
+      ];
+      const inputs = marketDecisionInputs(catalog, DECISION_MARKET, events);
+      expect(analyzeMarketCoverage(inputs).coverage).toMatchObject({
+        recorded: 1,
+        recognized: 1,
+        priced: 1,
+      });
+      for (const input of inputs) {
+        const r = optimizeCompiledExactModels(input);
+        expect(r.candidates[0]?.totalUsd).toBe(expected);
+        expect(r.scope).toMatchObject({ recorded: 1, required: 1, excluded: 0 });
+        expect(r.explanation?.assignments[0]?.modelId).toBe("gpt-6-1-sol");
+      }
+      expect(events[0]?.model.rawName).toBe("gpt-6.1-sol");
+    }
+  });
   it("retains economically heavy unknowns outside an explicitly separate priced scope", () => {
     const events = [event("claude-fable-5-1"), event("claude-future-unpublished", 9000000)];
     const inputs = marketDecisionInputs(catalog, DECISION_MARKET, events);
