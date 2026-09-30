@@ -6,7 +6,7 @@ import { MicroLabel } from "@/components/instrument/primitives";
 import { StrategyResult } from "@/components/replay/strategy-result";
 import {
   type CompletedReplay,
-  comparableReplays,
+  comparableReplayGroup,
   readCompletedReplays,
   removeCompletedReplay,
 } from "@/lib/completed-replays";
@@ -50,7 +50,7 @@ export function CompletedReplayComparison({
     (r) => validIds.has(r.importId) && (!initialImportId || r.importId === initialImportId),
   );
   const anchor = eligible.find((r) => r.id === selected?.[0]) ?? eligible[0];
-  const group = anchor ? eligible.filter((r) => comparableReplays(anchor, r)) : [];
+  const group = anchor ? comparableReplayGroup(anchor, eligible) : [];
   const shown =
     selected !== undefined
       ? group.filter((r) => selected.includes(r.id)).slice(0, 3)
@@ -98,7 +98,7 @@ export function CompletedReplayComparison({
                   type="checkbox"
                   checked={shown.some((s) => s.id === r.id)}
                   disabled={
-                    (!!anchor && !comparableReplays(anchor, r)) ||
+                    (!!anchor && !group.some((member) => member.id === r.id)) ||
                     (shown.length >= 3 && !shown.some((s) => s.id === r.id))
                   }
                   onChange={(e) => {
@@ -113,14 +113,16 @@ export function CompletedReplayComparison({
               </label>
             ))}
           </fieldset>
-          {eligible.some((r) => anchor && !comparableReplays(anchor, r)) ? (
+          {eligible.some((r) => anchor && !group.some((member) => member.id === r.id)) ? (
             <p className="text-sm text-muted-foreground">
-              Different workloads, scopes or price snapshots are kept separate.{" "}
+              Different workloads, scopes or execution snapshots are kept separate.{" "}
               <button
                 type="button"
                 className="text-accent"
                 onClick={() => {
-                  const other = eligible.find((r) => anchor && !comparableReplays(anchor, r));
+                  const other = eligible.find(
+                    (r) => anchor && !group.some((member) => member.id === r.id),
+                  );
                   if (other) setSelected([other.id]);
                 }}
               >
@@ -132,9 +134,12 @@ export function CompletedReplayComparison({
             <p className="text-sm">
               {anchor.calls.toLocaleString()} recorded calls · baseline{" "}
               {priceRangeText(anchor.baseline)} · {anchor.rulesAt.slice(0, 10)} accepted pricing
-              {anchor.catalogHash !== DECISION_MARKET.catalogHash
-                ? " · separate saved pricing snapshot"
-                : ""}
+              {anchor.decisionSnapshotHash === undefined
+                ? " · legacy saved catalog snapshot"
+                : anchor.decisionSnapshotHash === DECISION_MARKET.decisionSnapshotHash &&
+                    anchor.rulesAt === DECISION_MARKET.rulesAt
+                  ? " · same execution snapshot"
+                  : " · separate execution snapshot"}
             </p>
           ) : null}
           <div

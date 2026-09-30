@@ -39,6 +39,8 @@ jobs:
         run: node --test apps/web/bench/runtime-bench-server.test.mjs
       - name: Build
         run: pnpm build
+      - name: Generated catalog files are current
+        run: git diff --exit-code -- packages/catalog/src/bundled-catalog.ts packages/catalog/src/decision-market.generated.ts
 
   e2e:
     name: E2E smoke

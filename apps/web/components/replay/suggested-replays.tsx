@@ -6,7 +6,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
-import { type CompletedReplay, saveCompletedReplay } from "@/lib/completed-replays";
+import {
+  type CompletedReplay,
+  compatibleReplaySnapshots,
+  saveCompletedReplay,
+} from "@/lib/completed-replays";
 import { readCurrentStack, subscribeCurrentStack } from "@/lib/current-stack";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
@@ -25,6 +29,7 @@ import {
   type TranslationProfile,
 } from "@/lib/replay-strategies";
 import { suggestRoutes, supportedModelsFor, type TargetKey, workloadSlices } from "@/lib/routes";
+import { suggestedReplaySnapshotHash } from "@/lib/suggested-replay-snapshot";
 import { browserTimeZone } from "@/lib/time-zone";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
 import { getWorkerClient, type ReplayOutcome, SupersededError } from "@/lib/worker-client";
@@ -231,8 +236,9 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         id: crypto.randomUUID(),
         importId: record.id,
         scopeDigest: baseline.scenarios[0]?.summary.scope.digest ?? record.id,
-        catalogHash: DECISION_MARKET.catalogHash,
-        rulesAt: DECISION_MARKET.rulesAt,
+        catalogHash: baseline.snapshot?.catalogHash ?? DECISION_MARKET.catalogHash,
+        decisionSnapshotHash: baseline.snapshot?.decisionSnapshotHash,
+        rulesAt: baseline.snapshot?.rulesAt ?? DECISION_MARKET.rulesAt,
         createdAt: new Date().toISOString(),
         calls,
         tokens: record.summary.tokens.known,
@@ -271,6 +277,9 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         completed = {
           ...common,
           title: "Current stack",
+          catalogHash: DECISION_MARKET.catalogHash,
+          decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
+          rulesAt: DECISION_MARKET.rulesAt,
           mode: "assessment",
           priced: 0,
           translatedCalls: 0,
@@ -306,9 +315,15 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         if (guard.current !== token) return;
         setOutcome(next);
         const { cost, priced } = replayCost(next);
-        const sameRates =
-          next.result.versions.rulesAsOf === DECISION_MARKET.rulesAt.slice(0, 10) &&
-          next.result.versions.catalog === DECISION_MARKET.catalogHash;
+        const replaySnapshot = {
+          rulesAt:
+            next.result.versions.rulesAsOf === DECISION_MARKET.rulesAt.slice(0, 10)
+              ? DECISION_MARKET.rulesAt
+              : next.result.versions.rulesAsOf,
+          catalogHash: next.result.versions.catalog,
+          decisionSnapshotHash: suggestedReplaySnapshotHash(next),
+        };
+        const sameRates = compatibleReplaySnapshots(baseline.snapshot ?? common, replaySnapshot);
         const translatedBaseline = sameRates ? base : undefined;
         const totals = new Map<string, Decimal>();
         for (const line of next.receipt?.lines ?? [])
@@ -327,8 +342,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
         completed = {
           ...common,
           title: selected.name,
-          rulesAt: sameRates ? DECISION_MARKET.rulesAt : next.result.versions.rulesAsOf,
-          catalogHash: next.result.versions.catalog,
+          ...replaySnapshot,
           target: { type: "api", providerId: selected.providerId, serviceTier: "standard" },
           baseline: translatedBaseline,
           mode: policy.rules.length ? "translated" : "exact",

@@ -4,6 +4,7 @@ export const DECISION_MARKET: DecisionMarket = {
   "rulesAt": "2026-09-29T23:59:59Z",
   "reviewUntil": "2026-10-27T00:00:00Z",
   "catalogHash": "sha256:38d196d98e3b30a6cf34d0c971d20f8cfbecdc6f4e4cdeeee55d3561e74a4ad4",
+  "decisionSnapshotHash": "sha256:67dc2e3ab6b5171d956c062f89859e316e0e5ce16de75750e6f8584030a197d7",
   "scenarios": [
     {
       "id": "cache-5m",

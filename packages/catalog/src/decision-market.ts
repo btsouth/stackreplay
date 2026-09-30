@@ -4,6 +4,7 @@ export interface DecisionMarket {
   rulesAt: string;
   reviewUntil: string;
   catalogHash: string;
+  decisionSnapshotHash: string;
   scenarios: {
     id: string;
     label: string;

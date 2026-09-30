@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkloadModels } from "@/components/replay/translation-model";
 import {
   type CompletedReplay,
+  comparableReplayGroup,
   comparableReplays,
+  compatibleReplaySnapshots,
   completedReplaySchema,
   readCompletedReplays,
   removeCompletedReplay,
@@ -212,6 +214,48 @@ describe("workload-aware counterfactual policies", () => {
   });
 });
 describe("completed local comparisons", () => {
+  const modern = { ...result, decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash };
+  it("groups matching execution semantics across metadata-only catalog revisions", () => {
+    expect(comparableReplays(modern, modern)).toBe(true);
+    expect(comparableReplays(modern, { ...modern, catalogHash: "different", mode: "exact" })).toBe(
+      true,
+    );
+    expect(
+      comparableReplays(modern, { ...modern, decisionSnapshotHash: `sha256:${"0".repeat(64)}` }),
+    ).toBe(false);
+    for (const key of ["importId", "scopeDigest", "rulesAt"] as const)
+      expect(comparableReplays(modern, { ...modern, [key]: "different" })).toBe(false);
+    expect(comparableReplays(modern, { ...modern, calls: 19 })).toBe(false);
+  });
+  it("does not let legacy fallback bridge incompatible members in Compare", () => {
+    const revised = { ...modern, id: "revised", catalogHash: "metadata-only" };
+    const legacy = { ...result, id: "legacy" };
+    expect(comparableReplayGroup(modern, [modern, revised, legacy])).toEqual([modern, revised]);
+    expect(comparableReplayGroup(legacy, [legacy, modern, revised])).toEqual([legacy, modern]);
+  });
+  it("keeps same-snapshot records when a legacy record is listed first", () => {
+    const revised = { ...modern, id: "revised", catalogHash: "metadata-only" };
+    const legacy = { ...result, id: "legacy" };
+    expect(comparableReplayGroup(modern, [legacy, revised, modern])).toEqual([modern, revised]);
+  });
+  it("keeps mixed legacy/new records on exact catalog fallback", () => {
+    expect(comparableReplays(result, modern)).toBe(true);
+    expect(comparableReplays(modern, result)).toBe(true);
+    expect(comparableReplays(result, { ...modern, catalogHash: "different" })).toBe(false);
+    expect(comparableReplays(modern, { ...result, catalogHash: "different" })).toBe(false);
+  });
+  it("keeps the dollar-difference snapshot guard conservative", () => {
+    expect(compatibleReplaySnapshots(modern, { ...modern, catalogHash: "metadata-change" })).toBe(
+      true,
+    );
+    expect(compatibleReplaySnapshots(modern, { ...modern, decisionSnapshotHash: "another" })).toBe(
+      false,
+    );
+    expect(compatibleReplaySnapshots(modern, { ...modern, rulesAt: "other-day" })).toBe(false);
+    expect(compatibleReplaySnapshots(modern, { ...result, catalogHash: "legacy-other" })).toBe(
+      false,
+    );
+  });
   it("keeps different workloads, scopes, dates and catalog snapshots separate", () => {
     expect(comparableReplays(result, { ...result, id: "another", mode: "exact" })).toBe(true);
     for (const key of ["importId", "scopeDigest", "rulesAt", "catalogHash"] as const)
@@ -234,12 +278,12 @@ describe("completed local comparisons", () => {
     vi.stubGlobal("window", { dispatchEvent: vi.fn() });
     expect(
       saveCompletedReplay({
-        ...result,
+        ...modern,
         rawHistory: "secret",
         paidAmount: "999",
       } as CompletedReplay),
     ).toBe(true);
-    expect(readCompletedReplays()).toEqual([result]);
+    expect(readCompletedReplays()).toEqual([modern]);
     for (let i = 0; i < 22; i++) saveCompletedReplay({ ...result, id: String(i) });
     expect(readCompletedReplays()).toHaveLength(20);
     expect(removeCompletedReplay("21")).toBe(true);
