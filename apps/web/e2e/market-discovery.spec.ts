@@ -236,7 +236,7 @@ test("special pricing and practical subscription terms have specific explanation
   await expect(history).toContainText("New subscriptions paused");
   await expect(history).toContainText("Existing subscribers not affected");
   await expect(
-    page.getByText("ChatGPT · Codex · ChatGPT Work", { exact: true }).first(),
+    page.getByText("ChatGPT · ChatGPT Work · Codex", { exact: true }).first(),
   ).toBeVisible();
 });
 

@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:38d196d98e3b30a6cf34d0c971d20f8cfbecdc6f4e4cdeeee55d3561e74a4ad4";
+export const BUNDLED_CATALOG_VERSION = "sha256:30dcc2325125774099981953aecc2ef9226f11ef3506f63096d9fd6194bf0e17";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:38d196d98e3b30a6cf34d0c971d20f8cfbecdc6f4e4cdeeee55d3561e74a4ad4",
+  "catalogVersion": "sha256:30dcc2325125774099981953aecc2ef9226f11ef3506f63096d9fd6194bf0e17",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -17136,7 +17136,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "openai-chatgpt-pro-20x": {
       "id": "openai-chatgpt-pro-20x",
       "role": "plan",
-      "name": "ChatGPT Pro $200",
+      "name": "ChatGPT Pro 200",
       "providerId": "openai",
       "versions": [
         {
@@ -17762,7 +17762,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "openai-chatgpt-pro-500": {
       "id": "openai-chatgpt-pro-500",
       "role": "plan",
-      "name": "ChatGPT Pro $500",
+      "name": "ChatGPT Pro 500",
       "providerId": "openai",
       "versions": [
         {
@@ -17960,7 +17960,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "openai-chatgpt-pro": {
       "id": "openai-chatgpt-pro",
       "role": "plan",
-      "name": "ChatGPT Pro ($100 / Pro 5x tier)",
+      "name": "ChatGPT Pro 100",
       "providerId": "openai",
       "versions": [
         {
@@ -24213,7 +24213,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro-20x@2026-09-21",
       "planId": "openai-chatgpt-pro-20x",
-      "planName": "ChatGPT Pro $200",
+      "planName": "ChatGPT Pro 200",
       "providerId": "openai"
     },
     "openai-chatgpt-pro-20x@2026-09-22": {
@@ -24330,7 +24330,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro-20x@2026-09-22",
       "planId": "openai-chatgpt-pro-20x",
-      "planName": "ChatGPT Pro $200",
+      "planName": "ChatGPT Pro 200",
       "providerId": "openai"
     },
     "openai-chatgpt-pro-20x@2026-09-29": {
@@ -24500,7 +24500,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro-20x@2026-09-29",
       "planId": "openai-chatgpt-pro-20x",
-      "planName": "ChatGPT Pro $200",
+      "planName": "ChatGPT Pro 200",
       "providerId": "openai"
     },
     "openai-chatgpt-pro-20x@2026-09-29~grandfathered": {
@@ -24661,7 +24661,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro-20x@2026-09-29~grandfathered",
       "planId": "openai-chatgpt-pro-20x",
-      "planName": "ChatGPT Pro $200",
+      "planName": "ChatGPT Pro 200",
       "providerId": "openai"
     },
     "openai-chatgpt-pro-500@2026-09-29": {
@@ -24827,7 +24827,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro-500@2026-09-29",
       "planId": "openai-chatgpt-pro-500",
-      "planName": "ChatGPT Pro $500",
+      "planName": "ChatGPT Pro 500",
       "providerId": "openai"
     },
     "openai-chatgpt-pro@2026-09-21": {
@@ -24941,7 +24941,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro@2026-09-21",
       "planId": "openai-chatgpt-pro",
-      "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
+      "planName": "ChatGPT Pro 100",
       "providerId": "openai"
     },
     "openai-chatgpt-pro@2026-09-22": {
@@ -25079,7 +25079,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro@2026-09-22",
       "planId": "openai-chatgpt-pro",
-      "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
+      "planName": "ChatGPT Pro 100",
       "providerId": "openai"
     },
     "openai-chatgpt-pro@2026-09-29": {
@@ -25226,7 +25226,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "openai-chatgpt-pro@2026-09-29",
       "planId": "openai-chatgpt-pro",
-      "planName": "ChatGPT Pro ($100 / Pro 5x tier)",
+      "planName": "ChatGPT Pro 100",
       "providerId": "openai"
     },
     "opencode-go-plus@2026-09-28": {

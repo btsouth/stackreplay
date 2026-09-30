@@ -17,6 +17,8 @@ export interface SubscriptionPublishedTerms {
   terms: { label: string; value: string; sourceUrl: string }[];
   tables?: PublishedTermsTable[];
   codingTools?: string[];
+  /** Whether apps the provider does not make can use the subscription, and how. */
+  otherApps?: string;
   afterLimit?: string;
   privacySummary?: string;
   billingSummary?: string;

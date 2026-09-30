@@ -59,6 +59,8 @@ export interface CompareFacts {
   };
   /** Coding tools the plan's own recorded evidence names; empty when none. */
   codingTools: readonly string[];
+  /** Published terms for apps the provider does not make, when reviewed. */
+  otherApps?: string;
   usage: { numeric: boolean; lines: readonly { text: string; detail: string }[] };
   simulation: string;
   afterLimit: {
@@ -79,7 +81,7 @@ export const FEATURED_MODEL_COUNT = 4;
 export const NO_NUMERIC_ALLOWANCE = "No numeric allowance is recorded in this snapshot.";
 export const CAPACITY_REPLAY = "Numeric capacity replay available.";
 export const COMPATIBILITY_ONLY =
-  "Model compatibility and workload pressure only. Exact capacity replay is not supported for this plan.";
+  "Model compatibility and workload pressure only, not exact capacity replay.";
 export const NO_NAMED_MODEL =
   "No named model is recorded as selectable on this plan, so a replay cannot attribute usage to a model.";
 
@@ -201,7 +203,7 @@ export function buildCompareFacts(
   if (plan.publishedTerms) {
     usageLines.splice(0, usageLines.length, {
       text: plan.publishedTerms.allowanceSummary,
-      detail: "Provider-published allowance terms",
+      detail: "",
     });
   }
   if (!usageLines.length) {
@@ -262,6 +264,7 @@ export function buildCompareFacts(
         .find((limit) => limit.label === "Compatible tools")
         ?.statement.split(" · ") ??
       codingToolsFor(plan),
+    ...(plan.publishedTerms?.otherApps ? { otherApps: plan.publishedTerms.otherApps } : {}),
     usage: { numeric: plan.limits.length > 0, lines: usageLines },
     simulation,
     afterLimit: plan.publishedTerms?.afterLimit

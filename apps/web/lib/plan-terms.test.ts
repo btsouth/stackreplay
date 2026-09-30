@@ -12,7 +12,7 @@ import {
 
 const timeline = (asOf: string) => {
   const resolved = bundledPlanTimeline("openai-chatgpt-pro-20x", asOf);
-  if (resolved === undefined) throw new Error("Pro $200 missing");
+  if (resolved === undefined) throw new Error("Pro 200 missing");
   return resolved;
 };
 
@@ -49,9 +49,9 @@ describe("plan change wording", () => {
 });
 
 const noticeOf = (asOf: string) =>
-  planTermsNotice(timeline(asOf), { planName: "ChatGPT Pro $200", providerName: "OpenAI" });
+  planTermsNotice(timeline(asOf), { planName: "ChatGPT Pro 200", providerName: "OpenAI" });
 
-describe("ChatGPT Pro $200 notice", () => {
+describe("ChatGPT Pro 200 notice", () => {
   it("says nothing on Sep 28, before the revision was announced", () => {
     expect(noticeOf("2026-09-28")).toBeUndefined();
   });
@@ -64,7 +64,7 @@ describe("ChatGPT Pro $200 notice", () => {
       detail:
         "New and non-grandfathered subscriptions get the revised usage allowance, described by OpenAI staff as ≈50% of the previous API-equivalent spend.",
       exception: {
-        lead: "Already on ChatGPT Pro $200?",
+        lead: "Already on ChatGPT Pro 200?",
         text: "Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
       },
     });
@@ -94,7 +94,7 @@ describe("ChatGPT Pro $200 notice", () => {
     const grandfathered = bundledPlanTimeline("openai-chatgpt-pro-20x", "2026-10-01", {
       cohort: "grandfathered",
     });
-    if (grandfathered === undefined) throw new Error("Pro $200 missing");
+    if (grandfathered === undefined) throw new Error("Pro 200 missing");
     expect(planTermsInUse(grandfathered)).toEqual({
       terms: "Eligible existing subscribers: previous allowance through Oct 29, 2026",
     });
@@ -111,7 +111,7 @@ describe("ChatGPT Pro $200 notice", () => {
   });
 });
 
-describe("ChatGPT Pro $200 history steps", () => {
+describe("ChatGPT Pro 200 history steps", () => {
   const rows = (asOf: string) =>
     planHistorySteps(timeline(asOf)).map((step) => [step.dateLabel, step.state]);
 
@@ -191,7 +191,7 @@ describe("shared audiences", () => {
 
 describe("the terms a stored result used", () => {
   const input = bundledPlanTimelineInput("openai-chatgpt-pro-20x");
-  if (input === undefined) throw new Error("Pro $200 missing");
+  if (input === undefined) throw new Error("Pro 200 missing");
   it("names terms from the result's own plan version, not today's", () => {
     expect(versionTermsLabel(input, "openai-chatgpt-pro-20x@2026-09-22")).toBe(
       "terms before the Sep 29, 2026 revision",

@@ -111,6 +111,27 @@ describe("public compare facts", () => {
     expect(codingToolsFor(pro200)).toEqual(["Codex"]);
   });
 
+  it("states use in other apps for Claude and ChatGPT plans alike", () => {
+    const current = loadPublicCatalog("2026-09-30");
+    const otherApps = (id: string) => {
+      const plan = current.planById(id);
+      if (plan === undefined) throw new Error(`missing ${id}`);
+      return buildCompareFacts(plan, current.modelById).otherApps ?? "";
+    };
+    for (const id of [
+      "anthropic-claude-pro",
+      "anthropic-claude-max-5x",
+      "anthropic-claude-max-20x",
+    ])
+      expect(otherApps(id)).toContain("may not offer Claude sign-in");
+    for (const id of ["openai-chatgpt-pro", "openai-chatgpt-pro-20x", "openai-chatgpt-pro-500"])
+      expect(otherApps(id)).toContain("Sign in with ChatGPT");
+    // The five-hour limit is shared across apps on Plus; Pro plans have none.
+    expect(otherApps("openai-chatgpt-plus")).toContain("including the five-hour limit");
+    expect(otherApps("openai-chatgpt-business")).toContain("limited to Plus and Pro");
+    expect(otherApps("cursor-pro")).toBe("");
+  });
+
   it("keeps every model rule, including identity records, for the inspect view", () => {
     const rules = factsFor("anthropic-claude-max-20x").rules;
     expect(rules.find((rule) => rule.id === "claude-opus")?.kindLabel).toBe("Family name");

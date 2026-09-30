@@ -52,7 +52,7 @@ describe("published subscription access", () => {
         "GLM-5.3 Flash",
       ]),
     );
-    expect(facts.simulation).toContain("Exact capacity replay is not supported");
+    expect(facts.simulation).toContain("not exact capacity replay");
   });
   it("keeps Command Code Go, GOAT, Pro and Max access separate", () => {
     expect(names("command-code-go")).not.toContain("Claude Sonnet 5.5");

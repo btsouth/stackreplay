@@ -15,7 +15,7 @@ import { selectPlanVersionAt } from "./versions.js";
 
 /**
  * The OpenAI DevDay (Sep 29, 2026) catalog changes, read from the real
- * catalog: the ChatGPT Pro $200 revision and its history, Pro $500, GPT-6.1 Sol
+ * catalog: the ChatGPT Pro 200 revision and its history, Pro 500, GPT-6.1 Sol
  * as its own model, and processing tiers that price only what OpenAI prices.
  */
 
@@ -23,7 +23,7 @@ const catalog = loadDefaultCatalog();
 const pro200 = catalog.plans["openai-chatgpt-pro-20x"];
 if (pro200 === undefined) throw new Error("Pro $200 plan missing");
 
-describe("ChatGPT Pro $200: market terms and grandfathered terms", () => {
+describe("ChatGPT Pro 200: market terms and grandfathered terms", () => {
   const market = (day: string) => selectPlanVersionAt(pro200.versions, day);
   const grandfathered = (day: string) =>
     selectPlanVersionAt(pro200.versions, day, { cohort: "grandfathered" });
@@ -143,7 +143,7 @@ describe("ChatGPT Pro $200: market terms and grandfathered terms", () => {
   });
 });
 
-describe("ChatGPT Pro $500", () => {
+describe("ChatGPT Pro 500", () => {
   const pro500 = catalog.plans["openai-chatgpt-pro-500"];
   const version =
     pro500 === undefined ? undefined : selectPlanVersionAt(pro500.versions, "2026-09-29");
