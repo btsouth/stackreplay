@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:30dcc2325125774099981953aecc2ef9226f11ef3506f63096d9fd6194bf0e17";
+export const BUNDLED_CATALOG_VERSION = "sha256:7aa5b2ee2b0ea072119ffbb468115db5bc3a2665d38b40dadf7544153d5e33c0";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:30dcc2325125774099981953aecc2ef9226f11ef3506f63096d9fd6194bf0e17",
+  "catalogVersion": "sha256:7aa5b2ee2b0ea072119ffbb468115db5bc3a2665d38b40dadf7544153d5e33c0",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -14722,7 +14722,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "google-ai-ultra-20x": {
       "id": "google-ai-ultra-20x",
       "role": "plan",
-      "name": "Google AI Ultra (20x tier)",
+      "name": "Google AI Ultra 20x",
       "providerId": "google",
       "versions": [
         {
@@ -14843,7 +14843,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     "google-ai-ultra": {
       "id": "google-ai-ultra",
       "role": "plan",
-      "name": "Google AI Ultra (5x tier)",
+      "name": "Google AI Ultra 5x",
       "providerId": "google",
       "versions": [
         {
@@ -23165,7 +23165,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "google-ai-ultra-20x@2026-09-21",
       "planId": "google-ai-ultra-20x",
-      "planName": "Google AI Ultra (20x tier)",
+      "planName": "Google AI Ultra 20x",
       "providerId": "google"
     },
     "google-ai-ultra@2026-09-21": {
@@ -23288,7 +23288,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "verificationStatus": "verified",
       "versionId": "google-ai-ultra@2026-09-21",
       "planId": "google-ai-ultra",
-      "planName": "Google AI Ultra (5x tier)",
+      "planName": "Google AI Ultra 5x",
       "providerId": "google"
     },
     "ollama-cloud-max@2026-09-28": {
