@@ -51,6 +51,70 @@ const candidateIds = (sourceId: string) =>
     ?.candidates.map((plan) => plan.planId)
     .sort();
 
+it("explicit multi-plan edits validate as a whole and replace only the answered family", () => {
+  const current: TargetKey[] = [
+    "plan:anthropic-claude-pro",
+    "plan:command-code-goat",
+    "api:openai",
+    "plan:cursor-ultra",
+  ];
+  const groups = discover([source("claude-code")], current);
+  expect(
+    applyDiscoveryAnswers(current, groups, {
+      claude: {
+        planTargets: [
+          "plan:anthropic-claude-max-5x",
+          "plan:anthropic-claude-max-20x",
+          "plan:anthropic-claude-max-5x",
+        ],
+      },
+    }),
+  ).toEqual([
+    "plan:command-code-goat",
+    "api:openai",
+    "plan:cursor-ultra",
+    "plan:anthropic-claude-max-5x",
+    "plan:anthropic-claude-max-20x",
+  ]);
+  for (const planTargets of [
+    [],
+    ["plan:anthropic-claude-max-5x", "plan:openai-chatgpt-plus"],
+    ["api:openai"],
+  ] as TargetKey[][]) {
+    expect(applyDiscoveryAnswers(current, groups, { claude: { planTargets } })).toEqual(current);
+  }
+});
+
+it("a multi-plan edit may explicitly retain an existing organization or unavailable family choice", () => {
+  const current: TargetKey[] = [
+    "plan:openai-chatgpt-business",
+    "plan:openai-chatgpt-pro-500",
+    "plan:command-code-goat",
+  ];
+  const groups = discover([source("codex")], current).map((group) => ({
+    ...group,
+    candidates: group.candidates.filter(
+      (candidate) => candidate.planId !== "openai-chatgpt-pro-500",
+    ),
+  }));
+  expect(
+    applyDiscoveryAnswers(current, groups, {
+      chatgpt: {
+        planTargets: [
+          "plan:openai-chatgpt-business",
+          "plan:openai-chatgpt-pro-500",
+          "plan:openai-chatgpt-plus",
+        ],
+      },
+    }),
+  ).toEqual([
+    "plan:command-code-goat",
+    "plan:openai-chatgpt-business",
+    "plan:openai-chatgpt-pro-500",
+    "plan:openai-chatgpt-plus",
+  ]);
+});
+
 describe("source → reviewed commercial questions", () => {
   it("Claude Code narrows to three personal choices without selecting a plan, even for Opus", () => {
     const [group] = discover([source("claude-code", 18420, ["claude-opus-5-5"])]);

@@ -20,7 +20,12 @@ describe("isNavItemActive", () => {
 
 describe("app navigation", () => {
   it("leads with the workload and the tools that investigate it", () => {
-    expect(appNavItems.map((item) => item.label)).toEqual(["Workload", "Replay", "Compare"]);
+    expect(appNavItems.map((item) => item.label)).toEqual([
+      "Workload",
+      "My Stack",
+      "Replay",
+      "Compare",
+    ]);
   });
 
   it("keeps Import and Settings as quieter utilities", () => {

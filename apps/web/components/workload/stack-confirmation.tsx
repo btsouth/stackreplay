@@ -1,8 +1,9 @@
 "use client";
 
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
-import { formatUsd } from "@stackreplay/share";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FamilyPlanChoices } from "@/components/stack/family-plan-choices";
 import { readCurrentStack, subscribeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
 import {
@@ -11,6 +12,7 @@ import {
   type DiscoveryGroupId,
   discoverStack,
   discoveryPlansAt,
+  initialDiscoveryAnswer,
 } from "@/lib/stack-discovery";
 import {
   confirmDiscovery,
@@ -25,13 +27,6 @@ import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { WorkloadProfile } from "@/lib/workload-profile";
 
-const NON_PLAN_CHOICES = [
-  { value: "work", label: "Work / organization account" },
-  { value: "api-other", label: "API / other billing" },
-  { value: "none", label: "I don't pay for this" },
-  { value: "not-sure", label: "Not sure" },
-] as const;
-
 type Answers = Partial<Record<DiscoveryGroupId, DiscoveryAnswer>>;
 
 function initialAnswers(
@@ -40,17 +35,8 @@ function initialAnswers(
 ): Answers {
   const next: Answers = {};
   for (const group of groups) {
-    const current = group.currentTargets;
-    const first = current[0];
-    const response = preferences.groups[group.groupId]?.response;
-    if (
-      current.length === 1 &&
-      first !== undefined &&
-      group.candidates.some((plan) => `plan:${plan.planId}` === first)
-    )
-      next[group.groupId] = first;
-    else if (current.length > 0) next[group.groupId] = "keep-current";
-    else if (response) next[group.groupId] = response;
+    const answer = initialDiscoveryAnswer(group, preferences.groups[group.groupId]?.response);
+    if (answer) next[group.groupId] = answer;
   }
   return next;
 }
@@ -172,6 +158,12 @@ export function StackConfirmation({
           Review discovered stack →
         </button>
       </div>
+      <Link
+        href={`/app/stack?import=${encodeURIComponent(record.id)}`}
+        className="inline-flex min-h-11 items-center text-sm text-accent"
+      >
+        Manage My Stack →
+      </Link>
       {notice ? (
         <p role="status" className="text-xs text-muted-foreground">
           {notice}
@@ -215,8 +207,13 @@ export function StackConfirmation({
               const currentNames = group.currentTargets.map(
                 (key) => plans.find((plan) => `plan:${plan.id}` === key)?.name ?? key,
               );
-              const choose = (answer: DiscoveryAnswer) =>
-                setAnswers((old) => ({ ...old, [group.groupId]: answer }));
+              const choose = (answer: DiscoveryAnswer | undefined) =>
+                setAnswers((old) => {
+                  const next = { ...old };
+                  if (answer) next[group.groupId] = answer;
+                  else delete next[group.groupId];
+                  return next;
+                });
               return (
                 <fieldset
                   key={group.groupId}
@@ -246,77 +243,12 @@ export function StackConfirmation({
                       answer.
                     </p>
                   ) : null}
-                  <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {group.candidates.map((candidate) => {
-                      const value: TargetKey = `plan:${candidate.planId}`;
-                      const selected = answers[group.groupId] === value;
-                      return (
-                        <label
-                          key={value}
-                          className={`flex min-h-20 min-w-0 cursor-pointer items-start gap-3 border p-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${selected ? "border-accent bg-surface-2" : "border-control-border"}`}
-                        >
-                          <input
-                            type="radio"
-                            name={`discovery-${group.groupId}`}
-                            value={value}
-                            checked={selected}
-                            onChange={() => choose(value)}
-                            className="mt-1 h-4 w-4 shrink-0 accent-accent"
-                            data-testid={`discovery-plan-${candidate.planId}`}
-                          />
-                          <span className="min-w-0 space-y-1 break-words">
-                            <span className="block text-sm font-medium">{candidate.planName}</span>
-                            <span className="block font-mono text-xs text-muted-foreground">
-                              Published price:{" "}
-                              {candidate.publishedPrice.currency === "USD"
-                                ? formatUsd(candidate.publishedPrice.amount)
-                                : `${candidate.publishedPrice.amount} ${candidate.publishedPrice.currency}`}
-                              /{candidate.publishedPrice.interval}
-                            </span>
-                            <span className="block text-xs text-muted-foreground">
-                              {candidate.access.checkedAt && candidate.access.observedModelCount > 0
-                                ? `Lists ${candidate.access.listedModelIds.length} of ${candidate.access.observedModelCount} observed models`
-                                : "Model access unknown"}
-                            </span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                    {answers[group.groupId] === "keep-current" ||
-                    group.currentTargets.length > 1 ||
-                    group.currentTargets.some(
-                      (key) =>
-                        !group.candidates.some((candidate) => `plan:${candidate.planId}` === key),
-                    ) ? (
-                      <label className="flex min-h-11 cursor-pointer items-center gap-3 border border-control-border p-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
-                        <input
-                          type="radio"
-                          name={`discovery-${group.groupId}`}
-                          checked={answers[group.groupId] === "keep-current"}
-                          onChange={() => choose("keep-current")}
-                          className="h-4 w-4 shrink-0 accent-accent"
-                        />
-                        Keep my current selections
-                      </label>
-                    ) : null}
-                  </div>
-                  <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {NON_PLAN_CHOICES.map((choice) => (
-                      <label
-                        key={choice.value}
-                        className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2 border px-3 py-2 text-xs has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${answers[group.groupId] === choice.value ? "border-accent bg-surface-2" : "border-control-border"}`}
-                      >
-                        <input
-                          type="radio"
-                          name={`discovery-${group.groupId}`}
-                          checked={answers[group.groupId] === choice.value}
-                          onChange={() => choose(choice.value)}
-                          className="h-4 w-4 shrink-0 accent-accent"
-                        />
-                        <span>{choice.label}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <FamilyPlanChoices
+                    group={group}
+                    plans={plans}
+                    answer={answers[group.groupId]}
+                    onChange={choose}
+                  />
                   {group.unresolvedCalls > 0 ? (
                     <p className="text-xs text-muted-foreground">
                       {group.unresolvedCalls.toLocaleString("en-US")} calls have unresolved model
@@ -337,7 +269,12 @@ export function StackConfirmation({
             <button
               type="button"
               onClick={confirm}
-              disabled={Object.keys(answers).length === 0}
+              disabled={
+                !Object.values(answers).some(Boolean) ||
+                Object.values(answers).some(
+                  (answer) => typeof answer === "object" && answer.planTargets.length === 0,
+                )
+              }
               className="min-h-11 border border-accent bg-accent px-5 text-sm font-medium text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               Confirm stack
@@ -345,6 +282,12 @@ export function StackConfirmation({
             <button type="button" onClick={dismiss} className="min-h-11 px-3 text-sm text-accent">
               Not now
             </button>
+            <Link
+              href={`/app/stack?import=${encodeURIComponent(record.id)}`}
+              className="min-h-11 content-center text-sm text-accent"
+            >
+              Open My Stack →
+            </Link>
             <p className="text-xs text-muted-foreground">Optional · kept in this browser</p>
           </div>
         </fieldset>
