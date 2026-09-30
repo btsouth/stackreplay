@@ -1,0 +1,37 @@
+id: mistral-large-3
+role: model
+name: Mistral Large 3
+developerId: mistral
+sources:
+  - &a1
+    url: https://docs.mistral.ai/models/mistral-large-3-25-12
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-12-02
+  sources:
+    - url: https://docs.mistral.ai/models/mistral-large-3-25-12
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: mistral-large-3-official-id
+    alias: mistral-large-2512
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+specifications:
+  inputModalities:
+    - text
+    - image
+  outputModalities:
+    - text
+  toolCalling: true
+  structuredOutput: true
+  sources:
+    - *a1
+  notes:
+    - The developer states a 256k context window without an exact token count.

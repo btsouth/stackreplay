@@ -1,0 +1,9 @@
+id: mistral
+role: provider
+name: Mistral AI
+sources:
+  - url: https://docs.mistral.ai/models/mistral-large-3-25-12
+    title: Official developer model documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

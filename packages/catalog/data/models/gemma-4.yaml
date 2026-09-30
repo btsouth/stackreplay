@@ -1,0 +1,13 @@
+id: gemma-4
+role: model
+kind: family
+name: Gemma 4
+developerId: google
+pricingNote: A family with several sizes. The bare lineup name does not establish an exact size, quantization,
+  or executable route.
+sources:
+  - url: https://ai.google.dev/gemma/docs/core/model_card_4
+    title: Google Gemma 4 family and size variants
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

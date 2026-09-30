@@ -33,6 +33,7 @@ import type { PublicModelSummary } from "@/lib/public-catalog";
 const SORT_OPTIONS: readonly [ModelSortKey, string][] = [
   ["featured", "Featured first"],
   ["name", "Model name"],
+  ["releaseDate", "Release date"],
   ["input", "Input price"],
   ["output", "Output price"],
   ["cacheRead", "Cache read price"],

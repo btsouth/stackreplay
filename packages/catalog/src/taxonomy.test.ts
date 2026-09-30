@@ -104,6 +104,19 @@ describe("model taxonomy schema", () => {
     ).toHaveLength(2);
   });
 
+  it("rejects a release date on a family record", () => {
+    expect(
+      codes(
+        rawWith([
+          modelEntry("fam", {
+            kind: "family",
+            releaseDate: { date: "2026-01-01", sources: [source] },
+          }),
+        ]),
+      ),
+    ).toContain("FAMILY_RECORD_INVALID");
+  });
+
   it("rejects an unknown kind or lifecycle", () => {
     expect(modelV1Schema.safeParse(modelEntry("x", { kind: "alias" }).data).success).toBe(false);
     expect(modelV1Schema.safeParse(modelEntry("x", { lifecycle: "retired" }).data).success).toBe(
@@ -153,6 +166,7 @@ describe("launch catalog: Anthropic lineup (checked 2026-09-24)", () => {
 
   it("links each family to its releases through declared family ids", () => {
     expect(familyReleaseIds(catalog, "claude-opus")).toEqual([
+      "claude-opus-4-5",
       "claude-opus-4-6",
       "claude-opus-4-7",
       "claude-opus-4-8",

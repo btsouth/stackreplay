@@ -1,0 +1,9 @@
+id: stepfun
+role: provider
+name: StepFun
+sources:
+  - url: https://static.stepfun.com/blog/step-3.7-flash/
+    title: Official developer model documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

@@ -1,0 +1,35 @@
+id: gemini-3-5-flash-lite
+role: model
+name: Gemini 3.5 Flash Lite
+developerId: google
+sources:
+  - &a1
+    url: https://ai.google.dev/gemini-api/docs/deprecations
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-07-21
+  sources:
+    - url: https://ai.google.dev/gemini-api/docs/deprecations
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: gemini-3-5-flash-lite-official-id
+    alias: gemini-3.5-flash-lite
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: gemini-3-5-flash-lite-command-code-model-code
+    alias: google/gemini-3.5-flash-lite
+    kind: provider_route
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified

@@ -32,3 +32,33 @@ specifications:
     checkedAt: '2026-09-29'
 pricingNote: Standard Muse Spark 1.3 rates. The separate contributor model has lower prices and permits use of data
   to improve Meta products; it is not silently substituted here.
+aliases:
+  - id: muse-spark-1-3-meta-api-contributor
+    alias: muse-spark-1.3-contributor
+    kind: provider_route
+    harness: meta-api
+    variant:
+      id: contributor
+      providerId: meta
+      label: Contributor
+    sources:
+      - url: https://dev.meta.ai/docs/models
+        title: Contributor permits training on prompts/completions; Standard rates and max reasoning are not
+          inherited.
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: muse-spark-1-3-command-code-contributor
+    alias: meta/muse-spark-1.3-contributor
+    kind: provider_route
+    harness: command-code
+    variant:
+      id: contributor
+      providerId: command-code
+      label: Contributor
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified

@@ -26,3 +26,21 @@ specifications:
   - url: https://platform.kimi.ai/docs/guide/kimi-k2-7-code-quickstart
     title: Official model specifications
     checkedAt: '2026-09-28'
+aliases:
+  - id: kimi-k2-7-code-command-code-highspeed
+    alias: moonshotai/kimi-k2.7-code-highspeed
+    kind: provider_route
+    harness: command-code
+    variant:
+      id: highspeed
+      providerId: command-code
+      label: HighSpeed
+    sources:
+      - url: https://commandcode.ai/blog/kimi-k2-7-code-highspeed-is-in-command-code
+        title: High-speed mode of Kimi K2.7 Code; default route prices are not inherited.
+        checkedAt: 2026-09-30
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified

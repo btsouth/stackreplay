@@ -32,3 +32,9 @@ sources:
     checkedAt: 2026-09-24
 lastVerifiedAt: 2026-09-24
 verificationStatus: verified
+releaseDate:
+  date: 2026-05-28
+  sources:
+    - url: https://platform.claude.com/docs/en/models/opus-4-8/overview
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

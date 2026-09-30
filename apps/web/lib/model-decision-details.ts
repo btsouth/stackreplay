@@ -30,10 +30,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Active (legacy)",
       },
       {
-        label: "Released",
-        value: "June 9, 2026",
-      },
-      {
         label: "Retirement commitment",
         value: "Not sooner than June 9, 2027",
       },
@@ -65,10 +61,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (legacy)",
-      },
-      {
-        label: "Released",
-        value: "February 5, 2026",
       },
       {
         label: "Retirement commitment",
@@ -110,10 +102,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Active (legacy)",
       },
       {
-        label: "Released",
-        value: "May 28, 2026",
-      },
-      {
         label: "Retirement commitment",
         value: "Not sooner than May 28, 2027",
       },
@@ -150,10 +138,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (legacy)",
-      },
-      {
-        label: "Released",
-        value: "July 24, 2026",
       },
       {
         label: "Retirement commitment",
@@ -199,10 +183,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Active (latest)",
       },
       {
-        label: "Released",
-        value: "September 1, 2026",
-      },
-      {
         label: "Retirement commitment",
         value: "Not sooner than September 1, 2027",
       },
@@ -236,10 +216,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Active (latest)",
       },
       {
-        label: "Released",
-        value: "October 15, 2025",
-      },
-      {
         label: "Retirement commitment",
         value: "Not sooner than October 15, 2026",
       },
@@ -271,10 +247,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (legacy)",
-      },
-      {
-        label: "Released",
-        value: "April 16, 2026",
       },
       {
         label: "Retirement commitment",
@@ -313,10 +285,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (latest)",
-      },
-      {
-        label: "Released",
-        value: "September 22, 2026",
       },
       {
         label: "Retirement commitment",
@@ -362,10 +330,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value: "Active (legacy)",
       },
       {
-        label: "Released",
-        value: "February 17, 2026",
-      },
-      {
         label: "Retirement commitment",
         value: "Not sooner than February 17, 2027",
       },
@@ -402,10 +366,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (latest)",
-      },
-      {
-        label: "Released",
-        value: "September 28, 2026",
       },
       {
         label: "Retirement commitment",
@@ -449,10 +409,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
       {
         label: "API availability",
         value: "Active (legacy)",
-      },
-      {
-        label: "Released",
-        value: "June 30, 2026",
       },
       {
         label: "Retirement commitment",
@@ -1412,7 +1368,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
       },
-      { label: "Released", value: "February 12, 2026" },
       {
         label: "Prompt caching",
         value:
@@ -1458,7 +1413,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
       },
-      { label: "Released", value: "April 7, 2026" },
       {
         label: "Prompt caching",
         value:
@@ -1500,7 +1454,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "API capabilities",
         value: "Function calling, streaming, context caching and structured output are supported.",
       },
-      { label: "Released", value: "June 16, 2026" },
       {
         label: "Prompt caching",
         value:
@@ -1890,7 +1843,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "Thinking",
         value: "Thinking is always on. A disabled thinking setting is accepted but ignored.",
       },
-      { label: "Released", value: "March 18, 2026" },
       {
         label: "Output limit",
         value: "max_completion_tokens accepts up to 204,800 tokens; MiniMax recommends 65,536.",
@@ -2161,7 +2113,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
       },
-      { label: "Released", value: "September 22, 2026" },
       {
         label: "Batch API",
         value:
@@ -2214,7 +2165,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
       },
-      { label: "Released", value: "September 22, 2026" },
       {
         label: "Batch API",
         value: "Batch requests cost $0.07 input, $0.14 output and $0.0014 cache hit per 1M tokens.",
@@ -2266,7 +2216,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
       },
-      { label: "Released", value: "April 23, 2026" },
       {
         label: "Deprecation",
         value:
@@ -2320,7 +2269,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Deep thinking is on by default and can be turned off with thinking.type set to disabled. With thinking on, temperature and top_p are fixed at 1.0 and 0.95.",
       },
-      { label: "Released", value: "April 23, 2026" },
       {
         label: "Deprecation",
         value:
@@ -2358,7 +2306,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         label: "Thinking",
         value: "Reasoning is configurable on or off with enable_thinking in the chat template.",
       },
-      { label: "Released", value: "June 4, 2026" },
       {
         label: "API access",
         value:
@@ -2414,7 +2361,6 @@ export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
         value:
           "Thinking is turned on or off per request with thinking.type. The default is not stated.",
       },
-      { label: "Released", value: "June 30, 2026" },
       {
         label: "Output limit",
         value:

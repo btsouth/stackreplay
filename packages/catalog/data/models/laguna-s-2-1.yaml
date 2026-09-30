@@ -1,0 +1,16 @@
+id: laguna-s-2-1
+role: model
+name: Laguna S 2.1
+developerId: poolside
+sources:
+  - url: https://poolside.ai/blog/introducing-laguna-s-2-1
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-07-21
+  sources:
+    - url: https://poolside.ai/blog/introducing-laguna-s-2-1
+      title: Developer-published release day
+      checkedAt: 2026-09-30

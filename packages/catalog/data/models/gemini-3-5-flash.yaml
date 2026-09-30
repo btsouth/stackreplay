@@ -31,3 +31,9 @@ specifications:
   - url: https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash
     title: Official model specifications
     checkedAt: '2026-09-28'
+releaseDate:
+  date: 2026-05-19
+  sources:
+    - url: https://ai.google.dev/gemini-api/docs/deprecations
+      title: Developer-published release day
+      checkedAt: 2026-09-30

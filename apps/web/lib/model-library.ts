@@ -155,6 +155,7 @@ export function placesSummary(
 
 export type ModelSortKey =
   | "featured"
+  | "releaseDate"
   | "name"
   | "input"
   | "output"
@@ -166,12 +167,15 @@ export type SortDirection = "ascending" | "descending";
 
 /** The direction a sort starts in: cheapest prices first, largest limits and counts first. */
 export function defaultSortDirection(key: ModelSortKey): SortDirection {
-  return key === "context" || key === "maxOutput" || key === "plans" ? "descending" : "ascending";
+  return key === "releaseDate" || key === "context" || key === "maxOutput" || key === "plans"
+    ? "descending"
+    : "ascending";
 }
 
 /** Plain labels for each direction of a sort, or undefined when the order is fixed. */
 export function sortDirectionLabels(key: ModelSortKey): Record<SortDirection, string> | undefined {
   if (key === "featured") return undefined;
+  if (key === "releaseDate") return { ascending: "Oldest first", descending: "Newest first" };
   return key === "name"
     ? { ascending: "A to Z", descending: "Z to A" }
     : { ascending: "Low to high", descending: "High to low" };
@@ -209,6 +213,10 @@ export function modelSortValue(
     const rate = basePrice(facts.prices[model.id] ?? [])?.rates[key];
     return rate === undefined ? undefined : Number(rate);
   }
+  if (key === "releaseDate")
+    return model.releaseDate === undefined
+      ? undefined
+      : Date.parse(`${model.releaseDate.date}T00:00:00Z`);
   if (key === "context") return modelContext(model).value;
   if (key === "maxOutput") return modelSpecifications(model)?.maxOutputTokens;
   if (key === "plans") return facts.planCounts[model.id] ?? 0;

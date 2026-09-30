@@ -45,3 +45,9 @@ specifications:
   - url: https://platform.claude.com/docs/en/models/opus-4-6/overview
     title: Official model specifications
     checkedAt: '2026-09-29'
+releaseDate:
+  date: 2026-02-05
+  sources:
+    - url: https://platform.claude.com/docs/en/models/opus-4-6/overview
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

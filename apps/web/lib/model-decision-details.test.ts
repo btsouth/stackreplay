@@ -11,9 +11,10 @@ function model(id: string) {
 }
 
 describe("public model decision details", () => {
-  it("covers each listed exact release without adding speculative identities", () => {
+  it("adds decision overlays only to accepted exact releases", () => {
     const ids = catalog.models.filter((entry) => entry.kind === "release").map((entry) => entry.id);
-    expect(Object.keys(MODEL_DECISION_DETAILS).sort()).toEqual(ids.sort());
+    for (const id of Object.keys(MODEL_DECISION_DETAILS)) expect(ids).toContain(id);
+    for (const entry of catalog.models) expect(entry.sources.length, entry.id).toBeGreaterThan(0);
     for (const details of Object.values(MODEL_DECISION_DETAILS)) {
       expect(details.facts.length).toBeGreaterThan(0);
       expect(details.sources.length).toBeGreaterThan(0);

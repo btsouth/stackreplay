@@ -157,6 +157,7 @@ export interface PublicModelSummary {
   /** Only what the record states; absent is never read as current. */
   lifecycle: ModelLifecycleV1 | undefined;
   developerId: string | undefined;
+  releaseDate?: CatalogV1["models"][string]["releaseDate"];
   specifications?: CatalogV1["models"][string]["specifications"];
   pricingNote?: string | undefined;
   developerName: string | undefined;
@@ -436,6 +437,7 @@ export function loadPublicCatalog(asOf?: string): PublicCatalog {
       kind: model === undefined ? "release" : modelKindOf(model),
       lifecycle: model?.lifecycle,
       developerId,
+      releaseDate: model?.releaseDate,
       specifications: model?.specifications,
       pricingNote: model?.pricingNote,
       developerName: developerId === undefined ? undefined : providerName(developerId),

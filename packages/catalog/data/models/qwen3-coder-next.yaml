@@ -1,0 +1,35 @@
+id: qwen3-coder-next
+role: model
+name: Qwen3 Coder Next
+developerId: alibaba
+sources:
+  - &a1
+    url: https://huggingface.co/Qwen/Qwen3-Coder-Next
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-02-02
+  sources:
+    - url: https://qwen.ai/blog?id=qwen3-coder-next
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: qwen3-coder-next-official-id
+    alias: Qwen/Qwen3-Coder-Next
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+specifications:
+  contextTokens: 262144
+  inputModalities:
+    - text
+  outputModalities:
+    - text
+  reasoning: false
+  toolCalling: true
+  sources:
+    - *a1

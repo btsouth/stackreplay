@@ -1,0 +1,648 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-09-30",
+  "baselineCommit": "ebf9f9ee5da77e567cc5a0b19096077974c5f525",
+  "policy": "catalog-coverage-policy.md",
+  "decisions": [
+    {
+      "key": "musespark13contributor",
+      "names": ["Muse Spark 1.3 Contributor"],
+      "plans": [
+        "clinepass",
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro",
+        "opencode-go",
+        "opencode-go-plus"
+      ],
+      "classification": "route",
+      "modelId": "muse-spark-1-3",
+      "variant": "contributor",
+      "reason": "Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+      "sources": ["https://dev.meta.ai/docs/models"]
+    },
+    {
+      "key": "musespark12contributor",
+      "names": ["Muse Spark 1.2 Contributor"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro",
+        "opencode-go",
+        "opencode-go-plus"
+      ],
+      "classification": "route",
+      "modelId": "muse-spark-1-2",
+      "variant": "contributor",
+      "reason": "Contributor has separate rates and data-use terms.",
+      "sources": ["https://dev.meta.ai/docs/models"]
+    },
+    {
+      "key": "minimaxm25",
+      "names": ["MiniMax M2.5"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro",
+        "kiro-pro"
+      ],
+      "classification": "release",
+      "modelId": "minimax-m2-5",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://platform.minimax.io/docs/guides/text-generation"]
+    },
+    {
+      "key": "deepseekv4flashfast",
+      "names": ["DeepSeek V4 Flash Fast"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "route",
+      "modelId": "deepseek-v4-flash",
+      "variant": "fast",
+      "reason": "Low-latency V4 Flash deployment; default route prices are not inherited.",
+      "sources": ["https://commandcode.ai/blog/deepseek-v4-flash-fast-is-available-in-command-code"]
+    },
+    {
+      "key": "deepseekv4flashlatest",
+      "names": ["DeepSeek V4 Flash (latest)"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "deferred",
+      "reason": "Moving latest route cannot be pinned to a retired/historical release from its display name. Keep unlinked until the route owner establishes the exact identity and date.",
+      "sources": ["https://commandcode.ai/models"]
+    },
+    {
+      "key": "deepseekv4prolatest",
+      "names": ["DeepSeek V4 Pro (latest)"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "deferred",
+      "reason": "Moving latest route cannot be pinned to a retired/historical release from its display name. Keep unlinked until the route owner establishes the exact identity and date.",
+      "sources": ["https://commandcode.ai/models"]
+    },
+    {
+      "key": "glm52fast",
+      "names": ["GLM-5.2 Fast"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "route",
+      "modelId": "glm-5-2",
+      "variant": "fast",
+      "reason": "High-throughput build of GLM-5.2; default route prices are not inherited.",
+      "sources": ["https://commandcode.ai/blog/glm-5-2-fast-is-live-in-command-code"]
+    },
+    {
+      "key": "gptoss120b",
+      "names": ["GPT-OSS 120B"],
+      "plans": [
+        "google-ai-pro",
+        "google-ai-ultra",
+        "google-ai-ultra-20x",
+        "ollama-cloud-max",
+        "ollama-cloud-pro"
+      ],
+      "classification": "release",
+      "modelId": "gpt-oss-120b",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://developers.openai.com/api/docs/models/gpt-oss-120b"]
+    },
+    {
+      "key": "inkling",
+      "names": ["Inkling"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "inkling",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://thinkingmachines.ai/news/introducing-inkling/"]
+    },
+    {
+      "key": "inklingsmall",
+      "names": ["Inkling Small"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "inkling-small",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://thinkingmachines.ai/news/inkling-small/"]
+    },
+    {
+      "key": "kimik25",
+      "names": ["Kimi K2.5"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "kimi-k2-5",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://huggingface.co/moonshotai/Kimi-K2.5"]
+    },
+    {
+      "key": "kimik27codehighspeed",
+      "names": ["Kimi K2.7 Code HighSpeed"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "route",
+      "modelId": "kimi-k2-7-code",
+      "variant": "highspeed",
+      "reason": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited.",
+      "sources": ["https://commandcode.ai/blog/kimi-k2-7-code-highspeed-is-in-command-code"]
+    },
+    {
+      "key": "lagunas21",
+      "names": ["Laguna S 2.1"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "laguna-s-2-1",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://poolside.ai/blog/introducing-laguna-s-2-1"]
+    },
+    {
+      "key": "ling30flashsante",
+      "names": ["Ling 3.0 Flash Sante"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "deferred",
+      "reason": "Provider documents a health-tuned third-party free offering, but developer-owned evidence for this exact Sante release was not found. Defer; do not substitute base Ling weights.",
+      "sources": ["https://commandcode.ai/docs/resources/pricing-limits"]
+    },
+    {
+      "key": "pixelcanary",
+      "names": ["Pixel Canary"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "stealth",
+      "reason": "Opaque or temporary discovery name; developer and durable release identity are unestablished. No admission or alias.",
+      "sources": ["https://commandcode.ai/models"]
+    },
+    {
+      "key": "qwen36maxpreview",
+      "names": ["Qwen 3.6 Max Preview"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "preview",
+      "reason": "Preview or temporary free-preview route; excluded from stable coverage. Revisit only after a first-party stable release.",
+      "sources": ["https://commandcode.ai/models", "https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "qwen36plus",
+      "names": ["Qwen 3.6 Plus"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "qwen-3-6-plus",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-6-plus"]
+    },
+    {
+      "key": "qwen37flash",
+      "names": ["Qwen 3.7 Flash"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "qwen-3-7-flash",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://www.alibabacloud.com/help/en/model-studio/qwen3-7-flash"]
+    },
+    {
+      "key": "qwen38max0902",
+      "names": ["Qwen 3.8 Max 0902"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "qwen-3-8-max-0902",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://www.qwencloud.com/models/qwen3.8-max-0902"]
+    },
+    {
+      "key": "qwen38omniflash",
+      "names": ["Qwen 3.8 Omni Flash"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "qwen-3-8-omni-flash",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://www.alibabacloud.com/help/en/model-studio/model-list-omni/"]
+    },
+    {
+      "key": "spacebunnyalpha",
+      "names": ["Space Bunny Alpha"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "stealth",
+      "reason": "Opaque or temporary discovery name; developer and durable release identity are unestablished. No admission or alias.",
+      "sources": ["https://commandcode.ai/models"]
+    },
+    {
+      "key": "step35flash",
+      "names": ["Step 3.5 Flash"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "step-3-5-flash",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://huggingface.co/stepfun-ai/Step-3.5-Flash"]
+    },
+    {
+      "key": "step37flash",
+      "names": ["Step 3.7 Flash"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "step-3-7-flash",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://static.stepfun.com/blog/step-3.7-flash/"]
+    },
+    {
+      "key": "step5preview",
+      "names": ["Step 5 Preview"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "preview",
+      "reason": "Preview or temporary free-preview route; excluded from stable coverage. Revisit only after a first-party stable release.",
+      "sources": ["https://commandcode.ai/models", "https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "tencenthy3",
+      "names": ["Tencent Hy3"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "hy3",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://www.tencent.com/en-us/articles/2202386.html"]
+    },
+    {
+      "key": "tencenthy4preview",
+      "names": ["Tencent Hy4 Preview"],
+      "plans": [
+        "command-code-go",
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "preview",
+      "reason": "Preview or temporary free-preview route; excluded from stable coverage. Revisit only after a first-party stable release.",
+      "sources": ["https://commandcode.ai/models", "https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "claudeopus45",
+      "names": ["Claude Opus 4.5"],
+      "plans": [
+        "anthropic-claude-max-20x",
+        "anthropic-claude-max-5x",
+        "anthropic-claude-pro",
+        "kiro-pro"
+      ],
+      "classification": "release",
+      "modelId": "claude-opus-4-5",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://platform.claude.com/docs/en/about-claude/model-deprecations"]
+    },
+    {
+      "key": "claudesonnet45",
+      "names": ["Claude Sonnet 4.5"],
+      "plans": [
+        "anthropic-claude-max-20x",
+        "anthropic-claude-max-5x",
+        "anthropic-claude-pro",
+        "kiro-pro"
+      ],
+      "classification": "release",
+      "modelId": "claude-sonnet-4-5",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://platform.claude.com/docs/en/about-claude/model-deprecations"]
+    },
+    {
+      "key": "jev",
+      "names": ["Jev"],
+      "plans": [
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "out_of_scope",
+      "reason": "Probability-returning decision endpoint, not a chat/text generation model; outside coding-model coverage.",
+      "sources": ["https://commandcode.ai/docs/provider"]
+    },
+    {
+      "key": "mimov26proultraspeed",
+      "names": ["MiMo V2.6 Pro UltraSpeed"],
+      "plans": [
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "route",
+      "modelId": "mimo-v2-6-pro",
+      "variant": "ultraspeed",
+      "reason": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred.",
+      "sources": ["https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed"]
+    },
+    {
+      "key": "musespark12",
+      "names": ["Muse Spark 1.2"],
+      "plans": [
+        "command-code-goat",
+        "command-code-max-10x",
+        "command-code-max-20x",
+        "command-code-pro"
+      ],
+      "classification": "release",
+      "modelId": "muse-spark-1-2",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://dev.meta.ai/docs/models"]
+    },
+    {
+      "key": "claudeopus46thinking",
+      "names": ["Claude Opus 4.6 (thinking)"],
+      "plans": ["google-ai-pro", "google-ai-ultra", "google-ai-ultra-20x"],
+      "classification": "mode",
+      "modelId": "claude-opus-4-6",
+      "reason": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier.",
+      "sources": ["https://antigravity.google/docs/models"]
+    },
+    {
+      "key": "claudesonnet46thinking",
+      "names": ["Claude Sonnet 4.6 (thinking)"],
+      "plans": ["google-ai-pro", "google-ai-ultra", "google-ai-ultra-20x"],
+      "classification": "mode",
+      "modelId": "claude-sonnet-4-6",
+      "reason": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier.",
+      "sources": ["https://antigravity.google/docs/models"]
+    },
+    {
+      "key": "gemini31flashlite",
+      "names": ["Gemini 3.1 Flash Lite"],
+      "plans": ["command-code-max-10x", "command-code-max-20x", "command-code-pro"],
+      "classification": "release",
+      "modelId": "gemini-3-1-flash-lite",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://ai.google.dev/gemini-api/docs/deprecations"]
+    },
+    {
+      "key": "gemini35flashlite",
+      "names": ["Gemini 3.5 Flash Lite"],
+      "plans": ["command-code-max-10x", "command-code-max-20x", "command-code-pro"],
+      "classification": "release",
+      "modelId": "gemini-3-5-flash-lite",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://ai.google.dev/gemini-api/docs/deprecations"]
+    },
+    {
+      "key": "geminiomniflash",
+      "names": ["Gemini Omni Flash"],
+      "plans": ["google-ai-pro", "google-ai-ultra", "google-ai-ultra-20x"],
+      "classification": "out_of_scope",
+      "reason": "Conversational video generation/editing model; outside the text/coding coverage cohort.",
+      "sources": ["https://ai.google.dev/gemini-api/docs/changelog"]
+    },
+    {
+      "key": "musespark11",
+      "names": ["Muse Spark 1.1"],
+      "plans": ["command-code-max-10x", "command-code-max-20x", "command-code-pro"],
+      "classification": "release",
+      "modelId": "muse-spark-1-1",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://dev.meta.ai/docs/models"]
+    },
+    {
+      "key": "fuguultra",
+      "names": ["Fugu Ultra"],
+      "plans": ["command-code-max-10x", "command-code-max-20x"],
+      "classification": "out_of_scope",
+      "reason": "Multi-model orchestration service, not one underlying model. Do not alias the moving service name to a pinned model.",
+      "sources": ["https://sakana.ai/fugu-release/"]
+    },
+    {
+      "key": "gemma4",
+      "names": ["Gemma 4"],
+      "plans": ["ollama-cloud-max", "ollama-cloud-pro"],
+      "classification": "family",
+      "modelId": "gemma-4",
+      "reason": "The bare name spans E2B, E4B, 12B, 26B A4B and 31B; no size is inferred.",
+      "sources": ["https://ai.google.dev/gemma/docs/core/model_card_4"]
+    },
+    {
+      "key": "gptoss20b",
+      "names": ["GPT-OSS 20B"],
+      "plans": ["ollama-cloud-max", "ollama-cloud-pro"],
+      "classification": "release",
+      "modelId": "gpt-oss-20b",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://developers.openai.com/api/docs/models/gpt-oss-20b"]
+    },
+    {
+      "key": "hy3",
+      "names": ["Hy3"],
+      "plans": ["opencode-go", "opencode-go-plus"],
+      "classification": "alias",
+      "modelId": "hy3",
+      "reason": "Tencent Hy3 and Hy3 name the same developer-published release.",
+      "sources": ["https://www.tencent.com/en-us/articles/2202386.html"]
+    },
+    {
+      "key": "hy4preview",
+      "names": ["Hy4 preview"],
+      "plans": ["opencode-go", "opencode-go-plus"],
+      "classification": "preview",
+      "reason": "Preview or temporary free-preview route; excluded from stable coverage. Revisit only after a first-party stable release.",
+      "sources": ["https://commandcode.ai/models", "https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "longcat25previewfree",
+      "names": ["LongCat 2.5 Preview Free"],
+      "plans": ["opencode-go", "opencode-go-plus"],
+      "classification": "preview",
+      "reason": "Preview or temporary free-preview route; excluded from stable coverage. Revisit only after a first-party stable release.",
+      "sources": ["https://commandcode.ai/models", "https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "mistrallarge3",
+      "names": ["Mistral Large 3"],
+      "plans": ["ollama-cloud-max", "ollama-cloud-pro"],
+      "classification": "release",
+      "modelId": "mistral-large-3",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://docs.mistral.ai/models/mistral-large-3-25-12"]
+    },
+    {
+      "key": "nemotron3nano",
+      "names": ["Nemotron 3 Nano"],
+      "plans": ["ollama-cloud-max", "ollama-cloud-pro"],
+      "classification": "release",
+      "modelId": "nemotron-3-nano",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": [
+        "https://catalog.ngc.nvidia.com/orgs/nim/nvidia/models/nemotron-3-nano/hf-52469ad"
+      ]
+    },
+    {
+      "key": "nemotron3super",
+      "names": ["Nemotron 3 Super"],
+      "plans": ["ollama-cloud-max", "ollama-cloud-pro"],
+      "classification": "release",
+      "modelId": "nemotron-3-super",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/"]
+    },
+    {
+      "key": "spacebunnyfree",
+      "names": ["Space Bunny Free"],
+      "plans": ["opencode-go", "opencode-go-plus"],
+      "classification": "stealth",
+      "reason": "Opaque or temporary discovery name; developer and durable release identity are unestablished. No admission or alias.",
+      "sources": ["https://opencode.ai/docs/go/"]
+    },
+    {
+      "key": "claudesonnet40",
+      "names": ["Claude Sonnet 4.0"],
+      "plans": ["kiro-pro"],
+      "classification": "release",
+      "modelId": "claude-sonnet-4",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://platform.claude.com/docs/en/about-claude/model-deprecations"]
+    },
+    {
+      "key": "deepseek32",
+      "names": ["DeepSeek 3.2"],
+      "plans": ["kiro-pro"],
+      "classification": "release",
+      "modelId": "deepseek-v3-2",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://api-docs.deepseek.com/updates/"]
+    },
+    {
+      "key": "minimaxm21",
+      "names": ["MiniMax M2.1"],
+      "plans": ["kiro-pro"],
+      "classification": "release",
+      "modelId": "minimax-m2-1",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://platform.minimax.io/docs/guides/text-generation"]
+    },
+    {
+      "key": "qwen3codernext",
+      "names": ["Qwen3 Coder Next"],
+      "plans": ["kiro-pro"],
+      "classification": "release",
+      "modelId": "qwen3-coder-next",
+      "reason": "Stable developer-published text/coding release; historical releases remain useful for tracked plan identities.",
+      "sources": ["https://huggingface.co/Qwen/Qwen3-Coder-Next"]
+    }
+  ]
+}

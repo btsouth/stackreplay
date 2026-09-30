@@ -36,6 +36,7 @@ const INPUT = 2;
 const OUTPUT = 3;
 const CONTEXT = 5;
 const PLANS = 8;
+const RELEASED = 9;
 const amount = (text: string) => Number(text.replace(/[$,]/gu, ""));
 
 for (const theme of ["dark", "light"] as const) {
@@ -63,6 +64,7 @@ for (const theme of ["dark", "light"] as const) {
         "Max output tokens",
         "Reasoning",
         "Included in plans",
+        "Released",
       ])
         await expect(table.getByRole("columnheader", { name: header })).toBeVisible();
       await expect(
@@ -115,6 +117,40 @@ for (const theme of ["dark", "light"] as const) {
       expect(contexts.at(-1)).toContain("Not published");
       await expect(page.getByLabel("Order by")).toHaveValue("context");
       await expect(page.getByLabel("Direction")).toHaveValue("descending");
+    });
+
+    test("sorts sourced release dates both ways and preserves the URL", async ({ page }) => {
+      await openModels(page, "/models?view=table");
+      const released = page.getByRole("columnheader", { name: "Released", exact: true });
+      await released.getByRole("button").click();
+      await expect(released).toHaveAttribute("aria-sort", "descending");
+      await expect(page.getByLabel("Order by")).toHaveValue("releaseDate");
+      await expect(page.getByLabel("Direction")).toHaveValue("descending");
+      await expect(page).toHaveURL(/[?&]sort=releaseDate(&|$)/u);
+      const dates = await cellTexts(page, RELEASED);
+      const published = dates.filter((value) => !value.includes("Not recorded"));
+      expect(published.length).toBeGreaterThan(20);
+      expect(published).toEqual([...published].sort().reverse());
+      expect(dates.slice(published.length).every((value) => value.includes("Not recorded"))).toBe(
+        true,
+      );
+      await released.getByRole("button").click();
+      await expect(released).toHaveAttribute("aria-sort", "ascending");
+      await expect(page).toHaveURL(/[?&]dir=asc(&|$)/u);
+      await page.reload();
+      await expect(released).toHaveAttribute("aria-sort", "ascending");
+      const older = (await cellTexts(page, RELEASED)).filter(
+        (value) => !value.includes("Not recorded"),
+      );
+      expect(older).toEqual([...older].sort());
+      await expectNoHorizontalOverflow(page);
+      await expectNoSeriousViolations(page);
+      await page.goto("/models/gpt-oss-120b");
+      await expect(page.locator('time[datetime="2025-08-05"]')).toHaveText("2025-08-05");
+      await page.getByText("Pricing, assumptions & evidence", { exact: true }).click();
+      await expect(
+        page.getByRole("link", { name: "OpenAI release announcement for both GPT-OSS models" }),
+      ).toBeVisible();
     });
 
     test("keeps the direction control and column headers in sync", async ({ page }) => {
@@ -271,6 +307,19 @@ for (const theme of ["dark", "light"] as const) {
         .map((value) => amount(value.replace("Input $/1M", "")));
       expect(published.length).toBeGreaterThan(5);
       expect(published).toEqual([...published].sort((a, b) => b - a));
+      await page.getByLabel("Order by").selectOption("releaseDate");
+      await expect(page.getByLabel("Direction")).toHaveValue("descending");
+      await expect(first.getByText("Released", { exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("columnheader", { name: "Released", exact: true }),
+      ).toHaveAttribute("aria-sort", "descending");
+      const dates = (await cellTexts(page, RELEASED))
+        .filter((value) => !value.includes("Not recorded"))
+        .map((value) => value.replace("Released", "").trim());
+      expect(dates).toEqual([...dates].sort().reverse());
+      // Return to the numeric sort for the card-layout assertion below.
+      await page.getByLabel("Order by").selectOption("input");
+      await page.getByLabel("Direction").selectOption("descending");
       const box = await first.boundingBox();
       expect(box?.width ?? 0).toBeLessThanOrEqual(390);
       await expectNoHorizontalOverflow(page);

@@ -37,3 +37,9 @@ specifications:
   - url: https://developers.openai.com/api/docs/models/gpt-6-luna
     title: Official model specifications
     checkedAt: '2026-09-28'
+releaseDate:
+  date: 2026-09-22
+  sources:
+    - url: https://developers.openai.com/api/docs/changelog
+      title: Developer-published release day
+      checkedAt: 2026-09-30

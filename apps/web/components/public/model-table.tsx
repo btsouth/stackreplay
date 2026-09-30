@@ -29,6 +29,7 @@ const COLUMNS = {
   maxOutput: { label: "Max output", unit: "tokens", sort: "maxOutput", numeric: true },
   reasoning: { label: "Reasoning" },
   plans: { label: "Included in", unit: "plans", sort: "plans", numeric: true },
+  releaseDate: { label: "Released", sort: "releaseDate" },
 } as const satisfies Record<string, Column>;
 
 /** The column name a reader hears and, in stacked rows, sees beside each value. */
@@ -155,6 +156,13 @@ export function ModelTable({
                     : "No"}
               </Cell>
               <Cell column={COLUMNS.plans}>{facts.planCounts[model.id] ?? 0}</Cell>
+              <Cell column={COLUMNS.releaseDate}>
+                {model.releaseDate === undefined ? (
+                  <span className="market-muted">Not recorded</span>
+                ) : (
+                  <time dateTime={model.releaseDate.date}>{model.releaseDate.date}</time>
+                )}
+              </Cell>
             </tr>
           );
         })}
