@@ -10,9 +10,9 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 | 2 | Link lineup entries to existing model pages | Done (`feat/models-batch-a`). The legacy names `DeepSeek V4 Flash` and `DeepSeek V4 Flash Vision Exp` link to their legacy-name pages, which say DeepSeek now serves both with V4.1 Flash |
 | 3 | Add missing models, batch A | Done (`feat/models-batch-a`): 18 models. Muse Spark 1.3 Contributor is a tier of Muse Spark 1.3 and is described on that page |
 | 4 | Add missing models, batch B, and a coverage policy | Planned |
-| 5 | Models page usability pass | In progress (`feat/models-batch-a`): table view, access filters, sorts with a direction control, plan counts, key figures and API ids. Sorting by release date waits on a structured release date field |
-| 6 | Watcher W1: source change detection | Planned |
-| 7 | Watcher W2: new model detection | Planned |
+| 5 | Models page usability pass | Done on current `main`: table/cards, developer and access filters, sort direction, plan counts, key figures and API ids. Release-date sorting remains deferred until a structured date exists |
+| 6 | Watcher W1: source change detection | Implemented in `feat/catalog-watcher-w1-w2`, pending PR review and merge |
+| 7 | Watcher W2: new model detection | Implemented in `feat/catalog-watcher-w1-w2`, pending PR review and merge |
 | 8 | Watcher W3: drafted catalog PRs | Planned |
 | 9 | Benchmarks: licensing decision | Needs owner decision |
 | 10 | Benchmarks: data and UI | Blocked on 9 |
@@ -42,7 +42,7 @@ Promotional prices stay in the catalog only while they are kept current. Each pr
 
 Offline it compares accepted model YAML with the plan lineups in `apps/web/lib/subscription-access-data.json`. `--online` adds OpenRouter slugs and release dates and a list of recent releases from developers we already track. It never edits data. The 2026-09-29 report is `docs/catalog-coverage-audit.md`: 71 models listed by our own plans have no model page, 37 lineup entries name a model we already have but are not linked, and 25 recent OpenRouter releases come from tracked developers.
 
-After batch A (2026-09-29) the report lists 53 candidates, no unlinked matches and 21 recent releases.
+After batch A (2026-09-29) the report listed 53 candidates, no unlinked matches and 21 recent releases. The W1/W2 live dry run on current `main` refreshed it to 51 candidates, no unlinked matches and 22 recent releases.
 
 Rerun the audit at the start of every coverage slice and commit the refreshed report with the slice.
 
@@ -105,7 +105,7 @@ The watcher finds changes and prepares them for review. It never publishes. It r
 
 **W3, drafted PRs.** For a W1 or W2 issue, a job (or an agent run by the owner) drafts the catalog edit following the checklist above, with the source excerpt in the PR description, and opens a PR against `main`. Drafting may be LLM-assisted, but the PR must cite the exact source text for every changed value, and CI must pass. The owner reviews and merges. Merging deploys.
 
-Start W1 and W2 before W3. Detection alone removes most of the need to watch pages by hand.
+W1/W2 implementation and operating instructions: [Catalog watcher](catalog-watcher.md). The daily job uses a dedicated machine-only `watcher-state` branch. First observations baseline without source-change spam; source health alerts and one rolling coverage issue remain detection only. The MiMo deprecation follow-up above is explicitly registered for watching without changing its accepted records. W3 remains planned until W1/W2 signal quality has been reviewed.
 
 ## Slices 9 and 10: benchmarks
 

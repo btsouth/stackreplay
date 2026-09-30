@@ -1,6 +1,6 @@
 # Catalog coverage audit
 
-Generated 2026-09-29 by `node packages/catalog/scripts/coverage-audit.mjs --online`. 71 catalogued models; 783 plan lineup entries.
+Generated 2026-09-30 by `node packages/catalog/scripts/coverage-audit.mjs --online`. 72 catalogued models; 756 plan lineup entries.
 
 Candidates are models that a catalogued plan lists but that have no model record, sorted by how many plans list them. This is a research queue, not accepted data. Every addition still needs official sources.
 
@@ -11,7 +11,6 @@ Candidates are models that a catalogued plan lists but that have no model record
 | Muse Spark 1.3 Contributor | 8 (clinepass, command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro, opencode-go, opencode-go-plus) | `meta/muse-spark-1.3-contributor` (2026-09-02) | Muse Spark 1.3 Contributor |
 | Muse Spark 1.2 Contributor | 7 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro, opencode-go, opencode-go-plus) | `meta/muse-spark-1.2-contributor` (2026-08-21) | Muse Spark 1.2 Contributor |
 | MiniMax M2.5 | 6 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro, kiro-pro) | `minimax/minimax-m2.5` (2026-02-12) | MiniMax M2.5 |
-| DeepSeek V4.1 Flash Fast | 5 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro) |  | DeepSeek V4.1 Flash Fast |
 | DeepSeek V4 Flash Fast | 5 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro) |  | DeepSeek V4 Flash Fast |
 | DeepSeek V4 Flash (latest) | 5 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro) |  | DeepSeek V4 Flash (latest) |
 | DeepSeek V4 Pro (latest) | 5 (command-code-go, command-code-goat, command-code-max-10x, command-code-max-20x, command-code-pro) |  | DeepSeek V4 Pro (latest) |
@@ -45,7 +44,6 @@ Candidates are models that a catalogued plan lists but that have no model record
 | Gemini 3.1 Flash Lite | 3 (command-code-max-10x, command-code-max-20x, command-code-pro) | `google/gemini-3.1-flash-lite` (2026-05-07) | Gemini 3.1 Flash Lite |
 | Gemini 3.5 Flash Lite | 3 (command-code-max-10x, command-code-max-20x, command-code-pro) | `google/gemini-3.5-flash-lite` (2026-07-21) | Gemini 3.5 Flash Lite |
 | Gemini Omni Flash | 3 (google-ai-pro, google-ai-ultra, google-ai-ultra-20x) |  | Gemini Omni Flash |
-| GPT-6 Pro | 3 (openai-chatgpt-business, openai-chatgpt-pro, openai-chatgpt-pro-20x) |  | GPT-6 Pro |
 | Muse Spark 1.1 | 3 (command-code-max-10x, command-code-max-20x, command-code-pro) | `meta/muse-spark-1.1` (2026-07-16) | Muse Spark 1.1 |
 | Fugu Ultra | 2 (command-code-max-10x, command-code-max-20x) | `sakana/fugu-ultra` (2026-06-24) | Fugu Ultra |
 | Gemma 4 | 2 (ollama-cloud-max, ollama-cloud-pro) |  | Gemma 4 |
@@ -72,6 +70,7 @@ Developers count as tracked when one of their models is catalogued or listed by 
 
 | Released on OpenRouter | Model | Slug | Plans listing it |
 | --- | --- | --- | --- |
+| 2026-09-29 | OpenAI: GPT-6.1 Sol Pro | `openai/gpt-6.1-sol-pro` | 0 |
 | 2026-09-23 | Z.ai: GLM 5.3 Prime | `z-ai/glm-5.3-prime` | 0 |
 | 2026-09-23 | Qwen: Qwen3.8 Max Prime | `qwen/qwen3.8-max-prime` | 0 |
 | 2026-09-22 | OpenAI: GPT-6 Luna Pro | `openai/gpt-6-luna-pro` | 0 |

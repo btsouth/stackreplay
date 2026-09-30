@@ -1,0 +1,53 @@
+name: Catalog watcher
+
+on:
+  schedule:
+    - cron: "23 7 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Compute and preview without writing issues or remote state
+        type: boolean
+        default: true
+      rebaseline:
+        description: Replace detection baseline without reporting initial changes
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalog-watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    if: github.repository == 'btsouth/stackreplay' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build intelligence validators
+        run: pnpm --filter '@stackreplay/catalog...' build
+      - name: Detect provider source and model coverage changes
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          REBASELINE: ${{ inputs.rebaseline || false }}
+        run: |
+          args=(--apply)
+          if [[ "$DRY_RUN" == "true" ]]; then args=(--dry-run --remote-state); fi
+          if [[ "$REBASELINE" == "true" ]]; then args+=(--rebaseline); fi
+          node packages/catalog/scripts/catalog-watcher.mjs "${args[@]}"

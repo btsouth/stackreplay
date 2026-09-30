@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "sources": {
+    "source-fixture": {
+      "id": "source-fixture",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "providerId": "openai",
+      "kind": "provider_pricing",
+      "affected": ["model: gpt-x", "pricing: openai-gpt-x-standard", "plan: openai-pro"],
+      "health": {
+        "version": 1,
+        "sourceId": "source-fixture",
+        "lastAttemptAt": "2026-09-28T07:23:00Z",
+        "lastSuccessAt": "2026-09-28T07:23:00Z",
+        "httpStatus": 200,
+        "contentType": "text/html",
+        "fingerprint": {
+          "id": "content-7d6568d757053c5d9d82dfc8",
+          "sha256": "7d6568d757053c5d9d82dfc8ae8dda81dfd4171267af685f87d61dfcdf7ae426"
+        },
+        "state": "healthy"
+      },
+      "consecutiveFailures": 0,
+      "text": "Provider docs\nModel pricing\nGPT-X input: $4 / 1M tokens\nAvailable through November 21, 2026. Official model access and pricing documentation.",
+      "observedAt": "2026-09-28T07:23:00Z",
+      "healthAlert": false
+    }
+  },
+  "coverage": {
+    "candidates": {}
+  },
+  "outbox": []
+}

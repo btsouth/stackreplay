@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "hosts": {
+    "ai.google.dev": "google",
+    "antigravity.google": "google",
+    "gemini.google": "google",
+    "support.google.com": "google",
+    "blog.google": "google",
+    "api-docs.deepseek.com": "deepseek",
+    "build.nvidia.com": "nvidia",
+    "chatgpt.com": "openai",
+    "developers.openai.com": "openai",
+    "help.openai.com": "openai",
+    "learn.chatgpt.com": "openai",
+    "openai.com": "openai",
+    "www.openai.com": "openai",
+    "claude.com": "anthropic",
+    "www.claude.com": "anthropic",
+    "code.claude.com": "anthropic",
+    "docs.claude.com": "anthropic",
+    "platform.claude.com": "anthropic",
+    "support.claude.com": "anthropic",
+    "cline.bot": "cline",
+    "docs.cline.bot": "cline",
+    "commandcode.ai": "command-code",
+    "cursor.com": "cursor",
+    "www.cursor.com": "cursor",
+    "dev.meta.ai": "meta",
+    "developer.meta.com": "meta",
+    "research.meta.ai": "meta",
+    "docs.github.com": "github",
+    "docs.x.ai": "x-ai",
+    "docs.z.ai": "z-ai",
+    "kiro.dev": "kiro",
+    "longcat.chat": "meituan",
+    "microsoft.ai": "microsoft",
+    "mimo.mi.com": "xiaomi",
+    "ollama.com": "ollama",
+    "registry.ollama.com": "ollama",
+    "opencode.ai": "opencode",
+    "platform.kimi.ai": "moonshot",
+    "platform.minimax.io": "minimax",
+    "www.alibabacloud.com": "alibaba"
+  },
+  "paths": {
+    "github.com": [
+      {
+        "prefix": "/features/copilot/",
+        "providerId": "github"
+      },
+      {
+        "prefix": "/microsoft/MAI-Code",
+        "providerId": "microsoft"
+      }
+    ],
+    "huggingface.co": [
+      {
+        "prefix": "/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+        "providerId": "nvidia"
+      },
+      {
+        "prefix": "/meituan-longcat/LongCat-2.0",
+        "providerId": "meituan"
+      }
+    ]
+  },
+  "additionalSources": [
+    {
+      "url": "https://mimo.mi.com/docs/en-US/updates/deprecate",
+      "providerId": "xiaomi",
+      "kind": "provider_changelog",
+      "affected": ["model: mimo-v2-5", "model: mimo-v2-5-pro"],
+      "note": "Explicit provider-owned dated follow-up recorded in docs/catalog-coverage-roadmap.md; watch reference only, not accepted evidence."
+    }
+  ]
+}
