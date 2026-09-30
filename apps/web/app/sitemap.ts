@@ -15,6 +15,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absoluteUrl("/"), lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: absoluteUrl("/plans"), lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: absoluteUrl("/models"), lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    {
+      url: absoluteUrl("/benchmarks"),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
     { url: absoluteUrl("/compare"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     {
       url: absoluteUrl("/methodology"),

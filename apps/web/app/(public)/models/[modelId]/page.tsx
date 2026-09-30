@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyApiId } from "@/components/public/copy-api-id";
 import { MarketFooter } from "@/components/public/market-header";
+import { ModelBenchmarks } from "@/components/public/model-benchmarks";
 import {
   ModelPricingConditions,
   ModelRateTable,
@@ -14,6 +15,7 @@ import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
 import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
 import { modelPlanCount } from "@/lib/model-library";
 import { modelCapabilities, modelSpecifications, tokenSize } from "@/lib/model-specifications";
+import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 
 interface Props {
@@ -270,6 +272,7 @@ export default async function ModelPage({ params }: Props) {
           </div>
         </section>
       )}
+      <ModelBenchmarks data={loadPublicBenchmarks()} modelId={model.id} />
       <div className="market-section-title" id="where-to-use">
         <span>
           {model.kind === "family" ? "01" : specifications ? "03" : "02"} / Where you can use it

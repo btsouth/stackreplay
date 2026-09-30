@@ -1,0 +1,514 @@
+.bench-page {
+  min-width: 0;
+}
+.bench-header {
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+.bench-header h1 {
+  font-size: clamp(2.5rem, 4.2vw, 4.5rem);
+}
+.bench-header .market-description {
+  max-width: 65ch;
+}
+.bench-source-card {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  align-self: center;
+}
+.bench-source-card h2 {
+  font-size: 1.25rem;
+  margin: 0.5rem 0;
+}
+.bench-source-card p:not(.market-kicker),
+.bench-source-card a {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+.bench-source-card a {
+  display: inline-block;
+  color: var(--accent);
+  margin-top: 0.75rem;
+}
+.bench-card-counts {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.bench-card-counts strong {
+  color: var(--foreground);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.3rem;
+}
+.bench-toolbar,
+.bench-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.bench-toolbar {
+  border-top: 1px solid var(--border-strong);
+  padding: 1rem 0;
+}
+.bench-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1 1 35rem;
+}
+.bench-selection button,
+.bench-categories button {
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  min-height: 44px;
+  font-size: 0.75rem;
+}
+:where(.bench-selection button:disabled) span {
+  display: none;
+}
+.bench-selection button span {
+  color: var(--muted-foreground);
+  margin-left: 0.4rem;
+}
+.bench-selection button:disabled {
+  cursor: default;
+}
+.bench-text-button,
+.bench-source-views button {
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+.bench-picker {
+  border-block: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.bench-picker summary {
+  cursor: pointer;
+  padding: 0.75rem 0;
+  font-size: 0.8rem;
+}
+.bench-picker summary span {
+  margin-left: 0.75rem;
+}
+.bench-picker > label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  margin: 0.75rem 0;
+}
+.bench-picker input[type="search"] {
+  background: var(--background);
+  border: 1px solid var(--control-border);
+  padding: 0.75rem;
+  width: min(100%, 28rem);
+}
+.bench-picker-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  padding: 0.5rem 0.25rem 1rem;
+}
+.bench-picker-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  font-size: 0.85rem;
+}
+.bench-picker-options input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+.bench-picker-options small {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+}
+.bench-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem;
+}
+.bench-categories button {
+  color: var(--muted-foreground);
+}
+.bench-categories button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-2);
+}
+.bench-table-guide {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0.75rem 0;
+}
+.bench-table-scroll {
+  overflow: auto;
+  max-width: 100%;
+  max-height: 72vh;
+  border: 1px solid var(--border-strong);
+  isolation: isolate;
+  scrollbar-color: var(--border-strong) var(--background);
+}
+.bench-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  table-layout: fixed;
+  min-width: 950px;
+}
+.bench-table th,
+.bench-table td {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 0.8rem 1rem;
+  background: var(--background);
+}
+.bench-table th:last-child,
+.bench-table td:last-child {
+  border-right: 0;
+}
+.bench-table tr:last-child > * {
+  border-bottom: 0;
+}
+.bench-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-2);
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+  height: 86px;
+}
+.bench-table th:first-child {
+  position: sticky;
+  left: 0;
+  width: 250px;
+  text-align: left;
+  z-index: 1;
+  box-shadow: 1px 0 var(--border-strong);
+}
+.bench-table thead th:first-child {
+  z-index: 3;
+}
+.bench-table th span {
+  display: block;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  font-size: 0.65rem;
+  margin-top: 0.25rem;
+}
+.bench-table tbody th {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.bench-table tbody th button {
+  text-align: left;
+  min-height: 24px;
+}
+.bench-table tbody th span {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bench-table th small {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  margin-top: 0.2rem;
+}
+.bench-table td {
+  text-align: center;
+}
+.bench-score {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+  padding: 0.25rem;
+}
+.bench-score sup {
+  color: var(--muted-foreground);
+  font-size: 0.55rem;
+  margin-left: 0.35rem;
+  vertical-align: super;
+}
+.bench-table td[data-highlighted="true"] {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+.bench-not-reported {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.bench-coverage-note,
+.bench-empty {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  margin: 1rem 0;
+}
+.bench-empty h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.bench-methodology {
+  margin-top: 2rem;
+  scroll-margin-top: 6rem;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+.bench-methodology > p {
+  max-width: 85ch;
+  color: var(--muted-foreground);
+  margin: 1rem 0;
+}
+.bench-methodology details,
+.bench-model-methodology details {
+  border-bottom: 1px solid var(--border);
+}
+.bench-methodology summary,
+.bench-model-methodology summary,
+.bench-model-remainder summary {
+  cursor: pointer;
+  padding: 0.8rem 0;
+  min-height: 44px;
+}
+.bench-methodology :where(details) p,
+.bench-model-methodology p {
+  margin: 0.8rem 0;
+  max-width: 90ch;
+}
+.bench-methodology ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-block: 0.75rem;
+}
+.bench-source-number {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  margin-right: 0.4rem;
+}
+.bench-source-label {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.7;
+}
+.bench-methodology a,
+.bench-evidence a,
+.bench-model-section .market-section-title a {
+  color: var(--accent);
+}
+.bench-dialog {
+  width: min(90vw, 48rem);
+  max-height: 85dvh;
+  padding: 2rem;
+  border: 1px solid var(--border-strong);
+  background: var(--background);
+  color: var(--foreground);
+  margin: auto;
+  overflow-y: auto;
+}
+.bench-dialog::backdrop {
+  background: color-mix(in oklch, var(--foreground) 35%, transparent);
+}
+.bench-dialog-close {
+  display: block;
+  margin-left: auto;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+.bench-dialog h2 {
+  font-size: 1.75rem;
+  letter-spacing: -0.04em;
+  margin: 0.75rem 0;
+}
+.bench-dialog > p,
+.bench-dialog section p {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin: 0.75rem 0;
+}
+.bench-definition-meta {
+  color: var(--muted-foreground);
+}
+.bench-dialog section {
+  border-top: 1px solid var(--border-strong);
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+.bench-dialog h3 {
+  font-size: 1.1rem;
+}
+.bench-dialog .bench-detail-score {
+  font-size: 2rem;
+  font-family: var(--font-mono);
+  margin-bottom: 0;
+}
+.bench-evidence {
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+.bench-evidence dl > div {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.bench-evidence dt {
+  color: var(--muted-foreground);
+}
+.bench-alternatives {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
+.bench-alternatives select {
+  background: var(--background);
+  border: 1px solid var(--control-border);
+  padding: 0.75rem;
+  max-width: 100%;
+}
+.bench-model-section {
+  margin: 3rem 0;
+  min-width: 0;
+}
+.bench-model-source {
+  margin-top: 1.5rem;
+}
+.bench-model-source h3 {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+.bench-model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 3rem;
+  margin: 1.25rem 0;
+}
+.bench-model-group h4 {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+.bench-model-group dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.bench-model-group dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bench-model-methodology,
+.bench-model-remainder {
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+.bench-page button:focus-visible,
+.bench-page a:focus-visible,
+.bench-page input:focus-visible,
+.bench-page select:focus-visible,
+.bench-page summary:focus-visible,
+.bench-table-scroll:focus-visible,
+.bench-model-section summary:focus-visible,
+.bench-model-section a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.bench-page a:hover,
+.bench-page button:hover:not(:disabled),
+.bench-model-group a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (min-width: 1000px) {
+  .bench-header {
+    grid-template-columns: minmax(0, 1.8fr) minmax(18rem, 0.8fr);
+  }
+}
+@media (max-width: 700px) {
+  .bench-header h1 {
+    font-size: 2.65rem;
+  }
+  .bench-header {
+    padding-bottom: 1.5rem;
+  }
+  .bench-source-card {
+    padding: 1rem;
+  }
+  .bench-source-card h2 {
+    font-size: 1.05rem;
+  }
+  .bench-card-counts {
+    margin-top: 0.5rem;
+  }
+  .bench-selection {
+    flex-basis: 100%;
+  }
+  .bench-table th:first-child {
+    width: 165px;
+  }
+  .bench-table {
+    min-width: 900px;
+  }
+  .bench-table th,
+  .bench-table td {
+    padding: 0.75rem 0.6rem;
+  }
+  .bench-score {
+    font-size: 1.05rem;
+  }
+  .bench-dialog {
+    padding: 1rem;
+    width: 94vw;
+  }
+  .bench-evidence dl > div {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .bench-model-grid {
+    grid-template-columns: 1fr;
+  }
+  .bench-methodology .market-section-title {
+    flex-wrap: wrap;
+  }
+}
+.bench-source-views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.bench-table tbody th {
+  padding-block: 0.5rem;
+}
+.bench-table tbody th span,
+.bench-table tbody th small {
+  line-height: 1.25;
+}

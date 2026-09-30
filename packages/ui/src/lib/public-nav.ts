@@ -19,6 +19,7 @@ export interface PublicNavItem {
 export const publicNavItems = [
   { label: "Subscriptions", href: "/plans", description: "Every catalogued plan, with sources" },
   { label: "Models", href: "/models", description: "Models, published prices and access" },
+  { label: "Benchmarks", href: "/benchmarks", description: "Verified model evaluation evidence" },
   { label: "Compare", href: "/compare", description: "Compare documented plan facts" },
   { label: "Methodology", href: "/methodology", description: "How a replay is calculated" },
   { label: "Updates", href: "/changelog", description: "Catalog changes over time" },
@@ -53,6 +54,7 @@ export const publicFooterGroups = [
       { label: "Scan your AI history", href: "/app/import" },
       { label: "Subscriptions", href: "/plans" },
       { label: "Models", href: "/models" },
+      { label: "Benchmarks", href: "/benchmarks" },
       { label: "Compare", href: "/compare" },
     ],
   },

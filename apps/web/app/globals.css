@@ -8,6 +8,7 @@
 @import "./result.css";
 @import "./plan-history.css";
 @import "./my-stack.css";
+@import "./benchmarks.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));
