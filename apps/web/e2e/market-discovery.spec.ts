@@ -12,7 +12,11 @@ test("featured rates keep deliberate Claude and OpenAI pairs on the same price s
   await expect(pairs.nth(0)).toContainText("Claude Fable 5.1");
   await expect(pairs.nth(0)).toContainText("GPT-6 Astra");
   await expect(pairs.nth(1)).toContainText("Claude Opus 5.5");
-  await expect(pairs.nth(1)).toContainText("GPT-6 Sol");
+  await expect(pairs.nth(1)).toContainText("GPT-6.1 Sol");
+  await expect(chart.locator('[data-model-id="gpt-6-1-sol"]')).toHaveAttribute(
+    "href",
+    "/models/gpt-6-1-sol",
+  );
   await expect(pairs.nth(2)).toContainText("Claude Sonnet 5.5");
   await expect(pairs.nth(2)).toContainText("GPT-5.6 Terra");
   await expect(pairs.nth(3)).toContainText("Claude Haiku 4.5");
@@ -28,7 +32,7 @@ test("featured rates keep deliberate Claude and OpenAI pairs on the same price s
   const width = async (id: string) =>
     (await chart.locator(`[data-model-id="${id}"] .market-price-bar-fill`).boundingBox())?.width ??
     0;
-  expect((await width("gpt-6-sol")) / (await width("claude-opus-5-5"))).toBeCloseTo(0.5, 1);
+  expect((await width("gpt-6-1-sol")) / (await width("claude-opus-5-5"))).toBeCloseTo(0.5, 1);
   expect((await width("glm-5-3")) / (await width("claude-opus-5-5"))).toBeCloseTo(0.22, 1);
   await page.getByRole("button", { name: "Input", exact: true }).click();
   await expect(page.getByTestId("price-chart-scale")).toHaveText("Shared scale: $0 to $10");
@@ -42,7 +46,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   await expect(page.getByLabel("Order by")).toHaveValue("featured");
   const rows = page.getByTestId("model-row");
   await expect(rows.nth(0)).toContainText("Claude Opus 5.5");
-  await expect(rows.nth(1)).toContainText("GPT-6 Sol");
+  await expect(rows.nth(1)).toContainText("GPT-6.1 Sol");
   await expect(rows.nth(2)).toContainText("Claude Sonnet 5.5");
   await expect(rows.nth(3)).toContainText("GPT-5.6 Terra");
   await expect(rows.nth(0)).not.toContainText("Gemini");
