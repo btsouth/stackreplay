@@ -239,6 +239,11 @@ export type WorkerRequest =
       type: "API_MARKET";
       resourceInstanceId?: string;
       period?: import("./review-period").ReviewPeriod;
+      /**
+       * Recording tools to keep, by adapter id; absent or empty keeps every
+       * tool. My Stack prices each tool's slice with the same calculation.
+       */
+      sources?: string[];
       requestId: number;
       importId: string;
     }

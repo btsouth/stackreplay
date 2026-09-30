@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { ReplaySurface } from "@/components/replay/replay-surface";
 import { SuggestedReplays } from "@/components/replay/suggested-replays";
+import { parseStackParam } from "@/lib/stack-analysis";
 
 export const metadata: Metadata = {
   title: "Replay",
@@ -23,6 +24,7 @@ export default async function ReplayPage({
     api?: string;
     scope?: string;
     mode?: string;
+    stack?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -35,8 +37,10 @@ export default async function ReplayPage({
     typeof params.scope === "string"
       ? params.scope.split(",").filter((id) => /^[a-z0-9][a-z0-9-]{0,40}$/u.test(id))
       : undefined;
+  // A proposed subscription stack from My Stack: catalog plan ids only.
+  const stack = parseStackParam(typeof params.stack === "string" ? params.stack : undefined);
   if (params.mode !== "custom" && !target && !api && !scope?.length)
-    return <SuggestedReplays initialImportId={importId} />;
+    return <SuggestedReplays initialImportId={importId} initialStack={stack} />;
   return (
     <>
       <PageHeader

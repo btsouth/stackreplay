@@ -37,8 +37,11 @@ async function scan(
   return new URL(page.url()).searchParams.get("import") ?? "";
 }
 
+/** Setup is secondary once a stack exists: open it the way a person would. */
 async function edit(page: Page, family = "claude") {
-  await page.getByTestId(`edit-family-${family}`).click();
+  const button = page.getByTestId(`edit-family-${family}`);
+  if (!(await button.isVisible())) await page.getByTestId("stack-edit").click();
+  await button.click();
   await expect(page.locator("#stack-family-editor")).toBeVisible();
 }
 
@@ -58,9 +61,7 @@ test("no history needed: multiple plans save, reload, edit independently and rem
   await expect(page.getByTestId("stack-target-retired-plan")).toContainText(
     "Current catalog facts unavailable",
   );
-  await expect(page.getByTestId("stack-target-command-code-goat")).toContainText(
-    "Published price:",
-  );
+  await expect(page.getByTestId("stack-target-command-code-goat")).toContainText("$10/mo");
   await edit(page);
   await expect(page.locator("#stack-family-editor")).toContainText("Published access:");
   await expect(page.locator("#stack-family-editor")).not.toContainText("Model access unknown");
@@ -77,7 +78,7 @@ test("no history needed: multiple plans save, reload, edit independently and rem
     "plan:anthropic-claude-pro",
     "plan:anthropic-claude-max-5x",
   ]);
-  await expect(page.getByTestId("stack-published-total")).toContainText("API targets are excluded");
+  await expect(page.getByTestId("stack-published-total")).toContainText("API target is excluded");
   await page.reload();
   await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toBeVisible();
   await edit(page);
@@ -119,8 +120,11 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
   ]);
   await page.getByRole("link", { name: "Manage My Stack →" }).click();
   await expect(page).toHaveURL(new RegExp(`/app/stack\\?import=${id}`));
-  await expect(page.getByTestId("stack-activity-claude-code")).toContainText("% of recorded calls");
   await expect(page.getByTestId("selected-stack").locator("article")).toHaveCount(2);
+  // Two plans of one family share the tool's calls; they are never split.
+  await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toContainText(
+    "shared with Claude Max 5x",
+  );
 });
 
 for (const context of ["session-only", "missing"] as const) {
@@ -138,7 +142,7 @@ for (const context of ["session-only", "missing"] as const) {
     await expect(page.getByTestId("stack-workload")).toHaveValue("");
     await expect(page.getByTestId("stack-workload").locator("option")).toHaveCount(1);
     await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
-    await expect(page.getByTestId("stack-activity")).toHaveCount(0);
+    await expect(page.getByTestId("stack-opportunities")).toHaveCount(0);
     await page.getByRole("link", { name: "Manage plans without this workload →" }).click();
     await expect(page).toHaveURL(/\/app\/stack$/);
     await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
@@ -159,30 +163,34 @@ test("one selected workload at a time, unresolved identities stay unknown and na
   const codexId = await scan(page, "codex");
   await page.getByRole("button", { name: "Not now", exact: true }).click();
   await page.goto(`/app/stack?import=${claudeId}`);
-  await expect(page.getByTestId("stack-activity-claude-code")).toContainText(
-    "No resolved model identities",
-  );
-  await expect(page.getByTestId("stack-activity-claude-code")).toContainText(
-    "100% of recorded calls",
-  );
-  await expect(page.getByTestId("stack-activity-codex")).toHaveCount(0);
+  await expect(page.getByTestId("edit-family-claude")).toContainText("100% of recorded calls");
+  // Unresolved identities are never priced or assigned a model.
+  await expect(page.getByTestId("stack-workload-value")).toContainText("Not priced");
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["plan:anthropic-claude-max-5x"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  const report = page.getByTestId("stack-target-anthropic-claude-max-5x");
+  await expect(report).toContainText("Not priced");
+  await report
+    .getByTestId("report-details-anthropic-claude-max-5x")
+    .locator(":scope > summary")
+    .click();
+  await expect(report).toContainText("unresolved model identities");
   await page.getByTestId("stack-workload").selectOption(codexId);
-  await expect(page.getByTestId("stack-activity-codex")).toContainText("100% of recorded calls");
+  await expect(page.getByTestId("stack-outside")).toContainText("Codex");
   await page.reload();
   await expect(page.getByTestId("stack-workload")).toHaveValue(codexId);
-  await expect(page.getByTestId("stack-activity-codex")).toContainText("100% of recorded calls");
-  await expect(page.getByTestId("stack-activity-claude-code")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Replay this workload →" })).toHaveAttribute(
-    "href",
-    `/app/replay?import=${codexId}`,
+  await expect(page.getByTestId("stack-outside")).toContainText("No ChatGPT plan in your stack");
+  // Codex history says nothing about Claude use: not visible, never "unused".
+  await expect(page.getByTestId("stack-target-anthropic-claude-max-5x")).toContainText(
+    "No Claude Code history in this workload",
   );
-  await expect(page.getByRole("link", { name: "Compare and review billing →" })).toHaveAttribute(
-    "href",
-    `/app/compare?view=billing&import=${codexId}`,
-  );
+  await expect(page.getByTestId("opportunity-unused")).toHaveCount(0);
   await page.getByTestId("stack-workload").selectOption("");
-  await expect(page.getByTestId("stack-activity")).toHaveCount(0);
-  expect(await readStack(page)).toEqual([]);
+  await expect(page.getByTestId("stack-workload-value")).toContainText("No workload selected");
+  await expect(page.getByTestId("stack-outside")).toHaveCount(0);
+  expect(await readStack(page)).toEqual(["plan:anthropic-claude-max-5x"]);
 });
 
 test("Not sure, API/other and work responses persist without creating plans; manual choices survive", async ({
@@ -283,8 +291,10 @@ test("demo context is read-only, excludes activity and cannot change real select
   await page.goto(`/app/stack?import=${id}`);
   await expect(page.getByTestId("stack-demo-notice")).toBeVisible();
   await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Remove Command Code GOAT" })).toBeDisabled();
-  await expect(page.getByTestId("stack-activity")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Remove Command Code GOAT", exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByTestId("stack-opportunities")).toHaveCount(0);
   expect(await readStack(page)).toEqual(["plan:command-code-goat"]);
   expect(await page.evaluate((key) => localStorage.getItem(key), PREFERENCES)).toBe(
     '{"version":1,"groups":{"claude":{"response":"not-sure"}}}',
@@ -302,7 +312,8 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByTestId("stack-editor-plan-opencode-go").check();
     await page.getByTestId("stack-editor-plan-opencode-go-plus").check();
     await page.getByRole("button", { name: "Save stack", exact: true }).click();
-    await page.getByTestId("stack-target-opencode-go").locator("summary").click();
+    await page.getByTestId("report-details-opencode-go").locator(":scope > summary").click();
+    await page.getByTestId("published-access-opencode-go").locator("summary").click();
     expect(
       (
         await new AxeBuilder({ page })
@@ -361,8 +372,8 @@ test("published model access is compact, searchable and keeps distinct routes", 
     localStorage.setItem(key, '["plan:command-code-max-20x"]');
     window.dispatchEvent(new Event("stackreplay-current-stack"));
   }, STACK);
-  const card = page.getByTestId("stack-target-command-code-max-20x");
-  const access = card.locator("details");
+  await page.getByTestId("report-details-command-code-max-20x").locator(":scope > summary").click();
+  const access = page.getByTestId("published-access-command-code-max-20x");
   await expect(access.locator("summary")).toContainText(/Published model access · \d+ models/);
   await expect(access.getByRole("searchbox")).not.toBeVisible();
   await access.locator("summary").click();
@@ -412,7 +423,7 @@ test("modal contains focus, keeps actions visible on mobile and restores page sc
   expect(await readStack(page)).toEqual([]);
 });
 
-for (const operation of ["ANALYZE_WORKLOAD", "LIST_LOCAL_IMPORTS"] as const) {
+for (const operation of ["API_MARKET", "LIST_LOCAL_IMPORTS"] as const) {
   test(`${operation} failure has a working retry without changing selected plans`, async ({
     page,
   }) => {
@@ -446,25 +457,23 @@ for (const operation of ["ANALYZE_WORKLOAD", "LIST_LOCAL_IMPORTS"] as const) {
     }, operation);
     await page.goto(`/app/stack?import=${id}`);
     const retry = page.getByRole("button", {
-      name: operation === "ANALYZE_WORKLOAD" ? "Retry activity" : "Retry workloads",
+      name: operation === "API_MARKET" ? "Retry analysis" : "Retry workloads",
       exact: true,
     });
     await expect(retry).toBeVisible();
-    await expect(page.getByTestId("stack-activity")).toHaveCount(0);
     await retry.click();
-    await expect(page.getByTestId("stack-activity-claude-code")).toContainText(
-      "100% of recorded calls",
-    );
+    await expect(page.getByTestId("edit-family-claude")).toContainText("100% of recorded calls");
     expect(await readStack(page)).toEqual([]);
   });
 }
 
 test("empty and API-only stacks do not claim a zero subscription bill", async ({ page }) => {
   await page.goto("/app/stack");
-  await expect(page.getByTestId("stack-overview")).toContainText("Build your current stack");
+  await expect(page.getByTestId("stack-overview")).toContainText("No subscriptions yet");
   await expect(page.getByTestId("stack-published-total")).toContainText(
-    "Add a plan to see its price",
+    "Tell StackReplay what you currently pay for",
   );
+  await expect(page.getByTestId("stack-published-total")).not.toContainText("$0");
   await page.evaluate((key) => {
     localStorage.setItem(key, '["api:openai"]');
     window.dispatchEvent(new Event("stackreplay-current-stack"));

@@ -491,6 +491,30 @@ describe("market decision cancellation and generations", () => {
     client.dispose();
   });
 
+  it("keys market summaries by recording tools and sends the tool filter", async () => {
+    const client = new ReplayWorkerClient();
+    const period = { start: "2026-09-01", end: "2026-10-01" };
+    for (const sources of [undefined, ["codex"], ["claude-code"]]) {
+      const run = client.apiMarket("same", undefined, period, undefined, sources);
+      const worker = FakeWorker.instances.at(-1) as FakeWorker;
+      const sent = worker.sent.at(-1) as Extract<WorkerRequest, { type: "API_MARKET" }>;
+      expect(sent).toMatchObject({ type: "API_MARKET", period });
+      expect(sent.sources).toEqual(sources);
+      worker.reply({
+        type: "API_MARKET_OK",
+        requestId: sent.requestId,
+        decision: { scenarios: [] },
+      });
+      await run;
+    }
+    const worker = FakeWorker.instances.at(-1) as FakeWorker;
+    const count = worker.sent.length;
+    await client.apiMarket("same", undefined, period, undefined, ["codex"]);
+    await client.apiMarket("same", undefined, period, undefined, []);
+    expect(worker.sent.length).toBe(count);
+    client.dispose();
+  });
+
   it("reuses only completed summaries and releases them on teardown", async () => {
     const client = new ReplayWorkerClient();
     const run = client.apiMarket("a");
@@ -532,10 +556,14 @@ describe("market decision cancellation and generations", () => {
       await pending;
       return worker;
     }
-    await finish("a");
-    await finish("b");
-    await finish("c");
-    const worker = await finish("d");
+    // Eight completed summaries fit: a whole workload, a billing review and
+    // My Stack's per-tool slices of one period. The ninth evicts the oldest.
+    for (const id of ["a", "b", "c", "d", "e", "f", "g"]) await finish(id);
+    const kept = await finish("h");
+    const retained = kept.sent.length;
+    await client.apiMarket("a");
+    expect(kept.sent.length).toBe(retained);
+    const worker = await finish("i");
     const messages = worker.sent.length;
     await finish("a");
     expect(worker.sent.length).toBe(messages + 1);

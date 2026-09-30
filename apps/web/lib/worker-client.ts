@@ -129,6 +129,9 @@ const IDLE_TIMEOUT_MS: Record<Channel, number> = {
   "optimizer-detail": 30_000,
 };
 
+/** Completed market summaries kept for reuse (each is a bounded aggregate). */
+const MARKET_SUMMARY_LIMIT = 8;
+
 export class ReplayWorkerClient {
   private worker: Worker | undefined;
   private nextRequestId = 1;
@@ -447,8 +450,10 @@ export class ReplayWorkerClient {
     signal?: AbortSignal,
     period?: import("./review-period").ReviewPeriod,
     resourceInstanceId?: string,
+    sources?: readonly string[],
   ): Promise<MarketDecision> {
-    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}`;
+    const tools = [...new Set(sources ?? [])].sort();
+    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}\u0000${tools.join(",") || "every-tool"}`;
     if (signal?.aborted) throw new SupersededError();
     const cached = this.marketSummaries.get(cacheKey);
     if (cached) return cached;
@@ -463,6 +468,7 @@ export class ReplayWorkerClient {
           importId,
           ...(period ? { period } : {}),
           ...(resourceInstanceId ? { resourceInstanceId } : {}),
+          ...(tools.length ? { sources: tools } : {}),
         };
       },
       undefined,
@@ -477,8 +483,11 @@ export class ReplayWorkerClient {
     const response = await pending;
     if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
     if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
+    // Bounded aggregates: the whole workload, a billing review, and My Stack's
+    // per-tool slices of one period fit without evicting each other.
     const oldest = this.marketSummaries.keys().next().value;
-    if (this.marketSummaries.size >= 3 && oldest !== undefined) this.marketSummaries.delete(oldest);
+    if (this.marketSummaries.size >= MARKET_SUMMARY_LIMIT && oldest !== undefined)
+      this.marketSummaries.delete(oldest);
     this.marketSummaries.set(cacheKey, response.decision);
     this.optimizerAbortCleanup?.();
     this.optimizerAbortCleanup = undefined;

@@ -24,49 +24,63 @@ export function StrategyResult({
     >
       <div>
         <MicroLabel>
-          {result.mode === "assessment"
-            ? "Current-stack assessment"
-            : `${result.mode} replay complete`}
+          {result.mode === "assessment" ? "Stack assessment" : `${result.mode} replay complete`}
         </MicroLabel>
         <Heading className="mt-2 text-2xl font-medium">{result.title}</Heading>
       </div>
-      <div className="grid gap-6 border-y border-border py-6 sm:grid-cols-2">
-        <div>
-          <MicroLabel>
-            {result.mode === "assessment" ? "Capacity" : "Published API cost"}
-            {result.priced < result.calls && result.cost ? " · priced calls only" : ""}
-          </MicroLabel>
-          <p
-            className="mt-3 font-mono text-3xl tracking-tight sm:text-4xl"
-            data-testid="strategy-cost"
-          >
-            {priceRangeText(result.cost)}
-          </p>
+      {result.mode === "assessment" ? (
+        // A stack assessment carries evidence-labelled findings, not a replayed cost.
+        <ul
+          className="space-y-2 border-y border-border py-5 text-sm leading-relaxed"
+          data-testid="strategy-findings"
+        >
+          {result.limitations.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      ) : (
+        <div className="grid gap-6 border-y border-border py-6 sm:grid-cols-2">
+          <div>
+            <MicroLabel>
+              Published API cost
+              {result.priced < result.calls && result.cost ? " · priced calls only" : ""}
+            </MicroLabel>
+            <p
+              className="mt-3 font-mono text-3xl tracking-tight sm:text-4xl"
+              data-testid="strategy-cost"
+            >
+              {priceRangeText(result.cost)}
+            </p>
+          </div>
+          <div>
+            <MicroLabel>Difference versus recorded API equivalent</MicroLabel>
+            <p className="mt-3 font-mono text-2xl" data-testid="strategy-difference">
+              {result.difference ? priceRangeText(result.difference) : "No same-scope difference"}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Recorded baseline {priceRangeText(result.baseline)}
+              {result.difference ? " · replay minus baseline" : ""}
+            </p>
+          </div>
         </div>
-        <div>
-          <MicroLabel>Difference versus recorded API equivalent</MicroLabel>
-          <p className="mt-3 font-mono text-2xl" data-testid="strategy-difference">
-            {result.difference ? priceRangeText(result.difference) : "No same-scope difference"}
+      )}
+      {result.mode === "assessment" ? null : (
+        <>
+          <p className="text-sm" data-testid="strategy-coverage">
+            <strong>
+              {result.calls.toLocaleString()} / {result.calls.toLocaleString()}
+            </strong>{" "}
+            calls retained · {formatTokens(result.tokens)} known tokens ·{" "}
+            {result.priced.toLocaleString()} priced · {mapped.length} models translated (
+            {result.translatedCalls.toLocaleString()} calls)
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Recorded baseline {priceRangeText(result.baseline)}
-            {result.difference ? " · replay minus baseline" : ""}
-          </p>
-        </div>
-      </div>
-      <p className="text-sm" data-testid="strategy-coverage">
-        <strong>
-          {result.calls.toLocaleString()} / {result.calls.toLocaleString()}
-        </strong>{" "}
-        calls retained · {formatTokens(result.tokens)} known tokens ·{" "}
-        {result.priced.toLocaleString()} priced · {mapped.length} models translated (
-        {result.translatedCalls.toLocaleString()} calls)
-      </p>
-      <div className="space-y-2 text-sm text-muted-foreground">
-        {result.limitations.map((t) => (
-          <p key={t}>{t}</p>
-        ))}
-      </div>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            {result.limitations.map((t) => (
+              <p key={t}>{t}</p>
+            ))}
+          </div>
+        </>
+      )}
       <details data-testid="saved-snapshot-provenance">
         <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
           Snapshot provenance
