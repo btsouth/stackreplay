@@ -2,6 +2,7 @@
 
 import {
   bundledPlanFacts,
+  bundledPlanModelsAt,
   bundledPlanTimelineInput,
   bundledProviderFacts,
   bundledPublicApiProviders,
@@ -357,7 +358,9 @@ export function ReplaySurface({
     [filteredProviders, providerId, providers],
   );
   const targetReady =
-    targetKind === "api" ? selectedProvider !== undefined : selectedPlan !== undefined;
+    targetKind === "api"
+      ? selectedProvider !== undefined
+      : selectedPlan !== undefined && bundledPlanModelsAt(selectedPlan.id, rulesAsOf) !== undefined;
   const targetKey =
     targetKind === "api"
       ? selectedProvider === undefined
@@ -513,6 +516,9 @@ export function ReplaySurface({
   }, [client, initialImportId]);
 
   const runReplay = useCallback(async () => {
+    // Current-market plans can publish access/price without the allowance rules
+    // this capacity Replay needs. Keyboard shortcuts follow the same boundary.
+    if (!targetReady) return;
     const translation = policy === undefined ? {} : { modelTranslation: policy };
     const target: ExecutionTargetV1 | undefined =
       targetKind === "api"
@@ -585,6 +591,7 @@ export function ReplaySurface({
     serviceTier,
     sourceNames,
     targetKind,
+    targetReady,
     unresolvedEvents,
     workload,
   ]);
@@ -1179,6 +1186,16 @@ export function ReplaySurface({
             <p className="text-xs text-warning" data-testid="provider-unpriced-note">
               No model this provider offers has an API list price record, so a replay will report
               the demand as unpriced rather than invent a cost.
+            </p>
+          ) : null}
+          {targetKind === "subscription" && selectedPlan !== undefined && !targetReady ? (
+            <p
+              className="max-w-prose text-sm text-muted-foreground"
+              role="status"
+              data-testid="plan-replay-unavailable"
+            >
+              Published access and price are available for {selectedPlan.name}. Capacity Replay is
+              unavailable with the current catalog rules.
             </p>
           ) : null}
 

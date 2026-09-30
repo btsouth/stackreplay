@@ -79,6 +79,14 @@ for (const archive of [false, true]) {
     await visitReplay(page);
     await expect(page.getByTestId("plan-opencode-go")).toBeVisible();
     await expect(page.getByTestId("plan-command-code-goat")).toBeVisible();
+    await page.getByTestId("plan-command-code-goat").click();
+    await expect(page.getByTestId("plan-replay-unavailable")).toContainText(
+      "Capacity Replay is unavailable",
+    );
+    await expect(page.getByTestId("run-replay")).toBeDisabled();
+    await page.getByTestId("plan-command-code-goat").press("Enter");
+    await expect(page.getByTestId("replay-error")).toHaveCount(0);
+    await expect(page.getByTestId("translation-required")).toHaveCount(0);
     await setRulesAsOf(page, "2026-09-29");
     await page.getByTestId("target-kind-api").click();
     await page.getByTestId("provider-openai").click();
