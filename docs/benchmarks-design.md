@@ -1,7 +1,8 @@
 # Benchmark comparison product
 
-Design proposal following the September 30 implementation brief and supplied mockup.
-The data foundation is in progress. The broader comparison flow below is pending product review.
+Accepted product direction following the September 30 implementation brief,
+supplied mockup and discussion of cross-source coverage. The data foundation is
+implemented; the builder and public UI remain to be implemented.
 
 ## One comparison builder
 
@@ -15,25 +16,57 @@ Claude Opus 5.5 and Claude Fable 5.1. This is an editorial selection, not a clai
 these are the top five models. DeepSeek V4.1 Flash, Sonnet 5.5 and other accepted
 releases remain searchable in the same picker.
 
-## Comparability and coverage
+## Verified results and comparability
 
-For a selected group, query each reviewed source snapshot independently:
+The main builder may combine verified observations from different publishers.
+Verification means checking the reported score against its original evidence;
+it does not mean StackReplay independently reproduced the evaluation.
 
-1. Find observations for the selected exact model IDs in that snapshot.
-2. Keep only exact benchmark/version/variant rows with an observation for every
-   selected model under that source's declared comparison context.
-3. Validate the resulting model × benchmark matrix before rendering.
-4. Offer matching source snapshots, showing their date, evidence class and shared
-   row count. Keep the chosen snapshot pinned in the URL.
+A comparison row preserves the exact benchmark, version, metric, unit and task
+subset. Pass@1 and pass@4 are separate rows. Different benchmark versions never
+merge. An unreported version stays explicitly unreported and does not establish
+equivalence with a known version.
 
-This generates comparisons from data. No chart needs to be authored separately for
-DeepSeek versus Sonnet. Availability still depends on evidence: two models having
-a score under the same benchmark name does not establish a shared comparison.
+Different harnesses, efforts, tools, fallbacks or deployments may appear in the
+same row when its benchmark identity and metric match. The row says "Different
+evaluation setups" and each score opens its evaluator, reporter, configuration,
+date and original evidence. Missing configuration is labelled as unreported.
+Numeric comparisons remain readable without suggesting that these setups match.
 
-Do not silently reduce the selection to models a source happens to cover. When no
-snapshot covers the full group, say so and offer explicitly labelled subsets or
-individual evidence. These are separate results, with no cross-source cell
-highlighting, subtraction, average or implied direct comparison.
+Each cell retains one exact observation, with a quiet source marker. When several
+verified results exist, expose the alternatives and document why the primary
+observation was selected. Never select the largest score automatically. Pin
+model IDs and observation IDs in share links so later data updates cannot change
+an existing comparison silently.
+
+The default "Shared benchmarks" view contains rows with supported results for
+every selected model, including results from different sources. "All reported
+results" also shows other rows with explicit "Not reported" cells. Missing data
+never becomes zero, an empty score or a fabricated estimate. Never silently drop
+a selected model. If there are no shared rows, explain coverage and offer the
+all-results view without changing the selection.
+
+This generates comparisons from data. No chart needs to be authored separately
+for DeepSeek versus Sonnet. Category filters only organize the evidence; they do
+not make the measures interchangeable.
+
+Use highest-score highlighting only when the observations have documented
+matching evaluation conditions. A common publisher alone is insufficient.
+Mixed or unknown setups receive no highest-score highlight. Do not calculate
+averages, normalized scores, win counts or an overall model ranking.
+
+## Reproducible source sheets
+
+Keep provider launch sheets and other reviewed source snapshots as secondary
+views. A source sheet is not the only route to comparing models. Each declared
+complete source set still validates its entire model × benchmark matrix, with no
+missing cells or duplicate observations. An individual observation set can hold
+partial coverage without pretending to be a complete comparison sheet.
+
+Google's table is a developer-reported publication containing both Google's own
+evaluations and externally reported results. The reporting organization and the
+actual evaluation origin are distinct. Show those distinctions in the sheet and
+cell disclosures rather than implying that every number used the same harness.
 
 ## GPT-6.1 Sol and the initial sheet
 
@@ -41,16 +74,16 @@ Google's September 30 Argon table has four models and 17 complete rows. GPT-6.1 
 is absent. The default Frontier selection can include Sol, but the Google table
 cannot gain a Sol score column without breaking provenance and completeness.
 
-Before a five-model matrix can ship, identify a licensed, verified source snapshot
-with a shared benchmark subset covering all five. It may have fewer than 17 rows.
-No such snapshot has been established in this work yet. Official Sol API model
-documentation inspected on September 30 contains specifications and pricing but
-no numerical benchmark comparison matrix.
+Sol can enter the main Frontier comparison using separately sourced, verified
+observations. A five-model shared publisher matrix is not required. Google's
+original four-model sheet remains unchanged and reproducible.
 
-If the five-model shared source is unavailable, show explicit coverage:
-Google's four-model/17-row sheet, plus Sol's separately sourced evidence when it
-has been verified. Do not show 17 missing Sol cells or borrow values from Sol's
-launch materials into Google's columns.
+Sol's numerical benchmark evidence has not yet been established in this work.
+Official Sol API model documentation inspected on September 30 contains
+specifications and pricing but no numerical benchmark comparison matrix. Source
+research is an explicit implementation step, not permission to infer scores.
+If a result cannot be verified, show its coverage honestly in the all-results
+view. Never present a Sol observation as part of Google's launch evaluation.
 
 ## Source snapshot lifecycle
 
@@ -58,28 +91,36 @@ Each reporting set is a dated, reviewed snapshot with benchmark definitions,
 observations, publication, original evidence, methodology and redistribution basis.
 The same model/benchmark pair can have several observations across snapshots.
 Separate harness or effort variants within a publication require separate source
-set IDs rather than overwriting a cell.
+set IDs rather than overwriting a cell. Add stable observation IDs and explicit
+metric/subset and primary-selection metadata to the existing foundation before
+implementing the cross-source builder.
 
-New releases add snapshots. Existing share links remain reproducible. An unpinned
-default may advance to the newest reviewed snapshot with sufficient coverage;
-the page always displays the snapshot date. A newer benchmark version creates a
-new definition and never overwrites an older version.
+New releases add snapshots. Existing share links remain reproducible. Editorial
+presets may change through review, and unpinned defaults may adopt newly reviewed
+observations according to documented selection decisions. Every score continues
+to display its own source date. A newer benchmark version creates a new
+definition and never overwrites an older version.
 
 For v1, updates are manual review and checked-in data. Automatic ingestion and
-benchmark watching remain out of scope. A later monitor could propose changes
-for review, subject to source permissions, but must never publish scores directly.
+benchmark watching remain out of scope. Verify and record redistribution terms
+before storing any non-provider data. Provider-published numerical facts are
+stored as developer-reported evidence; publication on a public website alone is
+not a redistribution license.
 
 ## Presentation
 
 Keep the mockup's hierarchy: kicker, clear headline, quiet source summary,
 category controls, then an uninterrupted score table. Add a compact model picker
-above the sheet. Source switching appears only when relevant choices exist.
+and the shared/all coverage control above the sheet. Show a source summary for a
+single-source view or "Multiple sources" for mixed results. Original source
+sheets are available through a secondary view, with switching only when useful.
 
 Desktop uses a semantic table with model/developer headers, exact benchmark names
-and category labels, readable tabular scores and subtle source-local extremes.
-Equal scores receive equal treatment. A textual accessible label explains the
-highlight. A row disclosure supplies its short description, exact version or
-unreported version, unit, direction and per-model configuration.
+and category labels, readable tabular scores and restrained source markers.
+Equal scores receive equal treatment whenever highlighting is justified. A
+textual accessible label explains the highlight. A row disclosure supplies its
+short description, exact version or unreported version, metric, unit, direction
+and per-model configuration.
 
 Phone uses a sticky benchmark column and internal horizontal scrolling, keeping
 model headers visible. The page itself must not overflow. Category controls wrap,
@@ -93,6 +134,21 @@ disclosure. Links into `/benchmarks` carry the exact model and source selection.
 
 Retain the original brief's schema, complete-matrix, provenance, accessibility,
 theme/mobile, representative-value, licensing and catalog/Replay isolation checks.
-Add comparison-builder checks for selected-model intersections, no silent model
-dropping, no common source, partial coverage, pinned URL state and version changes.
+Add comparison-builder checks for cross-source shared rows, mixed/unknown setup
+labels, observation alternatives and documented defaults, no silent model
+dropping, explicit partial coverage, pinned URL state and version/metric changes.
 Use targeted devbox checks and one hosted CI cycle for the benchmark PR.
+
+## Implementation order
+
+1. Merge the small Argon catalog prerequisite after its existing hosted checks
+   pass, then rebase the isolated benchmark branch onto current main.
+2. Extend the evidence schema and comparison resolver for the accepted policy.
+   Verify Sol and other provider-reported results and record source permissions.
+3. Build the model picker, shareable comparison state, shared/all rows and source
+   sheets using the approved mockup and existing StackReplay design tokens.
+4. Add model-page sections and local methodology/evidence disclosures.
+5. Verify the schema, resolver and catalog/Replay isolation; review desktop and
+   phone in both themes, accessibility, contrast and page overflow on devbox.
+6. Open one benchmark architecture/UI PR after targeted validation, run one
+   hosted CI cycle and leave it for review without merging or deploying it.
