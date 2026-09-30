@@ -3,9 +3,10 @@ import { bundledApiProviderModels, loadBundledCatalog } from "@stackreplay/catal
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { StackScenarioPanel } from "@/components/stack/stack-scenario-panel";
 import {
   type CompletedReplay,
   compatibleReplaySnapshots,
@@ -29,6 +30,12 @@ import {
   type TranslationProfile,
 } from "@/lib/replay-strategies";
 import { suggestRoutes, supportedModelsFor, type TargetKey, workloadSlices } from "@/lib/routes";
+import {
+  type ScenarioResult,
+  type StackWorkload,
+  stackAssessmentLines,
+  stackAssessmentTitle,
+} from "@/lib/stack-analysis";
 import { suggestedReplaySnapshotHash } from "@/lib/suggested-replay-snapshot";
 import { browserTimeZone } from "@/lib/time-zone";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
@@ -42,7 +49,14 @@ import { workloadModels } from "./translation-model";
 const action =
   "inline-flex min-h-11 items-center text-sm text-accent underline-offset-4 hover:underline";
 
-export function SuggestedReplays({ initialImportId }: { initialImportId?: string | undefined }) {
+export function SuggestedReplays({
+  initialImportId,
+  initialStack,
+}: {
+  initialImportId?: string | undefined;
+  /** A proposed stack from My Stack's "Inspect in Replay": catalog plan ids only. */
+  initialStack?: TargetKey[] | undefined;
+}) {
   const [state, setState] = useState<{
     record?: ImportRecord | undefined;
     loaded?: boolean;
@@ -86,7 +100,9 @@ export function SuggestedReplays({ initialImportId }: { initialImportId?: string
         </Link>
       </div>
     );
-  return <StrategyWorkspace key={state.record.id} record={state.record} />;
+  return (
+    <StrategyWorkspace key={state.record.id} record={state.record} initialStack={initialStack} />
+  );
 }
 function ReplayPreparation() {
   return (
@@ -103,14 +119,34 @@ function ReplayPreparation() {
     </div>
   );
 }
-function StrategyWorkspace({ record }: { record: ImportRecord }) {
+function StrategyWorkspace({
+  record,
+  initialStack,
+}: {
+  record: ImportRecord;
+  initialStack?: TargetKey[] | undefined;
+}) {
   const rulesDate = DECISION_RULES_DATE;
   const [baseline, setBaseline] = useState<MarketDecision>();
   const [profile, setProfile] = useState<WorkloadProfile>();
   const [error, setError] = useState<string>();
   const [retry, setRetry] = useState(0);
   const [stack, setStack] = useState<TargetKey[]>([]);
-  const [choice, setChoice] = useState<"exact" | "stack" | TranslationProfile["id"]>();
+  const [choice, setChoice] = useState<"exact" | "stack" | TranslationProfile["id"] | undefined>(
+    initialStack ? "stack" : undefined,
+  );
+  const [proposedStack, setProposedStack] = useState<TargetKey[] | undefined>(initialStack);
+  const stackScenario = useRef<{ result: ScenarioResult; workload?: StackWorkload | undefined }>(
+    undefined,
+  );
+  const [stackReady, setStackReady] = useState(false);
+  const receiveScenario = useCallback(
+    (result: ScenarioResult, workload: StackWorkload | undefined) => {
+      stackScenario.current = { result, workload };
+      setStackReady(workload !== undefined);
+    },
+    [],
+  );
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState(false);
   const [result, setResult] = useState<CompletedReplay>();
@@ -190,11 +226,6 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
     .slice(0, 1);
   const market = baseline ? baselineRange(baseline) : undefined;
   const published = market ?? marketRange(baseline?.pricedScope);
-  const currentPlans = stack
-    .filter((k) => k.startsWith("plan:"))
-    .map((k) => DECISION_MARKET.plans.find((p) => p.id === k.slice(5)))
-    .filter((p) => p !== undefined);
-  const currentApis = stack.filter((k) => k.startsWith("api:"));
   const coverage = selected
     ? mappingCoverage(workload, selected.providerId, mapping, rulesDate)
     : undefined;
@@ -274,32 +305,25 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
           ],
         };
       } else if (choice === "stack") {
+        const scenario = stackScenario.current;
+        if (!scenario?.workload) return;
         completed = {
           ...common,
-          title: "Current stack",
+          title: stackAssessmentTitle(scenario.result, proposedStack ?? stack),
           catalogHash: DECISION_MARKET.catalogHash,
           decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
           rulesAt: DECISION_MARKET.rulesAt,
+          // The assessment covers the stack's period, not the whole-history baseline.
+          scopeDigest: scenario.workload.scopeDigest ?? common.scopeDigest,
+          baseline: undefined,
+          calls: scenario.workload.overall.calls,
+          tokens: scenario.workload.overall.knownTokens,
           mode: "assessment",
           priced: 0,
           translatedCalls: 0,
           mappings: [],
           contributions: [],
-          limitations: [
-            "No deterministic combined capacity result is claimed. Selected subscriptions retain their published model access and full-cycle purchase terms.",
-            ...currentPlans
-              .slice(0, 10)
-              .map(
-                (p) =>
-                  `${p.name}: ${p.artifact.purchase.kind === "subscription" ? `$${p.artifact.purchase.fixedUsd} published per ${p.artifact.purchase.term}; ` : ""}${p.artifact.computation.kind === "not_computable" ? "capacity not deterministically published" : "test this plan individually in Build your own"}.`,
-              ),
-            ...(currentApis.length
-              ? [
-                  "Selected APIs can be tested individually in Build your own. Their availability is not extra subscription capacity.",
-                ]
-              : []),
-            "Published subscription prices are not confirmed spend for this imported period. No prorating or allocation between overlapping plans is inferred.",
-          ],
+          limitations: stackAssessmentLines(scenario.result, scenario.workload),
         };
       } else if (selected) {
         const policy = approvedPolicy(selected, mapping);
@@ -387,7 +411,7 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
     choice === "exact"
       ? "Same models → direct APIs"
       : choice === "stack"
-        ? "Current stack"
+        ? "Test a change to your stack"
         : selected?.name;
   if (!baseline || !profile) {
     if (!error) return <ReplayPreparation />;
@@ -516,13 +540,13 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
                 }
               />
             ) : null}
-            {stack.length ? (
+            {stack.some((key) => key.startsWith("plan:")) ? (
               <Suggestion
-                title="Current stack"
-                mode="Commercial assessment"
+                title="Test a change to your stack"
+                mode="Stack scenario"
                 id="suggest-stack"
                 onClick={() => choose("stack")}
-                why={`${stack.length} locally selected targets. Inspect known access and price; opaque capacity remains unknown.`}
+                why={`${stack.filter((key) => key.startsWith("plan:")).length} confirmed subscriptions. Change a tier or remove one and see what StackReplay can determine about this workload; plan capacity stays undetermined.`}
               />
             ) : null}
           </details>
@@ -550,15 +574,23 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
             {selected
               ? "Explicit translated scenario"
               : choice === "stack"
-                ? "Capacity remains unknown"
+                ? "Stack scenario · capacity stays undetermined"
                 : "Exact recorded models"}
           </MicroLabel>
           <h1 className="text-2xl font-medium">{title}</h1>
-          <p className="text-sm text-muted-foreground">
-            Full imported workload · {record.eventCount.toLocaleString()} calls retained. No dates
-            or sources excluded.{" "}
-            {selected ? `API rules as of ${rulesDate} · Standard processing.` : ""}
-          </p>
+          {choice === "stack" ? (
+            <p className="text-sm text-muted-foreground">
+              Your recorded work in its billing period, read against a proposed set of
+              subscriptions. Published prices are exact; workload effects use recorded calls and
+              accepted API prices; no subscription publishes a fixed token quota.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Full imported workload · {record.eventCount.toLocaleString()} calls retained. No dates
+              or sources excluded.{" "}
+              {selected ? `API rules as of ${rulesDate} · Standard processing.` : ""}
+            </p>
+          )}
           {selected ? (
             <>
               <div className="flex flex-wrap justify-between gap-3 border-y border-border py-4">
@@ -640,50 +672,26 @@ function StrategyWorkspace({ record }: { record: ImportRecord }) {
               scenarios remain explicit. No subscription allowance is inferred.
             </p>
           ) : (
-            <div className="space-y-3">
-              {currentPlans.map((p) => (
-                <div key={p.id} className="border-b border-border py-3">
-                  <p>{p.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {p.artifact.purchase.kind === "subscription"
-                      ? `${p.artifact.purchase.fixedUsd} USD published price per billing cycle`
-                      : "Published catalog terms"}{" "}
-                    ·{" "}
-                    {p.artifact.computation.kind === "not_computable"
-                      ? "Capacity not deterministically published"
-                      : "Individual replay available in Build your own"}
-                  </p>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Published model access:{" "}
-                    {[...new Set((p.artifact.knownAccess ?? []).flatMap((a) => a.models))]
-                      .map(modelName)
-                      .join(", ") || "No deterministic model list recorded"}
-                    . Exact access is distinct from a computable capacity allowance.
-                  </p>
-                </div>
-              ))}
-              {currentApis.map((k) => (
-                <p key={k} className="text-sm">
-                  {k.slice(4)} API selected · inspect independently in Build your own
-                </p>
-              ))}
-              <p className="text-sm text-muted-foreground">
-                This assessment does not invent a combined quota or assign overlapping calls to
-                subscriptions.
-              </p>
-            </div>
+            <StackScenarioPanel
+              record={record}
+              current={stack}
+              proposed={proposedStack ?? stack}
+              onChange={setProposedStack}
+              enabled={!!baseline && !!profile}
+              onResult={receiveScenario}
+            />
           )}
           <button
             type="button"
             onClick={() => void run()}
-            disabled={running || !baseline || !profile}
+            disabled={running || !baseline || !profile || (choice === "stack" && !stackReady)}
             className="min-h-11 border border-accent bg-accent px-6 text-sm font-medium text-accent-foreground disabled:opacity-50"
             data-testid="run-strategy"
           >
             {running
               ? "Replaying locally…"
               : choice === "stack"
-                ? "Assess current stack"
+                ? "Save this stack assessment"
                 : "Run replay"}
           </button>
           {running ? (

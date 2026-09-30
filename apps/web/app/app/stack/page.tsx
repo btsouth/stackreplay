@@ -4,7 +4,7 @@ import { MyStackSurface } from "@/components/stack/my-stack-surface";
 export const metadata: Metadata = {
   title: "My Stack",
   description:
-    "Your selected plans, current published facts and recorded tool activity, kept in this browser.",
+    "Your subscriptions read against the work you actually recorded: leverage, low use, tier changes and what StackReplay can and cannot determine, kept in this browser.",
 };
 
 export default async function StackPage({

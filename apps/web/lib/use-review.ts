@@ -22,11 +22,14 @@ function hasSavedStack(namespace: string): boolean {
     return false;
   }
 }
-export function useReview(record: ImportRecord) {
-  const synthetic = isSyntheticWorkload(record);
-  const namespace = synthetic ? `.demo.${record.id}` : "";
-  const fullDemo = synthetic && record.label === "Demo: billing";
-  const [ready, setReady] = useState(false);
+/** Local billing-review state for one workload. Without a workload it reads nothing and saves nothing. */
+export function useReview(record: ImportRecord | undefined) {
+  const synthetic = record ? isSyntheticWorkload(record) : false;
+  const namespace = record && synthetic ? `.demo.${record.id}` : "";
+  const fullDemo = synthetic && record?.label === "Demo: billing";
+  const recordId = record?.id;
+  // Ready for this workload only: a switch never reuses the previous workload's choice.
+  const [readyFor, setReadyFor] = useState<string | null | undefined>(null);
   const [choice, setChoice] = useState<ReviewChoice>({ mode: "history" });
   const [billing, setBilling] = useState<Record<string, BillingFact>>({});
   const [selected, setSelected] = useState<TargetKey[]>([]);
@@ -34,7 +37,7 @@ export function useReview(record: ImportRecord) {
   useEffect(() => {
     const refresh = () => {
       const state = readReviewState(namespace);
-      const saved = state.reviews[record.id];
+      const saved = recordId === undefined ? undefined : state.reviews[recordId];
       setChoice(
         saved ??
           (fullDemo
@@ -54,7 +57,7 @@ export function useReview(record: ImportRecord) {
       setSelected(
         fullDemo && !hasSavedStack(namespace) ? sampleSelected : readCurrentStack(namespace),
       );
-      setReady(true);
+      setReadyFor(recordId);
     };
     refresh();
     const a = subscribeReview(refresh),
@@ -63,8 +66,9 @@ export function useReview(record: ImportRecord) {
       a();
       b();
     };
-  }, [record.id, namespace, fullDemo]);
+  }, [recordId, namespace, fullDemo]);
   const update = (next: ReviewChoice, fact?: { key: string; fact: BillingFact }) => {
+    if (recordId === undefined) return;
     const storedFact =
       fact && next.resourceInstanceId
         ? {
@@ -72,7 +76,7 @@ export function useReview(record: ImportRecord) {
             fact: { ...fact.fact, resourceInstanceId: next.resourceInstanceId },
           }
         : fact;
-    const saved = saveReview(record.id, next, storedFact, namespace);
+    const saved = saveReview(recordId, next, storedFact, namespace);
     setChoice(next);
     if (fact) setBilling((old) => ({ ...old, [fact.key]: storedFact?.fact ?? fact.fact }));
     setSaveFailed(!saved);
@@ -82,7 +86,7 @@ export function useReview(record: ImportRecord) {
     [choice.focusedSubscription, selected],
   );
   return {
-    ready,
+    ready: readyFor === recordId,
     choice,
     billing,
     selected,

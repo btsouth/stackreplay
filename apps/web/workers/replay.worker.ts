@@ -164,11 +164,26 @@ async function handleMarket(
     const loaded = await loadWorkloadEvents(request.importId, current);
     if (!loaded.ok) throw new Error("Workload unavailable");
     if (!current()) throw new OptimizerCancelledError();
-    const scoped = reviewWorkload(
-      loaded.exported.events,
-      request.period,
-      request.resourceInstanceId,
-    );
+    const sources = request.sources?.length ? new Set(request.sources) : undefined;
+    const sourceEvents = sources
+      ? loaded.exported.events.filter((event) => sources.has(event.source.adapterId))
+      : loaded.exported.events;
+    // Capacity evidence belongs to the local accounts of the tools in scope.
+    const sourceAccounts = sources
+      ? new Set(sourceEvents.flatMap((event) => event.source.resourceInstanceId ?? []))
+      : undefined;
+    const observations =
+      loaded.exported.capacityObservations && sourceAccounts
+        ? sourceAccounts.size > 0
+          ? {
+              ...loaded.exported.capacityObservations,
+              events: loaded.exported.capacityObservations.events.filter((event) =>
+                sourceAccounts.has(event.resourceInstanceId),
+              ),
+            }
+          : undefined
+        : loaded.exported.capacityObservations;
+    const scoped = reviewWorkload(sourceEvents, request.period, request.resourceInstanceId);
     const gapCodes = new Set([
       "SOURCE_UNREADABLE",
       "SOURCE_TRUNCATED",
@@ -195,13 +210,13 @@ async function handleMarket(
       scenarios: [],
       history: scoped.history,
       capacity: summarizeCapacity(
-        loaded.exported.capacityObservations,
+        observations,
         scoped.events,
         request.period,
         request.resourceInstanceId,
       ),
     };
-    const capacityEvents = (loaded.exported.capacityObservations?.events ?? []).filter((event) => {
+    const capacityEvents = (observations?.events ?? []).filter((event) => {
       const day = event.timestamp.slice(0, 10);
       return (
         (!request.resourceInstanceId || event.resourceInstanceId === request.resourceInstanceId) &&
@@ -214,7 +229,7 @@ async function handleMarket(
       );
     });
     const blocked = capacityEvents.filter((event) => event.eventType === "hard_limit_reached");
-    if (loaded.exported.capacityObservations)
+    if (observations)
       decision.capacitySignal = {
         blockedAttempts: blocked.length,
         warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,

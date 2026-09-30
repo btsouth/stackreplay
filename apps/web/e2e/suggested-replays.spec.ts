@@ -158,16 +158,32 @@ test("edited unmapped calls remain in scope without a whole-workload difference"
   await expect(page.getByTestId("strategy-difference")).toHaveText("No same-scope difference");
   await expect(page.getByTestId("strategy-mapping-result")).toContainText("Unmapped");
 });
-test("current stack stays honest and manual capabilities remain available", async ({ page }) => {
+test("a stack scenario stays honest about capacity and manual capabilities remain available", async ({
+  page,
+}) => {
   await setup(page);
   await page.getByTestId("strategy-assessments").locator("summary").click();
   await page.getByTestId("suggest-stack").click();
-  await expect(page.getByTestId("strategy-confirmation")).toContainText("100 USD published price");
+  await expect(page.getByTestId("replay-stack-period")).toContainText(
+    "Recorded history · Sep 1, 2026 – Sep 5, 2026",
+  );
+  await page
+    .getByTestId("replay-scenario-plan-anthropic-claude-max-5x")
+    .selectOption("plan:anthropic-claude-pro");
+  const outcome = page.getByTestId("replay-scenario-outcome");
+  await expect(page.getByTestId("replay-scenario-outcome-delta")).toContainText("−$80/mo");
+  await expect(outcome).toContainText(
+    "Published allowance: 5× Pro session allowance → Pro usage allowance; five-hour and weekly limits.",
+  );
+  await expect(outcome).toContainText(
+    "Cannot determine whether every recorded request would fit Claude Pro",
+  );
   await page.getByTestId("run-strategy").click();
   await expect(page.getByTestId("strategy-result")).toContainText(
-    "capacity not deterministically published",
+    "Stack scenario: Claude Pro (−$80/mo)",
   );
-  await expect(page.getByTestId("strategy-cost")).toHaveText("Not computable");
+  await expect(page.getByTestId("strategy-findings")).toContainText("plan fit is not claimed");
+  await expect(page.getByTestId("strategy-cost")).toHaveCount(0);
   await page.getByRole("button", { name: "← Try another strategy" }).click();
   await page.getByTestId("build-own").click();
   await expect(page.getByTestId("run-replay")).toBeVisible();

@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+### My Stack decision surface (feat/my-stack-decisions, not released)
+
+`/app/stack` now reads the selected workload, in its billing period, against the confirmed
+subscriptions: published stack price, API-equivalent value of the recorded work, subscription
+leverage, a short list of evidence-labelled opportunities, one report per subscription, and a
+"Test a change" scenario shared with Replay (`?stack=<plan ids>`). Per-tool values reuse the
+accepted market calculation through a new `sources` filter on `API_MARKET`. No plan capacity is
+modeled or claimed. See [My Stack decisions](my-stack-decisions.md).
+
 ### History discovery (feat/history-discovery, not released)
 
 Find my AI histories comes before the scan instrument (decision 55). The user drops their home or
