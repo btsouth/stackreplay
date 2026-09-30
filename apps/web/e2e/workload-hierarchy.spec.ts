@@ -11,6 +11,8 @@ for (const theme of ["dark", "light"] as const) {
     await importDemo(page, "moderate");
     await waitForWorkload(page);
     await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
+    await expect(page.getByTestId("workload-hero")).toContainText("Accepted API equivalent");
+    await expect(page.getByTestId("workload-hero")).toContainText("accepted snapshot 2026-09-29");
     await expect(page.getByTestId("overview-scale")).toContainText("900");
     await expect(page.getByTestId("overview-scale")).toContainText("100%");
     await expect(page.getByLabel("Review start date")).not.toBeVisible();

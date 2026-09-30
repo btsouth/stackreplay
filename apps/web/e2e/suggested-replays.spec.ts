@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
+import type { CompletedReplay } from "../lib/completed-replays";
 import { gotoImport, setRulesAsOf, waitForWorkload } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
@@ -13,13 +15,21 @@ async function setup(page: Page) {
       "stackreplay.current-stack",
       JSON.stringify(["plan:anthropic-claude-max-5x"]),
     );
-    const state = window as unknown as { pricingRuns: number; replayRuns: number };
+    const state = window as unknown as {
+      pricingRuns: number;
+      replayRuns: number;
+      replayRules: string[];
+    };
     state.pricingRuns = 0;
     state.replayRuns = 0;
+    state.replayRules = [];
     const post = Worker.prototype.postMessage;
     Worker.prototype.postMessage = function (this: Worker, ...args: unknown[]) {
       if ((args[0] as { type?: string })?.type === "API_MARKET") state.pricingRuns++;
-      if ((args[0] as { type?: string })?.type === "RUN_REPLAY") state.replayRuns++;
+      if ((args[0] as { type?: string })?.type === "RUN_REPLAY") {
+        state.replayRuns++;
+        state.replayRules.push((args[0] as { rulesAsOf: string }).rulesAsOf);
+      }
       return Reflect.apply(post, this, args);
     };
   });
@@ -94,8 +104,8 @@ for (const theme of ["dark", "light"] as const)
     await expect(page.getByTestId("strategy-coverage")).toContainText(
       "5 priced · 5 models translated",
     );
-    await expect(page.getByTestId("strategy-difference")).toHaveText("No same-scope difference");
-    await expect(page.getByTestId("strategy-result")).toContainText(
+    await expect(page.getByTestId("strategy-difference")).toContainText("$");
+    await expect(page.getByTestId("strategy-result")).not.toContainText(
       "No difference across catalog snapshots or rules dates",
     );
     await page.getByTestId("strategy-evidence").locator("summary").first().click();
@@ -110,14 +120,9 @@ for (const theme of ["dark", "light"] as const)
     );
     await page.getByTestId("compare-completed").click();
     await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(
-      1,
+      2,
     );
-    await expect(
-      page.getByText("Different workloads, scopes or price snapshots are kept separate.", {
-        exact: false,
-      }),
-    ).toBeVisible();
-    await page.getByRole("button", { name: "Open another result group →" }).click();
+    await expect(page.getByRole("button", { name: "Open another result group →" })).toHaveCount(0);
     await expect(page.getByTestId("completed-comparison")).toContainText(
       "Same models → direct APIs",
     );
@@ -131,7 +136,7 @@ for (const theme of ["dark", "light"] as const)
     );
     await page.reload();
     await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(
-      1,
+      2,
     );
     await expect(
       page.getByRole("group", { name: "Choose completed results" }).getByRole("checkbox"),
@@ -207,4 +212,71 @@ test("Replay loading explains the local preparation before showing decisions", a
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page.getByTestId("replay-empty")).toBeVisible();
+});
+
+test("Sep 30 viewer gets pinned suggested comparisons and independently dated custom Replay", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-09-30T12:00:00Z"));
+  await setup(page);
+  await expect(
+    page.getByText("Recorded API equivalent · accepted pricing 2026-09-29"),
+  ).toBeVisible();
+  await page.getByTestId("strategy-assessments").locator("summary").click();
+  await page.getByTestId("suggest-exact").click();
+  await page.getByTestId("run-strategy").click();
+  await page.getByTestId("add-to-compare").click();
+  await page.getByRole("button", { name: "← Try another strategy" }).click();
+  await page.getByTestId("suggest-openai-frontier").click();
+  await expect(page.getByTestId("strategy-confirmation")).toContainText(
+    "API rules as of 2026-09-29",
+  );
+  await page.getByRole("button", { name: "Edit mapping" }).click();
+  await expect(page.getByLabel("Replay model for Claude Opus 5.5")).toHaveValue("gpt-6-1-sol");
+  await page.getByTestId("run-strategy").click();
+  await expect(page.getByTestId("strategy-difference")).toContainText("$");
+  await expect(page.getByTestId("strategy-result")).not.toContainText(
+    "No difference across catalog snapshots",
+  );
+  await page.getByTestId("add-to-compare").click();
+  expect(
+    await page.evaluate(() => (window as unknown as { replayRules: string[] }).replayRules),
+  ).toEqual(["2026-09-29"]);
+  const saved: CompletedReplay[] = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("stackreplay.completed-replays.v1") ?? "[]"),
+  );
+  expect(saved).toHaveLength(2);
+  for (const r of saved)
+    expect(r).toMatchObject({
+      rulesAt: DECISION_MARKET.rulesAt,
+      catalogHash: DECISION_MARKET.catalogHash,
+      calls: 5,
+      priced: 5,
+    });
+  expect(saved[0]?.scopeDigest).toBe(saved[1]?.scopeDigest);
+  expect(saved[0]?.baseline).toEqual(saved[1]?.cost);
+  expect(saved[0]?.policy).toEqual({ id: "openai-frontier", version: "2" });
+  expect(saved[0]?.mappings).toContainEqual(expect.objectContaining({ target: "gpt-6-1-sol" }));
+  // Historical aggregates remain readable, but cannot join this admitted snapshot.
+  await page.evaluate((exact) => {
+    const key = "stackreplay.completed-replays.v1";
+    const results = JSON.parse(localStorage.getItem(key) ?? "[]");
+    results.push({
+      ...exact,
+      id: "old-snapshot",
+      title: "Older accepted snapshot",
+      rulesAt: "2026-09-28T19:51:32Z",
+      catalogHash: "older-catalog",
+    });
+    localStorage.setItem(key, JSON.stringify(results));
+  }, saved[1]);
+  await page.getByTestId("compare-completed").click();
+  await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(2);
+  await page.getByRole("button", { name: "Open another result group →" }).click();
+  await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(1);
+  await expect(page.getByTestId("completed-comparison")).toContainText("Older accepted snapshot");
+  await page.goto(`/app/replay?import=${saved[0]?.importId}&mode=custom`);
+  await expect(page.getByLabel("Rules as of")).toHaveValue("2026-09-30");
+  await setRulesAsOf(page, "2026-09-28");
+  await expect(page.getByLabel("Rules as of")).toHaveValue("2026-09-28");
 });

@@ -1,4 +1,5 @@
 import { bundledModelIdentity, loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkloadModels } from "@/components/replay/translation-model";
@@ -12,12 +13,14 @@ import {
 } from "./completed-replays";
 import {
   approvedPolicy,
+  DECISION_RULES_DATE,
   mappingCoverage,
   replayDifference,
   suggestedMapping,
   TRANSLATION_PROFILE_HISTORY,
   TRANSLATION_PROFILES,
 } from "./replay-strategies";
+import { defaultRulesDate } from "./rules-date";
 import { runScopedReplay } from "./scoped-replay";
 
 const frontier = TRANSLATION_PROFILES[0];
@@ -55,6 +58,28 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("workload-aware counterfactual policies", () => {
+  it("pins suggested availability and coverage after midnight while custom defaults to today", () => {
+    vi.setSystemTime(new Date("2026-09-30T12:00:00Z"));
+    expect(defaultRulesDate()).toBe("2026-09-30");
+    expect(DECISION_RULES_DATE).toBe("2026-09-29");
+    expect(DECISION_RULES_DATE).toBe(DECISION_MARKET.rulesAt.slice(0, 10));
+    const sources = workload(["claude-opus-5-5"]);
+    const mapping = suggestedMapping(frontier, sources);
+    expect(mapping).toEqual({ "claude-opus-5-5": "gpt-6-1-sol" });
+    expect(mappingCoverage(sources, frontier.providerId, mapping)).toEqual({
+      recorded: 12,
+      mapped: 10,
+      applicable: 10,
+    });
+    // Also prove an implicit Suggested date does not consult a pre-release viewer clock.
+    vi.setSystemTime(new Date("2026-09-28T12:00:00Z"));
+    expect(suggestedMapping(frontier, sources)).toEqual(mapping);
+    expect(mappingCoverage(sources, frontier.providerId, mapping)).toEqual({
+      recorded: 12,
+      mapped: 10,
+      applicable: 10,
+    });
+  });
   it("enumerates exact canonical identities without fuzzy family matching", () => {
     expect(
       suggestedMapping(
