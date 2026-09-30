@@ -387,6 +387,11 @@ for (const theme of ["dark", "light"] as const) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
     await scanFixtures(page);
     await openWorkload(page);
+    // Audit Workload after skipping optional setup; discovery has dedicated axe coverage.
+    await page
+      .getByTestId("stack-confirmation-panel")
+      .getByRole("button", { name: "Not now", exact: true })
+      .click();
     await page.getByTestId("inspect-5h").click();
     await page.getByTestId("project-row").first().getByRole("button").click();
     await page.getByTestId("scan-evidence-details").evaluate((element: HTMLDetailsElement) => {
