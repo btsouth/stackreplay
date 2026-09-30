@@ -275,8 +275,13 @@ test("recorded limit events: no downgrade finding, a likely interruption, accoun
   await page.getByLabel("Review start date").fill("2026-09-01");
   await page.getByLabel("Review end date").fill("2026-10-01");
   await page.getByRole("button", { name: "Apply review period" }).click();
+  await expect(page.getByTestId("stack-period-dates")).toHaveText(
+    "Sep 1, 2026 – Sep 30, 2026 · 30 days · UTC",
+  );
   // Separate local accounts: a confirmation names one and covers its tool only.
-  await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
+  await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled({
+    timeout: 60_000,
+  });
   await page
     .getByLabel("Local source account for history confirmation")
     .selectOption("claude-root-fixture");

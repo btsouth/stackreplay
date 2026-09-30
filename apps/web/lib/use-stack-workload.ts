@@ -81,6 +81,8 @@ export function useStackWorkload(input: {
     singleTool ? "single" : "sliced",
   ].join("|");
   const [fetched, setFetched] = useState<Fetched>();
+  // The period (and confirmed account) results arrive first; confirmation controls need only these.
+  const [early, setEarly] = useState<Pick<Fetched, "key" | "overall" | "account">>();
   const [failure, setFailure] = useState<{ key: string; interrupted: boolean }>();
   const [progress, setProgress] = useState<{ key: string; done: number; total: number }>();
   const [attempt, setAttempt] = useState(0);
@@ -105,6 +107,7 @@ export function useStackWorkload(input: {
         ? await client.apiMarket(recordId, controller.signal, apiPeriod, account)
         : undefined;
       if (account) step();
+      if (!controller.signal.aborted) setEarly({ key, overall, account: accountDecision });
       const sources: Record<string, MarketDecision> = {};
       if (singleTool && tools[0]) sources[tools[0]] = overall;
       else
@@ -128,7 +131,12 @@ export function useStackWorkload(input: {
   }, [key, ready, attempt]);
 
   const current = fetched?.key === key && recordId !== undefined ? fetched : undefined;
-  const confirmationDecision = current ? (account ? current.account : current.overall) : undefined;
+  const periodResult = early?.key === key && recordId !== undefined ? early : undefined;
+  const confirmationDecision = periodResult
+    ? account
+      ? periodResult.account
+      : periodResult.overall
+    : undefined;
   const review: ReviewComposition | undefined = useMemo(
     () =>
       confirmationDecision && recordId !== undefined
@@ -184,7 +192,7 @@ export function useStackWorkload(input: {
     overall: current?.overall,
     review,
     scopeDigest: confirmationDecision?.scenarios[0]?.summary.scope.digest,
-    accounts: current?.overall.history?.accounts,
+    accounts: periodResult?.overall.history?.accounts,
     progress: progress?.key === key ? progress : undefined,
     failed: failure?.key === key ? failure : undefined,
     retry: () => setAttempt((value) => value + 1),
