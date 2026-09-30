@@ -11,9 +11,16 @@ const PREFERENCES = "stackreplay.stack-discovery.v1";
 const readStack = (page: Page) =>
   page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "[]") as string[], STACK);
 
-async function scan(page: Page, source: "claude" | "codex" = "claude", unresolved = false) {
+async function scan(
+  page: Page,
+  source: "claude" | "codex" = "claude",
+  unresolved = false,
+  saveLocal = true,
+) {
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page
+    .getByRole("checkbox", { name: "Save normalized workload on this browser" })
+    .setChecked(saveLocal);
   await page.getByTestId("source-file-input").setInputFiles({
     name: `${source}.jsonl`,
     mimeType: "application/jsonl",
@@ -115,6 +122,34 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
   await expect(page.getByTestId("stack-activity-claude-code")).toContainText("% of recorded calls");
   await expect(page.getByTestId("selected-stack").locator("article")).toHaveCount(2);
 });
+
+for (const context of ["session-only", "missing"] as const) {
+  test(`${context} workload scope can be cleared to manage plans without saved history`, async ({
+    page,
+  }) => {
+    if (context === "session-only") {
+      const id = await scan(page, "claude", false, false);
+      await page.getByRole("button", { name: "Not now", exact: true }).click();
+      await page.getByRole("link", { name: "Manage My Stack →" }).click();
+      await expect(page).toHaveURL(new RegExp(`/app/stack\\?import=${id}`));
+    } else {
+      await page.goto("/app/stack?import=missing-workload");
+    }
+    await expect(page.getByTestId("stack-workload")).toHaveValue("");
+    await expect(page.getByTestId("stack-workload").locator("option")).toHaveCount(1);
+    await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
+    await expect(page.getByTestId("stack-activity")).toHaveCount(0);
+    await page.getByRole("link", { name: "Manage plans without this workload →" }).click();
+    await expect(page).toHaveURL(/\/app\/stack$/);
+    await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
+    await edit(page);
+    await page.getByTestId("stack-editor-plan-anthropic-claude-pro").click();
+    await page.getByRole("button", { name: "Save stack", exact: true }).click();
+    expect(await readStack(page)).toEqual(["plan:anthropic-claude-pro"]);
+    await page.getByRole("button", { name: "Remove Claude Pro", exact: true }).click();
+    expect(await readStack(page)).toEqual([]);
+  });
+}
 
 test("one selected workload at a time, unresolved identities stay unknown and navigation retains scope", async ({
   page,

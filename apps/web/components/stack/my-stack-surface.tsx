@@ -485,6 +485,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
             Select a saved workload or scan your history. You can manage your plans without one.
           </p>
         ) : null}
+        {selectedImport && !record && !demo && (imports !== undefined || importError) ? (
+          <Link href="/app/stack" className={ACTION}>
+            Manage plans without this workload →
+          </Link>
+        ) : null}
         {record && profile ? (
           <>
             <p className="text-xs text-muted-foreground">
