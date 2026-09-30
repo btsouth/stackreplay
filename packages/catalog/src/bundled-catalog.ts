@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:7aa5b2ee2b0ea072119ffbb468115db5bc3a2665d38b40dadf7544153d5e33c0";
+export const BUNDLED_CATALOG_VERSION = "sha256:9d5b2addc79a0fbe3c9851b920646bdd005321242922a4760a6d4504c2fd5201";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:7aa5b2ee2b0ea072119ffbb468115db5bc3a2665d38b40dadf7544153d5e33c0",
+  "catalogVersion": "sha256:9d5b2addc79a0fbe3c9851b920646bdd005321242922a4760a6d4504c2fd5201",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -2553,6 +2553,49 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "gemini-4-argon": {
+      "id": "gemini-4-argon",
+      "role": "model",
+      "name": "Gemini 4 Argon",
+      "developerId": "google",
+      "releaseDate": {
+        "date": "2026-09-30",
+        "sources": [
+          {
+            "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+            "title": "Google announces Gemini 4 Argon",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "maxOutputTokens": 1000000,
+        "notes": [
+          "Initially rolling out to trusted cyber defenders. Broader availability is announced for later, starting with paid API customers and Google AI Ultra subscribers; current broad API or Ultra access is not established.",
+          "The launch announcement establishes a 1,000,000-token output limit, not a context window. An exact public API model identifier is not established."
+        ],
+        "sources": [
+          {
+            "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+            "title": "Output limit and phased rollout in the official launch announcement",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "pricingNote": "Announced future API pricing: introductory $2 / 1M input and $10 / 1M output, with cached input at 95% off input. After the introductory period: $4 / 1M input and $20 / 1M output. API effective date and introductory expiration date are unknown, so these are not executable rates.",
+      "apiAvailability": "not_established",
+      "providerIds": [],
+      "aliases": [],
+      "sources": [
+        {
+          "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+          "title": "Official announcement, future pricing and availability",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
       "verificationStatus": "verified"
     },
     "gemma-4": {
