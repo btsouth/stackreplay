@@ -16,6 +16,7 @@ import type { WorkloadProfile } from "@/lib/workload-profile";
 import { CapacityInspector } from "./capacity-inspector";
 import { MarketDecisionSurface } from "./market-decision";
 import { WorkloadSection } from "./section";
+import { StackConfirmation } from "./stack-confirmation";
 
 const usd = (n: string) => `$${new Decimal(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 const n = (value: number) => value.toLocaleString("en-US");
@@ -476,6 +477,7 @@ export function AutomaticWorkload({
           Open this billing review in Compare →
         </Link>
       </section>
+      {profile ? <StackConfirmation record={record} profile={profile} /> : null}
       {projects}
       {analysis(overview)}
       {signal?.blockedAttempts || (complete && burden) ? (

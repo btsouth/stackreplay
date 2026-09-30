@@ -6,6 +6,7 @@ import {
   type ReviewChoice,
   reviewChoiceSchema,
 } from "./review-period";
+import { clearDiscoveryPreferences } from "./stack-discovery-storage";
 
 export const REVIEW_STORAGE_KEY = "stackreplay.billing-review.v1";
 const schema = z.object({
@@ -73,6 +74,7 @@ export function subscribeReview(listener: () => void): () => void {
 
 /** Clear billing facts with the user's existing clear-local-data action. */
 export function clearReviewState(importId?: string): void {
+  clearDiscoveryPreferences(importId);
   try {
     if (importId) {
       window.localStorage.setItem(

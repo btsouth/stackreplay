@@ -1,73 +1,86 @@
 "use client";
 
-import { bundledPlansAt } from "@stackreplay/catalog/bundled";
+import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { formatUsd, isSyntheticCatalogId } from "@stackreplay/share";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { readCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
-import { defaultRulesDate } from "@/lib/rules-date";
+import { discoveryPlansAt } from "@/lib/stack-discovery";
 import { themeStorageKey } from "@/lib/theme";
 import { getWorkerClient } from "@/lib/worker-client";
 
-const MAX_PLANS = 4;
-
 /**
- * The plans a person pays for today. History does not reveal subscriptions,
- * so this list is the only place StackReplay learns them. Compare's
- * whole-stack decision and the Workload's "What you pay today" read it.
+ * Current Stack stays authoritative. Completed workloads narrow confirmation;
+ * the catalog picker remains an advanced escape hatch for other plans.
  */
 export function PlansYouPayFor() {
   const [stack, setStack] = useState<TargetKey[] | undefined>(undefined);
-  useEffect(() => setStack(readCurrentStack()), []);
+  useEffect(() => {
+    const refresh = () => setStack(readCurrentStack());
+    refresh();
+    return subscribeCurrentStack(refresh);
+  }, []);
   const plans = useMemo(
-    () => bundledPlansAt(defaultRulesDate()).filter((plan) => !isSyntheticCatalogId(plan.id)),
+    () =>
+      discoveryPlansAt(DECISION_MARKET.rulesAt).filter((plan) => !isSyntheticCatalogId(plan.id)),
     [],
   );
   const chosen = stack ?? [];
   const toggle = (key: TargetKey) => {
-    const next = chosen.includes(key)
-      ? chosen.filter((entry) => entry !== key)
-      : [...chosen, key].slice(0, MAX_PLANS);
+    const next = chosen.includes(key) ? chosen.filter((entry) => entry !== key) : [...chosen, key];
     setStack(next);
     writeCurrentStack(next);
   };
-  const names = plans.filter((plan) => chosen.includes(`plan:${plan.id}`)).map((plan) => plan.name);
+  const names = chosen.map((key) => plans.find((plan) => `plan:${plan.id}` === key)?.name ?? key);
   return (
     <div className="flex min-w-0 flex-col gap-3" data-testid="settings-plans">
       <p className="text-sm text-foreground" data-testid="settings-plans-summary">
         {stack === undefined
           ? "Reading your saved plans…"
           : names.length === 0
-            ? "None chosen."
+            ? "No plans confirmed yet."
             : names.join(" + ")}
       </p>
-      <fieldset className="grid max-h-72 min-w-0 gap-x-5 overflow-y-auto border-y border-border py-2 sm:grid-cols-2">
-        <legend className="sr-only">Plans you pay for, up to {MAX_PLANS}</legend>
-        {plans.map((plan) => {
-          const key: TargetKey = `plan:${plan.id}`;
-          const checked = chosen.includes(key);
-          return (
-            <label key={plan.id} className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="h-4 w-4 shrink-0"
-                checked={checked}
-                disabled={stack === undefined || (!checked && chosen.length >= MAX_PLANS)}
-                onChange={() => toggle(key)}
-                data-testid={`settings-plan-${plan.id}`}
-              />
-              <span className="min-w-0 flex-1 break-words">{plan.name}</span>
-              <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                {formatUsd(plan.price.amount)}/{plan.price.interval}
-              </span>
-            </label>
-          );
-        })}
-      </fieldset>
+      <Link
+        href="/app/workload#current-stack-review"
+        className="inline-flex min-h-11 items-center self-start text-sm text-accent"
+      >
+        Review discovered stack →
+      </Link>
       <p className="text-xs text-muted-foreground">
-        Up to {MAX_PLANS} plans. Kept in this browser.
+        Scan your history, then confirm the relevant plans on Workload. Published prices are not
+        your actual bill.
       </p>
+      <details data-testid="settings-manual-plans">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Advanced / choose manually
+        </summary>
+        <fieldset className="grid max-h-72 min-w-0 gap-x-5 overflow-y-auto border-y border-border py-2 sm:grid-cols-2">
+          <legend className="sr-only">Plans you currently pay for</legend>
+          {plans.map((plan) => {
+            const key: TargetKey = `plan:${plan.id}`;
+            const checked = chosen.includes(key);
+            return (
+              <label key={plan.id} className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 shrink-0"
+                  checked={checked}
+                  disabled={stack === undefined}
+                  onChange={() => toggle(key)}
+                  data-testid={`settings-plan-${plan.id}`}
+                />
+                <span className="min-w-0 flex-1 break-words">{plan.name}</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                  {formatUsd(plan.price.amount)}/{plan.price.interval}
+                </span>
+              </label>
+            );
+          })}
+        </fieldset>
+      </details>
+      <p className="text-xs text-muted-foreground">Kept in this browser.</p>
     </div>
   );
 }
