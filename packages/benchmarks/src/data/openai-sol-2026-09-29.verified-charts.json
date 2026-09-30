@@ -1,0 +1,649 @@
+{
+  "sourceUrl": "https://openai.com/index/introducing-gpt-6-1-sol/",
+  "checkedAt": "2026-09-30",
+  "extraction": "Numerical values embedded in the official page's Vega-Lite chart specifications. Scores are source fractions; reported percentages multiply by 100.",
+  "charts": [
+    {
+      "title": "DeepSWE",
+      "values": [
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.6704
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.7279
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.7323
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.7412
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.7323
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.6438
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.7301
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.7522
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.719
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.719
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.3717
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.5664
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.6527
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.6659
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.6881
+        }
+      ]
+    },
+    {
+      "title": "GDP.pdf",
+      "values": [
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.27
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.3
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.32
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.318
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.31
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.304
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.304
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.31
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.322
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.31
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.218
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.254
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.28
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.23800000000000002
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.248
+        },
+        {
+          "model": "Claude Opus 5.5 w/ Claude Opus 5 / Claude Opus 4.8 fallback",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Low",
+          "score": 0.256
+        },
+        {
+          "model": "Claude Opus 5.5 w/ Claude Opus 5 / Claude Opus 4.8 fallback",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Medium",
+          "score": 0.256
+        },
+        {
+          "model": "Claude Opus 5.5 w/ Claude Opus 5 / Claude Opus 4.8 fallback",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "High",
+          "score": 0.28800000000000003
+        },
+        {
+          "model": "Claude Opus 5.5 w/ Claude Opus 5 / Claude Opus 4.8 fallback",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Xhigh",
+          "score": 0.266
+        },
+        {
+          "model": "Claude Opus 5.5 w/ Claude Opus 5 / Claude Opus 4.8 fallback",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Max",
+          "score": 0.262
+        }
+      ]
+    },
+    {
+      "title": "AutomationBench",
+      "values": [
+        {
+          "model": "Fable 5.1 w/ Opus 5 fallback",
+          "label": "Fable 5.1 w/ Opus 5 fallback",
+          "effort": "Max",
+          "score": 0.314
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.303
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.341
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.371
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.39
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.414
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.247
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.317
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.332
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.355
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.361
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.2116
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.2694
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.312
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.3318
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.3196
+        },
+        {
+          "model": "Opus 5.5 w/ fallbacks",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Low",
+          "score": 0.242
+        },
+        {
+          "model": "Opus 5.5 w/ fallbacks",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Medium",
+          "score": 0.2953
+        },
+        {
+          "model": "Opus 5.5 w/ fallbacks",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "High",
+          "score": 0.3303
+        },
+        {
+          "model": "Opus 5.5 w/ fallbacks",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Xhigh",
+          "score": 0.3577
+        },
+        {
+          "model": "Opus 5.5 w/ fallbacks",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Max",
+          "score": 0.4247
+        }
+      ]
+    },
+    {
+      "title": "OSWorld 2.0, offline set",
+      "values": [
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.6217
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.6925
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.7002
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.7127
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.7349
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.5896
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.6684
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.6956
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.6938
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.7142
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.439
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.54
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.5829
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.6054
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.6443
+        }
+      ]
+    },
+    {
+      "title": "Terminal-Bench Science 0.1",
+      "values": [
+        {
+          "model": "Claude Opus 5.5",
+          "label": "Opus 5.5 w/ fallbacks",
+          "effort": "Max",
+          "score": 0.6333
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.5543
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.5743
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.62
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.6086
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.681
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.4371
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.4756
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.5114
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.5371
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.5702
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.0917
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.1449
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.1461
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.2529
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.2759
+        }
+      ]
+    },
+    {
+      "title": "Factual error rate on difficult prompts (lower is better)",
+      "values": [
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Low",
+          "score": 0.0626
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Medium",
+          "score": 0.0441
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "High",
+          "score": 0.039
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Xhigh",
+          "score": 0.0399
+        },
+        {
+          "model": "GPT-6 Astra",
+          "label": "GPT-6 Astra",
+          "effort": "Max",
+          "score": 0.0391
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Low",
+          "score": 0.0772
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Medium",
+          "score": 0.0629
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "High",
+          "score": 0.0452
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Xhigh",
+          "score": 0.0412
+        },
+        {
+          "model": "GPT-6.1 Sol",
+          "label": "GPT-6.1 Sol",
+          "effort": "Max",
+          "score": 0.0461
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Low",
+          "score": 0.1142
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Medium",
+          "score": 0.0686
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "High",
+          "score": 0.0514
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Xhigh",
+          "score": 0.0452
+        },
+        {
+          "model": "GPT-6 Sol",
+          "label": "GPT-6 Sol",
+          "effort": "Max",
+          "score": 0.0457
+        }
+      ]
+    }
+  ]
+}

@@ -5,13 +5,21 @@ import {
   benchmarkEdition,
   benchmarkName,
   evidenceLabel,
-  formatScore,
+  observationId,
+  resolveComparison,
 } from "@stackreplay/benchmarks";
 import Link from "next/link";
 import { BenchmarkEvidence } from "./benchmark-explorer";
 
 export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelId: string }) {
-  const sets = data.sourceSets.filter((s) => s.modelIds.includes(modelId));
+  const primaryIds = new Set(
+    resolveComparison(data, [modelId]).flatMap((r) =>
+      r.cells.flatMap((c) => (c.observation ? [observationId(c.observation)] : [])),
+    ),
+  );
+  const sets = data.sourceSets.filter((s) =>
+    s.observations.some((o) => primaryIds.has(observationId(o))),
+  );
   if (!sets.length) return null;
   function groups(observations: BenchmarkObservation[]) {
     return benchmarkCategories.map((category) => {
@@ -36,7 +44,7 @@ export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelI
                       {benchmarkName(d)}
                     </a>
                   </dt>
-                  <dd>{formatScore(o.value, d)}</dd>
+                  <dd>{o.displayValue}</dd>
                 </div>
               );
             })}
@@ -58,6 +66,7 @@ export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelI
           set.observations.filter(
             (o) =>
               o.modelId === modelId &&
+              primaryIds.has(observationId(o)) &&
               data.definitions.find((d) => d.id === o.benchmarkId)?.category === c.id,
           ),
         );
@@ -92,7 +101,7 @@ export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelI
                 return d ? (
                   <details key={o.benchmarkId}>
                     <summary>
-                      {benchmarkName(d)} · {formatScore(o.value, d)}
+                      {benchmarkName(d)} · {o.displayValue}
                     </summary>
                     <p>{d.description}</p>
                     <p>

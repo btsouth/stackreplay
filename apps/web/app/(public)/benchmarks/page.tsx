@@ -1,3 +1,4 @@
+import { benchmarkEditions } from "@stackreplay/benchmarks";
 import type { Metadata } from "next";
 import { BenchmarkExplorer } from "@/components/public/benchmark-explorer";
 import { parseBenchmarkState } from "@/lib/benchmark-state";
@@ -24,6 +25,9 @@ export default async function BenchmarksPage({
   return (
     <BenchmarkExplorer
       data={loadPublicBenchmarks()}
+      editions={Object.fromEntries(
+        Object.keys(benchmarkEditions).map((edition) => [edition, loadPublicBenchmarks(edition)]),
+      )}
       models={models}
       initial={parseBenchmarkState(
         query,

@@ -1,4 +1,4 @@
-# Benchmark evidence, edition 2026-09-30-v1
+# Benchmark evidence, edition 2026-09-30-v2
 
 These are verified reported facts, not independently reproduced evaluations.
 Scores were checked against the live first-party publications on September 30,
@@ -9,6 +9,7 @@ Scores were checked against the live first-party publications on September 30,
 | Google DeepMind, Gemini 4 Argon launch, Sep 30 | 68 | [Official performance table](https://deepmind.google/models/gemini/), [announcement](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/), [methodology](https://deepmind.google/models/evals-methodology/gemini-4-argon) |
 | DeepSeek, V4.1 Flash release, Sep 10 | 20 | [Official changelog](https://api-docs.deepseek.com/updates/), September 10 section |
 | SpaceXAI, Grok 4.7 launch, Sep 21 | 5 | [Official launch table](https://x.ai/news/grok-4-7), including the DeepSWE High-effort footnote |
+| OpenAI, GPT-6.1 Sol launch, Sep 29 | 102 | [Official launch charts and configuration notes](https://openai.com/index/introducing-gpt-6-1-sol/), Low / Medium / High / Xhigh / Max kept separately |
 | Anthropic, Sonnet 5.5 launch, Sep 28 | 7 | [Official performance table and footnotes](https://www.anthropic.com/claude-sonnet-5-5), [system card link](https://www.anthropic.com/claude-sonnet-5-5-system-card) |
 
 Google's complete source sheet has four exact canonical model IDs:
@@ -38,20 +39,43 @@ coexist with Google's observations. The UI offers alternatives and pins explicit
 choices in URLs; default selection retains the reviewed Google launch snapshot
 where available, rather than choosing the largest number.
 
-## Sol coverage
+## OpenAI launch evidence
 
-The exact release `gpt-6-1-sol` remains in the default Frontier selection.
-[Official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol),
-[release notes](https://developers.openai.com/api/docs/changelog),
-[model-selection guidance](https://developers.openai.com/api/docs/guides/model-selection)
-and the September 29 ChatGPT Learn release entry were checked. These materials
-establish the model but did not provide numerical benchmark results. GPT-6 Sol
-and GPT-5.6 Sol results are not substituted. The page explains this edition's
-coverage, without claiming the model has never been evaluated.
+The initial search covered API documentation and missed the official launch charts.
+Edition `2026-09-30-v2` adds all 102 numerical observations from six capability
+charts, including 30 for the exact release `gpt-6-1-sol`. The independently
+extracted numerical chart specifications are stored in
+`openai-sol-2026-09-29.verified-charts.json`. Tests compare every observation to
+this transcription. Fractions are converted to percentages without estimating
+from plotted positions. No chart artwork or cost series is redistributed.
+
+Separate dated source IDs preserve Low, Medium, High, Xhigh and Max effort.
+The comparison defaults consistently to Max, not the highest numerical score.
+DeepSWE is 71.9% at Max and 75.22% at High; both remain selectable. Terminal-Bench
+Science is 57.02% at Max. Google remains primary where its reviewed observation
+already exists. Alternatives include the reporting source and effort and can be
+pinned in a URL. Model pages show the primary six Sol results together; alternative
+configurations remain available through their benchmark sheet links.
+
+AutomationBench 1.0.6 is separate from Google's unversioned result. OSWorld 2.0
+preserves the offline v2026.08.08 subset and partial-reward metric. GDP.pdf preserves
+Opus 5 / Opus 4.8 fallbacks. OpenAI's difficult-prompt factuality evaluation is
+lower-is-better and does not represent everyday error rates. GPT results were
+computed in OpenAI research environments or its API; competitor results are
+explicitly republished from public reports. Neither sharing a publisher nor
+using the same effort proves matching harnesses.
+
+The original v1 edition retains its 39 definitions, four source sets and 100
+observations. Existing v1 links reproduce the original scores and coverage.
+Google's four-model, 17-row, 68-observation sheet is unchanged in both editions.
+
+Numeric row highlights include ties and lower-is-better metrics. They identify
+reported values in the current view and do not establish matching setups. Shared
+rows appear first in model comparisons; source sheets retain their original order.
 
 ## Redistribution decision
 
-All four source sets use `official_provider_facts`. We store selected numerical
+All source sets use `official_provider_facts`. We store selected numerical
 facts published in first-party announcements and documentation, with our own
 concise benchmark descriptions. We do not redistribute chart artwork, system
 card text or scraped third-party datasets. The Google publication's reported
@@ -71,5 +95,5 @@ Source IDs are dated snapshots. Observation identity is
 `sourceSetId.benchmarkId.modelId`. Exact versions, metrics and task subsets belong
 to definitions. New harness/effort alternatives need distinct source-set IDs.
 Never overwrite an existing edition to refresh scores; add a reviewed edition
-and retain old edition data for pinned links. Current v1 uses manual review and
+and retain old edition data for pinned links. The current edition uses manual review and
 checked-in data. Automatic ingestion and score-based Replay remain out of scope.

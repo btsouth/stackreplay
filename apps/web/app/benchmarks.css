@@ -253,6 +253,12 @@
   background: var(--surface-2);
   color: var(--accent);
 }
+.bench-table td[data-highlighted="true"] .bench-score {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.3em;
+}
 .bench-not-reported {
   color: var(--muted-foreground);
   font-size: 0.75rem;

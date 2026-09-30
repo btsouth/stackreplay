@@ -1,0 +1,128 @@
+[
+  {
+    "benchmarkId": "deep-swe-v1-1",
+    "modelId": "gpt-6-astra",
+    "observationId": "google-deepmind-argon-2026-09-30.deep-swe-v1-1.gpt-6-astra",
+    "reason": "Retain the reviewed Google launch snapshot. OpenAI effort variants remain available. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "terminal-bench-science-0-1",
+    "modelId": "gpt-6-astra",
+    "observationId": "google-deepmind-argon-2026-09-30.terminal-bench-science-0-1.gpt-6-astra",
+    "reason": "Retain the reviewed Google launch snapshot. OpenAI effort variants remain available. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "terminal-bench-science-0-1",
+    "modelId": "claude-opus-5-5",
+    "observationId": "google-deepmind-argon-2026-09-30.terminal-bench-science-0-1.claude-opus-5-5",
+    "reason": "Retain the reviewed Google launch snapshot. OpenAI effort variants remain available. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "deep-swe-v1-1",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.deep-swe-v1-1.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "deep-swe-v1-1",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.deep-swe-v1-1.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "gdp-pdf",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.gdp-pdf.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "gdp-pdf",
+    "modelId": "gpt-6-astra",
+    "observationId": "openai-sol-2026-09-29-max.gdp-pdf.gpt-6-astra",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "gdp-pdf",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.gdp-pdf.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "gdp-pdf",
+    "modelId": "claude-opus-5-5",
+    "observationId": "openai-sol-2026-09-29-max.gdp-pdf.claude-opus-5-5",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "automationbench-1-0-6",
+    "modelId": "gpt-6-astra",
+    "observationId": "openai-sol-2026-09-29-max.automationbench-1-0-6.gpt-6-astra",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "automationbench-1-0-6",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.automationbench-1-0-6.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "automationbench-1-0-6",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.automationbench-1-0-6.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "automationbench-1-0-6",
+    "modelId": "claude-opus-5-5",
+    "observationId": "openai-sol-2026-09-29-max.automationbench-1-0-6.claude-opus-5-5",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "osworld-2-0-offline-2026-08-08",
+    "modelId": "gpt-6-astra",
+    "observationId": "openai-sol-2026-09-29-max.osworld-2-0-offline-2026-08-08.gpt-6-astra",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "osworld-2-0-offline-2026-08-08",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.osworld-2-0-offline-2026-08-08.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "osworld-2-0-offline-2026-08-08",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.osworld-2-0-offline-2026-08-08.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "terminal-bench-science-0-1",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.terminal-bench-science-0-1.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "terminal-bench-science-0-1",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.terminal-bench-science-0-1.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "openai-factuality-difficult-prompts-2026-09",
+    "modelId": "gpt-6-astra",
+    "observationId": "openai-sol-2026-09-29-max.openai-factuality-difficult-prompts-2026-09.gpt-6-astra",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "openai-factuality-difficult-prompts-2026-09",
+    "modelId": "gpt-6-1-sol",
+    "observationId": "openai-sol-2026-09-29-max.openai-factuality-difficult-prompts-2026-09.gpt-6-1-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  },
+  {
+    "benchmarkId": "openai-factuality-difficult-prompts-2026-09",
+    "modelId": "gpt-6-sol",
+    "observationId": "openai-sol-2026-09-29-max.openai-factuality-difficult-prompts-2026-09.gpt-6-sol",
+    "reason": "Use Max reasoning effort consistently across the OpenAI launch results, including benchmarks where High scores higher. All other reported efforts remain selectable. Selection is not based on score magnitude."
+  }
+]

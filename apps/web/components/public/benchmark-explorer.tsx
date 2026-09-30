@@ -8,7 +8,6 @@ import {
   benchmarkName,
   comparisonSets,
   evidenceLabel,
-  formatScore,
   frontierModelIds,
   observationId,
   resolveComparison,
@@ -91,15 +90,19 @@ export function BenchmarkEvidence({
   );
 }
 export function BenchmarkExplorer({
-  data,
+  data: currentData,
+  editions,
   models,
   initial,
 }: {
   data: BenchmarkData;
+  editions: Record<string, BenchmarkData>;
   models: BenchmarkModel[];
   initial: BenchmarkState;
 }) {
   const [state, setState] = useState(initial);
+  const editionData = Object.hasOwn(editions, state.edition) ? editions[state.edition] : undefined;
+  const data = editionData ?? currentData;
   const [search, setSearch] = useState("");
   const [detail, setDetail] = useState<{
     definition: BenchmarkDefinition;
@@ -132,7 +135,7 @@ export function BenchmarkExplorer({
   let error = state.error;
   let rows: ReturnType<typeof resolveComparison> = [];
   try {
-    if (state.edition !== benchmarkEdition)
+    if (!editionData)
       throw new Error(
         "This benchmark edition is unavailable. Choose Frontier to return to the current edition.",
       );
@@ -143,6 +146,11 @@ export function BenchmarkExplorer({
   const visible = rows.filter(
     (r) => state.category === "all" || r.definition.category === state.category,
   );
+  if (!state.sourceSetId)
+    visible.sort(
+      (a, b) =>
+        Number(b.cells.every((c) => c.observation)) - Number(a.cells.every((c) => c.observation)),
+    );
   const source = data.sourceSets.find((s) => s.id === state.sourceSetId);
   const selectedModels = state.modelIds
     .map((id) => models.find((m) => m.id === id))
@@ -171,10 +179,7 @@ export function BenchmarkExplorer({
       <header className="market-header bench-header">
         <div>
           <p className="market-kicker">Benchmark sheet</p>
-          <h1>
-            Frontier models,
-            <br /> evidence in view.
-          </h1>
+          <h1>Model Benchmarks</h1>
           <p className="market-description">
             Exact benchmark versions. Verified reported scores. Each evaluation keeps its source and
             setup.
@@ -367,6 +372,8 @@ export function BenchmarkExplorer({
       <p className="bench-table-guide">
         Scores verified against original reports, not independently reproduced. Select a score for
         its setup and evidence.
+        {!source && " Shared benchmarks appear first."} Highlighted: highest reported score, or
+        lowest where lower is better. Setups may differ.
       </p>
       {error && (
         <p role="alert" className="bench-empty">
@@ -426,12 +433,12 @@ export function BenchmarkExplorer({
                           type="button"
                           className="bench-score"
                           aria-haspopup="dialog"
-                          aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${formatScore(cell.observation.value, row.definition)}${row.highestModelIds.includes(cell.modelId) ? ", highest reported score in this matched set" : ""}. View evidence.`}
+                          aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${cell.observation.displayValue}${row.highestModelIds.includes(cell.modelId) ? `, ${row.definition.higherIsBetter ? "highest" : "lowest"} reported score in this view` : ""}. View evidence.`}
                           onClick={() =>
                             setDetail({ definition: row.definition, modelId: cell.modelId })
                           }
                         >
-                          {formatScore(cell.observation.value, row.definition)}
+                          {cell.observation.displayValue}
                           <sup aria-hidden="true">
                             {data.sourceSets.findIndex(
                               (s) => s.id === cell.observation?.sourceSetId,
@@ -490,13 +497,14 @@ export function BenchmarkExplorer({
       >
         <div className="market-section-title">
           <h2 id="benchmark-methodology-title">Methodology & sources</h2>
-          <span>{benchmarkEdition}</span>
+          <span>{state.edition}</span>
         </div>
         <p>
           Benchmark versions, metrics and task subsets remain distinct. Different efforts, tools,
           harnesses, fallbacks or deployments can produce different results. We do not normalize
-          scores or calculate a composite rating. Highest-score highlighting requires documented
-          matching setups and includes every tie.
+          scores or calculate a composite rating. Highlighting identifies each row’s highest
+          reported value, or lowest for lower-is-better metrics, including every tie. It does not
+          establish matching evaluation setups or an overall model ranking.
         </p>
         <details>
           <summary>How results are selected and verified</summary>
@@ -504,9 +512,10 @@ export function BenchmarkExplorer({
             We check each numerical result against the original publication and retain its date and
             configuration. A source marker identifies the reporting organization, which can differ
             from the model developer and the original evaluator. Google’s reviewed launch snapshot
-            stays primary where it has a result; otherwise we use the sole verified provider
-            observation. Selection never maximizes a score. Alternative observations are available
-            by selecting a cell and are pinned in your comparison link.
+            stays primary where it has a result. OpenAI’s launch defaults use Max effort
+            consistently, including benchmarks where High scores higher. Otherwise we use the sole
+            verified provider observation. Selection never maximizes a score. Alternative
+            observations are available by selecting a cell and are pinned in your comparison link.
           </p>
           <p>
             Shared benchmarks requires a reported result for every selected model. All reported
@@ -577,9 +586,7 @@ export function BenchmarkExplorer({
                   <h3>{models.find((m) => m.id === cell.modelId)?.name}</h3>
                   {cell.observation ? (
                     <>
-                      <p className="bench-detail-score">
-                        {formatScore(cell.observation.value, detail.definition)}
-                      </p>
+                      <p className="bench-detail-score">{cell.observation.displayValue}</p>
                       <p className="market-muted">{cell.selectionReason}</p>
                       <BenchmarkEvidence data={data} observation={cell.observation} />
                       {cell.alternatives.length > 1 && (
@@ -602,8 +609,9 @@ export function BenchmarkExplorer({
                           >
                             {cell.alternatives.map((o) => (
                               <option key={observationId(o)} value={observationId(o)}>
-                                {formatScore(o.value, detail.definition)} ·{" "}
+                                {o.displayValue} ·{" "}
                                 {data.sourceSets.find((s) => s.id === o.sourceSetId)?.evaluator}
+                                {o.effort && ` · ${o.effort}`}
                               </option>
                             ))}
                           </select>

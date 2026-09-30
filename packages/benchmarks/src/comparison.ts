@@ -1,7 +1,7 @@
 import type { BenchmarkData, BenchmarkDefinition, BenchmarkObservation } from "./schema.js";
 
 /** Immutable reviewed edition. New evidence ships as a new edition; old URL editions stay available. */
-export const benchmarkEdition = "2026-09-30-v1";
+export const benchmarkEdition = "2026-09-30-v2";
 export const frontierModelIds = [
   "gemini-4-argon",
   "gpt-6-astra",
@@ -104,9 +104,11 @@ export function resolveComparison(
         definition,
         cells,
         setup: matched ? ("matched" as const) : ("different_or_unreported" as const),
-        highestModelIds: matched
-          ? present.filter((o) => o.value === extreme).map((o) => o.modelId)
-          : [],
+        // Visual numeric comparison, not a claim that evaluation configurations match.
+        highestModelIds:
+          present.length > 1
+            ? present.filter((o) => o.value === extreme).map((o) => o.modelId)
+            : [],
       },
     ];
   });

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "gdp-pdf",
+    "name": "GDP.pdf",
+    "version": null,
+    "category": "knowledge-work",
+    "description": "Answering professional questions about complex PDF documents.",
+    "metric": "Reported benchmark score",
+    "taskSubset": null,
+    "unit": "percent",
+    "decimalPlaces": 2,
+    "higherIsBetter": true,
+    "methodologyUrl": "https://surgehq.ai/benchmarks/gdp-pdf"
+  },
+  {
+    "id": "automationbench-1-0-6",
+    "name": "AutomationBench",
+    "version": "1.0.6",
+    "category": "knowledge-work",
+    "description": "Completing multi-step business workflows with 47 available tools.",
+    "metric": "Reported benchmark score",
+    "taskSubset": null,
+    "unit": "percent",
+    "decimalPlaces": 2,
+    "higherIsBetter": true,
+    "methodologyUrl": "https://zapier.com/benchmarks"
+  },
+  {
+    "id": "osworld-2-0-offline-2026-08-08",
+    "name": "OSWorld",
+    "version": "2.0",
+    "category": "knowledge-work",
+    "description": "Computer-use workflows scored by partial reward on the August 8 offline task set.",
+    "metric": "Partial reward",
+    "taskSubset": "Offline set, v2026.08.08",
+    "unit": "percent",
+    "decimalPlaces": 2,
+    "higherIsBetter": true,
+    "methodologyUrl": "https://osworld-v2.xlang.ai/",
+    "variant": "Offline · v2026.08.08"
+  },
+  {
+    "id": "openai-factuality-difficult-prompts-2026-09",
+    "name": "Factual error rate",
+    "version": null,
+    "category": "knowledge-work",
+    "description": "Answers containing a factual error on difficult, previously flagged ChatGPT conversations.",
+    "metric": "Answers with at least one factual error",
+    "taskSubset": "OpenAI de-identified conversations where users flagged an earlier factual error",
+    "unit": "percent",
+    "decimalPlaces": 2,
+    "higherIsBetter": false,
+    "methodologyUrl": "https://openai.com/index/introducing-gpt-6-1-sol/#factuality",
+    "variant": "Difficult prompts · OpenAI Sep 2026"
+  }
+]
