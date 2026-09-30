@@ -19,7 +19,9 @@ import {
 
 const firstSet = benchmarkData.sourceSets[0];
 if (!firstSet) throw new Error("Missing checked-in source set");
-const models = Object.fromEntries(firstSet.modelIds.map((id) => [id, { id }]));
+const models = Object.fromEntries(
+  benchmarkData.sourceSets.flatMap((set) => set.modelIds).map((id) => [id, { id }]),
+);
 const valid = () => validateBenchmarkData(structuredClone(benchmarkData), models);
 
 describe("reviewed Google Argon evidence", () => {
@@ -33,7 +35,7 @@ describe("reviewed Google Argon evidence", () => {
       "claude-fable-5-1",
       "claude-opus-5-5",
     ]);
-    expect(data.definitions).toHaveLength(17);
+    expect(data.definitions.filter((d) => set.benchmarkIds.includes(d.id))).toHaveLength(17);
     expect(set.benchmarkIds).toHaveLength(17);
     expect(set.observations).toHaveLength(68);
     expect(verified.rows).toHaveLength(17);
@@ -66,7 +68,7 @@ describe("reviewed Google Argon evidence", () => {
   });
 
   it("keeps versions, subsets and navigation categories explicit", () => {
-    const definitions = valid().definitions;
+    const definitions = valid().definitions.filter((d) => firstSet.benchmarkIds.includes(d.id));
     expect(benchmarkCategories.map((c) => c.id)).toEqual([
       "coding",
       "knowledge-work",
@@ -167,6 +169,7 @@ describe("benchmark validation boundary", () => {
     if (!set) throw new Error("Missing fixture");
     set.kind = "model_observations";
     set.observations = set.observations.slice(0, 1);
+    data.primarySelections = [];
     expect(benchmarkDataSchema.safeParse(data).success).toBe(true);
     expect(comparisonSets(data)).toEqual([]);
     expect(() => observationFor(set, "cwe-bench-v1", "gemini-4-argon")).toThrow(
@@ -183,17 +186,23 @@ describe("benchmark validation boundary", () => {
     second.observations[0].value = 61.6;
     second.observations[0].displayValue = "61.6%";
     data.sourceSets.push(second);
-    expect(benchmarkDataSchema.parse(data).sourceSets).toHaveLength(2);
+    expect(benchmarkDataSchema.parse(data).sourceSets).toHaveLength(
+      benchmarkData.sourceSets.length + 1,
+    );
   });
 
   it("preserves distinct versions instead of merging by benchmark name", () => {
     const data = valid();
     const definition = data.definitions.find((d) => d.id === "terminal-bench-4-0");
     if (!definition) throw new Error("Missing fixture");
-    data.definitions.push({ ...definition, id: "terminal-bench-3-0", version: "3.0" });
+    data.definitions.push({
+      ...definition,
+      id: "terminal-bench-test-version",
+      version: "test-only",
+    });
     expect(
       benchmarkDataSchema.parse(data).definitions.filter((d) => d.name === "Terminal-Bench"),
-    ).toHaveLength(2);
+    ).toHaveLength(4);
   });
 
   it("rejects mismatched display values, reporter labels and unsupported fields", () => {

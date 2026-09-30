@@ -2,7 +2,7 @@
 
 Accepted product direction following the September 30 implementation brief,
 supplied mockup and discussion of cross-source coverage. The data foundation is
-implemented; the builder and public UI remain to be implemented.
+implemented, including the builder and public/model-page UI.
 
 ## One comparison builder
 
@@ -39,9 +39,9 @@ observation was selected. Never select the largest score automatically. Pin
 model IDs and observation IDs in share links so later data updates cannot change
 an existing comparison silently.
 
-The default "Shared benchmarks" view contains rows with supported results for
-every selected model, including results from different sources. "All reported
-results" also shows other rows with explicit "Not reported" cells. Missing data
+The default "All reported results" view shows supported results and explicit
+"Not reported" cells. "Shared benchmarks" contains rows with supported results
+for every selected model, including results from different sources. Missing data
 never becomes zero, an empty score or a fabricated estimate. Never silently drop
 a selected model. If there are no shared rows, explain coverage and offer the
 all-results view without changing the selection.
@@ -78,10 +78,9 @@ Sol can enter the main Frontier comparison using separately sourced, verified
 observations. A five-model shared publisher matrix is not required. Google's
 original four-model sheet remains unchanged and reproducible.
 
-Sol's numerical benchmark evidence has not yet been established in this work.
-Official Sol API model documentation inspected on September 30 contains
-specifications and pricing but no numerical benchmark comparison matrix. Source
-research is an explicit implementation step, not permission to infer scores.
+Sol's numerical benchmark evidence was not found in the official documentation,
+changelog and model-selection guidance inspected on September 30. These contain
+specifications and pricing but no numerical benchmark comparison matrix.
 If a result cannot be verified, show its coverage honestly in the all-results
 view. Never present a Sol observation as part of Google's launch evaluation.
 
@@ -91,9 +90,9 @@ Each reporting set is a dated, reviewed snapshot with benchmark definitions,
 observations, publication, original evidence, methodology and redistribution basis.
 The same model/benchmark pair can have several observations across snapshots.
 Separate harness or effort variants within a publication require separate source
-set IDs rather than overwriting a cell. Add stable observation IDs and explicit
-metric/subset and primary-selection metadata to the existing foundation before
-implementing the cross-source builder.
+set IDs rather than overwriting a cell. Stable observation IDs, explicit
+metric/subset fields and reviewed primary-selection metadata make the builder's
+choices reproducible.
 
 New releases add snapshots. Existing share links remain reproducible. Editorial
 presets may change through review, and unpinned defaults may adopt newly reviewed

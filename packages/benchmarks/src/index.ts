@@ -1,5 +1,8 @@
 import definitions from "./data/definitions.json" with { type: "json" };
 import googleArgon from "./data/google-deepmind-argon-2026-09-30.json" with { type: "json" };
+import providerObservations from "./data/provider-observations-2026-09-30.json" with {
+  type: "json",
+};
 import type {
   BenchmarkCategory,
   BenchmarkData,
@@ -8,10 +11,31 @@ import type {
   BenchmarkSourceSet,
 } from "./schema.js";
 
+export * from "./comparison.js";
 export * from "./schema.js";
 
 /** Versioned evidence only. There is no catalog, price, optimizer or Replay import. */
-export const benchmarkData = { schemaVersion: 1, definitions, sourceSets: [googleArgon] };
+export const benchmarkData = {
+  schemaVersion: 1,
+  definitions,
+  sourceSets: [googleArgon, ...providerObservations],
+  primarySelections: [
+    {
+      benchmarkId: "terminal-bench-4-0",
+      modelId: "claude-opus-5-5",
+      observationId: "google-deepmind-argon-2026-09-30.terminal-bench-4-0.claude-opus-5-5",
+      reason:
+        "Retain Google's reviewed launch snapshot for continuity with its four-model sheet. Anthropic's separately reported Xhigh result remains available. The choice is not based on score magnitude.",
+    },
+    {
+      benchmarkId: "chartography",
+      modelId: "claude-opus-5-5",
+      observationId: "google-deepmind-argon-2026-09-30.chartography.claude-opus-5-5",
+      reason:
+        "Retain Google's reviewed launch snapshot for continuity with its four-model sheet. Anthropic's separately reported result remains available. The choice is not based on score magnitude.",
+    },
+  ],
+};
 
 export const benchmarkCategories: readonly { id: BenchmarkCategory; label: string }[] = [
   { id: "coding", label: "Coding" },

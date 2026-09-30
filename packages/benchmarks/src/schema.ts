@@ -25,6 +25,8 @@ export const benchmarkDefinitionSchema = z.strictObject({
   /** Null means the reporting source does not specify a version. Never guess v1. */
   version: text.nullable(),
   variant: text.optional(),
+  metric: text,
+  taskSubset: text.nullable(),
   category: benchmarkCategorySchema,
   description: text,
   unit: z.enum(["percent", "points", "seconds"]),
@@ -46,7 +48,7 @@ export const benchmarkObservationSchema = z.strictObject({
   sourceUrl: url,
   checkedAt: z.iso.date(),
   /** Who originally ran it, as described by the reporter, not inferred from model developer. */
-  evaluationOrigin: z.enum(["reporter_computed", "external_result_reported"]),
+  evaluationOrigin: z.enum(["reporter_computed", "external_result_reported", "not_reported"]),
   originLabel: text,
   effort: text.optional(),
   harness: text.optional(),
@@ -55,13 +57,15 @@ export const benchmarkObservationSchema = z.strictObject({
   provider: text.optional(),
   notes: text.optional(),
   uncertainty: text.optional(),
+  /** Only populate when matching conditions are documented, never from publisher identity. */
+  comparisonGroup: id.optional(),
 });
 export type BenchmarkObservation = z.infer<typeof benchmarkObservationSchema>;
 
 export const benchmarkSourceSetSchema = z
   .strictObject({
     id,
-    /** Only complete_comparison sets can become sheets. Individual observations stay separate. */
+    /** Source sheets are complete; the model-first builder can also use individual observations. */
     kind: z.enum(["complete_comparison", "model_observations"]),
     title: text,
     evaluator: text,
@@ -138,6 +142,9 @@ export type BenchmarkSourceSet = z.infer<typeof benchmarkSourceSetSchema>;
 export const benchmarkDataSchema = z
   .strictObject({
     schemaVersion: z.literal(1),
+    primarySelections: z
+      .array(z.strictObject({ benchmarkId: id, modelId: id, observationId: text, reason: text }))
+      .default([]),
     definitions: z.array(benchmarkDefinitionSchema).min(1),
     sourceSets: z.array(benchmarkSourceSetSchema).min(1),
   })
@@ -151,6 +158,26 @@ export const benchmarkDataSchema = z
       }
     }
     const definitions = new Map(data.definitions.map((definition) => [definition.id, definition]));
+    const selectedCells = new Set<string>();
+    for (const [i, selection] of data.primarySelections.entries()) {
+      const cell = `${selection.benchmarkId}.${selection.modelId}`;
+      const observation = data.sourceSets
+        .flatMap((set) => set.observations)
+        .find((o) => `${o.sourceSetId}.${o.benchmarkId}.${o.modelId}` === selection.observationId);
+      if (
+        selectedCells.has(cell) ||
+        !observation ||
+        observation.benchmarkId !== selection.benchmarkId ||
+        observation.modelId !== selection.modelId
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["primarySelections", i],
+          message: "Primary selection must reference one exact known observation per cell",
+        });
+      }
+      selectedCells.add(cell);
+    }
     for (const [s, set] of data.sourceSets.entries()) {
       for (const benchmarkId of set.benchmarkIds) {
         if (!definitions.has(benchmarkId))
@@ -181,7 +208,7 @@ export type BenchmarkData = z.infer<typeof benchmarkDataSchema>;
 /** Catalog identity is injected at the public boundary. This package never loads or changes it. */
 export function validateBenchmarkData(
   raw: unknown,
-  models: Readonly<Record<string, { id: string; kind?: string }>>,
+  models: Readonly<Record<string, { id: string; kind?: string | undefined }>>,
 ): BenchmarkData {
   const data = benchmarkDataSchema.parse(raw);
   for (const set of data.sourceSets) {
