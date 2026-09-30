@@ -2,6 +2,15 @@
 
 ## Current milestone
 
+### Homepage market and workload intelligence (feat/homepage-reset, not released)
+
+The homepage now leads with sourced market changes, current model comparisons and subscription
+terms, then applies the same catalog to the newest saved non-demo workload. Personal model usage
+matches canonical identities; stack markers and question links open the existing analyses. Header
+and hero actions retain the displayed workload when a newer demo exists. Reading the page starts
+no scan or replay Worker, uploads no history and creates no database on a first visit. Comparable
+benchmark rows await reviewed evidence. See [Public site](PUBLIC_SITE.md).
+
 ### My Stack decision surface (feat/my-stack-decisions, not released)
 
 `/app/stack` now reads the selected workload, in its billing period, against the confirmed
