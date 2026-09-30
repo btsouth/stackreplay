@@ -233,6 +233,11 @@ describe("completed local comparisons", () => {
     expect(comparableReplayGroup(modern, [modern, revised, legacy])).toEqual([modern, revised]);
     expect(comparableReplayGroup(legacy, [legacy, modern, revised])).toEqual([legacy, modern]);
   });
+  it("keeps same-snapshot records when a legacy record is listed first", () => {
+    const revised = { ...modern, id: "revised", catalogHash: "metadata-only" };
+    const legacy = { ...result, id: "legacy" };
+    expect(comparableReplayGroup(modern, [legacy, revised, modern])).toEqual([modern, revised]);
+  });
   it("keeps mixed legacy/new records on exact catalog fallback", () => {
     expect(comparableReplays(result, modern)).toBe(true);
     expect(comparableReplays(modern, result)).toBe(true);

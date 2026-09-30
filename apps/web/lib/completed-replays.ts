@@ -126,14 +126,24 @@ export function comparableReplays(a: CompletedReplay, b: CompletedReplay): boole
   );
 }
 
-/** Fallback compatibility is not transitive: a legacy record cannot bridge revisions. */
+/**
+ * Fallback compatibility is not transitive: a legacy record cannot bridge revisions.
+ * Records sharing the anchor's execution snapshot join first, so list order cannot
+ * let a legacy record exclude them. The group keeps the input order.
+ */
 export function comparableReplayGroup(
   anchor: CompletedReplay,
   records: readonly CompletedReplay[],
 ): CompletedReplay[] {
-  const group = [anchor];
-  for (const record of records)
-    if (record.id !== anchor.id && group.every((member) => comparableReplays(member, record)))
-      group.push(record);
-  return group;
+  const sameSnapshot = (r: CompletedReplay) =>
+    r.decisionSnapshotHash !== undefined && r.decisionSnapshotHash === anchor.decisionSnapshotHash;
+  const members = [anchor];
+  for (const record of [
+    ...records.filter(sameSnapshot),
+    ...records.filter((r) => !sameSnapshot(r)),
+  ])
+    if (record.id !== anchor.id && members.every((member) => comparableReplays(member, record)))
+      members.push(record);
+  const ids = new Set(members.map((r) => r.id));
+  return [anchor, ...records.filter((r) => r.id !== anchor.id && ids.has(r.id))];
 }
