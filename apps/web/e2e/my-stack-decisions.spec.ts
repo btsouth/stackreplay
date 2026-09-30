@@ -81,6 +81,8 @@ for (const theme of ["dark", "light"] as const)
     await page.getByTestId("stack-methodology").locator(":scope > summary").click();
     await expect(page.getByTestId("stack-scope-table")).toContainText("Command Code");
 
+    // Audit from the top: content scrolled under the sticky site header is not a target-size fault.
+    await page.evaluate(() => window.scrollTo(0, 0));
     expect(
       (
         await new AxeBuilder({ page })

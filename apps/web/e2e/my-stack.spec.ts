@@ -314,6 +314,8 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByRole("button", { name: "Save stack", exact: true }).click();
     await page.getByTestId("report-details-opencode-go").locator(":scope > summary").click();
     await page.getByTestId("published-access-opencode-go").locator("summary").click();
+    // Audit from the top: content scrolled under the sticky site header is not a target-size fault.
+    await page.evaluate(() => window.scrollTo(0, 0));
     expect(
       (
         await new AxeBuilder({ page })
