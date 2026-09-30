@@ -135,15 +135,24 @@ async function recognize(files: File[]) {
 describe("a folder from the folder chooser", () => {
   const uuid = "0b1c0000-0000-4000-8000-000000000001";
 
-  it("upgrades OpenCode to found-but-not-readable when its data folder is added", async () => {
-    const files = chosen(["opencode/opencode.db", "opencode/auth.json", "opencode/log/a.log"]);
+  it("selects only the OpenCode database and WAL when its data folder is added", async () => {
+    const files = chosen([
+      "opencode/opencode.db",
+      "opencode/opencode.db-wal",
+      "opencode/auth.json",
+      "opencode/log/a.log",
+    ]);
     const findings = await recognize(files);
     let rows: HistoryRow[] = waitingRows().map((row) => ({ ...row, status: "not-found" }));
     rows = applyChosenFolder(rows, findings, files, "opencode", undefined);
     expect(rows.find((row) => row.key === "opencode")).toMatchObject({
-      status: "unsupported",
+      status: "found",
+      selected: true,
+      fileCount: 2,
       via: "chooser",
     });
+    const selection = await collectSelection(rows.filter((row) => row.selected));
+    expect(selection.files.map((entry) => entry.path)).toEqual(["opencode.db", "opencode.db-wal"]);
     // Recognized, so no anonymous added location appears as well.
     expect(rows.some((row) => row.key.startsWith("location-"))).toBe(false);
   });
@@ -151,7 +160,7 @@ describe("a folder from the folder chooser", () => {
   it("recognizes a renamed OpenCode data folder by its database", async () => {
     const files = chosen(["backup-2026/opencode.db", "backup-2026/snapshot/x.bin"]);
     const opencode = (await recognize(files)).find((finding) => finding.adapterId === "opencode");
-    expect(opencode?.status).toBe("unsupported");
+    expect(opencode).toMatchObject({ status: "found", importable: true, fileCount: 1 });
   });
 
   it("gives Connect Claude Code the projects history from a chosen .claude folder", async () => {

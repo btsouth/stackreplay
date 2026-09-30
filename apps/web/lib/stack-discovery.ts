@@ -1,6 +1,5 @@
-import { bundledPlansAt } from "@stackreplay/catalog/bundled";
 import type { BillingContextV1 } from "@stackreplay/schema";
-import { loadPublicCatalog } from "./public-catalog";
+import { catalogPlansAt } from "./public-catalog";
 import type { TargetKey } from "./routes";
 import { includedAccessModels, subscriptionAccess } from "./subscription-access";
 import type { SourceSummary } from "./worker-protocol";
@@ -107,10 +106,7 @@ export interface DiscoveryGroup {
  * execution record; the public catalog already implements that validity rule.
  */
 export function discoveryPlansAt(rulesAsOf: string): DiscoveryPlan[] {
-  const plans: DiscoveryPlan[] = bundledPlansAt(rulesAsOf);
-  const present = new Set(plans.map((plan) => plan.id));
-  const executionPlans = loadPublicCatalog(rulesAsOf.slice(0, 10)).plans;
-  return [...plans, ...executionPlans.filter((plan) => !present.has(plan.id))];
+  return catalogPlansAt(rulesAsOf);
 }
 
 export function familyTargetKeys(groupId: DiscoveryGroupId): TargetKey[] {

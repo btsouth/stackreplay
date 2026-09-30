@@ -15,11 +15,15 @@ import { ccusageRows, createCcusageAdapter } from "./adapters/ccusage.js";
 import { createClaudeCodeAdapter } from "./adapters/claude-code.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createCommandCodeAdapter } from "./adapters/command-code.js";
+import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import type { BrowserSourceId } from "./browser-formats.js";
+import { openBrowserOpenCode } from "./browser-sqlite.js";
 import { dedupeEvents } from "./dedup.js";
 import { generateSalt } from "./identity.js";
 import { createModelMapper } from "./models.js";
 import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
+import type { SqliteDatabase } from "./sqlite.js";
+import { MAX_BROWSER_DATABASE_BYTES } from "./sqlite-snapshot.js";
 import type { AdapterWarning, FileSystem, SourceEnvironment } from "./types.js";
 
 export { type LocalProjectLabel, localProjectLabels };
@@ -50,7 +54,14 @@ export type CandidateOutcome = {
    * of its usage is included. It is a read failure, not a statement about the
    * file's content: the browser does not say why, and nothing here guesses.
    */
-  status: "imported" | "unrecognized" | "malformed" | "unsupported" | "duplicate" | "unreadable";
+  status:
+    | "imported"
+    | "companion"
+    | "unrecognized"
+    | "malformed"
+    | "unsupported"
+    | "duplicate"
+    | "unreadable";
   source?: string;
   reason: string;
   events: number;
@@ -105,6 +116,7 @@ const ADAPTERS = {
   codex: createCodexAdapter(),
   "claude-code": createClaudeCodeAdapter(),
   "command-code": createCommandCodeAdapter(),
+  opencode: createOpenCodeAdapter(),
   ccusage: createCcusageAdapter(),
 } as const satisfies Record<BrowserSourceId, ReturnType<typeof createCodexAdapter>>;
 
@@ -189,7 +201,11 @@ export function safeIntakeMessage(message: string): string {
 
 /** Raw source dispatch does not need to open obvious non-source file types. */
 export function isBrowserSourceCandidate(path: string): boolean {
-  return !/\.[^./\\]+$/u.test(path) || /\.(json|jsonl|txt|stackreplay)$/iu.test(path);
+  return (
+    !/\.[^./\\]+$/u.test(path) ||
+    /\.(json|jsonl|txt|stackreplay)$/iu.test(path) ||
+    /(?:^|[/\\])opencode\.db(?:-wal)?$/iu.test(path)
+  );
 }
 
 const MAX_ARCHIVE_BYTES = 512 * MiB;
@@ -255,7 +271,10 @@ export async function expandZipCandidate(
       });
       return;
     }
-    if (!/\.(json|jsonl)$/iu.test(normalized)) {
+    if (
+      !/\.(json|jsonl)$/iu.test(normalized) &&
+      !/(?:^|\/)opencode\.db(?:-wal)?$/iu.test(normalized)
+    ) {
       outcomes.push({
         path: safeCandidateName(normalized),
         status: "unsupported",
@@ -295,6 +314,7 @@ export async function expandZipCandidate(
           size: memberSize,
           lastModified: candidate.lastModified,
           text: () => blob.text(),
+          arrayBuffer: () => blob.arrayBuffer(),
         });
       }
     };
@@ -699,6 +719,14 @@ export async function intakeBrowserCandidates(
   const warnings: AdapterWarning[] = [];
   const outcomes: CandidateOutcome[] = [];
   const seen = new Set<string>();
+  const normalizedPath = (path: string) => path.replace(/\\/gu, "/");
+  // Match a WAL only to its database in the same explicitly selected location.
+  const companionOf = (candidate: BrowserCandidate) =>
+    candidates.find(
+      (entry) =>
+        entry.group === candidate.group &&
+        normalizedPath(entry.path) === `${normalizedPath(candidate.path)}-wal`,
+    );
   const sources = new Set<keyof typeof ADAPTERS>();
   /** Raw project keys stay inside this function; only derived labels leave it. */
   const projectKeys = new Map<string, string>();
@@ -794,6 +822,24 @@ export async function intakeBrowserCandidates(
     // This file's read first, then the next few behind it.
     for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
+    if (/(?:^|[/\\])opencode\.db-wal$/iu.test(candidate.path)) {
+      const paired = candidates.some(
+        (entry) =>
+          entry.group === candidate.group &&
+          `${normalizedPath(entry.path)}-wal` === normalizedPath(candidate.path),
+      );
+      outcomes.push({
+        path: display,
+        status: paired ? "companion" : "unsupported",
+        source: "OpenCode",
+        events: 0,
+        reason: paired
+          ? "Companion log is read with its OpenCode database"
+          : "Select opencode.db together with its write-ahead log",
+      });
+      report(index + 1, false);
+      continue;
+    }
     if (!isBrowserSourceCandidate(candidate.path)) {
       outcomes.push({
         path: display,
@@ -829,9 +875,44 @@ export async function intakeBrowserCandidates(
     };
     let content = "";
     let signature: string | undefined;
+    let database: SqliteDatabase | undefined;
+    const sqlite = /(?:^|[/\\])opencode\.db$/iu.test(candidate.path);
     try {
       budget.add("readBytes", candidate.readCost ?? candidate.size);
-      if (streaming) {
+      if (sqlite) {
+        const companion = companionOf(candidate);
+        if (
+          candidate.size > MAX_BROWSER_DATABASE_BYTES ||
+          (companion?.size ?? 0) > MAX_BROWSER_DATABASE_BYTES
+        )
+          throw new Error(
+            "OpenCode database files exceed the 128 MB browser limit; use a CLI export.",
+          );
+        if (!candidate.arrayBuffer || (companion && !companion.arrayBuffer))
+          throw new Error("Selected OpenCode database bytes are unavailable.");
+        const bytes = new Uint8Array(await candidate.arrayBuffer());
+        examined(candidate.size);
+        let wal: Uint8Array | undefined;
+        if (companion) {
+          budget.add("readBytes", companion.readCost ?? companion.size);
+          wal = new Uint8Array(
+            await (companion.arrayBuffer as NonNullable<BrowserCandidate["arrayBuffer"]>)(),
+          );
+          examined(companion.size);
+        }
+        const hash = new FileSignature(bytes.length + (wal?.length ?? 0));
+        await hash.update(bytes);
+        if (wal) await hash.update(wal);
+        signature = await hash.digest();
+        if (options.signal?.aborted) throw new BrowserIntakeCancelledError();
+        database = await openBrowserOpenCode(bytes, wal);
+        if (!companion && bytes[18] === 2)
+          warnings.push({
+            code: "SESSION_PARTIAL",
+            message:
+              "OpenCode database was selected without its write-ahead log; recent sessions may be missing. Close OpenCode or include opencode.db-wal if present.",
+          });
+      } else if (streaming) {
         const peek = peekOf(index);
         peeks.delete(index);
         content = (await peek) ?? "";
@@ -853,17 +934,33 @@ export async function intakeBrowserCandidates(
     } catch (error) {
       if (error instanceof BrowserIntakeBudgetError) throw error;
       if (error instanceof BrowserIntakeCancelledError) throw error;
-      outcomes.push(unreadableOutcome(display, error));
+      outcomes.push(
+        sqlite
+          ? {
+              path: display,
+              source: "OpenCode",
+              status: "unreadable",
+              events: 0,
+              reason: safeIntakeMessage(
+                error instanceof Error ? error.message : "Could not read OpenCode database",
+              ),
+            }
+          : unreadableOutcome(display, error),
+      );
       report(index + 1, true);
       continue;
     }
     const rootMatch = candidate.path.replace(/\\/gu, "/").match(/^(.*?(?:^|\/)projects)(?:\/|$)/u);
+    const selectedRoot = sqlite
+      ? normalizedPath(candidate.path).replace(/(?:^|\/)opencode\.db$/iu, "")
+      : rootMatch?.[1];
     const sessionRoot =
-      rootMatch?.[1] === undefined
+      selectedRoot === undefined
         ? undefined
-        : JSON.stringify([candidate.group ?? "selection", rootMatch[1]]);
+        : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
     if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
     if (signature !== undefined && seen.has(signature)) {
+      database?.close();
       outcomes.push({
         path: display,
         status: "duplicate",
@@ -874,7 +971,9 @@ export async function intakeBrowserCandidates(
       continue;
     }
     if (signature !== undefined) seen.add(signature);
-    const detection = detectBrowserSource(content);
+    const detection = sqlite
+      ? { id: "opencode" as const, reason: "OpenCode CLI / desktop session database" }
+      : detectBrowserSource(content);
     if (detection.id === undefined) {
       const plainText = /\.txt$/iu.test(candidate.path);
       outcomes.push({
@@ -893,12 +992,13 @@ export async function intakeBrowserCandidates(
     // A synthetic collection root lets the original adapter read File contents
     // through its injected FileSystem without access to Node or the host disk.
     const name = display.replace(/[\\/]/gu, "_");
-    const path = `/selected/${name}`;
+    const path = `/selected/${sqlite ? "opencode.db" : name}`;
     const env: SourceEnvironment = {
       platform: "linux",
       homeDir: "/selected",
       env: {},
       selectedFiles: true,
+      ...(database ? { openDatabase: async () => database } : {}),
       fs: singleFileSystem(
         path,
         content,

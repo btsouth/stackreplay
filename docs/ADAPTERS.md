@@ -101,6 +101,24 @@ as `nativeCost` for reference only; replay never reads it.
 
 ## OpenCode
 
+**CLI / desktop and browser parity.** OpenCode Desktop's local CLI server writes the same
+session history ([upstream documentation](https://opencode.ai/docs/troubleshooting/)); both
+surfaces are one `opencode` usage source. Browser folder discovery, individual connection,
+direct file selection and ZIP intake accept the database and its optional `opencode.db-wal`
+companion. Collection runs through the same adapter as the native CLI with an injected,
+query-only in-memory SQLite connection. Only `message` usage fields and `session.directory`
+are selected; content and credential tables are not queried or persisted. CLI / desktop is
+not a new billing identity, and neither store establishes a subscription.
+
+The browser uses bundled sql.js asm.js, with no CDN, eval permission, WASM fetch or persistent
+database copy. It overlays checksum-valid WAL frames only through the last committed
+transaction, following SQLite's [WAL reader algorithm](https://sqlite.org/fileformat2.html#walformat).
+Discovery probes the named database and companion without listing the data folder. Close
+OpenCode before selecting a consistent snapshot; include the log if present. Without a log,
+a WAL-mode main file is accepted with a warning that recent usage may be missing. Files and
+the combined snapshot are each bounded to 128 MB; larger histories can still use the native
+CLI collector and import its portable export. Legacy JSON layouts remain unsupported.
+
 **Source.** The OpenCode data directory, `opencode.db` (SQLite). Assistant messages live in
 `message` with a JSON `data` column:
 `{ providerID, modelID, cost, time: { created, completed }, tokens: { input, output, reasoning,

@@ -421,7 +421,25 @@ export async function discoverHistories<F extends DiscoveryFile>(
       finding = { ...base, status: installed ? "access-needed" : "not-found" };
     } else if (!base.importable) {
       finding = { ...base, status: "unsupported", location: match.path };
-    } else if (source.inventory === undefined || match.kind === "file") {
+    } else if (match.kind === "file") {
+      const file = await prober.file(match.path);
+      if (file === null) throw new Error("A probed history database disappeared");
+      const files: DiscoveredFile<F>[] = [{ file, path: match.path }];
+      for (const name of source.companionFiles ?? []) {
+        const path = [...match.path.slice(0, -1), name];
+        const companion = await prober.file(path);
+        if (companion !== null) files.push({ file: companion, path });
+      }
+      const bytes = await totalSize(files);
+      finding = {
+        ...base,
+        status: "found",
+        location: match.path,
+        fileCount: files.length,
+        ...(bytes === undefined ? {} : { bytes }),
+        files,
+      };
+    } else if (source.inventory === undefined) {
       finding = { ...base, status: "unsupported", location: match.path };
     } else {
       const directory = match.path.length === 0 ? root : await prober.directory(match.path);
@@ -482,9 +500,15 @@ export function registeredProbePaths(
   };
   for (const source of registry) {
     for (const location of [...source.history, ...source.installed]) add(location.path);
+    for (const location of source.history)
+      if (location.kind === "file")
+        for (const name of source.companionFiles ?? []) add([...location.path.slice(0, -1), name]);
     for (const signature of source.roots ?? []) {
       for (const marker of [...signature.requires, ...(signature.anyOf ?? [])]) add([marker.name]);
       add(signature.history);
+      if (signature.kind === "file")
+        for (const name of source.companionFiles ?? [])
+          add([...signature.history.slice(0, -1), name]);
     }
   }
   return paths;

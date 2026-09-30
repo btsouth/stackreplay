@@ -675,7 +675,11 @@ async function handleImportSources(
   // A portable V1 envelope is identified by content. The filename is only a
   // UI convention, so a CLI export named usage.json follows the same path.
   const onlySelection = files.length === 1 ? files[0] : undefined;
-  if (onlySelection !== undefined && !/\.zip$/iu.test(onlySelection.file.name)) {
+  if (
+    onlySelection !== undefined &&
+    !/\.zip$/iu.test(onlySelection.file.name) &&
+    !/^opencode\.db(?:-wal)?$/iu.test(onlySelection.file.name)
+  ) {
     const file = onlySelection.file;
     if (/\.(json|stackreplay)$/iu.test(file.name) && file.size <= 512 * 1024 * 1024) {
       budget.add("readBytes", file.size);

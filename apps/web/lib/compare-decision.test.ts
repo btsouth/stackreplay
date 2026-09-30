@@ -76,4 +76,13 @@ describe("decision-oriented comparison", () => {
     expect(configuredMonthlyPrice(plans)).toBe("300");
     expect(configuredMonthlyPrice([])).toBeUndefined();
   });
+  it("includes accepted OpenCode and execution-only Command Code prices without losing either selection", () => {
+    const plans = configuredPlans(
+      ["plan:command-code-goat", "plan:opencode-go-plus"],
+      "2026-09-29",
+    );
+    expect(plans.map((plan) => plan.id).sort()).toEqual(["command-code-goat", "opencode-go-plus"]);
+    expect(configuredMonthlyPrice(plans)).toBe("50");
+    expect(configuredPlans(["plan:command-code-goat"], "2026-10-28")).toEqual([]);
+  });
 });

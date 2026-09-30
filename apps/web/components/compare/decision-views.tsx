@@ -506,7 +506,7 @@ export function StackComparison({
   const picker = configurablePlans(rulesAsOf, isSyntheticWorkload(record));
   const toggle = (key: TargetKey) => {
     const next = current.includes(key) ? current.filter((item) => item !== key) : [...current, key];
-    if (next.length <= 4) onCurrentChange(next);
+    onCurrentChange(next);
   };
   return (
     <section className="flex min-w-0 flex-col gap-6" data-testid="stack-comparison">

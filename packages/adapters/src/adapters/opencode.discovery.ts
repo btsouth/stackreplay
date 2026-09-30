@@ -3,13 +3,23 @@ import type { SourceDiscovery } from "../discovery-types.js";
 /**
  * OpenCode documents its data at `~/.local/share/opencode/` on macOS and Linux
  * and `%USERPROFILE%\.local\share\opencode` on Windows. Usage lives in its
- * SQLite database, which the browser does not parse: discovery reports it and
- * leaves collection to the CLI adapter.
+ * SQLite database, shared by the CLI and the desktop's local CLI server.
  */
 export const OPENCODE_DISCOVERY: SourceDiscovery = {
   adapterId: "opencode",
   name: "OpenCode",
   history: [
+    // Compatibility with the native collector's macOS data-home location.
+    {
+      path: ["Library", "Application Support", "opencode", "opencode.db"],
+      kind: "file",
+      platforms: ["macos"],
+    },
+    {
+      path: ["AppData", "Local", "opencode", "opencode.db"],
+      kind: "file",
+      platforms: ["windows"],
+    },
     {
       path: [".local", "share", "opencode", "opencode.db"],
       kind: "file",
@@ -17,6 +27,7 @@ export const OPENCODE_DISCOVERY: SourceDiscovery = {
     },
   ],
   installed: [],
+  companionFiles: ["opencode.db-wal"],
   // The data folder under any name: it holds the documented database.
   roots: [
     {

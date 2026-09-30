@@ -58,6 +58,8 @@ export interface SourceDiscovery {
    * of being reported absent.
    */
   installed: readonly KnownLocation[];
+  /** Named companions of a database, probed without listing its parent or reading content. */
+  companionFiles?: readonly string[];
   /**
    * What inventory may list inside a found history folder: how many folder
    * levels below it (the history folder itself is level 0) and which files

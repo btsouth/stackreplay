@@ -63,6 +63,18 @@ const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string
   },
   { kind: "codex", name: "Codex", action: "Scan local sessions", path: "~/.codex/sessions" },
   {
+    kind: "command-code",
+    name: "Command Code",
+    action: "Scan local sessions",
+    path: "~/.commandcode/projects",
+  },
+  {
+    kind: "opencode",
+    name: "OpenCode",
+    action: "Scan CLI / desktop history",
+    path: "~/.local/share/opencode",
+  },
+  {
     kind: "folder",
     name: "Folder scan",
     action: "Auto-detect supported sources",
@@ -660,8 +672,11 @@ export function ImportSurface({
                     A local scan accepts up to 5 GB of selected files, with a 512 MB limit for each
                     raw source file. Large scans need substantial browser memory. If a full history
                     exceeds the limit, choose a smaller date folder, such as a Codex year or month.
-                    ChatGPT web conversations do not have a local sessions folder; a ChatGPT data
-                    export is not replay-grade usage evidence.
+                    OpenCode CLI and desktop share their session database: close OpenCode before
+                    selecting its folder, and include opencode.db-wal if present. OpenCode database
+                    files and the combined snapshot are limited to 128 MB; use a CLI export for
+                    larger histories. ChatGPT web conversations do not have a local sessions folder;
+                    a ChatGPT data export is not replay-grade usage evidence.
                   </p>
                 </div>
               </details>
@@ -737,7 +752,7 @@ export function ImportSurface({
                     type="file"
                     disabled={busy || !ready}
                     multiple
-                    accept=".json,.jsonl,.zip,application/json,application/zip"
+                    accept=".json,.jsonl,.db,.db-wal,.zip,application/json,application/zip"
                     aria-describedby={`${sourceInputId}-selection`}
                     className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                     data-testid="source-file-input"
