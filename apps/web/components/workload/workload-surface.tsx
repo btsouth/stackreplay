@@ -175,9 +175,9 @@ export function WorkloadSurface({
         <h1 className="text-2xl font-medium tracking-tight">Workload</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           No workload in this browser yet. Scan the history your AI coding tools already keep
-          (Claude Code, Codex, Command Code), or load a demo, to see what that work is worth at
-          published API prices, what drives it, and when it gets heavy. Everything is read in this
-          browser; nothing in your history leaves it.
+          (Claude Code, Codex, Command Code, OpenCode), or load a demo, to see what that work is
+          worth at published API prices, what drives it, and when it gets heavy. Everything is read
+          in this browser; nothing in your history leaves it.
         </p>
         <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
           Scan your AI history

@@ -1,8 +1,10 @@
 import { mkdir, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
+  OPENCODE_FIXTURE_SQL,
 } from "../../../../packages/adapters/src/fixtures/content";
 
 /**
@@ -54,8 +56,8 @@ async function personalFolders(home: string): Promise<void> {
 }
 
 /**
- * A home with Claude Code and Codex history, an OpenCode database the browser
- * cannot parse, no Command Code or Hermes, and unrelated personal folders.
+ * A home with Claude Code, Codex and OpenCode history, no Command Code or
+ * Hermes, and unrelated personal folders.
  */
 export async function buildHome(
   home: string,
@@ -82,5 +84,16 @@ export async function buildHome(
   }
   await writeCodexSessions(join(home, ".codex", "sessions"), options.codexRollouts ?? 1);
   await mkdir(join(home, ".local", "share", "opencode"), { recursive: true });
-  await writeFile(join(home, ".local", "share", "opencode", "opencode.db"), "SQLite format 3");
+  const db = new DatabaseSync(join(home, ".local", "share", "opencode", "opencode.db"));
+  try {
+    for (const statement of OPENCODE_FIXTURE_SQL)
+      db.exec(
+        statement
+          .replaceAll("example-medium", "gpt-6.1-sol")
+          .replaceAll("example-small", "gpt-6.1-sol")
+          .replaceAll("example-provider", "openai"),
+      );
+  } finally {
+    db.close();
+  }
 }

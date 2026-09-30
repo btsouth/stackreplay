@@ -125,7 +125,7 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
         if (database !== null && database.kind === "file") {
           anyDatabase = true;
           if (sessionCount === undefined) {
-            const db = await openReadOnly(databasePath);
+            const db = await (env.openDatabase ?? openReadOnly)(databasePath);
             if (db !== undefined) {
               const rows = db.all("select count(*) as n from session");
               sessionCount = toSafeCount(rows[0]?.n);
@@ -175,7 +175,7 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
         const databasePath = joinPath(env.platform, root, "opencode.db");
         const info = await env.fs.stat(databasePath);
         if (info === null || info.kind !== "file") continue;
-        const db = await openReadOnly(databasePath);
+        const db = await (env.openDatabase ?? openReadOnly)(databasePath);
         if (db === undefined) {
           warnings.add("SOURCE_UNREADABLE", "could not open opencode.db read-only", databasePath);
           continue;

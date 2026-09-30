@@ -22,6 +22,8 @@ import {
 } from "@stackreplay/catalog";
 import {
   BUNDLED_CATALOG_VERSION,
+  type BundledPlanSummary,
+  bundledPlansAt,
   directApiProviderIdsFor,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
@@ -118,6 +120,31 @@ export interface PublicPlanSummary {
   timeline?: PlanTimelineInputV1;
   /** Allowances the provider states relative to another plan's, e.g. 25x Plus usage. */
   relativeAllowances?: readonly { multiple: string; comparedToPlanName: string }[];
+}
+
+/** Shared picker facts, including accepted execution-only plans such as GOAT.
+ * Synthetic choices stay available to demo surfaces; prices and validity come
+ * from the existing catalog read models, never new inferred replay rules.
+ */
+export function catalogPlansAt(rulesAsOf: string): BundledPlanSummary[] {
+  const plans = bundledPlansAt(rulesAsOf);
+  const present = new Set(plans.map((plan) => plan.id));
+  const additional = loadPublicCatalog(rulesAsOf.slice(0, 10))
+    .plans.filter((plan) => !present.has(plan.id))
+    .map(
+      (plan): BundledPlanSummary => ({
+        id: plan.id,
+        name: plan.name,
+        providerId: plan.providerId,
+        versionId: plan.versionId,
+        effectiveFrom: plan.effectiveFrom,
+        price: plan.price,
+        limitCount: plan.limits.length,
+        modelCount: plan.modelRules.length,
+        verificationStatus: plan.verificationStatus,
+      }),
+    );
+  return [...plans, ...additional];
 }
 
 /**

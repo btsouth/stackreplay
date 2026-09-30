@@ -11,6 +11,7 @@ import {
   coverageShare,
   type SuggestedRoute,
   suggestRoutes,
+  supportedModelsFor,
   type TargetCoverage,
   targetCoverages,
   workloadSlices,
@@ -32,6 +33,13 @@ const MEANINGFUL =
   /\$[\d,]+|\b[A-Z][a-z]{2} \d{1,2}\b|\d[\d,]* (?:[A-Z][\w ]+ )?calls?\b|\d+(?:\.\d+)?%/u;
 const ENGINE_STATES =
   /full coverage ruled out|capacity not quantified|not determinable|not established|would have fit|^unknown/iu;
+
+it("keeps execution-only Command Code model access date-valid", () => {
+  expect(supportedModelsFor("plan:command-code-goat", "2026-09-29")).toEqual(
+    new Set(["glm-5-3-flash"]),
+  );
+  expect(supportedModelsFor("plan:command-code-goat", "2026-10-28")).toEqual(new Set());
+});
 
 function workload(archetype: WorkloadArchetypeId) {
   const exported = buildArchetypeExport(archetype);

@@ -111,9 +111,9 @@ test("finds histories in a dropped home folder and builds only what is selected"
   // Absent histories are quiet: a status, not an error.
   await expect(page.getByTestId("history-command-code")).toContainText("Not found");
   await expect(page.getByTestId("history-hermes")).toContainText("Not found");
-  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "unsupported");
+  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("history-discovery").getByRole("alert")).toHaveCount(0);
-  await expect(page.getByTestId("discovery-summary")).toContainText("2 histories found");
+  await expect(page.getByTestId("discovery-summary")).toContainText("3 histories found");
   await expect(page.getByTestId("discovery-boundary")).toContainText(/Checked \d+ known paths/u);
   await expect(page.getByTestId("discovery-announcer")).toContainText("Nothing has been imported");
 
@@ -122,6 +122,7 @@ test("finds histories in a dropped home folder and builds only what is selected"
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
 
   await page.getByTestId("select-codex").uncheck();
+  await page.getByTestId("select-opencode").uncheck();
   await expect(page.getByTestId("selection-count")).toContainText("1 selected");
   await page.getByTestId("build-workload").click();
   await inspectLatestImport(page);
@@ -177,7 +178,7 @@ test("a linked history needs additional access and connects without disturbing t
   await expect(claude).toHaveAttribute("data-status", "connected");
   await expect(claude).toContainText("2 files");
   await expect(page.getByTestId("history-codex")).toHaveAttribute("data-status", "found");
-  await expect(page.getByTestId("selection-count")).toContainText("2 selected");
+  await expect(page.getByTestId("selection-count")).toContainText("3 selected");
 
   await page.getByTestId("build-workload").click();
   await inspectLatestImport(page);
@@ -197,7 +198,7 @@ test("another location joins the same list", async ({ page }, testInfo) => {
   // A bare `projects` folder is not identified by its contents, so it joins as
   // an added location whose files are identified by content when it is built.
   await expect(page.getByTestId("history-location-1")).toHaveAttribute("data-status", "connected");
-  await expect(page.getByTestId("selection-count")).toContainText("3 selected");
+  await expect(page.getByTestId("selection-count")).toContainText("4 selected");
 });
 
 test("a dropped tool folder works as well as a home folder", async ({ page }, testInfo) => {
@@ -208,15 +209,13 @@ test("a dropped tool folder works as well as a home folder", async ({ page }, te
   await expect(page.getByTestId("history-claude-code")).toContainText("Not found");
 });
 
-test("an OpenCode data folder reads as found but not readable, dropped or chosen", async ({
-  page,
-}, testInfo) => {
+test("an OpenCode data folder can be imported, dropped or chosen", async ({ page }, testInfo) => {
   const home = testInfo.outputPath("dev-home");
   await buildHome(home);
   const data = `${home}/.local/share/opencode`;
   await discover(page, data);
-  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "unsupported");
-  await expect(page.getByTestId("history-opencode")).toContainText("Not readable in browser");
+  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "found");
+  await expect(page.getByTestId("history-opencode")).toContainText("1 file");
 
   // The same folder through Add another location, after a drop that missed it.
   await discover(page, `${home}/.codex`);
@@ -224,8 +223,12 @@ test("an OpenCode data folder reads as found but not readable, dropped or chosen
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("add-location").click();
   await (await chooser).setFiles(data);
-  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "unsupported");
+  await expect(page.getByTestId("history-opencode")).toHaveAttribute("data-status", "found");
   await expect(page.locator('[data-testid^="history-location-"]')).toHaveCount(0);
+  await page.getByTestId("select-codex").uncheck();
+  await page.getByTestId("build-workload").click();
+  await waitForWorkload(page);
+  await expect(page.getByTestId("discovery-group-opencode")).toContainText("OpenCode activity");
 });
 
 test("a dropped bare projects folder asks for access and is never listed", async ({
@@ -443,6 +446,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
   await codex.focus();
   await page.keyboard.press("Space");
   await expect(codex).not.toBeChecked();
+  await page.getByTestId("select-opencode").uncheck();
   await expect(page.getByTestId("selection-count")).toContainText("1 selected");
   const build = page.getByRole("button", { name: "Build my workload from 1 selected history" });
   await build.focus();

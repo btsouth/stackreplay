@@ -1,4 +1,5 @@
 import type { WarningCode } from "@stackreplay/adapters";
+import type { CandidateOutcome } from "@stackreplay/adapters/browser";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { z } from "zod";
 import type { ImportRecord } from "./worker-protocol";
@@ -106,16 +107,21 @@ export type WarningCodesCovered = Exhaustive<
   WarningCode extends (typeof WARNING_CODES)[number] ? true : false
 >;
 const warningCode = z.enum(WARNING_CODES);
+const OUTCOME_STATUSES = [
+  "imported",
+  "companion",
+  "unrecognized",
+  "malformed",
+  "unsupported",
+  "duplicate",
+  "unreadable",
+] as const;
+export type OutcomeStatusesCovered = Exhaustive<
+  CandidateOutcome["status"] extends (typeof OUTCOME_STATUSES)[number] ? true : false
+>;
 const outcome = z.strictObject({
   path: safeName,
-  status: z.enum([
-    "imported",
-    "unrecognized",
-    "malformed",
-    "unsupported",
-    "duplicate",
-    "unreadable",
-  ]),
+  status: z.enum(OUTCOME_STATUSES),
   source: safeName.optional(),
   reason: safeExplanation,
   events: count,

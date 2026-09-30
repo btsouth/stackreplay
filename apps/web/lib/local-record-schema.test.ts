@@ -18,6 +18,26 @@ describe("complete IndexedDB pair contract", () => {
   it("accepts the normalized valid pair", () => {
     expect(validateStoredPair(record, payload)?.id).toBe(record.id);
   });
+  it("stores normalized intake metadata for an OpenCode database and its companion log", () => {
+    const scanned = {
+      ...record,
+      intake: {
+        outcomes: [
+          {
+            path: "opencode.db-wal",
+            status: "companion",
+            source: "OpenCode",
+            reason: "Companion log is read with its OpenCode database",
+            events: 0,
+          },
+        ],
+        exactDuplicates: 0,
+        overlaps: 0,
+        warnings: [],
+      },
+    };
+    expect(validateStoredPair(scanned, payload)?.id).toBe(record.id);
+  });
   it("stores a Claude scan whose repeated response rows raised RECORD_DUPLICATE", () => {
     const scanned = {
       ...record,

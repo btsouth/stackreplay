@@ -2,7 +2,6 @@
 
 import {
   bundledPlanFacts,
-  bundledPlansAt,
   bundledPlanTimelineInput,
   bundledProviderFacts,
   bundledPublicApiProviders,
@@ -50,6 +49,7 @@ import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { plainRange } from "@/components/workload/format";
 import { formatUsd } from "@/lib/money-display";
 import { versionTermsLabel } from "@/lib/plan-terms";
+import { catalogPlansAt } from "@/lib/public-catalog";
 import { type TargetCoverage, targetCoverages, workloadSlice } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
@@ -288,7 +288,7 @@ export function ReplaySurface({
    * ones, and a replay against them says nothing about the person's own stack.
    */
   const plans = useMemo(() => {
-    const available = bundledPlansAt(rulesAsOf);
+    const available = catalogPlansAt(rulesAsOf);
     const listed = selectedWorkloadIsDemo
       ? [
           ...available.filter((plan) => isSyntheticCatalogId(plan.id)),

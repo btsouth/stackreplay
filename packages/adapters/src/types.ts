@@ -1,5 +1,6 @@
 import type { ObservedCapacityEvent, UsageEventV1 } from "@stackreplay/schema";
 import type { ModelMapper } from "./models.js";
+import type { SqliteDatabase } from "./sqlite.js";
 
 /**
  * Adapter contract (spec points 13, 14, 16, 17).
@@ -229,6 +230,8 @@ export interface SourceEnvironment {
   homeDir: string;
   env: Record<string, string | undefined>;
   fs: FileSystem;
+  /** Browser-selected database snapshots; native collection defaults to read-only SQLite. */
+  openDatabase?: (path: string) => Promise<SqliteDatabase | undefined>;
   /** The collector supplied user-selected files, not a known native directory layout. */
   selectedFiles?: boolean;
   /** Import file supplied on the command line (import adapters only). */

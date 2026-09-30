@@ -1,10 +1,10 @@
 import {
   bundledApiProviderModels,
   bundledPlanModelsAt,
-  bundledPlansAt,
   bundledPublicApiProviders,
 } from "@stackreplay/catalog/bundled";
 import { isSyntheticCatalogId } from "@stackreplay/share";
+import { catalogPlansAt, loadPublicCatalog } from "./public-catalog";
 import type { SourceDemand } from "./workload-profile";
 
 /**
@@ -108,6 +108,13 @@ function runnableIn(slice: WorkloadSlice, runs: ReadonlySet<string>): number {
 
 /** Catalogued model availability shared by target suggestions and stack comparison. */
 export function supportedModelsFor(key: TargetKey, rulesAsOf: string): ReadonlySet<string> {
+  if (key.startsWith("plan:") && !bundledPlanModelsAt(key.slice(5), rulesAsOf)) {
+    // Execution-only plans publish exact model routes but no legacy limits.
+    const plan = loadPublicCatalog(rulesAsOf.slice(0, 10)).planById(key.slice(5));
+    return new Set(
+      plan?.modelRules.filter((rule) => rule.excluded !== true).map((rule) => rule.model) ?? [],
+    );
+  }
   const models = key.startsWith("plan:")
     ? (bundledPlanModelsAt(key.slice(5), rulesAsOf)?.models ?? [])
     : bundledApiProviderModels(key.slice(4), rulesAsOf);
@@ -126,7 +133,7 @@ export function targetCoverages(
 ): TargetCoverage[] {
   const keep = (id: string) => isSyntheticCatalogId(id) === options.synthetic;
   const coverages: TargetCoverage[] = [];
-  for (const plan of bundledPlansAt(rulesAsOf)) {
+  for (const plan of catalogPlansAt(rulesAsOf)) {
     if (!keep(plan.id)) continue;
     const runs = supportedModelsFor(`plan:${plan.id}`, rulesAsOf);
     coverages.push({

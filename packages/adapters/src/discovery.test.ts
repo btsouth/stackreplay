@@ -149,11 +149,16 @@ describe("Linux home", () => {
     expect(status["Claude Code"]).toMatchObject({ status: "found", fileCount: 4, bytes: 23 });
   });
 
-  it("reports a missing source quietly and a found database it cannot parse as unsupported", async () => {
+  it("reports a missing source quietly and an importable OpenCode database", async () => {
     const { status } = await discover(home, { platform: "linux" });
     expect(status["Command Code"]?.status).toBe("not-found");
     expect(status.Hermes?.status).toBe("not-found");
-    expect(status.OpenCode).toMatchObject({ status: "unsupported", importable: false });
+    expect(status.OpenCode).toMatchObject({
+      status: "found",
+      importable: true,
+      fileCount: 1,
+      bytes: 8192,
+    });
   });
 
   it("marks an installed tool whose history is a link as needing additional access", async () => {
@@ -215,9 +220,13 @@ describe("macOS home", () => {
     expect(status.Codex).toMatchObject({ status: "access-needed", relocatedBy: "CODEX_HOME" });
   });
 
-  it("never opens Library, where no supported source keeps history on macOS", async () => {
+  it("probes only the registered OpenCode compatibility location in Library and never lists it", async () => {
     const { log } = await discover(home, { platform: "macos" });
-    expect(log.some((entry) => entry.path.startsWith("Library"))).toBe(false);
+    const allowed = registeredProbePaths();
+    for (const entry of log.filter((entry) => entry.path.startsWith("Library"))) {
+      expect(allowed.has(entry.path), entry.path).toBe(true);
+      expect(entry.op).not.toBe("list");
+    }
   });
 });
 
@@ -238,7 +247,7 @@ describe("Windows user profile", () => {
     expect(status.Codex?.status).toBe("found");
   });
 
-  it("probes AppData only at the registered Hermes location and never lists AppData", async () => {
+  it("probes AppData only at registered OpenCode and Hermes locations and never lists it", async () => {
     const { status, log } = await discover(profile, { root: "Dev", platform: "windows" });
     expect(status.Hermes).toMatchObject({
       status: "unsupported",
@@ -248,6 +257,7 @@ describe("Windows user profile", () => {
     expect(appData.map((entry) => `${entry.op}:${entry.path}`)).toEqual([
       "directory:AppData",
       "directory:AppData/Local",
+      "directory:AppData/Local/opencode",
       "directory:AppData/Local/hermes",
     ]);
   });
@@ -456,19 +466,50 @@ describe("direct roots", () => {
     for (const root of ["opencode", "opencode-backup"]) {
       const { status, log } = await discover(openCodeData, { root });
       expect(status.OpenCode).toMatchObject({
-        status: "unsupported",
-        importable: false,
+        status: "found",
+        importable: true,
         location: ["opencode.db"],
       });
-      expect(touched(log)).toEqual([]);
+      expect(touched(log)).toEqual([{ op: "size", path: "opencode.db" }]);
     }
   });
 
   it("recognizes the parents above the OpenCode data folder", async () => {
     const share = await discover({ opencode: openCodeData }, { root: "share" });
-    expect(share.status.OpenCode?.status).toBe("unsupported");
+    expect(share.status.OpenCode?.status).toBe("found");
     const local = await discover({ share: { opencode: openCodeData } }, { root: ".local" });
-    expect(local.status.OpenCode?.status).toBe("unsupported");
+    expect(local.status.OpenCode?.status).toBe("found");
+  });
+  it("finds the native macOS OpenCode root and probes only its database and named companion", async () => {
+    const { status, log } = await discover(
+      {
+        Library: {
+          "Application Support": {
+            opencode: {
+              "opencode.db": 8192,
+              "opencode.db-wal": 4096,
+              "auth.json": 99,
+            },
+          },
+        },
+      },
+      { platform: "macos" },
+    );
+    expect(status.OpenCode).toMatchObject({
+      status: "found",
+      importable: true,
+      fileCount: 2,
+      bytes: 12288,
+    });
+    expect(log.some((entry) => entry.op === "list")).toBe(false);
+    expect(log.some((entry) => entry.path.includes("auth.json"))).toBe(false);
+  });
+  it("finds the native Windows OpenCode data home", async () => {
+    const { status } = await discover(
+      { AppData: { Local: { opencode: { "opencode.db": 8192 } } } },
+      { platform: "windows" },
+    );
+    expect(status.OpenCode).toMatchObject({ status: "found", importable: true, fileCount: 1 });
   });
 
   it("recognizes a custom HERMES_HOME as found but not readable in the browser", async () => {
@@ -502,7 +543,7 @@ describe("direct roots", () => {
       "found",
       "found",
       "found",
-      "unsupported",
+      "found",
       "unsupported",
     ]);
   });
@@ -546,7 +587,15 @@ describe("privacy contract", () => {
 
   it("never walks unrelated folders and never reads file content", async () => {
     const { log } = await discover(home, { platform: "linux" });
-    const unrelated = ["Documents", "Downloads", "Desktop", "src", ".config", ".ssh", "Library"];
+    const unrelated = [
+      "Documents",
+      "Downloads",
+      "Desktop",
+      "src",
+      ".config",
+      ".ssh",
+      "Library/Keychains",
+    ];
     for (const entry of log) {
       expect(
         unrelated.some((name) => entry.path === name || entry.path.startsWith(`${name}/`)),

@@ -1,5 +1,6 @@
 import { type BundledPlanSummary, bundledPlansAt } from "@stackreplay/catalog/bundled";
 import { addAmounts, isSyntheticCatalogId } from "@stackreplay/share";
+import { catalogPlansAt } from "./public-catalog";
 import { supportedModelsFor, type TargetKey } from "./routes";
 import type { SourceDemand } from "./workload-profile";
 
@@ -96,16 +97,18 @@ export function configuredPlans(current: readonly TargetKey[], rulesAsOf: string
   const selected = new Set(
     current.filter((key) => key.startsWith("plan:")).map((key) => key.slice(5)),
   );
-  return bundledPlansAt(rulesAsOf).filter((plan) => selected.has(plan.id));
+  return catalogPlansAt(rulesAsOf).filter((plan) => selected.has(plan.id));
 }
 
 /** A total exists only when every selected plan has the same monthly billing basis. */
-export function configuredMonthlyPrice(plans: readonly BundledPlanSummary[]): string | undefined {
+export function configuredMonthlyPrice(
+  plans: readonly Pick<BundledPlanSummary, "price">[],
+): string | undefined {
   if (plans.length === 0 || plans.some((plan) => plan.price.interval !== "month")) return undefined;
   return addAmounts(plans.map((plan) => plan.price.amount));
 }
 
 /** Plan configuration remains explicit; the catalog is only a picker. */
 export function configurablePlans(rulesAsOf: string, synthetic: boolean) {
-  return bundledPlansAt(rulesAsOf).filter((plan) => isSyntheticCatalogId(plan.id) === synthetic);
+  return catalogPlansAt(rulesAsOf).filter((plan) => isSyntheticCatalogId(plan.id) === synthetic);
 }
