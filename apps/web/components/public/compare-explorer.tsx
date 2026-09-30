@@ -14,13 +14,17 @@ import { PublishedUsageTable } from "./published-subscription-terms";
  * Public plan comparison (launch).
  *
  * Rows follow the questions a person asks before choosing a plan, in order:
- * price, models, coding tools, usage limits, what StackReplay can simulate,
- * what happens after the limit, and evidence. Two or three plans sit side by
+ * price, models, apps and tools, usage limits, what StackReplay can simulate,
+ * what happens after the limit, and sources. Two or three plans sit side by
  * side; a row where every plan says the same thing is shown once. Every
  * catalog detail (limit types, provider statements, model rules, versions,
  * sources) stays one level down under "Inspect constraints and sources".
  */
 
+/**
+ * The count and a link to the plan's own lineup. The lineup summary is written for
+ * the plan page; side by side, its caveats read as differences between plans.
+ */
 function ModelsCell({ facts }: { facts: CompareFacts }) {
   const { total } = facts.models;
   return (
@@ -30,9 +34,6 @@ function ModelsCell({ facts }: { facts: CompareFacts }) {
           ? (facts.modelAccess?.summary ?? "No named model is listed for this plan.")
           : `${total} ${total === 1 ? "model" : "models"} included`}
       </p>
-      {total > 0 && facts.modelAccess && (
-        <p className="mt-2 text-sm text-muted-foreground">{facts.modelAccess.summary}</p>
-      )}
       {facts.modelAccess && (
         <Link
           href={`/plans/${facts.planId}#model-access`}
@@ -119,9 +120,22 @@ function ModelMatrix({
         </button>
       )}
       <p className="mt-1 text-xs text-muted-foreground">
-        Included means the plan lists the model as included or available with conditions. Each
-        lineup link above has the conditions.
+        Included means the plan lists the model as included or available with conditions. Model
+        choice and limits can differ between a plan's apps; each lineup link above has the
+        conditions.
       </p>
+    </div>
+  );
+}
+
+const toolsText = (facts: CompareFacts) =>
+  facts.codingTools.join(", ") || "Not named in this plan's sources";
+
+function AppsCell({ facts }: { facts: CompareFacts }) {
+  return (
+    <div>
+      <p className="text-foreground">{toolsText(facts)}</p>
+      {facts.otherApps && <p className="mt-2 text-muted-foreground">{facts.otherApps}</p>}
     </div>
   );
 }
@@ -136,7 +150,9 @@ function UsageCell({ facts }: { facts: CompareFacts }) {
         {facts.usage.lines.map((line) => (
           <li key={`${line.text}-${line.detail}`}>
             <span className="text-foreground">{line.text}</span>
-            <span className="block text-xs text-muted-foreground">{line.detail}</span>
+            {line.detail && (
+              <span className="block text-xs text-muted-foreground">{line.detail}</span>
+            )}
           </li>
         ))}
       </ul>
@@ -190,7 +206,7 @@ function AfterLimitCell({ facts }: { facts: CompareFacts }) {
 
 function InspectCell({ plan, facts }: { plan: PublicPlanSummary; facts: CompareFacts }) {
   return (
-    <details className="border-t border-border pt-1 sm:border-t-0 sm:pt-0">
+    <details>
       <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
         Inspect constraints and sources
       </summary>
@@ -568,13 +584,19 @@ export function CompareExplorer({
                 <ModelMatrix plans={chosen} />
               </div>
             </div>
-            <TextRow
-              label="Coding tools"
+            <Row
+              label="Apps & tools"
               testId="coding-tools"
               names={names}
-              texts={chosen.map(
-                (entry) => entry.facts.codingTools.join(", ") || "Not named in this plan's sources",
-              )}
+              cells={chosen.map((entry) => <AppsCell key={entry.plan.id} facts={entry.facts} />)}
+              same={
+                chosen[0] &&
+                new Set(
+                  chosen.map((entry) => `${toolsText(entry.facts)}\n${entry.facts.otherApps}`),
+                ).size === 1 ? (
+                  <AppsCell facts={chosen[0].facts} />
+                ) : undefined
+              }
             />
             <Row
               label="Usage limits"
@@ -621,19 +643,15 @@ export function CompareExplorer({
                 />
               </>
             )}
-            <TextRow
-              label="Evidence"
-              testId="evidence"
-              names={names}
-              className="text-xs text-muted-foreground"
-              texts={chosen.map((entry) => entry.facts.evidence)}
-            />
             <Row
-              label="Details"
-              testId="inspect"
+              label="Sources"
+              testId="sources"
               names={names}
               cells={chosen.map((entry) => (
-                <InspectCell key={entry.plan.id} plan={entry.plan} facts={entry.facts} />
+                <div key={entry.plan.id}>
+                  <p className="text-xs text-muted-foreground">{entry.facts.evidence}</p>
+                  <InspectCell plan={entry.plan} facts={entry.facts} />
+                </div>
               ))}
             />
           </div>

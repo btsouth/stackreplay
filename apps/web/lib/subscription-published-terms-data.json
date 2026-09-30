@@ -1574,7 +1574,8 @@
       "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
       "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan",
       "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
-      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription",
+      "https://code.claude.com/docs/en/legal-and-compliance"
     ],
     "allowanceSummary": "Pro usage allowance; five-hour and weekly limits",
     "terms": [
@@ -1620,8 +1621,13 @@
       },
       {
         "label": "Agent SDK",
-        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "value": "Agent SDK and claude -p usage draws on subscription limits. A June 15 change that would have moved it to a separate monthly credit was paused.",
         "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Other apps",
+        "value": "Anthropic does not permit third-party developers to offer Claude.ai login in their apps or to route requests through Pro or Max credentials for their users. It directs those developers to API keys, billed separately.",
+        "sourceUrl": "https://code.claude.com/docs/en/legal-and-compliance"
       },
       {
         "label": "Cancellation",
@@ -1629,15 +1635,11 @@
         "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
       }
     ],
-    "codingTools": [
-      "Claude Code",
-      "Claude apps",
-      "Cowork",
-      "Claude Agent SDK (subscription authentication)"
-    ],
-    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
-    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
-    "billingSummary": "Monthly or annual subscription; usage resets are separate."
+    "codingTools": ["Claude apps", "Cowork", "Claude Code", "Claude Agent SDK"],
+    "afterLimit": "Wait for the reset, switch models where allowed, or turn on purchased usage credits.",
+    "privacySummary": "You choose whether chats and coding sessions help improve Claude; incognito chats are excluded.",
+    "billingSummary": "Monthly or annual. Canceling keeps access until the paid period ends.",
+    "otherApps": "Your own Agent SDK scripts and claude -p use your plan's limits. Other developers' apps may not offer Claude sign-in; Anthropic directs them to API keys, billed separately."
   },
   "anthropic-claude-max-5x": {
     "checkedAt": "2026-09-29",
@@ -1647,7 +1649,8 @@
       "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
       "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
       "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
-      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription",
+      "https://code.claude.com/docs/en/legal-and-compliance"
     ],
     "allowanceSummary": "5× Pro session allowance; five-hour and weekly limits",
     "terms": [
@@ -1693,8 +1696,13 @@
       },
       {
         "label": "Agent SDK",
-        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "value": "Agent SDK and claude -p usage draws on subscription limits. A June 15 change that would have moved it to a separate monthly credit was paused.",
         "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Other apps",
+        "value": "Anthropic does not permit third-party developers to offer Claude.ai login in their apps or to route requests through Pro or Max credentials for their users. It directs those developers to API keys, billed separately.",
+        "sourceUrl": "https://code.claude.com/docs/en/legal-and-compliance"
       },
       {
         "label": "Cancellation",
@@ -1702,15 +1710,11 @@
         "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
       }
     ],
-    "codingTools": [
-      "Claude Code",
-      "Claude apps",
-      "Cowork",
-      "Claude Agent SDK (subscription authentication)"
-    ],
-    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
-    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
-    "billingSummary": "Monthly only; web upgrades prorated."
+    "codingTools": ["Claude apps", "Cowork", "Claude Code", "Claude Agent SDK"],
+    "afterLimit": "Wait for the reset, switch models where allowed, or turn on purchased usage credits.",
+    "privacySummary": "You choose whether chats and coding sessions help improve Claude; incognito chats are excluded.",
+    "billingSummary": "Monthly only; web upgrades are prorated. Canceling keeps access until the paid period ends.",
+    "otherApps": "Your own Agent SDK scripts and claude -p use your plan's limits. Other developers' apps may not offer Claude sign-in; Anthropic directs them to API keys, billed separately."
   },
   "anthropic-claude-max-20x": {
     "checkedAt": "2026-09-29",
@@ -1720,7 +1724,8 @@
       "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
       "https://support.claude.com/en/articles/8325621-i-would-like-to-input-sensitive-data-into-my-chats-with-claude-who-can-view-my-conversations",
       "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan",
-      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
+      "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription",
+      "https://code.claude.com/docs/en/legal-and-compliance"
     ],
     "allowanceSummary": "20× Pro session allowance; five-hour and weekly limits",
     "terms": [
@@ -1766,8 +1771,13 @@
       },
       {
         "label": "Agent SDK",
-        "value": "The June 15 billing change was paused. Agent SDK, claude -p and SDK-based third-party app usage still draw on subscription limits; the announced separate monthly credit is not available.",
+        "value": "Agent SDK and claude -p usage draws on subscription limits. A June 15 change that would have moved it to a separate monthly credit was paused.",
         "sourceUrl": "https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan"
+      },
+      {
+        "label": "Other apps",
+        "value": "Anthropic does not permit third-party developers to offer Claude.ai login in their apps or to route requests through Pro or Max credentials for their users. It directs those developers to API keys, billed separately.",
+        "sourceUrl": "https://code.claude.com/docs/en/legal-and-compliance"
       },
       {
         "label": "Cancellation",
@@ -1775,15 +1785,11 @@
         "sourceUrl": "https://support.claude.com/en/articles/8325617-cancel-your-pro-or-max-subscription"
       }
     ],
-    "codingTools": [
-      "Claude Code",
-      "Claude apps",
-      "Cowork",
-      "Claude Agent SDK (subscription authentication)"
-    ],
-    "afterLimit": "Wait for reset, change model when eligible, or enable purchased usage credits.",
-    "privacySummary": "Consumer model-improvement choice; incognito excluded from improvement.",
-    "billingSummary": "Monthly only; web upgrades prorated."
+    "codingTools": ["Claude apps", "Cowork", "Claude Code", "Claude Agent SDK"],
+    "afterLimit": "Wait for the reset, switch models where allowed, or turn on purchased usage credits.",
+    "privacySummary": "You choose whether chats and coding sessions help improve Claude; incognito chats are excluded.",
+    "billingSummary": "Monthly only; web upgrades are prorated. Canceling keeps access until the paid period ends.",
+    "otherApps": "Your own Agent SDK scripts and claude -p use your plan's limits. Other developers' apps may not offer Claude sign-in; Anthropic directs them to API keys, billed separately."
   },
   "openai-chatgpt-plus": {
     "checkedAt": "2026-09-29",
@@ -1792,9 +1798,10 @@
       "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
       "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
       "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
-      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+      "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
     ],
-    "allowanceSummary": "Standard shared Work/Codex allowance",
+    "allowanceSummary": "Standard Work and Codex allowance; five-hour limit, weekly limits may apply",
     "terms": [
       {
         "label": "Included usage",
@@ -1817,6 +1824,11 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       },
       {
+        "label": "Other apps",
+        "value": "Sign in with ChatGPT lets supported apps use your plan for AI requests. Usage counts toward your existing Work and Codex limits and adds no allowance; the five-hour limit is shared across all apps. You can cap each app in Settings > Usage, and apps may charge their own fees.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+      },
+      {
         "label": "Privacy",
         "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
         "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
@@ -1837,10 +1849,10 @@
         "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
       }
     ],
-    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
-    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-    "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
+    "codingTools": ["ChatGPT", "ChatGPT Work", "Codex"],
+    "afterLimit": "Wait for the reset, buy credits, or buy an early limit reset where eligible.",
+    "privacySummary": "Model training on your chats is on by default; turn it off in Data Controls.",
+    "billingSummary": "Monthly only. Canceling keeps access until the paid period ends.",
     "tables": [
       {
         "id": "usage-estimates",
@@ -1855,7 +1867,8 @@
         "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       }
-    ]
+    ],
+    "otherApps": "With Sign in with ChatGPT, supported apps such as Devin, Warp, OpenCode and T3 Code can use your plan. That usage counts toward your Work and Codex limits, including the five-hour limit. API usage is billed separately."
   },
   "openai-chatgpt-pro": {
     "checkedAt": "2026-09-29",
@@ -1864,9 +1877,10 @@
       "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
       "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
       "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
-      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+      "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+      "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
     ],
-    "allowanceSummary": "5× Plus usage allowance for Work/Codex",
+    "allowanceSummary": "5× Plus Work and Codex usage; no five-hour limit, weekly limits may apply",
     "terms": [
       {
         "label": "Included usage",
@@ -1894,6 +1908,11 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       },
       {
+        "label": "Other apps",
+        "value": "Sign in with ChatGPT lets supported apps use your plan for AI requests. Usage counts toward your existing Work and Codex limits and adds no allowance. You can cap each app in Settings > Usage, and apps may charge their own fees.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+      },
+      {
         "label": "Privacy",
         "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
         "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
@@ -1914,10 +1933,11 @@
         "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
       }
     ],
-    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
-    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-    "billingSummary": "Monthly subscription; cancellation retains access until cycle end."
+    "codingTools": ["ChatGPT", "ChatGPT Work", "Codex"],
+    "afterLimit": "Wait for the reset, buy credits, or buy an early limit reset where eligible.",
+    "privacySummary": "Model training on your chats is on by default; turn it off in Data Controls.",
+    "billingSummary": "Monthly; upgrades restart the billing cycle. Canceling keeps access until the paid period ends.",
+    "otherApps": "With Sign in with ChatGPT, supported apps such as Devin, Warp, OpenCode and T3 Code can use your plan. That usage counts toward your Work and Codex limits. API usage is billed separately."
   },
   "openai-chatgpt-pro-20x": [
     {
@@ -1928,9 +1948,10 @@
         "https://learn.chatgpt.com/docs/pricing",
         "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
         "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
-        "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
+        "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets",
+        "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
       ],
-      "allowanceSummary": "Work/Codex usage under the revised allowance. No numeric allowance is published.",
+      "allowanceSummary": "Revised Work and Codex allowance with no published multiple of Plus; no five-hour limit",
       "terms": [
         {
           "label": "Included usage",
@@ -1958,6 +1979,11 @@
           "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
         },
         {
+          "label": "Other apps",
+          "value": "Sign in with ChatGPT lets supported apps use your plan for AI requests. Usage counts toward your existing Work and Codex limits and adds no allowance. You can cap each app in Settings > Usage, and apps may charge their own fees.",
+          "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+        },
+        {
           "label": "Privacy",
           "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
           "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
@@ -1983,11 +2009,12 @@
           "sourceUrl": "https://help.openai.com/en/articles/20001507-paid-weekly-work-and-codex-rate-limit-resets"
         }
       ],
-      "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-      "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
-      "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-      "billingSummary": "Monthly subscription; cancellation retains access until cycle end.",
-      "effectiveFrom": "2026-09-29"
+      "codingTools": ["ChatGPT", "ChatGPT Work", "Codex"],
+      "afterLimit": "Wait for the reset, buy credits, or buy an early limit reset where eligible.",
+      "privacySummary": "Model training on your chats is on by default; turn it off in Data Controls.",
+      "billingSummary": "Monthly; upgrades restart the billing cycle. Canceling keeps access until the paid period ends.",
+      "effectiveFrom": "2026-09-29",
+      "otherApps": "With Sign in with ChatGPT, supported apps such as Devin, Warp, OpenCode and T3 Code can use your plan. That usage counts toward your Work and Codex limits. API usage is billed separately."
     }
   ],
   "openai-chatgpt-pro-500": {
@@ -1998,9 +2025,11 @@
       "https://learn.chatgpt.com/docs/pricing",
       "https://learn.chatgpt.com/docs/agent-configuration/speed",
       "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
-      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+      "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans",
+      "https://learn.chatgpt.com/docs/sign-in-with-chatgpt",
+      "https://help.openai.com/en/articles/7232927"
     ],
-    "allowanceSummary": "The highest-usage Pro plan, with Astra Ultrafast in Codex and ChatGPT Work",
+    "allowanceSummary": "Highest Pro allowance, announced as 25× Plus, with Astra Ultrafast; no five-hour limit",
     "terms": [
       {
         "label": "Included usage",
@@ -2028,6 +2057,11 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       },
       {
+        "label": "Other apps",
+        "value": "Sign in with ChatGPT lets supported apps use your plan for AI requests. Usage counts toward your existing Work and Codex limits and adds no allowance. You can cap each app in Settings > Usage, and apps may charge their own fees.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+      },
+      {
         "label": "Privacy",
         "value": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
         "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
@@ -2036,20 +2070,27 @@
         "label": "Credit expiry",
         "value": "Purchased personal-plan credits expire 12 months after purchase and are non-transferable. Refund exceptions are limited.",
         "sourceUrl": "https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans"
+      },
+      {
+        "label": "Cancellation",
+        "value": "Paid features remain available until the end of the current billing period.",
+        "sourceUrl": "https://help.openai.com/en/articles/7232927"
       }
     ],
-    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
-    "privacySummary": "Personal-workspace data sharing is on by default; opt out in Data Controls.",
-    "billingSummary": "Monthly subscription; cancellation retains access until cycle end."
+    "codingTools": ["ChatGPT", "ChatGPT Work", "Codex"],
+    "afterLimit": "Wait for the reset, buy credits, or buy an early limit reset where eligible.",
+    "privacySummary": "Model training on your chats is on by default; turn it off in Data Controls.",
+    "billingSummary": "Monthly. Canceling keeps access until the paid period ends.",
+    "otherApps": "With Sign in with ChatGPT, supported apps such as Devin, Warp, OpenCode and T3 Code can use your plan. That usage counts toward your Work and Codex limits. API usage is billed separately."
   },
   "openai-chatgpt-business": {
     "checkedAt": "2026-09-29",
     "sourceUrls": [
       "https://learn.chatgpt.com/docs/pricing",
-      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
+      "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training",
+      "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
     ],
-    "allowanceSummary": "Standard shared Work/Codex allowance",
+    "allowanceSummary": "Standard Work and Codex allowance; five-hour limit, weekly limits may apply",
     "terms": [
       {
         "label": "Included usage",
@@ -2072,6 +2113,11 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       },
       {
+        "label": "Other apps",
+        "value": "Using a ChatGPT plan for AI requests in other apps through Sign in with ChatGPT is available to eligible Plus and Pro subscribers only.",
+        "sourceUrl": "https://learn.chatgpt.com/docs/sign-in-with-chatgpt"
+      },
+      {
         "label": "Privacy",
         "value": "Business inputs and outputs are excluded from model training by default.",
         "sourceUrl": "https://help.openai.com/en/articles/8983130-what-if-i-want-to-keep-my-history-on-but-disable-model-training"
@@ -2082,8 +2128,8 @@
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       }
     ],
-    "codingTools": ["ChatGPT", "Codex", "ChatGPT Work"],
-    "afterLimit": "Purchase additional credits where available; API-key usage billed separately.",
+    "codingTools": ["ChatGPT", "ChatGPT Work", "Codex"],
+    "afterLimit": "Wait for the reset or use additional workspace credits where available.",
     "privacySummary": "Business inputs and outputs are excluded from model training by default.",
     "billingSummary": "Workspace subscription; allowance depends on seat tier.",
     "tables": [
@@ -2100,7 +2146,8 @@
         "note": "OpenAI estimates, not guaranteed message limits. Context, cloud work, fast mode, images and weekly usage change actual availability.",
         "sourceUrl": "https://learn.chatgpt.com/docs/pricing"
       }
-    ]
+    ],
+    "otherApps": "Using a ChatGPT plan in other apps through Sign in with ChatGPT is limited to Plus and Pro. API usage is billed separately."
   },
   "google-ai-pro": {
     "checkedAt": "2026-09-29",

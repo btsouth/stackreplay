@@ -174,8 +174,21 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-model-matrix")).toContainText("Claude Opus 5.5");
     await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
     await expect(page.getByTestId("compare-row-simulation")).toContainText(
-      "Exact capacity replay is not supported",
+      "not exact capacity replay",
     );
+    // Lineup caveats stay on the plan pages; side by side they read as differences.
+    await expect(page.getByTestId("compare-row-models")).not.toContainText("billed separately");
+    // Use in other apps is stated for both providers, each with its own terms.
+    await expect(page.getByTestId("compare-row-coding-tools")).toContainText(
+      "Anthropic directs them to API keys",
+    );
+    await expect(page.getByTestId("compare-row-coding-tools")).toContainText(
+      "Sign in with ChatGPT",
+    );
+    // Each plan carries its own evidence date, even when the dates match.
+    await expect(
+      page.getByTestId("compare-row-sources").getByText(/^Published terms checked/u),
+    ).toHaveCount(2);
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
     for (const row of [
       "models",
@@ -184,7 +197,6 @@ test.describe("public site", () => {
       "usage",
       "simulation",
       "after-limit",
-      "evidence",
     ]) {
       await expect(page.getByTestId(`compare-row-${row}`)).not.toContainText(
         /documented routes|qualitative/iu,

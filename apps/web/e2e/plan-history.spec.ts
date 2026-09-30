@@ -5,7 +5,7 @@ import { importDemo, setRulesAsOf, visitReplay } from "./helpers";
 /**
  * Plan terms and history (OpenAI DevDay, Sep 29, 2026).
  *
- * The ChatGPT Pro $200 change has to be visible where a person looks at or
+ * The ChatGPT Pro 200 change has to be visible where a person looks at or
  * compares the plan, without opening methodology. Its state follows the day:
  * an official scheduled change on Sep 29, the current terms from Sep 30, with
  * no catalog edit in between. The browser clock stands in for the day, because
@@ -27,7 +27,7 @@ async function expectNoSeriousViolations(page: Page) {
   );
 }
 
-test.describe("ChatGPT Pro $200 plan page", () => {
+test.describe("ChatGPT Pro 200 plan page", () => {
   test("leads with the revised market offer on Sep 29, with grandfathering as a visible exception", async ({
     page,
   }) => {
@@ -40,7 +40,7 @@ test.describe("ChatGPT Pro $200 plan page", () => {
       "described by OpenAI staff as ≈50% of the previous API-equivalent spend",
     );
     await expect(notice.getByTestId("plan-terms-exception")).toContainText(
-      "Already on ChatGPT Pro $200? Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
+      "Already on ChatGPT Pro 200? Eligible existing subscribers keep their previous allowance through Oct 29, 2026.",
     );
     await expect(notice).toBeInViewport();
 
@@ -140,14 +140,14 @@ test.describe("plan changes where plans are compared", () => {
       "/plans/openai-chatgpt-pro-20x#history",
     );
     const pro500 = page.getByTestId("compare-target").nth(1);
-    await expect(pro500).toContainText("ChatGPT Pro $500");
+    await expect(pro500).toContainText("ChatGPT Pro 500");
     await expect(pro500.getByTestId("plan-terms-notice")).toHaveCount(0);
     await page.goto("/plans");
-    await page.getByPlaceholder("Plan, provider or model…").fill("Pro $200");
+    await page.getByPlaceholder("Plan, provider or model…").fill("Pro 200");
     await expect(
       page
         .getByTestId("plan-card")
-        .filter({ hasText: "ChatGPT Pro $200" })
+        .filter({ hasText: "ChatGPT Pro 200" })
         .getByTestId("plan-terms-notice"),
     ).toHaveText("Revised usage allowance since Sep 29, 2026 →");
   });
@@ -243,7 +243,7 @@ test.describe("processing tiers on a model page", () => {
   });
 });
 
-test.describe("ChatGPT Pro $500", () => {
+test.describe("ChatGPT Pro 500", () => {
   test("states 25x Plus usage as a multiple, with Ultrafast and no speed figure as economics", async ({
     page,
   }) => {

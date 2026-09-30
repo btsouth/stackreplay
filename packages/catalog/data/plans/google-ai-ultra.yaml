@@ -1,6 +1,6 @@
 id: google-ai-ultra
 role: plan
-name: Google AI Ultra (5x tier)
+name: Google AI Ultra 5x
 providerId: google
 versions:
   - effectiveFrom: 2026-09-21

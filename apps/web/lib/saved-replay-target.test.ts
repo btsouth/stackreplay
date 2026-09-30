@@ -46,7 +46,7 @@ describe("saved replay targets", () => {
       },
     });
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · terms before the Sep 29, 2026 revision",
+      "ChatGPT Pro 200 · terms before the Sep 29, 2026 revision",
     );
   });
 
@@ -60,7 +60,7 @@ describe("saved replay targets", () => {
         planVersionId: "openai-chatgpt-pro-20x@2026-09-29",
       },
     });
-    expect(savedReplayTargetLine(record)).toBe("ChatGPT Pro $200 · terms effective Sep 29, 2026");
+    expect(savedReplayTargetLine(record)).toBe("ChatGPT Pro 200 · terms effective Sep 29, 2026");
   });
 
   it("keeps a grandfathered result grandfathered, whenever it is read", () => {
@@ -76,7 +76,7 @@ describe("saved replay targets", () => {
     });
     // The label reads only the stored version: Oct 29 passing does not change it.
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · eligible existing subscribers' previous allowance through Oct 29, 2026",
+      "ChatGPT Pro 200 · eligible existing subscribers' previous allowance through Oct 29, 2026",
     );
     expect(record.target).toMatchObject({ cohort: "grandfathered" });
   });
@@ -93,7 +93,7 @@ describe("saved replay targets", () => {
       },
     });
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · terms effective Sep 29, 2026 (cohort terms did not apply; market terms used)",
+      "ChatGPT Pro 200 · terms effective Sep 29, 2026 (cohort terms did not apply; market terms used)",
     );
   });
 
@@ -109,7 +109,7 @@ describe("saved replay targets", () => {
       },
     });
     expect(savedReplayTargetLine(record)).toBe(
-      "ChatGPT Pro $200 · terms before the Sep 29, 2026 revision (cohort terms did not apply; market terms used)",
+      "ChatGPT Pro 200 · terms before the Sep 29, 2026 revision (cohort terms did not apply; market terms used)",
     );
   });
 

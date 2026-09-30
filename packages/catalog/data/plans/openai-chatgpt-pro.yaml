@@ -1,6 +1,6 @@
 id: openai-chatgpt-pro
 role: plan
-name: ChatGPT Pro ($100 / Pro 5x tier)
+name: ChatGPT Pro 100
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-21

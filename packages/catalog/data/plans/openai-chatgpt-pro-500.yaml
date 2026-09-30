@@ -1,6 +1,6 @@
 id: openai-chatgpt-pro-500
 role: plan
-name: ChatGPT Pro $500
+name: ChatGPT Pro 500
 providerId: openai
 versions:
   - effectiveFrom: 2026-09-29
