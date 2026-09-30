@@ -242,23 +242,29 @@ describe("claude-code adapter", () => {
     expect(result.events[0]?.occurredAt).toBe("2026-09-19T10:01:00.000Z");
   });
 
-  it("maps catalog models and leaves unknown names unmapped", async () => {
-    const result = await withTempDir(async (directory) => {
-      await writeFixture(
-        `${directory}/.claude/projects/demo/${CLAUDE_CODE_FILE}`,
-        CLAUDE_CODE_SESSION.replace(/"model":"example-medium"/gu, '"model":"claude-sonnet-4-5"'),
-      );
-      const env = createFixtureEnvironment({ homeDir: directory });
-      return adapter.collect(env, {
-        ...options(),
-        roots: [`${directory}/.claude/projects`],
+  it.each([
+    { rawName: "claude-sonnet-4-5", canonicalId: "claude-sonnet-4-5", confidence: "exact" },
+    { rawName: "unpublished-test-model", canonicalId: undefined, confidence: "unknown" },
+  ])(
+    "maps $rawName without guessing an unknown identity",
+    async ({ rawName, canonicalId, confidence }) => {
+      const result = await withTempDir(async (directory) => {
+        await writeFixture(
+          `${directory}/.claude/projects/demo/${CLAUDE_CODE_FILE}`,
+          CLAUDE_CODE_SESSION.replace(/"model":"example-medium"/gu, `"model":"${rawName}"`),
+        );
+        const env = createFixtureEnvironment({ homeDir: directory });
+        return adapter.collect(env, {
+          ...options(),
+          roots: [`${directory}/.claude/projects`],
+        });
       });
-    });
-    const [first] = result.events;
-    expect(first?.model.rawName).toBe("claude-sonnet-4-5");
-    expect(first?.model.canonicalId).toBeUndefined();
-    expect(first?.confidence.model).toBe("unknown");
-  });
+      const [first] = result.events;
+      expect(first?.model.rawName).toBe(rawName);
+      expect(first?.model.canonicalId).toBe(canonicalId);
+      expect(first?.confidence.model).toBe(confidence);
+    },
+  );
 
   it("detects the history directory and counts sessions", async () => {
     await withTempDir(async (directory) => {
