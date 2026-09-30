@@ -189,7 +189,8 @@ test("panel supports keyboard focus, native radio arrows, confirmation and Escap
 test("unresolved models still offer source choices, with no tier selected", async ({ page }) => {
   await scan(page, false, true);
   await expect(panel(page)).toContainText("unresolved model identities");
-  await expect(panel(page)).toContainText("Model access unknown");
+  await expect(panel(page)).toContainText("Published access:");
+  await expect(panel(page)).not.toContainText("Model access unknown");
   await expect(panel(page).locator('input[type="radio"]:checked')).toHaveCount(0);
 });
 

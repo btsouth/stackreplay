@@ -70,6 +70,9 @@ does not aggregate it in the worker. No recommendations are included.
 `/app/stack` reads the same Current Stack, with a pure aggregate-only view model
 in `lib/my-stack.ts`. Settings and Workload link here; Workload's quick radios
 and My Stack use the same family choices, including explicit multiple-plan edits.
+Choices show the reviewed published lineup's compact model count even without
+resolved workload identities; workload coverage is separate supporting evidence.
+Missing workload identities never turn a known published lineup into "unknown".
 Unknown or retired selected keys stay visible and are never silently dropped.
 The advanced manual catalog chooser remains in Settings. Removing one target
 preserves all others and snoozes its family's discovery prompt for seven days.

@@ -55,6 +55,8 @@ test("no history needed: multiple plans save, reload, edit independently and rem
     "Published price:",
   );
   await edit(page);
+  await expect(page.locator("#stack-family-editor")).toContainText("Published access:");
+  await expect(page.locator("#stack-family-editor")).not.toContainText("Model access unknown");
   await page.getByRole("button", { name: "I pay for multiple plans" }).click();
   await expect(page.getByRole("button", { name: "Save stack", exact: true })).toBeDisabled();
   await page.getByTestId("stack-editor-plan-anthropic-claude-pro").check();

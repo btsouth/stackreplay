@@ -101,6 +101,8 @@ export interface DiscoveryCandidate {
   planName: string;
   publishedPrice: DiscoveryPlan["price"];
   access: {
+    /** Published lineup size, independent of whether workload identities resolved. */
+    publishedModelCount: number | undefined;
     listedModelIds: string[];
     observedModelCount: number;
     checkedAt: string | undefined;
@@ -182,15 +184,18 @@ export function discoverStack(input: {
       const plan = plans.find((entry) => entry.id === planId);
       if (!plan) return [];
       const access = subscriptionAccess(planId, input.rulesAsOf.slice(0, 10));
-      const listed = new Set(
-        access ? includedAccessModels(access).flatMap((m) => (m.modelId ? [m.modelId] : [])) : [],
-      );
+      const publishedModels = access ? includedAccessModels(access) : [];
+      const listed = new Set(publishedModels.flatMap((m) => (m.modelId ? [m.modelId] : [])));
       return [
         {
           planId,
           planName: plan.name,
           publishedPrice: plan.price,
           access: {
+            // Variants of the same exact reviewed model identity count once.
+            publishedModelCount: access
+              ? new Set(publishedModels.map((model) => model.modelId ?? model.name)).size
+              : undefined,
             listedModelIds: observedModelIds.filter((id) => listed.has(id)),
             observedModelCount: observedModelIds.length,
             checkedAt: access?.checkedAt,

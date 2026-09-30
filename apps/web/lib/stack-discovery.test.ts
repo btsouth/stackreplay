@@ -13,6 +13,7 @@ import {
   discoverStack,
   discoveryPlansAt,
 } from "./stack-discovery";
+import { includedAccessModels, subscriptionAccess } from "./subscription-access";
 import { buildWorkloadProfile, type SourceDemand } from "./workload-profile";
 import { summarizeExport } from "./workload-summary";
 
@@ -50,6 +51,23 @@ const candidateIds = (sourceId: string) =>
   discover([source(sourceId)])[0]
     ?.candidates.map((plan) => plan.planId)
     .sort();
+
+it("known published lineups stay known without workload models; counts come from reviewed access", () => {
+  for (const family of DISCOVERY_FAMILIES.filter((family) => family.planIds.length > 0)) {
+    const [group] = discover([source(family.sourceIds[0], 10, [], 10)]);
+    for (const candidate of group?.candidates ?? []) {
+      const access = subscriptionAccess(candidate.planId, rulesAsOf.slice(0, 10));
+      expect(access, candidate.planId).toBeDefined();
+      const models = access ? includedAccessModels(access) : [];
+      expect(candidate.access.publishedModelCount).toBe(
+        new Set(models.map((model) => model.modelId ?? model.name)).size,
+      );
+      expect(candidate.access.publishedModelCount).toBeGreaterThan(0);
+      expect(candidate.access.observedModelCount).toBe(0);
+      expect(candidate.access.listedModelIds).toEqual([]);
+    }
+  }
+});
 
 it("explicit multi-plan edits validate as a whole and replace only the answered family", () => {
   const current: TargetKey[] = [

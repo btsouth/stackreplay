@@ -37,9 +37,13 @@ export function FamilyPlanChoices({
       name: candidate.planName,
       price: candidate.publishedPrice,
       evidence:
+        candidate.access.publishedModelCount !== undefined
+          ? `Published access: ${candidate.access.publishedModelCount} listed models`
+          : "No reviewed access summary",
+      coverage:
         candidate.access.checkedAt && candidate.access.observedModelCount > 0
           ? `Lists ${candidate.access.listedModelIds.length} of ${candidate.access.observedModelCount} observed models`
-          : "Model access unknown",
+          : undefined,
     })),
     ...(multiple
       ? group.currentTargets
@@ -53,6 +57,7 @@ export function FamilyPlanChoices({
               name: plan?.name ?? key,
               price: plan?.price,
               evidence: "Existing selection",
+              coverage: undefined,
             };
           })
       : []),
@@ -95,6 +100,9 @@ export function FamilyPlanChoices({
                     : "Current published price unavailable"}
                 </span>
                 <span className="block text-xs text-muted-foreground">{choice.evidence}</span>
+                {choice.coverage ? (
+                  <span className="block text-xs text-muted-foreground">{choice.coverage}</span>
+                ) : null}
               </span>
             </label>
           );
