@@ -1,5 +1,11 @@
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
+import {
+  LOCAL_DATABASE_NAME as DATABASE_NAME,
+  LOCAL_DATABASE_VERSION as DATABASE_VERSION,
+  IMPORTS_STORE,
+  PAYLOADS_STORE,
+} from "./local-database";
 import { importRecordSchema, validateStoredPair } from "./local-record-schema";
 import type { ImportRecord } from "./worker-protocol";
 
@@ -14,11 +20,6 @@ import type { ImportRecord } from "./worker-protocol";
  * Every failure mode is explicit: unavailable storage, missing records and
  * corrupted entries are reported as typed results rather than thrown strings.
  */
-
-const DATABASE_NAME = "stackreplay";
-const DATABASE_VERSION = 1;
-const IMPORTS_STORE = "imports";
-const PAYLOADS_STORE = "payloads";
 
 export type StorageResult<T> =
   | { ok: true; value: T }

@@ -1,11 +1,12 @@
 /**
- * Public site navigation (M4).
+ * Public site navigation.
  *
- * The public site and the local application are deliberately distinct surfaces:
- * the public pages explain the product and publish the catalog, and the local
- * application does the work in the visitor's own browser. Navigation keeps that
- * boundary visible, and it only links to surfaces that exist today (decision 30:
- * planned cloud capabilities are never presented as available).
+ * StackReplay has two connected halves, and the header says so: the public
+ * market surfaces anyone can read (models, plan comparison, plans, updates),
+ * then the personal surfaces that apply the same catalog to the visitor's own
+ * workload (Workload, My Stack), which run in the local application. Navigation
+ * only links to surfaces that exist today (decision 30: planned cloud
+ * capabilities are never presented as available).
  */
 
 export interface PublicNavItem {
@@ -16,13 +17,19 @@ export interface PublicNavItem {
   description?: string;
 }
 
+/** Public market intelligence: readable without scanning anything. */
 export const publicNavItems = [
-  { label: "Subscriptions", href: "/plans", description: "Every catalogued plan, with sources" },
   { label: "Models", href: "/models", description: "Models, published prices and access" },
   { label: "Benchmarks", href: "/benchmarks", description: "Verified model evaluation evidence" },
   { label: "Compare", href: "/compare", description: "Compare documented plan facts" },
-  { label: "Methodology", href: "/methodology", description: "How a replay is calculated" },
-  { label: "Updates", href: "/changelog", description: "Catalog changes over time" },
+  { label: "Plans", href: "/plans", description: "Every catalogued plan, with sources" },
+  { label: "Updates", href: "/changelog", description: "Market and catalog changes over time" },
+] as const satisfies readonly PublicNavItem[];
+
+/** The same intelligence applied to the visitor's own workload, in this browser. */
+export const personalNavItems = [
+  { label: "Workload", href: "/app/workload", description: "Your recorded AI work" },
+  { label: "My Stack", href: "/app/stack", description: "Your subscriptions against it" },
 ] as const satisfies readonly PublicNavItem[];
 
 export const repositoryNavItem = {
@@ -33,8 +40,14 @@ export const repositoryNavItem = {
 
 /** Primary call to action: the local-first first-use path, with no signup gate. */
 export const primaryCta = {
-  label: "Scan your AI history",
+  label: "Scan my history",
   href: "/app/import",
+} as const;
+
+/** The primary action once this browser already holds a saved workload. */
+export const returningCta = {
+  label: "Open my workload",
+  href: "/app/workload",
 } as const;
 
 export const secondaryCta = {
@@ -52,9 +65,9 @@ export const publicFooterGroups = [
     title: "Product",
     items: [
       { label: "Scan your AI history", href: "/app/import" },
-      { label: "Subscriptions", href: "/plans" },
       { label: "Models", href: "/models" },
       { label: "Benchmarks", href: "/benchmarks" },
+      { label: "Plans", href: "/plans" },
       { label: "Compare", href: "/compare" },
     ],
   },

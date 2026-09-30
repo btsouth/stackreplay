@@ -15,7 +15,7 @@ import { captureRequests, createShareToken, importDemo, runReplay } from "./help
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Your AI coding history, measured." },
+  { path: "/", heading: "Know the AI market. Know what fits your workload." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Compare plans" },
@@ -238,7 +238,7 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -253,7 +253,7 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Subscriptions" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );

@@ -1,127 +1,126 @@
-import { buttonVariants } from "@stackreplay/ui";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { HomeReplay } from "@/components/home/replay-hero";
-import { MicroLabel } from "@/components/instrument/primitives";
-import { loadHeroWorkload } from "@/lib/hero-workload";
-import { siteDescription, siteName } from "@/lib/site";
+import { HomeHero } from "@/components/home/home-hero";
+import { ModelComparisonSection } from "@/components/home/model-comparison";
+import { PersonalIntelligence } from "@/components/home/personal-intelligence";
+import { PlanIntelligenceSection } from "@/components/home/plan-intelligence";
+import { formatCatalogDate } from "@/lib/catalog-copy";
+import { familyLadders, homeCatalogIndex } from "@/lib/home/catalog-index";
+import { exampleWorkload } from "@/lib/home/example";
+import { featuredModelComparison } from "@/lib/home/featured-models";
+import { featuredPlanCards } from "@/lib/home/featured-plans";
+import { latestChangeDate, marketChanges, selectPulse } from "@/lib/home/market-pulse";
+import { basePrice, modelPrices } from "@/lib/market-discovery";
+import { modelsInView } from "@/lib/model-library";
+import { loadPublicCatalog } from "@/lib/public-catalog";
+import { siteName, socialMetadata } from "@/lib/site";
+
+const title = `${siteName}: AI model and subscription intelligence for your workload`;
+const description =
+  "Current AI models, API prices, context limits and subscription terms, with sources. Then scan your AI coding history locally to see what you use and what your stack costs.";
 
 export const metadata: Metadata = {
-  title: `${siteName}: your AI coding history, measured`,
-  description: siteDescription,
+  title: { absolute: title },
+  description,
   alternates: { canonical: "/" },
+  ...socialMetadata({ title, description }),
 };
 
-export default function HomePage() {
-  const hero = loadHeroWorkload();
+function Chapter({
+  id,
+  index,
+  title,
+  note,
+}: {
+  id: string;
+  index: string;
+  title: string;
+  note: string;
+}) {
   return (
-    <div className="flex flex-col gap-10 pb-8 sm:gap-14">
-      <section
-        className="grid gap-5 pt-4 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:items-end lg:gap-12"
-        data-testid="home-hero"
-      >
-        <div className="flex flex-col gap-4">
-          <MicroLabel>Private workload analyzer</MicroLabel>
-          <h1 className="text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-5xl">
-            Your AI coding history, measured.
-          </h1>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Claude Code, Codex, Command Code and OpenCode keep records of your AI coding work.
-            StackReplay reads supported history in your browser to show what drives usage, when it
-            gets heavy and what covered calls would cost at published API prices. Replay that work
-            against another plan or API to see how its documented rules apply.
-          </p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link className={buttonVariants({ size: "lg" })} href="/app/import">
-              Scan your AI history
-            </Link>
-            <Link
-              className="min-h-11 content-center text-sm text-accent underline underline-offset-4"
-              href="/compare"
-            >
-              Compare plans
-            </Link>
-          </div>
-        </div>
-      </section>
+    <div id={id} className="home-chapter" data-testid={`home-chapter-${index}`}>
+      <p className="home-micro">
+        <span className="text-accent">{index}</span> / {title}
+      </p>
+      <p className="home-chapter-note">{note}</p>
+    </div>
+  );
+}
 
-      <section className="flex flex-col gap-4" data-testid="home-instrument">
-        <HomeReplay hero={hero} />
-      </section>
+export default function HomePage() {
+  const catalog = loadPublicCatalog();
+  const changes = marketChanges(catalog);
+  const pulse = selectPulse(changes);
+  const comparison = featuredModelComparison(catalog);
+  const index = homeCatalogIndex(catalog);
+  const cards = featuredPlanCards(
+    catalog.plans,
+    catalog.models.map((model) => model.id),
+    {
+      releasedOn: (id) =>
+        id === undefined ? "" : (catalog.modelById(id)?.releaseDate?.date ?? ""),
+    },
+  );
+  const listed = modelsInView(catalog.models, "models");
+  const checkedThrough = [
+    ...catalog.models.map((model) => model.lastVerifiedAt),
+    ...catalog.plans.map((plan) => plan.publishedTerms?.checkedAt ?? plan.lastVerifiedAt),
+  ]
+    .filter((date) => date <= catalog.asOf)
+    .sort()
+    .at(-1);
+  const coverage = {
+    models: listed.length,
+    pricedModels: listed.filter((model) => basePrice(modelPrices(model.id, catalog.asOf))).length,
+    plans: catalog.plans.length,
+    checkedThrough: formatCatalogDate(checkedThrough ?? catalog.asOf),
+  };
 
-      <section className="border-t border-border-strong py-6" aria-label="Explore the AI market">
-        <p className="market-kicker">Beyond your workload</p>
-        <div className="mt-5 grid gap-8 md:grid-cols-3">
-          {[
-            {
-              href: "/models",
-              title: "Know your models.",
-              text: "Compare published input, output and cache rates. Find model access across APIs and subscriptions.",
-              label: "Explore models",
-            },
-            {
-              href: "/plans",
-              title: "Find your next stack.",
-              text: "Claude, Codex, ClinePass, OpenCode, Ollama and more. Prices, compatible tools and usage terms together.",
-              label: "Explore subscriptions",
-            },
-            {
-              href: "/changelog",
-              title: "Keep up with changes.",
-              text: "New releases and newly verified offers, with the sources and dates that put them in context.",
-              label: "Market updates",
-            },
-          ].map((item) => (
-            <div key={item.href}>
-              <h2 className="text-2xl tracking-tight">{item.title}</h2>
-              <p className="market-muted mt-3 max-w-sm">{item.text}</p>
-              <Link href={item.href} className="market-link">
-                {item.label} ↗
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
+  return (
+    <div className="home" data-testid="home">
+      <HomeHero
+        coverage={coverage}
+        pulse={pulse}
+        latest={latestChangeDate(pulse)}
+        benchmarks={(comparison?.benchmarks.length ?? 0) > 0}
+      />
+
+      <Chapter
+        id="public-intelligence"
+        index="01"
+        title="Public intelligence"
+        note="Useful without scanning anything: models, prices and what subscriptions include."
+      />
+      {comparison === undefined ? null : (
+        <ModelComparisonSection comparison={comparison} index={index} />
+      )}
+      <PlanIntelligenceSection cards={cards} />
 
       <section
-        className="grid gap-7 border-t border-border pt-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
-        data-testid="home-privacy"
+        className="dark home-personal"
+        aria-labelledby="personal-heading"
+        data-testid="home-personal"
       >
-        <div>
-          <MicroLabel>Your machine</MicroLabel>
-          <h2 className="mt-2 text-xl font-medium text-foreground">Your history stays here.</h2>
-          <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
-            Drop your home folder and StackReplay checks only the places AI coding tools keep their
-            history. A Worker in your browser extracts models, tokens and timestamps; the raw
-            sessions stay on your device, and prompts, responses, code and paths are never saved.
-          </p>
-          <Link
-            className="mt-3 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-            href="/app/import"
-          >
-            Scan your AI history ↗
-          </Link>
-        </div>
-        <div>
-          <MicroLabel>Evidence</MicroLabel>
-          <h2 className="mt-2 text-xl font-medium text-foreground">
-            Every conclusion has a boundary.
+        <Chapter
+          id="personal-intelligence"
+          index="02"
+          title="Personal intelligence"
+          note="The same catalog, applied to the AI work you actually did."
+        />
+        <div className="home-personal-intro">
+          <h2 id="personal-heading" className="home-h2">
+            Now make all of this about your workload.
           </h2>
-          <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted-foreground">
-            Replay separates model availability, admission, capacity, and cost. Catalog facts carry
-            sources and dates. Unknown limits never become made-up numbers.
+          <p className="home-lede">
+            StackReplay maps your local AI history against the same models, prices and subscription
+            rules above. That answers questions a public comparison site can&rsquo;t.
           </p>
-          <div className="mt-3 flex flex-wrap gap-x-5">
-            <Link
-              className="inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-              href="/methodology"
-            >
-              Methodology ↗
-            </Link>
-          </div>
         </div>
+        <PersonalIntelligence
+          index={index}
+          ladders={familyLadders(catalog)}
+          example={exampleWorkload()}
+          pulse={pulse.map((item) => ({ planIds: item.planIds, modelIds: item.modelIds }))}
+        />
       </section>
     </div>
   );

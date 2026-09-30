@@ -37,9 +37,11 @@ export {
   isPublicNavItemActive,
   type PublicFooterGroup,
   type PublicNavItem,
+  personalNavItems,
   primaryCta,
   publicFooterGroups,
   publicNavItems,
   repositoryNavItem,
+  returningCta,
   secondaryCta,
 } from "./lib/public-nav";

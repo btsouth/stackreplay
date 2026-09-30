@@ -2,13 +2,14 @@ import rawFixture from "./generated/hero-workload.json";
 import { formatUsd } from "./money-display";
 
 /**
- * The homepage hero's anonymized real workload, as the hero reads it.
+ * The anonymized real workload behind the homepage's labelled example
+ * (`lib/home/example.ts`), which earlier drove the Replay Instrument hero.
  *
  * `generated/hero-workload.json` is written by `scripts/build-hero-fixture.mjs`,
  * which replays a real local history with the production engine against real
  * catalog targets and keeps aggregates only. Nothing here computes a result:
- * this module turns the engine's figures into the words and shapes the hero
- * shows, so the copy can be tested without a browser.
+ * this module turns the engine's figures into words and shapes, so the copy
+ * can be tested without a browser.
  */
 
 export interface HeroDay {

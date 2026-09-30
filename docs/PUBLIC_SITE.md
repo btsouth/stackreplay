@@ -49,21 +49,54 @@ Two rules keep this honest:
    renders carries its sources, verification state and last-checked date, because the
    catalog schema requires them. A page that cannot source a claim does not make it.
 
-## The Replay instrument (M4D)
+## The homepage
 
-The homepage is not a brochure around a screenshot. It is the instrument itself, reading engine
-output, with the narrative sections explaining what the instrument just showed.
-
-Narrative order on `/` (RC1):
+The homepage sets the product architecture the other public pages will follow: public market
+intelligence anyone can use without scanning anything, then the same catalog applied to the
+visitor's own workload. The replay engine is infrastructure behind those answers, not the
+homepage's interface.
 
 | Section | What it shows | Data |
 | --- | --- | --- |
-| Hero | One restrained claim and the calls to action | Site config |
-| The Replay Instrument | An anonymized real workload replayed against a selected real target: the observed workload, the Signal Blue path through the stacked execution object, and a counterfactual result that settles last (about 1.9 s, settled at once under reduced motion) | `apps/web/lib/generated/hero-workload.json` |
-| Local scan and evidence | What a folder scan keeps and discards, and how Replay bounds its conclusions | Site config |
+| Hero | Claim, calls to action, verified privacy sentence, chapter index and catalog coverage | Public catalog |
+| Market Pulse | Up to five dated changes: model releases, plan history events, superseding list prices | `lib/home/market-pulse.ts` over the bundled catalog |
+| 01 Public intelligence | A current-model comparison table and subscription information cards | `lib/home/featured-models.ts`, `lib/home/featured-plans.ts` |
+| 02 Personal intelligence | What a scan reads, a labelled example, and the questions a scan answers | `lib/home/personal*.ts`, the stored workload summary |
 
-**The hero fixture.** `apps/web/scripts/build-hero-fixture.mjs` replays a portable export of a real
-local history with the production engine against real catalog targets and keeps aggregates only:
+**Only real records.** Market Pulse derives every row from accepted catalog data. A model row uses
+the developer-published `releaseDate`; a plan row uses a dated, evidenced plan-history event, never a
+catalog version date (a version recorded the day StackReplay added a plan is not market news); a
+price row needs a later list-price record replacing different rates on the same route, so a model's
+first price record is never a "change". A category with no records contributes no rows. There are
+no benchmark rows until reviewed benchmark evidence is in the catalog; the comparison table says so
+in a footnote and the hero copy only mentions benchmarks when rows exist.
+
+**Configuration holds ids, not facts.** The featured models and plans are short lists of catalog
+ids. Every price, limit, capability, lineup and term is read from the catalog at render time, and an
+id the catalog no longer carries is left out.
+
+**Capacity evidence.** Plan cards state known facts first (price, lineup, published usage
+structure, resets, what happens at the limit), then the capacity analysis level: `Calculable` (a
+numeric limit the engine replays), `Bounded` (published structure such as a multiple or windows, no
+absolute allowance) or `Access only` (lineup known, no usage structure). The catalog's own
+"what the provider does not publish" statement is a secondary disclosure, never the headline.
+
+**Personal islands.** The public page is server-rendered and static. Small client islands read what
+the browser already stores: a presence probe counts saved workloads without creating the database,
+and on the homepage the newest saved non-demo workload's summary is loaded (the storage schemas load
+in a separate chunk only when a workload exists). Nothing starts a scan, opens a payload or starts
+the replay Worker. Models match by exact canonical id (or the catalog's `familyId` for "another
+release of this model"); an unresolved raw name is never compared with model names. Plans match
+Current Stack keys exactly. The personal questions open existing analyses: Replay's stack scenario
+(`?stack=`), My Stack, the Workload page and the billing comparison.
+The header and hero's returning action carries the displayed personal workload's id, so loading
+a newer demo never redirects that action away from the visitor's own history. On other public
+pages the header uses only the presence probe and opens the application normally.
+
+**The example workload.** The personal chapter shows one clearly labelled example before a scan:
+the anonymized real workload in `apps/web/lib/generated/hero-workload.json`, and only the API
+figure the engine established for its resolved calls. `apps/web/scripts/build-hero-fixture.mjs`
+replays a portable export of a real local history with the production engine against real catalog targets and keeps aggregates only:
 counts, UTC calendar-day totals, canonical model names and the engine's result figures (decision
 51). The export itself never enters the repository, and `apps/web/lib/hero-workload.test.ts` fails
 if the committed fixture carries a session, project or event identifier, or drifts from the
@@ -185,7 +218,10 @@ wordmark renders without JavaScript.
   so generated metadata can never point at localhost.
 - The root layout sets `metadataBase`, a title template, icons, the manifest link,
   Open Graph and Twitter cards with the approved social image.
-- Public pages declare canonical paths and their own titles and descriptions.
+- Public pages declare canonical paths and their own titles and descriptions. A page that
+  sets its own social title builds it with `socialMetadata()` from `lib/site.ts`: Next.js
+  replaces nested `openGraph` and `twitter` objects instead of merging them, and the helper
+  keeps the approved image, site name and handles.
 - `/s/[token]` gets a per-result title and description, and is `noindex` when the
   token is invalid. Valid share pages are indexable: a link that is public by design
   can be discovered.
@@ -206,6 +242,13 @@ wordmark renders without JavaScript.
   390 px; a stateless link renders what it carries; a tampered link is refused; and
   creating a share link in the application sends no request at all before the public
   page re-reads it.
+
+- `apps/web/lib/home/*.test.ts`: Market Pulse rows trace to real records; featured ids
+  resolve through the catalog; capacity evidence levels; canonical-only personal matching;
+  question routes resolve to real pages.
+- `apps/web/e2e/home.spec.ts`: the homepage with and without a saved workload, no scan or
+  Worker on load, no local database created by the probe, header grouping on desktop and
+  mobile, keyboard order, per-width layout, and axe once personalized.
 
 ## Not built (and not presented as available)
 
