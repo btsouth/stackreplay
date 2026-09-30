@@ -1,0 +1,110 @@
+{
+  "sourceUrl": "https://deepmind.google/models/gemini/",
+  "methodologyUrl": "https://deepmind.google/models/evals-methodology/gemini-4-argon",
+  "checkedAt": "2026-09-30",
+  "headers": ["Gemini 4 Argon", "GPT-6 Astra", "Claude Fable 5.1", "Claude Opus 5.5"],
+  "rows": [
+    {
+      "benchmarkId": "vals-index",
+      "sourceLabel": "Vals Index",
+      "sourceNotes": "",
+      "displayValues": ["68.9%", "63.1%", "65.8%", "67.0%"]
+    },
+    {
+      "benchmarkId": "automationbench",
+      "sourceLabel": "AutomationBench",
+      "sourceNotes": "Score",
+      "displayValues": ["51.3%", "41.4%", "31.4%", "42.5%"]
+    },
+    {
+      "benchmarkId": "vals-finance-agent-v2",
+      "sourceLabel": "Vals Finance Agent v2",
+      "sourceNotes": "",
+      "displayValues": ["65.4%", "53.5%", "58.9%", "58.6%"]
+    },
+    {
+      "benchmarkId": "harvey-legal-agent",
+      "sourceLabel": "Harvey's Legal Agent Benchmark",
+      "sourceNotes": "",
+      "displayValues": ["19.6%", "5.4%", "6.7%", "3.8%"]
+    },
+    {
+      "benchmarkId": "deep-swe-v1-1",
+      "sourceLabel": "DeepSWE v1.1",
+      "sourceNotes": "",
+      "displayValues": ["77.9%", "74.1%", "67.4%", "74.2%"]
+    },
+    {
+      "benchmarkId": "frontier-swe-v2",
+      "sourceLabel": "FrontierSWE v2",
+      "sourceNotes": "",
+      "displayValues": ["55.0%", "65.5%", "56.3%", "62.3%"]
+    },
+    {
+      "benchmarkId": "vibe-code-bench",
+      "sourceLabel": "Vibe Code Bench",
+      "sourceNotes": "",
+      "displayValues": ["91.9%", "89.6%", "90.3%", "90.3%"]
+    },
+    {
+      "benchmarkId": "terminal-bench-4-0",
+      "sourceLabel": "Terminal-bench 4.0",
+      "sourceNotes": "",
+      "displayValues": ["57.4%", "58.2%", "57.9%", "66.4%"]
+    },
+    {
+      "benchmarkId": "posttrainbench-v1-1",
+      "sourceLabel": "PostTrainBench",
+      "sourceNotes": "",
+      "displayValues": ["45.3%", "44.3%", "40.2%", "49.3%"]
+    },
+    {
+      "benchmarkId": "terminal-bench-science-0-1",
+      "sourceLabel": "Terminal-Bench Science 0.1",
+      "sourceNotes": "",
+      "displayValues": ["57.6%", "68.1%", "52.6%", "63.3%"]
+    },
+    {
+      "benchmarkId": "labbench-2",
+      "sourceLabel": "LABBench 2",
+      "sourceNotes": "",
+      "displayValues": ["88.8%", "85.4%", "68.6%", "73.1%"]
+    },
+    {
+      "benchmarkId": "riemannbench",
+      "sourceLabel": "RiemannBench",
+      "sourceNotes": "",
+      "displayValues": ["76.0%", "72.0%", "65.6%", "69.6%"]
+    },
+    {
+      "benchmarkId": "graphwalks-bfs-f1-up-to-128k",
+      "sourceLabel": "GraphWalks",
+      "sourceNotes": "Up to 128k, BFS (F1)",
+      "displayValues": ["99.7%", "98.7%", "91.4%", "90.6%"]
+    },
+    {
+      "benchmarkId": "graphwalks-bfs-f1-256k-1m",
+      "sourceLabel": "GraphWalks · 256k to 1M, BFS (F1)",
+      "sourceNotes": "256k to 1M, BFS (F1)",
+      "displayValues": ["84.2%", "71.8%", "65.0%", "66.8%"]
+    },
+    {
+      "benchmarkId": "chartography",
+      "sourceLabel": "Chartography",
+      "sourceNotes": "",
+      "displayValues": ["71.6%", "71.0%", "46.2%", "66.3%"]
+    },
+    {
+      "benchmarkId": "lvbench",
+      "sourceLabel": "LVBench",
+      "sourceNotes": "",
+      "displayValues": ["91.7%", "87.5%", "79.7%", "83.7%"]
+    },
+    {
+      "benchmarkId": "cwe-bench-v1",
+      "sourceLabel": "CWE-bench v1",
+      "sourceNotes": "",
+      "displayValues": ["68.0%", "68.0%", "58.0%", "67.0%"]
+    }
+  ]
+}

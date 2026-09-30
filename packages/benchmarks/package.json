@@ -1,0 +1,31 @@
+{
+  "name": "@stackreplay/benchmarks",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "description": "Versioned benchmark evidence, isolated from catalog and Replay economics.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@stackreplay/config": "workspace:*",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

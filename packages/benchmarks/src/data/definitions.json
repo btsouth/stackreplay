@@ -1,0 +1,174 @@
+[
+  {
+    "id": "vals-index",
+    "name": "Vals Index",
+    "version": null,
+    "category": "knowledge-work",
+    "description": "Economic knowledge work across finance, coding, legal and tax tasks.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "automationbench",
+    "name": "AutomationBench",
+    "version": null,
+    "category": "knowledge-work",
+    "description": "End-to-end execution of business workflows.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "vals-finance-agent-v2",
+    "name": "Vals Finance Agent",
+    "version": "v2",
+    "category": "knowledge-work",
+    "description": "Multi-step financial research by an agent.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "harvey-legal-agent",
+    "name": "Harvey’s Legal Agent Benchmark",
+    "version": null,
+    "category": "knowledge-work",
+    "description": "Legal research and drafting by an agent.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "deep-swe-v1-1",
+    "name": "DeepSWE",
+    "version": "v1.1",
+    "category": "coding",
+    "description": "Long-horizon software engineering in real-world codebases.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "frontier-swe-v2",
+    "name": "FrontierSWE",
+    "version": "v2",
+    "category": "coding",
+    "description": "Agentic software engineering on coding tasks.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "vibe-code-bench",
+    "name": "Vibe Code Bench",
+    "version": null,
+    "category": "coding",
+    "description": "Code generation for prompted software-building tasks.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "terminal-bench-4-0",
+    "name": "Terminal-Bench",
+    "version": "4.0",
+    "category": "coding",
+    "description": "Agentic task completion in a terminal environment.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "posttrainbench-v1-1",
+    "name": "PostTrainBench",
+    "version": "v1.1",
+    "category": "coding",
+    "description": "Post-training of language models under a fixed compute budget.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "terminal-bench-science-0-1",
+    "name": "Terminal-Bench Science",
+    "version": "0.1",
+    "category": "science",
+    "description": "Scientific and mathematical tasks in a terminal environment.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "labbench-2",
+    "name": "LABBench",
+    "version": "2",
+    "category": "science",
+    "description": "Scientific tasks with a terminal, bioinformatics tools and internet access.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "riemannbench",
+    "name": "RiemannBench",
+    "version": null,
+    "category": "science",
+    "description": "Mathematical problem solving.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "graphwalks-bfs-f1-up-to-128k",
+    "name": "GraphWalks",
+    "version": null,
+    "category": "long-context",
+    "description": "Breadth-first graph traversal with contexts up to 128k tokens, scored by F1.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true,
+    "variant": "· up to 128k BFS F1"
+  },
+  {
+    "id": "graphwalks-bfs-f1-256k-1m",
+    "name": "GraphWalks",
+    "version": null,
+    "category": "long-context",
+    "description": "Breadth-first graph traversal with 256k to 1M-token contexts, scored by F1.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true,
+    "variant": "· 256k–1M BFS F1"
+  },
+  {
+    "id": "chartography",
+    "name": "Chartography",
+    "version": null,
+    "category": "multimodal",
+    "description": "Visual interpretation and analysis of charts.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "lvbench",
+    "name": "LVBench",
+    "version": null,
+    "category": "multimodal",
+    "description": "Understanding information in long videos.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  },
+  {
+    "id": "cwe-bench-v1",
+    "name": "CWE-bench",
+    "version": "v1",
+    "category": "security",
+    "description": "Software vulnerability remediation.",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true
+  }
+]
