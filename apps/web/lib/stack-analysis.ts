@@ -192,6 +192,8 @@ export interface StackWorkload {
   confirmation?: StackConfirmation | undefined;
   /** Locally entered amounts paid for exactly this period, by plan key. */
   paid?: Readonly<Record<string, string>> | undefined;
+  /** The market calculation's scope identity for the whole period. */
+  scopeDigest?: string | undefined;
 }
 
 type Family = (typeof DISCOVERY_FAMILIES)[number];
@@ -424,6 +426,7 @@ export interface OutsideWork {
   name: string;
   facts: WorkloadFacts;
   share: number;
+  confirmed: boolean;
   familyName?: string | undefined;
 }
 
@@ -473,6 +476,18 @@ function familyConfirmed(
     family.sourceIds.length === 1 &&
     family.sourceIds[0] === confirmation.sourceId &&
     facts.calls === confirmation.calls
+  );
+}
+
+function sourceConfirmed(
+  sourceId: string,
+  facts: WorkloadFacts,
+  confirmation: StackConfirmation | undefined,
+): boolean {
+  if (!confirmation) return false;
+  return (
+    confirmation.scope === "all" ||
+    (confirmation.sourceId === sourceId && facts.calls === confirmation.calls)
   );
 }
 
@@ -703,7 +718,8 @@ export function analyzeStack(input: {
       });
     if (facts.blocked)
       base.evidence.push({
-        level: "measured",
+        // A recorded limit is an observation; its absence depends on complete history.
+        level: facts.blocked.attempts > 0 || confirmed ? "measured" : "estimated",
         text:
           facts.blocked.attempts > 0
             ? `${plural(facts.blocked.attempts, "blocked attempt")} on ${plural(facts.blocked.days, "day")} recorded in ${tool} history in this period.`
@@ -736,7 +752,9 @@ export function analyzeStack(input: {
   const unusedPrices: string[] = [];
   const leveragePlans: string[] = [];
   const excluded: string[] = [];
+  const unpricedPlans: string[] = [];
   const unusedNames: string[] = [];
+  let unusedMeasured = true;
   const offLineupNames: string[] = [];
   const periodUsable = !!period && period.kind !== "unbounded" && period.days >= 28;
   for (const report of subscriptions) {
@@ -751,6 +769,8 @@ export function analyzeStack(input: {
       unusedPrices.push(report.familyPrice.amount);
       unusedNames.push(...names);
       leveragePlans.push(...names);
+      unusedMeasured &&=
+        report.activity.confirmed && period?.kind === "billing" && period.ended === true;
     } else if (
       report.activity &&
       report.relevantCalls === 0 &&
@@ -760,7 +780,12 @@ export function analyzeStack(input: {
       unusedPrices.push(report.familyPrice.amount);
       offLineupNames.push(...names);
       leveragePlans.push(...names);
-    } else if (report.activity?.facts.calls) excluded.push(...names);
+      unusedMeasured &&=
+        !!report.activity.confirmed && period?.kind === "billing" && period.ended === true;
+    } else if (report.activity?.facts.calls) {
+      if (report.familyPrice) excluded.push(...names);
+      else unpricedPlans.push(...names);
+    }
   }
   let leverage: Leverage | undefined;
   let leverageNote: string | undefined;
@@ -773,7 +798,9 @@ export function analyzeStack(input: {
   else if (valued.length === 0)
     leverageNote = excluded.length
       ? "The recorded work associated with your subscriptions could not be priced at accepted API rates."
-      : undefined;
+      : unpricedPlans.length
+        ? `${unpricedPlans.join(", ")} ${unpricedPlans.length === 1 ? "has" : "have"} no monthly USD price to compare with.`
+        : undefined;
   else {
     const value = sumRanges(valued.map((part) => part.value));
     const price = [...valued.map((part) => part.price), ...unusedPrices].reduce(
@@ -791,6 +818,9 @@ export function analyzeStack(input: {
       excluded.length
         ? `Excludes ${excluded.join(", ")}: associated recorded work could not be priced.`
         : undefined,
+      unpricedPlans.length
+        ? `Excludes ${unpricedPlans.join(", ")}: no monthly USD price to compare with.`
+        : undefined,
     ].filter((note): note is string => note !== undefined);
     leverage = {
       low: new Decimal(value.low).div(price).toString(),
@@ -806,7 +836,10 @@ export function analyzeStack(input: {
       calls: valued.reduce((sum, part) => sum + part.calls, 0),
       excludedCalls: valued.reduce((sum, part) => sum + part.excludedCalls, 0),
       level:
-        valued.every((part) => part.level === "measured") && !excluded.length
+        valued.every((part) => part.level === "measured") &&
+        !excluded.length &&
+        !unpricedPlans.length &&
+        unusedMeasured
           ? "measured"
           : "estimated",
       note: notes.join(" "),
@@ -830,6 +863,7 @@ export function analyzeStack(input: {
               sourceId,
             facts,
             share: overallCalls > 0 ? facts.calls / overallCalls : 0,
+            confirmed: sourceConfirmed(sourceId, facts, workload.confirmation),
             familyName: family?.question ? family.name : undefined,
           };
         })
@@ -954,8 +988,13 @@ function findOpportunities(context: {
     const activity = report.activity;
     if (report.visibility !== "visible" || !activity || activity.facts.calls === 0) continue;
     if (reported.has(report.key) || !report.family) continue;
+    // A cycle still in progress has not finished recording its value.
+    const cycleRunning = workload.period.kind === "billing" && !workload.period.ended;
     const belowPrice =
-      report.leverage && !report.leverage.subset && new Decimal(report.leverage.high).lt(1);
+      !cycleRunning &&
+      report.leverage &&
+      !report.leverage.subset &&
+      new Decimal(report.leverage.high).lt(1);
     if (activity.share >= LOW_SHARE && !belowPrice) continue;
     reported.add(report.key);
     const value = activity.facts.value ?? activity.facts.pricedValue;
@@ -1045,7 +1084,7 @@ function findOpportunities(context: {
         ...((facts.value ?? facts.pricedValue)
           ? [
               {
-                label: "API-equivalent",
+                label: facts.value ? "API-equivalent" : "API-equivalent, priced calls",
                 value: rangeText(facts.value ?? facts.pricedValue ?? { low: "0", high: "0" }),
               },
             ]
@@ -1075,6 +1114,9 @@ function findOpportunities(context: {
       continue;
     if (reported.has(report.key) || report.sharedWith.length > 0 || !report.family) continue;
     if (facts.blocked && facts.blocked.attempts > 0) continue;
+    // A lineup check over unresolved calls would be vacuously true.
+    const resolved = facts.models.reduce((sum, model) => sum + model.calls, 0);
+    if (facts.models.length === 0 || resolved < facts.calls * 0.8) continue;
     const lower = report.tiers
       .filter((tier) => tier.direction === "lower" && tier.missing.length === 0)
       .at(-1);
@@ -1105,7 +1147,7 @@ function findOpportunities(context: {
         ...(facts.blocked
           ? [
               {
-                level: "measured" as const,
+                level: report.activity?.confirmed ? ("measured" as const) : ("estimated" as const),
                 text: `No limit events were recorded in ${report.family.tool} history in this period.`,
               },
             ]
@@ -1126,9 +1168,13 @@ function findOpportunities(context: {
   actions.push(...downgrades);
 
   // 6. Recorded work in a family with plans, but no plan of that family selected.
+  // Its value is compared with one monthly price, so it needs a month-long period.
+  const monthLong = workload.period.kind !== "unbounded" && workload.period.days >= 28;
   for (const work of context.outside) {
     const family = familyOfSource(work.sourceId);
-    if (!family?.question || context.familyResponses[family.groupId]) continue;
+    if (!monthLong || !family?.question || context.familyResponses[family.groupId]) continue;
+    const resolvedCalls = work.facts.models.reduce((sum, model) => sum + model.calls, 0);
+    if (work.facts.models.length === 0 || resolvedCalls < work.facts.calls * 0.8) continue;
     const value = work.facts.value ?? work.facts.pricedValue;
     const plans = plansAt(context.rulesAsOf);
     const candidate = (family.planIds as readonly string[])
@@ -1158,8 +1204,12 @@ function findOpportunities(context: {
       ],
       evidence: [
         {
-          level: "measured",
-          text: `API-equivalent of the recorded ${work.name} calls at accepted API rates.`,
+          level: work.confirmed ? "measured" : "estimated",
+          text: `API-equivalent of the recorded ${work.name} calls at accepted API rates${work.facts.value ? "" : `, for ${plural(work.facts.pricedValue?.calls ?? 0, "priced call")} only`}.`,
+        },
+        {
+          level: "unknown",
+          text: "API-equivalent value is not a bill: it prices the same recorded tokens at today's direct API rates.",
         },
         {
           level: "unknown",
@@ -1214,6 +1264,35 @@ function findOpportunities(context: {
 
   const chosen = actions.slice(0, highlights.length ? 3 : 4);
   return [...chosen, ...highlights, ...actions.slice(chosen.length)].slice(0, 4);
+}
+
+/** Whether a plan's published lineup lists the recorded models; unknown without resolved identities. */
+function lineupFinding(
+  catalog: PublicCatalog,
+  plan: { id: string; name: string },
+  facts: WorkloadFacts,
+  tool: string,
+): Evidence {
+  const listed = listedModels(catalog, plan.id, facts.models) ?? [];
+  if (listed.length === 0)
+    return {
+      level: "unknown",
+      text: `No recorded ${tool} call resolved to a catalog model, so ${plan.name}'s lineup cannot be checked against this work.`,
+    };
+  const missing = listed.filter((model) => !model.listed);
+  const unresolved = facts.calls - listed.reduce((sum, model) => sum + model.calls, 0);
+  const suffix =
+    unresolved > 0 ? ` ${plural(unresolved, "call")} with unresolved models are not checked.` : "";
+  return {
+    level: "published",
+    text:
+      missing.length === 0
+        ? `${plan.name} lists ${listed.length === 1 ? "the model" : listed.length === 2 ? "both models" : `all ${listed.length} models`} recorded from ${tool} in this period.${suffix}`
+        : `${plan.name}'s published lineup does not include ${missing.map((model) => model.name).join(", ")} (${plural(
+            missing.reduce((sum, model) => sum + model.calls, 0),
+            "call",
+          )}).${suffix}`,
+  };
 }
 
 /** "20× Pro session allowance → 5× Pro session allowance; five-hour and weekly limits." */
@@ -1330,7 +1409,6 @@ export function analyzeScenario(input: {
     const names = (plans: typeof before) => plans.map((plan) => plan.name).join(" + ");
     const findings: Evidence[] = [];
     const visible = !!family && !!workload && inImport(family, workload);
-    const value = facts?.value ?? facts?.pricedValue;
     const workText = (f: WorkloadFacts) =>
       `${plural(f.calls, "recorded call")} from ${tool} (${percentText(overallCalls ? f.calls / overallCalls : 0)} of this period)${
         f.value
@@ -1382,7 +1460,13 @@ export function analyzeScenario(input: {
         } else {
           findings.push({
             level,
-            text: `No plan in the proposed stack lists these models.${value ? ` At current direct API rates this recorded work is valued at ${rangeText(value)}.` : ""}`,
+            text: `No plan in the proposed stack lists these models.${
+              facts.value
+                ? ` At current direct API rates this recorded work is valued at ${rangeText(facts.value)}.`
+                : facts.pricedValue
+                  ? ` At current direct API rates its ${plural(facts.pricedValue.calls, "priced call")} are valued at ${rangeText(facts.pricedValue)}; the rest are unknown, not zero.`
+                  : ""
+            }`,
           });
           uncoveredFacts.push({ tool: tool ?? "", facts });
         }
@@ -1403,15 +1487,7 @@ export function analyzeScenario(input: {
           level,
           text: `${workText(facts)} This work has no associated subscription in your current stack.`,
         });
-        const listed = listedModels(catalog, plan.id, facts.models) ?? [];
-        const missing = listed.filter((m) => !m.listed);
-        findings.push({
-          level: "published",
-          text:
-            missing.length === 0
-              ? `${plan.name} lists every model recorded from ${tool}.`
-              : `${plan.name}'s published lineup does not include ${missing.map((m) => m.name).join(", ")}.`,
-        });
+        findings.push(lineupFinding(catalog, plan, facts, tool ?? "this tool"));
         findings.push({
           level: "unknown",
           text: `Cannot determine whether ${plan.name} could carry this work: its published allowance is not a fixed token quota.`,
@@ -1435,21 +1511,10 @@ export function analyzeScenario(input: {
           findings.push({ level: "published", text: allowanceChange(fromTerms, toTerms) });
         if (facts && facts.calls > 0) {
           findings.push({ level, text: `Affects ${workText(facts)}` });
-          const listed = listedModels(catalog, to.id, facts.models) ?? [];
-          const missing = listed.filter((m) => !m.listed);
-          findings.push({
-            level: "published",
-            text:
-              missing.length === 0
-                ? `${to.name} lists ${listed.length === 1 ? "the model" : listed.length === 2 ? "both models" : `all ${listed.length} models`} recorded from ${tool} in this period.`
-                : `${to.name}'s published lineup does not include ${missing.map((m) => m.name).join(", ")} (${plural(
-                    missing.reduce((n, m) => n + m.calls, 0),
-                    "call",
-                  )}).`,
-          });
+          findings.push(lineupFinding(catalog, to, facts, tool ?? "this tool"));
           if (facts.blocked) {
             findings.push({
-              level: "measured",
+              level: facts.blocked.attempts > 0 || confirmed ? "measured" : "estimated",
               text:
                 facts.blocked.attempts > 0
                   ? `${plural(facts.blocked.attempts, "blocked attempt")} on ${plural(facts.blocked.days, "day")} were recorded in ${tool} history in this period.`
@@ -1585,15 +1650,27 @@ export function stackAssessmentLines(result: ScenarioResult, workload: StackWork
       (finding) => `${change.title} · ${EVIDENCE_LABELS[finding.level]}: ${finding.text}`,
     ),
   );
+  // Saved results carry no activity dates: the period is described by its kind and length.
+  const period = workload.period;
   const lines = [
-    `${stackPeriodLabel(workload.period)} · ${workload.overall.calls.toLocaleString("en-US")} recorded calls.`,
+    `${
+      period.kind === "billing"
+        ? `${period.days}-day ${period.source === "cycle" ? "billing cycle" : "review period"}`
+        : period.kind === "recorded"
+          ? `${period.days}-day recorded span`
+          : "Full imported history"
+    } · ${workload.overall.calls.toLocaleString("en-US")} recorded calls.`,
     result.currentMonthly !== undefined && result.proposedMonthly !== undefined
       ? `Published subscription spend: ${priceMoney(result.currentMonthly)}/mo → ${priceMoney(result.proposedMonthly)}/mo.`
       : "Published subscription spend could not be compared: a selected plan has no monthly USD price.",
     ...(result.unchanged ? ["No change from your current stack."] : findings),
     ...(result.uncovered?.value
       ? [
-          `Recorded work left without an associated subscription: ${result.uncovered.calls.toLocaleString("en-US")} calls, ${rangeText(result.uncovered.value)} at current direct API rates.`,
+          `Recorded work left without an associated subscription: ${result.uncovered.calls.toLocaleString("en-US")} calls, ${rangeText(result.uncovered.value)} at current direct API rates${
+            result.uncovered.pricedCalls < result.uncovered.calls
+              ? ` for ${result.uncovered.pricedCalls.toLocaleString("en-US")} priced calls only`
+              : ""
+          }.`,
         ]
       : []),
   ].map(bounded);

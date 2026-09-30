@@ -28,7 +28,8 @@ export function useReview(record: ImportRecord | undefined) {
   const namespace = record && synthetic ? `.demo.${record.id}` : "";
   const fullDemo = synthetic && record?.label === "Demo: billing";
   const recordId = record?.id;
-  const [ready, setReady] = useState(false);
+  // Ready for this workload only: a switch never reuses the previous workload's choice.
+  const [readyFor, setReadyFor] = useState<string | null | undefined>(null);
   const [choice, setChoice] = useState<ReviewChoice>({ mode: "history" });
   const [billing, setBilling] = useState<Record<string, BillingFact>>({});
   const [selected, setSelected] = useState<TargetKey[]>([]);
@@ -56,7 +57,7 @@ export function useReview(record: ImportRecord | undefined) {
       setSelected(
         fullDemo && !hasSavedStack(namespace) ? sampleSelected : readCurrentStack(namespace),
       );
-      setReady(true);
+      setReadyFor(recordId);
     };
     refresh();
     const a = subscribeReview(refresh),
@@ -85,7 +86,7 @@ export function useReview(record: ImportRecord | undefined) {
     [choice.focusedSubscription, selected],
   );
   return {
-    ready,
+    ready: readyFor === recordId,
     choice,
     billing,
     selected,

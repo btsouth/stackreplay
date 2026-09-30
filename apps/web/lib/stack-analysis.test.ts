@@ -15,6 +15,7 @@ import {
   type StackAnalysis,
   type StackPeriod,
   type StackWorkload,
+  stackAssessmentLines,
   stackParam,
   stackPeriodLabel,
   type WorkloadFacts,
@@ -531,6 +532,154 @@ describe("stack analysis", () => {
   });
 });
 
+describe("review fixes: evidence follows confirmation and scope", () => {
+  it("stack leverage is estimated when an unused plan's tool is not covered by the confirmation", () => {
+    const analysis = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x", "plan:openai-chatgpt-plus"],
+      rulesAsOf,
+      workload: workload(
+        { "claude-code": claude, codex: facts({ calls: 0 }) },
+        { confirmation: { scope: "account", sourceId: "claude-code", calls: claude.calls } },
+      ),
+    });
+    expect(analysis.subscriptions[0]?.leverage?.level).toBe("measured");
+    expect(analysis.leverage?.price).toBe("220");
+    expect(analysis.leverage?.level).toBe("estimated");
+    const all = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x", "plan:openai-chatgpt-plus"],
+      rulesAsOf,
+      workload: workload({ "claude-code": claude, codex: facts({ calls: 0 }) }),
+    });
+    expect(all.leverage?.level).toBe("measured");
+  });
+
+  it("the absence of limit events and outside work are estimated without confirmation", () => {
+    const analysis = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x"],
+      rulesAsOf,
+      workload: workload({ "claude-code": claude, codex }, { confirmation: undefined }),
+    });
+    const noLimits = analysis.subscriptions[0]?.evidence.find((e) =>
+      /No limit events/u.test(e.text),
+    );
+    expect(noLimits?.level).toBe("estimated");
+    expect(analysis.opportunities.find((o) => o.kind === "downgrade")?.evidence[1]?.level).toBe(
+      "estimated",
+    );
+    const uncovered = analysis.opportunities.find((o) => o.kind === "uncovered");
+    expect(uncovered?.evidence[0]?.level).toBe("estimated");
+    expect(uncovered?.evidence.some((e) => /not a bill/u.test(e.text))).toBe(true);
+    const blocked = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x"],
+      rulesAsOf,
+      workload: workload(
+        { "claude-code": { ...claude, blocked: { attempts: 3, days: 2 } } },
+        { confirmation: undefined },
+      ),
+    });
+    // A recorded limit is an observation either way.
+    expect(
+      blocked.subscriptions[0]?.evidence.find((e) => /blocked attempts/u.test(e.text))?.level,
+    ).toBe("measured");
+  });
+
+  it("outside work is compared with a monthly price only over a month-long period", () => {
+    const week = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x"],
+      rulesAsOf,
+      workload: workload(
+        { "claude-code": claude, codex },
+        {
+          period: { kind: "recorded", period: { start: "2026-09-14", end: "2026-09-21" }, days: 7 },
+        },
+      ),
+    });
+    expect(week.opportunities.some((o) => o.kind === "uncovered")).toBe(false);
+    const long = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x"],
+      rulesAsOf,
+      workload: workload(
+        { "claude-code": claude, codex },
+        { period: { kind: "unbounded", firstDate: "2026-06-01", lastDate: "2026-09-20" } },
+      ),
+    });
+    expect(long.opportunities.some((o) => o.kind === "uncovered")).toBe(false);
+  });
+
+  it("unresolved models never make a lineup claim true by default", () => {
+    const unresolved = facts({
+      calls: 500,
+      models: [],
+      unresolvedCalls: 500,
+      pricedValue: undefined,
+    });
+    const analysis = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x"],
+      rulesAsOf,
+      workload: workload({ "claude-code": unresolved }),
+    });
+    expect(analysis.opportunities.some((o) => o.kind === "downgrade")).toBe(false);
+    const scenario = analyzeScenario({
+      current: ["plan:anthropic-claude-max-20x"],
+      proposed: ["plan:anthropic-claude-pro"],
+      workload: workload({ "claude-code": unresolved }),
+      rulesAsOf,
+    });
+    const lineup = scenario.changes[0]?.findings.find((f) => /lineup/u.test(f.text));
+    expect(lineup).toMatchObject({ level: "unknown" });
+    expect(lineup?.text).toMatch(/cannot be checked/u);
+  });
+
+  it("a cycle still in progress never reads as under-used", () => {
+    const small = facts({
+      calls: 300,
+      value: { low: "12", high: "12" },
+      models: [{ id: "gpt-6-sol", calls: 300, priced: 300 }],
+    });
+    const running = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-20x", "plan:openai-chatgpt-pro"],
+      rulesAsOf,
+      workload: workload(
+        { "claude-code": claude, codex: { ...small, calls: 3000 } },
+        { period: { ...SEPTEMBER, ended: false } },
+      ),
+    });
+    expect(running.opportunities.some((o) => o.kind === "low-use")).toBe(false);
+  });
+
+  it("priced subsets are labelled wherever they appear, including saved lines without dates", () => {
+    const partial = facts({
+      calls: 3000,
+      pricedValue: { low: "300", high: "300", calls: 2800 },
+      models: [{ id: "gpt-5-6-sol", calls: 2800, priced: 2800 }],
+      unresolvedCalls: 200,
+    });
+    const analysis = analyzeStack({
+      currentStack: ["plan:openai-chatgpt-pro", "plan:command-code-pro"],
+      rulesAsOf,
+      workload: workload({ codex, "command-code": partial }),
+    });
+    const consolidate = analysis.opportunities.find((o) => o.kind === "consolidate");
+    expect(consolidate?.figures.find((f) => /API-equivalent/u.test(f.label))?.label).toBe(
+      "API-equivalent, priced calls",
+    );
+    const scenario = analyzeScenario({
+      current: ["plan:command-code-pro"],
+      proposed: [],
+      workload: workload({ "command-code": partial }),
+      rulesAsOf,
+    });
+    expect(scenario.changes[0]?.findings.map((f) => f.text).join(" ")).toMatch(
+      /its 2,800 priced calls are valued at \$300\.00; the rest are unknown, not zero/u,
+    );
+    const lines = stackAssessmentLines(scenario, workload({ "command-code": partial }));
+    expect(lines[0]).toBe("31-day billing cycle · 3,000 recorded calls.");
+    expect(lines.join(" ")).toMatch(/for 2,800 priced calls only/u);
+    expect(lines.join(" ")).not.toMatch(/2026/u);
+    expect(lines.at(-1)).toMatch(/plan fit is not claimed/u);
+  });
+});
+
 describe("stack periods", () => {
   const base = { billing: {}, asOf: "2026-09-30" };
   it("uses a chosen billing cycle or custom period before recorded dates", () => {
@@ -682,7 +831,9 @@ describe("scenarios", () => {
     expect(result.monthlyDelta).toBe("40");
     const plus = result.changes.find((c) => c.title === "Add ChatGPT Plus");
     expect(plus?.findings[0]?.text).toMatch(/no associated subscription in your current stack/u);
-    expect(plus?.findings[1]?.text).toBe("ChatGPT Plus lists every model recorded from Codex.");
+    expect(plus?.findings[1]?.text).toBe(
+      "ChatGPT Plus lists the model recorded from Codex in this period.",
+    );
     const cursor = result.changes.find((c) => c.title === "Add Cursor Pro");
     expect(cursor?.findings[0]?.level).toBe("unknown");
   });

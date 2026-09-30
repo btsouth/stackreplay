@@ -184,12 +184,24 @@ test("Test a change: exact spend, workload effects, reset, apply with Undo, and 
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$110/mo");
   await expect(outcome).toContainText("Remove OpenCode Go");
   await page.getByTestId("scenario-add").selectOption("plan:cursor-pro");
+  // Choosing is not adding: nothing changes until the person adds it.
+  await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$110/mo");
+  await page.getByTestId("scenario-add-button").click();
   await expect(outcome).toContainText("StackReplay cannot read Cursor Pro usage history");
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$90/mo");
   // Nothing is written until the person asks.
   expect(await readStack(page)).toEqual(FULL_STACK);
   await page.getByTestId("scenario-reset").click();
   await expect(outcome).toContainText("Change a tier, remove a subscription or add one");
+  // A same-family plan added beside a kept plan is an addition, shown as its own row.
+  await page.getByTestId("scenario-add").selectOption("plan:anthropic-claude-pro");
+  await page.getByTestId("scenario-add-button").click();
+  await expect(page.getByTestId("scenario-editor")).toContainText("Claude Pro added");
+  await expect(page.getByTestId("scenario-plan-anthropic-claude-max-20x")).toHaveValue(
+    "plan:anthropic-claude-max-20x",
+  );
+  await expect(page.getByTestId("scenario-outcome-delta")).toContainText("+$20/mo");
+  await page.getByTestId("scenario-reset").click();
 
   await page.getByRole("button", { name: "Test $100 plan →" }).click();
   await page.getByTestId("scenario-apply").click();

@@ -3,7 +3,7 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import { isSyntheticCatalogId } from "@stackreplay/share";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { catalogPlansAt, loadPublicCatalog } from "@/lib/public-catalog";
 import type { TargetKey } from "@/lib/routes";
 import { familyOfPlan, priceMoney, rangeText, type ScenarioResult } from "@/lib/stack-analysis";
@@ -49,6 +49,8 @@ export function ScenarioEditor({
   const familyKey = (key: TargetKey) => familyOfPlan(key.slice(5))?.groupId;
   /** A tier change: the one other plan of this plan's family now proposed in its place. */
   const replacementFor = (key: TargetKey): TargetKey | undefined => {
+    // Still proposed: a same-family plan beside it is an addition, not a tier change.
+    if (proposedPlans.includes(key)) return undefined;
     const family = familyKey(key);
     if (!family || currentPlans.filter((k) => familyKey(k) === family).length > 1) return undefined;
     return proposedPlans.find(
@@ -77,11 +79,17 @@ export function ScenarioEditor({
       family && siblings.length <= 1
         ? [...new Set([key.slice(5), ...(family.planIds as readonly string[])])]
         : [key.slice(5)];
-    return ids
+    const known = ids
       .map((id) => plans.find((plan) => plan.id === id))
       .filter((plan) => plan !== undefined)
-      .sort((a, b) => new Decimal(monthly(a.price) ?? "0").cmp(monthly(b.price) ?? "0"));
+      .sort((a, b) => new Decimal(monthly(a.price) ?? "0").cmp(monthly(b.price) ?? "0"))
+      .map((plan) => ({ id: plan.id, name: plan.name }));
+    // A retired or unlisted selection keeps its own option so "kept" reads as kept.
+    return known.some((plan) => plan.id === key.slice(5))
+      ? known
+      : [{ id: key.slice(5), name: name(key) }, ...known];
   };
+  const [addChoice, setAddChoice] = useState<TargetKey | "">("");
   const addable = plans
     .filter((plan) => !proposedPlans.includes(`plan:${plan.id}`))
     .sort((a, b) => a.providerId.localeCompare(b.providerId) || a.name.localeCompare(b.name));
@@ -184,30 +192,44 @@ export function ScenarioEditor({
             </li>
           ))}
         </ul>
-        <label className="stack-scenario-add">
-          <span>Add a subscription</span>
-          <select
-            value=""
-            data-testid={`${idPrefix}-add`}
-            onChange={(event) => {
-              const key = event.target.value as TargetKey;
-              if (key) onChange([...new Set([...proposed, key])]);
-            }}
-          >
-            <option value="">Choose a catalog plan…</option>
-            {providers.map((provider) => (
-              <optgroup key={provider} label={providerNames.get(provider) ?? provider}>
-                {addable
-                  .filter((plan) => plan.providerId === provider)
-                  .map((plan) => (
-                    <option key={plan.id} value={`plan:${plan.id}`}>
-                      {plan.name} · {priceOf(`plan:${plan.id}`)}
-                    </option>
-                  ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
+        {/* Choosing a plan and adding it are separate steps, so arrowing through the list adds nothing. */}
+        <div className="stack-scenario-add">
+          <label htmlFor={`${idPrefix}-add`}>Add a subscription</label>
+          <div>
+            <select
+              id={`${idPrefix}-add`}
+              value={addChoice}
+              data-testid={`${idPrefix}-add`}
+              onChange={(event) => setAddChoice(event.target.value as TargetKey | "")}
+            >
+              <option value="">Choose a catalog plan…</option>
+              {providers.map((provider) => (
+                <optgroup key={provider} label={providerNames.get(provider) ?? provider}>
+                  {addable
+                    .filter((plan) => plan.providerId === provider)
+                    .map((plan) => (
+                      <option key={plan.id} value={`plan:${plan.id}`}>
+                        {plan.name} · {priceOf(`plan:${plan.id}`)}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="stack-secondary"
+              disabled={!addChoice}
+              data-testid={`${idPrefix}-add-button`}
+              onClick={() => {
+                if (!addChoice) return;
+                onChange([...new Set([...proposed, addChoice])]);
+                setAddChoice("");
+              }}
+            >
+              Add to proposal
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

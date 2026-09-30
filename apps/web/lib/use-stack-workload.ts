@@ -56,20 +56,29 @@ export function useStackWorkload(input: {
   const apiPeriod = period.kind === "billing" ? period.period : undefined;
   const account = choice.resourceInstanceId;
   const usageSources = record?.summary.usageSources;
+  // Every tool whose calls are in the workload, including imported aggregates
+  // (ccusage); attribution-only harnesses own no calls.
   const tools = useMemo(
     () =>
       (usageSources ?? [])
-        .filter((source) => source.role === "usage" && source.events > 0)
+        .filter((source) => source.role !== "attribution" && source.events > 0)
         .map((source) => source.adapterId)
         .sort(),
     [usageSources],
   );
+  // The whole-period result stands in for a tool's slice only when that tool owns every call.
+  const singleTool =
+    tools.length === 1 &&
+    (usageSources ?? [])
+      .filter((source) => source.role !== "attribution")
+      .reduce((sum, source) => sum + source.events, 0) === (record?.eventCount ?? -1);
   const recordId = record?.id;
   const key = [
     recordId ?? "",
     apiPeriod ? periodKey(apiPeriod) : "history",
     account ?? "all",
     tools.join(","),
+    singleTool ? "single" : "sliced",
   ].join("|");
   const [fetched, setFetched] = useState<Fetched>();
   const [failure, setFailure] = useState<{ key: string; interrupted: boolean }>();
@@ -81,7 +90,7 @@ export function useStackWorkload(input: {
     if (!ready || recordId === undefined) return;
     const controller = new AbortController();
     const client = getWorkerClient();
-    const total = 1 + (account ? 1 : 0) + (tools.length > 1 ? tools.length : 0);
+    const total = 1 + (account ? 1 : 0) + (singleTool ? 0 : tools.length);
     let done = 0;
     const step = () => {
       done += 1;
@@ -97,7 +106,7 @@ export function useStackWorkload(input: {
         : undefined;
       if (account) step();
       const sources: Record<string, MarketDecision> = {};
-      if (tools.length === 1 && tools[0]) sources[tools[0]] = overall;
+      if (singleTool && tools[0]) sources[tools[0]] = overall;
       else
         for (const tool of tools) {
           sources[tool] = await client.apiMarket(
@@ -157,13 +166,14 @@ export function useStackWorkload(input: {
       period,
       overall: workloadFacts(current.overall),
       importSources: (usageSources ?? [])
-        .filter((source) => source.role === "usage" && source.events > 0)
+        .filter((source) => source.role !== "attribution" && source.events > 0)
         .map((source) => ({ id: source.adapterId, name: source.name, events: source.events })),
       sources: Object.fromEntries(
         Object.entries(current.sources).map(([id, decision]) => [id, workloadFacts(decision)]),
       ),
       confirmation,
       paid: paidForPeriod(billing, period),
+      scopeDigest: current.overall.scenarios[0]?.summary.scope.digest,
     };
   }, [current, review, account, choice.accountLabel, period, usageSources, billing]);
 

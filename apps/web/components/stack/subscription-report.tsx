@@ -176,6 +176,7 @@ export function SubscriptionReportRow({
             <button
               type="button"
               className="stack-link"
+              aria-label={`Test removing ${report.name}`}
               onClick={(event) =>
                 onTest(
                   currentStack.filter((key) => key !== report.key),

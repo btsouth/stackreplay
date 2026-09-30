@@ -29,7 +29,9 @@ export function StackOpportunities({
         >
           <div className="stack-opportunity-body">
             <p className="stack-eyebrow">{opportunity.question}</p>
-            <h3>{opportunity.subject}</h3>
+            <h3 id={`opportunity-subject-${opportunity.id.replace(/[^a-z0-9-]/giu, "-")}`}>
+              {opportunity.subject}
+            </h3>
             <p className="stack-opportunity-statement">{opportunity.statement}</p>
             <dl className="stack-opportunity-figures">
               {opportunity.figures.map((figure) => (
@@ -52,6 +54,7 @@ export function StackOpportunities({
               <button
                 type="button"
                 className="stack-primary"
+                aria-describedby={`opportunity-subject-${opportunity.id.replace(/[^a-z0-9-]/giu, "-")}`}
                 onClick={(event) =>
                   opportunity.test && onTest(opportunity.test.proposed, event.currentTarget)
                 }

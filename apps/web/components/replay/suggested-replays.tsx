@@ -313,6 +313,9 @@ function StrategyWorkspace({
           catalogHash: DECISION_MARKET.catalogHash,
           decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
           rulesAt: DECISION_MARKET.rulesAt,
+          // The assessment covers the stack's period, not the whole-history baseline.
+          scopeDigest: scenario.workload.scopeDigest ?? common.scopeDigest,
+          baseline: undefined,
           calls: scenario.workload.overall.calls,
           tokens: scenario.workload.overall.knownTokens,
           mode: "assessment",

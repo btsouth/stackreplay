@@ -716,7 +716,17 @@
   gap: 0.35rem;
   font-size: 0.75rem;
   color: var(--muted-foreground);
-  max-width: 28rem;
+  max-width: 36rem;
+}
+.stack-scenario-add > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.stack-scenario-add select {
+  flex: 1;
+  min-width: min(100%, 14rem);
+  width: auto;
 }
 .stack-scenario-outcome {
   display: grid;

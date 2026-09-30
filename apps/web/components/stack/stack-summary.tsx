@@ -167,9 +167,11 @@ export function StackSummary({
                 {empty
                   ? "Add a subscription to compare it with recorded work."
                   : (analysis.leverageNote ??
-                    (workload
-                      ? "No recorded work is associated with your subscriptions in this period."
-                      : "Select a workload to compare recorded work with what you pay."))}
+                    (!workload
+                      ? "Select a workload to compare recorded work with what you pay."
+                      : analysis.subscriptions.some((report) => report.visibility === "visible")
+                        ? "No recorded work is associated with your subscriptions in this period."
+                        : "None of your subscriptions' tool histories are in this workload, so their use cannot be determined."))}
               </p>
             </>
           )}
