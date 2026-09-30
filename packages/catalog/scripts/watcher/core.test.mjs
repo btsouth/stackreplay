@@ -212,7 +212,7 @@ test("large W2 sets and malicious display names cannot exceed GitHub body limits
   const row = {
     key: "missing:x",
     category: "missing_model",
-    names: ["@owner<script>".repeat(1000)],
+    names: ["@owner<ScRiPt>".repeat(1000)],
     plans: Array.from({ length: 50 }, (_, i) => `exact-plan-${i}`),
     openRouter: null,
     reason: "research",
@@ -221,6 +221,6 @@ test("large W2 sets and malicious display names cannot exceed GitHub body limits
   const rows = Array.from({ length: 400 }, () => row);
   const body = renderCoverageIssue(rows, rows, rows, null, now);
   assert.ok(body.length < 60000);
-  assert.doesNotMatch(body, /@owner|<script>/);
+  assert.doesNotMatch(body, /@owner|<script>/i);
   assert.match(body, /additional rows omitted/);
 });
