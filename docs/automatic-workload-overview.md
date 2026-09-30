@@ -76,6 +76,12 @@ Missing workload identities never turn a known published lineup into "unknown".
 Unknown or retired selected keys stay visible and are never silently dropped.
 The advanced manual catalog chooser remains in Settings. Removing one target
 preserves all others and snoozes its family's discovery prompt for seven days.
+A visit-local Undo restores only that exact target against the latest Current Stack,
+without overwriting subsequent selections. Published access is collapsed and
+searchable; its model count groups route variants while the expanded lineup keeps
+those routes explicit. A native modal editor keeps the page inert, contains keyboard
+focus and restores focus on close. Failed workload reads/analysis offer a retry;
+none of these controls introduce another persisted stack or workload record.
 
 Published price subtotals use exact decimal arithmetic, grouped by currency and
 interval. They include one published price per selected plan, excluding API

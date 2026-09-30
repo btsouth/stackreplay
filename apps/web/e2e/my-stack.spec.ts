@@ -302,12 +302,16 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByTestId("stack-editor-plan-opencode-go").check();
     await page.getByTestId("stack-editor-plan-opencode-go-plus").check();
     await page.getByRole("button", { name: "Save stack", exact: true }).click();
+    await page.getByTestId("stack-target-opencode-go").locator("summary").click();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
     await edit(page, "opencode");
     await page.getByRole("button", { name: "I pay for multiple plans" }).click();
-    await page
-      .getByTestId("stack-target-opencode-go")
-      .getByText("Published model access", { exact: true })
-      .click();
     expect(
       (
         await new AxeBuilder({ page })
@@ -324,3 +328,188 @@ for (const theme of ["dark", "light"] as const) {
     );
   });
 }
+
+test("removal Undo preserves targets confirmed afterward and survives reload", async ({ page }) => {
+  await page.goto("/app/stack");
+  await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["plan:anthropic-claude-pro","api:openai"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  await page.getByRole("button", { name: "Remove Claude Pro", exact: true }).click();
+  expect(await readStack(page)).toEqual(["api:openai"]);
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["api:openai","plan:command-code-goat"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  await page.getByRole("button", { name: "Undo removal" }).click();
+  expect(await readStack(page)).toEqual([
+    "plan:anthropic-claude-pro",
+    "api:openai",
+    "plan:command-code-goat",
+  ]);
+  await page.reload();
+  await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toBeVisible();
+  await expect(page.getByTestId("stack-target-command-code-goat")).toBeVisible();
+});
+
+test("published model access is compact, searchable and keeps distinct routes", async ({
+  page,
+}) => {
+  await page.goto("/app/stack");
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["plan:command-code-max-20x"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  const card = page.getByTestId("stack-target-command-code-max-20x");
+  const access = card.locator("details");
+  await expect(access.locator("summary")).toContainText(/Published model access · \d+ models/);
+  await expect(access.getByRole("searchbox")).not.toBeVisible();
+  await access.locator("summary").click();
+  await access.getByRole("searchbox").fill("DEEPSEEK V4.1 FLASH");
+  await expect(access.getByRole("listitem")).toHaveCount(2);
+  await expect(access).toContainText("DeepSeek V4.1 Flash Fast");
+  await access.getByRole("searchbox").fill("not-in-this-reviewed-lineup");
+  await expect(access.getByRole("listitem")).toHaveCount(0);
+  await expect(access).toContainText("No matching entries");
+  await access.locator("summary").click();
+  await access.locator("summary").click();
+  await expect(access.getByRole("searchbox")).toHaveValue("");
+});
+
+test("modal contains focus, keeps actions visible on mobile and restores page scrolling", async ({
+  page,
+}) => {
+  await page.goto("/app/stack");
+  const originalOverflow = await page.evaluate(() => document.body.style.overflow);
+  await edit(page, "command-code");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.locator("#stack-editor-heading")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByTestId("stack-editor-plan-command-code-go")).toBeFocused();
+  for (let i = 0; i < 15; i++) {
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => document.activeElement?.closest("dialog") !== null)).toBe(
+      true,
+    );
+  }
+  expect(
+    await page.evaluate(() => {
+      (document.querySelector('[data-testid="edit-family-claude"]') as HTMLButtonElement).focus();
+      return document.activeElement?.closest("dialog") !== null;
+    }),
+  ).toBe(true);
+  await page.getByTestId("stack-editor-plan-command-code-max-20x").click();
+  const save = await dialog.getByRole("button", { name: "Save stack", exact: true }).boundingBox();
+  const viewport = page.viewportSize();
+  if (!save || !viewport) throw new Error("Editor save control or viewport is unavailable");
+  expect(save.y + save.height).toBeLessThanOrEqual(viewport.height);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByTestId("edit-family-command-code")).toBeFocused();
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe(originalOverflow);
+  expect(await readStack(page)).toEqual([]);
+});
+
+for (const operation of ["ANALYZE_WORKLOAD", "LIST_LOCAL_IMPORTS"] as const) {
+  test(`${operation} failure has a working retry without changing selected plans`, async ({
+    page,
+  }) => {
+    const id = await scan(page);
+    await page.getByRole("button", { name: "Not now", exact: true }).click();
+    await page.addInitScript((operation) => {
+      const original = Worker.prototype.postMessage;
+      let failed = false;
+      Worker.prototype.postMessage = function (message, ...args: unknown[]) {
+        if (message?.type === operation && !failed) {
+          failed = true;
+          queueMicrotask(() =>
+            this.dispatchEvent(
+              new MessageEvent("message", {
+                data: {
+                  type: "ERROR",
+                  requestId: message.requestId,
+                  error: {
+                    code: "STORAGE_UNAVAILABLE",
+                    title: "Unavailable",
+                    message: "Fixture read failure",
+                  },
+                },
+              }),
+            ),
+          );
+          return;
+        }
+        return original.call(this, message, ...(args as [StructuredSerializeOptions]));
+      };
+    }, operation);
+    await page.goto(`/app/stack?import=${id}`);
+    const retry = page.getByRole("button", {
+      name: operation === "ANALYZE_WORKLOAD" ? "Retry activity" : "Retry workloads",
+      exact: true,
+    });
+    await expect(retry).toBeVisible();
+    await expect(page.getByTestId("stack-activity")).toHaveCount(0);
+    await retry.click();
+    await expect(page.getByTestId("stack-activity-claude-code")).toContainText(
+      "100% of recorded calls",
+    );
+    expect(await readStack(page)).toEqual([]);
+  });
+}
+
+test("empty and API-only stacks do not claim a zero subscription bill", async ({ page }) => {
+  await page.goto("/app/stack");
+  await expect(page.getByTestId("stack-overview")).toContainText("Build your current stack");
+  await expect(page.getByTestId("stack-published-total")).toContainText(
+    "Add a plan to see its price",
+  );
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["api:openai"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  await expect(page.getByTestId("stack-published-total")).toContainText("No fixed plan price");
+  await expect(page.getByTestId("stack-published-total")).not.toContainText("$0.00");
+  await expect(page.getByTestId("stack-target-openai")).toContainText("Billed by usage");
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["plan:retired-plan"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+  }, STACK);
+  await expect(page.getByTestId("stack-published-total")).toContainText(
+    "Published plan price unavailable",
+  );
+  await expect(page.getByTestId("stack-published-total")).not.toContainText("No fixed plan price");
+});
+
+test("failed removal and Undo report storage failure and remain retryable", async ({ page }) => {
+  await page.goto("/app/stack");
+  await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
+  await page.evaluate((key) => {
+    localStorage.setItem(key, '["plan:anthropic-claude-pro","api:openai"]');
+    window.dispatchEvent(new Event("stackreplay-current-stack"));
+    const set = Storage.prototype.setItem;
+    Object.assign(window, { blockStackWrites: true });
+    Storage.prototype.setItem = function (item, value) {
+      if (
+        item === key &&
+        (window as typeof window & { blockStackWrites: boolean }).blockStackWrites
+      )
+        throw new DOMException("Blocked", "QuotaExceededError");
+      return set.call(this, item, value);
+    };
+  }, STACK);
+  await page.getByRole("button", { name: "Remove Claude Pro", exact: true }).click();
+  await expect(page.getByTestId("my-stack").getByRole("alert")).toContainText("Could not remove");
+  expect(await readStack(page)).toEqual(["plan:anthropic-claude-pro", "api:openai"]);
+  await page.evaluate(() => Object.assign(window, { blockStackWrites: false }));
+  await page.getByRole("button", { name: "Remove Claude Pro", exact: true }).click();
+  await page.evaluate(() => Object.assign(window, { blockStackWrites: true }));
+  await page.getByRole("button", { name: "Undo removal" }).click();
+  await expect(page.getByTestId("my-stack").getByRole("alert")).toContainText("Could not restore");
+  expect(await readStack(page)).toEqual(["api:openai"]);
+  await page.evaluate(() => Object.assign(window, { blockStackWrites: false }));
+  await page.getByRole("button", { name: "Undo removal" }).click();
+  await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toBeVisible();
+  expect(await readStack(page)).toEqual(["plan:anthropic-claude-pro", "api:openai"]);
+});

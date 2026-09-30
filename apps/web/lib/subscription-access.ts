@@ -66,3 +66,8 @@ export function includedAccessModels(access: SubscriptionAccess): SubscriptionAc
     ).values(),
   ];
 }
+
+/** Distinct reviewed model identities; route variants count as the same model. */
+export function publishedAccessModelCount(access: SubscriptionAccess): number {
+  return new Set(includedAccessModels(access).map((model) => model.modelId ?? model.name)).size;
+}

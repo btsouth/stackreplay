@@ -1,6 +1,6 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { expect, it } from "vitest";
-import { buildMyStack } from "./my-stack";
+import { buildMyStack, restoreRemovedTarget } from "./my-stack";
 import type { TargetKey } from "./routes";
 import { type DiscoveryPlan, discoveryPlansAt } from "./stack-discovery";
 
@@ -121,4 +121,28 @@ it("date-valid choices and facts do not borrow current prices at an older accept
   expect(model.targets[0]).toMatchObject({ available: false, publishedPrice: undefined });
   expect(model.totals).toEqual([]);
   expect(model.families.every((group) => group.candidates.length === 0)).toBe(true);
+});
+
+it("undo restores only the removed selection while preserving later confirmations and API targets", () => {
+  const changed: TargetKey[] = ["api:openai", "plan:command-code-goat", "plan:opencode-go-plus"];
+  expect(restoreRemovedTarget(changed, "plan:anthropic-claude-pro", 1)).toEqual([
+    "api:openai",
+    "plan:anthropic-claude-pro",
+    "plan:command-code-goat",
+    "plan:opencode-go-plus",
+  ]);
+  expect(
+    restoreRemovedTarget([...changed, "plan:anthropic-claude-pro"], "plan:anthropic-claude-pro", 0),
+  ).toEqual([...changed, "plan:anthropic-claude-pro"]);
+});
+
+it("selected plans keep their published lineup known without history", () => {
+  const { targets } = buildMyStack({
+    currentStack: ["plan:opencode-go", "plan:command-code-max-20x"],
+    rulesAsOf,
+  });
+  expect(targets[0]?.access?.modelCount).toBe(30);
+  expect(targets[1]?.access?.modelCount).toBe(80);
+  expect(targets[1]?.access?.models).toHaveLength(86);
+  expect(targets[1]?.access?.models.some((model) => model.variant === "fast")).toBe(true);
 });
