@@ -1,0 +1,9 @@
+id: tencent
+role: provider
+name: Tencent
+sources:
+  - url: https://www.tencent.com/en-us/articles/2202386.html
+    title: Official developer model documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

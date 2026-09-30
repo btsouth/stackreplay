@@ -38,3 +38,9 @@ specifications:
   - url: https://platform.claude.com/docs/en/models/overview
     title: Official model specifications
     checkedAt: '2026-09-28'
+releaseDate:
+  date: 2026-09-28
+  sources:
+    - url: https://www.anthropic.com/claude-sonnet-5-5
+      title: Developer-published release day
+      checkedAt: 2026-09-30

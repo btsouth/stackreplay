@@ -23,6 +23,35 @@ aliases:
     checkedAt: '2026-09-29'
   lastVerifiedAt: '2026-09-29'
   verificationStatus: verified
+- id: mimo-v2-6-pro-mimo-api-ultraspeed
+  alias: mimo-v2.6-pro-ultraspeed
+  kind: provider_route
+  harness: mimo-api
+  variant:
+    id: ultraspeed
+    providerId: xiaomi
+    label: UltraSpeed
+  sources:
+    - url: https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed
+      title: Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider
+        route identity is inferred.
+      checkedAt: 2026-09-30
+  lastVerifiedAt: 2026-09-30
+  verificationStatus: verified
+- id: mimo-v2-6-pro-command-code-ultraspeed
+  alias: xiaomi/mimo-v2.6-pro-ultraspeed
+  kind: provider_route
+  harness: command-code
+  variant:
+    id: ultraspeed
+    providerId: command-code
+    label: UltraSpeed
+  sources:
+    - url: https://commandcode.ai/provider/v1/models
+      title: Command Code documented Provider API model list; exact route id and display name
+      checkedAt: 2026-09-30
+  lastVerifiedAt: 2026-09-30
+  verificationStatus: verified
 sources:
 - url: https://mimo.mi.com/models/en-US/mimo-v2.6-pro
   title: MiMo V2.6 Pro model page
@@ -54,3 +83,9 @@ specifications:
   - url: https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking
     title: Default thinking behavior
     checkedAt: '2026-09-29'
+releaseDate:
+  date: 2026-09-22
+  sources:
+    - url: https://mimo.mi.com/models/en-US/mimo-v2.6-pro
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

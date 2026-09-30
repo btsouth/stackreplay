@@ -524,6 +524,13 @@ export const modelServiceTierV1Schema = z.strictObject({
 });
 export type ModelServiceTierV1 = z.infer<typeof modelServiceTierV1Schema>;
 
+/** A developer-published release day. Retrieval and registry creation dates are not release dates. */
+export const modelReleaseDateV1Schema = z.strictObject({
+  date: isoDateV1Schema,
+  sources: z.array(catalogSourceV1Schema).min(1),
+});
+export type ModelReleaseDateV1 = z.infer<typeof modelReleaseDateV1Schema>;
+
 export const modelV1Schema = z.strictObject({
   id: catalogIdV1Schema,
   role: z.literal("model"),
@@ -541,6 +548,8 @@ export const modelV1Schema = z.strictObject({
    * inferred from the other.
    */
   developerId: catalogIdV1Schema.optional(),
+  /** Discovery metadata only; never a pricing or availability effective date. */
+  releaseDate: modelReleaseDateV1Schema.optional(),
   specifications: modelSpecificationsV1Schema.optional(),
   /** A precise explanation when API pricing or access differs from normal token billing. */
   pricingNote: z.string().min(1).optional(),

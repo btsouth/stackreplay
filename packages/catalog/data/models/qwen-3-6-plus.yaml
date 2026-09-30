@@ -1,0 +1,35 @@
+id: qwen-3-6-plus
+role: model
+name: Qwen 3.6 Plus
+developerId: alibaba
+sources:
+  - &a1
+    url: https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-6-plus
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-04-02
+  sources:
+    - url: https://www.alibabacloud.com/en/press-room/alibaba-unveils-qwen3-6-plus-to-accelerate-agentic?_p_lc=1
+      title: Alibaba release announcement
+      checkedAt: 2026-09-30
+aliases:
+  - id: qwen-3-6-plus-official-id
+    alias: qwen3.6-plus-2026-04-02
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: qwen-3-6-plus-command-code-model-code
+    alias: Qwen/Qwen3.6-Plus
+    kind: provider_route
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified

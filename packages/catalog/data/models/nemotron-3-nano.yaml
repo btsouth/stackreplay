@@ -1,0 +1,16 @@
+id: nemotron-3-nano
+role: model
+name: Nemotron 3 Nano
+developerId: nvidia
+sources:
+  - url: https://catalog.ngc.nvidia.com/orgs/nim/nvidia/models/nemotron-3-nano/hf-52469ad
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-12-15
+  sources:
+    - url: https://catalog.ngc.nvidia.com/orgs/nim/nvidia/models/nemotron-3-nano/hf-52469ad
+      title: Developer-published release day
+      checkedAt: 2026-09-30

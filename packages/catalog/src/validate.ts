@@ -766,11 +766,15 @@ export function validateCatalogData(raw: RawCatalogData): CatalogValidationIssue
       });
     }
     if (model.kind === "family") {
-      if (model.familyId !== undefined || model.lifecycle !== undefined) {
+      if (
+        model.familyId !== undefined ||
+        model.lifecycle !== undefined ||
+        model.releaseDate !== undefined
+      ) {
         issues.push({
           severity: "error",
           code: "FAMILY_RECORD_INVALID",
-          message: `family record "${model.id}" cannot declare a family or a lifecycle; those describe releases`,
+          message: `family record "${model.id}" cannot declare a family, lifecycle or release date; those describe releases`,
           file: entry.file,
         });
       }

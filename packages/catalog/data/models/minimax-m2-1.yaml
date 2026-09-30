@@ -1,0 +1,26 @@
+id: minimax-m2-1
+role: model
+name: MiniMax M2.1
+developerId: minimax
+sources:
+  - &a1
+    url: https://platform.minimax.io/docs/guides/text-generation
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-12-23
+  sources:
+    - url: https://www.minimax.io/news/minimax-m21
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: minimax-m2-1-official-id
+    alias: MiniMax-M2.1
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+lifecycle: legacy

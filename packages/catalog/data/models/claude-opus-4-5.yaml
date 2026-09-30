@@ -1,0 +1,27 @@
+id: claude-opus-4-5
+role: model
+name: Claude Opus 4.5
+developerId: anthropic
+sources:
+  - &a1
+    url: https://platform.claude.com/docs/en/about-claude/model-deprecations
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-11-24
+  sources:
+    - url: https://platform.claude.com/docs/en/release-notes/overview
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: claude-opus-4-5-official-id
+    alias: claude-opus-4-5-20251101
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+lifecycle: legacy
+familyId: claude-opus

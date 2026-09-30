@@ -1,0 +1,50 @@
+id: muse-spark-1-1
+role: model
+name: Muse Spark 1.1
+developerId: meta
+sources:
+  - &a1
+    url: https://dev.meta.ai/docs/models
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-07-09
+  sources:
+    - url: https://research.meta.ai/blog/introducing-muse-spark-meta-model-api
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: muse-spark-1-1-official-id
+    alias: muse-spark-1.1
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: muse-spark-1-1-command-code-model-code
+    alias: meta/muse-spark-1.1
+    kind: provider_route
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+specifications:
+  contextTokens: 1048576
+  inputModalities:
+    - text
+    - image
+    - video
+    - audio
+    - pdf
+  outputModalities:
+    - text
+  reasoning: true
+  toolCalling: true
+  sources:
+    - *a1
+pricingNote: Standard Meta route. Contributor identifiers have separate data-use terms and rates.

@@ -1,0 +1,78 @@
+id: muse-spark-1-2
+role: model
+name: Muse Spark 1.2
+developerId: meta
+sources:
+  - &a1
+    url: https://dev.meta.ai/docs/models
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2026-08-05
+  sources:
+    - url: https://research.meta.ai/blog/introducing-muse-code-and-muse-spark-1-2
+      title: Developer-published release day
+      checkedAt: 2026-09-30
+aliases:
+  - id: muse-spark-1-2-official-id
+    alias: muse-spark-1.2
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: muse-spark-1-2-meta-api-contributor
+    alias: muse-spark-1.2-contributor
+    kind: provider_route
+    harness: meta-api
+    variant:
+      id: contributor
+      providerId: meta
+      label: Contributor
+    sources:
+      - url: https://dev.meta.ai/docs/models
+        title: Contributor has separate rates and data-use terms.
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: muse-spark-1-2-command-code-contributor
+    alias: meta/muse-spark-1.2-contributor
+    kind: provider_route
+    harness: command-code
+    variant:
+      id: contributor
+      providerId: command-code
+      label: Contributor
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: muse-spark-1-2-command-code-model-code
+    alias: meta/muse-spark-1.2
+    kind: provider_route
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+specifications:
+  contextTokens: 1048576
+  inputModalities:
+    - text
+    - image
+    - video
+    - audio
+    - pdf
+  outputModalities:
+    - text
+  reasoning: true
+  toolCalling: true
+  sources:
+    - *a1
+pricingNote: Standard Meta route. Contributor identifiers have separate data-use terms and rates.

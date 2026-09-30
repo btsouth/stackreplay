@@ -1,0 +1,29 @@
+id: qwen-3-7-flash
+role: model
+name: Qwen 3.7 Flash
+developerId: alibaba
+sources:
+  - &a1
+    url: https://www.alibabacloud.com/help/en/model-studio/qwen3-7-flash
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+aliases:
+  - id: qwen-3-7-flash-official-id
+    alias: qwen3.7-flash-2026-07-15
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+  - id: qwen-3-7-flash-command-code-model-code
+    alias: Qwen/Qwen3.7-Flash
+    kind: provider_route
+    harness: command-code
+    sources:
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified

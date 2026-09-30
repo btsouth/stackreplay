@@ -15,6 +15,23 @@ aliases:
         checkedAt: 2026-09-21
     lastVerifiedAt: 2026-09-21
     verificationStatus: verified
+  - id: deepseek-v4-flash-command-code-fast
+    alias: deepseek/deepseek-v4-flash-fast
+    kind: provider_route
+    harness: command-code
+    variant:
+      id: fast
+      providerId: command-code
+      label: Fast
+    sources:
+      - url: https://commandcode.ai/blog/deepseek-v4-flash-fast-is-available-in-command-code
+        title: Low-latency V4 Flash deployment; default route prices are not inherited.
+        checkedAt: 2026-09-30
+      - url: https://commandcode.ai/provider/v1/models
+        title: Command Code documented Provider API model list; exact route id and display name
+        checkedAt: 2026-09-30
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
 sources:
   - url: https://api-docs.deepseek.com/quick_start/pricing
     title: "DeepSeek-V4-Flash (legacy name, model retired) model documentation"

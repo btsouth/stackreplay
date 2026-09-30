@@ -25,3 +25,9 @@ lastVerifiedAt: '2026-09-28'
 verificationStatus: verified
 pricingNote: Cache writes cost 1.25 times input for five-minute storage or twice input for one hour. Batch and regional
   rates differ.
+releaseDate:
+  date: 2026-02-17
+  sources:
+    - url: https://platform.claude.com/docs/en/models/sonnet-4-6/overview
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

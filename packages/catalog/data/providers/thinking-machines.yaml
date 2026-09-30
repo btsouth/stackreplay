@@ -1,0 +1,9 @@
+id: thinking-machines
+role: provider
+name: Thinking Machines Lab
+sources:
+  - url: https://thinkingmachines.ai/news/introducing-inkling/
+    title: Official developer model documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

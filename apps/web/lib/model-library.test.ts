@@ -29,7 +29,7 @@ const byId = (id: string) => {
   if (model === undefined) throw new Error(`missing ${id}`);
   return model;
 };
-const FAMILIES = ["claude-fable", "claude-haiku", "claude-opus", "claude-sonnet"];
+const FAMILIES = ["claude-fable", "claude-haiku", "claude-opus", "claude-sonnet", "gemma-4"];
 
 describe("default model listing", () => {
   const listed = modelsInView(catalog.models, "models");
@@ -139,7 +139,14 @@ describe("model table sorting and filters", () => {
   const published = (key: ModelSortKey) =>
     releases.filter((model) => modelSortValue(model, key, facts) !== undefined).length;
 
-  for (const key of ["input", "output", "cacheRead", "context", "maxOutput"] as const) {
+  for (const key of [
+    "releaseDate",
+    "input",
+    "output",
+    "cacheRead",
+    "context",
+    "maxOutput",
+  ] as const) {
     for (const direction of ["ascending", "descending"] as const) {
       it(`sorts ${key} ${direction} with unpublished values last`, () => {
         const sorted = sortModels(releases, key, direction, facts);
@@ -177,6 +184,27 @@ describe("model table sorting and filters", () => {
         ascending: "Low to high",
         descending: "High to low",
       });
+  });
+
+  it("starts release dates newest first and never substitutes a verification date", () => {
+    expect(defaultSortDirection("releaseDate")).toBe("descending");
+    expect(sortDirectionLabels("releaseDate")).toEqual({
+      ascending: "Oldest first",
+      descending: "Newest first",
+    });
+    const undated = releases.find((model) => model.id === "qwen-3-7-flash");
+    if (!undated) throw new Error("Missing undated release");
+    expect(undated?.lastVerifiedAt).toBeDefined();
+    expect(undated?.releaseDate).toBeUndefined();
+    expect(modelSortValue(undated, "releaseDate", facts)).toBeUndefined();
+    const newest = sortModels(releases, "releaseDate", "descending", facts);
+    expect(newest[0]?.id).toBe("gpt-6-1-sol");
+    expect(newest[0]?.releaseDate?.sources[0]?.url).toContain("developers.openai.com");
+    expect(
+      sortModels([...releases].reverse(), "releaseDate", "descending", facts).map(
+        (model) => model.id,
+      ),
+    ).toEqual(newest.map((model) => model.id));
   });
 
   it("sorts names both ways", () => {

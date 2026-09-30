@@ -9,10 +9,10 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 | 1 | Coverage audit script and first report | Done |
 | 2 | Link lineup entries to existing model pages | Done (`feat/models-batch-a`). The legacy names `DeepSeek V4 Flash` and `DeepSeek V4 Flash Vision Exp` link to their legacy-name pages, which say DeepSeek now serves both with V4.1 Flash |
 | 3 | Add missing models, batch A | Done (`feat/models-batch-a`): 18 models. Muse Spark 1.3 Contributor is a tier of Muse Spark 1.3 and is described on that page |
-| 4 | Add missing models, batch B, and a coverage policy | Planned |
-| 5 | Models page usability pass | Done on current `main`: table/cards, developer and access filters, sort direction, plan counts, key figures and API ids. Release-date sorting remains deferred until a structured date exists |
-| 6 | Watcher W1: source change detection | Implemented in `feat/catalog-watcher-w1-w2`, pending PR review and merge |
-| 7 | Watcher W2: new model detection | Implemented in `feat/catalog-watcher-w1-w2`, pending PR review and merge |
+| 4 | Add missing models, batch B, and a coverage policy | Implemented in `feat/catalog-coverage-release-dates`, pending PR review: all 51 rows classified, 27 releases and one family added; see [coverage policy](catalog-coverage-policy.md) |
+| 5 | Models page usability pass | Done on current `main`: table/cards, developer and access filters, sort direction, plan counts, key figures and API ids. Structured, sourced release dates and release-date sorting are implemented in `feat/catalog-coverage-release-dates`, pending PR review |
+| 6 | Watcher W1: source change detection | Done: merged in PR #20 (`ebf9f9e`) |
+| 7 | Watcher W2: new model detection | Done: merged in PR #20 (`ebf9f9e`) |
 | 8 | Watcher W3: drafted catalog PRs | Planned |
 | 9 | Benchmarks: licensing decision | Needs owner decision |
 | 10 | Benchmarks: data and UI | Blocked on 9 |

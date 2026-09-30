@@ -95,6 +95,16 @@ export default async function ModelPage({ params }: Props) {
                 ? "Newly announced. API identity, pricing and subscription access are under review."
                 : `${model.developerName ?? "Model"} · ${model.lifecycle === "legacy" ? "Legacy release" : "Model release"}`}
           </p>
+          {model.kind === "release" && (
+            <p className="market-muted mt-3">
+              Released{" "}
+              {model.releaseDate ? (
+                <time dateTime={model.releaseDate.date}>{model.releaseDate.date}</time>
+              ) : (
+                "Not recorded"
+              )}
+            </p>
+          )}
           <p className="market-muted mt-3">Catalog checked {model.lastVerifiedAt}</p>
         </div>
         <aside className="market-model-profile" aria-label="API model ids">
@@ -373,7 +383,7 @@ export default async function ModelPage({ params }: Props) {
             </section>
           ))}
           {specifications && <SourceList sources={specifications.sources} />}
-          <SourceList sources={model.sources} />
+          <SourceList sources={[...model.sources, ...(model.releaseDate?.sources ?? [])]} />
           <p className="market-muted">
             Missing token-category prices are not zero. Workload pricing applies exact recorded
             categories and admitted routes. No benchmark score or quality ranking is inferred from

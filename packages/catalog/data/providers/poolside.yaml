@@ -1,0 +1,9 @@
+id: poolside
+role: provider
+name: Poolside
+sources:
+  - url: https://poolside.ai/blog/introducing-laguna-s-2-1
+    title: Official developer model documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified

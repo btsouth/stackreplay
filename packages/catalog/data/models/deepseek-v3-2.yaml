@@ -1,0 +1,16 @@
+id: deepseek-v3-2
+role: model
+name: DeepSeek 3.2
+developerId: deepseek
+sources:
+  - url: https://api-docs.deepseek.com/updates/
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-12-01
+  sources:
+    - url: https://api-docs.deepseek.com/updates/
+      title: Developer-published release day
+      checkedAt: 2026-09-30

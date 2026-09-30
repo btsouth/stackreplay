@@ -1,0 +1,39 @@
+id: gpt-oss-20b
+role: model
+name: GPT-OSS 20B
+developerId: openai
+sources:
+  - &a1
+    url: https://developers.openai.com/api/docs/models/gpt-oss-20b
+    title: Official developer identity documentation
+    checkedAt: 2026-09-30
+lastVerifiedAt: 2026-09-30
+verificationStatus: verified
+releaseDate:
+  date: 2025-08-05
+  sources:
+    - url: https://openai.com/index/introducing-gpt-oss/
+      title: OpenAI release announcement for both GPT-OSS models
+      checkedAt: 2026-09-30
+aliases:
+  - id: gpt-oss-20b-official-id
+    alias: gpt-oss-20b
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-09-30
+    verificationStatus: verified
+specifications:
+  contextTokens: 131072
+  maxOutputTokens: 131072
+  inputModalities:
+    - text
+  outputModalities:
+    - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  sources:
+    - *a1
+pricingNote: Open-weight model. OpenAI does not publish a hosted per-token rate for this model;
+  third-party routes set their own prices.

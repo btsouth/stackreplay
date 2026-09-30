@@ -40,7 +40,21 @@
     "opencode.ai": "opencode",
     "platform.kimi.ai": "moonshot",
     "platform.minimax.io": "minimax",
-    "www.alibabacloud.com": "alibaba"
+    "www.alibabacloud.com": "alibaba",
+    "www.minimax.io": "minimax",
+    "thinkingmachines.ai": "thinking-machines",
+    "www.kimi.com": "moonshot",
+    "poolside.ai": "poolside",
+    "docs.modelstudio.console.alibabacloud.com": "alibaba",
+    "www.qwencloud.com": "alibaba",
+    "docs.qwencloud.com": "alibaba",
+    "static.stepfun.com": "stepfun",
+    "www.tencent.com": "tencent",
+    "www.anthropic.com": "anthropic",
+    "docs.mistral.ai": "mistral",
+    "catalog.ngc.nvidia.com": "nvidia",
+    "blogs.nvidia.com": "nvidia",
+    "qwen.ai": "alibaba"
   },
   "paths": {
     "github.com": [
@@ -61,6 +75,18 @@
       {
         "prefix": "/meituan-longcat/LongCat-2.0",
         "providerId": "meituan"
+      },
+      {
+        "prefix": "/moonshotai/Kimi-K2.5",
+        "providerId": "moonshot"
+      },
+      {
+        "prefix": "/stepfun-ai/Step-3.5-Flash",
+        "providerId": "stepfun"
+      },
+      {
+        "prefix": "/Qwen/Qwen3-Coder-Next",
+        "providerId": "alibaba"
       }
     ]
   },

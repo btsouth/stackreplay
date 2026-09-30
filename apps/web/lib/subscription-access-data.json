@@ -66,7 +66,10 @@
             "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo V2.6 Pro UltraSpeed"
+            "name": "MiMo V2.6 Pro UltraSpeed",
+            "modelId": "mimo-v2-6-pro",
+            "variant": "ultraspeed",
+            "note": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred."
           },
           {
             "name": "Step 5 Preview"
@@ -76,7 +79,8 @@
             "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "Qwen 3.8 Omni Flash"
+            "name": "Qwen 3.8 Omni Flash",
+            "modelId": "qwen-3-8-omni-flash"
           },
           {
             "name": "Ling 3.0 Flash Sante",
@@ -88,10 +92,13 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
-            "name": "Qwen 3.8 Max 0902"
+            "name": "Qwen 3.8 Max 0902",
+            "modelId": "qwen-3-8-max-0902"
           },
           {
             "name": "Tencent Hy4 Preview"
@@ -105,7 +112,10 @@
             "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "DeepSeek V4 Flash Fast"
+            "name": "DeepSeek V4 Flash Fast",
+            "modelId": "deepseek-v4-flash",
+            "variant": "fast",
+            "note": "Low-latency V4 Flash deployment; default route prices are not inherited."
           },
           {
             "name": "DeepSeek V4 Flash Vision (exp)",
@@ -127,11 +137,14 @@
             "modelId": "grok-4-6"
           },
           {
-            "name": "Muse Spark 1.2"
+            "name": "Muse Spark 1.2",
+            "modelId": "muse-spark-1-2"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
             "name": "Qwen 3.8 Max",
@@ -141,17 +154,21 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "Inkling Small"
+            "name": "Inkling Small",
+            "modelId": "inkling-small"
           },
           {
-            "name": "Qwen 3.7 Flash"
+            "name": "Qwen 3.7 Flash",
+            "modelId": "qwen-3-7-flash"
           },
           {
             "name": "Laguna S 2.1",
-            "note": "Temporary free or preview availability."
+            "note": "Temporary free or preview availability.",
+            "modelId": "laguna-s-2-1"
           },
           {
-            "name": "Inkling"
+            "name": "Inkling",
+            "modelId": "inkling"
           },
           {
             "name": "GPT-5.6 Luna",
@@ -166,17 +183,24 @@
             "modelId": "grok-4-5"
           },
           {
-            "name": "Tencent Hy3"
+            "name": "Tencent Hy3",
+            "modelId": "hy3"
           },
           {
-            "name": "GLM-5.2 Fast"
+            "name": "GLM-5.2 Fast",
+            "modelId": "glm-5-2",
+            "variant": "fast",
+            "note": "High-throughput build of GLM-5.2; default route prices are not inherited."
           },
           {
             "name": "GLM-5.2",
             "modelId": "glm-5-2"
           },
           {
-            "name": "Kimi K2.7 Code HighSpeed"
+            "name": "Kimi K2.7 Code HighSpeed",
+            "modelId": "kimi-k2-7-code",
+            "variant": "highspeed",
+            "note": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited."
           },
           {
             "name": "Kimi K2.7 Code",
@@ -195,7 +219,8 @@
             "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Step 3.7 Flash"
+            "name": "Step 3.7 Flash",
+            "modelId": "step-3-7-flash"
           },
           {
             "name": "MiMo V2.5",
@@ -210,7 +235,8 @@
             "modelId": "qwen-3-7-max"
           },
           {
-            "name": "Step 3.5 Flash"
+            "name": "Step 3.5 Flash",
+            "modelId": "step-3-5-flash"
           },
           {
             "name": "GLM-5.1",
@@ -224,7 +250,8 @@
             "name": "Qwen 3.6 Max Preview"
           },
           {
-            "name": "Qwen 3.6 Plus"
+            "name": "Qwen 3.6 Plus",
+            "modelId": "qwen-3-6-plus"
           },
           {
             "name": "Kimi K2.6",
@@ -235,10 +262,12 @@
             "modelId": "glm-5"
           },
           {
-            "name": "Kimi K2.5"
+            "name": "Kimi K2.5",
+            "modelId": "kimi-k2-5"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           }
         ]
       }
@@ -315,7 +344,10 @@
             "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo V2.6 Pro UltraSpeed"
+            "name": "MiMo V2.6 Pro UltraSpeed",
+            "modelId": "mimo-v2-6-pro",
+            "variant": "ultraspeed",
+            "note": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred."
           },
           {
             "name": "Step 5 Preview"
@@ -325,7 +357,8 @@
             "modelId": "glm-5-3-flashx"
           },
           {
-            "name": "Qwen 3.8 Omni Flash"
+            "name": "Qwen 3.8 Omni Flash",
+            "modelId": "qwen-3-8-omni-flash"
           },
           {
             "name": "Ling 3.0 Flash Sante",
@@ -337,10 +370,13 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
-            "name": "Qwen 3.8 Max 0902"
+            "name": "Qwen 3.8 Max 0902",
+            "modelId": "qwen-3-8-max-0902"
           },
           {
             "name": "Tencent Hy4 Preview"
@@ -354,7 +390,10 @@
             "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "DeepSeek V4 Flash Fast"
+            "name": "DeepSeek V4 Flash Fast",
+            "modelId": "deepseek-v4-flash",
+            "variant": "fast",
+            "note": "Low-latency V4 Flash deployment; default route prices are not inherited."
           },
           {
             "name": "DeepSeek V4 Flash Vision (exp)",
@@ -376,11 +415,14 @@
             "modelId": "grok-4-6"
           },
           {
-            "name": "Muse Spark 1.2"
+            "name": "Muse Spark 1.2",
+            "modelId": "muse-spark-1-2"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
             "name": "Qwen 3.8 Max",
@@ -390,13 +432,16 @@
             "name": "DeepSeek V4 Flash (latest)"
           },
           {
-            "name": "Inkling Small"
+            "name": "Inkling Small",
+            "modelId": "inkling-small"
           },
           {
-            "name": "Qwen 3.7 Flash"
+            "name": "Qwen 3.7 Flash",
+            "modelId": "qwen-3-7-flash"
           },
           {
-            "name": "Gemini 3.5 Flash Lite"
+            "name": "Gemini 3.5 Flash Lite",
+            "modelId": "gemini-3-5-flash-lite"
           },
           {
             "name": "Gemini 3.6 Flash",
@@ -404,13 +449,16 @@
           },
           {
             "name": "Laguna S 2.1",
-            "note": "Temporary free or preview availability."
+            "note": "Temporary free or preview availability.",
+            "modelId": "laguna-s-2-1"
           },
           {
-            "name": "Inkling"
+            "name": "Inkling",
+            "modelId": "inkling"
           },
           {
-            "name": "Muse Spark 1.1"
+            "name": "Muse Spark 1.1",
+            "modelId": "muse-spark-1-1"
           },
           {
             "name": "GPT-5.6 Luna",
@@ -429,21 +477,28 @@
             "modelId": "grok-4-5"
           },
           {
-            "name": "Tencent Hy3"
+            "name": "Tencent Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Claude Sonnet 5",
             "modelId": "claude-sonnet-5"
           },
           {
-            "name": "GLM-5.2 Fast"
+            "name": "GLM-5.2 Fast",
+            "modelId": "glm-5-2",
+            "variant": "fast",
+            "note": "High-throughput build of GLM-5.2; default route prices are not inherited."
           },
           {
             "name": "GLM-5.2",
             "modelId": "glm-5-2"
           },
           {
-            "name": "Kimi K2.7 Code HighSpeed"
+            "name": "Kimi K2.7 Code HighSpeed",
+            "modelId": "kimi-k2-7-code",
+            "variant": "highspeed",
+            "note": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited."
           },
           {
             "name": "Kimi K2.7 Code",
@@ -462,7 +517,8 @@
             "modelId": "qwen-3-7-plus"
           },
           {
-            "name": "Step 3.7 Flash"
+            "name": "Step 3.7 Flash",
+            "modelId": "step-3-7-flash"
           },
           {
             "name": "MiMo V2.5",
@@ -481,10 +537,12 @@
             "modelId": "gemini-3-5-flash"
           },
           {
-            "name": "Gemini 3.1 Flash Lite"
+            "name": "Gemini 3.1 Flash Lite",
+            "modelId": "gemini-3-1-flash-lite"
           },
           {
-            "name": "Step 3.5 Flash"
+            "name": "Step 3.5 Flash",
+            "modelId": "step-3-5-flash"
           },
           {
             "name": "GLM-5.1",
@@ -502,7 +560,8 @@
             "name": "Qwen 3.6 Max Preview"
           },
           {
-            "name": "Qwen 3.6 Plus"
+            "name": "Qwen 3.6 Plus",
+            "modelId": "qwen-3-6-plus"
           },
           {
             "name": "Kimi K2.6",
@@ -525,10 +584,12 @@
             "modelId": "gpt-5-4"
           },
           {
-            "name": "Kimi K2.5"
+            "name": "Kimi K2.5",
+            "modelId": "kimi-k2-5"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "Claude Haiku 4.5",
@@ -609,7 +670,8 @@
           },
           {
             "name": "Laguna S 2.1",
-            "note": "Temporary free or preview availability."
+            "note": "Temporary free or preview availability.",
+            "modelId": "laguna-s-2-1"
           },
           {
             "name": "Ling 3.0 Flash Sante",
@@ -619,21 +681,26 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "Tencent Hy3"
+            "name": "Tencent Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Kimi K2.7 Code",
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Kimi K2.7 Code HighSpeed"
+            "name": "Kimi K2.7 Code HighSpeed",
+            "modelId": "kimi-k2-7-code",
+            "variant": "highspeed",
+            "note": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited."
           },
           {
             "name": "Kimi K2.6",
             "modelId": "kimi-k2-6"
           },
           {
-            "name": "Kimi K2.5"
+            "name": "Kimi K2.5",
+            "modelId": "kimi-k2-5"
           },
           {
             "name": "GLM-5.3 FlashX",
@@ -644,7 +711,10 @@
             "modelId": "glm-5-2"
           },
           {
-            "name": "GLM-5.2 Fast"
+            "name": "GLM-5.2 Fast",
+            "modelId": "glm-5-2",
+            "variant": "fast",
+            "note": "High-throughput build of GLM-5.2; default route prices are not inherited."
           },
           {
             "name": "GLM-5.1",
@@ -663,7 +733,8 @@
             "modelId": "minimax-m2-7"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -676,7 +747,10 @@
             "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "DeepSeek V4 Flash Fast"
+            "name": "DeepSeek V4 Flash Fast",
+            "modelId": "deepseek-v4-flash",
+            "variant": "fast",
+            "note": "Low-latency V4 Flash deployment; default route prices are not inherited."
           },
           {
             "name": "DeepSeek V4.1 Flash Fast",
@@ -684,10 +758,12 @@
             "variant": "fast"
           },
           {
-            "name": "Qwen 3.8 Omni Flash"
+            "name": "Qwen 3.8 Omni Flash",
+            "modelId": "qwen-3-8-omni-flash"
           },
           {
-            "name": "Qwen 3.8 Max 0902"
+            "name": "Qwen 3.8 Max 0902",
+            "modelId": "qwen-3-8-max-0902"
           },
           {
             "name": "Qwen 3.8 Max",
@@ -701,7 +777,8 @@
             "name": "Qwen 3.6 Max Preview"
           },
           {
-            "name": "Qwen 3.6 Plus"
+            "name": "Qwen 3.6 Plus",
+            "modelId": "qwen-3-6-plus"
           },
           {
             "name": "Qwen 3.7 Max",
@@ -716,7 +793,8 @@
             "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen 3.7 Flash"
+            "name": "Qwen 3.7 Flash",
+            "modelId": "qwen-3-7-flash"
           },
           {
             "name": "LongCat 2.0",
@@ -726,17 +804,22 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "Step 3.7 Flash"
+            "name": "Step 3.7 Flash",
+            "modelId": "step-3-7-flash"
           },
           {
-            "name": "Step 3.5 Flash"
+            "name": "Step 3.5 Flash",
+            "modelId": "step-3-5-flash"
           },
           {
             "name": "MiMo V2.6 Pro",
             "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo V2.6 Pro UltraSpeed"
+            "name": "MiMo V2.6 Pro UltraSpeed",
+            "modelId": "mimo-v2-6-pro",
+            "variant": "ultraspeed",
+            "note": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred."
           },
           {
             "name": "MiMo V2.6 Flash",
@@ -827,10 +910,12 @@
             "modelId": "gemini-3-5-flash"
           },
           {
-            "name": "Gemini 3.5 Flash Lite"
+            "name": "Gemini 3.5 Flash Lite",
+            "modelId": "gemini-3-5-flash-lite"
           },
           {
-            "name": "Gemini 3.1 Flash Lite"
+            "name": "Gemini 3.1 Flash Lite",
+            "modelId": "gemini-3-1-flash-lite"
           },
           {
             "name": "Fugu Ultra"
@@ -841,17 +926,23 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
-            "name": "Muse Spark 1.2"
+            "name": "Muse Spark 1.2",
+            "modelId": "muse-spark-1-2"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
-            "name": "Muse Spark 1.1"
+            "name": "Muse Spark 1.1",
+            "modelId": "muse-spark-1-1"
           },
           {
             "name": "Grok 4.6",
@@ -862,10 +953,12 @@
             "modelId": "grok-4-5"
           },
           {
-            "name": "Inkling"
+            "name": "Inkling",
+            "modelId": "inkling"
           },
           {
-            "name": "Inkling Small"
+            "name": "Inkling Small",
+            "modelId": "inkling-small"
           },
           {
             "name": "Jev",
@@ -942,7 +1035,8 @@
           },
           {
             "name": "Laguna S 2.1",
-            "note": "Temporary free or preview availability."
+            "note": "Temporary free or preview availability.",
+            "modelId": "laguna-s-2-1"
           },
           {
             "name": "Ling 3.0 Flash Sante",
@@ -952,21 +1046,26 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "Tencent Hy3"
+            "name": "Tencent Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Kimi K2.7 Code",
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Kimi K2.7 Code HighSpeed"
+            "name": "Kimi K2.7 Code HighSpeed",
+            "modelId": "kimi-k2-7-code",
+            "variant": "highspeed",
+            "note": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited."
           },
           {
             "name": "Kimi K2.6",
             "modelId": "kimi-k2-6"
           },
           {
-            "name": "Kimi K2.5"
+            "name": "Kimi K2.5",
+            "modelId": "kimi-k2-5"
           },
           {
             "name": "GLM-5.3 FlashX",
@@ -977,7 +1076,10 @@
             "modelId": "glm-5-2"
           },
           {
-            "name": "GLM-5.2 Fast"
+            "name": "GLM-5.2 Fast",
+            "modelId": "glm-5-2",
+            "variant": "fast",
+            "note": "High-throughput build of GLM-5.2; default route prices are not inherited."
           },
           {
             "name": "GLM-5.1",
@@ -996,7 +1098,8 @@
             "modelId": "minimax-m2-7"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -1009,7 +1112,10 @@
             "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "DeepSeek V4 Flash Fast"
+            "name": "DeepSeek V4 Flash Fast",
+            "modelId": "deepseek-v4-flash",
+            "variant": "fast",
+            "note": "Low-latency V4 Flash deployment; default route prices are not inherited."
           },
           {
             "name": "DeepSeek V4.1 Flash Fast",
@@ -1017,10 +1123,12 @@
             "variant": "fast"
           },
           {
-            "name": "Qwen 3.8 Omni Flash"
+            "name": "Qwen 3.8 Omni Flash",
+            "modelId": "qwen-3-8-omni-flash"
           },
           {
-            "name": "Qwen 3.8 Max 0902"
+            "name": "Qwen 3.8 Max 0902",
+            "modelId": "qwen-3-8-max-0902"
           },
           {
             "name": "Qwen 3.8 Max",
@@ -1034,7 +1142,8 @@
             "name": "Qwen 3.6 Max Preview"
           },
           {
-            "name": "Qwen 3.6 Plus"
+            "name": "Qwen 3.6 Plus",
+            "modelId": "qwen-3-6-plus"
           },
           {
             "name": "Qwen 3.7 Max",
@@ -1049,7 +1158,8 @@
             "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen 3.7 Flash"
+            "name": "Qwen 3.7 Flash",
+            "modelId": "qwen-3-7-flash"
           },
           {
             "name": "LongCat 2.0",
@@ -1059,17 +1169,22 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "Step 3.7 Flash"
+            "name": "Step 3.7 Flash",
+            "modelId": "step-3-7-flash"
           },
           {
-            "name": "Step 3.5 Flash"
+            "name": "Step 3.5 Flash",
+            "modelId": "step-3-5-flash"
           },
           {
             "name": "MiMo V2.6 Pro",
             "modelId": "mimo-v2-6-pro"
           },
           {
-            "name": "MiMo V2.6 Pro UltraSpeed"
+            "name": "MiMo V2.6 Pro UltraSpeed",
+            "modelId": "mimo-v2-6-pro",
+            "variant": "ultraspeed",
+            "note": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred."
           },
           {
             "name": "MiMo V2.6 Flash",
@@ -1160,10 +1275,12 @@
             "modelId": "gemini-3-5-flash"
           },
           {
-            "name": "Gemini 3.5 Flash Lite"
+            "name": "Gemini 3.5 Flash Lite",
+            "modelId": "gemini-3-5-flash-lite"
           },
           {
-            "name": "Gemini 3.1 Flash Lite"
+            "name": "Gemini 3.1 Flash Lite",
+            "modelId": "gemini-3-1-flash-lite"
           },
           {
             "name": "Fugu Ultra"
@@ -1174,17 +1291,23 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
-            "name": "Muse Spark 1.2"
+            "name": "Muse Spark 1.2",
+            "modelId": "muse-spark-1-2"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
-            "name": "Muse Spark 1.1"
+            "name": "Muse Spark 1.1",
+            "modelId": "muse-spark-1-1"
           },
           {
             "name": "Grok 4.6",
@@ -1195,10 +1318,12 @@
             "modelId": "grok-4-5"
           },
           {
-            "name": "Inkling"
+            "name": "Inkling",
+            "modelId": "inkling"
           },
           {
-            "name": "Inkling Small"
+            "name": "Inkling Small",
+            "modelId": "inkling-small"
           },
           {
             "name": "Jev",
@@ -1227,7 +1352,8 @@
           },
           {
             "name": "Laguna S 2.1",
-            "note": "Temporary free or preview availability."
+            "note": "Temporary free or preview availability.",
+            "modelId": "laguna-s-2-1"
           },
           {
             "name": "Ling 3.0 Flash Sante",
@@ -1237,7 +1363,8 @@
             "name": "Tencent Hy4 Preview"
           },
           {
-            "name": "Tencent Hy3"
+            "name": "Tencent Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Kimi K3",
@@ -1248,14 +1375,18 @@
             "modelId": "kimi-k2-7-code"
           },
           {
-            "name": "Kimi K2.7 Code HighSpeed"
+            "name": "Kimi K2.7 Code HighSpeed",
+            "modelId": "kimi-k2-7-code",
+            "variant": "highspeed",
+            "note": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited."
           },
           {
             "name": "Kimi K2.6",
             "modelId": "kimi-k2-6"
           },
           {
-            "name": "Kimi K2.5"
+            "name": "Kimi K2.5",
+            "modelId": "kimi-k2-5"
           },
           {
             "name": "GLM-5.3 Flash",
@@ -1274,7 +1405,10 @@
             "modelId": "glm-5-2"
           },
           {
-            "name": "GLM-5.2 Fast"
+            "name": "GLM-5.2 Fast",
+            "modelId": "glm-5-2",
+            "variant": "fast",
+            "note": "High-throughput build of GLM-5.2; default route prices are not inherited."
           },
           {
             "name": "GLM-5.1",
@@ -1293,7 +1427,8 @@
             "modelId": "minimax-m2-7"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "DeepSeek V4 Pro (latest)"
@@ -1306,7 +1441,10 @@
             "modelId": "deepseek-v4-flash-vision-exp"
           },
           {
-            "name": "DeepSeek V4 Flash Fast"
+            "name": "DeepSeek V4 Flash Fast",
+            "modelId": "deepseek-v4-flash",
+            "variant": "fast",
+            "note": "Low-latency V4 Flash deployment; default route prices are not inherited."
           },
           {
             "name": "DeepSeek V4.1 Flash",
@@ -1318,10 +1456,12 @@
             "variant": "fast"
           },
           {
-            "name": "Qwen 3.8 Omni Flash"
+            "name": "Qwen 3.8 Omni Flash",
+            "modelId": "qwen-3-8-omni-flash"
           },
           {
-            "name": "Qwen 3.8 Max 0902"
+            "name": "Qwen 3.8 Max 0902",
+            "modelId": "qwen-3-8-max-0902"
           },
           {
             "name": "Qwen 3.8 Max",
@@ -1335,7 +1475,8 @@
             "name": "Qwen 3.6 Max Preview"
           },
           {
-            "name": "Qwen 3.6 Plus"
+            "name": "Qwen 3.6 Plus",
+            "modelId": "qwen-3-6-plus"
           },
           {
             "name": "Qwen 3.7 Max",
@@ -1350,7 +1491,8 @@
             "modelId": "qwen-3-8-flash"
           },
           {
-            "name": "Qwen 3.7 Flash"
+            "name": "Qwen 3.7 Flash",
+            "modelId": "qwen-3-7-flash"
           },
           {
             "name": "LongCat 2.0",
@@ -1360,10 +1502,12 @@
             "name": "Step 5 Preview"
           },
           {
-            "name": "Step 3.7 Flash"
+            "name": "Step 3.7 Flash",
+            "modelId": "step-3-7-flash"
           },
           {
-            "name": "Step 3.5 Flash"
+            "name": "Step 3.5 Flash",
+            "modelId": "step-3-5-flash"
           },
           {
             "name": "MiMo V2.6 Pro",
@@ -1395,21 +1539,27 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
             "name": "Grok 4.5",
             "modelId": "grok-4-5"
           },
           {
-            "name": "Inkling"
+            "name": "Inkling",
+            "modelId": "inkling"
           },
           {
-            "name": "Inkling Small"
+            "name": "Inkling Small",
+            "modelId": "inkling-small"
           }
         ]
       }
@@ -1458,7 +1608,9 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
             "name": "Qwen3.8 Max",
@@ -1559,11 +1711,15 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
             "name": "Qwen3.8 Max",
@@ -1597,7 +1753,8 @@
             "name": "Hy4 preview"
           },
           {
-            "name": "Hy3"
+            "name": "Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Space Bunny Free",
@@ -1690,11 +1847,15 @@
           },
           {
             "name": "Muse Spark 1.3 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+            "modelId": "muse-spark-1-3",
+            "variant": "contributor"
           },
           {
             "name": "Muse Spark 1.2 Contributor",
-            "note": "Regional availability applies."
+            "note": "Regional availability applies. Contributor has separate rates and data-use terms.",
+            "modelId": "muse-spark-1-2",
+            "variant": "contributor"
           },
           {
             "name": "Qwen3.8 Max",
@@ -1728,7 +1889,8 @@
             "name": "Hy4 preview"
           },
           {
-            "name": "Hy3"
+            "name": "Hy3",
+            "modelId": "hy3"
           },
           {
             "name": "Space Bunny Free",
@@ -1772,17 +1934,21 @@
             "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "Gemma 4"
+            "name": "Gemma 4",
+            "modelId": "gemma-4",
+            "note": "The bare name spans E2B, E4B, 12B, 26B A4B and 31B; no size is inferred."
           },
           {
             "name": "GLM-5.2",
             "modelId": "glm-5-2"
           },
           {
-            "name": "GPT-OSS 120B"
+            "name": "GPT-OSS 120B",
+            "modelId": "gpt-oss-120b"
           },
           {
-            "name": "GPT-OSS 20B"
+            "name": "GPT-OSS 20B",
+            "modelId": "gpt-oss-20b"
           },
           {
             "name": "Kimi K2.6",
@@ -1797,13 +1963,16 @@
             "modelId": "minimax-m2-7"
           },
           {
-            "name": "Mistral Large 3"
+            "name": "Mistral Large 3",
+            "modelId": "mistral-large-3"
           },
           {
-            "name": "Nemotron 3 Nano"
+            "name": "Nemotron 3 Nano",
+            "modelId": "nemotron-3-nano"
           },
           {
-            "name": "Nemotron 3 Super"
+            "name": "Nemotron 3 Super",
+            "modelId": "nemotron-3-super"
           },
           {
             "name": "Nemotron 3 Ultra",
@@ -1847,17 +2016,21 @@
             "modelId": "deepseek-v4-pro"
           },
           {
-            "name": "Gemma 4"
+            "name": "Gemma 4",
+            "modelId": "gemma-4",
+            "note": "The bare name spans E2B, E4B, 12B, 26B A4B and 31B; no size is inferred."
           },
           {
             "name": "GLM-5.2",
             "modelId": "glm-5-2"
           },
           {
-            "name": "GPT-OSS 120B"
+            "name": "GPT-OSS 120B",
+            "modelId": "gpt-oss-120b"
           },
           {
-            "name": "GPT-OSS 20B"
+            "name": "GPT-OSS 20B",
+            "modelId": "gpt-oss-20b"
           },
           {
             "name": "Kimi K2.6",
@@ -1872,13 +2045,16 @@
             "modelId": "minimax-m2-7"
           },
           {
-            "name": "Mistral Large 3"
+            "name": "Mistral Large 3",
+            "modelId": "mistral-large-3"
           },
           {
-            "name": "Nemotron 3 Nano"
+            "name": "Nemotron 3 Nano",
+            "modelId": "nemotron-3-nano"
           },
           {
-            "name": "Nemotron 3 Super"
+            "name": "Nemotron 3 Super",
+            "modelId": "nemotron-3-super"
           },
           {
             "name": "Nemotron 3 Ultra",
@@ -2812,7 +2988,8 @@
             "modelId": "claude-opus-4-6"
           },
           {
-            "name": "Claude Opus 4.5"
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
           },
           {
             "name": "Claude Sonnet 5",
@@ -2823,30 +3000,36 @@
             "modelId": "claude-sonnet-4-6"
           },
           {
-            "name": "Claude Sonnet 4.5"
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
           },
           {
-            "name": "Claude Sonnet 4.0"
+            "name": "Claude Sonnet 4.0",
+            "modelId": "claude-sonnet-4"
           },
           {
             "name": "Claude Haiku 4.5",
             "modelId": "claude-haiku-4-5"
           },
           {
-            "name": "MiniMax M2.5"
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "GLM-5",
             "modelId": "glm-5"
           },
           {
-            "name": "DeepSeek 3.2"
+            "name": "DeepSeek 3.2",
+            "modelId": "deepseek-v3-2"
           },
           {
-            "name": "MiniMax M2.1"
+            "name": "MiniMax M2.1",
+            "modelId": "minimax-m2-1"
           },
           {
-            "name": "Qwen3 Coder Next"
+            "name": "Qwen3 Coder Next",
+            "modelId": "qwen3-coder-next"
           }
         ],
         "note": "Availability varies by AWS region and client."
@@ -2902,10 +3085,12 @@
             "modelId": "claude-opus-4-6"
           },
           {
-            "name": "Claude Opus 4.5"
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
           },
           {
-            "name": "Claude Sonnet 4.5"
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
           },
           {
             "name": "Claude Opus 5.5",
@@ -2974,10 +3159,12 @@
             "modelId": "claude-opus-4-6"
           },
           {
-            "name": "Claude Opus 4.5"
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
           },
           {
-            "name": "Claude Sonnet 4.5"
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
           },
           {
             "name": "Claude Opus 5.5",
@@ -3045,10 +3232,12 @@
             "modelId": "claude-opus-4-6"
           },
           {
-            "name": "Claude Opus 4.5"
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
           },
           {
-            "name": "Claude Sonnet 4.5"
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
           },
           {
             "name": "Claude Opus 5.5",
@@ -3691,13 +3880,18 @@
             "modelId": "gemini-3-1-pro"
           },
           {
-            "name": "Claude Sonnet 4.6 (thinking)"
+            "name": "Claude Sonnet 4.6 (thinking)",
+            "modelId": "claude-sonnet-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "Claude Opus 4.6 (thinking)"
+            "name": "Claude Opus 4.6 (thinking)",
+            "modelId": "claude-opus-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "GPT-OSS 120B"
+            "name": "GPT-OSS 120B",
+            "modelId": "gpt-oss-120b"
           }
         ],
         "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."
@@ -3764,13 +3958,18 @@
             "modelId": "gemini-3-1-pro"
           },
           {
-            "name": "Claude Sonnet 4.6 (thinking)"
+            "name": "Claude Sonnet 4.6 (thinking)",
+            "modelId": "claude-sonnet-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "Claude Opus 4.6 (thinking)"
+            "name": "Claude Opus 4.6 (thinking)",
+            "modelId": "claude-opus-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "GPT-OSS 120B"
+            "name": "GPT-OSS 120B",
+            "modelId": "gpt-oss-120b"
           }
         ],
         "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."
@@ -3837,13 +4036,18 @@
             "modelId": "gemini-3-1-pro"
           },
           {
-            "name": "Claude Sonnet 4.6 (thinking)"
+            "name": "Claude Sonnet 4.6 (thinking)",
+            "modelId": "claude-sonnet-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "Claude Opus 4.6 (thinking)"
+            "name": "Claude Opus 4.6 (thinking)",
+            "modelId": "claude-opus-4-6",
+            "note": "Antigravity extended-thinking access to the named Claude release. Thinking is a mode, not a new model or API billing tier."
           },
           {
-            "name": "GPT-OSS 120B"
+            "name": "GPT-OSS 120B",
+            "modelId": "gpt-oss-120b"
           }
         ],
         "note": "Named reasoning models in Antigravity. Separate model-family usage limits apply."

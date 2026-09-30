@@ -51,3 +51,9 @@ specifications:
   - url: https://docs.z.ai/guides/capabilities/thinking-mode
     title: Default thinking behavior
     checkedAt: '2026-09-29'
+releaseDate:
+  date: 2026-04-07
+  sources:
+    - url: https://docs.z.ai/guides/llm/glm-5.1
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:d3e197b14328550c78ff6e34b2c02c23249804b0222ace03a160af6ff5abe6d0";
+export const BUNDLED_CATALOG_VERSION = "sha256:38d196d98e3b30a6cf34d0c971d20f8cfbecdc6f4e4cdeeee55d3561e74a4ad4";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:d3e197b14328550c78ff6e34b2c02c23249804b0222ace03a160af6ff5abe6d0",
+  "catalogVersion": "sha256:38d196d98e3b30a6cf34d0c971d20f8cfbecdc6f4e4cdeeee55d3561e74a4ad4",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -233,6 +233,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
+    "mistral": {
+      "id": "mistral",
+      "role": "provider",
+      "name": "Mistral AI",
+      "sources": [
+        {
+          "url": "https://docs.mistral.ai/models/mistral-large-3-25-12",
+          "title": "Official developer model documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "moonshot": {
       "id": "moonshot",
       "role": "provider",
@@ -308,6 +322,62 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "poolside": {
+      "id": "poolside",
+      "role": "provider",
+      "name": "Poolside",
+      "sources": [
+        {
+          "url": "https://poolside.ai/blog/introducing-laguna-s-2-1",
+          "title": "Official developer model documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "stepfun": {
+      "id": "stepfun",
+      "role": "provider",
+      "name": "StepFun",
+      "sources": [
+        {
+          "url": "https://static.stepfun.com/blog/step-3.7-flash/",
+          "title": "Official developer model documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "tencent": {
+      "id": "tencent",
+      "role": "provider",
+      "name": "Tencent",
+      "sources": [
+        {
+          "url": "https://www.tencent.com/en-us/articles/2202386.html",
+          "title": "Official developer model documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "thinking-machines": {
+      "id": "thinking-machines",
+      "role": "provider",
+      "name": "Thinking Machines Lab",
+      "sources": [
+        {
+          "url": "https://thinkingmachines.ai/news/introducing-inkling/",
+          "title": "Official developer model documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "x-ai": {
       "id": "x-ai",
       "role": "provider",
@@ -359,6 +429,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-fable",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-09-01",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -437,6 +517,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-fable",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-06-09",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/fable-5/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "providerIds": [
         "github",
         "anthropic"
@@ -518,6 +608,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-haiku",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2025-10-15",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/haiku-4-5/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 200000,
         "maxOutputTokens": 64000,
@@ -612,6 +712,49 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
+    "claude-opus-4-5": {
+      "id": "claude-opus-4-5",
+      "role": "model",
+      "name": "Claude Opus 4.5",
+      "familyId": "claude-opus",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2025-11-24",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/release-notes/overview",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "claude-opus-4-5-official-id",
+          "alias": "claude-opus-4-5-20251101",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "claude-opus-4-6": {
       "id": "claude-opus-4-6",
       "role": "model",
@@ -619,6 +762,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-02-05",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-4-6/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -689,6 +842,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-04-16",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-4-7/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "pricingNote": "Cache writes cost 1.25 times input for five-minute storage or twice input for one hour. Batch and regional rates differ.",
       "providerIds": [
         "github",
@@ -763,6 +926,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-05-28",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-4-8/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "providerIds": [
         "github",
         "anthropic"
@@ -815,6 +988,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-09-22",
+        "sources": [
+          {
+            "url": "https://www.anthropic.com/claude-opus-5-5",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -876,6 +1059,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-opus",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-07-24",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/opus-5/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "providerIds": [
         "cursor",
         "github",
@@ -961,6 +1154,49 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-24",
       "verificationStatus": "verified"
     },
+    "claude-sonnet-4-5": {
+      "id": "claude-sonnet-4-5",
+      "role": "model",
+      "name": "Claude Sonnet 4.5",
+      "familyId": "claude-sonnet",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2025-09-29",
+        "sources": [
+          {
+            "url": "https://www.anthropic.com/news/claude-sonnet-4-5",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "claude-sonnet-4-5-official-id",
+          "alias": "claude-sonnet-4-5-20250929",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "claude-sonnet-4-6": {
       "id": "claude-sonnet-4-6",
       "role": "model",
@@ -968,6 +1204,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-02-17",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/sonnet-4-6/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "pricingNote": "Cache writes cost 1.25 times input for five-minute storage or twice input for one hour. Batch and regional rates differ.",
       "providerIds": [
         "github",
@@ -998,6 +1244,50 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "claude-sonnet-4": {
+      "id": "claude-sonnet-4",
+      "role": "model",
+      "name": "Claude Sonnet 4",
+      "familyId": "claude-sonnet",
+      "lifecycle": "legacy",
+      "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2025-05-22",
+        "sources": [
+          {
+            "url": "https://www.anthropic.com/news/claude-4",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "apiAvailability": "retired",
+      "aliases": [
+        {
+          "id": "claude-sonnet-4-official-id",
+          "alias": "claude-sonnet-4-20250514",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "claude-sonnet-5-5": {
       "id": "claude-sonnet-5-5",
       "role": "model",
@@ -1005,6 +1295,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "current",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-09-28",
+        "sources": [
+          {
+            "url": "https://www.anthropic.com/claude-sonnet-5-5",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -1066,6 +1366,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "familyId": "claude-sonnet",
       "lifecycle": "legacy",
       "developerId": "anthropic",
+      "releaseDate": {
+        "date": "2026-06-30",
+        "sources": [
+          {
+            "url": "https://platform.claude.com/docs/en/models/sonnet-5/overview",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -1214,6 +1524,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "deepseek-v3-2": {
+      "id": "deepseek-v3-2",
+      "role": "model",
+      "name": "DeepSeek 3.2",
+      "developerId": "deepseek",
+      "releaseDate": {
+        "date": "2025-12-01",
+        "sources": [
+          {
+            "url": "https://api-docs.deepseek.com/updates/",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/updates/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
       "verificationStatus": "verified"
     },
     "deepseek-v4-1-flash": {
@@ -1446,6 +1781,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-21",
           "verificationStatus": "verified"
+        },
+        {
+          "id": "deepseek-v4-flash-command-code-fast",
+          "alias": "deepseek/deepseek-v4-flash-fast",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "fast",
+            "providerId": "command-code",
+            "label": "Fast"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/blog/deepseek-v4-flash-fast-is-available-in-command-code",
+              "title": "Low-latency V4 Flash deployment; default route prices are not inherited.",
+              "checkedAt": "2026-09-30"
+            },
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
         }
       ],
       "sources": [
@@ -1582,6 +1942,62 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-01",
       "verificationStatus": "estimated"
     },
+    "gemini-3-1-flash-lite": {
+      "id": "gemini-3-1-flash-lite",
+      "role": "model",
+      "name": "Gemini 3.1 Flash Lite",
+      "developerId": "google",
+      "releaseDate": {
+        "date": "2026-05-07",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "gemini-3-1-flash-lite-official-id",
+          "alias": "gemini-3.1-flash-lite",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gemini-3-1-flash-lite-command-code-model-code",
+          "alias": "google/gemini-3.1-flash-lite",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "gemini-3-1-pro": {
       "id": "gemini-3-1-pro",
       "role": "model",
@@ -1671,11 +2087,77 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "gemini-3-5-flash-lite": {
+      "id": "gemini-3-5-flash-lite",
+      "role": "model",
+      "name": "Gemini 3.5 Flash Lite",
+      "developerId": "google",
+      "releaseDate": {
+        "date": "2026-07-21",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "gemini-3-5-flash-lite-official-id",
+          "alias": "gemini-3.5-flash-lite",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "gemini-3-5-flash-lite-command-code-model-code",
+          "alias": "google/gemini-3.5-flash-lite",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "gemini-3-5-flash": {
       "id": "gemini-3-5-flash",
       "role": "model",
       "name": "Gemini 3.5 Flash",
       "developerId": "google",
+      "releaseDate": {
+        "date": "2026-05-19",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1048576,
         "maxOutputTokens": 65536,
@@ -1723,6 +2205,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3.6 Flash",
       "developerId": "google",
+      "releaseDate": {
+        "date": "2026-07-21",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1048576,
         "maxOutputTokens": 65536,
@@ -1782,6 +2274,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3.7 Flash",
       "developerId": "google",
+      "releaseDate": {
+        "date": "2026-08-13",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1048576,
         "maxOutputTokens": 65536,
@@ -1830,6 +2332,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "Gemini 3.8 Flash",
       "developerId": "google",
+      "releaseDate": {
+        "date": "2026-09-02",
+        "sources": [
+          {
+            "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1048576,
         "maxOutputTokens": 65536,
@@ -2043,11 +2555,38 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "gemma-4": {
+      "id": "gemma-4",
+      "role": "model",
+      "name": "Gemma 4",
+      "kind": "family",
+      "developerId": "google",
+      "pricingNote": "A family with several sizes. The bare lineup name does not establish an exact size, quantization, or executable route.",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemma/docs/core/model_card_4",
+          "title": "Google Gemma 4 family and size variants",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "glm-5-1": {
       "id": "glm-5-1",
       "role": "model",
       "name": "GLM 5.1",
       "developerId": "z-ai",
+      "releaseDate": {
+        "date": "2026-04-07",
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.1",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 200000,
         "maxOutputTokens": 128000,
@@ -2129,6 +2668,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GLM 5.2",
       "developerId": "z-ai",
+      "releaseDate": {
+        "date": "2026-06-16",
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5.2",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -2187,6 +2736,31 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             }
           ],
           "lastVerifiedAt": "2026-09-29",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "glm-5-2-command-code-fast",
+          "alias": "zai-org/glm-5.2-fast",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "fast",
+            "providerId": "command-code",
+            "label": "Fast"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/blog/glm-5-2-fast-is-live-in-command-code",
+              "title": "High-throughput build of GLM-5.2; default route prices are not inherited.",
+              "checkedAt": "2026-09-30"
+            },
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
           "verificationStatus": "verified"
         }
       ],
@@ -2523,6 +3097,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GLM 5",
       "developerId": "z-ai",
+      "releaseDate": {
+        "date": "2026-02-12",
+        "sources": [
+          {
+            "url": "https://docs.z.ai/guides/llm/glm-5",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 200000,
         "maxOutputTokens": 128000,
@@ -3329,6 +3913,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "GPT-6.1 Sol",
       "lifecycle": "current",
       "developerId": "openai",
+      "releaseDate": {
+        "date": "2026-09-29",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/changelog",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1050000,
         "maxInputTokens": 922000,
@@ -3471,6 +4065,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Astra",
       "developerId": "openai",
+      "releaseDate": {
+        "date": "2026-09-03",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/changelog",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1050000,
         "maxInputTokens": 922000,
@@ -3613,6 +4217,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Luna",
       "developerId": "openai",
+      "releaseDate": {
+        "date": "2026-09-22",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/changelog",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1050000,
         "maxInputTokens": 922000,
@@ -3670,6 +4284,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "GPT-6 Sol",
       "developerId": "openai",
+      "releaseDate": {
+        "date": "2026-09-22",
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/changelog",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1050000,
         "maxInputTokens": 922000,
@@ -3720,6 +4344,130 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "gpt-oss-120b": {
+      "id": "gpt-oss-120b",
+      "role": "model",
+      "name": "GPT-OSS 120B",
+      "developerId": "openai",
+      "releaseDate": {
+        "date": "2025-08-05",
+        "sources": [
+          {
+            "url": "https://openai.com/index/introducing-gpt-oss/",
+            "title": "OpenAI release announcement for both GPT-OSS models",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 131072,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-oss-120b",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "pricingNote": "Open-weight model. OpenAI does not publish a hosted per-token rate for this model; third-party routes set their own prices.",
+      "aliases": [
+        {
+          "id": "gpt-oss-120b-official-id",
+          "alias": "gpt-oss-120b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/models/gpt-oss-120b",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-oss-120b",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "gpt-oss-20b": {
+      "id": "gpt-oss-20b",
+      "role": "model",
+      "name": "GPT-OSS 20B",
+      "developerId": "openai",
+      "releaseDate": {
+        "date": "2025-08-05",
+        "sources": [
+          {
+            "url": "https://openai.com/index/introducing-gpt-oss/",
+            "title": "OpenAI release announcement for both GPT-OSS models",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 131072,
+        "maxOutputTokens": 131072,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "sources": [
+          {
+            "url": "https://developers.openai.com/api/docs/models/gpt-oss-20b",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "pricingNote": "Open-weight model. OpenAI does not publish a hosted per-token rate for this model; third-party routes set their own prices.",
+      "aliases": [
+        {
+          "id": "gpt-oss-20b-official-id",
+          "alias": "gpt-oss-20b",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://developers.openai.com/api/docs/models/gpt-oss-20b",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-oss-20b",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
       "verificationStatus": "verified"
     },
     "grok-4-5": {
@@ -3924,6 +4672,174 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "hy3": {
+      "id": "hy3",
+      "role": "model",
+      "name": "Tencent Hy3",
+      "developerId": "tencent",
+      "releaseDate": {
+        "date": "2026-07-06",
+        "sources": [
+          {
+            "url": "https://www.tencent.com/en-us/articles/2202386.html",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "hy3-command-code-model-code",
+          "alias": "tencent/hy3-paid",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.tencent.com/en-us/articles/2202386.html",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "inkling-small": {
+      "id": "inkling-small",
+      "role": "model",
+      "name": "Inkling Small",
+      "developerId": "thinking-machines",
+      "releaseDate": {
+        "date": "2026-07-30",
+        "sources": [
+          {
+            "url": "https://thinkingmachines.ai/news/inkling-small/",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "inkling-small-command-code-model-code",
+          "alias": "thinkingmachines/inkling-small",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://thinkingmachines.ai/news/inkling-small/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "inkling": {
+      "id": "inkling",
+      "role": "model",
+      "name": "Inkling",
+      "developerId": "thinking-machines",
+      "releaseDate": {
+        "date": "2026-07-15",
+        "sources": [
+          {
+            "url": "https://thinkingmachines.ai/news/introducing-inkling/",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "inkling-command-code-model-code",
+          "alias": "thinkingmachines/inkling",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://thinkingmachines.ai/news/introducing-inkling/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "kimi-k2-5": {
+      "id": "kimi-k2-5",
+      "role": "model",
+      "name": "Kimi K2.5",
+      "developerId": "moonshot",
+      "releaseDate": {
+        "date": "2026-01-27",
+        "sources": [
+          {
+            "url": "https://www.kimi.com/en/help/agent/agent-overview",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "kimi-k2-5-command-code-model-code",
+          "alias": "moonshotai/Kimi-K2.5",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/moonshotai/Kimi-K2.5",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "kimi-k2-6": {
       "id": "kimi-k2-6",
       "role": "model",
@@ -4032,6 +4948,33 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "providerIds": [
         "github"
       ],
+      "aliases": [
+        {
+          "id": "kimi-k2-7-code-command-code-highspeed",
+          "alias": "moonshotai/kimi-k2.7-code-highspeed",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "highspeed",
+            "providerId": "command-code",
+            "label": "HighSpeed"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/blog/kimi-k2-7-code-highspeed-is-in-command-code",
+              "title": "High-speed mode of Kimi K2.7 Code; default route prices are not inherited.",
+              "checkedAt": "2026-09-30"
+            },
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
       "sources": [
         {
           "url": "https://github.com/features/copilot/plans",
@@ -4098,11 +5041,46 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "laguna-s-2-1": {
+      "id": "laguna-s-2-1",
+      "role": "model",
+      "name": "Laguna S 2.1",
+      "developerId": "poolside",
+      "releaseDate": {
+        "date": "2026-07-21",
+        "sources": [
+          {
+            "url": "https://poolside.ai/blog/introducing-laguna-s-2-1",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://poolside.ai/blog/introducing-laguna-s-2-1",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "longcat-2-0": {
       "id": "longcat-2-0",
       "role": "model",
       "name": "LongCat 2.0",
       "developerId": "meituan",
+      "releaseDate": {
+        "date": "2026-06-30",
+        "sources": [
+          {
+            "url": "https://longcat.chat/platform/docs/change-log",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "reasoning": true,
@@ -4232,6 +5210,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "MiMo V2.5 Pro",
       "lifecycle": "legacy",
       "developerId": "xiaomi",
+      "releaseDate": {
+        "date": "2026-04-23",
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5-pro",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -4314,6 +5302,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "name": "MiMo V2.5",
       "lifecycle": "legacy",
       "developerId": "xiaomi",
+      "releaseDate": {
+        "date": "2026-04-23",
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.5",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -4398,6 +5396,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "MiMo V2.6 Flash",
       "developerId": "xiaomi",
+      "releaseDate": {
+        "date": "2026-09-22",
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -4482,6 +5490,16 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "role": "model",
       "name": "MiMo V2.6 Pro",
       "developerId": "xiaomi",
+      "releaseDate": {
+        "date": "2026-09-22",
+        "sources": [
+          {
+            "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "maxOutputTokens": 128000,
@@ -4544,6 +5562,46 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-29",
           "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-pro-mimo-api-ultraspeed",
+          "alias": "mimo-v2.6-pro-ultraspeed",
+          "kind": "provider_route",
+          "harness": "mimo-api",
+          "variant": {
+            "id": "ultraspeed",
+            "providerId": "xiaomi",
+            "label": "UltraSpeed"
+          },
+          "sources": [
+            {
+              "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed",
+              "title": "Xiaomi speed route preserves Pro capability with separate rates/access; no cross-provider route identity is inferred.",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "mimo-v2-6-pro-command-code-ultraspeed",
+          "alias": "xiaomi/mimo-v2.6-pro-ultraspeed",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "ultraspeed",
+            "providerId": "command-code",
+            "label": "UltraSpeed"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
         }
       ],
       "sources": [
@@ -4561,11 +5619,120 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
+    "minimax-m2-1": {
+      "id": "minimax-m2-1",
+      "role": "model",
+      "name": "MiniMax M2.1",
+      "lifecycle": "legacy",
+      "developerId": "minimax",
+      "releaseDate": {
+        "date": "2025-12-23",
+        "sources": [
+          {
+            "url": "https://www.minimax.io/news/minimax-m21",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "minimax-m2-1-official-id",
+          "alias": "MiniMax-M2.1",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "minimax-m2-5": {
+      "id": "minimax-m2-5",
+      "role": "model",
+      "name": "MiniMax M2.5",
+      "lifecycle": "legacy",
+      "developerId": "minimax",
+      "releaseDate": {
+        "date": "2026-02-12",
+        "sources": [
+          {
+            "url": "https://www.minimax.io/news/minimax-m25",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "minimax-m2-5-official-id",
+          "alias": "MiniMax-M2.5",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://platform.minimax.io/docs/guides/text-generation",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "minimax-m2-5-command-code-model-code",
+          "alias": "MiniMaxAI/MiniMax-M2.5",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://platform.minimax.io/docs/guides/text-generation",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "minimax-m2-7": {
       "id": "minimax-m2-7",
       "role": "model",
       "name": "MiniMax M2.7",
       "developerId": "minimax",
+      "releaseDate": {
+        "date": "2026-03-18",
+        "sources": [
+          {
+            "url": "https://platform.minimax.io/docs/api-reference/text-anthropic-api",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 204800,
         "maxOutputTokens": 204800,
@@ -4733,6 +5900,266 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
+    "mistral-large-3": {
+      "id": "mistral-large-3",
+      "role": "model",
+      "name": "Mistral Large 3",
+      "developerId": "mistral",
+      "releaseDate": {
+        "date": "2025-12-02",
+        "sources": [
+          {
+            "url": "https://docs.mistral.ai/models/mistral-large-3-25-12",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "The developer states a 256k context window without an exact token count."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.mistral.ai/models/mistral-large-3-25-12",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "mistral-large-3-official-id",
+          "alias": "mistral-large-2512",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.mistral.ai/models/mistral-large-3-25-12",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.mistral.ai/models/mistral-large-3-25-12",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "muse-spark-1-1": {
+      "id": "muse-spark-1-1",
+      "role": "model",
+      "name": "Muse Spark 1.1",
+      "developerId": "meta",
+      "releaseDate": {
+        "date": "2026-07-09",
+        "sources": [
+          {
+            "url": "https://research.meta.ai/blog/introducing-muse-spark-meta-model-api",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 1048576,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://dev.meta.ai/docs/models",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "pricingNote": "Standard Meta route. Contributor identifiers have separate data-use terms and rates.",
+      "aliases": [
+        {
+          "id": "muse-spark-1-1-official-id",
+          "alias": "muse-spark-1.1",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://dev.meta.ai/docs/models",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "muse-spark-1-1-command-code-model-code",
+          "alias": "meta/muse-spark-1.1",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://dev.meta.ai/docs/models",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "muse-spark-1-2": {
+      "id": "muse-spark-1-2",
+      "role": "model",
+      "name": "Muse Spark 1.2",
+      "developerId": "meta",
+      "releaseDate": {
+        "date": "2026-08-05",
+        "sources": [
+          {
+            "url": "https://research.meta.ai/blog/introducing-muse-code-and-muse-spark-1-2",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 1048576,
+        "inputModalities": [
+          "text",
+          "image",
+          "video",
+          "audio",
+          "pdf"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://dev.meta.ai/docs/models",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "pricingNote": "Standard Meta route. Contributor identifiers have separate data-use terms and rates.",
+      "aliases": [
+        {
+          "id": "muse-spark-1-2-official-id",
+          "alias": "muse-spark-1.2",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://dev.meta.ai/docs/models",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "muse-spark-1-2-meta-api-contributor",
+          "alias": "muse-spark-1.2-contributor",
+          "kind": "provider_route",
+          "harness": "meta-api",
+          "variant": {
+            "id": "contributor",
+            "providerId": "meta",
+            "label": "Contributor"
+          },
+          "sources": [
+            {
+              "url": "https://dev.meta.ai/docs/models",
+              "title": "Contributor has separate rates and data-use terms.",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "muse-spark-1-2-command-code-contributor",
+          "alias": "meta/muse-spark-1.2-contributor",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "contributor",
+            "providerId": "command-code",
+            "label": "Contributor"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "muse-spark-1-2-command-code-model-code",
+          "alias": "meta/muse-spark-1.2",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://dev.meta.ai/docs/models",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "muse-spark-1-3": {
       "id": "muse-spark-1-3",
       "role": "model",
@@ -4766,6 +6193,48 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "pricingNote": "Standard Muse Spark 1.3 rates. The separate contributor model has lower prices and permits use of data to improve Meta products; it is not silently substituted here.",
       "providerIds": [
         "cursor"
+      ],
+      "aliases": [
+        {
+          "id": "muse-spark-1-3-meta-api-contributor",
+          "alias": "muse-spark-1.3-contributor",
+          "kind": "provider_route",
+          "harness": "meta-api",
+          "variant": {
+            "id": "contributor",
+            "providerId": "meta",
+            "label": "Contributor"
+          },
+          "sources": [
+            {
+              "url": "https://dev.meta.ai/docs/models",
+              "title": "Contributor permits training on prompts/completions; Standard rates and max reasoning are not inherited.",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "muse-spark-1-3-command-code-contributor",
+          "alias": "meta/muse-spark-1.3-contributor",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "variant": {
+            "id": "contributor",
+            "providerId": "command-code",
+            "label": "Contributor"
+          },
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
       ],
       "sources": [
         {
@@ -4833,11 +6302,71 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-28",
       "verificationStatus": "verified"
     },
+    "nemotron-3-nano": {
+      "id": "nemotron-3-nano",
+      "role": "model",
+      "name": "Nemotron 3 Nano",
+      "developerId": "nvidia",
+      "releaseDate": {
+        "date": "2025-12-15",
+        "sources": [
+          {
+            "url": "https://catalog.ngc.nvidia.com/orgs/nim/nvidia/models/nemotron-3-nano/hf-52469ad",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://catalog.ngc.nvidia.com/orgs/nim/nvidia/models/nemotron-3-nano/hf-52469ad",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "nemotron-3-super": {
+      "id": "nemotron-3-super",
+      "role": "model",
+      "name": "Nemotron 3 Super",
+      "developerId": "nvidia",
+      "releaseDate": {
+        "date": "2026-03-11",
+        "sources": [
+          {
+            "url": "https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://blogs.nvidia.com/blog/nemotron-3-super-agentic-ai/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "nemotron-3-ultra": {
       "id": "nemotron-3-ultra",
       "role": "model",
       "name": "Nemotron 3 Ultra",
       "developerId": "nvidia",
+      "releaseDate": {
+        "date": "2026-06-04",
+        "sources": [
+          {
+            "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+            "title": "Developer-published release day; migrated from reviewed public decision facts",
+            "checkedAt": "2026-09-29"
+          }
+        ]
+      },
       "specifications": {
         "contextTokens": 1000000,
         "inputModalities": [
@@ -4912,6 +6441,108 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-6-plus": {
+      "id": "qwen-3-6-plus",
+      "role": "model",
+      "name": "Qwen 3.6 Plus",
+      "developerId": "alibaba",
+      "releaseDate": {
+        "date": "2026-04-02",
+        "sources": [
+          {
+            "url": "https://www.alibabacloud.com/en/press-room/alibaba-unveils-qwen3-6-plus-to-accelerate-agentic?_p_lc=1",
+            "title": "Alibaba release announcement",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "qwen-3-6-plus-official-id",
+          "alias": "qwen3.6-plus-2026-04-02",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-6-plus",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-6-plus-command-code-model-code",
+          "alias": "Qwen/Qwen3.6-Plus",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-6-plus",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-7-flash": {
+      "id": "qwen-3-7-flash",
+      "role": "model",
+      "name": "Qwen 3.7 Flash",
+      "developerId": "alibaba",
+      "aliases": [
+        {
+          "id": "qwen-3-7-flash-official-id",
+          "alias": "qwen3.7-flash-2026-07-15",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-flash",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-7-flash-command-code-model-code",
+          "alias": "Qwen/Qwen3.7-Flash",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-flash",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
       "verificationStatus": "verified"
     },
     "qwen-3-7-max": {
@@ -5229,6 +6860,76 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-29",
       "verificationStatus": "verified"
     },
+    "qwen-3-8-max-0902": {
+      "id": "qwen-3-8-max-0902",
+      "role": "model",
+      "name": "Qwen 3.8 Max 0902",
+      "developerId": "alibaba",
+      "releaseDate": {
+        "date": "2026-09-02",
+        "sources": [
+          {
+            "url": "https://docs.qwencloud.com/changelog/models",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "qwen-3-8-max-0902-official-id",
+          "alias": "qwen3.8-max-0902",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.qwencloud.com/models/qwen3.8-max-0902",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-max-0902-command-code-model-code",
+          "alias": "Qwen/Qwen3.8-Max-0902",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-max-0902-dated-id",
+          "alias": "qwen3.8-max-2026-09-02",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.qwencloud.com/models/qwen3.8-max-0902",
+              "title": "Official equivalent dated model id",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.qwencloud.com/models/qwen3.8-max-0902",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
     "qwen-3-8-max": {
       "id": "qwen-3-8-max",
       "role": "model",
@@ -5292,6 +6993,199 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "qwen-3-8-omni-flash": {
+      "id": "qwen-3-8-omni-flash",
+      "role": "model",
+      "name": "Qwen 3.8 Omni Flash",
+      "developerId": "alibaba",
+      "aliases": [
+        {
+          "id": "qwen-3-8-omni-flash-official-id",
+          "alias": "qwen3.8-omni-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://www.alibabacloud.com/help/en/model-studio/model-list-omni/",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "qwen-3-8-omni-flash-command-code-model-code",
+          "alias": "Qwen/Qwen3.8-Omni-Flash",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/model-list-omni/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "qwen3-coder-next": {
+      "id": "qwen3-coder-next",
+      "role": "model",
+      "name": "Qwen3 Coder Next",
+      "developerId": "alibaba",
+      "releaseDate": {
+        "date": "2026-02-02",
+        "sources": [
+          {
+            "url": "https://qwen.ai/blog?id=qwen3-coder-next",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 262144,
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": false,
+        "toolCalling": true,
+        "sources": [
+          {
+            "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next",
+            "title": "Official developer identity documentation",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "qwen3-coder-next-official-id",
+          "alias": "Qwen/Qwen3-Coder-Next",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "step-3-5-flash": {
+      "id": "step-3-5-flash",
+      "role": "model",
+      "name": "Step 3.5 Flash",
+      "developerId": "stepfun",
+      "aliases": [
+        {
+          "id": "step-3-5-flash-official-id",
+          "alias": "step-3.5-flash",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://huggingface.co/stepfun-ai/Step-3.5-Flash",
+              "title": "Official developer identity documentation",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        },
+        {
+          "id": "step-3-5-flash-command-code-model-code",
+          "alias": "stepfun/Step-3.5-Flash",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/stepfun-ai/Step-3.5-Flash",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "step-3-7-flash": {
+      "id": "step-3-7-flash",
+      "role": "model",
+      "name": "Step 3.7 Flash",
+      "developerId": "stepfun",
+      "releaseDate": {
+        "date": "2026-05-29",
+        "sources": [
+          {
+            "url": "https://static.stepfun.com/blog/step-3.7-flash/",
+            "title": "Developer-published release day",
+            "checkedAt": "2026-09-30"
+          }
+        ]
+      },
+      "aliases": [
+        {
+          "id": "step-3-7-flash-command-code-model-code",
+          "alias": "stepfun/Step-3.7-Flash",
+          "kind": "provider_route",
+          "harness": "command-code",
+          "sources": [
+            {
+              "url": "https://commandcode.ai/provider/v1/models",
+              "title": "Command Code documented Provider API model list; exact route id and display name",
+              "checkedAt": "2026-09-30"
+            }
+          ],
+          "lastVerifiedAt": "2026-09-30",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://static.stepfun.com/blog/step-3.7-flash/",
+          "title": "Official developer identity documentation",
+          "checkedAt": "2026-09-30"
+        }
+      ],
+      "lastVerifiedAt": "2026-09-30",
       "verificationStatus": "verified"
     }
   },

@@ -52,3 +52,9 @@ specifications:
     checkedAt: '2026-09-29'
 pricingNote: NVIDIA offers a free trial endpoint on build.nvidia.com and does not publish its own per-token API rate. The
   partner endpoints listed there set their own prices.
+releaseDate:
+  date: 2026-06-04
+  sources:
+    - url: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

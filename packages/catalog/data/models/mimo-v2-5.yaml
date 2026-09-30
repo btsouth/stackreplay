@@ -55,3 +55,9 @@ specifications:
   - url: https://mimo.mi.com/docs/en-US/quick-start/usage-guide/text-generation/deep-thinking
     title: Default thinking behavior
     checkedAt: '2026-09-29'
+releaseDate:
+  date: 2026-04-23
+  sources:
+    - url: https://mimo.mi.com/models/en-US/mimo-v2.5
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29

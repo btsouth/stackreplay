@@ -23,6 +23,23 @@ aliases:
     checkedAt: '2026-09-29'
   lastVerifiedAt: '2026-09-29'
   verificationStatus: verified
+- id: glm-5-2-command-code-fast
+  alias: zai-org/glm-5.2-fast
+  kind: provider_route
+  harness: command-code
+  variant:
+    id: fast
+    providerId: command-code
+    label: Fast
+  sources:
+    - url: https://commandcode.ai/blog/glm-5-2-fast-is-live-in-command-code
+      title: High-throughput build of GLM-5.2; default route prices are not inherited.
+      checkedAt: 2026-09-30
+    - url: https://commandcode.ai/provider/v1/models
+      title: Command Code documented Provider API model list; exact route id and display name
+      checkedAt: 2026-09-30
+  lastVerifiedAt: 2026-09-30
+  verificationStatus: verified
 sources:
 - url: https://docs.z.ai/guides/llm/glm-5.2
   title: GLM 5.2 model documentation
@@ -51,3 +68,9 @@ specifications:
   - url: https://docs.z.ai/guides/capabilities/thinking-mode
     title: Default thinking behavior
     checkedAt: '2026-09-29'
+releaseDate:
+  date: 2026-06-16
+  sources:
+    - url: https://docs.z.ai/guides/llm/glm-5.2
+      title: Developer-published release day; migrated from reviewed public decision facts
+      checkedAt: 2026-09-29
