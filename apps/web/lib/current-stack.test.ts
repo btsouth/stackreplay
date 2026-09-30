@@ -43,5 +43,6 @@ it("storage denial does not interrupt decisions", () => {
     },
   });
   expect(readCurrentStack()).toEqual([]);
+  expect(writeCurrentStack(["plan:a"])).toBe(false);
   expect(() => writeCurrentStack(["plan:a"])).not.toThrow();
 });

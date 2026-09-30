@@ -71,6 +71,7 @@ test("mobile analysis control ends before the Share section", async ({ page }) =
 test("plan names wrap inside the Settings selector at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/settings");
+  await page.getByTestId("settings-manual-plans").getByText("Advanced / choose manually").click();
   const labels = page.getByTestId("settings-plans").locator("label");
   await expect(labels.first()).toBeVisible();
   const measures = await labels.evaluateAll((nodes) =>

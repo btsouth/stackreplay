@@ -25,7 +25,7 @@ export function readCurrentStack(namespace = ""): TargetKey[] {
   }
 }
 
-export function writeCurrentStack(value: readonly TargetKey[], namespace = ""): void {
+export function writeCurrentStack(value: readonly TargetKey[], namespace = ""): boolean {
   try {
     if (value.length === 0) window.localStorage.removeItem(CURRENT_STACK_KEY + namespace);
     else
@@ -34,8 +34,10 @@ export function writeCurrentStack(value: readonly TargetKey[], namespace = ""): 
         JSON.stringify([...new Set(value)]),
       );
     window.dispatchEvent?.(new Event("stackreplay-current-stack"));
+    return true;
   } catch {
     // A convenience only: nothing depends on it.
+    return false;
   }
 }
 

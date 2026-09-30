@@ -15,7 +15,7 @@ replay only; no UI, real subscription assumptions, billing, or recommendation se
 | Admission | `packages/replay-engine/src/engine.ts`, `windows.ts`, `time.ts` | Reuse chronological, atomic multi-constraint admission, rejected-demand accounting and timezone-aware resets. |
 | Results | Schema `replay-result.ts`, `replay-semantics.ts`; engine `projection.ts` | Retain per-target results, evidence, warnings, constraints, violations and pinned versions. |
 | Scope | `apps/web/lib/workload-scope.ts`, `scoped-replay.ts` | Preserve source scopes and recognized-only scope disclosure; a candidate must state its modeled denominator. |
-| Current stack/value | Web `lib/current-stack.ts`, `workload-value.ts`, `components/workload/value.tsx` | Already stores up to four target selections in localStorage and calculates scoped multi-provider API-equivalent value. Reuse these in Phase 2/UI; do not create a second current-stack store. Workload payloads still live in IndexedDB. |
+| Current stack/value | Web `lib/current-stack.ts`, `workload-value.ts`, `components/workload/value.tsx` | Stores selected targets without a four-plan cap in localStorage and calculates scoped multi-provider API-equivalent value. Discovery confirmation also writes this canonical set; do not create a second current-stack store. Workload payloads still live in IndexedDB. |
 | Backtesting | Engine `backtest.ts` | Already has meter observations, reconstruction comparisons and deltas. Reuse for future calibration; it explicitly remains uncalibrated today. |
 | Local boundary | Web `workers/replay.worker.ts`, `lib/worker-client.ts`, `lib/idb.ts` | Future optimizer requests run in the existing Worker; keep canonical payloads in IndexedDB and existing cancellation/write-generation protections. |
 

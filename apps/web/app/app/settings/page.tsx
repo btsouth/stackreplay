@@ -35,7 +35,7 @@ export default function SettingsPage() {
       <div className="flex max-w-4xl flex-col gap-8">
         <Setting
           title="Plans you pay for"
-          description="Your history doesn't say which subscriptions you have. Choose them here and Compare's whole-stack decision and the Workload's “What you pay today” use them."
+          description="Your confirmed Current Stack is shared by Workload, Replay and Compare. History narrows the choices; you confirm which plans you currently pay for."
         >
           <PlansYouPayFor />
         </Setting>

@@ -41,6 +41,7 @@ test("Back and Forward return to the same Replay target and Compare decision", a
 test("plans chosen in Settings are the stack Compare uses", async ({ page }) => {
   await importDemo(page, "moderate");
   await page.goto("/app/settings");
+  await page.getByTestId("settings-manual-plans").getByText("Advanced / choose manually").click();
   await page.getByTestId("settings-plan-anthropic-claude-max-20x").check();
   await expect(page.getByTestId("settings-plans-summary")).toHaveText("Claude Max 20x");
   await page.goto("/app/compare?view=billing");
