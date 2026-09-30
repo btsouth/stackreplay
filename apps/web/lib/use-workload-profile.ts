@@ -37,21 +37,40 @@ export function loadWorkloadProfile(
   return pending;
 }
 
-/** The profile of a stored workload in the viewer's time zone, once it is ready. */
-export function useWorkloadProfile(importId: string | undefined): WorkloadProfile | undefined {
-  const [profile, setProfile] = useState<{ importId: string; value: WorkloadProfile }>();
+/** Exposes recoverable analysis failure without retaining another workload's facts. */
+export function useWorkloadProfileResult(importId: string | undefined) {
+  const [result, setResult] = useState<{
+    importId: string;
+    attempt: number;
+    value?: WorkloadProfile;
+    failed: boolean;
+  }>();
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    setProfile(undefined);
+    setResult(undefined);
     if (importId === undefined) return;
     let cancelled = false;
     loadWorkloadProfile(importId, browserTimeZone())
-      .then((next) => {
-        if (!cancelled) setProfile({ importId, value: next });
+      .then((value) => {
+        if (!cancelled) setResult({ importId, attempt, value, failed: false });
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!cancelled) setResult({ importId, attempt, failed: true });
+      });
     return () => {
       cancelled = true;
     };
-  }, [importId]);
-  return profile && profile.importId === importId ? profile.value : undefined;
+  }, [importId, attempt]);
+  const current =
+    result && result.importId === importId && result.attempt === attempt ? result : undefined;
+  return {
+    profile: current?.value,
+    failed: current?.failed ?? false,
+    retry: () => setAttempt((value) => value + 1),
+  };
+}
+
+/** The profile of a stored workload in the viewer's time zone, once it is ready. */
+export function useWorkloadProfile(importId: string | undefined): WorkloadProfile | undefined {
+  return useWorkloadProfileResult(importId).profile;
 }

@@ -72,7 +72,7 @@ export function FamilyPlanChoices({
           return (
             <label
               key={choice.key}
-              className={`flex min-h-20 min-w-0 cursor-pointer items-start gap-3 border p-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${selected ? "border-accent bg-surface-2" : "border-control-border"}`}
+              className={`flex min-h-20 min-w-0 cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${selected ? "border-accent bg-surface-2" : "border-control-border"}`}
             >
               <input
                 type={multiple ? "checkbox" : "radio"}
@@ -89,12 +89,12 @@ export function FamilyPlanChoices({
                       : choice.key,
                   )
                 }
-                className="mt-1 h-4 w-4 shrink-0 accent-accent"
+                className="mt-0.5 h-6 w-6 shrink-0 accent-accent"
                 data-testid={`${prefix}-plan-${choice.key.slice(5)}`}
               />
               <span className="min-w-0 space-y-1 break-words">
-                <span className="block text-sm font-medium">{choice.name}</span>
-                <span className="block font-mono text-xs text-muted-foreground">
+                <span className="block text-base font-medium tracking-tight">{choice.name}</span>
+                <span className="block font-mono text-sm text-foreground">
                   {choice.price
                     ? `Published price: ${publishedPriceText(choice.price)}`
                     : "Current published price unavailable"}
@@ -113,13 +113,13 @@ export function FamilyPlanChoices({
           group.currentTargets.some(
             (key) => !group.candidates.some((candidate) => `plan:${candidate.planId}` === key),
           )) ? (
-          <label className="flex min-h-11 cursor-pointer items-center gap-3 border border-control-border p-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-control-border p-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
             <input
               type="radio"
               name={`${prefix}-${group.groupId}`}
               checked={answer === "keep-current"}
               onChange={() => onChange("keep-current")}
-              className="h-4 w-4 shrink-0 accent-accent"
+              className="h-6 w-6 shrink-0 accent-accent"
             />
             Keep my current selections
           </label>
@@ -127,7 +127,7 @@ export function FamilyPlanChoices({
       </div>
       <button
         type="button"
-        className="min-h-11 text-sm text-accent"
+        className="min-h-11 rounded-sm text-sm text-accent"
         aria-pressed={multiple}
         onClick={() =>
           onChange(
@@ -156,14 +156,14 @@ export function FamilyPlanChoices({
         {NON_PLAN_CHOICES.map((choice) => (
           <label
             key={choice.value}
-            className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2 border px-3 py-2 text-xs has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${answer === choice.value ? "border-accent bg-surface-2" : "border-control-border"}`}
+            className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md border px-3 py-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${answer === choice.value ? "border-accent bg-surface-2" : "border-control-border"}`}
           >
             <input
               type="radio"
               name={`${prefix}-${group.groupId}`}
               checked={answer === choice.value}
               onChange={() => onChange(choice.value)}
-              className="h-4 w-4 shrink-0 accent-accent"
+              className="h-6 w-6 shrink-0 accent-accent"
             />
             <span>{choice.label}</span>
           </label>

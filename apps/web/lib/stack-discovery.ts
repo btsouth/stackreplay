@@ -1,7 +1,11 @@
 import type { BillingContextV1 } from "@stackreplay/schema";
 import { catalogPlansAt } from "./public-catalog";
 import type { TargetKey } from "./routes";
-import { includedAccessModels, subscriptionAccess } from "./subscription-access";
+import {
+  includedAccessModels,
+  publishedAccessModelCount,
+  subscriptionAccess,
+} from "./subscription-access";
 import type { SourceSummary } from "./worker-protocol";
 import type { SourceDemand } from "./workload-profile";
 
@@ -193,9 +197,7 @@ export function discoverStack(input: {
           publishedPrice: plan.price,
           access: {
             // Variants of the same exact reviewed model identity count once.
-            publishedModelCount: access
-              ? new Set(publishedModels.map((model) => model.modelId ?? model.name)).size
-              : undefined,
+            publishedModelCount: access ? publishedAccessModelCount(access) : undefined,
             listedModelIds: observedModelIds.filter((id) => listed.has(id)),
             observedModelCount: observedModelIds.length,
             checkedAt: access?.checkedAt,

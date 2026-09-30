@@ -1,9 +1,13 @@
 import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
 import { addAmounts, formatUsd, isSyntheticCatalogId } from "@stackreplay/share";
-import { catalogPlansAt } from "./public-catalog";
+import { catalogPlansAt, loadPublicCatalog } from "./public-catalog";
 import type { TargetKey } from "./routes";
 import { type DiscoveryPlan, discoverStack } from "./stack-discovery";
-import { includedAccessModels, subscriptionAccess } from "./subscription-access";
+import {
+  includedAccessModels,
+  publishedAccessModelCount,
+  subscriptionAccess,
+} from "./subscription-access";
 import type { SourceSummary } from "./worker-protocol";
 import type { SourceDemand } from "./workload-profile";
 
@@ -50,6 +54,7 @@ export function buildMyStack(input: {
             summary: access.summary,
             checkedAt: access.checkedAt,
             models: includedAccessModels(access),
+            modelCount: publishedAccessModelCount(access),
           }
         : undefined,
     };
@@ -68,6 +73,7 @@ export function buildMyStack(input: {
     prices.set(key, bucket);
   }
   const workload = input.workload;
+  const catalog = workload ? loadPublicCatalog(input.rulesAsOf) : undefined;
   return {
     targets,
     totals: [...prices.values()].map(({ amounts, ...price }) => ({
@@ -98,7 +104,21 @@ export function buildMyStack(input: {
         shareOfWorkload:
           workload && workload.recordedCalls > 0 ? source.events / workload.recordedCalls : 0,
         observedModelIds: [...new Set(source.models.map((model) => model.modelId))].sort(),
+        observedModelNames: [...new Set(source.models.map((model) => model.modelId))]
+          .sort()
+          .map((id) => catalog?.modelById(id)?.name ?? id),
         unresolvedCalls: source.unresolvedEvents,
       })),
   };
+}
+
+/** Undo restores one explicit selection without overwriting later stack edits. */
+export function restoreRemovedTarget(
+  current: readonly TargetKey[],
+  key: TargetKey,
+  index: number,
+): TargetKey[] {
+  const next = [...new Set(current)];
+  if (!next.includes(key)) next.splice(Math.max(0, Math.min(next.length, index)), 0, key);
+  return next;
 }

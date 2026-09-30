@@ -5,6 +5,7 @@ import { loadPublicCatalog, planIncludesModel } from "./public-catalog";
 import {
   accessModelKey,
   includedAccessModels,
+  publishedAccessModelCount,
   type SubscriptionAccessModel,
   subscriptionAccess,
 } from "./subscription-access";
@@ -189,4 +190,42 @@ describe("included plan counts", () => {
       expect(including, model.id).toBe(listed);
     }
   });
+});
+
+it("counts distinct published models, preserves route variants and excludes separately purchased access", () => {
+  const access = {
+    checkedAt: date,
+    summary: "",
+    groups: [
+      {
+        label: "Included",
+        access: "included" as const,
+        sourceUrl: "https://example.com",
+        models: [
+          { name: "Alpha", modelId: "alpha" },
+          { name: "Alpha Fast", modelId: "alpha", variant: "fast" },
+          { name: "Published name without linked identity" },
+        ],
+      },
+      {
+        label: "Conditional",
+        access: "conditional" as const,
+        sourceUrl: "https://example.com",
+        models: [{ name: "Beta", modelId: "beta" }],
+      },
+      {
+        label: "Extra",
+        access: "extra_usage" as const,
+        sourceUrl: "https://example.com",
+        models: [{ name: "Gamma", modelId: "gamma" }],
+      },
+    ],
+  };
+  expect(publishedAccessModelCount(access)).toBe(3);
+  expect(includedAccessModels(access).map((model) => model.name)).toEqual([
+    "Alpha",
+    "Alpha Fast",
+    "Published name without linked identity",
+    "Beta",
+  ]);
 });
