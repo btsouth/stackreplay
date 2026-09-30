@@ -5,12 +5,13 @@ import type { ModelTranslationPolicyV1 } from "@stackreplay/schema";
 import type { ModelMapping, WorkloadModels } from "@/components/replay/translation-model";
 import { marketRange } from "./decision-presentation";
 import type { MarketDecision } from "./market-decision";
+import { defaultRulesDate } from "./rules-date";
 import type { ReplayOutcome } from "./worker-client";
 
 /** Product counterfactual policies, never catalog identity or model-quality claims.
  * Each pair is deliberately enumerated. Family membership does not generate rules.
  */
-export const TRANSLATION_PROFILES = [
+const ORIGINAL_TRANSLATION_PROFILES = [
   {
     id: "openai-frontier",
     version: "1",
@@ -42,14 +43,37 @@ export const TRANSLATION_PROFILES = [
     rules: { "gpt-6-astra": "claude-fable-5-1" },
   },
 ] as const;
-export type TranslationProfile = (typeof TRANSLATION_PROFILES)[number];
+/** v1 remains available for an explicitly pinned, reproducible policy. */
+export const TRANSLATION_PROFILES = [
+  {
+    ...ORIGINAL_TRANSLATION_PROFILES[0],
+    version: "2",
+    // Current Opus-class counterfactual, including explicitly named older sources.
+    // Sonnet/Terra, Haiku/Luna and Fable/Astra remain deliberate policy choices.
+    rules: {
+      ...ORIGINAL_TRANSLATION_PROFILES[0].rules,
+      "claude-opus": "gpt-6-1-sol",
+      "claude-opus-4-7": "gpt-6-1-sol",
+      "claude-opus-4-8": "gpt-6-1-sol",
+      "claude-opus-5": "gpt-6-1-sol",
+      "claude-opus-5-5": "gpt-6-1-sol",
+    },
+  },
+  ORIGINAL_TRANSLATION_PROFILES[1],
+] as const;
+export const TRANSLATION_PROFILE_HISTORY = [
+  ORIGINAL_TRANSLATION_PROFILES[0],
+  ...TRANSLATION_PROFILES,
+] as const;
+export type TranslationProfile = (typeof TRANSLATION_PROFILE_HISTORY)[number];
 export function suggestedMapping(
   profile: TranslationProfile,
   workload: WorkloadModels,
+  rulesAsOf: string = defaultRulesDate(),
 ): Record<string, string> {
   const catalog = loadBundledCatalog();
   const available = new Set(
-    bundledApiProviderModels(profile.providerId, DECISION_MARKET.rulesAt)
+    bundledApiProviderModels(profile.providerId, rulesAsOf)
       .filter((m) => m.available && m.priced)
       .map((m) => m.id),
   );
@@ -87,9 +111,10 @@ export function mappingCoverage(
   workload: WorkloadModels,
   providerId: string,
   mapping: ModelMapping,
+  rulesAsOf: string = defaultRulesDate(),
 ) {
   const available = new Set(
-    bundledApiProviderModels(providerId, DECISION_MARKET.rulesAt)
+    bundledApiProviderModels(providerId, rulesAsOf)
       .filter((m) => m.available && m.priced)
       .map((m) => m.id),
   );

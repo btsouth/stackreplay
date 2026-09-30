@@ -6,6 +6,7 @@ import {
   type WorkloadArchetypeId,
 } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
+import { replayLink, routeCopy, routeLink } from "./replay-navigation";
 import {
   coverageShare,
   type SuggestedRoute,
@@ -149,6 +150,28 @@ describe("suggested routes", () => {
     expect(byId(routes, "switch-provider")?.translated).toBe(true);
   });
 
+  it.each(WORKLOAD_ARCHETYPE_IDS)(
+    "%s: purchase alternatives share one explicit engine scope",
+    (archetype) => {
+      const { events, names, routes } = routesFor(archetype);
+      const api = routes.find((route) => route.id === "api-value");
+      if (!api?.alternative) return;
+      expect(api.alternative.providerId).toBe(api.target.providerId);
+      expect(api.alternative.events).toBe(api.slice.events);
+      const apiUrl = new URL(routeLink("opaque-local-id", api), "http://x");
+      const planUrl = new URL(
+        replayLink("opaque-local-id", { plan: api.alternative.id, scope: api.slice.sources }),
+        "http://x",
+      );
+      expect(apiUrl.searchParams.get("scope")).toBe(planUrl.searchParams.get("scope"));
+      const plan = replayRoute(events, names, targetOf(api.alternative), api.slice.sources);
+      expect(plan.outcome.projection.workload.eventCount).toBe(api.slice.events);
+      expect(api.alternative.runnable).toBe(api.slice.events - api.slice.unresolvedEvents);
+      if (api.alternative.capacity === "unpublished")
+        expect(routeCopy(api).body).toContain("exact capacity cannot be computed");
+      expect(routeCopy(api).body).not.toContain("workload fits");
+    },
+  );
   it("never points the numeric route at a plan that runs under half the work", () => {
     for (const archetype of WORKLOAD_ARCHETYPE_IDS) {
       const numeric = byId(routesFor(archetype).routes, "numeric-limits");

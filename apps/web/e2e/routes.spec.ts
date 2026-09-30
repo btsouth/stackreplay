@@ -1,12 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import {
-  createShareToken,
-  gotoImport,
-  openReviewEvidence,
-  openWorkloadTools,
-  waitForWorkload,
-} from "./helpers";
+import { createShareToken, gotoImport, openWorkloadTools, waitForWorkload } from "./helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -29,8 +23,6 @@ async function importMixed(page: Page): Promise<string> {
   });
   await waitForWorkload(page);
   await page.goto("/app/workload");
-  await openReviewEvidence(page);
-  await openWorkloadTools(page);
   await expect(page.getByTestId("suggested-routes")).toBeVisible({ timeout: 60_000 });
   return (
     new URL(
@@ -42,13 +34,20 @@ async function importMixed(page: Page): Promise<string> {
 
 test("suggested routes go to targets that answer, with the tool slice stated", async ({ page }) => {
   await importMixed(page);
+  await expect(page.getByTestId("workload-tools")).not.toHaveAttribute("open");
+  await expect(page.getByTestId("workload-tools").locator("summary")).toHaveText(
+    "Share this workload",
+  );
+  await expect(page.getByTestId("overview-evidence")).not.toHaveAttribute("open");
+  expect(
+    await page.getByTestId("replay-transition").evaluate((el) => el.closest("details")),
+  ).toBeNull();
   const routes = page.getByTestId("suggested-routes");
   await expect(routes).not.toContainText("Copilot Pro →");
   await expect(page.getByTestId("next-api")).toContainText("Your Claude Code work, Anthropic API");
   await expect(page.getByTestId("next-numeric")).toContainText("Copilot Pro+");
   await expect(page.getByTestId("next-cross-provider")).toContainText("Claude Max 20x");
 
-  await openWorkloadTools(page);
   await page.getByTestId("next-api").click();
   await expect(page).toHaveURL(/scope=claude-code/u);
   await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
@@ -141,4 +140,85 @@ test("a configured stack compares the whole workload with its published API equi
   await page.getByTestId("stack-plan-picker").locator("summary").click();
   await expect(page.getByTestId("stack-plan-anthropic-claude-max-20x")).toBeChecked();
   await expect(page.getByTestId("stack-plan-openai-chatgpt-pro")).toBeChecked();
+});
+
+test("default decisions carry the same scope and targets into the custom engine", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const state = window as unknown as { replayRequests: unknown[] };
+    state.replayRequests = [];
+    const post = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (this: Worker, ...args: unknown[]) {
+      if ((args[0] as { type?: string })?.type === "RUN_REPLAY") state.replayRequests.push(args[0]);
+      return Reflect.apply(post, this, args);
+    };
+  });
+  const importId = await importMixed(page);
+  const workloadLink = await page.getByTestId("next-api").getAttribute("href");
+  await page.getByTestId("workload-replay-cta").click();
+  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
+  await expect(page.getByTestId("plan-list")).toHaveCount(0);
+  await expect(
+    page.getByTestId("strategy-suggestions").locator(":scope > section").first(),
+  ).toHaveAttribute("data-testid", "suggest-route-api-value");
+  await expect(page.getByTestId("suggest-target-api-value")).toHaveAttribute(
+    "href",
+    workloadLink ?? "",
+  );
+  const apiLink = new URL(workloadLink ?? "", "http://x");
+  const planLink = new URL(
+    (await page.getByTestId("suggest-subscription").getAttribute("href")) ?? "",
+    "http://x",
+  );
+  expect(apiLink.searchParams.get("scope")).toBe("claude-code");
+  expect(planLink.searchParams.get("scope")).toBe(apiLink.searchParams.get("scope"));
+  expect(planLink.searchParams.get("import")).toBe(importId);
+  await expect(page.getByTestId("suggest-route-api-value")).toContainText(
+    "its exact capacity cannot be computed",
+  );
+  await page.getByTestId("suggest-subscription").click();
+  await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId(`plan-${planLink.searchParams.get("target")}`)).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result")).toBeVisible();
+  const requests = () =>
+    page.evaluate(
+      () => (window as unknown as { replayRequests: Record<string, unknown>[] }).replayRequests,
+    );
+  expect((await requests()).at(-1)).toMatchObject({
+    importId,
+    sources: ["claude-code"],
+    target: { type: "subscription", planId: planLink.searchParams.get("target") },
+  });
+  // Back returns to decisions; API choice retains exactly that same tool slice.
+  await page.goBack();
+  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
+  await page.getByTestId("suggest-target-api-value").click();
+  await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("provider-anthropic")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("run-replay").click();
+  await expect(page.getByTestId("replay-result")).toBeVisible();
+  expect((await requests()).at(-1)).toMatchObject({
+    importId,
+    sources: ["claude-code"],
+    target: { type: "api", providerId: "anthropic" },
+  });
+  await expect(page.getByTestId("result-computed-for")).toContainText("your Claude Code work");
+  expect([...new URL(page.url()).searchParams.keys()].sort()).toEqual([
+    "api",
+    "import",
+    "mode",
+    "scope",
+  ]);
+  // Reload holds scope/target, then changing to all work removes only scope.
+  await page.reload();
+  await expect(page.getByTestId("scope-claude-code")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("provider-anthropic")).toHaveAttribute("aria-pressed", "true");
+  await page.getByTestId("scope-all").click();
+  await expect(page).not.toHaveURL(/scope=/);
+  await expect(page.getByTestId("provider-anthropic")).toHaveAttribute("aria-pressed", "true");
 });

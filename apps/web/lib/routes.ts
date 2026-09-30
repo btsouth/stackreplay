@@ -206,6 +206,8 @@ export interface SuggestedRoute {
   slice: WorkloadSlice;
   /** The replay needs model substitutions the person chooses. */
   translated: boolean;
+  /** Same-provider purchase alternative, evaluated over this exact slice. */
+  alternative?: TargetCoverage | undefined;
   /** What the replay can lead with. */
   answer: "dollars" | "date" | "share";
 }
@@ -252,7 +254,23 @@ export function suggestRoutes(
         coverage.kind === "api" && coverage.priced === true && runsAllResolved(coverage),
     );
     if (api === undefined) continue;
-    routes.push({ id: "api-value", target: api, slice, translated: false, answer: "dollars" });
+    const alternative = coverages
+      .filter(
+        (coverage) =>
+          coverage.kind === "subscription" &&
+          coverage.providerId === api.providerId &&
+          !isOrganizationPlan(coverage) &&
+          runsAllResolved(coverage),
+      )
+      .sort(cheapestFirst)[0];
+    routes.push({
+      id: "api-value",
+      target: api,
+      alternative,
+      slice,
+      translated: false,
+      answer: "dollars",
+    });
     break;
   }
 
