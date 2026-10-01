@@ -50,9 +50,10 @@ This generates comparisons from data. No chart needs to be authored separately
 for DeepSeek versus Sonnet. Category filters only organize the evidence; they do
 not make the measures interchangeable.
 
-Use highest-score highlighting only when the observations have documented
-matching evaluation conditions. A common publisher alone is insufficient.
-Mixed or unknown setups receive no highest-score highlight. Do not calculate
+Highlight each row's highest reported score, including ties, or its lowest value
+when lower is better. Keep setup differences explicit. Highlighting helps read the
+numbers; it does not establish matching configurations or an overall ranking.
+Do not calculate
 averages, normalized scores, win counts or an overall model ranking.
 
 ## Reproducible source sheets
@@ -78,11 +79,13 @@ Sol can enter the main Frontier comparison using separately sourced, verified
 observations. A five-model shared publisher matrix is not required. Google's
 original four-model sheet remains unchanged and reproducible.
 
-Sol's numerical benchmark evidence was not found in the official documentation,
-changelog and model-selection guidance inspected on September 30. These contain
-specifications and pricing but no numerical benchmark comparison matrix.
-If a result cannot be verified, show its coverage honestly in the all-results
-view. Never present a Sol observation as part of Google's launch evaluation.
+Edition v2 includes OpenAI's official September 29 launch evidence for Sol:
+DeepSWE v1.1, Terminal-Bench Science 0.1, GDP.pdf, AutomationBench 1.0.6,
+OSWorld 2.0's offline v2026.08.08 partial reward, and difficult-prompt factuality.
+All five efforts are retained. Max is the fixed default; High and other settings
+can be pinned per cell. Model pages initially show primary observations rather
+than repeating five effort blocks. The original v1 edition remains available.
+Never present a Sol observation as part of Google's launch evaluation.
 
 ## Source snapshot lifecycle
 
@@ -100,7 +103,7 @@ observations according to documented selection decisions. Every score continues
 to display its own source date. A newer benchmark version creates a new
 definition and never overwrites an older version.
 
-For v1, updates are manual review and checked-in data. Automatic ingestion and
+Updates are manual review and checked-in data. Automatic ingestion and
 benchmark watching remain out of scope. Verify and record redistribution terms
 before storing any non-provider data. Provider-published numerical facts are
 stored as developer-reported evidence; publication on a public website alone is
@@ -116,7 +119,7 @@ sheets are available through a secondary view, with switching only when useful.
 
 Desktop uses a semantic table with model/developer headers, exact benchmark names
 and category labels, readable tabular scores and restrained source markers.
-Equal scores receive equal treatment whenever highlighting is justified. A
+Equal scores receive equal highlighting. A
 textual accessible label explains the highlight. A row disclosure supplies its
 short description, exact version or unreported version, metric, unit, direction
 and per-model configuration.

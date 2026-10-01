@@ -1,5 +1,8 @@
 import definitions from "./data/definitions.json" with { type: "json" };
 import googleArgon from "./data/google-deepmind-argon-2026-09-30.json" with { type: "json" };
+import openaiSol from "./data/openai-sol-2026-09-29.json" with { type: "json" };
+import openaiDefinitions from "./data/openai-sol-definitions.json" with { type: "json" };
+import openaiSelections from "./data/openai-sol-primary-selections.json" with { type: "json" };
 import providerObservations from "./data/provider-observations-2026-09-30.json" with {
   type: "json",
 };
@@ -10,12 +13,13 @@ import type {
   BenchmarkObservation,
   BenchmarkSourceSet,
 } from "./schema.js";
+import { benchmarkDataSchema } from "./schema.js";
 
 export * from "./comparison.js";
 export * from "./schema.js";
 
 /** Versioned evidence only. There is no catalog, price, optimizer or Replay import. */
-export const benchmarkData = {
+const firstEdition = benchmarkDataSchema.parse({
   schemaVersion: 1,
   definitions,
   sourceSets: [googleArgon, ...providerObservations],
@@ -35,7 +39,25 @@ export const benchmarkData = {
         "Retain Google's reviewed launch snapshot for continuity with its four-model sheet. Anthropic's separately reported result remains available. The choice is not based on score magnitude.",
     },
   ],
+});
+
+export const benchmarkData = benchmarkDataSchema.parse({
+  ...firstEdition,
+  definitions: [...definitions, ...openaiDefinitions],
+  sourceSets: [...firstEdition.sourceSets, ...openaiSol],
+  primarySelections: [...firstEdition.primarySelections, ...openaiSelections],
+});
+
+/** Published editions remain available so shared links retain their exact evidence. */
+export const benchmarkEditions = {
+  "2026-09-30-v1": firstEdition,
+  "2026-09-30-v2": benchmarkData,
 };
+export function benchmarkDataForEdition(edition: string) {
+  return Object.hasOwn(benchmarkEditions, edition)
+    ? benchmarkEditions[edition as keyof typeof benchmarkEditions]
+    : undefined;
+}
 
 export const benchmarkCategories: readonly { id: BenchmarkCategory; label: string }[] = [
   { id: "coding", label: "Coding" },

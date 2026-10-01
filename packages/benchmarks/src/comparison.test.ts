@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   benchmarkData,
+  benchmarkDataForEdition,
   benchmarkEdition,
   frontierModelIds,
   observationId,
@@ -13,19 +14,33 @@ const models = Object.fromEntries(
 );
 const data = validateBenchmarkData(benchmarkData, models);
 describe("model-first comparison evidence", () => {
-  it("keeps Sol selected with explicit absent observations and never substitutes another release", () => {
+  it("includes verified Sol launch scores without substituting another release or choosing peak scores", () => {
     const rows = resolveComparison(data, frontierModelIds, { coverage: "all" });
-    expect(rows.length).toBeGreaterThanOrEqual(17);
+    expect(rows).toHaveLength(21);
+    const sol = rows.flatMap((r) =>
+      r.cells.flatMap((c) => (c.modelId === "gpt-6-1-sol" && c.observation ? [c.observation] : [])),
+    );
+    expect(sol).toHaveLength(6);
+    expect(sol.every((o) => o.effort === "Max" && o.evaluator === "OpenAI")).toBe(true);
+    expect(sol.find((o) => o.benchmarkId === "deep-swe-v1-1")?.value).toBe(71.9);
+    expect(sol.find((o) => o.benchmarkId === "terminal-bench-science-0-1")?.value).toBe(57.02);
+    expect(rows.every((r) => r.cells.length === 5)).toBe(true);
     expect(
-      rows.every(
-        (r) =>
-          r.cells.length === 5 &&
-          r.cells[2]?.modelId === "gpt-6-1-sol" &&
-          r.cells[2]?.observation === undefined,
-      ),
-    ).toBe(true);
-    expect(resolveComparison(data, frontierModelIds, { coverage: "shared" })).toEqual([]);
-    expect(benchmarkEdition).toBe("2026-09-30-v1");
+      resolveComparison(data, frontierModelIds, { coverage: "shared" }).map((r) => r.definition.id),
+    ).toEqual(["deep-swe-v1-1", "terminal-bench-science-0-1"]);
+    expect(benchmarkEdition).toBe("2026-09-30-v2");
+  });
+  it("preserves the published v1 edition and rejects unknown edition keys", () => {
+    const first = validateBenchmarkData(benchmarkDataForEdition("2026-09-30-v1"), models);
+    expect(first.sourceSets.flatMap((s) => s.observations)).toHaveLength(100);
+    expect(first.definitions).toHaveLength(39);
+    const rows = resolveComparison(first, frontierModelIds);
+    expect(rows).toHaveLength(17);
+    expect(rows.every((r) => r.cells[2]?.observation === undefined)).toBe(true);
+    expect(resolveComparison(first, frontierModelIds, { coverage: "shared" })).toEqual([]);
+    expect(benchmarkDataForEdition("2026-09-30-v2")).toBe(benchmarkData);
+    expect(benchmarkDataForEdition("unpublished")).toBeUndefined();
+    expect(benchmarkDataForEdition("toString")).toBeUndefined();
   });
   it("compares DeepSeek and Sonnet using exact shared benchmark versions across providers", () => {
     const rows = resolveComparison(data, ["deepseek-v4-1-flash", "claude-sonnet-5-5"], {
@@ -34,7 +49,7 @@ describe("model-first comparison evidence", () => {
     expect(rows.map((r) => r.definition.id)).toEqual(["terminal-bench-4-0", "chartography"]);
     expect(rows[0]?.cells.map((c) => c.observation?.value)).toEqual([31.2, 70.6]);
     expect(rows[0]?.setup).toBe("different_or_unreported");
-    expect(rows[0]?.highestModelIds).toEqual([]);
+    expect(rows[0]?.highestModelIds).toEqual(["claude-sonnet-5-5"]);
   });
   it("documents its primary choice rather than selecting the largest score and pins alternatives", () => {
     const rows = resolveComparison(data, ["claude-opus-5-5"]);
@@ -58,11 +73,13 @@ describe("model-first comparison evidence", () => {
       }),
     ).toThrow();
   });
-  it("never treats one reporting source as proof of matching setups; documented ties highlight equally", () => {
+  it("highlights reported numeric extremes and ties without asserting matching setups", () => {
     const original = resolveComparison(data, data.sourceSets[0]?.modelIds ?? [], {
       sourceSetId: data.sourceSets[0]?.id,
     });
-    expect(original.every((r) => r.highestModelIds.length === 0)).toBe(true);
+    expect(
+      original.every((r) => r.highestModelIds.length > 0 && r.setup === "different_or_unreported"),
+    ).toBe(true);
     const matched = structuredClone(data);
     for (const o of matched.sourceSets[0]?.observations ?? [])
       if (o.benchmarkId === "cwe-bench-v1") o.comparisonGroup = "synthetic-matched-test";
@@ -71,6 +88,16 @@ describe("model-first comparison evidence", () => {
         (r) => r.definition.id === "cwe-bench-v1",
       )?.highestModelIds,
     ).toEqual(["gemini-4-argon", "gpt-6-astra"]);
+  });
+  it("highlights the lowest factual error rate and never marks missing or sole observations", () => {
+    const row = resolveComparison(data, ["gpt-6-1-sol", "gpt-6-astra"]).find(
+      (r) => r.definition.id === "openai-factuality-difficult-prompts-2026-09",
+    );
+    expect(row?.highestModelIds).toEqual(["gpt-6-astra"]);
+    expect(row?.setup).toBe("different_or_unreported");
+    expect(
+      resolveComparison(data, ["gpt-6-1-sol"]).every((r) => r.highestModelIds.length === 0),
+    ).toBe(true);
   });
   it("rejects duplicate selections, unknown sheets and ambiguous unpublished defaults", () => {
     expect(() => resolveComparison(data, ["gpt-6-astra", "gpt-6-astra"])).toThrow();
