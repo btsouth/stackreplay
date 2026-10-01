@@ -3,7 +3,7 @@ import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { registeredProbePaths } from "@stackreplay/adapters/discovery";
-import { buildHome, CANARY, writeClaudeProjects } from "./fixtures/discovery-home";
+import { buildHome, CANARY, claudeProfile, writeClaudeProjects } from "./fixtures/discovery-home";
 import {
   captureRequests,
   dropFolders,
@@ -378,6 +378,120 @@ test("connected histories are remembered by name and refresh asks for the folder
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("connected-histories")).toHaveCount(0);
+});
+
+test("account identity: profiles stay hidden, local and unsent, and suggest a plan", async ({
+  page,
+}, testInfo) => {
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home, {
+    claudeModel: "claude-opus-4-6",
+    claudeProfile: claudeProfile({
+      id: "0a0a0a0a-0000-4000-8000-00000000000a",
+      name: "Zed Main",
+      email: "zed@example.test",
+      type: "claude_max",
+      tier: "default_claude_max_5x",
+    }),
+  });
+  // A second Claude config folder, signed in to another account.
+  const second = testInfo.outputPath("dot-claude2");
+  await writeClaudeProjects(join(second, "projects"), 2, { first: 100, model: "claude-opus-4-6" });
+  await mkdir(join(second, "session-env"), { recursive: true });
+  await writeFile(
+    join(second, ".claude.json"),
+    claudeProfile({
+      id: "0b0b0b0b-0000-4000-8000-00000000000b",
+      name: "Zed Side",
+      email: "side@example.test",
+      type: "claude_pro",
+      tier: "default_claude_ai",
+    }),
+  );
+  const requests = captureRequests(page);
+  await discover(page, home);
+  await dropFolders(page, [second]);
+  await expect(page.getByTestId("history-claude-code-2")).toHaveAttribute("data-status", "found");
+  // Only the two Claude histories: the other fixtures use demo-only model names.
+  await page.getByTestId("select-codex").uncheck();
+  await page.getByTestId("select-opencode").uncheck();
+  await page.getByTestId("build-workload").click();
+  await waitForWorkload(page);
+  const id = new URL(page.url()).searchParams.get("import") ?? "";
+
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "stackreplay.current-stack",
+      JSON.stringify(["plan:anthropic-claude-pro"]),
+    ),
+  );
+  await page.goto(`/app/stack?import=${id}`);
+  const accounts = page.getByTestId("stack-accounts");
+  await expect(accounts).toBeVisible({ timeout: 60_000 });
+
+  // Hidden until shown: the page carries no name or email, only the plan each account reports.
+  await expect(page.locator("body")).not.toContainText("Zed");
+  await expect(page.locator("body")).not.toContainText("example.test");
+  await expect(accounts).toContainText("Profile says Claude Max 5x");
+  await expect(accounts).toContainText("Profile says Claude Pro");
+
+  const stored = await page.evaluate(
+    () => localStorage.getItem("stackreplay.account-identity.v1") ?? "",
+  );
+  for (const dropped of [CANARY, "0a0a0a0a", "0b0b0b0b", "eeeeeeee", "admin", "stripe"])
+    expect(stored).not.toContain(dropped);
+
+  // One switch shows every name and email; the same switch hides them again.
+  const reveal = page.getByTestId("stack-accounts-reveal");
+  await expect(reveal).toHaveAttribute("aria-pressed", "false");
+  await page.getByTestId("stack-accounts-section").screenshot({
+    path: testInfo.outputPath("accounts-hidden.png"),
+  });
+  await reveal.click();
+  await expect(reveal).toHaveAttribute("aria-pressed", "true");
+  await expect(accounts).toContainText("Zed Main");
+  await expect(accounts).toContainText("side@example.test");
+  await page.getByTestId("stack-accounts-section").screenshot({
+    path: testInfo.outputPath("accounts-shown.png"),
+  });
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.getByTestId("stack-accounts-section").screenshot({
+    path: testInfo.outputPath("accounts-narrow.png"),
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.setViewportSize({ width: 960, height: 900 });
+  await page.getByTestId("stack-accounts-section").screenshot({
+    path: testInfo.outputPath("accounts-medium.png"),
+  });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await reveal.click();
+  await expect(page.locator("body")).not.toContainText("Zed");
+
+  // A suggestion is only a suggestion: linking is the person's own click.
+  await accounts.getByRole("button", { name: "Link to Claude Max 5x" }).click();
+  await expect(page.getByTestId("stack-published-total")).toContainText("2 subscriptions");
+  await expect(accounts.getByText("Profile says Claude Max 5x")).toHaveCount(0);
+  await expect(page.getByTestId("stack-accounts-section")).not.toContainText("Zed");
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+
+  // Nothing from a profile is ever sent.
+  for (const request of requests) {
+    const surface = `${request.url} ${JSON.stringify(request.headers)} ${request.body ?? ""}`;
+    for (const marker of ["Zed", "example.test", CANARY, "0a0a0a0a", "0b0b0b0b", "claude_max"])
+      expect(surface, request.url).not.toContain(marker);
+  }
+
+  // Clear local data forgets every profile.
+  await visitImportManager(page);
+  await page.getByTestId("clear-local-data").click();
+  await page.getByTestId("clear-local-data-confirm").click();
+  await expect(page.getByTestId("no-stored-imports")).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem("stackreplay.account-identity.v1")),
+  ).toBeNull();
 });
 
 test("privacy: discovery opens only registered locations, reads nothing, and sends nothing", async ({

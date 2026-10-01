@@ -20,6 +20,7 @@ import {
   skippedOutcomesOf,
 } from "@/components/workload/evidence";
 import { plainRange } from "@/components/workload/format";
+import { learnAccountIdentities } from "@/lib/account-identity-read";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
@@ -382,6 +383,10 @@ export function ImportSurface({
       );
       if (imported !== undefined && selection.remembered.length > 0)
         rememberConnections(selection.remembered, new Date().toISOString());
+      // Who each Claude account is, for a saved workload only: its local
+      // account keys use this browser's lasting salt, a temporary one's do not.
+      if (imported !== undefined && saveLocal)
+        void learnAccountIdentities(selection.profiles).catch(() => undefined);
     },
     [client, runImport, saveLocal],
   );

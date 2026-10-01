@@ -41,6 +41,8 @@ export interface HistoryRow {
   unconfirmed?: boolean;
   relocatedBy?: string;
   files?: RowFile[];
+  /** The tool's profile file in this folder (Claude Code's `.claude.json`), not yet read. */
+  profile?: { get(): Promise<File> };
   selected: boolean;
 }
 
@@ -51,6 +53,11 @@ export interface HistorySelection {
    * placeholder, so the scan reports it instead of silently leaving it out.
    */
   files: { file: File; path: string; group: string; unavailable?: string }[];
+  /**
+   * Profiles of the selected histories, by history group, with that history's
+   * file paths. Read only for a saved workload, after it is built.
+   */
+  profiles: { group: string; adapterId: string; get(): Promise<File>; paths: string[] }[];
   label: string;
   histories: { id: string; name: string; files: number; bytes?: number }[];
   bytes: number;
@@ -108,6 +115,9 @@ export function rowFromFinding(
     ...(finding.truncated === true ? { truncated: true } : {}),
     ...(finding.relocatedBy === undefined ? {} : { relocatedBy: finding.relocatedBy }),
     ...(finding.unconfirmed === true ? { unconfirmed: true } : {}),
+    ...(finding.profile === undefined
+      ? {}
+      : { profile: { get: () => (finding.profile as ResolvableFile).file() } }),
     ...(finding.files === undefined
       ? {}
       : {
@@ -293,6 +303,18 @@ export async function collectSelection(selected: readonly HistoryRow[]): Promise
   }
   return {
     files,
+    profiles: selected.flatMap((row) =>
+      row.profile === undefined || row.adapterId === undefined
+        ? []
+        : [
+            {
+              group: row.key,
+              adapterId: row.adapterId,
+              get: row.profile.get,
+              paths: (row.files ?? []).map((entry) => entry.path),
+            },
+          ],
+    ),
     label: [...new Set(selected.map((row) => row.name))].join(" + "),
     histories: selected.map((row) => ({
       id: row.key,

@@ -794,7 +794,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.15rem 0.75rem;
+  gap: 0 0.75rem;
   min-width: 0;
 }
 .stack-account-name form {
@@ -1351,5 +1351,66 @@
   }
   .stack-editor-footer button {
     flex: 1;
+  }
+}
+.stack-accounts-reveal {
+  flex: none;
+  padding: 0 0.85rem;
+}
+.stack-account-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.stack-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+}
+.stack-icon-action:hover {
+  color: var(--foreground);
+  background: var(--surface-2);
+}
+.stack-account-link {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.stack-account-suggestion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding-inline: 0.6rem;
+}
+.stack-account-plan {
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.stack-suggestion-action {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+.stack-suggestion-action:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.stack-suggestion-action:disabled {
+  color: var(--muted-foreground);
+}
+@media (pointer: coarse) {
+  .stack-icon-action,
+  .stack-suggestion-action {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .stack-account-suggestion {
+    align-items: center;
   }
 }

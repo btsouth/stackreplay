@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { IDENTITY_KEY } from "./account-identity";
 import { LABELS_KEY } from "./accounts";
 import { COMPLETED_REPLAYS_KEY, readCompletedReplays } from "./completed-replays";
 import { SUBSCRIPTIONS_KEY } from "./current-stack";
@@ -100,6 +101,7 @@ export function clearReviewState(importId?: string): void {
           key?.startsWith("stackreplay.current-stack") ||
           key?.startsWith(SUBSCRIPTIONS_KEY) ||
           key === LABELS_KEY ||
+          key === IDENTITY_KEY ||
           key === COMPLETED_REPLAYS_KEY
         )
           window.localStorage.removeItem(key);

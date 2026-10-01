@@ -18,6 +18,10 @@
       "types": "./dist/browser-formats.d.ts",
       "default": "./dist/browser-formats.js"
     },
+    "./claude-profile": {
+      "types": "./dist/claude-profile.d.ts",
+      "default": "./dist/claude-profile.js"
+    },
     "./discovery": {
       "types": "./dist/discovery.d.ts",
       "default": "./dist/discovery.js"

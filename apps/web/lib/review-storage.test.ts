@@ -88,6 +88,7 @@ it("deletes import declarations and clears paid facts through clear-local-data",
   expect(data.has("stackreplay.stack-subscriptions.v2.demo.a")).toBe(false);
   data.set("stackreplay.stack-subscriptions.v2", '{"version":2,"subscriptions":[]}');
   data.set("stackreplay.account-labels.v1", '{"version":1,"labels":{}}');
+  data.set("stackreplay.account-identity.v1", '{"version":1,"accounts":{}}');
   clearReviewState();
   expect(data.size).toBe(0);
 });

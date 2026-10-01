@@ -39,6 +39,9 @@ export const CLAUDE_CODE_DISCOVERY: SourceDiscovery = {
     },
   ],
   relocatedBy: "CLAUDE_CONFIG_DIR",
+  // Claude Code keeps the signed-in account in `.claude.json` beside its
+  // config folder (in the config folder itself when CLAUDE_CONFIG_DIR is set).
+  profile: ".claude.json",
   evidence: [
     "https://code.claude.com/docs/en/claude-directory",
     "https://code.claude.com/docs/en/settings",
