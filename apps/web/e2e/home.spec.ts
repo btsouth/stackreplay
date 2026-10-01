@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
-import { homepageBriefing, marketFeed } from "@stackreplay/market-events";
+import { homepageBriefing, marketEventCategory, marketFeed } from "@stackreplay/market-events";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { copyDefects } from "../lib/copy-lint";
 import { canonicalUsage } from "../lib/home/personal";
@@ -135,7 +135,18 @@ test.describe("homepage without a saved workload", () => {
     }
     expect(rows.map((row) => row.day)).toEqual([...rows.map((row) => row.day)].sort().reverse());
     expect(rows.map((row) => row.id)).toEqual(expected);
-    // Beside the hero copy: the last seven days by kind, counted from the same feed.
+    // The newest event is the lead story, with its facts as figures; the rest are compact rows.
+    if (expected.length > 0) {
+      await expect(items.first()).toHaveAttribute("data-lead", "");
+      await expect(briefing.locator("[data-lead]")).toHaveCount(1);
+      await expect(
+        briefing.getByRole("heading", {
+          level: 3,
+          name: marketFeed.events.find((e) => e.id === expected[0])?.title ?? "",
+        }),
+      ).toBeVisible();
+    }
+    // Above the briefing: the last seven days by kind in one line, counted from the same feed.
     const week = page.getByTestId("market-week");
     const inWeek = marketFeed.events.filter((event) => {
       const age =
@@ -152,26 +163,67 @@ test.describe("homepage without a saved workload", () => {
       "/changelog",
     );
 
-    // Frontier right now: five flagships with verified benchmark rows.
+    // Models that matter right now: five releases with at most three verified benchmark rows.
     const frontier = page.getByTestId("home-model-comparison");
-    await expect(frontier.locator("th[scope=col]")).toHaveCount(5);
-    await expect(page.getByTestId("home-benchmark-rows").locator("tr[data-row]")).not.toHaveCount(
-      0,
+    await expect(frontier.getByRole("heading", { level: 2 })).toHaveText(
+      "Models that matter right now",
     );
+    await expect(frontier.locator("th[scope=col]")).toHaveCount(5);
+    const benchmarkRows = page.getByTestId("home-benchmark-rows").locator("tr[data-row]");
+    expect(await benchmarkRows.count()).toBeGreaterThan(0);
+    expect(await benchmarkRows.count()).toBeLessThanOrEqual(3);
+    // A score bar is the reported percent on its own 0-100% scale, never rescaled to the row.
+    for (const cell of await page
+      .getByTestId("home-benchmark-rows")
+      .locator("td[data-score]")
+      .all()) {
+      const text = (await cell.locator(".home-cell-value").innerText()).trim();
+      const bar = cell.locator(".home-bar > span");
+      if (!text.endsWith("%")) {
+        await expect(bar).toHaveCount(0);
+        continue;
+      }
+      const width = await bar.evaluate((node) => (node as HTMLElement).style.width);
+      expect(Number.parseFloat(width), text).toBeCloseTo(Number.parseFloat(text), 1);
+    }
     await expect(page.getByTestId("benchmark-sheet-link")).toHaveAttribute(
       "href",
       /\/benchmarks\?models=/u,
     );
     await expect(page.getByTestId("model-usage-row")).toHaveAttribute("data-state", "public");
     await expect(page.getByTestId("benchmark-note")).toBeVisible();
-    await expect(page.getByTestId("home-plan-card")).toHaveCount(4);
+    // Subscription watch: the feed's own subscription events, newest per plan, at most three.
+    const watch = page.getByTestId("subscription-watch-item");
+    const watchCount = await watch.count();
+    expect(watchCount).toBeLessThanOrEqual(3);
+    for (const id of await watch.evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("data-event-id") ?? ""),
+    )) {
+      const event = marketFeed.events.find((entry) => entry.id === id);
+      expect(event, id).toBeDefined();
+      expect(event?.planIds.length, id).toBeGreaterThan(0);
+      expect(marketEventCategory(event?.type ?? "model_release"), id).toBe("subscriptions");
+      const age =
+        (Date.parse(`${today}T00:00:00Z`) -
+          Date.parse(`${event?.occurredAt.slice(0, 10)}T00:00:00Z`)) /
+        86_400_000;
+      expect(age, id).toBeLessThanOrEqual(30);
+    }
+    // Catalog coverage is one line of trust metadata, not a hero counter.
+    await expect(page.getByTestId("home-hero")).not.toContainText("Models tracked");
+    await expect(page.getByTestId("home-coverage")).toContainText("subscription plans");
+    // Without saved data, the strip under the market invites a scan.
+    await expect(page.getByTestId("home-for-you")).toHaveAttribute("data-state", "invite");
+    await expect(
+      page.getByTestId("home-for-you").getByRole("link", { name: "Scan my AI history" }),
+    ).toHaveAttribute("href", "/app/import");
     await expect(page.getByTestId("personal-mark")).toHaveCount(0);
     await expect(page.getByTestId("market-relevance")).toHaveCount(0);
     await expect(page.getByTestId("personal-intelligence")).toHaveAttribute(
       "data-personal",
       "public",
     );
-    await expect(page.getByTestId("personal-question")).toHaveCount(8);
+    await expect(page.getByTestId("personal-question")).toHaveCount(4);
     await expect(page.getByTestId("personal-question").locator("a")).toHaveCount(0);
     await expect(page.getByTestId("personal-example")).toContainText("not yours");
     // The old engine-first positioning is gone from the homepage.
@@ -196,64 +248,95 @@ test.describe("homepage without a saved workload", () => {
     expect(errors).toEqual([]);
   });
 
-  test("states known plan facts before any gap, and never ends on 'not published'", async ({
+  test("subscription watch pairs each feed event with the plan's published facts", async ({
     page,
   }) => {
+    await page.clock.setFixedTime(new Date(`${marketFeed.asOf}T12:00:00`));
     await page.goto("/");
     await expect(page.getByText(/^\s*not published\s*$/iu)).toHaveCount(0);
-    for (const card of await page.getByTestId("home-plan-card").all()) {
-      await expect(card.locator("dt", { hasText: "Usage" })).toBeVisible();
-      const capacity = card.getByTestId("plan-capacity");
-      const evidence = await capacity.getAttribute("data-evidence");
-      expect(["calculable", "bounded", "access-only"]).toContain(evidence);
-      if (evidence === "bounded") {
-        await expect(capacity).toContainText("can't be proven");
-        await expect(capacity).not.toContainText(/fits your|enough for/iu);
-      }
-      // The gap is secondary: behind a disclosure, not the card's headline.
-      const gap = capacity.locator("details");
-      if ((await gap.count()) > 0) await expect(gap).not.toHaveAttribute("open", "");
+    const items = page.getByTestId("subscription-watch-item");
+    expect(await items.count()).toBeGreaterThan(0);
+    const seenPlans = new Set<string>();
+    for (const item of await items.all()) {
+      const id = (await item.getAttribute("data-event-id")) ?? "";
+      const event = marketFeed.events.find((entry) => entry.id === id);
+      expect(event, id).toBeDefined();
+      // Newest per plan: a later event about the same plans replaces an earlier one.
+      expect(
+        event?.planIds.every((plan) => seenPlans.has(plan)),
+        id,
+      ).toBe(false);
+      for (const plan of event?.planIds ?? []) seenPlans.add(plan);
+      await expect(item).toContainText(event?.title ?? "");
+      // The price shown is the catalog's published price, linked to the plan page.
+      await expect(item).toContainText(/\$\d[\d,.]*\/mo/u);
+      await expect(item.getByRole("link", { name: /^Source/u })).toHaveAttribute(
+        "href",
+        event?.sources[0]?.url ?? "",
+      );
     }
-    await expect(
-      page.locator('[data-plan-id="github-copilot-pro-plus"] [data-testid="plan-capacity"]'),
-    ).toHaveAttribute("data-evidence", "calculable");
-    await expect(
-      page.locator('[data-plan-id="anthropic-claude-max-20x"] [data-testid="plan-capacity"]'),
-    ).toHaveAttribute("data-evidence", "bounded");
+    // Pro 200 reopening supersedes Pro 200 pausing.
+    await expect(page.locator('[data-event-id="chatgpt-pro-200-paused"]')).toHaveCount(0);
   });
 
   test("lays out each section for its width without page overflow", async ({ page }, testInfo) => {
+    await page.clock.setFixedTime(new Date(`${marketFeed.asOf}T12:00:00`));
     await page.goto("/");
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBe(0);
-    const tops = await page
-      .getByTestId("home-plan-card")
-      .evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().top)));
-    const lefts = await page
-      .getByTestId("home-plan-card")
-      .evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().left)));
+    const lead = page.locator("[data-lead]");
+    const box = async (selector: string) =>
+      page
+        .locator(selector)
+        .first()
+        .evaluate((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            top: rect.top + scrollY,
+            bottom: rect.bottom + scrollY,
+            left: rect.left,
+            right: rect.right,
+          };
+        });
     if (testInfo.project.name === "mobile") {
-      // One swipeable row: same top, the later cards start past the viewport.
-      expect(new Set(tops).size).toBe(1);
-      expect(Math.max(...lefts)).toBeGreaterThan(page.viewportSize()?.width ?? 0);
+      // The lead story comes before the longer pitch, so it starts on the first screen.
+      const leadBox = await box("[data-lead]");
+      expect(leadBox.top).toBeLessThan(page.viewportSize()?.height ?? 0);
+      expect((await box(".home-intro-side")).top).toBeGreaterThan(leadBox.bottom);
       const region = page.getByTestId("model-table-region");
       expect(await region.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
       await region.focus();
       await page.keyboard.press("ArrowRight");
       await expect.poll(() => region.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
     } else {
+      for (const width of [1600, 1440, 1280]) {
+        await page.setViewportSize({ width, height: width === 1280 ? 800 : 900 });
+        // The lead story and the compact rows sit side by side, all five in the first screen.
+        const leadBox = await box("[data-lead]");
+        const rows = await page
+          .locator(".home-brief")
+          .evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect()));
+        for (const row of rows) expect(row.left).toBeGreaterThan(leadBox.right);
+        const last = rows.at(-1);
+        if (last !== undefined)
+          expect(last.bottom + (await page.evaluate(() => scrollY))).toBeLessThanOrEqual(
+            (page.viewportSize()?.height ?? 0) + 40,
+          );
+        // Wide screens use the width: the content column is at least 1240px at 1600.
+        if (width === 1600) {
+          const home = await box('[data-testid="home"]');
+          expect(home.right - home.left).toBeGreaterThanOrEqual(1240);
+        }
+      }
+      await expect(lead).toBeVisible();
+      // The subscription watch columns share row tracks: titles start on one line.
       await page.setViewportSize({ width: 1440, height: 900 });
-      const wide = await page
-        .getByTestId("home-plan-card")
-        .evaluateAll((cards) => cards.map((card) => Math.round(card.getBoundingClientRect().top)));
-      expect(new Set(wide).size).toBe(1);
-      // The capacity sections of a row line up.
-      const capacity = await page
-        .getByTestId("plan-capacity")
+      const tops = await page
+        .locator(".home-watch-title")
         .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
-      expect(new Set(capacity).size).toBe(1);
+      expect(new Set(tops).size).toBe(1);
     }
   });
 
@@ -330,9 +413,8 @@ test.describe("homepage without a saved workload", () => {
       "My Stack",
       "Scan my history",
     ]);
-    expect(order).toContain("Compare frontier models");
+    expect(order).toContain("Compare leading models");
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
-    await expect(page.getByTestId("home-plan-grid")).toHaveAttribute("tabindex", "0");
   });
 });
 
@@ -402,41 +484,47 @@ test.describe("homepage with a saved workload", () => {
       "used",
     );
 
-    // Plans in the Current Stack are marked; others are not.
-    const inStack = (planId: string) =>
-      page.locator(`[data-plan-id="${planId}"] [data-testid="personal-mark"]`);
-    await expect(inStack("anthropic-claude-max-20x")).toHaveText("In your stack");
-    await expect(inStack("openai-chatgpt-pro")).toHaveText("In your stack");
-    await expect(inStack("github-copilot-pro-plus")).toHaveCount(0);
+    // A subscription change to a plan in the Current Stack is marked; others are not.
+    const watchMark = (eventId: string) =>
+      page.locator(`[data-event-id="${eventId}"] [data-testid="personal-mark"]`);
+    await expect(watchMark("claude-five-hour-limits-raised")).toHaveText("In your stack");
     await expect(page.getByTestId("plan-lineup-note").first()).toContainText(
       "of your recorded calls",
     );
 
-    // Questions open the analyses that answer them.
-    const question = (questionId: string) => page.locator(`[data-question-id="${questionId}"] a`);
-    await expect(question("downgrade-claude")).toHaveAttribute(
+    // The strip under the market previews the strongest relations, without a scan.
+    const forYou = page.getByTestId("home-for-you");
+    await expect(forYou).toHaveAttribute("data-state", "personal");
+    expect(Number(await forYou.getAttribute("data-count"))).toBeGreaterThan(0);
+    const forYouItems = page.getByTestId("for-you-item");
+    expect(await forYouItems.count()).toBeGreaterThan(0);
+    expect(await forYouItems.count()).toBeLessThanOrEqual(4);
+    for (const item of await forYouItems.all())
+      expect(["stack", "used", "related"]).toContain(await item.getAttribute("data-relation"));
+
+    // At most three answers, each opening the analysis that takes it further.
+    const answers = page.getByTestId("personal-question");
+    expect(await answers.count()).toBeLessThanOrEqual(3);
+    const answer = (answerId: string) => page.locator(`[data-question-id="${answerId}"] a`);
+    const top = [...usage.byModel].sort((a, b) => b[1] - a[1])[0];
+    if (top !== undefined) {
+      await expect(answer("rely-on")).toHaveAttribute("href", `/app/workload?import=${id}`);
+      await expect(answer("rely-on")).toContainText(`${top[1].toLocaleString("en-US")} calls`);
+    }
+    await expect(answer("downgrade-claude")).toHaveAttribute(
       "href",
       `/app/replay?import=${id}&stack=${encodeURIComponent(
         "anthropic-claude-max-5x,openai-chatgpt-pro,command-code-pro,opencode-go",
       )}`,
     );
-    await expect(question("cancel-chatgpt")).toHaveAttribute(
-      "href",
-      `/app/replay?import=${id}&stack=${encodeURIComponent(
-        "anthropic-claude-max-20x,command-code-pro,opencode-go",
-      )}`,
-    );
-    await expect(question("api-cheaper")).toHaveAttribute(
-      "href",
-      `/app/compare?import=${id}&view=billing`,
-    );
+    await expect(answer("downgrade-claude")).toContainText("$200/mo → $100/mo");
     // The bridge into personal intelligence counts market changes related by canonical identity.
     const relevance = page.getByTestId("market-relevance");
     await expect(relevance).toBeVisible();
     const related = Number(await relevance.getAttribute("data-count"));
     expect(related).toBeGreaterThan(0);
     await expect(relevance).toContainText(
-      `${related} recent market ${related === 1 ? "change relates" : "changes relate"} to your workload or stack`,
+      `${related} market ${related === 1 ? "change" : "changes"} in the last 30 days ${related === 1 ? "relates" : "relate"} to your workload or stack`,
     );
     for (const item of await page.getByTestId("market-relevance-item").all())
       expect(["stack", "used", "related"]).toContain(await item.getAttribute("data-relation"));
@@ -458,8 +546,8 @@ test.describe("homepage with a saved workload", () => {
     expect(requests.some((request) => request.url.includes("stackreplay-worker"))).toBe(false);
     expect(errors).toEqual([]);
 
-    // The downgrade question lands on Replay's stack scenario for that change.
-    await question("downgrade-claude").click();
+    // The downgrade answer lands on Replay's stack scenario for that change.
+    await answer("downgrade-claude").click();
     await expect(page.getByTestId("replay-stack-scenario")).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("replay-scenario-outcome-delta")).toContainText("−$100/mo", {
       timeout: 60_000,

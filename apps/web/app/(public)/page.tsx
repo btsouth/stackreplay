@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { HomeHero } from "@/components/home/home-hero";
 import { MarketRelevanceSummary } from "@/components/home/market-briefing";
 import { ModelComparisonSection } from "@/components/home/model-comparison";
-import { PersonalIntelligence } from "@/components/home/personal-intelligence";
-import { PlanIntelligenceSection } from "@/components/home/plan-intelligence";
+import { ForYou, PersonalIntelligence } from "@/components/home/personal-intelligence";
+import { SubscriptionWatch } from "@/components/home/subscription-watch";
 import { formatCatalogDate } from "@/lib/catalog-copy";
 import { familyLadders, homeCatalogIndex } from "@/lib/home/catalog-index";
 import { exampleWorkload } from "@/lib/home/example";
 import { benchmarkSheetHref, featuredModelComparison } from "@/lib/home/featured-models";
-import { featuredPlanCards } from "@/lib/home/featured-plans";
+import { isSubscriptionEvent, watchPlans } from "@/lib/home/subscription-watch";
 import { briefingCandidates, marketEventViews, recentEvents } from "@/lib/market/events";
 import { basePrice, modelPrices } from "@/lib/market-discovery";
 import { modelsInView } from "@/lib/model-library";
@@ -27,41 +28,14 @@ export const metadata: Metadata = {
   ...socialMetadata({ title, description }),
 };
 
-function Chapter({
-  id,
-  index,
-  title,
-  note,
-}: {
-  id: string;
-  index: string;
-  title: string;
-  note: string;
-}) {
-  return (
-    <div id={id} className="home-chapter" data-testid={`home-chapter-${index}`}>
-      <p className="home-micro">
-        <span className="text-accent">{index}</span> / {title}
-      </p>
-      <p className="home-chapter-note">{note}</p>
-    </div>
-  );
-}
-
 export default function HomePage() {
   const catalog = loadPublicCatalog();
   const today = catalog.asOf;
   const events = marketEventViews(catalog);
+  const recent = recentEvents(events, today);
+  const subscriptionEvents = recent.filter(isSubscriptionEvent);
   const comparison = featuredModelComparison(catalog, { benchmarkData: loadPublicBenchmarks() });
   const index = homeCatalogIndex(catalog);
-  const cards = featuredPlanCards(
-    catalog.plans,
-    catalog.models.map((model) => model.id),
-    {
-      releasedOn: (id) =>
-        id === undefined ? "" : (catalog.modelById(id)?.releaseDate?.date ?? ""),
-    },
-  );
   const listed = modelsInView(catalog.models, "models");
   const checkedThrough = [
     ...catalog.models.map((model) => model.lastVerifiedAt),
@@ -70,22 +44,20 @@ export default function HomePage() {
     .filter((date) => date <= catalog.asOf)
     .sort()
     .at(-1);
-  const coverage = {
-    models: listed.length,
-    pricedModels: listed.filter((model) => basePrice(modelPrices(model.id, catalog.asOf))).length,
-    plans: catalog.plans.length,
-    checkedThrough: formatCatalogDate(checkedThrough ?? catalog.asOf),
-  };
+  const pricedModels = listed.filter((model) =>
+    basePrice(modelPrices(model.id, catalog.asOf)),
+  ).length;
 
   return (
     <div className="home" data-testid="home">
       <HomeHero
-        coverage={coverage}
         briefing={briefingCandidates(events, today)}
-        recent={recentEvents(events, today)}
+        recent={recent}
         builtOn={today}
         index={index}
       />
+
+      <ForYou events={recent} builtOn={today} index={index} />
 
       {comparison === undefined ? null : (
         <ModelComparisonSection
@@ -95,41 +67,39 @@ export default function HomePage() {
         />
       )}
 
-      <Chapter
-        id="public-intelligence"
-        index="01"
-        title="Subscriptions"
-        note="What each plan costs, which models it includes and what its usage terms establish."
+      <SubscriptionWatch
+        events={subscriptionEvents}
+        plans={watchPlans(catalog, subscriptionEvents)}
+        builtOn={today}
+        index={index}
       />
-      <PlanIntelligenceSection cards={cards} />
+
+      <p className="home-coverage" data-testid="home-coverage">
+        Catalog: {listed.length} models, {pricedModels} with API list prices, {catalog.plans.length}{" "}
+        subscription plans, checked through {formatCatalogDate(checkedThrough ?? catalog.asOf)}.{" "}
+        <Link href="/methodology" className="home-inline-link">
+          Methodology
+        </Link>
+      </p>
 
       <section
         className="dark home-personal"
         aria-labelledby="personal-heading"
         data-testid="home-personal"
       >
-        <Chapter
-          id="personal-intelligence"
-          index="02"
-          title="Personal intelligence"
-          note="The same market, applied to the AI work you actually did."
-        />
-        <div className="home-personal-intro">
+        <header id="personal-intelligence" className="home-personal-intro">
+          <p className="home-kicker home-kicker-accent">Your workload</p>
           <h2 id="personal-heading" className="home-h2">
             Which of this matters to you?
           </h2>
           <p className="home-lede">
-            StackReplay reads your local AI history against the same models, prices and plans above.
-            It can tell you which market changes touch models you use and plans you pay for, and
-            what your subscriptions actually carried.
+            The same models, prices and plans, read against the AI work you actually did.
           </p>
-        </div>
-        <MarketRelevanceSummary
-          events={recentEvents(events, today)}
-          builtOn={today}
-          index={index}
-        />
+        </header>
+        <MarketRelevanceSummary events={recent} builtOn={today} index={index} />
         <PersonalIntelligence
+          events={recent}
+          builtOn={today}
           index={index}
           ladders={familyLadders(catalog)}
           example={exampleWorkload()}

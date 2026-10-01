@@ -58,11 +58,14 @@ homepage's interface.
 
 | Section | What it shows | Data |
 | --- | --- | --- |
-| Hero | Claim, calls to action, verified privacy sentence, chapter index and catalog coverage | Public catalog |
-| AI market briefing | Up to six major or notable market events, newest first, none older than 30 days | `@stackreplay/market-events` through `lib/market/events.ts` |
-| Frontier right now | The newest frontier release of five developers: API prices, limits, access and verified benchmark rows | `lib/home/featured-models.ts`, `@stackreplay/benchmarks` |
-| 01 Public intelligence | Subscription information cards | `lib/home/featured-plans.ts` |
-| 02 Personal intelligence | What a scan reads, a labelled example, and the questions a scan answers | `lib/home/personal*.ts`, the stored workload summary |
+| Hero | Product statement, calls to action and the privacy sentence, kept compact | Static copy |
+| Market line | Today's date and the last seven days' accepted changes by kind (and how many relate to the visitor) | `@stackreplay/market-events` |
+| AI market briefing | Five major or notable events, newest first, none older than 30 days: the newest as the lead story with up to three figures, the next four as compact rows with one figure each | `@stackreplay/market-events` through `lib/market/events.ts` |
+| For you | Market changes related to the saved workload or stack (strongest relation first, one per model or plan), or an invitation to scan | `lib/home/personal.ts`, the stored workload summary and Current Stack |
+| Models that matter right now | The newest model from each of five developers (one may be announced, not yet in the API): three verified benchmark rows with score bars, API prices, limits and access | `lib/home/featured-models.ts`, `@stackreplay/benchmarks` |
+| Subscription watch | Up to three recent subscription events (newest per plan) beside each plan's published price (and terms when one plan is named) | `lib/home/subscription-watch.ts`, the same market feed |
+| Catalog coverage | One line of trust metadata: models, priced models, plans, checked-through date | Public catalog |
+| Your workload | Related changes, the saved workload in one line, and at most three answers it supports; without a workload, what a scan reads, a labelled example and four questions | `lib/home/personal*.ts`, the stored workload summary |
 
 **One market feed.** `packages/market-events` holds the canonical, reviewed list of material
 market events (model releases and announcements, API availability, retirements, benchmark
@@ -84,20 +87,21 @@ events only fill rows the last week leaves empty. Fewer events is a correct answ
 the event's model, and a benchmark result comes from the referenced evidence edition's primary
 observation, with who reported it. An announced model with no executable price says so.
 
-**Benchmark rows on the homepage.** The frontier table renders a benchmark row only for an exact
-definition (benchmark, version and metric) reported for at least three of the featured models,
-using the same primary selection as `/benchmarks`. A row marks the best reported value (lowest where lower is better); there is
-no composite score and no blending of variants.
+**Benchmark rows on the homepage.** The model table renders at most three benchmark rows, each for an
+exact definition (benchmark, version and metric) reported for at least three of the featured models,
+using the same primary selection as `/benchmarks`. A row marks the best reported value (lowest where
+lower is better); there is no composite score and no blending of variants. A percent score carries a
+bar whose length is the value on the benchmark's own 0-100% scale, never normalized against the row
+or another benchmark; other units get no bar.
 
-**Configuration holds ids, not facts.** The featured models and plans are short lists of catalog
-ids. Every price, limit, capability, lineup and term is read from the catalog at render time, and an
-id the catalog no longer carries is left out.
+**Configuration holds ids, not facts.** The featured models are a short list of catalog ids. Every
+price, limit, capability, lineup and term is read from the catalog at render time, and an id the
+catalog no longer carries is left out.
 
-**Capacity evidence.** Plan cards state known facts first (price, lineup, published usage
-structure, resets, what happens at the limit), then the capacity analysis level: `Calculable` (a
-numeric limit the engine replays), `Bounded` (published structure such as a multiple or windows, no
-absolute allowance) or `Access only` (lineup known, no usage structure). The catalog's own
-"what the provider does not publish" statement is a secondary disclosure, never the headline.
+**Subscription watch.** The subscription surface is the feed's own recent subscription events, not a
+second list: the newest event per plan, up to three, each beside the named plans' published price
+from the catalog, and the allowance summary when one plan is named. A plan's full capacity evidence lives on its plan page and
+in Compare.
 
 **Personal islands.** The public page is server-rendered and static. Small client islands read what
 the browser already stores: a presence probe counts saved workloads without creating the database,

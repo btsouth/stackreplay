@@ -36,6 +36,8 @@ export interface ComparisonColumn {
   developer: string | undefined;
   href: string;
   released: string | undefined;
+  /** Announced with no API yet, or released. */
+  status: "announced" | "released";
   /** Newest check of the model record or its list price. */
   checkedAt: string;
   /** Family identity record, for "an earlier release of this model" on the personal row. */
@@ -50,6 +52,14 @@ export interface ComparisonCell {
   absent?: boolean | undefined;
   /** Evidence link for this cell (benchmark rows carry one per score). */
   source?: { url: string; title: string } | undefined;
+  /** Who reported a benchmark score. */
+  reporter?: string | undefined;
+  /**
+   * Bar length for a percent score: the reported value over 100, so every bar
+   * in a row shares the benchmark's own 0-100% scale. Never set for other
+   * units, and never normalized against the row or another benchmark.
+   */
+  bar?: number | undefined;
   /** The row's highest reported value (lowest where lower is better), ties included. */
   highest?: boolean | undefined;
 }
@@ -136,6 +146,7 @@ export function featuredModelComparison(
         model.releaseDate === undefined ? undefined : formatCatalogDate(model.releaseDate.date),
       checkedAt: formatCatalogDate(checked ?? model.lastVerifiedAt),
       familyId: model.familyId,
+      status: notInApi(model) ? "announced" : "released",
     };
   });
 
@@ -228,7 +239,8 @@ export function featuredModelComparison(
 
 /** Fewest columns with a reported result before a benchmark row is worth showing. */
 export const MIN_BENCHMARK_COVERAGE = 3;
-export const MAX_BENCHMARK_ROWS = 4;
+/** Three rows read at a glance; the full sheet is one click away. */
+export const MAX_BENCHMARK_ROWS = 3;
 
 /**
  * Benchmark rows for the featured columns, from the reviewed evidence package.
@@ -266,10 +278,15 @@ export function benchmarkRows(
       return {
         text: observation.displayValue,
         detail: `Reported by ${observation.evaluator}`,
+        reporter: observation.evaluator,
         source: {
           url: observation.sourceUrl,
           title: `${observation.evaluator}: ${benchmarkName(row.definition)}`,
         },
+        bar:
+          row.definition.unit === "percent"
+            ? Math.min(1, Math.max(0, observation.value / 100))
+            : undefined,
         highest: row.highestModelIds.includes(cell.modelId) ? true : undefined,
       };
     }),

@@ -10,6 +10,7 @@ import {
   modelUsage,
   personalRelevance,
   personalSnapshot,
+  strongestFirst,
 } from "./personal";
 
 const index: HomeCatalogIndex = {
@@ -198,7 +199,12 @@ describe("market relations by canonical identity", () => {
   it("an exact used model reads 'Used by you' with its recorded calls", () => {
     expect(
       marketRelation({ planIds: [], modelIds: ["gpt-6-1-sol"] }, [], usage, familyIndex),
-    ).toEqual({ kind: "used", label: "Used by you", detail: "40 recorded calls on GPT-6.1 Sol" });
+    ).toEqual({
+      kind: "used",
+      label: "Used by you",
+      detail: "40 recorded calls on GPT-6.1 Sol",
+      calls: 40,
+    });
   });
 
   it("a new release in a used family is relevant through the catalog familyId only", () => {
@@ -316,5 +322,54 @@ describe("helpers", () => {
     const usage = canonicalUsage(workload);
     expect(lineupCoverage(["claude-opus-5", "claude-opus-5-5"], usage)).toBe(0.5);
     expect(lineupCoverage([], usage)).toBe(0);
+  });
+});
+
+describe("strongest relations first", () => {
+  const relation = (kind: "used" | "stack" | "related", detail: string, calls?: number) => ({
+    kind,
+    label: kind,
+    detail,
+    ...(calls === undefined ? {} : { calls }),
+  });
+  const event = (id: string, day: string, importance: "major" | "notable" | "minor" = "major") => ({
+    id,
+    day,
+    importance,
+  });
+
+  it("orders recorded use by calls, then the stack, then family", () => {
+    const events = [
+      event("family", "2026-09-30"),
+      event("stack", "2026-09-29"),
+      event("small", "2026-09-28"),
+      event("big", "2026-09-20"),
+    ];
+    const relations = new Map([
+      ["family", relation("related", "You used X")],
+      ["stack", relation("stack", "Plan A is in your stack")],
+      ["small", relation("used", "10 recorded calls on B", 10)],
+      ["big", relation("used", "500 recorded calls on C", 500)],
+    ]);
+    expect(strongestFirst(events, relations).map((entry) => entry.event.id)).toEqual([
+      "big",
+      "small",
+      "stack",
+      "family",
+    ]);
+  });
+
+  it("keeps one event per subject: the major one before a minor one about the same model", () => {
+    const events = [event("results", "2026-09-30", "minor"), event("release", "2026-09-22")];
+    const same = relation("used", "31,150 recorded calls on Claude Opus 5.5", 31_150);
+    const relations = new Map([
+      ["results", same],
+      ["release", same],
+    ]);
+    expect(strongestFirst(events, relations).map((entry) => entry.event.id)).toEqual(["release"]);
+  });
+
+  it("leaves out events with no relation", () => {
+    expect(strongestFirst([event("x", "2026-09-30")], new Map())).toEqual([]);
   });
 });
