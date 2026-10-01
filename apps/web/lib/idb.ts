@@ -324,6 +324,24 @@ export async function listImports(): Promise<ImportRecord[]> {
   return valid.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
+async function deleteResultsFor(transaction: IDBTransaction, importId: string): Promise<void> {
+  // At most eight bounded aggregates exist. A cursor avoids cloning every
+  // result into one array merely to remove the affected workload's entries.
+  await new Promise<void>((resolve, reject) => {
+    const request = storeOf(transaction, WORKLOAD_RESULTS_STORE).openCursor();
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) {
+        resolve();
+        return;
+      }
+      if (cursor.value?.importId === importId) cursor.delete();
+      cursor.continue();
+    };
+  });
+}
+
 async function removeCorruptPair(importId: string): Promise<void> {
   try {
     await withStores(
@@ -341,7 +359,7 @@ async function removeCorruptPair(importId: string): Promise<void> {
         // Recheck under the write lock, so a newer valid pair is never deleted.
         if (validateStoredPair(record, payload) === undefined) {
           await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
-          await requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).clear());
+          await deleteResultsFor(transaction, importId);
           await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
         }
       },
@@ -392,7 +410,7 @@ export async function deleteImport(importId: string): Promise<StorageResult<true
       async (transaction) => {
         await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
         await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
-        await requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).clear());
+        await deleteResultsFor(transaction, importId);
         return true as const;
       },
     );
