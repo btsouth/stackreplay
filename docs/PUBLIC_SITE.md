@@ -59,19 +59,35 @@ homepage's interface.
 | Section | What it shows | Data |
 | --- | --- | --- |
 | Hero | Claim, calls to action, verified privacy sentence, chapter index and catalog coverage | Public catalog |
-| Market Pulse | Up to five dated changes: model releases, plan history events, superseding list prices | `lib/home/market-pulse.ts` over the bundled catalog |
-| 01 Public intelligence | A current-model comparison table and subscription information cards | `lib/home/featured-models.ts`, `lib/home/featured-plans.ts` |
+| AI market briefing | Up to six major or notable market events, newest first, none older than 30 days | `@stackreplay/market-events` through `lib/market/events.ts` |
+| Frontier right now | The newest frontier release of five developers: API prices, limits, access and verified benchmark rows | `lib/home/featured-models.ts`, `@stackreplay/benchmarks` |
+| 01 Public intelligence | Subscription information cards | `lib/home/featured-plans.ts` |
 | 02 Personal intelligence | What a scan reads, a labelled example, and the questions a scan answers | `lib/home/personal*.ts`, the stored workload summary |
 
-**Only real records.** Market Pulse derives every row from accepted catalog data. A model row uses
-the developer-published `releaseDate`; a plan row uses a dated, evidenced plan-history event, never a
-catalog version date (a version recorded the day StackReplay added a plan is not market news); a
-price row needs a later list-price record replacing different rates on the same route, so a model's
-first price record is never a "change". A category with no records contributes no rows. The
-homepage does not yet adapt the separate benchmark evidence package into its comparison or pulse;
-verified benchmark results remain available at `/benchmarks` through the public header and footer.
-The comparison table explains its requirement for comparable evidence in a footnote, and the hero
-copy only mentions benchmarks when rows exist.
+**One market feed.** `packages/market-events` holds the canonical, reviewed list of material
+market events (model releases and announcements, API availability, retirements, benchmark
+publications, API price changes, plan launches, availability, price and limit changes, and plan
+lineup changes). Each event carries its provider-stated occurrence date and the basis for it, the
+day StackReplay found and verified it, its importance, the canonical provider, model and plan ids it
+concerns, a summary drawn from the source's own statements, and at least one first-party source.
+The homepage briefing and `/changelog` read the same feed; there is no second news list. The web
+boundary validates every id against the catalog and the benchmark evidence and fails the build on
+an unknown one.
+
+**Dates are market dates.** An event's date is when the provider says it happened, never the day the
+catalog admitted a record. The briefing re-evaluates its window on the reader's own calendar day, so
+a static page built today still drops an event once it is more than thirty days old. It sorts by
+occurrence across all categories; the newest come first, so the last seven days always lead and older
+events only fill rows the last week leaves empty. Fewer events is a correct answer.
+
+**Facts beside an event are not stored in it.** List prices and context come from the catalog for
+the event's model, and a benchmark result comes from the referenced evidence edition's primary
+observation, with who reported it. An announced model with no executable price says so.
+
+**Benchmark rows on the homepage.** The frontier table renders a benchmark row only for an exact
+definition (benchmark, version and metric) reported for at least three of the featured models,
+using the same primary selection as `/benchmarks`. A row marks the best reported value (lowest where lower is better); there is
+no composite score and no blending of variants.
 
 **Configuration holds ids, not facts.** The featured models and plans are short lists of catalog
 ids. Every price, limit, capability, lineup and term is read from the catalog at render time, and an
@@ -245,7 +261,10 @@ wordmark renders without JavaScript.
   creating a share link in the application sends no request at all before the public
   page re-reads it.
 
-- `apps/web/lib/home/*.test.ts`: Market Pulse rows trace to real records; featured ids
+- `packages/market-events/src/feed.test.ts` and `apps/web/lib/market/events.test.ts`: global
+  occurrence order, the thirty-day ceiling on the reader's clock, no category quota, schema and id
+  validation, provider-dated events only, benchmark facts read from the evidence package.
+- `apps/web/lib/home/*.test.ts`: featured ids
   resolve through the catalog; capacity evidence levels; canonical-only personal matching;
   question routes resolve to real pages.
 - `apps/web/e2e/home.spec.ts`: the homepage with and without a saved workload, no scan or

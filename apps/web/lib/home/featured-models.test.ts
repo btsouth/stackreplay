@@ -1,16 +1,27 @@
+import { benchmarkData, resolveComparison } from "@stackreplay/benchmarks";
 import { describe, expect, it } from "vitest";
 import { basePrice, modelPrices } from "../market-discovery";
 import { formatRate } from "../price-table";
+import { loadPublicBenchmarks } from "../public-benchmarks";
 import { loadPublicCatalog } from "../public-catalog";
-import { FEATURED_MODEL_IDS, featuredModelComparison, featuredModels } from "./featured-models";
+import {
+  benchmarkRows,
+  benchmarkSheetHref,
+  FEATURED_MODEL_IDS,
+  featuredModelComparison,
+  featuredModels,
+  MIN_BENCHMARK_COVERAGE,
+} from "./featured-models";
 
 const catalog = loadPublicCatalog("2026-09-30");
+const evidence = loadPublicBenchmarks();
 
 describe("featured model comparison", () => {
-  it("resolves every configured id to a catalog release", () => {
+  it("resolves every configured id to a catalog release from a different developer", () => {
     const models = featuredModels(catalog);
     expect(models.map((model) => model.id)).toEqual([...FEATURED_MODEL_IDS]);
     for (const model of models) expect(model.kind).toBe("release");
+    expect(new Set(models.map((model) => model.developerId)).size).toBe(models.length);
   });
 
   it("leaves out an id the catalog does not know, and a family identity", () => {
@@ -35,15 +46,26 @@ describe("featured model comparison", () => {
       ] as const) {
         const cell = price?.rows.find((entry) => entry.id === row)?.cells[index];
         const rate = rates?.[key];
-        expect(cell?.text).toBe(rate === undefined ? "Not listed" : formatRate(rate));
+        if (rate !== undefined) expect(cell?.text).toBe(formatRate(rate));
+        else expect(cell?.absent).toBe(true);
       }
     });
   });
 
-  it("keeps a column's cells in its own position in every row", () => {
+  it("says an announced model is not yet in the API instead of inventing a price", () => {
     const comparison = featuredModelComparison(catalog);
+    const index = comparison?.columns.findIndex((column) => column.id === "gemini-4-argon") ?? -1;
+    expect(index).toBeGreaterThanOrEqual(0);
+    const input = comparison?.groups[0]?.rows.find((row) => row.id === "input")?.cells[index];
+    expect(input).toMatchObject({ absent: true, text: "Not yet in API" });
+  });
+
+  it("keeps a column's cells in its own position in every row", () => {
+    const comparison = featuredModelComparison(catalog, { benchmarkData: evidence });
     for (const group of comparison?.groups ?? [])
       for (const row of group.rows) expect(row.cells).toHaveLength(comparison?.columns.length ?? 0);
+    for (const row of comparison?.benchmarks ?? [])
+      expect(row.cells).toHaveLength(comparison?.columns.length ?? 0);
   });
 
   it("carries the catalog family, so personal usage matches by identity", () => {
@@ -51,20 +73,77 @@ describe("featured model comparison", () => {
     const opus = comparison?.columns.find((column) => column.id === "claude-opus-5-5");
     expect(opus?.familyId).toBe(catalog.modelById("claude-opus-5-5")?.familyId);
   });
+});
 
-  it("shows no benchmark rows until reviewed, comparable evidence exists", () => {
-    expect(featuredModelComparison(catalog)?.benchmarks).toEqual([]);
+describe("benchmark rows on the homepage", () => {
+  const ids = [...FEATURED_MODEL_IDS];
+  const comparison = featuredModelComparison(catalog, { benchmarkData: evidence });
+
+  it("consumes the verified benchmark package: rows exist when shared evidence exists", () => {
+    const shared = resolveComparison(benchmarkData, ids, { coverage: "all" }).filter(
+      (row) => row.cells.filter((cell) => cell.observation).length >= MIN_BENCHMARK_COVERAGE,
+    );
+    expect(shared.length).toBeGreaterThan(0);
+    expect(comparison?.benchmarks.length).toBeGreaterThan(0);
   });
 
-  it("marks absent facts quietly instead of leading with them", () => {
-    const comparison = featuredModelComparison(catalog, {
-      ids: ["claude-opus-5-5", "gemini-4-argon"],
-    });
-    const cells = comparison?.groups.flatMap((group) => group.rows.flatMap((row) => row.cells));
-    for (const cell of cells ?? []) {
-      if (cell.absent === true) expect(cell.text).not.toMatch(/unknown|unavailable/iu);
-      expect(cell.text).not.toMatch(/^not published$/iu);
+  it("shows each cell's primary observation exactly, with its reporter and source", () => {
+    const resolved = resolveComparison(benchmarkData, ids, { coverage: "all" });
+    for (const row of comparison?.benchmarks ?? []) {
+      const definitionId = row.id.replace(/^benchmark:/u, "");
+      const source = resolved.find((entry) => entry.definition.id === definitionId);
+      expect(source, row.id).toBeDefined();
+      row.cells.forEach((cell, index) => {
+        const observation = source?.cells[index]?.observation;
+        if (observation === undefined) expect(cell.absent).toBe(true);
+        else {
+          expect(cell.text).toBe(observation.displayValue);
+          expect(cell.detail).toBe(`Reported by ${observation.evaluator}`);
+          expect(cell.source?.url).toBe(observation.sourceUrl);
+        }
+      });
     }
-    expect(cells?.some((cell) => cell.absent === true)).toBe(true);
+  });
+
+  it("uses one exact definition per row: no blended versions, no composite row", () => {
+    const labels = comparison?.benchmarks.map((row) => row.label) ?? [];
+    expect(new Set(labels).size).toBe(labels.length);
+    for (const row of comparison?.benchmarks ?? []) {
+      const definition = benchmarkData.definitions.find(
+        (entry) => `benchmark:${entry.id}` === row.id,
+      );
+      expect(definition, row.id).toBeDefined();
+      expect(row.note).toBe(definition?.metric);
+    }
+    expect(labels.some((label) => /composite|average|overall/iu.test(label))).toBe(false);
+  });
+
+  it("marks only the row's highest reported value, ties included", () => {
+    const resolved = resolveComparison(benchmarkData, ids, { coverage: "all" });
+    for (const row of comparison?.benchmarks ?? []) {
+      const source = resolved.find((entry) => `benchmark:${entry.definition.id}` === row.id);
+      row.cells.forEach((cell, index) => {
+        const modelId = ids[index] as string;
+        expect(cell.highest === true, `${row.id}/${modelId}`).toBe(
+          source?.highestModelIds.includes(modelId) ?? false,
+        );
+      });
+    }
+  });
+
+  it("requires results for at least three of the columns", () => {
+    for (const row of comparison?.benchmarks ?? [])
+      expect(row.cells.filter((cell) => !cell.absent).length).toBeGreaterThanOrEqual(
+        MIN_BENCHMARK_COVERAGE,
+      );
+    expect(benchmarkRows(benchmarkData, ["grok-4-7", "deepseek-v4-1-flash"])).toHaveLength(
+      resolveComparison(benchmarkData, ["grok-4-7", "deepseek-v4-1-flash"], {
+        coverage: "all",
+      }).filter((row) => row.cells.every((cell) => cell.observation)).length,
+    );
+  });
+
+  it("links to the benchmark sheet for exactly these models", () => {
+    expect(benchmarkSheetHref(ids)).toContain(`models=${ids.join("%2C")}`);
   });
 });

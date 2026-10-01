@@ -162,7 +162,7 @@ test.describe("public site accessibility", () => {
     // Every primary destination is reachable and labelled. Wide viewports show the
     // header navigation; narrow ones reach the same destinations through the menu
     // button's panel, and the footer lists them at every width.
-    const footerDestinations = ["Plans", "Models", "Compare", "Methodology", "Market updates"];
+    const footerDestinations = ["Plans", "Models", "Compare", "Methodology", "AI updates"];
     for (const label of footerDestinations) {
       await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
     }

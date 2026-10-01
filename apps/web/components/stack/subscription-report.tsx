@@ -66,11 +66,6 @@ export function SubscriptionReportRow({
                   ? `active ${facts.activeDays} of ${days} days`
                   : `${facts.activeDays} active days`,
                 `${activity?.models.length ?? 0} ${activity?.models.length === 1 ? "model" : "models"}`,
-                facts.blocked
-                  ? facts.blocked.attempts > 0
-                    ? `${facts.blocked.attempts.toLocaleString("en-US")} blocked attempts on ${facts.blocked.days} ${facts.blocked.days === 1 ? "day" : "days"}`
-                    : "no limit events recorded"
-                  : undefined,
                 report.sharedWith.length
                   ? `shared with ${report.sharedWith.join(", ")}`
                   : undefined,
@@ -139,18 +134,21 @@ export function SubscriptionReportRow({
             </dd>
           </div>
           <div className="stack-report-figure">
-            <dt>Leverage</dt>
-            <dd className={report.leverage ? "stack-accent-value" : undefined}>
-              {report.leverage ? (
-                <>
-                  {leverageText(report.leverage)}
-                  <span className="stack-report-leverage-note">
-                    <EvidenceWord level={report.leverage.level} />
-                    {report.leverage.excludedCalls > 0 ? " · listed models only" : ""}
-                  </span>
-                </>
+            <dt>Limit events</dt>
+            <dd className={facts?.blocked?.attempts ? "stack-warning-value" : undefined}>
+              {facts?.blocked ? (
+                facts.blocked.attempts > 0 ? (
+                  <>
+                    {facts.blocked.attempts.toLocaleString("en-US")} blocked{" "}
+                    <span className="stack-report-leverage-note">
+                      on {facts.blocked.days} {facts.blocked.days === 1 ? "day" : "days"}
+                    </span>
+                  </>
+                ) : (
+                  "None recorded"
+                )
               ) : (
-                <span className="stack-muted-value">—</span>
+                <span className="stack-muted-value">{facts ? "Not recorded" : "—"}</span>
               )}
             </dd>
           </div>
@@ -224,8 +222,10 @@ export function SubscriptionReportRow({
         <div className="stack-report-details-body">
           <EvidenceList items={report.evidence} />
           {report.leverage ? (
-            <p className="stack-caption">
-              Leverage: {rangeText(report.leverage.value)} API-equivalent ÷{" "}
+            <p className="stack-caption" data-testid={`report-leverage-${report.id}`}>
+              Recorded value per published dollar ({leverageText(report.leverage)},{" "}
+              <EvidenceWord level={report.leverage.level} />
+              ): {rangeText(report.leverage.value)} API-equivalent ÷{" "}
               {rangeText({ low: report.leverage.price, high: report.leverage.price })}{" "}
               {report.leverage.priceBasis === "paid"
                 ? "paid for this period"
@@ -236,7 +236,9 @@ export function SubscriptionReportRow({
               . {report.leverage.note} Not money saved.
             </p>
           ) : report.leverageNote ? (
-            <p className="stack-caption">Leverage: {report.leverageNote}</p>
+            <p className="stack-caption">
+              Recorded value per published dollar: {report.leverageNote}
+            </p>
           ) : null}
           {activity && activity.models.length > 0 ? (
             <table className="stack-model-table">

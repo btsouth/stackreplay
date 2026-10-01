@@ -37,7 +37,8 @@
     "recharts": "^3.2.1",
     "vinext": "1.0.0-beta.11",
     "zod": "^4.6.5",
-    "@stackreplay/benchmarks": "workspace:*"
+    "@stackreplay/benchmarks": "workspace:*",
+    "@stackreplay/market-events": "workspace:*"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

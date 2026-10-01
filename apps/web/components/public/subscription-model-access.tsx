@@ -91,8 +91,8 @@ export function SubscriptionModelAccess({ access }: { access: SubscriptionAccess
           </p>
         )}
       <p className="market-muted mt-4">
-        Model access checked {access.checkedAt}. Named access does not establish an exact replay
-        route or a predictable usage allowance.
+        Model access checked {access.checkedAt}. Named access does not establish how much of that
+        model a plan includes or a predictable usage allowance.
       </p>
     </div>
   );
