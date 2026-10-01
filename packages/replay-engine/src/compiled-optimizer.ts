@@ -134,6 +134,21 @@ interface Choice {
 }
 const lexical = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 const WORK_LIMIT = 2_000_000;
+/**
+ * Candidate search enumerates subscription singletons and pairs, each with or
+ * without API supply, and replays capacity for each: those bounds keep that
+ * search small (six subscriptions, eight independent API routes, fourteen
+ * artifacts). API repricing enumerates nothing. It prices each recorded call
+ * once at its cheapest admitted route, so its cost is linear in routes times
+ * events and a real multi-tool workload (ten observed models across Claude
+ * Code, Codex and Command Code) must not fail on the search bound. Repricing
+ * keeps a bound of its own, sized well above the whole API catalog.
+ */
+const SEARCH_ARTIFACT_LIMIT = 14;
+const SEARCH_SUBSCRIPTION_LIMIT = 6;
+const SEARCH_API_ROUTE_LIMIT = 8;
+export const REPRICING_ARTIFACT_LIMIT = 256;
+export const REPRICING_API_ROUTE_LIMIT = 512;
 export function compareCompiledCandidates(a: CompiledCandidate, b: CompiledCandidate): number {
   const rank = (c: CompiledCandidate) => (c.status === "feasible" ? 0 : 1);
   return (
@@ -191,7 +206,8 @@ function evaluateCompiled(
 ): CompiledOptimizationResult {
   runtime?.onPhase?.("preparing");
   const scenario = boundExecutionScenarioSchema.parse(input.scenario);
-  if (input.artifacts.length > 14) throw new Error("Compiled artifact bound exceeded");
+  if (input.artifacts.length > (apiRepricing ? REPRICING_ARTIFACT_LIMIT : SEARCH_ARTIFACT_LIMIT))
+    throw new Error("Compiled artifact bound exceeded");
   const artifacts = input.artifacts.map((p) => compiledExecutionPlanSchema.parse(p));
   if (apiRepricing && artifacts.some((p) => p.purchase.kind !== "api"))
     throw new Error(
@@ -226,16 +242,17 @@ function evaluateCompiled(
     r.artifact.purchase.kind === "subscription" ? [i] : [],
   );
   const apiResources = resources.flatMap((r, i) => (r.artifact.purchase.kind === "api" ? [i] : []));
+  const apiRoutes = apiResources.reduce(
+    (n, i) =>
+      n +
+      (resources[i]?.artifact.computation.kind === "executable"
+        ? (resources[i]?.artifact.computation.routes.length ?? 0)
+        : 1),
+    0,
+  );
   if (
-    subscriptions.length > 6 ||
-    apiResources.reduce(
-      (n, i) =>
-        n +
-        (resources[i]?.artifact.computation.kind === "executable"
-          ? (resources[i]?.artifact.computation.routes.length ?? 0)
-          : 1),
-      0,
-    ) > 8
+    subscriptions.length > SEARCH_SUBSCRIPTION_LIMIT ||
+    apiRoutes > (apiRepricing ? REPRICING_API_ROUTE_LIMIT : SEARCH_API_ROUTE_LIMIT)
   )
     throw new Error("Compiled candidate family bound exceeded");
   const calendarMonth =
