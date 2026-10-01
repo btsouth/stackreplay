@@ -439,7 +439,13 @@ export async function* streamedLines(
   onBytes?: (bytes: number) => void,
   signal?: AbortSignal,
 ): AsyncGenerator<string> {
-  const reader = stream.getReader();
+  let reader: ReadableStreamDefaultReader<Uint8Array>;
+  try {
+    reader = stream.getReader();
+  } catch (error) {
+    if (error instanceof BrowserIntakeCancelledError) throw error;
+    throw new SourceReadError(errorNameOf(error));
+  }
   const decoder = new TextDecoder();
   let pending = "";
   // The same rules as before (a trailing carriage return dropped, blank lines
@@ -690,7 +696,14 @@ function singleFileSystem(
       if (maxBytes !== undefined && size > maxBytes)
         throw new Error("selected file exceeds adapter limit");
       if (stream !== undefined) {
-        yield* streamedLines(stream(), onBytes, signal);
+        let selected: ReadableStream<Uint8Array>;
+        try {
+          selected = stream();
+        } catch (error) {
+          if (error instanceof BrowserIntakeCancelledError) throw error;
+          throw new SourceReadError(errorNameOf(error));
+        }
+        yield* streamedLines(selected, onBytes, signal);
       } else {
         for (const line of nonEmptyLines(content)) yield line;
       }
@@ -843,16 +856,35 @@ export async function intakeBrowserCandidates(
     streams(candidate) ? MAX_STREAMED_SOURCE_FILE_BYTES : MAX_SOURCE_FILE_BYTES;
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
-  // The exact-file signature only has to tell identical selected files apart,
-  // and identical bytes have identical sizes: a streamed file whose size no
-  // other streamed file shares cannot be a duplicate and is not hashed. A file
-  // read as text is signed by its decoded text, whose size is not its byte
-  // size, so any such file in the selection keeps every file signed.
-  const signEverything = candidates.some((candidate) => readable(candidate) && !streams(candidate));
-  const streamedSizes = new Map<number, number>();
+  /** Exact-file matches already include this history scope in their key. */
+  const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
+    const path = normalizedPath(candidate.path);
+    const selectedRoot = /(?:^|\/)opencode\.db$/iu.test(path)
+      ? path.replace(/(?:^|\/)opencode\.db$/iu, "")
+      : path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
+    return selectedRoot === undefined
+      ? undefined
+      : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
+  };
+  // Decoded text may have a different UTF-8 size than its source bytes, so it
+  // forces signing only in the scope where its signature could actually match.
+  const textSignedScopes = new Set<string | undefined>();
+  // Equal bytes also have equal byte sizes, but they cannot be an exact-file
+  // duplicate across scopes. Keep the existing early rejection within a scope.
+  const streamedSizes = new Map<string | undefined, Map<number, number>>();
   for (const candidate of candidates) {
-    if (readable(candidate) && streams(candidate))
-      streamedSizes.set(candidate.size, (streamedSizes.get(candidate.size) ?? 0) + 1);
+    if (!readable(candidate)) continue;
+    const scope = signatureScopeOf(candidate);
+    if (!streams(candidate)) {
+      textSignedScopes.add(scope);
+      continue;
+    }
+    let sizes = streamedSizes.get(scope);
+    if (sizes === undefined) {
+      sizes = new Map();
+      streamedSizes.set(scope, sizes);
+    }
+    sizes.set(candidate.size, (sizes.get(candidate.size) ?? 0) + 1);
   }
   const readAhead = Math.max(1, Math.floor(options.readAhead ?? 1));
   const peeks = new Map<number, Promise<string>>();
@@ -918,7 +950,11 @@ export async function intakeBrowserCandidates(
     // The peek already holds all of a file this small, so it is parsed from
     // there instead of being read and decoded a second time.
     const whole = streaming && candidate.size <= PEEK_BYTES;
-    const signed = signEverything || !streaming || (streamedSizes.get(candidate.size) ?? 0) > 1;
+    const sessionRoot = signatureScopeOf(candidate);
+    const signed =
+      textSignedScopes.has(sessionRoot) ||
+      !streaming ||
+      (streamedSizes.get(sessionRoot)?.get(candidate.size) ?? 0) > 1;
     let lastReported = 0;
     const examined = (bytes: number): void => {
       scanProgress.examinedBytes += bytes;
@@ -1004,14 +1040,6 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    const rootMatch = candidate.path.replace(/\\/gu, "/").match(/^(.*?(?:^|\/)projects)(?:\/|$)/u);
-    const selectedRoot = sqlite
-      ? normalizedPath(candidate.path).replace(/(?:^|\/)opencode\.db$/iu, "")
-      : rootMatch?.[1];
-    const sessionRoot =
-      selectedRoot === undefined
-        ? undefined
-        : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
     if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
     if (signature !== undefined && seen.has(signature)) {
       database?.close();

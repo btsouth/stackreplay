@@ -2,6 +2,39 @@
 
 ## Current milestone
 
+### Initial scan signature reads (perf/initial-scan)
+
+Duplicate signatures now read streamed files only when another candidate in the same
+existing location/account scope could match. Unrelated text files and equal-size files
+in separate scopes no longer trigger unnecessary full-file hashing. Exact duplicates
+still get rejected before parsing. Schema validation, saved-data checks and privacy
+boundaries are unchanged. Newly unsigned streams retain per-file unreadable reporting
+for stream-opening, locked-reader and read failures; cancellation still aborts the scan.
+
+The paired Chromium benchmark at baseline `603837e` measured about 19-22% faster
+imports in the affected synthetic cases, including the real replay Worker and local
+saving. All 72 runs matched complete exports and import records, and all 36 saved
+results reopened in fresh Workers. Exact-duplicate medians differed by about 1%,
+with paired runs varying in both directions. This is not a measured speedup for the
+owner's multi-gigabyte history. See [Ingestion](INGESTION.md#scope-aware-signature-benchmark).
+
+Original-baseline verification on 2026-10-01: 1,902 unit tests passed; check, contrast, typecheck and
+production build passed. The desktop/mobile browser suite passed 708 checks and
+skipped 54. Its two same-origin failures passed on targeted rerun after the temporary
+test harness port and `STACKREPLAY_E2E_PORT` were aligned; app origin protection was
+not changed. Two independent reviews found no P1/P2 issues in the final code. The
+100,000-event engine benchmark missed the absolute one-second target on the shared
+host in both baseline and branch runs (slowest target medians 1,255 ms and 1,031 ms,
+respectively); the engine and its inputs are unchanged by this patch.
+
+After rebasing onto multi-account main at `a5b2692` (PR #103), the forced check,
+contrast, typecheck and production build passed again, and all 1,930 unit tests
+passed. A further 72 real-Worker measurements retained full export/import-record
+parity and fresh-Worker reopening for all 36 saved results. A same-host replay-engine
+comparison still exceeded one second on the slowest target in both main and branch;
+an idle-core recheck also missed the absolute goal. This patch changes neither the
+engine nor its benchmark inputs and does not claim that existing goal is met.
+
 ### Product rescue: AI market feed, frontier comparison, My Stack first screen (feat/product-rescue, not released)
 
 One canonical market event feed (`packages/market-events`, 25 reviewed events for Sep 1-30, 2026,
