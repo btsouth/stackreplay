@@ -43,9 +43,15 @@ jobs:
         run: git diff --exit-code -- packages/catalog/src/bundled-catalog.ts packages/catalog/src/decision-market.generated.ts
 
   e2e:
-    name: E2E smoke
+    # The full Playwright suite in four parallel shards: every test still runs,
+    # each runner keeps its usual load. It builds what it needs, so it does not
+    # wait for Checks.
+    name: E2E (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    needs: checks
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -59,14 +65,34 @@ jobs:
         # Build the workspace dependencies too: the web app and its Worker import
         # the compiled schema, catalog and replay engine packages.
         run: pnpm --filter "@stackreplay/web..." build
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @stackreplay/web exec playwright install --with-deps chromium
-      - name: Run Playwright smoke tests
-        run: pnpm --filter @stackreplay/web test:e2e
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @stackreplay/web exec playwright install-deps chromium
+      - name: Run Playwright tests
+        run: pnpm --filter @stackreplay/web test:e2e --shard=${{ matrix.shard }}/4
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: apps/web/playwright-report
           retention-days: 7
+
+  e2e-result:
+    # One status for the whole browser suite.
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    needs: e2e
+    if: always()
+    steps:
+      - name: All shards passed
+        run: test "${{ needs.e2e.result }}" = "success"
