@@ -150,7 +150,8 @@ describe("homepage links", () => {
   });
 
   it("does not link to a route that is not there", () => {
-    expect(routeExists("/benchmarks")).toBe(false);
+    expect(routeExists("/not-a-stackreplay-route")).toBe(false);
+    expect(routeExists("/benchmarks")).toBe(true);
     expect(routeExists("/models/claude-opus-5-5")).toBe(true);
   });
 });
