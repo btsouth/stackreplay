@@ -128,3 +128,79 @@ test("importing another workload preserves cached results for the earlier worklo
     await page.evaluate(() => (window as unknown as { workloadPhases: string[] }).workloadPhases),
   ).toEqual([]);
 });
+
+const cachedImportIds = async (page: import("@playwright/test").Page) =>
+  page.evaluate(async () => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      const transaction = database.transaction("workload-results", "readonly");
+      const request = transaction.objectStore("workload-results").getAll();
+      const entries = await new Promise<{ importId: string }[]>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      return [...new Set(entries.map((entry) => entry.importId))].sort();
+    } finally {
+      database.close();
+    }
+  });
+
+for (const removal of ["delete", "corrupt"] as const) {
+  test(`${removal} removes only the affected workload's cached results`, async ({ page }) => {
+    await importDemo(page, "moderate");
+    await pricingDone(page);
+    const original = page.url();
+    const survivor = new URL(original).searchParams.get("import");
+    await importDemo(page, "heavy");
+    await expect(page.getByTestId("workload-loading-status")).toHaveCount(0);
+    const affectedUrl = page.url();
+    const affected = new URL(affectedUrl).searchParams.get("import");
+    if (!survivor || !affected) throw new Error("Fixtures need two stored workloads");
+    await expect.poll(() => cachedImportIds(page)).toEqual([survivor, affected].sort());
+
+    if (removal === "delete") {
+      await page.goto("/app/import");
+      await page.getByTestId(`delete-menu-${affected}`).locator("summary").click();
+      await page.getByTestId(`delete-import-${affected}`).click();
+      await expect(page.getByTestId(`delete-import-${affected}`)).toHaveCount(0);
+    } else {
+      await page.evaluate(async (id) => {
+        const open = indexedDB.open("stackreplay");
+        const database = await new Promise<IDBDatabase>((resolve, reject) => {
+          open.onsuccess = () => resolve(open.result);
+          open.onerror = () => reject(open.error);
+        });
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const transaction = database.transaction("payloads", "readwrite");
+            transaction.objectStore("payloads").put({
+              id,
+              exported: { version: 99, events: "not-an-array" },
+            });
+            transaction.oncomplete = () => resolve();
+            transaction.onabort = () => reject(transaction.error);
+            transaction.onerror = () => reject(transaction.error);
+          });
+        } finally {
+          database.close();
+        }
+      }, affected);
+      await page.goto(affectedUrl);
+      await expect(page.getByTestId("workload-error")).toBeVisible();
+    }
+
+    await expect.poll(() => cachedImportIds(page)).toEqual([survivor]);
+    await page.goto(original);
+    await pricingDone(page);
+    await page.goto("/app/import");
+    await page.getByTestId("clear-local-data").click();
+    await page.getByTestId("clear-local-data-confirm").click();
+    await expect(page.getByTestId("no-stored-imports")).toBeVisible();
+    await expect.poll(() => cachedImportIds(page)).toEqual([]);
+  });
+}
+
