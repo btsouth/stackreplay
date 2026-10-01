@@ -290,7 +290,9 @@ export class ReplayWorkerClient {
     }
     if (
       response.type === "CANCELLED" &&
-      (entry.channel === "optimizer" || entry.channel === "optimizer-detail")
+      (entry.channel === "optimizer" ||
+        entry.channel === "optimizer-detail" ||
+        entry.channel === "analyze")
     ) {
       entry.reject(new SupersededError());
       return;

@@ -88,6 +88,49 @@ beforeEach(() => {
 });
 
 describe("Worker import supersession", () => {
+  it("reports analysis cancelled, not failed, when storage is cleared during a read", async () => {
+    const running = await worker();
+    await running.send(fileImport(1, idA, { text: async () => text }, true));
+    state.loadGate = new Promise<void>((resolve) => {
+      state.releaseLoad = resolve;
+    });
+    const analyzing = running.send({
+      protocol: 1,
+      type: "ANALYZE_WORKLOAD",
+      requestId: 2,
+      importId: idA,
+      timeZone: "UTC",
+    });
+    await vi.waitFor(() => expect(state.loadCalls).toBe(1));
+    await running.send({ protocol: 1, type: "CLEAR_LOCAL_DATA", requestId: 3 });
+    state.releaseLoad?.();
+    await analyzing;
+    expect(running.messages().filter((response) => response.requestId === 2)).toEqual([
+      { type: "CANCELLED", requestId: 2 },
+    ]);
+  });
+  it("shares a pending stored payload read between concurrent analysis requests", async () => {
+    const running = await worker();
+    await running.send(fileImport(1, idA, { text: async () => text }, true));
+    state.loadGate = new Promise<void>((resolve) => {
+      state.releaseLoad = resolve;
+    });
+    const analyze = (requestId: number) =>
+      running.send({
+        protocol: 1,
+        type: "ANALYZE_WORKLOAD",
+        requestId,
+        importId: idA,
+        timeZone: "UTC",
+      });
+    const first = analyze(2);
+    const second = analyze(3);
+    await vi.waitFor(() => expect(state.loadCalls).toBeGreaterThan(0));
+    state.releaseLoad?.();
+    await Promise.all([first, second]);
+    expect(state.loadCalls).toBe(1);
+    expect(running.messages().filter((message) => message.type === "PROFILE_OK")).toHaveLength(2);
+  });
   it("cancelling the current request prevents its deferred save", async () => {
     state.listGate = new Promise<void>((resolve) => {
       state.holdList = resolve;

@@ -26,6 +26,7 @@ import { DemandChronology } from "./chronology";
 import { CompositionLedger } from "./composition";
 import { PartialScanNotice, ScanEvidence } from "./evidence";
 import { count, percent, plainDay, plainRange } from "./format";
+import { WorkloadSkeleton } from "./loading";
 import { ModelMix } from "./models";
 import { HistoricalPressure } from "./pressure";
 import { ProjectLedger } from "./projects";
@@ -194,6 +195,7 @@ export function WorkloadSurface({
         onMarket={onMarket}
         record={record}
         profile={profile}
+        profileFailed={error !== undefined}
         imports={imports}
         onSelect={setSelectedId}
         analysisContent={(decision) =>
@@ -208,10 +210,13 @@ export function WorkloadSurface({
               useUtc={useUtc}
               localZone={localZone}
             />
-          ) : (
-            <p role="status" className="text-sm text-muted-foreground">
-              Reading workload analysis…
-            </p>
+          ) : error !== undefined ? null : (
+            <WorkloadSection index="02" eyebrow="Model mix" title="Which models did the work">
+              <WorkloadSkeleton
+                testId="analysis-loading"
+                label="Preparing model mix, activity and demand windows"
+              />
+            </WorkloadSection>
           )
         }
         detailContent={
@@ -311,6 +316,7 @@ function WorkloadPicker({
 function WorkloadOpening({
   record,
   profile,
+  profileFailed,
   imports,
   onSelect,
   onMarket,
@@ -319,6 +325,7 @@ function WorkloadOpening({
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
+  profileFailed: boolean;
   imports: ImportRecord[];
   onSelect: (id: string) => void;
   onMarket: (id: string, result: MarketDecision | undefined) => void;
@@ -349,6 +356,7 @@ function WorkloadOpening({
         key={record.id}
         record={record}
         profile={profile}
+        profileFailed={profileFailed}
         onResult={onMarket}
         projects={
           profile ? (
@@ -361,8 +369,10 @@ function WorkloadOpening({
             >
               <ProjectLedger profile={profile} measure="tokens" initialRows={5} />
             </WorkloadSection>
-          ) : (
-            <p className="text-sm text-muted-foreground">Reading project distribution…</p>
+          ) : profileFailed ? null : (
+            <WorkloadSection index="01" eyebrow="Projects" title="Where your work went">
+              <WorkloadSkeleton testId="project-loading" label="Preparing project distribution" />
+            </WorkloadSection>
           )
         }
         analysis={analysisContent}

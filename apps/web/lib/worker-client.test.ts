@@ -88,6 +88,16 @@ afterEach(() => {
 });
 
 describe("replay worker client", () => {
+  it("treats cancelled workload analysis as superseded", async () => {
+    const client = new ReplayWorkerClient();
+    const pending = client.analyzeWorkload("import-1", "UTC");
+    const outcome = pending.catch((error: unknown) => error);
+    const worker = FakeWorker.instances[0];
+    worker?.announce();
+    worker?.reply({ type: "CANCELLED", requestId: worker.lastRequestId });
+    expect(await outcome).toBeInstanceOf(SupersededError);
+    client.dispose();
+  });
   it("drops a superseded replay instead of surfacing it", async () => {
     const client = new ReplayWorkerClient();
     const first = client.runReplay("import-1", target, "2026-09-15");

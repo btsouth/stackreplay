@@ -50,6 +50,7 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { buildWorkloadProfile, inspectWindow } from "../lib/workload-profile";
+import { cachedWorkloadResult } from "../lib/workload-result-cache";
 import { selectSources } from "../lib/workload-scope";
 import { summarizeExport } from "../lib/workload-summary";
 
@@ -164,114 +165,132 @@ async function handleMarket(
     const loaded = await loadWorkloadEvents(request.importId, current);
     if (!loaded.ok) throw new Error("Workload unavailable");
     if (!current()) throw new OptimizerCancelledError();
-    const sources = request.sources?.length ? new Set(request.sources) : undefined;
-    const sourceEvents = sources
-      ? loaded.exported.events.filter((event) => sources.has(event.source.adapterId))
-      : loaded.exported.events;
-    // Capacity evidence belongs to the local accounts of the tools in scope.
-    const sourceAccounts = sources
-      ? new Set(sourceEvents.flatMap((event) => event.source.resourceInstanceId ?? []))
-      : undefined;
-    const observations =
-      loaded.exported.capacityObservations && sourceAccounts
-        ? sourceAccounts.size > 0
-          ? {
-              ...loaded.exported.capacityObservations,
-              events: loaded.exported.capacityObservations.events.filter((event) =>
-                sourceAccounts.has(event.resourceInstanceId),
-              ),
-            }
-          : undefined
-        : loaded.exported.capacityObservations;
-    const scoped = reviewWorkload(sourceEvents, request.period, request.resourceInstanceId);
-    const gapCodes = new Set([
-      "SOURCE_UNREADABLE",
-      "SOURCE_TRUNCATED",
-      "RECORD_MALFORMED",
-      "TIMESTAMP_INVALID",
-      "USAGE_MISSING",
-      "ACCOUNTING_UNESTABLISHED",
-    ]);
-    const scanGapCodes = [
-      ...new Set(
-        (loaded.exported.collectionWarnings ?? [])
-          .filter((w) => gapCodes.has(w.code))
-          .map((w) => w.code),
-      ),
-    ];
-    if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
-    const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
-    const decision: MarketDecision = {
-      snapshot: {
-        rulesAt: DECISION_MARKET.rulesAt,
-        catalogHash: DECISION_MARKET.catalogHash,
-        decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
-      },
-      scenarios: [],
-      history: scoped.history,
-      capacity: summarizeCapacity(
-        observations,
-        scoped.events,
-        request.period,
-        request.resourceInstanceId,
-      ),
-    };
-    const capacityEvents = (observations?.events ?? []).filter((event) => {
-      const day = event.timestamp.slice(0, 10);
-      return (
-        (!request.resourceInstanceId || event.resourceInstanceId === request.resourceInstanceId) &&
-        (request.period
-          ? day >= request.period.start && day < request.period.end
-          : !!scoped.history.firstDate &&
-            !!scoped.history.lastDate &&
-            day >= scoped.history.firstDate &&
-            day <= scoped.history.lastDate)
-      );
-    });
-    const blocked = capacityEvents.filter((event) => event.eventType === "hard_limit_reached");
-    if (observations)
-      decision.capacitySignal = {
-        blockedAttempts: blocked.length,
-        warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,
-        days: new Set(blocked.map((event) => event.timestamp.slice(0, 10))).size,
-        accounts: new Set(blocked.map((event) => event.resourceInstanceId)).size,
-        resourceInstanceIds: [...new Set(blocked.map((event) => event.resourceInstanceId))],
-      };
-    const analysis = analyzeMarketCoverage(inputs);
-    decision.coverage = analysis.coverage;
-    for (const [i, input] of inputs.entries()) {
-      if (!current()) throw new OptimizerCancelledError();
-      const summary = await marketOptimizer.run(async () => input, {
-        operation: "api-repricing",
-        onPhase: (phase) => {
-          if (current()) post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase });
+    const compute = async (): Promise<MarketDecision> => {
+      const sources = request.sources?.length ? new Set(request.sources) : undefined;
+      const sourceEvents = sources
+        ? loaded.exported.events.filter((event) => sources.has(event.source.adapterId))
+        : loaded.exported.events;
+      // Capacity evidence belongs to the local accounts of the tools in scope.
+      const sourceAccounts = sources
+        ? new Set(sourceEvents.flatMap((event) => event.source.resourceInstanceId ?? []))
+        : undefined;
+      const observations =
+        loaded.exported.capacityObservations && sourceAccounts
+          ? sourceAccounts.size > 0
+            ? {
+                ...loaded.exported.capacityObservations,
+                events: loaded.exported.capacityObservations.events.filter((event) =>
+                  sourceAccounts.has(event.resourceInstanceId),
+                ),
+              }
+            : undefined
+          : loaded.exported.capacityObservations;
+      const scoped = reviewWorkload(sourceEvents, request.period, request.resourceInstanceId);
+      const gapCodes = new Set([
+        "SOURCE_UNREADABLE",
+        "SOURCE_TRUNCATED",
+        "RECORD_MALFORMED",
+        "TIMESTAMP_INVALID",
+        "USAGE_MISSING",
+        "ACCOUNTING_UNESTABLISHED",
+      ]);
+      const scanGapCodes = [
+        ...new Set(
+          (loaded.exported.collectionWarnings ?? [])
+            .filter((w) => gapCodes.has(w.code))
+            .map((w) => w.code),
+        ),
+      ];
+      if (scanGapCodes.length) scoped.history.scanGapCodes = scanGapCodes;
+      const inputs = marketDecisionInputs(loadBundledCatalog(), DECISION_MARKET, scoped.events);
+      const decision: MarketDecision = {
+        snapshot: {
+          rulesAt: DECISION_MARKET.rulesAt,
+          catalogHash: DECISION_MARKET.catalogHash,
+          decisionSnapshotHash: DECISION_MARKET.decisionSnapshotHash,
         },
+        scenarios: [],
+        history: scoped.history,
+        capacity: summarizeCapacity(
+          observations,
+          scoped.events,
+          request.period,
+          request.resourceInstanceId,
+        ),
+      };
+      const capacityEvents = (observations?.events ?? []).filter((event) => {
+        const day = event.timestamp.slice(0, 10);
+        return (
+          (!request.resourceInstanceId ||
+            event.resourceInstanceId === request.resourceInstanceId) &&
+          (request.period
+            ? day >= request.period.start && day < request.period.end
+            : !!scoped.history.firstDate &&
+              !!scoped.history.lastDate &&
+              day >= scoped.history.firstDate &&
+              day <= scoped.history.lastDate)
+        );
       });
-      if (!current()) throw new OptimizerCancelledError();
-      decision.scenarios.push({ id: DECISION_MARKET.scenarios[i]?.id ?? "unknown", summary });
-      marketOptimizer.cancel(); // Keep only durable aggregate receipts between interpretations.
-    }
-    if (analysis.coverage.priced > 0 && analysis.coverage.priced < analysis.coverage.recorded) {
-      const subset = marketDecisionInputs(
-        loadBundledCatalog(),
-        DECISION_MARKET,
-        analysis.pricedEvents,
-      );
-      decision.pricedScope = { scenarios: [] };
-      for (const [i, input] of subset.entries()) {
+      const blocked = capacityEvents.filter((event) => event.eventType === "hard_limit_reached");
+      if (observations)
+        decision.capacitySignal = {
+          blockedAttempts: blocked.length,
+          warnings: capacityEvents.filter((event) => event.eventType === "usage_warning").length,
+          days: new Set(blocked.map((event) => event.timestamp.slice(0, 10))).size,
+          accounts: new Set(blocked.map((event) => event.resourceInstanceId)).size,
+          resourceInstanceIds: [...new Set(blocked.map((event) => event.resourceInstanceId))],
+        };
+      const analysis = analyzeMarketCoverage(inputs);
+      decision.coverage = analysis.coverage;
+      for (const [i, input] of inputs.entries()) {
         if (!current()) throw new OptimizerCancelledError();
         const summary = await marketOptimizer.run(async () => input, {
           operation: "api-repricing",
+          onPhase: (phase) => {
+            if (current()) post({ type: "OPTIMIZER_PHASE", requestId: request.requestId, phase });
+          },
         });
         if (!current()) throw new OptimizerCancelledError();
-        decision.pricedScope.scenarios.push({
-          id: DECISION_MARKET.scenarios[i]?.id ?? "unknown",
-          summary,
-        });
-        marketOptimizer.cancel();
+        decision.scenarios.push({ id: DECISION_MARKET.scenarios[i]?.id ?? "unknown", summary });
+        marketOptimizer.cancel(); // Keep only durable aggregate receipts between interpretations.
       }
-    }
+      if (analysis.coverage.priced > 0 && analysis.coverage.priced < analysis.coverage.recorded) {
+        const subset = marketDecisionInputs(
+          loadBundledCatalog(),
+          DECISION_MARKET,
+          analysis.pricedEvents,
+        );
+        decision.pricedScope = { scenarios: [] };
+        for (const [i, input] of subset.entries()) {
+          if (!current()) throw new OptimizerCancelledError();
+          const summary = await marketOptimizer.run(async () => input, {
+            operation: "api-repricing",
+          });
+          if (!current()) throw new OptimizerCancelledError();
+          decision.pricedScope.scenarios.push({
+            id: DECISION_MARKET.scenarios[i]?.id ?? "unknown",
+            summary,
+          });
+          marketOptimizer.cancel();
+        }
+      }
+      return decision;
+    };
+    const decision = await cachedWorkloadResult(
+      loaded.exported,
+      loaded.record,
+      "api-market",
+      [
+        DECISION_MARKET.decisionSnapshotHash,
+        request.period,
+        request.resourceInstanceId,
+        request.sources,
+      ],
+      compute,
+      current,
+    );
     if (current()) post({ type: "API_MARKET_OK", requestId: request.requestId, decision });
+    else post({ type: "CANCELLED", requestId: request.requestId });
   } catch (error) {
     if (!current() || error instanceof OptimizerCancelledError)
       post({ type: "CANCELLED", requestId: request.requestId });
@@ -997,6 +1016,15 @@ async function handleRunReplay(
  * import, delete or clear drops it.
  */
 let loadedWorkload: { importId: string; exported: StackReplayExportV1 } | undefined;
+let workloadEpoch = 0;
+let loadingWorkload:
+  | { importId: string; promise: ReturnType<typeof storage.loadImport> }
+  | undefined;
+function invalidateLoadedWorkload(): void {
+  workloadEpoch++;
+  loadedWorkload = undefined;
+  loadingWorkload = undefined;
+}
 
 async function loadWorkloadEvents(
   importId: string,
@@ -1008,12 +1036,25 @@ async function loadWorkloadEvents(
   const session = sessionWorkloads.get(importId);
   if (session !== undefined)
     return { ok: true, exported: session.exported, record: session.record };
+  const epoch = workloadEpoch;
   const record = (await storage.listImports()).find((entry) => entry.id === importId);
-  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
-  if (loadedWorkload?.importId === importId)
+  if (epoch !== workloadEpoch || (isCurrent !== undefined && !isCurrent()))
+    throw new OptimizerCancelledError();
+  if (record && loadedWorkload?.importId === importId)
     return { ok: true, exported: loadedWorkload.exported, record };
-  const loaded = await storage.loadImport(importId);
-  if (isCurrent !== undefined && !isCurrent()) throw new OptimizerCancelledError();
+  // Analysis and pricing start together. Share the validated read, not a
+  // request's cancellation: superseding one consumer must not poison another.
+  if (loadingWorkload?.importId !== importId)
+    loadingWorkload = { importId, promise: storage.loadImport(importId) };
+  const pending = loadingWorkload;
+  let loaded: Awaited<ReturnType<typeof storage.loadImport>>;
+  try {
+    loaded = await pending.promise;
+  } finally {
+    if (loadingWorkload === pending) loadingWorkload = undefined;
+  }
+  if (epoch !== workloadEpoch || (isCurrent !== undefined && !isCurrent()))
+    throw new OptimizerCancelledError();
   if (!loaded.ok)
     return {
       ok: false,
@@ -1049,15 +1090,36 @@ function profileOptions(record: ImportRecord | undefined, timeZone: string) {
 async function handleAnalyze(
   request: Extract<WorkerRequest, { type: "ANALYZE_WORKLOAD" }>,
 ): Promise<void> {
-  const loaded = await loadWorkloadEvents(request.importId);
+  let loaded: Awaited<ReturnType<typeof loadWorkloadEvents>>;
+  try {
+    loaded = await loadWorkloadEvents(request.importId);
+  } catch (error) {
+    if (!(error instanceof OptimizerCancelledError)) throw error;
+    post({ type: "CANCELLED", requestId: request.requestId });
+    return;
+  }
   if (!loaded.ok) {
     post({ type: "ERROR", requestId: request.requestId, error: loaded.error });
     return;
   }
-  const profile = buildWorkloadProfile(loaded.exported.events, {
-    ...profileOptions(loaded.record, request.timeZone),
-    ...(request.rulesAsOf === undefined ? {} : { rulesAsOf: request.rulesAsOf }),
-  });
+  const epoch = workloadEpoch;
+  const current = () => epoch === workloadEpoch;
+  const profile = await cachedWorkloadResult(
+    loaded.exported,
+    loaded.record,
+    "profile",
+    [request.timeZone, request.rulesAsOf],
+    () =>
+      buildWorkloadProfile(loaded.exported.events, {
+        ...profileOptions(loaded.record, request.timeZone),
+        ...(request.rulesAsOf === undefined ? {} : { rulesAsOf: request.rulesAsOf }),
+      }),
+    current,
+  );
+  if (!current()) {
+    post({ type: "CANCELLED", requestId: request.requestId });
+    return;
+  }
   post({ type: "PROFILE_OK", requestId: request.requestId, profile });
 }
 
@@ -1163,14 +1225,14 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       case "IMPORT_FILE":
         {
-          loadedWorkload = undefined;
+          invalidateLoadedWorkload();
           const signal = beginImport(request.requestId);
           await queueMutation(() => handleImportFile(request, signal));
         }
         return;
       case "IMPORT_SOURCES":
         {
-          loadedWorkload = undefined;
+          invalidateLoadedWorkload();
           const signal = beginImport(request.requestId);
           await queueMutation(() => handleImportSources(request, signal));
         }
@@ -1230,7 +1292,7 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
         return;
       case "DELETE_LOCAL_IMPORT": {
         sessionWorkloads.delete(request.importId);
-        loadedWorkload = undefined;
+        invalidateLoadedWorkload();
         // Registered first: an import running right now must not be able to write
         // this record back after the queue reaches the deletion.
         storage.invalidateInFlightWrites(request.importId);
@@ -1253,7 +1315,7 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
       case "CLEAR_LOCAL_DATA": {
         invalidateCurrentImport(request.requestId, "Clearing local data cancelled this import.");
         sessionWorkloads.clear();
-        loadedWorkload = undefined;
+        invalidateLoadedWorkload();
         // Same rule as a delete: clearing invalidates imports that are running now,
         // so nothing lands after the clear.
         storage.invalidateInFlightWrites();

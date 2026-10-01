@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { glob, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
@@ -17,6 +19,30 @@ import { build } from "vite";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
+// Invalidate optional derived results whenever their actual producer changes.
+// Include built package code: workspace imports resolve dist, not src.
+const producerFiles = [];
+for await (const file of glob(
+  [
+    "lib/**/*.ts",
+    "workers/**/*.ts",
+    "../../packages/*/dist/**/*.{js,json}",
+    "../../pnpm-lock.yaml",
+    "scripts/build-worker.mjs",
+  ],
+  { cwd: root },
+)) {
+  if (!file.endsWith(".test.ts")) producerFiles.push(file);
+}
+const producerHash = createHash("sha256");
+for (const file of producerFiles.sort()) {
+  producerHash
+    .update(file)
+    .update("\0")
+    .update(await readFile(join(root, file)))
+    .update("\0");
+}
+const cacheBuild = producerHash.digest("hex");
 
 for (const [entry, output] of [
   ["replay.worker.ts", "stackreplay-worker.js"],
@@ -31,6 +57,7 @@ for (const [entry, output] of [
     publicDir: false,
     define: {
       "process.env.NODE_ENV": JSON.stringify("production"),
+      __WORKLOAD_CACHE_BUILD__: JSON.stringify(cacheBuild),
     },
     build: {
       outDir: join(root, "public"),
