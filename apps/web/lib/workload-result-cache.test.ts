@@ -130,7 +130,9 @@ describe("derived workload results", () => {
     expect(await encodeCachedResult("correct", value)).toBeUndefined();
     const json = JSON.stringify(value);
     const digest = Array.from(
-      new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`correct\u0000${json}`))),
+      new Uint8Array(
+        await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`correct\u0000${json}`)),
+      ),
       (byte) => byte.toString(16).padStart(2, "0"),
     ).join("");
     expect(await decodeCachedResult("correct", { json, digest })).toBeUndefined();
