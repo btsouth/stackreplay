@@ -5,6 +5,7 @@ import {
   LOCAL_DATABASE_VERSION as DATABASE_VERSION,
   IMPORTS_STORE,
   PAYLOADS_STORE,
+  WORKLOAD_RESULTS_STORE,
 } from "./local-database";
 import { importRecordSchema, validateStoredPair } from "./local-record-schema";
 import type { ImportRecord } from "./worker-protocol";
@@ -111,6 +112,9 @@ function openDatabase(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(PAYLOADS_STORE)) {
         database.createObjectStore(PAYLOADS_STORE, { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains(WORKLOAD_RESULTS_STORE)) {
+        database.createObjectStore(WORKLOAD_RESULTS_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -226,50 +230,54 @@ export async function saveImport(
     // Both stores are written in one transaction: a reader can never see the
     // listing without its payload, which is what two transactions allowed
     // (benchmark finding F005).
-    return await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
-      const abort = () => {
+    return await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      "readwrite",
+      async (transaction) => {
+        const abort = () => {
+          try {
+            transaction.abort();
+          } catch {
+            /* Already committed or aborted. */
+          }
+        };
+        options.signal?.addEventListener("abort", abort, { once: true });
         try {
-          transaction.abort();
-        } catch {
-          /* Already committed or aborted. */
+          if (cancelled()) {
+            // Checked inside the transaction too: the delete can land between the
+            // first check and the write.
+            transaction.abort();
+            throw new Error("import cancelled");
+          }
+          await requestToPromise(
+            storeOf(transaction, PAYLOADS_STORE).put({ id: record.id, exported }),
+          );
+          if (cancelled()) {
+            transaction.abort();
+            throw new Error("import cancelled");
+          }
+          await requestToPromise(storeOf(transaction, IMPORTS_STORE).put(record));
+          if (cancelled()) {
+            transaction.abort();
+            throw new Error("import cancelled");
+          }
+          return { ok: true as const, value: record };
+        } finally {
+          // Keep the listener until the transaction settles: supersession between
+          // the last put and commit must still abort the atomic write.
+          transaction.addEventListener(
+            "complete",
+            () => options.signal?.removeEventListener("abort", abort),
+            { once: true },
+          );
+          transaction.addEventListener(
+            "abort",
+            () => options.signal?.removeEventListener("abort", abort),
+            { once: true },
+          );
         }
-      };
-      options.signal?.addEventListener("abort", abort, { once: true });
-      try {
-        if (cancelled()) {
-          // Checked inside the transaction too: the delete can land between the
-          // first check and the write.
-          transaction.abort();
-          throw new Error("import cancelled");
-        }
-        await requestToPromise(
-          storeOf(transaction, PAYLOADS_STORE).put({ id: record.id, exported }),
-        );
-        if (cancelled()) {
-          transaction.abort();
-          throw new Error("import cancelled");
-        }
-        await requestToPromise(storeOf(transaction, IMPORTS_STORE).put(record));
-        if (cancelled()) {
-          transaction.abort();
-          throw new Error("import cancelled");
-        }
-        return { ok: true as const, value: record };
-      } finally {
-        // Keep the listener until the transaction settles: supersession between
-        // the last put and commit must still abort the atomic write.
-        transaction.addEventListener(
-          "complete",
-          () => options.signal?.removeEventListener("abort", abort),
-          { once: true },
-        );
-        transaction.addEventListener(
-          "abort",
-          () => options.signal?.removeEventListener("abort", abort),
-          { once: true },
-        );
-      }
-    });
+      },
+    );
   } catch {
     if (cancelled()) {
       return { ok: false, code: "IMPORT_CANCELLED" };
@@ -316,19 +324,46 @@ export async function listImports(): Promise<ImportRecord[]> {
   return valid.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
 }
 
+async function deleteResultsFor(transaction: IDBTransaction, importId: string): Promise<void> {
+  // At most eight bounded aggregates exist. A cursor avoids cloning every
+  // result into one array merely to remove the affected workload's entries.
+  await new Promise<void>((resolve, reject) => {
+    const request = storeOf(transaction, WORKLOAD_RESULTS_STORE).openCursor();
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) {
+        resolve();
+        return;
+      }
+      if (cursor.value?.importId === importId) cursor.delete();
+      cursor.continue();
+    };
+  });
+}
+
 async function removeCorruptPair(importId: string): Promise<void> {
   try {
-    await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
-      const [record, payload] = await Promise.all([
-        requestToPromise(storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<unknown>),
-        requestToPromise(storeOf(transaction, PAYLOADS_STORE).get(importId) as IDBRequest<unknown>),
-      ]);
-      // Recheck under the write lock, so a newer valid pair is never deleted.
-      if (validateStoredPair(record, payload) === undefined) {
-        await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
-        await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
-      }
-    });
+    await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      "readwrite",
+      async (transaction) => {
+        const [record, payload] = await Promise.all([
+          requestToPromise(
+            storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<unknown>,
+          ),
+          requestToPromise(
+            storeOf(transaction, PAYLOADS_STORE).get(importId) as IDBRequest<unknown>,
+          ),
+        ]);
+        // Recheck under the write lock, so a newer valid pair is never deleted.
+        if (validateStoredPair(record, payload) === undefined) {
+          await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
+          await deleteResultsFor(transaction, importId);
+          await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
+        }
+      },
+    );
   } catch {
     /* Listing still excludes the damaged record. */
   }
@@ -369,11 +404,16 @@ export async function loadImport(importId: string): Promise<StorageResult<StackR
  */
 export async function deleteImport(importId: string): Promise<StorageResult<true>> {
   try {
-    await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
-      await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
-      await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
-      return true as const;
-    });
+    await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      "readwrite",
+      async (transaction) => {
+        await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
+        await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
+        await deleteResultsFor(transaction, importId);
+        return true as const;
+      },
+    );
     return { ok: true, value: true };
   } catch {
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
@@ -387,15 +427,62 @@ export async function deleteImport(importId: string): Promise<StorageResult<true
  */
 export async function clearLocalData(): Promise<StorageResult<true>> {
   try {
-    await withStores([IMPORTS_STORE, PAYLOADS_STORE], "readwrite", async (transaction) => {
-      await requestToPromise(storeOf(transaction, PAYLOADS_STORE).clear());
-      await requestToPromise(storeOf(transaction, IMPORTS_STORE).clear());
-      return true as const;
-    });
+    await withStores(
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      "readwrite",
+      async (transaction) => {
+        await requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).clear());
+        await requestToPromise(storeOf(transaction, PAYLOADS_STORE).clear());
+        await requestToPromise(storeOf(transaction, IMPORTS_STORE).clear());
+        return true as const;
+      },
+    );
     return { ok: true, value: true };
   } catch {
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
   }
+}
+
+/** Optional derived aggregates. Canonical payloads are validated before cache reads. */
+export async function loadWorkloadResult(key: string): Promise<unknown> {
+  return withStores(WORKLOAD_RESULTS_STORE, "readonly", (transaction) =>
+    requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).get(key) as IDBRequest<unknown>),
+  );
+}
+
+export async function saveWorkloadResult(
+  key: string,
+  record: ImportRecord,
+  value: { json: string; digest: string },
+  observed: StoreGeneration,
+): Promise<void> {
+  if (writeWouldResurrect(observed, record.id)) return;
+  await withStores(
+    [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+    "readwrite",
+    async (transaction) => {
+      const [stored, payloadKey] = await Promise.all([
+        requestToPromise(storeOf(transaction, IMPORTS_STORE).get(record.id) as IDBRequest<unknown>),
+        requestToPromise(storeOf(transaction, PAYLOADS_STORE).getKey(record.id)),
+      ]);
+      const checked = importRecordSchema.safeParse(stored);
+      const expected = importRecordSchema.safeParse(record);
+      if (
+        writeWouldResurrect(observed, record.id) ||
+        payloadKey === undefined ||
+        !checked.success ||
+        !expected.success ||
+        JSON.stringify(checked.data) !== JSON.stringify(expected.data)
+      )
+        return;
+      const results = storeOf(transaction, WORKLOAD_RESULTS_STORE);
+      await requestToPromise(results.put({ id: key, importId: record.id, ...value }));
+      // Bound optional storage independently of the size of imported histories.
+      const keys = await requestToPromise(results.getAllKeys());
+      for (const old of keys.filter((id) => id !== key).slice(0, Math.max(0, keys.length - 8)))
+        await requestToPromise(results.delete(old));
+    },
+  );
 }
 
 /** Opaque local identifier: never derived from workload content. */

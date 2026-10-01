@@ -14,7 +14,7 @@ import type { TargetKey } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { browserTimeZone } from "@/lib/time-zone";
 import { loadWorkloadProfile } from "@/lib/use-workload-profile";
-import { getWorkerClient } from "@/lib/worker-client";
+import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import type { WorkloadProfile } from "@/lib/workload-profile";
 import { PurchaseComparison, StackComparison } from "./decision-views";
@@ -82,8 +82,9 @@ export function WorkloadCompare({
       .then((next) => {
         if (!cancelled) setProfileState({ id: record.id, profile: next });
       })
-      .catch(() => {
-        if (!cancelled) setProfileState({ id: record.id, error: true });
+      .catch((error) => {
+        if (!cancelled && !(error instanceof SupersededError))
+          setProfileState({ id: record.id, error: true });
       });
     return () => {
       cancelled = true;

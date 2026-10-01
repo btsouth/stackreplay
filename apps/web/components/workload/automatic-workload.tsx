@@ -14,6 +14,7 @@ import { getWorkerClient, SupersededError } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import type { WorkloadProfile } from "@/lib/workload-profile";
 import { CapacityInspector } from "./capacity-inspector";
+import { WorkloadLoadingStatus, WorkloadSkeleton } from "./loading";
 import { MarketDecisionSurface } from "./market-decision";
 import { WorkloadSection } from "./section";
 import { StackConfirmation } from "./stack-confirmation";
@@ -151,6 +152,7 @@ function useAutomaticMarket(record: ImportRecord) {
 export function AutomaticWorkload({
   record,
   profile,
+  profileFailed,
   projects,
   analysis,
   tools,
@@ -159,6 +161,7 @@ export function AutomaticWorkload({
 }: {
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
+  profileFailed: boolean;
   projects: ReactNode;
   analysis: (decision: MarketDecision | undefined) => ReactNode;
   tools: ReactNode;
@@ -260,7 +263,7 @@ export function AutomaticWorkload({
     action.current?.focus();
   };
   return (
-    <div className="space-y-10 sm:space-y-14" data-testid="automatic-workload">
+    <div className="flex min-w-0 flex-col gap-10 sm:gap-14" data-testid="automatic-workload">
       <section
         aria-label="Imported workload overview"
         data-testid="workload-hero"
@@ -279,6 +282,12 @@ export function AutomaticWorkload({
               : "Imported history"}
           </p>
         </div>
+        <WorkloadLoadingStatus
+          profileReady={!!profile}
+          profileFailed={profileFailed}
+          pricingReady={!!overview}
+          pricingFailed={error}
+        />
         <div className="grid gap-5 border-y border-border py-5 sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <div className="min-w-0">
             <MicroLabel>
@@ -304,6 +313,13 @@ export function AutomaticWorkload({
                     ? "No applicable API prices"
                     : "Pricing recorded work…"}
             </p>
+            {!overview && !error ? (
+              <WorkloadSkeleton
+                testId="overview-price-loading"
+                label="Matching recorded calls to published API rates"
+                rows={1}
+              />
+            ) : null}
             {shownRange ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 {full
