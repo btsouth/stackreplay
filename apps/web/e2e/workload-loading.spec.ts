@@ -316,10 +316,7 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
           request.onsuccess = () => resolve(request.result);
           request.onerror = () => reject(request.error);
         });
-      const [storedRecord, storedPayload] = await Promise.all([
-        read("imports"),
-        read("payloads"),
-      ]);
+      const [storedRecord, storedPayload] = await Promise.all([read("imports"), read("payloads")]);
       return { storedRecord, storedPayload };
     } finally {
       database.close();
