@@ -60,7 +60,7 @@ These limits extend the earlier 512 MiB single-archive and 20,000-entry bounds t
 
 ### Import performance
 
-Decision 56 records the changes; the measurements below are from one Linux machine (28 cores, Chromium via Playwright, persistent profile), not a guarantee for other devices. Each file is detected from an 8 MiB peek, and a file no larger than that is parsed from the peek, so most files are read once. Larger JSONL files are streamed once more for parsing, split into lines in linear time. A file is fully read a further time for its exact-content signature only when another selected file has the same size. Signatures and identity hashes use native or pre-keyed hashing. Progress is posted at most every 100 ms, and the next file's detection read overlaps the current file (read-ahead 2). A cancelled scan stops within a chunk.
+Decision 56 records the changes; the measurements below are from one Linux machine (28 cores, Chromium via Playwright, persistent profile), not a guarantee for other devices. Each file is detected from an 8 MiB peek, and a file no larger than that is parsed from the peek, so most files are read once. Larger JSONL files are streamed once more for parsing, split into lines in linear time. A streamed file is fully read a further time for its exact-content signature only when another readable candidate in the same duplicate scope could match it: another stream with the same byte size, or any text/database candidate in that scope. The scope retains the connected-location group and projects root (or database directory) already used to keep exact-file duplicates and accounts separate. Text candidates still trigger in-scope signing regardless of declared size because decoded and re-encoded UTF-8 can differ from the original byte count. Signatures and identity hashes use native or pre-keyed hashing. Progress is posted at most every 100 ms, and the next file's detection read overlaps the current file (read-ahead 2). A cancelled scan stops within a chunk.
 
 | Build to Workload ready (browser) | Before | After |
 | --- | ---: | ---: |
@@ -76,6 +76,23 @@ Decision 56 records the changes; the measurements below are from one Linux machi
 The shared intake in Node on the same 3.46 GB snapshot (all 640 files) went from 94.7 s to 13.0 s with an identical result digest, and peak RSS from 971 MB to 562 MB. The main thread had no long tasks in any run; on the 450-file case its busy time fell from 1.14 s to 0.15 s. What remains is JSON parsing of every line (malformed-line warnings depend on it), UTF-8 decoding, and waiting on the browser's file reads.
 
 Chromium aborts an IndexedDB transaction whose single value holds about 300,000 events in an in-memory profile (Incognito, Guest); a normal profile committed 500,000. Such a scan now finishes unsaved, with the existing notice, instead of waiting forever.
+
+#### Scope-aware signature benchmark
+
+On 2026-10-01, a paired benchmark in Chromium 153 on devbox compared the baseline at `603837e` with scope-aware signing. It used two synthetic JSONL files totaling about 103 MB, 6,000 events per file, and the real replay Worker. Timing ran from posting `IMPORT_SOURCES` to receiving `IMPORT_OK`, including summary preparation, all existing validation, and IndexedDB persistence when enabled. File selection, real-disk reads, and UI rendering were outside the measurement.
+
+| Selection | Save locally | Baseline median | Scope-aware median |
+| --- | --- | ---: | ---: |
+| Different-size histories plus unrelated tiny JSON | No | 587 ms | 458 ms |
+| Different-size histories plus unrelated tiny JSON | Yes | 742 ms | 602 ms |
+| Equal-size histories from separate locations | No | 600 ms | 469 ms |
+| Equal-size histories from separate locations | Yes | 739 ms | 593 ms |
+| Exact duplicate within one location | No | 401 ms | 405 ms |
+| Exact duplicate within one location | Yes | 491 ms | 496 ms |
+
+The affected cases were about 19-22% faster. The exact-duplicate case changed by about 1%, with paired runs varying in both directions; it retained rejection before parsing. Each median excludes the first of six alternating baseline/optimized pairs. All 72 measurements matched both the complete portable export bytes and import-record digest, using deterministic randomness only in the synthetic test Workers. Every saved result was exported again by a fresh Worker to verify persistence and stored-data validation. No private histories were read. These are synthetic Worker timings, not a measured speedup for an existing multi-gigabyte history.
+
+The optimization does not skip a validation pass, change signatures, or combine duplicate scopes. Stream-opening, locked-reader and later read failures remain per-file unreadable outcomes; cancellation still aborts without saving. Regression tests also cover same-scope text signing, UTF-8 byte-size differences, Windows paths, undefined scopes, OpenCode directory scopes and separate account identities.
 
 ## Planned boundaries
 
