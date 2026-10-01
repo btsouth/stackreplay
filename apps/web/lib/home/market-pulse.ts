@@ -30,8 +30,8 @@ import {
  * - price: a list-price record that supersedes an earlier record for the same
  *   model and route with different rates. A model's first price record is not
  *   a price change, because its date can be the day it was recorded.
- * - benchmark: none yet. Benchmark evidence has not landed in this catalog;
- *   callers can pass reviewed benchmark items once it does.
+ * - benchmark: callers can pass reviewed benchmark items explicitly. The
+ *   homepage does not yet adapt the separate benchmark evidence package.
  *
  * A category with no records simply contributes no rows.
  */

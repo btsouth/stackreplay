@@ -249,7 +249,16 @@ test.describe("homepage without a saved workload", () => {
     } else {
       const nav = page.getByTestId("public-nav");
       await expect(nav.getByRole("link")).toHaveText(
-        ["Models", "Compare", "Plans", "Updates", "Workload", "My Stack", "Scan my history"],
+        [
+          "Models",
+          "Benchmarks",
+          "Compare",
+          "Plans",
+          "Updates",
+          "Workload",
+          "My Stack",
+          "Scan my history",
+        ],
         { useInnerText: true },
       );
       await expect(nav.getByRole("list", { name: "Your workload" })).toBeVisible();

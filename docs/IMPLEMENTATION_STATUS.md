@@ -9,7 +9,8 @@ terms, then applies the same catalog to the newest saved non-demo workload. Pers
 matches canonical identities; stack markers and question links open the existing analyses. Header
 and hero actions retain the displayed workload when a newer demo exists. Reading the page starts
 no scan or replay Worker, uploads no history and creates no database on a first visit. Comparable
-benchmark rows await reviewed evidence. See [Public site](PUBLIC_SITE.md).
+benchmark rows await homepage integration; verified benchmark evidence remains available at
+`/benchmarks` through the public navigation. See [Public site](PUBLIC_SITE.md).
 
 ### My Stack decision surface (feat/my-stack-decisions, not released)
 

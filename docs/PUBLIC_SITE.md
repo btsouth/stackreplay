@@ -12,7 +12,7 @@ Source of truth for the decisions behind this: `docs/ARCHITECTURE_DECISIONS.md`
 
 | Surface | Routes | Rendering | Data |
 | --- | --- | --- | --- |
-| Public site | `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/compare`, `/methodology`, `/changelog` | Server components, static where possible | The **real** catalog entries of the bundled snapshot |
+| Public site | `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/benchmarks`, `/compare`, `/methodology`, `/changelog` | Server components, static where possible | The **real** catalog entries of the bundled snapshot; benchmarks use their separate verified evidence package |
 | Shared results | `/s/[token]` | Server component, decoded per request | The token itself (no lookup, no storage) |
 | Local application | `/app/*` | Client surfaces | The bundled catalog + IndexedDB |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` | Route handlers | Site config |
@@ -67,9 +67,11 @@ homepage's interface.
 the developer-published `releaseDate`; a plan row uses a dated, evidenced plan-history event, never a
 catalog version date (a version recorded the day StackReplay added a plan is not market news); a
 price row needs a later list-price record replacing different rates on the same route, so a model's
-first price record is never a "change". A category with no records contributes no rows. There are
-no benchmark rows until reviewed benchmark evidence is in the catalog; the comparison table says so
-in a footnote and the hero copy only mentions benchmarks when rows exist.
+first price record is never a "change". A category with no records contributes no rows. The
+homepage does not yet adapt the separate benchmark evidence package into its comparison or pulse;
+verified benchmark results remain available at `/benchmarks` through the public header and footer.
+The comparison table explains its requirement for comparable evidence in a footnote, and the hero
+copy only mentions benchmarks when rows exist.
 
 **Configuration holds ids, not facts.** The featured models and plans are short lists of catalog
 ids. Every price, limit, capability, lineup and term is read from the catalog at render time, and an

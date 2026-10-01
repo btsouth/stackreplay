@@ -30,7 +30,14 @@ describe("public navigation", () => {
 
   it("keeps every header destination reachable from the footer or the header itself", () => {
     const footer = publicFooterGroups.flatMap((group) => group.items.map((item) => item.href));
-    for (const href of ["/methodology", "/changelog", "/plans", "/models", "/benchmarks", "/compare"])
+    for (const href of [
+      "/methodology",
+      "/changelog",
+      "/plans",
+      "/models",
+      "/benchmarks",
+      "/compare",
+    ])
       expect(footer).toContain(href);
   });
 
