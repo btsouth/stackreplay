@@ -42,21 +42,21 @@ The existing versioned StackReplay export is the portable workload. `stackreplay
 
 The salt used to hash native identities for browser intake is generated in memory and is never exported. The CLI keeps its local owner-only salt. The browser does not send selected source content to a StackReplay endpoint. The application still loads ordinary site assets over the network, so the privacy claim is specifically about selected workload files.
 
-ZIP imports accept JSON and JSONL members. Member names are normalized and unsafe paths are rejected. Archive hierarchy is transient: persisted intake outcomes use only safe member basenames. A malformed ZIP is reported as a failed candidate while unrelated selected files continue. Decompression is bounded at 256 MiB per member and 512 MiB per archive, and every directory or file entry counts toward the per-archive 20,000-entry limit. Directly selected source files may be up to 512 MiB each.
+ZIP imports accept JSON and JSONL members. Member names are normalized and unsafe paths are rejected. Archive hierarchy is transient: persisted intake outcomes use only safe member basenames. A malformed ZIP is reported as a failed candidate while unrelated selected files continue. Decompression is bounded at 256 MiB per member and 512 MiB per archive, and every directory or file entry counts toward the per-archive 20,000-entry limit. Directly selected JSONL session files are streamed a line at a time and may be up to 2 GiB each; other source files are read as one string and may be up to 512 MiB.
 
 The operation-wide `BROWSER_INTAKE_BUDGET` lives in `packages/adapters/src/browser.ts` and applies across all selected files and archives:
 
 | Aggregate bound | Limit |
 | --- | ---: |
 | Selected candidates | 20,000 |
-| Selected bytes | 5 GiB |
-| Bytes read from selected files and expanded members | 5 GiB |
+| Selected bytes | 16 GiB |
+| Bytes read from selected files and expanded members | 16 GiB |
 | Archives | 16 |
 | Archive entries, including directories | 20,000 |
 | Expanded archive members | 20,000 |
 | Expanded bytes across all archives | 512 MiB |
 
-These limits extend the earlier 512 MiB single-archive and 20,000-entry bounds to a complete batch. The 5 GiB selected/read allowance admits a large multi-year history folder, and a scan above 1 GiB starts with a warning that it can use several gigabytes of browser memory; the 512 MiB expanded cap avoids multiplying decompressed memory across archives. Obvious unsupported extensions are skipped before reading or hashing. A budget breach stops the whole import with the exact aggregate bound named; it never commits a partial workload. The Worker also gives each import a request generation. Starting a new import invalidates the previous generation before any IndexedDB or temporary-session commit, while Replay keeps its separate run guard.
+These limits extend the earlier 512 MiB single-archive and 20,000-entry bounds to a complete batch. Because JSONL is streamed, memory follows the recorded events kept, not the bytes read: the shared intake read a real 7.25 GiB Claude Code and Codex history (811 files, 112,775 events) in 22.8 s at 0.57 GiB peak resident memory. The 16 GiB selected/read allowance therefore admits a multi-year agent history, which the earlier 5 GiB bound refused once one tool's folder passed it. The limit that remains is saving very large event counts (see below). A scan above 1 GiB starts with a note that it can take a while; the 512 MiB expanded cap avoids multiplying decompressed memory across archives. Obvious unsupported extensions are skipped before reading or hashing. A budget breach stops the whole import with the exact aggregate bound named; it never commits a partial workload. The Worker also gives each import a request generation. Starting a new import invalidates the previous generation before any IndexedDB or temporary-session commit, while Replay keeps its separate run guard.
 
 ### Import performance
 
@@ -70,6 +70,8 @@ Decision 56 records the changes; the measurements below are from one Linux machi
 | One 236 MB Codex rollout | 3.32 s | 0.80 s |
 | 24 Claude Code files with multi-megabyte lines, 506 MB | 7.83 s | 1.82 s |
 | Real Claude Code, Codex and Command Code history, 3.5 GB (snapshot) | 67.5 s | 15.3 s |
+| Real Codex history, 5.3 GB, 335 files, one session 460 MB (after the 16 GiB bound) | refused | 23.9 s |
+| Real Claude Code and Codex history in one folder, 7.3 GB, 112,801 events (after the 16 GiB bound) | refused | 47.2 s |
 
 The shared intake in Node on the same 3.46 GB snapshot (all 640 files) went from 94.7 s to 13.0 s with an identical result digest, and peak RSS from 971 MB to 562 MB. The main thread had no long tasks in any run; on the 450-file case its busy time fell from 1.14 s to 0.15 s. What remains is JSON parsing of every line (malformed-line warnings depend on it), UTF-8 decoding, and waiting on the browser's file reads.
 

@@ -9,6 +9,7 @@ import {
   expandZipCandidate,
   FileSignature,
   intakeBrowserCandidates,
+  MAX_STREAMED_SOURCE_FILE_BYTES,
   safeIntakeMessage,
   streamedLines,
   unavailableCandidate,
@@ -72,6 +73,64 @@ describe("browser intake using shared adapters", () => {
         budget: read,
       }),
     ).rejects.toMatchObject({ bound: "readBytes" });
+  });
+
+  it("admits a multi-gigabyte history selection up to 16 GB, and no further", () => {
+    const GiB = 1024 ** 3;
+    const files = (count: number, size: number) =>
+      Array.from({ length: count }, (_, index) => ({ path: `rollout-${index}.jsonl`, size }));
+    // A real Codex folder of 5.3 GB plus Claude Code: well inside the bound.
+    expect(() => new BrowserIntakeBudget().select(files(16, GiB))).not.toThrow();
+    expect(() => new BrowserIntakeBudget().select(files(17, GiB))).toThrow(
+      expect.objectContaining({ bound: "selectedBytes", limit: 16 * GiB }),
+    );
+  });
+
+  it("streams a session file past 512 MB, and keeps the 512 MB limit for text reads", async () => {
+    const MiB = 1024 ** 2;
+    const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
+    // The declared size is what the limits read; the stream carries a real rollout.
+    const streamed: BrowserCandidate = {
+      path: "rollout-long.jsonl",
+      size: 700 * MiB,
+      lastModified: Date.parse(NOW),
+      text: async () => {
+        throw new Error("whole-file read attempted");
+      },
+      peekText: async () => CODEX_ROLLOUT,
+      stream: () => new Blob([bytes]).stream(),
+    };
+    const result = await intakeBrowserCandidates([streamed], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    expect(result.outcomes[0]?.status).not.toBe("unsupported");
+    expect(result.exported?.events.length ?? 0).toBeGreaterThan(0);
+
+    // The same size read as one string is refused: an engine string cannot hold it.
+    const whole: BrowserCandidate = {
+      ...candidate("rollout-long.jsonl", CODEX_ROLLOUT),
+      size: 700 * MiB,
+    };
+    const refused = await intakeBrowserCandidates([whole], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    expect(refused.outcomes[0]).toMatchObject({
+      status: "unsupported",
+      reason: "File exceeds the 512 MB source parser limit",
+    });
+
+    // Past the streamed bound, the file is named as unsupported, never read.
+    const huge: BrowserCandidate = { ...streamed, size: MAX_STREAMED_SOURCE_FILE_BYTES + 1 };
+    const skipped = await intakeBrowserCandidates([huge], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    expect(skipped.outcomes[0]).toMatchObject({
+      status: "unsupported",
+      reason: "File exceeds the 2 GB session file limit",
+    });
   });
 
   it("reports running model and project totals, with local labels only", async () => {

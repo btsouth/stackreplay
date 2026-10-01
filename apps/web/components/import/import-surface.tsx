@@ -669,14 +669,14 @@ export function ImportSurface({
                     sessions.
                   </p>
                   <p>
-                    A local scan accepts up to 5 GB of selected files, with a 512 MB limit for each
-                    raw source file. Large scans need substantial browser memory. If a full history
-                    exceeds the limit, choose a smaller date folder, such as a Codex year or month.
-                    OpenCode CLI and desktop share their session database: close OpenCode before
-                    selecting its folder, and include opencode.db-wal if present. OpenCode database
-                    files and the combined snapshot are limited to 128 MB; use a CLI export for
-                    larger histories. ChatGPT web conversations do not have a local sessions folder;
-                    a ChatGPT data export is not replay-grade usage evidence.
+                    A local scan accepts up to 16 GB of selected files, with a 2 GB limit for each
+                    JSONL session file and 512 MB for other source files. If a full history exceeds
+                    the limit, choose a smaller date folder, such as a Codex year or month. OpenCode
+                    CLI and desktop share their session database: close OpenCode before selecting
+                    its folder, and include opencode.db-wal if present. OpenCode database files and
+                    the combined snapshot are limited to 128 MB; use a CLI export for larger
+                    histories. ChatGPT web conversations do not have a local sessions folder; a
+                    ChatGPT data export is not replay-grade usage evidence.
                   </p>
                 </div>
               </details>
