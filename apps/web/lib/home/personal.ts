@@ -252,6 +252,8 @@ export interface MarketRelation {
   label: string;
   /** The established relation, in words ("12,402 recorded calls"). */
   detail: string;
+  /** Recorded calls on the exact model, for a "used" relation. */
+  calls?: number | undefined;
 }
 
 export const MARKET_RELATION_LABELS: Record<MarketRelationKind, string> = {
@@ -298,6 +300,7 @@ export function marketRelation(
         kind: "used",
         label: MARKET_RELATION_LABELS.used,
         detail: `${callCount(used.calls)} on ${index.models[used.id]?.name ?? "this model"}`,
+        calls: used.calls,
       };
     for (const id of item.modelIds) {
       const family = index.models[id]?.familyId;
@@ -330,6 +333,42 @@ export function marketRelation(
       };
   }
   return undefined;
+}
+
+const RELATION_ORDER: Record<MarketRelationKind, number> = { used: 0, stack: 1, related: 2 };
+const IMPORTANCE_ORDER = { major: 0, notable: 1, minor: 2 } as const;
+
+/**
+ * Related events, strongest relation first (recorded use by calls, then the
+ * stack, then family), then importance and recency. One per related subject:
+ * a relation's detail names its model or plan ("… on Claude Opus 5.5",
+ * "Claude Max 5x is in your stack"), so the first event about a subject
+ * stands for the rest.
+ */
+export function strongestFirst<
+  T extends { id: string; day: string; importance: keyof typeof IMPORTANCE_ORDER },
+>(
+  events: readonly T[],
+  relations: ReadonlyMap<string, MarketRelation>,
+): { event: T; relation: MarketRelation }[] {
+  const sorted = events
+    .flatMap((event) => {
+      const relation = relations.get(event.id);
+      return relation === undefined ? [] : [{ event, relation }];
+    })
+    .sort(
+      (a, b) =>
+        RELATION_ORDER[a.relation.kind] - RELATION_ORDER[b.relation.kind] ||
+        (b.relation.calls ?? 0) - (a.relation.calls ?? 0) ||
+        IMPORTANCE_ORDER[a.event.importance] - IMPORTANCE_ORDER[b.event.importance] ||
+        b.event.day.localeCompare(a.event.day),
+    );
+  const seen = new Set<string>();
+  return sorted.filter(({ relation }) => {
+    if (seen.has(relation.detail)) return false;
+    seen.add(relation.detail);
+    return true;
+  });
 }
 
 /** Share of recorded calls on models a plan's published lineup includes. */

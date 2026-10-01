@@ -16,7 +16,7 @@ import {
   marketRelation,
 } from "@/lib/home/personal";
 import { useLocalWorkload } from "@/lib/local-workload";
-import type { MarketEventView } from "@/lib/market/events";
+import type { MarketEventHighlight, MarketEventView } from "@/lib/market/events";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -42,6 +42,22 @@ export function relativeDay(day: string, today: string): string {
   return age === 0 ? "Today" : age === 1 ? "Yesterday" : shortDay(day);
 }
 
+/** Every accepted event no older than thirty days on the reader's own day. */
+export function useRecentEvents(
+  events: readonly MarketEventView[],
+  builtOn: string,
+): readonly MarketEventView[] {
+  const today = useReaderDay(builtOn);
+  return useMemo(
+    () =>
+      events.filter((event) => {
+        const age = daysBetween(event.day, today);
+        return age >= 0 && age <= 30;
+      }),
+    [events, today],
+  );
+}
+
 /** Canonical relations between the stored workload or stack and these events. */
 export function useMarketRelations(
   events: readonly MarketEventView[],
@@ -61,11 +77,19 @@ export function useMarketRelations(
   }, [events, index, record, local.stack]);
 }
 
-function RelationMark({ relation }: { relation: MarketRelation | undefined }) {
+/** "In your stack", "Used by you", "Relevant to you": a word and a dot, never color alone. */
+export function RelationMark({
+  relation,
+  size = "sm",
+}: {
+  relation: MarketRelation | undefined;
+  size?: "sm" | "lg";
+}) {
   if (relation === undefined) return null;
   return (
     <span
       className="home-mark"
+      data-size={size}
       data-testid="personal-mark"
       data-relation={relation.kind}
       title={relation.detail}
@@ -76,11 +100,189 @@ function RelationMark({ relation }: { relation: MarketRelation | undefined }) {
   );
 }
 
+/** Only states the event type does not already say ("Model announced" covers announced). */
+const STATUS_WORD: Partial<Record<MarketEventView["status"], string>> = {
+  scheduled: "Scheduled",
+  paused: "Paused for new subscribers",
+  retired: "Retired",
+};
+
+function SourceLink({ event, className }: { event: MarketEventView; className: string }) {
+  return (
+    <a
+      href={event.source.url}
+      target="_blank"
+      rel="noreferrer"
+      className={className}
+      title={event.source.title}
+      aria-label={`Source, ${event.source.title} (opens in a new tab)`}
+    >
+      Source<span aria-hidden="true"> ↗</span>
+    </a>
+  );
+}
+
+/** The newest event, set as the page's main story. */
+function LeadStory({
+  event,
+  today,
+  relation,
+}: {
+  event: MarketEventView;
+  today: string;
+  relation: MarketRelation | undefined;
+}) {
+  const status = STATUS_WORD[event.status];
+  const model = event.links.find((link) => link.kind === "model");
+  const plan = event.links.find((link) => link.kind === "plan");
+  return (
+    <article
+      className="home-lead"
+      aria-labelledby="home-lead-title"
+      data-testid="market-pulse-item"
+      data-lead=""
+      data-pulse-id={event.id}
+      data-day={event.day}
+      data-type={event.type}
+      data-importance={event.importance}
+    >
+      <p className="home-lead-kicker">
+        <time dateTime={event.occurredAt} className="home-lead-day">
+          {relativeDay(event.day, today)}
+        </time>
+        <span className="home-lead-provider">{event.providerName}</span>
+        <span>{event.typeLabel}</span>
+      </p>
+      <h3 id="home-lead-title" className="home-lead-title">
+        <Link href={event.href} className="home-subject-link">
+          {event.title}
+        </Link>
+      </h3>
+      {relation === undefined ? null : (
+        <p className="home-lead-relation" data-testid="lead-relation">
+          <RelationMark relation={relation} size="lg" />
+          <span>{relation.detail}</span>
+        </p>
+      )}
+      <p className="home-lead-summary">{event.summary}</p>
+      {event.highlights.length > 0 ? (
+        <dl className="home-lead-figures" data-testid="lead-figures">
+          {event.highlights.slice(0, 3).map((highlight) => (
+            <div key={highlight.kind} className="home-lead-figure" data-kind={highlight.kind}>
+              <dt>{highlight.label}</dt>
+              <dd>{highlight.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      <div className="home-lead-foot">
+        {status === undefined ? null : <p className="home-lead-status">{status}</p>}
+        <p className="home-lead-actions">
+          {event.benchmarksHref === undefined ? null : (
+            <Link
+              href={event.benchmarksHref}
+              className="home-lead-action"
+              aria-label={`Benchmarks, ${event.title}`}
+            >
+              Benchmarks <span aria-hidden="true">→</span>
+            </Link>
+          )}
+          {model === undefined ? null : (
+            <Link
+              href={model.href}
+              className="home-lead-action"
+              aria-label={`Model details, ${model.label}`}
+            >
+              Model details <span aria-hidden="true">→</span>
+            </Link>
+          )}
+          {plan === undefined ? null : (
+            <Link
+              href={plan.href}
+              className="home-lead-action"
+              aria-label={`Plan details, ${plan.label}`}
+            >
+              Plan details <span aria-hidden="true">→</span>
+            </Link>
+          )}
+          <SourceLink event={event} className="home-lead-action home-lead-source" />
+        </p>
+      </div>
+    </article>
+  );
+}
+
+const ROW_FIGURE_ORDER: readonly MarketEventHighlight["kind"][] = [
+  "plan-price",
+  "price",
+  "benchmark",
+  "api",
+  "benchmark-count",
+];
+
+/** The one figure a compact row leads with: a plan price, a list price or a score. */
+function rowFigure(event: MarketEventView): MarketEventHighlight | undefined {
+  for (const kind of ROW_FIGURE_ORDER) {
+    const found = event.highlights.find((highlight) => highlight.kind === kind);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function SecondaryStory({
+  event,
+  today,
+  relation,
+}: {
+  event: MarketEventView;
+  today: string;
+  relation: MarketRelation | undefined;
+}) {
+  const figure = rowFigure(event);
+  return (
+    <li
+      className="home-brief"
+      data-testid="market-pulse-item"
+      data-pulse-id={event.id}
+      data-day={event.day}
+      data-type={event.type}
+      data-importance={event.importance}
+    >
+      <time dateTime={event.occurredAt} className="home-brief-day">
+        {relativeDay(event.day, today)}
+      </time>
+      <div className="home-brief-body">
+        <h3 className="home-brief-title">
+          <Link href={event.href} className="home-subject-link">
+            {event.title}
+          </Link>
+        </h3>
+        <p className="home-brief-meta">
+          <span>
+            {event.providerName} · {event.typeLabel}
+          </span>
+          <SourceLink event={event} className="home-source-link" />
+          <RelationMark relation={relation} />
+        </p>
+      </div>
+      {figure === undefined ? null : (
+        <p className="home-brief-figure" data-kind={figure.kind}>
+          <span className="home-brief-value">{figure.value}</span>
+          <span className="home-brief-label">
+            {figure.kind === "benchmark" ? figure.label : figure.short}
+          </span>
+        </p>
+      )}
+    </li>
+  );
+}
+
 /**
  * The live AI market briefing: the newest major and notable events from the
- * canonical feed, newest first by when they happened. Prefers the last seven
- * days, widens toward thirty only when needed, never shows anything older,
- * and shows fewer rows rather than filler.
+ * canonical feed, newest first by when they happened. The newest is the lead
+ * story; the next ones are compact rows. Prefers the last seven days, widens
+ * toward thirty only when needed, never shows anything older, and shows fewer
+ * rows rather than filler.
  */
 export function MarketBriefing({
   events,
@@ -97,93 +299,47 @@ export function MarketBriefing({
   const today = useReaderDay(builtOn);
   const shown = useMemo(() => homepageBriefing(events, { today, limit }), [events, today, limit]);
   const { relations } = useMarketRelations(shown, index);
-  const related = shown.filter((event) => relations.has(event.id)).length;
+  const [lead, ...rest] = shown;
   return (
     <section
       id="market-pulse"
       aria-labelledby="market-pulse-heading"
-      className="dark home-panel home-briefing"
+      className="home-briefing"
       data-testid="market-pulse"
       data-today={today}
     >
-      <header className="home-panel-head">
-        <h2 id="market-pulse-heading" className="home-micro text-foreground">
-          <span aria-hidden="true" className="home-panel-mark" />
-          AI market · <time dateTime={today}>{shortDay(today)}</time>
-        </h2>
-        <p className="home-micro" data-testid="market-pulse-updated">
-          {shown.length} {shown.length === 1 ? "change" : "changes"} ·{" "}
-          {related > 0 ? (
-            <a href="#market-relevance" className="home-briefing-related">
-              {related} {related === 1 ? "relates" : "relate"} to you
-            </a>
-          ) : shown.length > 0 && daysBetween(shown.at(-1)?.day ?? today, today) <= 7 ? (
-            "last 7 days"
-          ) : (
-            "last 30 days"
-          )}
-        </p>
-      </header>
-      {shown.length === 0 ? (
-        <p className="px-5 py-6 text-sm text-muted-foreground" data-testid="market-pulse-empty">
-          No material model, pricing or subscription change in the last 30 days.
+      <h2 id="market-pulse-heading" className="sr-only">
+        AI market, {shortDay(today)}
+      </h2>
+      {lead === undefined ? (
+        <p className="home-briefing-empty" data-testid="market-pulse-empty">
+          No material model, pricing or subscription change in the last 30 days.{" "}
+          <Link href="/changelog" className="home-inline-link">
+            View all AI updates
+          </Link>
         </p>
       ) : (
-        <ol className="home-pulse-list">
-          {shown.map((event) => (
-            <li
-              key={event.id}
-              className="home-pulse-item"
-              data-testid="market-pulse-item"
-              data-pulse-id={event.id}
-              data-day={event.day}
-              data-type={event.type}
-              data-importance={event.importance}
-            >
-              <p className="home-pulse-when">
-                <time dateTime={event.occurredAt} className="home-pulse-day">
-                  {relativeDay(event.day, today)}
-                </time>
-              </p>
-              <div className="min-w-0">
-                <p className="home-pulse-kicker">
-                  {event.providerName} · {event.typeLabel}
-                </p>
-                <h3 className="home-pulse-subject">
-                  <Link href={event.href} className="home-subject-link">
-                    {event.title}
-                  </Link>
-                  <RelationMark relation={relations.get(event.id)} />
-                </h3>
-                <p className="home-pulse-change">{event.summary}</p>
-                {event.facts.length > 0 ? (
-                  <p className="home-pulse-facts">{event.facts.slice(0, 2).join(" · ")}</p>
-                ) : null}
-                <p className="home-pulse-meta">
-                  <a
-                    href={event.source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="home-source-link"
-                    title={event.source.title}
-                    aria-label={`Source, ${event.source.title} (opens in a new tab)`}
-                  >
-                    Source<span aria-hidden="true"> ↗</span>
-                  </a>
-                  <Link href={`/changelog#${event.id}`} className="home-source-link">
-                    Details<span className="sr-only"> for {event.title}</span>
-                  </Link>
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div className="home-briefing-grid">
+          <LeadStory event={lead} today={today} relation={relations.get(lead.id)} />
+          <div className="home-briefs">
+            {rest.length === 0 ? null : (
+              <ol className="home-brief-list" aria-label="Also in the AI market">
+                {rest.map((event) => (
+                  <SecondaryStory
+                    key={event.id}
+                    event={event}
+                    today={today}
+                    relation={relations.get(event.id)}
+                  />
+                ))}
+              </ol>
+            )}
+            <Link href="/changelog" className="home-briefs-more">
+              View all AI updates <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
       )}
-      <footer className="home-panel-foot">
-        <Link href="/changelog" className="home-inline-link">
-          View all AI updates <span aria-hidden="true">→</span>
-        </Link>
-      </footer>
     </section>
   );
 }
@@ -196,10 +352,10 @@ const WEEK_CATEGORIES: readonly MarketEventCategory[] = [
 ];
 
 /**
- * The last seven days at a glance, beside the hero copy: how many accepted
- * events of each kind, from which developers, and (with a saved workload) how
- * many relate to it. Counts every accepted event, minor ones included, once
- * each under its primary category. Ages on the reader's clock like the briefing.
+ * The last seven days in one restrained line above the briefing: how many
+ * accepted events of each kind, and (with a saved workload or stack) how many
+ * relate to it. Counts every accepted event, minor ones included, once each
+ * under its primary category. Ages on the reader's clock like the briefing.
  */
 export function MarketWeek({
   events,
@@ -221,56 +377,62 @@ export function MarketWeek({
     [events, today],
   );
   const { relations } = useMarketRelations(week, index);
-  if (week.length === 0) return null;
   const counts = WEEK_CATEGORIES.map((category) => ({
     category,
     count: week.filter((event) => marketEventCategory(event.type) === category).length,
   })).filter((entry) => entry.count > 0);
-  const developers = [...new Set(week.map((event) => event.providerName))];
   const related = week.filter((event) => relations.has(event.id)).length;
   return (
-    <section className="home-week" aria-labelledby="home-week-heading" data-testid="market-week">
-      <h2 id="home-week-heading" className="home-micro">
-        Last 7 days
-      </h2>
-      <dl className="home-week-counts">
-        <div>
-          <dt>Market changes</dt>
-          <dd>{week.length}</dd>
-        </div>
-        {counts.map((entry) => (
-          <div key={entry.category} data-category={entry.category}>
-            <dt>{MARKET_EVENT_CATEGORY_LABELS[entry.category]}</dt>
-            <dd>{entry.count}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className="home-week-note">
-        From {developers.join(", ")}.{" "}
-        {related > 0 ? (
-          <a
-            href="#market-relevance"
-            className="home-inline-link"
-            data-testid="market-week-related"
-          >
-            {related} {related === 1 ? "relates" : "relate"} to your workload or stack
-          </a>
-        ) : (
-          <Link href="/changelog" className="home-inline-link">
-            All AI updates
-          </Link>
-        )}
+    <div className="home-pulse-line">
+      <p className="home-pulse-line-head" data-testid="market-pulse-updated">
+        <span aria-hidden="true" className="home-live-dot" />
+        AI market · <time dateTime={today}>{shortDay(today)}</time>
       </p>
-    </section>
+      {week.length === 0 ? (
+        <p className="home-pulse-line-body">No material change in the last 7 days.</p>
+      ) : (
+        <section
+          className="home-pulse-line-body"
+          aria-labelledby="home-week-heading"
+          data-testid="market-week"
+        >
+          <h2 id="home-week-heading" className="home-pulse-line-label">
+            Last 7 days
+          </h2>
+          <dl className="home-week-counts">
+            <div data-category="all">
+              <dt>{week.length === 1 ? "change" : "changes"}</dt>
+              <dd>{week.length}</dd>
+            </div>
+            {counts.map((entry) => (
+              <div key={entry.category} data-category={entry.category}>
+                <dt>{MARKET_EVENT_CATEGORY_LABELS[entry.category].toLowerCase()}</dt>
+                <dd>{entry.count}</dd>
+              </div>
+            ))}
+          </dl>
+          {related > 0 ? (
+            <a
+              href="#for-you"
+              className="home-pulse-line-related"
+              data-testid="market-week-related"
+            >
+              <span aria-hidden="true" className="home-mark-dot" />
+              {related} {related === 1 ? "relates" : "relate"} to you
+            </a>
+          ) : null}
+        </section>
+      )}
+    </div>
   );
 }
 
 const RELEVANCE_ROWS = 6;
 
 /**
- * The bridge into personal intelligence: how many recent market changes relate
- * to the stored workload or stack, by canonical identity. Renders nothing
- * until a saved non-demo workload or a Current Stack exists.
+ * The full list of recent market changes that relate to the stored workload
+ * or stack, by canonical identity. Renders nothing until a saved non-demo
+ * workload or a Current Stack exists.
  */
 export function MarketRelevanceSummary({
   events,
@@ -282,15 +444,7 @@ export function MarketRelevanceSummary({
   builtOn: string;
   index: HomeCatalogIndex;
 }) {
-  const today = useReaderDay(builtOn);
-  const recent = useMemo(
-    () =>
-      events.filter((event) => {
-        const age = daysBetween(event.day, today);
-        return age >= 0 && age <= 30;
-      }),
-    [events, today],
-  );
+  const recent = useRecentEvents(events, builtOn);
   const local = useLocalWorkload();
   const { ready, relations } = useMarketRelations(recent, index);
   if (!ready && local.stack.length === 0) return null;
@@ -303,11 +457,13 @@ export function MarketRelevanceSummary({
       data-testid="market-relevance"
       data-count={related.length}
     >
-      <h2 id="market-relevance-heading" className="home-relevance-title">
+      <h3 id="market-relevance-heading" className="home-relevance-title">
         {related.length === 0
-          ? "None of the last 30 days' market changes involve a model you used or a plan in your stack."
-          : `${related.length} recent market ${related.length === 1 ? "change relates" : "changes relate"} to your workload or stack`}
-      </h2>
+          ? ready
+            ? "None of the last 30 days' market changes involve a model you used or a plan in your stack."
+            : "None of the last 30 days' market changes involve a plan in your stack."
+          : `${related.length} market ${related.length === 1 ? "change" : "changes"} in the last 30 days ${related.length === 1 ? "relates" : "relate"} to ${ready ? "your workload or stack" : "your stack"}`}
+      </h3>
       {related.length > 0 ? (
         <ul className="home-relevance-list">
           {related.slice(0, RELEVANCE_ROWS).map((event) => {

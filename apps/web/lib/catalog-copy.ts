@@ -42,6 +42,14 @@ export function priceText(price: PlanPriceV1): string {
   return `${formatUsd(price.amount)} / ${price.interval}`;
 }
 
+/** "$500/mo" for a monthly price; other intervals spelled out like `priceText`. */
+export function shortPriceText(price: { amount: string; interval: string }): string {
+  if (Number(price.amount) === 0) return "Free";
+  return price.interval === "month"
+    ? `${formatUsd(price.amount)}/mo`
+    : `${formatUsd(price.amount)} / ${price.interval}`;
+}
+
 const VERIFICATION_WORD = {
   verified: "Verified",
   measured: "Measured",

@@ -131,6 +131,20 @@ describe("benchmark rows on the homepage", () => {
     }
   });
 
+  it("shows at most three rows, each bar the percent score on its own 0-100% scale", () => {
+    expect(comparison?.benchmarks.length).toBeLessThanOrEqual(3);
+    const resolved = resolveComparison(benchmarkData, ids, { coverage: "all" });
+    for (const row of comparison?.benchmarks ?? []) {
+      const source = resolved.find((entry) => `benchmark:${entry.definition.id}` === row.id);
+      row.cells.forEach((cell, index) => {
+        const observation = source?.cells[index]?.observation;
+        if (observation === undefined || source?.definition.unit !== "percent")
+          expect(cell.bar).toBeUndefined();
+        else expect(cell.bar).toBeCloseTo(observation.value / 100, 10);
+      });
+    }
+  });
+
   it("requires results for at least three of the columns", () => {
     for (const row of comparison?.benchmarks ?? [])
       expect(row.cells.filter((cell) => !cell.absent).length).toBeGreaterThanOrEqual(

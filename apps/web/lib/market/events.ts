@@ -1,4 +1,9 @@
-import { type BenchmarkData, benchmarkName, resolveComparison } from "@stackreplay/benchmarks";
+import {
+  type BenchmarkData,
+  benchmarkEdition,
+  benchmarkName,
+  resolveComparison,
+} from "@stackreplay/benchmarks";
 import {
   daysBetween,
   HOMEPAGE_MAX_AGE_DAYS,
@@ -11,11 +16,14 @@ import {
   type MarketEventType,
   type MarketFeed,
   marketEventCategories,
+  marketEventCategory,
   marketFeed,
   occurredDay,
   sortByOccurrence,
   validateMarketFeed,
 } from "@stackreplay/market-events";
+import { benchmarkUrl } from "../benchmark-state";
+import { shortPriceText } from "../catalog-copy";
 import { basePrice, modelPrices } from "../market-discovery";
 import { modelContext, tokenSize } from "../model-specifications";
 import { formatRate } from "../price-table";
@@ -40,6 +48,18 @@ export interface MarketEventLink {
   href: string;
 }
 
+/**
+ * One fact beside an event, split for display: the figure and what it is.
+ * Same sources as `facts` (catalog and benchmark evidence at render time).
+ */
+export interface MarketEventHighlight {
+  kind: "benchmark" | "benchmark-count" | "price" | "api" | "context" | "plan-price";
+  value: string;
+  label: string;
+  /** A few words for a compact row ("DeepSWE v1.1", "per month"). */
+  short: string;
+}
+
 export interface MarketEventView {
   id: string;
   type: MarketEventType;
@@ -58,6 +78,10 @@ export interface MarketEventView {
   summary: string;
   /** Short catalog or benchmark facts, each traceable to an accepted record. */
   facts: string[];
+  /** The same kind of facts as figure + label, most telling first. */
+  highlights: MarketEventHighlight[];
+  /** The benchmark sheet for the event's models, when it references evidence. */
+  benchmarksHref?: string | undefined;
   modelIds: string[];
   planIds: string[];
   links: MarketEventLink[];
@@ -100,7 +124,7 @@ function priceFact(modelId: string, asOf: string): string | undefined {
  * edition's primary observation (the one the Benchmarks page shows), and only
  * when it comes from a source set the event references. Never a composite.
  */
-function benchmarkFact(event: MarketEvent, data: BenchmarkData): string | undefined {
+function headlineObservation(event: MarketEvent, data: BenchmarkData) {
   const reference = event.benchmark;
   const benchmarkId = reference?.headlineBenchmarkId;
   const modelId = event.modelIds[0];
@@ -116,7 +140,108 @@ function benchmarkFact(event: MarketEvent, data: BenchmarkData): string | undefi
     observation.effort !== undefined && /^[A-Za-z]{2,8}$/u.test(observation.effort)
       ? ` (${observation.effort} effort)`
       : "";
-  return `${benchmarkName(row.definition)} ${observation.displayValue}${effort}, reported by ${observation.evaluator}`;
+  return { name: benchmarkName(row.definition), observation, effort };
+}
+
+function benchmarkFact(event: MarketEvent, data: BenchmarkData): string | undefined {
+  const headline = headlineObservation(event, data);
+  if (headline === undefined) return undefined;
+  const { name, observation, effort } = headline;
+  return `${name} ${observation.displayValue}${effort}, reported by ${observation.evaluator}`;
+}
+
+/**
+ * Distinct benchmarks with a reported result for the event's first model in
+ * the source sets the event references (the count the source publishes, as
+ * reviewed into the evidence package).
+ */
+function benchmarkCount(event: MarketEvent, data: BenchmarkData): number {
+  const modelId = event.modelIds[0];
+  const sets = event.benchmark?.sourceSetIds ?? [];
+  if (modelId === undefined || sets.length === 0) return 0;
+  const ids = new Set(
+    data.sourceSets
+      .filter((set) => sets.includes(set.id))
+      .flatMap((set) => set.observations)
+      .filter((observation) => observation.modelId === modelId)
+      .map((observation) => observation.benchmarkId),
+  );
+  return ids.size;
+}
+
+function highlightsFor(
+  event: MarketEvent,
+  catalog: PublicCatalog,
+  benchmarks: BenchmarkData,
+  modelFacts: boolean,
+): MarketEventHighlight[] {
+  const highlights: MarketEventHighlight[] = [];
+  const headline = headlineObservation(event, benchmarks);
+  if (headline !== undefined)
+    highlights.push({
+      kind: "benchmark",
+      value: headline.observation.displayValue,
+      label: `${headline.name}${headline.effort}, reported by ${headline.observation.evaluator}`,
+      short: headline.name,
+    });
+  const count = benchmarkCount(event, benchmarks);
+  if (count > 1)
+    highlights.push({
+      kind: "benchmark-count",
+      value: String(count),
+      label: "reported benchmark results",
+      short: "benchmark results",
+    });
+  const lead = event.modelIds[0];
+  const model = lead === undefined ? undefined : catalog.modelById(lead);
+  if (model !== undefined && modelFacts) {
+    const rates = basePrice(modelPrices(model.id, catalog.asOf))?.rates;
+    if (rates?.input !== undefined && rates.output !== undefined)
+      highlights.push({
+        kind: "price",
+        value: `${formatRate(rates.input)} / ${formatRate(rates.output)}`,
+        label: "API in / out per 1M tokens",
+        short: "API in / out per 1M",
+      });
+    else if (loadCatalog().models[model.id]?.apiAvailability === "not_established")
+      highlights.push({
+        kind: "api",
+        value: "Not in API",
+        label: "API pricing not yet published",
+        short: "API pricing not yet published",
+      });
+    const context = modelContext(model);
+    if (context.value !== undefined)
+      highlights.push({
+        kind: "context",
+        value: tokenSize(context.value),
+        label: context.label,
+        short: context.label,
+      });
+  }
+  const plans =
+    marketEventCategory(event.type) === "subscriptions"
+      ? event.planIds.flatMap((id) => {
+          const plan = catalog.planById(id);
+          return plan === undefined ? [] : [plan];
+        })
+      : [];
+  const [onlyPlan] = plans;
+  if (plans.length === 1 && onlyPlan !== undefined)
+    highlights.push({
+      kind: "plan-price",
+      value: shortPriceText(onlyPlan.price),
+      label: `${planDisplayName(onlyPlan)}, published price`,
+      short: "published price",
+    });
+  else if (plans.length > 1)
+    highlights.push({
+      kind: "plan-price",
+      value: `${plans.length} plans`,
+      label: plans.map((plan) => planDisplayName(plan)).join(", "),
+      short: "affected",
+    });
+  return highlights;
 }
 
 export function presentMarketEvent(
@@ -157,6 +282,35 @@ export function presentMarketEvent(
   }
   const score = benchmarkFact(event, benchmarks);
   if (score !== undefined) facts.push(score);
+  // Rates and limits describe a model's standard tier, so they sit beside a
+  // release, an announcement or a price change; never beside a new service tier.
+  const modelFacts =
+    event.type === "model_release" ||
+    event.type === "model_announcement" ||
+    event.type === "api_price_change";
+  const highlights = highlightsFor(event, catalog, benchmarks, modelFacts);
+  // The event's own models first, then the models its referenced source sets compare.
+  const referenced = benchmarks.sourceSets.filter((set) =>
+    (event.benchmark?.sourceSetIds ?? []).includes(set.id),
+  );
+  const benchmarkModels = [
+    ...new Set([
+      ...event.modelIds.filter((id) =>
+        referenced.some((set) => set.observations.some((o) => o.modelId === id)),
+      ),
+      ...referenced.flatMap((set) => set.modelIds),
+    ]),
+  ];
+  const benchmarksHref =
+    benchmarkModels.length === 0 || benchmarkModels.length > 6
+      ? undefined
+      : benchmarkUrl({
+          modelIds: benchmarkModels,
+          category: "all",
+          coverage: "all",
+          observationIds: [],
+          edition: benchmarkEdition,
+        });
   const [primary] = event.sources;
   if (primary === undefined) throw new Error(`Market event ${event.id} has no source`);
   return {
@@ -175,6 +329,8 @@ export function presentMarketEvent(
     title: event.title,
     summary: event.summary,
     facts,
+    highlights,
+    benchmarksHref,
     modelIds: [...event.modelIds],
     planIds: [...event.planIds],
     links,

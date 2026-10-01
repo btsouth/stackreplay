@@ -78,6 +78,48 @@ describe("the canonical market feed at the public boundary", () => {
     expect(sol?.facts[0]).toBe("API $2.00 in · $10.00 out per 1M tokens");
   });
 
+  it("splits the same facts into figures, read from the catalog and evidence", () => {
+    const argon = views.find((view) => view.id === "gemini-4-argon-announced");
+    const primary = resolveComparison(benchmarkData, ["gemini-4-argon"], { coverage: "all" }).find(
+      (row) => row.definition.id === "deep-swe-v1-1",
+    )?.cells[0]?.observation;
+    expect(argon?.highlights[0]).toMatchObject({
+      kind: "benchmark",
+      value: primary?.displayValue,
+    });
+    expect(argon?.highlights[0]?.label).toContain(`reported by ${primary?.evaluator}`);
+    // The count is the distinct benchmarks the referenced source set reports for the model.
+    const reported = new Set(
+      benchmarkData.sourceSets
+        .filter((set) => set.id === "google-deepmind-argon-2026-09-30")
+        .flatMap((set) => set.observations)
+        .filter((observation) => observation.modelId === "gemini-4-argon")
+        .map((observation) => observation.benchmarkId),
+    );
+    expect(argon?.highlights.find((h) => h.kind === "benchmark-count")?.value).toBe(
+      String(reported.size),
+    );
+    // An announced model says it is not in the API; it never gets a price figure.
+    expect(argon?.highlights.some((h) => h.kind === "price")).toBe(false);
+    expect(argon?.highlights.find((h) => h.kind === "api")?.value).toBe("Not in API");
+    expect(argon?.benchmarksHref).toContain("models=gemini-4-argon");
+
+    const sol = views.find((view) => view.id === "gpt-6-1-sol-released");
+    expect(sol?.highlights.find((h) => h.kind === "price")?.value).toBe("$2.00 / $10.00");
+
+    // A plan event shows the plan's published price, never a model's.
+    const pro500 = views.find((view) => view.id === "chatgpt-pro-500-launched");
+    const plan = catalog.planById("openai-chatgpt-pro-500");
+    expect(pro500?.highlights).toEqual([
+      expect.objectContaining({ kind: "plan-price", value: `$${Number(plan?.price.amount)}/mo` }),
+    ]);
+    // A new service tier is not a release: no standard-tier rates beside it.
+    const ultrafast = views.find((view) => view.id === "gpt-6-astra-ultrafast");
+    expect(ultrafast?.highlights.some((h) => h.kind === "price" || h.kind === "plan-price")).toBe(
+      false,
+    );
+  });
+
   it("links every event to a first-party source", () => {
     for (const view of views) expect(view.source.url).toMatch(/^https:\/\//u);
   });

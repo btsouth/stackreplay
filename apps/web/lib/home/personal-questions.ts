@@ -82,6 +82,8 @@ export interface QuestionState {
   personal?: string | undefined;
   /** False when the stack does not yet contain what the question is about. */
   ready: boolean;
+  /** The stack plans the answer is about (catalog ids), for a compact answer. */
+  plans?: { from: string; to?: string | undefined } | undefined;
 }
 
 function planIds(stack: readonly TargetKey[]): string[] {
@@ -142,6 +144,7 @@ export function questionStates(input: {
               href: stackPage,
               ready: true,
               personal: `${name(claude)} is the lowest Claude tier; test removing it instead.`,
+              plans: { from: claude },
             }
           : {
               href: proposal(
@@ -150,6 +153,7 @@ export function questionStates(input: {
               ),
               ready: true,
               personal: `${name(claude)} → ${name(lower)}, the rest of your stack unchanged.`,
+              plans: { from: claude, to: lower },
             },
     "cancel-chatgpt":
       chatgpt === undefined
@@ -159,11 +163,13 @@ export function questionStates(input: {
               href: stackPage,
               ready: true,
               personal: `${name(chatgpt)} is your only subscription; review it in My Stack.`,
+              plans: { from: chatgpt },
             }
           : {
               href: proposal(importId, withoutChatgpt),
               ready: true,
               personal: `Your stack without ${name(chatgpt)}.`,
+              plans: { from: chatgpt },
             },
     overlap:
       plans.length < 2

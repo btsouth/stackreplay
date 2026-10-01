@@ -4,26 +4,17 @@ import type { MarketEventView } from "@/lib/market/events";
 import { LocalWorkloadAction } from "../local-workload-action";
 import { MarketBriefing, MarketWeek } from "./market-briefing";
 
-export interface CatalogCoverage {
-  models: number;
-  pricedModels: number;
-  plans: number;
-  checkedThrough: string;
-}
-
 /**
- * The first viewport: what StackReplay is (AI market intelligence), and a
- * live briefing of what changed in the market, from the canonical feed.
- * The right side is real, dated, sourced events, not an illustration.
+ * The first viewport: a short product statement, then today's AI market from
+ * the canonical feed. The newest event is the lead story and the next four
+ * are compact rows, so the market reads before any product copy does.
  */
 export function HomeHero({
-  coverage,
   briefing,
   recent,
   builtOn,
   index,
 }: {
-  coverage: CatalogCoverage;
   briefing: readonly MarketEventView[];
   /** Every accepted event, any importance, no older than thirty days. */
   recent: readonly MarketEventView[];
@@ -32,53 +23,34 @@ export function HomeHero({
 }) {
   return (
     <section className="home-hero" aria-labelledby="home-title" data-testid="home-hero">
-      <div className="home-hero-copy">
-        <p className="home-micro text-accent">AI model + subscription intelligence</p>
-        <h1 id="home-title" className="home-h1">
-          <span className="block">Know the AI market.</span>{" "}
-          <span className="block text-muted-foreground">Know what fits your workload.</span>
-        </h1>
-        <p className="home-hero-lede">
-          Model releases, benchmarks, API prices and subscription changes, each with its source. Add
-          your local AI history and StackReplay shows which of them matter to you and what is worth
-          changing.
-        </p>
-        <div className="home-hero-actions">
-          <Link href="#frontier" className="home-button home-button-lg">
-            Compare frontier models
-          </Link>
-          <LocalWorkloadAction
-            variant="hero"
-            className="home-button home-button-lg home-button-quiet"
-          />
+      <div className="home-intro">
+        <div className="home-intro-title">
+          <p className="home-kicker">AI model + subscription intelligence</p>
+          <h1 id="home-title" className="home-h1">
+            <span className="block">Know the AI market.</span>{" "}
+            <span className="block home-h1-second">Know what fits your workload.</span>
+          </h1>
         </div>
-        <p className="home-trust" data-testid="home-trust">
-          Market facts cite first-party sources. Your history is analyzed in this browser and never
-          uploaded.{" "}
-          <Link href="/methodology#privacy" className="home-inline-link">
-            Privacy model
-          </Link>
-        </p>
-        <dl className="home-coverage" aria-label="Catalog coverage">
-          <div>
-            <dt>Models tracked</dt>
-            <dd>{coverage.models}</dd>
+        <div className="home-intro-side">
+          <p className="home-intro-lede">
+            Model releases, benchmarks, prices and subscription changes, each with its source. Scan
+            your AI history locally and see which of them touch your own work.
+          </p>
+          <div className="home-hero-actions">
+            <Link href="#frontier" className="home-button">
+              Compare leading models
+            </Link>
+            <LocalWorkloadAction variant="hero" className="home-button home-button-quiet" />
           </div>
-          <div>
-            <dt>With API prices</dt>
-            <dd>{coverage.pricedModels}</dd>
-          </div>
-          <div>
-            <dt>Subscription plans</dt>
-            <dd>{coverage.plans}</dd>
-          </div>
-          <div>
-            <dt>Checked through</dt>
-            <dd>{coverage.checkedThrough}</dd>
-          </div>
-        </dl>
-        <MarketWeek events={recent} builtOn={builtOn} index={index} />
+          <p className="home-trust" data-testid="home-trust">
+            Your history is analyzed in this browser and never uploaded.{" "}
+            <Link href="/methodology#privacy" className="home-inline-link">
+              Privacy model
+            </Link>
+          </p>
+        </div>
       </div>
+      <MarketWeek events={recent} builtOn={builtOn} index={index} />
       <MarketBriefing events={briefing} builtOn={builtOn} index={index} />
     </section>
   );
