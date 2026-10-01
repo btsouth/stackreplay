@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { BUNDLED_CATALOG_VERSION, bundledModelIdentity } from "@stackreplay/catalog/bundled";
+import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { summarizeExport } from "../lib/workload-summary";
 import { importDemo } from "./helpers";
 
 const pricingDone = async (page: import("@playwright/test").Page) => {
@@ -203,3 +206,156 @@ for (const removal of ["delete", "corrupt"] as const) {
     await expect.poll(() => cachedImportIds(page)).toEqual([]);
   });
 }
+
+/** Opens the local database in the page and reports its version and stores. */
+const localDatabaseShape = (page: import("@playwright/test").Page) =>
+  page.evaluate(async () => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      return { version: database.version, stores: [...database.objectStoreNames].sort() };
+    } finally {
+      database.close();
+    }
+  });
+
+/** How many derived result entries the browser's bounded store holds. */
+const cachedResultCount = (page: import("@playwright/test").Page) =>
+  page.evaluate(async () => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      const transaction = database.transaction("workload-results", "readonly");
+      const request = transaction.objectStore("workload-results").count();
+      return await new Promise<number>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      database.close();
+    }
+  });
+
+test("a version 1 local database upgrades in place and keeps the saved workload", async ({
+  page,
+}) => {
+  // A genuine canonical pair, built the same way the importer builds one. The
+  // database is seeded at version 1 (imports + payloads only) on a document that
+  // does not run the app, so the production open is provably the first writer to
+  // ask for version 2 and the migration, not a fresh install, is what runs.
+  const exported = buildDemoExport("moderate");
+  const record = {
+    id: "0123456789abcdef0123456789abcdef",
+    label: "v1 demo import",
+    createdAt: "2026-09-22T12:00:00.000Z",
+    eventCount: exported.events.length,
+    summary: summarizeExport(exported, BUNDLED_CATALOG_VERSION, bundledModelIdentity()),
+  };
+
+  await page.route("**/__seed__", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<!doctype html><title>seed</title>" }),
+  );
+  await page.goto("/__seed__");
+  const seeded = await page.evaluate(
+    async ({ record, exported }) => {
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open("stackreplay", 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          db.createObjectStore("imports", { keyPath: "id" });
+          db.createObjectStore("payloads", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const transaction = database.transaction(["imports", "payloads"], "readwrite");
+          transaction.objectStore("imports").put(record);
+          transaction.objectStore("payloads").put({ id: record.id, exported });
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+          transaction.onabort = () => reject(transaction.error);
+        });
+        return { version: database.version, stores: [...database.objectStoreNames].sort() };
+      } finally {
+        database.close();
+      }
+    },
+    { record, exported },
+  );
+  expect(seeded).toEqual({ version: 1, stores: ["imports", "payloads"] });
+  await page.unroute("**/__seed__");
+
+  // The app opens version 2 for the first time here; it must migrate, not reset.
+  await page.goto("/app/import");
+  await expect(page.getByTestId("stored-imports")).toBeVisible();
+  await expect(page.getByTestId("stored-imports")).toContainText(record.label);
+
+  const upgraded = await localDatabaseShape(page);
+  expect(upgraded.version).toBe(2);
+  expect(upgraded.stores).toContain("workload-results");
+
+  const preserved = await page.evaluate(async (id) => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      const transaction = database.transaction(["imports", "payloads"], "readonly");
+      const read = (store: string) =>
+        new Promise((resolve, reject) => {
+          const request = transaction.objectStore(store).get(id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      const [storedRecord, storedPayload] = await Promise.all([
+        read("imports"),
+        read("payloads"),
+      ]);
+      return { storedRecord, storedPayload };
+    } finally {
+      database.close();
+    }
+  }, record.id);
+  expect(preserved.storedRecord).toEqual(record);
+  expect(preserved.storedPayload).toEqual({ id: record.id, exported });
+});
+
+test("real worker writes never leave more than eight cached results", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "one full sequence is enough");
+  test.setTimeout(120_000);
+
+  // Waits until the real worker has finished both the analysis (profile) and the
+  // market pricing (decision) for the current import. Each cached computation is
+  // written before its result is posted, so an idle page means the write landed.
+  const settled = async () => {
+    await expect(page.getByTestId("workload-loading-status")).toHaveCount(0);
+    await expect(page.getByTestId("analysis-loading")).toHaveCount(0);
+    await expect(page.getByTestId("project-loading")).toHaveCount(0);
+    await expect(page.getByTestId("overview-price-loading")).toHaveCount(0);
+    await expect(page.getByTestId("project-table")).toBeVisible();
+  };
+
+  const presets = ["moderate", "heavy", "multistack"] as const;
+  const sequence = [...presets, ...presets, ...presets];
+  // Each import is a fresh local id, so every analysis writes distinct result
+  // keys through the real worker. Nine imports guarantee more than the eight
+  // entries the store may hold, whichever cached computations each one runs.
+  for (const preset of sequence) {
+    await importDemo(page, preset);
+    await settled();
+  }
+  // Reaching the cap proves the eviction actually ran; the bound is the guarantee.
+  await expect.poll(() => cachedResultCount(page)).toBe(8);
+  expect(await cachedResultCount(page)).toBeLessThanOrEqual(8);
+});
