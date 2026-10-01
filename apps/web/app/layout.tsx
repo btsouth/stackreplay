@@ -11,6 +11,7 @@ import {
   siteName,
   siteTagline,
   siteUrl,
+  socialMetadata,
 } from "@/lib/site";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
@@ -37,29 +38,7 @@ export const metadata: Metadata = {
     apple: [{ url: brandAssets.icons.appleTouch, sizes: "180x180" }],
   },
   manifest: "/manifest.webmanifest",
-  openGraph: {
-    type: "website",
-    siteName,
-    url: siteUrl,
-    title: `${siteName} · ${siteTagline}`,
-    description: siteDescription,
-    images: [
-      {
-        url: brandAssets.openGraph.src,
-        width: brandAssets.openGraph.width,
-        height: brandAssets.openGraph.height,
-        alt: `${siteName}: ${siteTagline}`,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@stackreplay",
-    creator: "@stackreplay",
-    title: `${siteName} · ${siteTagline}`,
-    description: siteDescription,
-    images: [brandAssets.openGraph.src],
-  },
+  ...socialMetadata({ title: `${siteName} · ${siteTagline}`, description: siteDescription }),
   other: {
     "og:logo": absoluteUrl(brandAssets.mark.src),
   },

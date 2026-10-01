@@ -3,10 +3,13 @@ import { importDemo, openReviewEvidence, openWorkloadTools, waitForWorkload } fr
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
-  const hero = page.getByTestId("home-hero");
-  await expect(hero).toContainText("supported history");
-  await expect(hero).toContainText("covered calls");
-  await expect(hero).not.toContainText("every model call");
+  await expect(page.getByTestId("home-hero")).not.toContainText("every model call");
+  // What a scan reads is named tool by tool, and the example's API figure covers
+  // only the calls whose model resolved.
+  const scan = page.getByTestId("personal-snapshot");
+  await expect(scan).toContainText("Claude Code, Codex, Command Code and OpenCode history");
+  await expect(page.getByTestId("personal-example")).toContainText("calls with a resolved model");
+  await expect(page.locator("main")).not.toContainText("every model call");
 });
 
 test("missing pages have one public shell and conditional saved-workload copy", async ({

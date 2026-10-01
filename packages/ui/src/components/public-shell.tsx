@@ -13,14 +13,19 @@ export interface PublicShellProps {
   logoHeight: number;
   footerLogoWidth: number;
   footerLogoHeight: number;
+  /** Header call to action, supplied by the app (it knows about local data). */
+  primaryAction?: ReactNode;
+  /** The same action inside the mobile navigation panel. */
+  menuAction?: ReactNode;
   className?: string;
 }
 
 /**
- * Public site shell (M4): a quiet header with the approved wordmark, the public
- * navigation, and a footer that separates product surfaces from trust and
- * repository links. It is deliberately not the application shell: the public
- * site explains and publishes, the local application does the work.
+ * Public site shell: a quiet header with the approved wordmark, the market and
+ * personal navigation, and a footer that separates product surfaces from trust
+ * and repository links. It is deliberately not the application shell: the
+ * public site publishes the market, the local application does the work on the
+ * visitor's own history.
  */
 export function PublicShell({
   children,
@@ -30,6 +35,8 @@ export function PublicShell({
   logoHeight,
   footerLogoWidth,
   footerLogoHeight,
+  primaryAction,
+  menuAction,
   className,
 }: PublicShellProps) {
   return (
@@ -65,7 +72,7 @@ export function PublicShell({
             />
           </Link>
           <div className="ml-auto flex items-center">
-            <PublicNav />
+            <PublicNav primaryAction={primaryAction} menuAction={menuAction} />
           </div>
         </div>
       </header>
@@ -98,8 +105,8 @@ export function PublicShell({
                 className="hidden h-16 w-[184px] object-cover object-left dark:block"
               />
               <p className="mt-4 text-sm text-muted-foreground">
-                Local-first workload replay for AI coding subscriptions. Your workload, any stack,
-                replay the difference.
+                Source-backed AI model and subscription intelligence, applied to your own AI coding
+                history in your browser.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">

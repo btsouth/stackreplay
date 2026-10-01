@@ -32,7 +32,7 @@ export const siteName = "StackReplay";
 export const siteTagline = "Your workload. Any stack. Replay the difference.";
 
 export const siteDescription =
-  "See what your real AI coding workload is worth at published API prices and what drives it, then replay it against other plans and APIs, privately in your browser.";
+  "Source-backed AI model prices, limits and subscription terms, applied privately in your browser to your own AI coding history.";
 
 export const repositoryUrl = "https://github.com/btsouth/stackreplay";
 
@@ -76,3 +76,37 @@ export const brandAssets = {
     pwa512: "/brand/pwa-icon-512.png",
   },
 } as const;
+
+/**
+ * Open Graph and Twitter metadata for a page. Next.js replaces these nested
+ * objects rather than merging them with the root layout's, so every page that
+ * sets its own social title builds the whole object here and keeps the
+ * approved image, site name and handles.
+ */
+export function socialMetadata(input: { title: string; description: string; url?: string }) {
+  return {
+    openGraph: {
+      type: "website" as const,
+      siteName,
+      url: input.url === undefined ? siteUrl : absoluteUrl(input.url),
+      title: input.title,
+      description: input.description,
+      images: [
+        {
+          url: brandAssets.openGraph.src,
+          width: brandAssets.openGraph.width,
+          height: brandAssets.openGraph.height,
+          alt: `${siteName}: ${siteTagline}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      site: "@stackreplay",
+      creator: "@stackreplay",
+      title: input.title,
+      description: input.description,
+      images: [brandAssets.openGraph.src],
+    },
+  };
+}
