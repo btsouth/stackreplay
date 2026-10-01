@@ -23,12 +23,21 @@ function sessionId(base: string, index: number): string {
   return `${base.slice(0, -4)}${String(index).padStart(4, "0")}`;
 }
 
-export async function writeClaudeProjects(root: string, sessions: number): Promise<void> {
-  for (let index = 0; index < sessions; index += 1) {
+export async function writeClaudeProjects(
+  root: string,
+  sessions: number,
+  options: { first?: number; model?: string } = {},
+): Promise<void> {
+  const first = options.first ?? 0;
+  for (let index = first; index < first + sessions; index += 1) {
     const project = join(root, `-home-dev-work-synthetic-${index % 3}`);
     await mkdir(project, { recursive: true });
     const id = sessionId(CLAUDE_ID, index);
-    await writeFile(join(project, `${id}.jsonl`), CLAUDE_CODE_SESSION.replaceAll(CLAUDE_ID, id));
+    const content = CLAUDE_CODE_SESSION.replaceAll(CLAUDE_ID, id);
+    await writeFile(
+      join(project, `${id}.jsonl`),
+      options.model === undefined ? content : content.replaceAll("example-medium", options.model),
+    );
   }
 }
 
@@ -56,6 +65,37 @@ async function personalFolders(home: string): Promise<void> {
 }
 
 /**
+ * A Claude Code profile (`.claude.json`) as Claude Code writes it, every value
+ * invented. `CANARY` marks the fields StackReplay must never keep.
+ */
+export function claudeProfile(account: {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  tier: string;
+}): string {
+  return JSON.stringify({
+    numStartups: 3,
+    projects: { [`/home/dev/${CANARY}-repo`]: { allowedTools: [] } },
+    oauthAccount: {
+      accountUuid: account.id,
+      emailAddress: account.email,
+      displayName: account.name,
+      fullName: `${account.name} ${CANARY}`,
+      organizationUuid: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      organizationName: `${CANARY} org`,
+      organizationRole: "admin",
+      organizationType: account.type,
+      organizationRateLimitTier: account.tier,
+      billingType: "stripe_subscription",
+      hasExtraUsageEnabled: false,
+      profileFetchedAt: Date.UTC(2026, 8, 30, 12),
+    },
+  });
+}
+
+/**
  * A home with Claude Code, Codex and OpenCode history, no Command Code or
  * Hermes, and unrelated personal folders.
  */
@@ -66,14 +106,20 @@ export async function buildHome(
     codexRollouts?: number;
     /** Put the Claude history elsewhere and link it, as a dotfiles setup would. */
     linkClaude?: string;
+    /** The signed-in account's profile; signed out (`{}`) by default. */
+    claudeProfile?: string;
+    /** A real catalog model for Claude sessions, so the workload is not a demo one. */
+    claudeModel?: string;
   } = {},
 ): Promise<void> {
   await personalFolders(home);
   await mkdir(join(home, ".claude"), { recursive: true });
   await writeFile(join(home, ".claude", "settings.json"), "{}");
-  await writeFile(join(home, ".claude.json"), "{}");
+  await writeFile(join(home, ".claude.json"), options.claudeProfile ?? "{}");
   if (options.linkClaude === undefined) {
-    await writeClaudeProjects(join(home, ".claude", "projects"), options.claudeSessions ?? 2);
+    await writeClaudeProjects(join(home, ".claude", "projects"), options.claudeSessions ?? 2, {
+      ...(options.claudeModel === undefined ? {} : { model: options.claudeModel }),
+    });
   } else {
     await writeClaudeProjects(options.linkClaude, options.claudeSessions ?? 2);
     await symlink(

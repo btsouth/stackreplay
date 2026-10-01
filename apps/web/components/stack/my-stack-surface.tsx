@@ -807,17 +807,19 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
           aria-labelledby="stack-accounts-heading"
           data-testid="stack-accounts-section"
         >
-          <div className="stack-section-header">
-            <div>
-              <p className="stack-eyebrow">Accounts in this workload</p>
-              <h2 id="stack-accounts-heading">Which subscription is each account read against?</h2>
-            </div>
-          </div>
           <StackAccounts
             workload={workload}
             stack={currentStack}
             disabled={!canEdit}
             onLink={linkAccountTo}
+            heading={
+              <>
+                <p className="stack-eyebrow">Accounts in this workload</p>
+                <h2 id="stack-accounts-heading">
+                  Which subscription is each account read against?
+                </h2>
+              </>
+            }
           />
         </section>
       ) : null}

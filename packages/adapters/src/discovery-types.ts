@@ -73,6 +73,12 @@ export interface SourceDiscovery {
   };
   /** Folders recognized by their children when supplied under another name. */
   roots?: readonly RootSignature[];
+  /**
+   * A file in the chosen folder naming the signed-in account (Claude Code's
+   * `.claude.json`). Discovery only checks that it is there; it is read once,
+   * when a saved workload is built, for a fixed list of account fields.
+   */
+  profile?: string;
   /** Environment variable that moves the history elsewhere. */
   relocatedBy?: string;
   /** Documentation or source code that establishes these locations. */

@@ -63,6 +63,11 @@ export function sourceRootHash(salt: string, root: string): string {
   return `sr_${hmac(salt, "source-root", root)}`;
 }
 
+/** A signed-in Claude account's id as a salted hash: the raw id is never kept. */
+export function claudeAccountHash(salt: string, accountId: string): string {
+  return `ca_${hmac(salt, "claude-account", accountId.trim().toLowerCase())}`;
+}
+
 export function nativeSessionHash(salt: string, sessionId: string): string {
   return `ns_${hmac(salt, "session", sessionId)}`;
 }

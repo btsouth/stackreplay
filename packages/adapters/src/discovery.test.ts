@@ -179,6 +179,23 @@ describe("Linux home", () => {
     expect(status["Claude Code"]?.status).toBe("access-needed");
   });
 
+  it("names the Claude profile beside a found history without reading or sizing it", async () => {
+    const { status, log } = await discover(home, { platform: "linux" });
+    expect(status["Claude Code"]?.profile?.name).toBe(".claude.json");
+    expect(log.filter((entry) => entry.path === ".claude.json").map((entry) => entry.op)).toEqual([
+      "file",
+    ]);
+    const config = await discover(
+      { projects: claudeProjects, "session-env": {}, ".claude.json": 50 },
+      { root: ".claude2", platform: "linux" },
+    );
+    expect(config.status["Claude Code"]?.profile?.name).toBe(".claude.json");
+    const { ".claude.json": _profile, ...signedOut } = home;
+    const none = await discover(signedOut, { platform: "linux" });
+    expect(none.status["Claude Code"]?.profile).toBeUndefined();
+    expect(none.status.Codex?.profile).toBeUndefined();
+  });
+
   it("reports an existing but empty history folder as empty, not found", async () => {
     const { status } = await discover(
       { ...home, ".codex": { sessions: { "2026": {} } } },

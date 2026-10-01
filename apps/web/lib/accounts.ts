@@ -1,3 +1,5 @@
+import { readAccountIdentities, shownIdentityName } from "./account-identity";
+
 /**
  * Local accounts: one history location of one recording tool.
  *
@@ -71,7 +73,22 @@ export function sanitizeAccountLabel(value: string): string | undefined {
   return label.length > 0 ? label : undefined;
 }
 
+/**
+ * The names accounts show by: a label the person typed, else the name or
+ * email from the account's own profile once the person has chosen to show it.
+ */
 export function readAccountLabels(): Record<string, string> {
+  const shown = Object.fromEntries(
+    Object.entries(readAccountIdentities()).flatMap(([key, identity]) => {
+      const name = shownIdentityName(identity);
+      const label = name === undefined ? undefined : sanitizeAccountLabel(name);
+      return label === undefined ? [] : [[key, label]];
+    }),
+  );
+  return { ...shown, ...readTypedLabels() };
+}
+
+function readTypedLabels(): Record<string, string> {
   try {
     const parsed: unknown = JSON.parse(window.localStorage.getItem(LABELS_KEY) ?? "null");
     if (typeof parsed !== "object" || parsed === null) return {};
@@ -92,7 +109,7 @@ export function readAccountLabels(): Record<string, string> {
 export function writeAccountLabel(key: string, value: string | undefined): boolean {
   if (!isAccountKey(key)) return false;
   try {
-    const labels = readAccountLabels();
+    const labels = readTypedLabels();
     const label = value === undefined ? undefined : sanitizeAccountLabel(value);
     if (label) labels[key] = label;
     else delete labels[key];

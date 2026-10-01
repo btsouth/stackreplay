@@ -107,6 +107,8 @@ export interface SourceFinding<F extends DiscoveryFile = DiscoveryFile> {
    */
   unconfirmed?: true;
   files?: DiscoveredFile<F>[];
+  /** The source's profile file in the chosen folder, found but not read. */
+  profile?: F;
   relocatedBy?: string;
 }
 
@@ -464,6 +466,13 @@ export async function discoverHistories<F extends DiscoveryFile>(
         files: listed.files,
       };
     }
+    if (
+      source.profile !== undefined &&
+      (finding.status === "found" || finding.status === "empty")
+    ) {
+      const profile = await prober.file([source.profile]);
+      if (profile !== null) finding = { ...finding, profile };
+    }
     findings.push(finding);
     options.onFinding?.(finding);
   }
@@ -500,6 +509,7 @@ export function registeredProbePaths(
   };
   for (const source of registry) {
     for (const location of [...source.history, ...source.installed]) add(location.path);
+    if (source.profile !== undefined) add([source.profile]);
     for (const location of source.history)
       if (location.kind === "file")
         for (const name of source.companionFiles ?? []) add([...location.path.slice(0, -1), name]);
