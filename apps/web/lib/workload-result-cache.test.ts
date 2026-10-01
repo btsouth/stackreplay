@@ -124,4 +124,15 @@ describe("derived workload results", () => {
   it("does not cache oversized results", async () => {
     expect(await encodeCachedResult("correct", "x".repeat(RESULT_CACHE_MAX_BYTES))).toBeUndefined();
   });
+  it("bounds UTF-8 bytes rather than UTF-16 code units", async () => {
+    const value = "é".repeat(RESULT_CACHE_MAX_BYTES / 2);
+    expect(JSON.stringify(value).length).toBeLessThan(RESULT_CACHE_MAX_BYTES);
+    expect(await encodeCachedResult("correct", value)).toBeUndefined();
+    const json = JSON.stringify(value);
+    const digest = Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`correct\u0000${json}`))),
+      (byte) => byte.toString(16).padStart(2, "0"),
+    ).join("");
+    expect(await decodeCachedResult("correct", { json, digest })).toBeUndefined();
+  });
 });
