@@ -21,10 +21,27 @@ export function stackWorkloadFile(
     shiftDays?: number;
     /** Local account for Claude Code calls, plus recorded hard-limit events. */
     claudeAccount?: { id: string; blocked?: readonly string[] } | undefined;
+    /**
+     * Several Claude Code accounts: each Claude Code call goes to the account
+     * whose share bucket it falls in (shares sum to 1), and each account may
+     * record hard-limit events. Overrides `claudeAccount`.
+     */
+    claudeAccounts?: readonly { id: string; share: number; blocked?: readonly string[] }[];
     collector?: string;
   } = {},
 ): StackReplayExportV1 {
   const base = buildDemoExport("billing");
+  // Deterministic buckets by call index: a share of 0.9 takes 90 of every 100 calls.
+  const accountFor = (index: number) => {
+    const accounts = options.claudeAccounts ?? [];
+    const position = (index % 100) / 100;
+    let edge = 0;
+    for (const account of accounts) {
+      edge += account.share;
+      if (position < edge) return account.id;
+    }
+    return accounts.at(-1)?.id ?? "";
+  };
   const repeat = options.repeat ?? 1;
   const scale = options.scale ?? 1;
   const drop = new Set(options.drop ?? []);
@@ -59,8 +76,12 @@ export function stackWorkloadFile(
           source: {
             ...event.source,
             nativeEventHash: `${event.source.nativeEventHash ?? "ne"}_c${copy}_${index}`,
-            ...(options.claudeAccount && event.source.adapterId === "claude-code"
-              ? { resourceInstanceId: options.claudeAccount.id }
+            ...(event.source.adapterId === "claude-code"
+              ? options.claudeAccounts?.length
+                ? { resourceInstanceId: accountFor(index) }
+                : options.claudeAccount
+                  ? { resourceInstanceId: options.claudeAccount.id }
+                  : {}
               : {}),
           },
         };
@@ -78,22 +99,28 @@ export function stackWorkloadFile(
     events,
     range: { from: events[0]?.occurredAt ?? "", to: events.at(-1)?.occurredAt ?? "" },
   };
-  const account = options.claudeAccount;
-  if (account)
+  const limitAccounts = options.claudeAccounts?.length
+    ? options.claudeAccounts
+    : options.claudeAccount
+      ? [options.claudeAccount]
+      : [];
+  if (limitAccounts.length)
     file.capacityObservations = {
       methodology: "claude-native-capacity-v1",
-      events: (account.blocked ?? []).map((timestamp, index) => ({
-        id: `limit-${index}`,
-        resourceInstanceId: account.id,
-        timestamp,
-        eventType: "hard_limit_reached" as const,
-        windowType: "five_hour" as const,
-        resetAt: new Date(Date.parse(timestamp) + 3 * 3_600_000).toISOString(),
-        sessionId: `limit-session-${index}`,
-        evidence: "native-client" as const,
-        code: "quota_rejected" as const,
-        duplicateRows: 0,
-      })),
+      events: limitAccounts.flatMap((account, which) =>
+        (account.blocked ?? []).map((timestamp, index) => ({
+          id: `limit-${which}-${index}`,
+          resourceInstanceId: account.id,
+          timestamp,
+          eventType: "hard_limit_reached" as const,
+          windowType: "five_hour" as const,
+          resetAt: new Date(Date.parse(timestamp) + 3 * 3_600_000).toISOString(),
+          sessionId: `limit-session-${which}-${index}`,
+          evidence: "native-client" as const,
+          code: "quota_rejected" as const,
+          duplicateRows: 0,
+        })),
+      ),
     };
   return file;
 }

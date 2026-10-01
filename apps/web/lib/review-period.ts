@@ -86,6 +86,12 @@ export interface ReviewHistory {
   nativeResponses?: number;
   duplicateRows?: number;
   accounts?: { resourceInstanceId: string; source: string; calls: number }[];
+  /**
+   * Every local account in this scope's imported history, including a tool's
+   * default account when its events carry no account id (see `accounts.ts`).
+   * Calls are over the whole import, not the period.
+   */
+  recordedAccounts?: { key: string; source: string; calls: number }[];
 }
 export interface ReviewComposition {
   period?: ReviewPeriod;

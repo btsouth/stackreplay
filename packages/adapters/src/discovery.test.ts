@@ -375,6 +375,14 @@ describe("direct roots", () => {
     expect(status["Command Code"]?.status).toBe("not-found");
   });
 
+  it("recognizes a CLAUDE_CONFIG_DIR that never wrote prompt history", async () => {
+    const { status } = await discover(
+      { projects: claudeProjects, "session-env": {}, "shell-snapshots": {} },
+      { root: ".claude2" },
+    );
+    expect(status["Claude Code"]).toMatchObject({ status: "found", location: ["projects"] });
+  });
+
   it("does not take a folder with only shared names for Claude Code", async () => {
     // A renamed Command Code root has `projects` and `history.jsonl` as well.
     const { status, log } = await discover(

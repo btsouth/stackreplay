@@ -21,16 +21,14 @@ export const CLAUDE_CODE_DISCOVERY: SourceDiscovery = {
   // those (`<session>/subagents/workflows/<workflow>/agent-*.jsonl`, five folder
   // levels down); the bound leaves room for deeper nesting inside `projects`.
   inventory: { maxDepth: 8, extension: ".jsonl" },
-  // A custom CLAUDE_CONFIG_DIR holds the same `projects` folder and prompt
-  // history. Command Code writes both of those too, so a folder counts as
-  // Claude Code's only beside a name the Claude Code docs list and no other
-  // supported tool writes.
+  // A custom CLAUDE_CONFIG_DIR holds the same `projects` folder. Command Code
+  // writes one too, so a folder counts as Claude Code's only beside a name the
+  // Claude Code docs list and no other supported tool writes. Prompt history
+  // (`history.jsonl`) is not required: a config folder that never wrote it
+  // still holds sessions.
   roots: [
     {
-      requires: [
-        { name: "projects", kind: "directory" },
-        { name: "history.jsonl", kind: "file" },
-      ],
+      requires: [{ name: "projects", kind: "directory" }],
       anyOf: [
         { name: "shell-snapshots", kind: "directory" },
         { name: "session-env", kind: "directory" },

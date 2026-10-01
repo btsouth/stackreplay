@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { accountNames, readAccountLabels, subscribeAccountLabels } from "@/lib/accounts";
 import type { CapacityBurden } from "@/lib/capacity-episodes";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
@@ -21,6 +22,52 @@ import { StackConfirmation } from "./stack-confirmation";
 
 const usd = (n: string) => `$${new Decimal(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 const n = (value: number) => value.toLocaleString("en-US");
+
+/**
+ * The local accounts in this workload, when a tool has more than one: where
+ * the work was recorded, named the way My Stack names them. Whole-import calls.
+ */
+function WorkloadAccounts({ overview, importId }: { overview: MarketDecision; importId: string }) {
+  const [labels, setLabels] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const refresh = () => setLabels(readAccountLabels());
+    refresh();
+    return subscribeAccountLabels(refresh);
+  }, []);
+  const accounts = (overview.history?.recordedAccounts ?? []).filter((entry) => entry.calls > 0);
+  const tools = new Set(accounts.map((entry) => entry.source));
+  if (accounts.length <= tools.size) return null;
+  const names = accountNames(accounts, labels);
+  const total = accounts.reduce((sum, entry) => sum + entry.calls, 0);
+  const ordered = [...accounts].sort(
+    (a, b) => a.source.localeCompare(b.source) || b.calls - a.calls,
+  );
+  return (
+    <div className="space-y-2" data-testid="workload-accounts">
+      <MicroLabel>{n(accounts.length)} accounts in this workload</MicroLabel>
+      <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {ordered.map((entry) => (
+          <li key={entry.key}>
+            {names.get(entry.key)}{" "}
+            <span className="font-mono text-muted-foreground">
+              {n(entry.calls)} · {((entry.calls / Math.max(1, total)) * 100).toFixed(0)}%
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-muted-foreground">
+        Each history location is one account. Link each to its subscription in{" "}
+        <Link
+          href={`/app/stack?import=${encodeURIComponent(importId)}`}
+          className="text-accent underline"
+        >
+          My Stack
+        </Link>
+        .
+      </p>
+    </div>
+  );
+}
 const day = (value: string) =>
   new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(
     new Date(value.slice(0, 10) + "T00:00:00Z"),
@@ -394,6 +441,7 @@ export function AutomaticWorkload({
             </div>
           </dl>
         </div>
+        {overview ? <WorkloadAccounts overview={overview} importId={record.id} /> : null}
         {matchingScope && paid ? (
           <div
             className="flex flex-wrap items-baseline gap-x-6 gap-y-2"

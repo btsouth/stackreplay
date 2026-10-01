@@ -566,14 +566,16 @@ describe("market decision cancellation and generations", () => {
       await pending;
       return worker;
     }
-    // Eight completed summaries fit: a whole workload, a billing review and
-    // My Stack's per-tool slices of one period. The ninth evicts the oldest.
-    for (const id of ["a", "b", "c", "d", "e", "f", "g"]) await finish(id);
-    const kept = await finish("h");
+    // Sixteen completed summaries fit: a whole workload, a billing review, My
+    // Stack's per-tool slices of one period and its per-account scopes. The
+    // seventeenth evicts the oldest.
+    const ids = "abcdefghijklmno".split("");
+    for (const id of ids) await finish(id);
+    const kept = await finish("p");
     const retained = kept.sent.length;
     await client.apiMarket("a");
     expect(kept.sent.length).toBe(retained);
-    const worker = await finish("i");
+    const worker = await finish("q");
     const messages = worker.sent.length;
     await finish("a");
     expect(worker.sent.length).toBe(messages + 1);

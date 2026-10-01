@@ -27,6 +27,11 @@ export interface StackWorkloadEvidence {
  */
 export function buildMyStack(input: {
   currentStack: readonly TargetKey[];
+  /**
+   * How many subscriptions each plan key has (two Claude Pro accounts are two);
+   * absent counts each plan once. Targets stay one per plan.
+   */
+  counts?: Readonly<Record<string, number>> | undefined;
   rulesAsOf: string;
   workload?: StackWorkloadEvidence | undefined;
   plans?: readonly DiscoveryPlan[];
@@ -63,13 +68,14 @@ export function buildMyStack(input: {
   for (const target of targets) {
     const price = target.publishedPrice;
     if (!price) continue;
+    const count = Math.max(1, input.counts?.[target.key] ?? 1);
     const key = JSON.stringify([price.currency, price.interval]);
     const bucket = prices.get(key) ?? {
       currency: price.currency,
       interval: price.interval,
       amounts: [],
     };
-    bucket.amounts.push(price.amount);
+    for (let i = 0; i < count; i++) bucket.amounts.push(price.amount);
     prices.set(key, bucket);
   }
   const workload = input.workload;

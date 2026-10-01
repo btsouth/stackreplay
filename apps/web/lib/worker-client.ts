@@ -130,7 +130,7 @@ const IDLE_TIMEOUT_MS: Record<Channel, number> = {
 };
 
 /** Completed market summaries kept for reuse (each is a bounded aggregate). */
-const MARKET_SUMMARY_LIMIT = 8;
+const MARKET_SUMMARY_LIMIT = 16;
 
 export class ReplayWorkerClient {
   private worker: Worker | undefined;
@@ -453,9 +453,11 @@ export class ReplayWorkerClient {
     period?: import("./review-period").ReviewPeriod,
     resourceInstanceId?: string,
     sources?: readonly string[],
+    accounts?: readonly string[],
   ): Promise<MarketDecision> {
     const tools = [...new Set(sources ?? [])].sort();
-    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}\u0000${tools.join(",") || "every-tool"}`;
+    const scope = [...new Set(accounts ?? [])].sort();
+    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}\u0000${tools.join(",") || "every-tool"}\u0000${scope.join(",") || "every-account"}`;
     if (signal?.aborted) throw new SupersededError();
     const cached = this.marketSummaries.get(cacheKey);
     if (cached) return cached;
@@ -471,6 +473,7 @@ export class ReplayWorkerClient {
           ...(period ? { period } : {}),
           ...(resourceInstanceId ? { resourceInstanceId } : {}),
           ...(tools.length ? { sources: tools } : {}),
+          ...(scope.length ? { accounts: scope } : {}),
         };
       },
       undefined,
@@ -486,7 +489,8 @@ export class ReplayWorkerClient {
     if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
     if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
     // Bounded aggregates: the whole workload, a billing review, and My Stack's
-    // per-tool slices of one period fit without evicting each other.
+    // per-tool and per-account scopes of one period. A stack with more scopes
+    // than this evicts the oldest, which only costs a recompute.
     const oldest = this.marketSummaries.keys().next().value;
     if (this.marketSummaries.size >= MARKET_SUMMARY_LIMIT && oldest !== undefined)
       this.marketSummaries.delete(oldest);

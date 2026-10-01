@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { LABELS_KEY } from "./accounts";
 import { COMPLETED_REPLAYS_KEY, readCompletedReplays } from "./completed-replays";
+import { SUBSCRIPTIONS_KEY } from "./current-stack";
 import {
   type BillingFact,
   billingFactSchema,
@@ -89,12 +91,15 @@ export function clearReviewState(importId?: string): void {
       window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(state));
       window.localStorage.removeItem(`${REVIEW_STORAGE_KEY}.demo.${importId}`);
       window.localStorage.removeItem(`stackreplay.current-stack.demo.${importId}`);
+      window.localStorage.removeItem(`${SUBSCRIPTIONS_KEY}.demo.${importId}`);
     } else {
       for (let i = window.localStorage.length - 1; i >= 0; i--) {
         const key = window.localStorage.key(i);
         if (
           key?.startsWith(REVIEW_STORAGE_KEY) ||
           key?.startsWith("stackreplay.current-stack") ||
+          key?.startsWith(SUBSCRIPTIONS_KEY) ||
+          key === LABELS_KEY ||
           key === COMPLETED_REPLAYS_KEY
         )
           window.localStorage.removeItem(key);
@@ -102,6 +107,7 @@ export function clearReviewState(importId?: string): void {
     }
     window.dispatchEvent(new Event("stackreplay-billing-review"));
     window.dispatchEvent(new Event("stackreplay-current-stack"));
+    window.dispatchEvent(new Event("stackreplay-account-labels"));
     window.dispatchEvent(new Event("stackreplay-completed-replays"));
   } catch {
     /* Storage may be unavailable. */

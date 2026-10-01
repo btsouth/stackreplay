@@ -66,13 +66,13 @@ function usePersonalView(index: HomeCatalogIndex, ladders?: FamilyLadders) {
     const usage = canonicalUsage(record.summary);
     return {
       usage,
-      snapshot: personalSnapshot(record, local.stack, index),
+      snapshot: personalSnapshot(record, local.stack, local.stackCounts, index),
       states:
         ladders === undefined
           ? undefined
           : questionStates({ importId: record.id, stack: local.stack, usage, index, ladders }),
     };
-  }, [record, local.stack, index, ladders]);
+  }, [record, local.stack, local.stackCounts, index, ladders]);
   const loading =
     view === undefined &&
     local.presence === "present" &&
@@ -312,7 +312,11 @@ function WorkloadLine({ snapshot }: { snapshot: PersonalSnapshot }) {
               </Link>
             ) : (
               <>
-                {plans.map((line) => line.name).join(" · ")}
+                {plans
+                  .map((line) =>
+                    line.count && line.count > 1 ? `${line.count} × ${line.name}` : line.name,
+                  )
+                  .join(" · ")}
                 {snapshot.stackMonthlyUsd === undefined ? null : (
                   <span className="home-workload-note">
                     ${snapshot.stackMonthlyUsd}/month at published prices

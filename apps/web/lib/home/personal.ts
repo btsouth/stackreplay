@@ -123,6 +123,8 @@ function shares(entries: Iterable<[string, number]>, total: number): Share[] {
 export interface StackLine {
   key: TargetKey;
   name: string;
+  /** How many subscriptions of this plan the stack holds. */
+  count?: number | undefined;
   price?: { amount: string; currency: string; interval: string } | undefined;
 }
 
@@ -148,6 +150,7 @@ export interface PersonalSnapshot {
 export function personalSnapshot(
   record: Pick<ImportRecord, "id" | "label" | "summary">,
   stack: readonly TargetKey[],
+  counts: Readonly<Record<string, number>> | undefined,
   index: HomeCatalogIndex,
 ): PersonalSnapshot {
   const summary = record.summary;
@@ -163,7 +166,13 @@ export function personalSnapshot(
   const lines = stack.map((key): StackLine => {
     if (key.startsWith("plan:")) {
       const plan = index.plans[key.slice(5)];
-      return { key, name: plan?.name ?? "Plan no longer listed", price: plan?.price };
+      const count = Math.max(1, counts?.[key] ?? 1);
+      return {
+        key,
+        name: plan?.name ?? "Plan no longer listed",
+        price: plan?.price,
+        ...(count > 1 ? { count } : {}),
+      };
     }
     const provider = index.apiProviders[key.slice(4)];
     return { key, name: provider === undefined ? "API no longer listed" : `${provider} API` };
@@ -172,7 +181,11 @@ export function personalSnapshot(
   const monthly =
     plans.length > 0 &&
     plans.every((line) => line.price?.currency === "USD" && line.price.interval === "month")
-      ? addCents(plans.map((line) => line.price?.amount ?? "0"))
+      ? addCents(
+          plans.flatMap((line) =>
+            Array.from({ length: line.count ?? 1 }, () => line.price?.amount ?? "0"),
+          ),
+        )
       : undefined;
   return {
     importId: record.id,

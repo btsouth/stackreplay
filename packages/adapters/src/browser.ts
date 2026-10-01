@@ -19,7 +19,7 @@ import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import type { BrowserSourceId } from "./browser-formats.js";
 import { openBrowserOpenCode } from "./browser-sqlite.js";
 import { dedupeEvents } from "./dedup.js";
-import { generateSalt } from "./identity.js";
+import { generateSalt, normalizeProjectKey, sourceRootHash } from "./identity.js";
 import { createModelMapper } from "./models.js";
 import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
 import type { SqliteDatabase } from "./sqlite.js";
@@ -698,6 +698,40 @@ function singleFileSystem(
   };
 }
 
+/**
+ * Sources whose native records carry no account of their own: in the browser
+ * each selected history location is one local account, so Codex, Command Code
+ * or OpenCode history from two folders (two sign-ins, two machines' copies)
+ * stays two accounts. Claude Code derives its account inside the adapter,
+ * where it also scopes event identity.
+ */
+const LOCATION_ACCOUNT_SOURCES: ReadonlySet<string> = new Set([
+  "codex",
+  "command-code",
+  "opencode",
+]);
+
+/**
+ * The history location a selected file belongs to, inside its selected group:
+ * the folder above a recognized source layout (`sessions/`, `projects/`,
+ * `opencode.db`), or the group itself. Paths stay inside the Worker; only a
+ * salted hash of this value leaves it.
+ */
+export function selectedLocation(path: string, group: string | undefined): string {
+  const normalized = path.replace(/\\/gu, "/");
+  const layout = normalized.match(/^(.*?)(?:^|\/)(?:sessions|archived_sessions|projects)(?:\/|$)/u);
+  // Without a known layout the selected folder is the path's first segment
+  // (the picker's own folder name); a lone file has none and stays its group's.
+  const root =
+    layout?.[1] ??
+    (/(?:^|\/)opencode\.db(?:-wal)?$/iu.test(normalized)
+      ? normalized.replace(/(?:^|\/)opencode\.db(?:-wal)?$/iu, "")
+      : normalized.includes("/")
+        ? (normalized.split("/")[0] ?? "")
+        : "");
+  return JSON.stringify([group ?? "selection", root]);
+}
+
 /** Collect from explicit browser candidates. Raw text is never returned or persisted. */
 export async function intakeBrowserCandidates(
   candidates: readonly BrowserCandidate[],
@@ -728,6 +762,8 @@ export async function intakeBrowserCandidates(
   const salt = options.salt ?? generateSalt();
   const mapper = createModelMapper(catalog);
   const events: UsageEventV1[] = [];
+  /** The selected location each collected event came from, for location accounts. */
+  const eventLocations = new WeakMap<UsageEventV1, string>();
   const capacityEvents: ObservedCapacityEvent[] = [];
   let capacityInspected = false;
   const warnings: AdapterWarning[] = [];
@@ -1071,6 +1107,10 @@ export async function intakeBrowserCandidates(
     } else {
       sources.add(id);
       events.push(...result.events);
+      if (LOCATION_ACCOUNT_SOURCES.has(id)) {
+        const location = selectedLocation(candidate.path, candidate.group);
+        for (const event of result.events) eventLocations.set(event, location);
+      }
       scanProgress.reconstructedEvents += result.events.length;
       const group = candidate.group === undefined ? undefined : groups.get(candidate.group);
       if (group !== undefined) group.events += result.events.length;
@@ -1094,6 +1134,21 @@ export async function intakeBrowserCandidates(
   }
   if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
   const deduped = dedupeEvents(events);
+  // Location accounts are attached after deduplication, so identity and
+  // duplicate handling are exactly what they were for these sources. Only a
+  // salted hash of the location leaves this function.
+  const accountSalt = options.sourceRootSalt ?? salt;
+  const accounts = new Map<string, string>();
+  deduped.events = deduped.events.map((event) => {
+    const location = eventLocations.get(event);
+    if (location === undefined || event.source.resourceInstanceId !== undefined) return event;
+    let account = accounts.get(location);
+    if (account === undefined) {
+      account = `${event.source.adapterId}:${sourceRootHash(accountSalt, normalizeProjectKey(location, "linux"))}`;
+      accounts.set(location, account);
+    }
+    return { ...event, source: { ...event.source, resourceInstanceId: account } };
+  });
   warnings.push(...deduped.warnings);
   const safeWarnings = warnings.map((warning) => ({
     code: warning.code,

@@ -1,4 +1,5 @@
 import { Decimal } from "@stackreplay/replay-engine";
+import type { StackSubscription } from "./current-stack";
 import type { TargetKey } from "./routes";
 import {
   allowanceChange,
@@ -8,12 +9,15 @@ import {
   priceMoney,
   publishedAllowanceIsSmaller,
   rangeText,
+  replacePlan,
+  reportTitle,
   type StackAnalysis,
   type StackWorkload,
   type SubscriptionReport,
   shareText,
   stackPeriodLabel,
   subscriptionPriceText,
+  subscriptionsOf,
 } from "./stack-analysis";
 
 /**
@@ -56,7 +60,7 @@ export interface Investigation {
   /** Published monthly spend this finding cannot evaluate. */
   atStake?: string | undefined;
   action?:
-    | { kind: "test"; label: string; proposed: TargetKey[] }
+    | { kind: "test"; label: string; proposed: StackSubscription[] }
     | { kind: "link"; label: string; href: string }
     | undefined;
 }
@@ -71,8 +75,13 @@ export type CoverageState =
   | "no-workload";
 
 export interface CoverageLine {
-  key: TargetKey;
+  /** The subscription's identity in the stack. */
+  key: string;
+  /** DOM-safe reference: the plan id, then `-2`, `-3` for repeats. */
+  ref: string;
   plan: string;
+  /** The account the subscription is linked to, or where its work was recorded. */
+  account?: string | undefined;
   /** The recording tool StackReplay reads for this plan, if any. */
   tool?: string | undefined;
   state: CoverageState;
@@ -101,18 +110,35 @@ export function stackCoverage(
     .map((source) => source.name);
   const lines = analysis.subscriptions.map((report): CoverageLine => {
     const tool = report.family?.tool;
-    const base = { key: report.key, plan: report.name, tool, monthlyUsd: report.monthlyUsd };
+    const where = report.scopeName ?? tool;
+    const base = {
+      key: report.subscriptionId,
+      ref: report.ref,
+      plan: report.name,
+      account: report.account?.name,
+      tool,
+      monthlyUsd: report.monthlyUsd,
+    };
     switch (report.visibility) {
       case "visible":
         return report.activity && report.activity.facts.calls === 0
           ? {
               ...base,
               state: "no-activity",
-              text: `${tool} history loaded · no calls in this period`,
+              text: `${where} history loaded · no calls in this period`,
             }
-          : { ...base, state: "loaded", text: `${tool} history loaded` };
+          : { ...base, state: "loaded", text: `${where} history loaded` };
       case "not-imported":
-        return { ...base, state: "not-loaded", text: `No ${tool} history in this workload` };
+        return {
+          ...base,
+          state: "not-loaded",
+          text:
+            report.visibilityReason === "account-missing"
+              ? `${report.account?.name ?? "Its account"} has no history in this workload`
+              : report.visibilityReason === "linked-elsewhere"
+                ? `Not linked to a ${tool} account in this workload`
+                : `No ${tool} history in this workload`,
+        };
       case "not-readable":
         return {
           ...base,
@@ -145,9 +171,14 @@ export function stackCoverage(
         ? `Every subscription in your stack has its history loaded.`
         : analyzed === 0
           ? `None of your ${plural(lines.length, "subscription")} can be evaluated from this workload.`
-          : `Only ${loadedTools.join(" and ")} history is loaded, so ${plural(analyzed, "subscription")} of ${lines.length} can be evaluated.${
+          : `${
+              // Name the loaded tools when what is missing is another tool's history.
+              missing.every((line) => !loadedTools.includes(line.tool ?? ""))
+                ? `Only ${loadedTools.join(" and ")} history is loaded, so ${plural(analyzed, "subscription")} of ${lines.length} can be evaluated.`
+                : `${plural(analyzed, "subscription")} of ${lines.length} can be evaluated.`
+            }${
               missing.length > 0
-                ? ` ${missing.map((line) => line.plan).join(" and ")}${unanalyzedMonthly ? ` (${priceMoney(unanalyzedMonthly)}/mo)` : ""} ${missing.length === 1 ? "is" : "are"} not evaluated.`
+                ? ` ${missing.map((line) => (line.account ? `${line.plan} (${line.account})` : line.plan)).join(" and ")}${unanalyzedMonthly ? ` (${priceMoney(unanalyzedMonthly)}/mo)` : ""} ${missing.length === 1 ? "is" : "are"} not evaluated.`
                 : ""
             }`;
   return {
@@ -174,7 +205,7 @@ function activityRow(report: SubscriptionReport, workload: StackWorkload): Inves
     id: "activity",
     label: "Recorded activity",
     value: plural(facts.calls, unit),
-    detail: `${days} · ${plural(facts.models.length, "model")} · ${report.family?.tool ?? "recorded"} history`,
+    detail: `${days} · ${plural(facts.models.length, "model")} · ${report.scopeName ?? report.family?.tool ?? "recorded"} history`,
     evidence: report.activity?.confirmed ? "measured" : "estimated",
   };
 }
@@ -187,7 +218,7 @@ function pressureRow(report: SubscriptionReport): InvestigationRow {
       id: "pressure",
       label: "Capacity pressure",
       value: "Not recorded",
-      detail: `${report.family?.tool ?? "This tool"} history does not record limit events`,
+      detail: `${report.scopeName ?? report.family?.tool ?? "This tool"} history does not record limit events`,
       evidence: "unknown",
       tone: "muted",
     };
@@ -196,7 +227,7 @@ function pressureRow(report: SubscriptionReport): InvestigationRow {
       id: "pressure",
       label: "Capacity pressure",
       value: `${plural(blocked.attempts, "blocked attempt")} across ${plural(blocked.days, "day")}`,
-      detail: `Limit events recorded on ${report.name} in this period`,
+      detail: `Limit events recorded in ${report.scopeName ?? report.name} history in this period`,
       evidence: "measured",
       tone: "warning",
     };
@@ -204,7 +235,7 @@ function pressureRow(report: SubscriptionReport): InvestigationRow {
     id: "pressure",
     label: "Capacity pressure",
     value: "No limit events recorded",
-    detail: `In ${report.family?.tool ?? "recorded"} history for this period`,
+    detail: `In ${report.scopeName ?? report.family?.tool ?? "recorded"} history for this period`,
     evidence: report.activity?.confirmed ? "measured" : "estimated",
     tone: "positive",
   };
@@ -220,7 +251,7 @@ function pressureRow(report: SubscriptionReport): InvestigationRow {
 function tierReview(
   report: SubscriptionReport,
   workload: StackWorkload,
-  currentStack: readonly TargetKey[],
+  currentStack: readonly StackSubscription[],
 ): Investigation | undefined {
   const facts = report.activity?.facts;
   if (report.visibility !== "visible" || !facts || facts.calls === 0 || !report.monthlyUsd)
@@ -292,15 +323,16 @@ function tierReview(
     text: `Whether every recorded request would fit ${lower.name} cannot be proven: its published allowance is not a fixed quota StackReplay can replay.`,
   });
   return {
-    id: `tier-review:${report.id}`,
+    id: `tier-review:${report.ref}`,
     kind: "tier-review",
     question: `Could you move to a cheaper ${report.family?.name ?? ""} tier?`.replace("  ", " "),
-    subject: `${report.name} → ${lower.name}`,
+    subject: `${reportTitle(report)} → ${lower.name}`,
     rows: [
       {
         id: "current",
         label: "Current",
         value: `${report.name} · ${subscriptionPriceText(report)}`,
+        ...(report.account ? { detail: `Linked to ${report.account.name}` } : {}),
         evidence: "published",
       },
       activityRow(report, workload),
@@ -327,7 +359,7 @@ function tierReview(
     action: {
       kind: "test",
       label: "Analyze downgrade",
-      proposed: currentStack.map((key) => (key === report.key ? lower.key : key)),
+      proposed: replacePlan(currentStack, report.subscriptionId, lower.key),
     },
   };
 }
@@ -338,7 +370,10 @@ function coverageGap(analysis: StackAnalysis, workload: StackWorkload): Investig
     (report) => report.visibility === "not-imported" || report.visibility === "not-readable",
   );
   if (missing.length === 0) return undefined;
-  const readable = missing.filter((report) => report.visibility === "not-imported");
+  const readable = missing.filter(
+    (report) =>
+      report.visibility === "not-imported" && report.visibilityReason !== "linked-elsewhere",
+  );
   const tools = [...new Set(readable.map((report) => report.family?.tool ?? ""))].filter(Boolean);
   const loaded = workload.importSources.filter((source) => source.events > 0).map((s) => s.name);
   const prices = missing.map((report) => report.monthlyUsd);
@@ -352,7 +387,7 @@ function coverageGap(analysis: StackAnalysis, workload: StackWorkload): Investig
       missing.length === 1
         ? "Which subscription can't this workload evaluate?"
         : "Which subscriptions can't this workload evaluate?",
-    subject: missing.map((report) => report.name).join(" · "),
+    subject: missing.map(reportTitle).join(" · "),
     rows: [
       ...(atStake
         ? [
@@ -373,12 +408,16 @@ function coverageGap(analysis: StackAnalysis, workload: StackWorkload): Investig
       },
       ...missing.map(
         (report): InvestigationRow => ({
-          id: `missing:${report.id}`,
-          label: report.name,
+          id: `missing:${report.ref}`,
+          label: reportTitle(report),
           value:
-            report.visibility === "not-imported"
-              ? `No ${report.family?.tool} history loaded`
-              : "History not readable by StackReplay",
+            report.visibility !== "not-imported"
+              ? "History not readable by StackReplay"
+              : report.visibilityReason === "account-missing"
+                ? "Its linked account has no history loaded"
+                : report.visibilityReason === "linked-elsewhere"
+                  ? `Not linked to a ${report.family?.tool} account`
+                  : `No ${report.family?.tool} history loaded`,
           evidence: "unknown",
           tone: "muted",
         }),
@@ -433,9 +472,10 @@ export const MAX_INVESTIGATIONS = 3;
 export function investigations(input: {
   analysis: StackAnalysis;
   workload: StackWorkload | undefined;
-  currentStack: readonly TargetKey[];
+  currentStack: readonly StackSubscription[] | readonly TargetKey[];
 }): Investigation[] {
-  const { analysis, workload, currentStack } = input;
+  const { analysis, workload } = input;
+  const currentStack = subscriptionsOf(input.currentStack);
   if (!workload || workload.overall.calls === 0) return [];
   const reviews = analysis.subscriptions
     .map((report) => ({ report, review: tierReview(report, workload, currentStack) }))

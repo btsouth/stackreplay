@@ -240,6 +240,16 @@ test("Test a change: exact spend, workload effects, reset, apply with Undo, and 
     timeout: 60_000,
   });
   await expect(page.getByTestId("replay-stack-period")).toContainText("Recorded history");
+  // The link reads against the stack it came from: kept plans read as kept and
+  // the tier change as a change, never as a removal plus a second subscription.
+  const proposed = page.locator(".stack-scenario-proposed li");
+  const row = (plan: string) =>
+    proposed.filter({ has: page.getByTestId(`replay-scenario-plan-${plan}`) });
+  await expect(row("anthropic-claude-max-20x")).toHaveAttribute("data-state", "changed");
+  await expect(row("openai-chatgpt-pro")).toHaveAttribute("data-state", "kept");
+  await expect(row("command-code-pro")).toHaveAttribute("data-state", "kept");
+  await expect(row("opencode-go")).toHaveAttribute("data-state", "kept");
+  await expect(page.locator('.stack-scenario-proposed li[data-state="added"]')).toHaveCount(0);
   await page.getByTestId("run-strategy").click();
   const findings = page.getByTestId("strategy-findings");
   await expect(page.getByTestId("strategy-result")).toContainText(
@@ -319,4 +329,95 @@ test("recorded limit events: surfaced as capacity pressure, a likely interruptio
   const chatgpt = page.getByTestId("stack-target-openai-chatgpt-pro");
   await chatgpt.getByText("Evidence, models and published terms").click();
   await expect(page.getByTestId("report-leverage-openai-chatgpt-pro")).toContainText("Estimated");
+});
+
+test("several Claude accounts: each subscription reads its own account", async ({ page }) => {
+  const MAX = "claude-code:sr_maxaccount";
+  const PRO = "claude-code:sr_proaccount";
+  const PRO2 = "claude-code:sr_pro2account";
+  const id = await importWorkload(
+    page,
+    stackWorkloadFile({
+      repeat: 2,
+      drop: ["codex", "opencode", "command-code", "hermes"],
+      claudeAccounts: [
+        { id: MAX, share: 0.8, blocked: ["2026-09-10T10:00:00Z", "2026-09-11T10:00:00Z"] },
+        { id: PRO, share: 0.12 },
+        { id: PRO2, share: 0.08, blocked: ["2026-09-12T10:00:00Z"] },
+      ],
+    }),
+  );
+  await openStack(page, id, ["plan:anthropic-claude-max-5x"]);
+
+  // Unlinked, the one Claude plan reads every Claude account, as before, and says so.
+  const accounts = page.getByTestId("stack-accounts");
+  await expect(accounts).toBeVisible();
+  await expect(accounts.locator("li")).toHaveCount(3);
+  await expect(accounts).toContainText("Claude Code account 1");
+  await expect(accounts).toContainText("Claude Code account 3");
+  await page
+    .getByTestId("stack-target-anthropic-claude-max-5x")
+    .getByText("Evidence, models")
+    .click();
+  await expect(page.getByTestId("report-details-anthropic-claude-max-5x")).toContainText(
+    "not linked to an account",
+  );
+
+  // Link account 1 to Max 5x and the other two to Claude Pro: three subscriptions, $140/mo.
+  const select = (key: string) =>
+    page.getByTestId(`stack-account-plan-${key.replace(/[^a-z0-9-]/giu, "")}`);
+  await select(MAX).selectOption("plan:anthropic-claude-max-5x");
+  await select(PRO).selectOption("plan:anthropic-claude-pro");
+  await select(PRO2).selectOption("plan:anthropic-claude-pro");
+  await expect(page.getByTestId("stack-published-total")).toContainText("$140/mo");
+  await expect(page.getByTestId("stack-published-total")).toContainText("3 subscriptions");
+  const max = page.getByTestId("stack-target-anthropic-claude-max-5x");
+  const pro = page.getByTestId("stack-target-anthropic-claude-pro");
+  const pro2 = page.getByTestId("stack-target-anthropic-claude-pro-2");
+  await expect(max).toHaveAttribute("data-account", "linked");
+  await expect(max).toContainText("Claude Code account 1");
+  await expect(pro).toContainText("Claude Code account 2");
+  await expect(pro2).toContainText("Claude Code account 3");
+  // Limit events are per account: two on account 1, one on account 3, none on account 2.
+  await expect(max).toContainText("2 blocked");
+  await expect(pro2).toContainText("1 blocked");
+  await expect(pro).toContainText("None recorded");
+  await expect(page.getByTestId("stack-outside")).toHaveCount(0);
+
+  // The links persist, with a plan list an older build can still read.
+  const stored = await page.evaluate(() => ({
+    plans: JSON.parse(localStorage.getItem("stackreplay.current-stack") ?? "[]") as string[],
+    subscriptions: (
+      JSON.parse(localStorage.getItem("stackreplay.stack-subscriptions.v2") ?? "{}") as {
+        subscriptions?: { plan: string; account?: string }[];
+      }
+    ).subscriptions,
+  }));
+  expect(stored.plans.sort()).toEqual([
+    "plan:anthropic-claude-max-5x",
+    "plan:anthropic-claude-pro",
+  ]);
+  expect(stored.subscriptions?.map((entry) => [entry.plan, entry.account])).toEqual([
+    ["plan:anthropic-claude-max-5x", MAX],
+    ["plan:anthropic-claude-pro", PRO],
+    ["plan:anthropic-claude-pro", PRO2],
+  ]);
+  expect(JSON.stringify(stored)).not.toMatch(/\/|\\\\/u);
+
+  // A tier change on Max 5x leaves both Pro subscriptions alone.
+  await page
+    .getByTestId("scenario-plan-anthropic-claude-max-5x")
+    .selectOption("plan:anthropic-claude-pro");
+  await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$80/mo");
+  await expect(page.getByTestId("scenario-outcome")).toContainText("Claude Max 5x → Claude Pro");
+  await expect(page.getByTestId("scenario-outcome")).toContainText("Claude Code account 1");
+  await expect(page.getByTestId("scenario-outcome")).not.toContainText("account 2");
+
+  // Labels are local and replace the numbered names everywhere.
+  await accounts.getByRole("button", { name: "Rename Claude Code account 3" }).click();
+  await page.getByLabel("Label for Claude Code account 3").fill("Side project");
+  await accounts.getByRole("button", { name: "Save" }).click();
+  await expect(pro2).toContainText("Side project");
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
 });

@@ -265,20 +265,21 @@ describe("personal snapshot", () => {
 
   it("names the recording tools instead of a generated import label", () => {
     expect(
-      personalSnapshot({ ...record, label: "Selected workload (1168 files)" }, [], index).label,
+      personalSnapshot({ ...record, label: "Selected workload (1168 files)" }, [], undefined, index)
+        .label,
     ).toBe("Claude Code + Codex history");
-    expect(personalSnapshot({ ...record, label: "Selected workload" }, [], index).label).toBe(
-      "Claude Code + Codex history",
-    );
+    expect(
+      personalSnapshot({ ...record, label: "Selected workload" }, [], undefined, index).label,
+    ).toBe("Claude Code + Codex history");
     // A label the user chose is kept, even one that mentions files.
-    expect(personalSnapshot(record, [], index).label).toBe("September history");
-    expect(personalSnapshot({ ...record, label: "Laptop (3 files)" }, [], index).label).toBe(
-      "Laptop (3 files)",
-    );
+    expect(personalSnapshot(record, [], undefined, index).label).toBe("September history");
+    expect(
+      personalSnapshot({ ...record, label: "Laptop (3 files)" }, [], undefined, index).label,
+    ).toBe("Laptop (3 files)");
   });
 
   it("summarizes stored facts without opening the payload", () => {
-    const snapshot = personalSnapshot(record, [], index);
+    const snapshot = personalSnapshot(record, [], undefined, index);
     expect(snapshot.calls).toBe(100);
     expect(snapshot.resolvedModels).toBe(2);
     expect(snapshot.unresolvedCalls).toBe(10);
@@ -298,15 +299,25 @@ describe("personal snapshot", () => {
     const snapshot = personalSnapshot(
       record,
       ["plan:anthropic-claude-max-20x", "plan:google-ai-pro", "api:anthropic"],
+      undefined,
       index,
     );
     expect(snapshot.stackMonthlyUsd).toBe("219.99");
+    // A plan paid for on two accounts counts twice.
+    const twice = personalSnapshot(
+      record,
+      ["plan:anthropic-claude-max-20x", "plan:google-ai-pro"],
+      { "plan:google-ai-pro": 2 },
+      index,
+    );
+    expect(twice.stackMonthlyUsd).toBe("239.98");
+    expect(twice.stack[1]).toMatchObject({ name: "Google AI Pro", count: 2 });
     expect(snapshot.stack.map((line) => line.name)).toEqual([
       "Claude Max 20x",
       "Google AI Pro",
       "Anthropic API",
     ]);
-    const unknown = personalSnapshot(record, ["plan:retired-plan"], index);
+    const unknown = personalSnapshot(record, ["plan:retired-plan"], undefined, index);
     expect(unknown.stack[0]?.name).toBe("Plan no longer listed");
     expect(unknown.stackMonthlyUsd).toBeUndefined();
   });

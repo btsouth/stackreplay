@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import type { StackSubscription } from "@/lib/current-stack";
 import type { buildMyStack } from "@/lib/my-stack";
 import { publishedPriceText } from "@/lib/my-stack";
-import type { TargetKey } from "@/lib/routes";
 import {
   leverageText,
   rangeText,
+  replacePlan,
   type StackPeriod,
   type SubscriptionReport,
   shareText,
@@ -42,26 +43,31 @@ export function SubscriptionReportRow({
   disabled: boolean;
   onRemove: () => void;
   onEdit?: ((trigger: HTMLButtonElement) => void) | undefined;
-  onTest?: ((proposed: TargetKey[], trigger: HTMLButtonElement) => void) | undefined;
-  currentStack: readonly TargetKey[];
+  onTest?: ((proposed: StackSubscription[], trigger: HTMLButtonElement) => void) | undefined;
+  currentStack: readonly StackSubscription[];
 }) {
   const activity = report.activity;
   const facts = activity?.facts;
   const days = periodDays(period);
   const tier = report.tiers.filter((tier) => tier.direction === "lower").at(-1);
   const tool = report.family?.tool;
+  const where = report.scopeName ?? tool;
   const line =
     report.visibility === "not-readable"
       ? "StackReplay cannot read this plan's usage history"
       : report.visibility === "not-imported"
-        ? `No ${tool} history in this workload`
+        ? report.visibilityReason === "account-missing"
+          ? `Linked to ${report.account?.name ?? "an account"} · no history for it in this workload`
+          : report.visibilityReason === "linked-elsewhere"
+            ? `Not linked to a ${tool} account in this workload`
+            : `No ${tool} history in this workload`
         : report.visibility === "no-workload"
           ? report.family
             ? `Associated with ${tool} history`
             : "StackReplay cannot read this plan's usage history"
           : facts && facts.calls > 0
             ? [
-                tool,
+                where,
                 days
                   ? `active ${facts.activeDays} of ${days} days`
                   : `${facts.activeDays} active days`,
@@ -72,18 +78,24 @@ export function SubscriptionReportRow({
               ]
                 .filter(Boolean)
                 .join(" · ")
-            : `${tool} · no recorded calls in this period`;
+            : `${where} · no recorded calls in this period`;
   const value = facts?.value ?? facts?.pricedValue;
   return (
     <article
       className="stack-report"
-      id={`report-${report.id}`}
-      data-testid={`stack-target-${report.id}`}
+      id={`report-${report.subscriptionId}`}
+      data-testid={`stack-target-${report.ref}`}
       data-visibility={report.visibility}
+      data-account={report.account ? "linked" : "unlinked"}
     >
       <div className="stack-report-grid">
         <div className="stack-report-name">
-          <h3>{report.name}</h3>
+          <h3>
+            {report.name}
+            {report.account ? (
+              <span className="stack-report-account"> · {report.account.name}</span>
+            ) : null}
+          </h3>
           <p className="stack-caption">{line}</p>
           {!report.available ? (
             <p className="stack-caption">
@@ -162,7 +174,7 @@ export function SubscriptionReportRow({
               className="stack-link"
               onClick={(event) =>
                 onTest(
-                  currentStack.map((key) => (key === report.key ? tier.key : key)),
+                  replacePlan(currentStack, report.subscriptionId, tier.key),
                   event.currentTarget,
                 )
               }
@@ -174,10 +186,10 @@ export function SubscriptionReportRow({
             <button
               type="button"
               className="stack-link"
-              aria-label={`Test removing ${report.name}`}
+              aria-label={`Test removing ${report.name}${report.account ? ` on ${report.account.name}` : ""}`}
               onClick={(event) =>
                 onTest(
-                  currentStack.filter((key) => key !== report.key),
+                  currentStack.filter((entry) => entry.id !== report.subscriptionId),
                   event.currentTarget,
                 )
               }
@@ -217,12 +229,12 @@ export function SubscriptionReportRow({
           </button>
         </div>
       </div>
-      <details className="stack-report-details" data-testid={`report-details-${report.id}`}>
+      <details className="stack-report-details" data-testid={`report-details-${report.ref}`}>
         <summary>Evidence, models and published terms</summary>
         <div className="stack-report-details-body">
           <EvidenceList items={report.evidence} />
           {report.leverage ? (
-            <p className="stack-caption" data-testid={`report-leverage-${report.id}`}>
+            <p className="stack-caption" data-testid={`report-leverage-${report.ref}`}>
               Recorded value per published dollar ({leverageText(report.leverage)},{" "}
               <EvidenceWord level={report.leverage.level} />
               ): {rangeText(report.leverage.value)} API-equivalent ÷{" "}
@@ -278,7 +290,7 @@ export function SubscriptionReportRow({
             <PublishedAccess
               access={target.access}
               planName={report.name}
-              testId={`published-access-${report.id}`}
+              testId={`published-access-${report.ref}`}
             />
           ) : null}
           {report.available ? (
