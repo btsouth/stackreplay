@@ -18,7 +18,8 @@ async function digest(text: string): Promise<string> {
 /** Integrity check for accidental storage damage, not authentication. */
 export async function encodeCachedResult(key: string, value: unknown) {
   const json = JSON.stringify(value);
-  if (json === undefined || json.length > RESULT_CACHE_MAX_BYTES) return undefined;
+  if (json === undefined || new TextEncoder().encode(json).byteLength > RESULT_CACHE_MAX_BYTES)
+    return undefined;
   return { json, digest: await digest(`${key}\u0000${json}`) };
 }
 
@@ -27,7 +28,7 @@ export async function decodeCachedResult<T>(key: string, value: unknown): Promis
   const envelope = value as { json?: unknown; digest?: unknown };
   if (
     typeof envelope.json !== "string" ||
-    envelope.json.length > RESULT_CACHE_MAX_BYTES ||
+    new TextEncoder().encode(envelope.json).byteLength > RESULT_CACHE_MAX_BYTES ||
     typeof envelope.digest !== "string" ||
     !/^[0-9a-f]{64}$/u.test(envelope.digest)
   )
