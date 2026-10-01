@@ -203,4 +203,3 @@ for (const removal of ["delete", "corrupt"] as const) {
     await expect.poll(() => cachedImportIds(page)).toEqual([]);
   });
 }
-
