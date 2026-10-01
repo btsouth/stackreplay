@@ -23,13 +23,13 @@ export function LargeHistoryNote({ bytes }: { bytes: number }) {
         <span aria-hidden="true" className="sr-large-dot" />
         Large history · {formatBytes(bytes)}
       </p>
-      <p className="sr-large-text">Higher browser memory use expected.</p>
+      <p className="sr-large-text">A history this size can take a minute or more to scan.</p>
       <details className="sr-large-details">
         <summary>Details</summary>
         <p>
-          A local scan accepts up to 5 GB of selected files and 512 MB per session file. Parsing a
-          history this size can use several gigabytes of browser memory, so close other heavy tabs
-          if the browser slows down. If the scan stops, nothing partial is saved.
+          A local scan accepts up to 16 GB of selected files and 2 GB per session file. Session
+          files are read a line at a time, so a large history mostly costs time; memory grows with
+          the number of recorded calls. If the scan stops, nothing partial is saved.
         </p>
       </details>
     </div>

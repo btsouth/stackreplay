@@ -121,14 +121,28 @@ const ADAPTERS = {
 } as const satisfies Record<BrowserSourceId, ReturnType<typeof createCodexAdapter>>;
 
 const MiB = 1024 * 1024;
+const GiB = 1024 * MiB;
+/**
+ * A file read whole becomes one JavaScript string, which engines cap near
+ * 512 MiB, so text-read sources keep that limit.
+ */
 const MAX_SOURCE_FILE_BYTES = 512 * MiB;
+/**
+ * A JSONL session is streamed a line at a time and never held whole, so its
+ * size costs time, not memory. Long agent sessions pass 512 MiB (a real Codex
+ * rollout measured 460 MiB), so streamed files get a far higher bound.
+ */
+export const MAX_STREAMED_SOURCE_FILE_BYTES = 2 * GiB;
 /** One operation-wide browser intake envelope. Raw history can span many
  * small files, so its aggregate cap is higher than the single-archive and
- * expanded-archive caps. Files are still read sequentially in the Worker. */
+ * expanded-archive caps. Files are still read sequentially in the Worker, and
+ * JSONL is streamed, so memory follows the recorded events kept, not the bytes
+ * read: a real 7.25 GiB Claude Code and Codex history (811 files, 112,775
+ * events) peaked at 0.57 GiB resident in the shared intake. */
 export const BROWSER_INTAKE_BUDGET = {
   selectedCandidates: 20_000,
-  selectedBytes: 5 * 1024 * MiB,
-  readBytes: 5 * 1024 * MiB,
+  selectedBytes: 16 * GiB,
+  readBytes: 16 * GiB,
   archives: 16,
   archiveEntries: 20_000,
   expandedMembers: 20_000,
@@ -789,8 +803,10 @@ export async function intakeBrowserCandidates(
     /\.jsonl$/iu.test(candidate.path) &&
     candidate.stream !== undefined &&
     candidate.peekText !== undefined;
+  const fileLimit = (candidate: BrowserCandidate): number =>
+    streams(candidate) ? MAX_STREAMED_SOURCE_FILE_BYTES : MAX_SOURCE_FILE_BYTES;
   const readable = (candidate: BrowserCandidate): boolean =>
-    isBrowserSourceCandidate(candidate.path) && candidate.size <= MAX_SOURCE_FILE_BYTES;
+    isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
   // The exact-file signature only has to tell identical selected files apart,
   // and identical bytes have identical sizes: a streamed file whose size no
   // other streamed file shares cannot be a duplicate and is not hashed. A file
@@ -850,11 +866,13 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    if (candidate.size > MAX_SOURCE_FILE_BYTES) {
+    if (candidate.size > fileLimit(candidate)) {
       outcomes.push({
         path: display,
         status: "unsupported",
-        reason: "File exceeds the 512 MB source parser limit",
+        reason: streams(candidate)
+          ? "File exceeds the 2 GB session file limit"
+          : "File exceeds the 512 MB source parser limit",
         events: 0,
       });
       report(index + 1, true);
@@ -1020,7 +1038,7 @@ export async function intakeBrowserCandidates(
         mapper,
         roots: ["/selected"],
         ...(sessionRoot ? { sessionRoot } : {}),
-        maxFileBytes: MAX_SOURCE_FILE_BYTES,
+        maxFileBytes: fileLimit(candidate),
         onProjectKey: (hash, key) => projectKeys.set(hash, key),
         ...(id === "ccusage" ? { inputFile: path } : {}),
       });
