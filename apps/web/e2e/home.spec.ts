@@ -285,8 +285,9 @@ test.describe("homepage without a saved workload", () => {
         ),
       );
     }
-    expect(order.slice(1, 8)).toEqual([
+    expect(order.slice(1, 9)).toEqual([
       "Models",
+      "Benchmarks",
       "Compare",
       "Plans",
       "Updates",
