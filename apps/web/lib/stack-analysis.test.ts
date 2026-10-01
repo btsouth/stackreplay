@@ -4,6 +4,7 @@ import { copyDefects } from "./copy-lint";
 import type { MarketDecision } from "./market-decision";
 import type { TargetKey } from "./routes";
 import {
+  alignProposal,
   analyzeScenario,
   analyzeStack,
   computeLeverage,
@@ -18,11 +19,15 @@ import {
   stackAssessmentLines,
   stackParam,
   stackPeriodLabel,
+  subscriptionsOf,
   type WorkloadFacts,
   workloadFacts,
 } from "./stack-analysis";
 
 const rulesAsOf = DECISION_MARKET.rulesAt;
+/** The plan keys of a proposed stack, in order. */
+const plansOf = (stack: readonly { plan: TargetKey }[] | undefined) =>
+  (stack ?? []).map((entry) => entry.plan);
 const SEPTEMBER: StackPeriod = {
   kind: "billing",
   source: "cycle",
@@ -294,8 +299,9 @@ describe("stack analysis", () => {
     expect(unused).toMatchObject({
       subject: "Command Code Pro",
       monthlyDelta: "-20",
-      test: { label: "Test removing it", proposed: ["plan:anthropic-claude-max-20x"] },
+      test: { label: "Test removing it" },
     });
+    expect(plansOf(unused?.test?.proposed)).toEqual(["plan:anthropic-claude-max-20x"]);
     expect(unused?.statement).toMatch(/imported histories for Aug 24, 2026 – Sep 23, 2026/u);
     expect(
       unused?.evidence.some((e) => e.level === "unknown" && /outside the histories/u.test(e.text)),
@@ -450,8 +456,9 @@ describe("stack analysis", () => {
     expect(downgrade).toMatchObject({
       subject: "Claude Max 20x → Claude Max 5x",
       monthlyDelta: "-100",
-      test: { label: "Test $100 plan", proposed: ["plan:anthropic-claude-max-5x"] },
+      test: { label: "Test $100 plan" },
     });
+    expect(plansOf(downgrade?.test?.proposed)).toEqual(["plan:anthropic-claude-max-5x"]);
     expect(downgrade?.evidence.map((e) => e.level)).toEqual(["published", "measured", "unknown"]);
     expect(downgrade?.evidence[0]?.text).toMatch(/20× Pro session allowance → 5× Pro/u);
     // Claude Pro lacks Fable 5.1 in its included lineup, so it is never the suggestion.
@@ -478,7 +485,7 @@ describe("stack analysis", () => {
     });
     expect(outside.outside.map((w) => w.sourceId)).toEqual(["codex"]);
     const uncovered = outside.opportunities.find((o) => o.kind === "uncovered");
-    expect(uncovered?.test?.proposed).toEqual([
+    expect(plansOf(uncovered?.test?.proposed)).toEqual([
       "plan:anthropic-claude-max-20x",
       "plan:openai-chatgpt-plus",
     ]);
@@ -852,15 +859,53 @@ describe("scenarios", () => {
     ).toEqual([]);
   });
 
-  it("Replay links carry catalog ids only and reject anything else", () => {
+  it("Replay links carry catalog ids and local account keys only, and reject anything else", () => {
     expect(stackParam(["plan:anthropic-claude-max-5x", "api:openai", "plan:opencode-go"])).toBe(
       "anthropic-claude-max-5x,opencode-go",
     );
-    expect(parseStackParam("anthropic-claude-max-5x,<script>,opencode-go,opencode-go")).toEqual([
-      "plan:anthropic-claude-max-5x",
-      "plan:opencode-go",
+    // A repeated plan is a second subscription, so it is kept.
+    expect(
+      plansOf(parseStackParam("anthropic-claude-max-5x,<script>,opencode-go,opencode-go")),
+    ).toEqual(["plan:anthropic-claude-max-5x", "plan:opencode-go", "plan:opencode-go"]);
+    // Account links survive the round trip; anything not a local account key is dropped.
+    const linked = [
+      { id: "a1", plan: "plan:anthropic-claude-max-5x" as const, account: "claude-code:sr_abc" },
+      { id: "a2", plan: "plan:anthropic-claude-pro" as const, account: "claude-code:sr_def" },
+    ];
+    const param = stackParam(linked);
+    expect(param).toBe(
+      "anthropic-claude-max-5x@claude-code:sr_abc,anthropic-claude-pro@claude-code:sr_def",
+    );
+    expect(parseStackParam(param)?.map((entry) => [entry.plan, entry.account])).toEqual([
+      ["plan:anthropic-claude-max-5x", "claude-code:sr_abc"],
+      ["plan:anthropic-claude-pro", "claude-code:sr_def"],
     ]);
+    expect(parseStackParam("anthropic-claude-pro@/home/me/.claude")?.[0]?.account).toBeUndefined();
     expect(parseStackParam(undefined)).toBeUndefined();
+  });
+
+  it("pairs a linked proposal with the subscriptions it repeats", () => {
+    const current = [
+      { id: "s1", plan: "plan:anthropic-claude-max-20x" as const },
+      { id: "s2", plan: "plan:anthropic-claude-pro" as const, account: "claude-code:sr_b" },
+      { id: "s3", plan: "plan:anthropic-claude-pro" as const, account: "claude-code:sr_c" },
+      { id: "s4", plan: "plan:opencode-go" as const },
+    ];
+    const proposed = parseStackParam(
+      "anthropic-claude-max-5x,anthropic-claude-pro@claude-code:sr_c,anthropic-claude-pro@claude-code:sr_b,opencode-go,opencode-go",
+    );
+    const aligned = alignProposal(proposed ?? [], current);
+    expect(aligned.map((sub) => [sub.id, sub.plan, sub.account])).toEqual([
+      // A changed tier in the same family pairs with the plan it replaces.
+      ["s1", "plan:anthropic-claude-max-5x", undefined],
+      // Same plan and account pairs exactly, whatever the order.
+      ["s3", "plan:anthropic-claude-pro", "claude-code:sr_c"],
+      ["s2", "plan:anthropic-claude-pro", "claude-code:sr_b"],
+      // Each current subscription pairs once; the second copy is a new subscription.
+      ["s4", "plan:opencode-go", undefined],
+      [proposed?.[4]?.id, "plan:opencode-go", undefined],
+    ]);
+    expect(new Set(aligned.map((sub) => sub.id)).size).toBe(aligned.length);
   });
 });
 
@@ -928,5 +973,146 @@ describe("workload facts from a market result", () => {
     expect(ratioText("24.565")).toBe("24.6×");
     expect(ratioText("0.42")).toBe("0.4×");
     expect(ratioText("125.2")).toBe("125×");
+  });
+});
+
+describe("several accounts on one provider", () => {
+  const MAX = "claude-code:sr_max";
+  const PRO1 = "claude-code:sr_pro1";
+  const PRO2 = "claude-code:sr_pro2";
+  const max = facts({
+    calls: 48_420,
+    value: { low: "6000", high: "6600" },
+    models: [{ id: "claude-opus-5-5", calls: 48_420, priced: 48_420 }],
+    blocked: { attempts: 46, days: 14 },
+  });
+  const pro1 = facts({
+    calls: 3_198,
+    value: { low: "400", high: "440" },
+    models: [{ id: "claude-sonnet-5-5", calls: 3_198, priced: 3_198 }],
+    blocked: { attempts: 0, days: 0 },
+  });
+  const pro2 = facts({
+    calls: 1_996,
+    value: { low: "250", high: "275" },
+    models: [{ id: "claude-sonnet-5-5", calls: 1_996, priced: 1_996 }],
+    blocked: { attempts: 3, days: 1 },
+  });
+  const all = facts({ calls: 53_614, blocked: { attempts: 49, days: 14 } });
+  const accounts = [
+    { key: MAX, source: "claude-code", calls: 48_420, name: "Claude Code account 1", facts: max },
+    { key: PRO1, source: "claude-code", calls: 3_198, name: "Claude Code account 2", facts: pro1 },
+    { key: PRO2, source: "claude-code", calls: 1_996, name: "Claude Code account 3", facts: pro2 },
+  ];
+  const scopes = {
+    [MAX]: max,
+    [PRO1]: pro1,
+    [PRO2]: pro2,
+    [[PRO1, PRO2].sort().join(",")]: facts({ calls: 5_194, blocked: { attempts: 3, days: 1 } }),
+  };
+  const work = workload({ "claude-code": all }, { accounts, scopes });
+  const linked = [
+    { id: "smax", plan: "plan:anthropic-claude-max-5x" as const, account: MAX },
+    { id: "spro1", plan: "plan:anthropic-claude-pro" as const, account: PRO1 },
+    { id: "spro2", plan: "plan:anthropic-claude-pro" as const, account: PRO2 },
+  ];
+
+  it("reads each linked subscription against its own account only", () => {
+    const analysis = analyzeStack({ currentStack: linked, rulesAsOf, workload: work });
+    expect(analysis.planCount).toBe(3);
+    // Two Claude Pro subscriptions count twice in the published total.
+    expect(analysis.model.totals).toEqual([
+      expect.objectContaining({ currency: "USD", interval: "month", amount: "140" }),
+    ]);
+    const [maxReport, proReport, pro2Report] = analysis.subscriptions;
+    expect(maxReport?.activity?.facts.calls).toBe(48_420);
+    expect(maxReport?.activity?.facts.blocked).toEqual({ attempts: 46, days: 14 });
+    expect(maxReport?.account?.name).toBe("Claude Code account 1");
+    expect(proReport?.activity?.facts.calls).toBe(3_198);
+    expect(pro2Report?.activity?.facts.calls).toBe(1_996);
+    expect(pro2Report?.activity?.facts.blocked).toEqual({ attempts: 3, days: 1 });
+    // Each is its own subscription: no "shared with" grouping, distinct DOM references.
+    expect(analysis.subscriptions.map((report) => report.sharedWith)).toEqual([[], [], []]);
+    expect(analysis.subscriptions.map((report) => report.ref)).toEqual([
+      "anthropic-claude-max-5x",
+      "anthropic-claude-pro",
+      "anthropic-claude-pro-2",
+    ]);
+    expect(analysis.outside).toEqual([]);
+    for (const text of everyText(analysis)) expect(copyDefects(text)).toEqual([]);
+  });
+
+  it("puts an account no subscription pays for outside the stack, by name", () => {
+    const analysis = analyzeStack({
+      currentStack: [linked[0] as (typeof linked)[number]],
+      rulesAsOf,
+      workload: work,
+    });
+    expect(analysis.subscriptions[0]?.activity?.facts.calls).toBe(48_420);
+    expect(analysis.outside).toEqual([
+      expect.objectContaining({
+        sourceId: "claude-code",
+        accounts: [PRO1, PRO2].sort(),
+        name: "Claude Code, 2 accounts",
+      }),
+    ]);
+  });
+
+  it("reads an unlinked Claude plan with every Claude account, as a one-account stack always was", () => {
+    const analysis = analyzeStack({
+      currentStack: ["plan:anthropic-claude-max-5x"],
+      rulesAsOf,
+      workload: work,
+    });
+    const report = analysis.subscriptions[0];
+    expect(report?.activity?.facts.calls).toBe(53_614);
+    expect(report?.evidence.some((entry) => /not linked to an account/u.test(entry.text))).toBe(
+      true,
+    );
+  });
+
+  it("tests a downgrade of one account's subscription without touching the others", () => {
+    const analysis = analyzeStack({ currentStack: linked, rulesAsOf, workload: work });
+    const result = analyzeScenario({
+      current: linked,
+      proposed: linked.map((entry) =>
+        entry.id === "smax" ? { ...entry, plan: "plan:anthropic-claude-pro" as const } : entry,
+      ),
+      workload: work,
+      rulesAsOf,
+    });
+    expect(result.monthlyDelta).toBe("-80");
+    expect(result.changes).toHaveLength(1);
+    expect(result.changes[0]?.title).toBe("Claude Max 5x → Claude Pro");
+    const text = result.changes[0]?.findings.map((entry) => entry.text).join(" ") ?? "";
+    expect(text).toMatch(/48,420 recorded calls from Claude Code account 1/u);
+    expect(text).toMatch(/46 blocked attempts on 14 days/u);
+    expect(text).not.toMatch(/53,614/u);
+    expect(analysis.subscriptions.length).toBe(3);
+  });
+
+  it("removing one of two Pro subscriptions leaves that account's work without a plan", () => {
+    const result = analyzeScenario({
+      current: linked,
+      proposed: linked.filter((entry) => entry.id !== "spro2"),
+      workload: work,
+      rulesAsOf,
+    });
+    expect(result.monthlyDelta).toBe("-20");
+    expect(result.changes.map((change) => change.title)).toEqual(["Remove Claude Pro"]);
+    expect(result.changes[0]?.findings[0]?.text).toMatch(
+      /1,996 recorded calls from Claude Code account 3/u,
+    );
+  });
+});
+
+describe("subscriptions from a plain plan list", () => {
+  it("gives plans that share a long prefix distinct ids", () => {
+    const subs = subscriptionsOf([
+      "plan:anthropic-claude-max-5x",
+      "plan:anthropic-claude-max-20x",
+    ] as TargetKey[]);
+    expect(new Set(subs.map((sub) => sub.id)).size).toBe(2);
+    expect(subs.every((sub) => /^[a-z0-9]{4,24}$/u.test(sub.id))).toBe(true);
   });
 });

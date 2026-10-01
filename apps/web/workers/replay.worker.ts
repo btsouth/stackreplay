@@ -27,6 +27,7 @@ import {
 } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { accountKeyOf, recordsCapacity } from "../lib/accounts";
 import { type ActivityPoint, activityPoint, composeCapacityBurden } from "../lib/capacity-episodes";
 import * as storage from "../lib/idb";
 import {
@@ -167,12 +168,28 @@ async function handleMarket(
     if (!current()) throw new OptimizerCancelledError();
     const compute = async (): Promise<MarketDecision> => {
       const sources = request.sources?.length ? new Set(request.sources) : undefined;
-      const sourceEvents = sources
-        ? loaded.exported.events.filter((event) => sources.has(event.source.adapterId))
-        : loaded.exported.events;
-      // Capacity evidence belongs to the local accounts of the tools in scope.
-      const sourceAccounts = sources
-        ? new Set(sourceEvents.flatMap((event) => event.source.resourceInstanceId ?? []))
+      const accountScope = request.accounts?.length ? new Set(request.accounts) : undefined;
+      const sourceEvents =
+        sources || accountScope
+          ? loaded.exported.events.filter(
+              (event) =>
+                (!sources || sources.has(event.source.adapterId)) &&
+                (!accountScope || accountScope.has(accountKeyOf(event.source))),
+            )
+          : loaded.exported.events;
+      // Capacity evidence belongs to the local accounts in scope, and only to
+      // accounts whose history records limit events at all: an account of a tool
+      // that never records them (Codex) has "not recorded", never "none".
+      const accountTools = new Map<string, string>();
+      for (const event of sourceEvents)
+        accountTools.set(accountKeyOf(event.source), event.source.adapterId);
+      const scopedAccounts = accountScope
+        ? [...accountScope]
+        : sources
+          ? sourceEvents.flatMap((event) => event.source.resourceInstanceId ?? [])
+          : undefined;
+      const sourceAccounts = scopedAccounts
+        ? new Set(scopedAccounts.filter((key) => recordsCapacity(key, accountTools.get(key))))
         : undefined;
       const observations =
         loaded.exported.capacityObservations && sourceAccounts
@@ -285,6 +302,7 @@ async function handleMarket(
         request.period,
         request.resourceInstanceId,
         request.sources,
+        request.accounts,
       ],
       compute,
       current,

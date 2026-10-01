@@ -89,6 +89,28 @@ describe("discovered history list", () => {
     expect(rows[1]).toMatchObject({ extra: true, where: "wsl-home", fileCount: 4 });
   });
 
+  it("keeps a later folder the browser cannot read beside a found history", () => {
+    let rows = waitingRows();
+    rows = mergeFinding(rows, finding("claude-code", "found", 16), "claude3", true);
+    rows = mergeFinding(rows, finding("claude-code", "access-needed"), "claude", false);
+    expect(statuses(rows).slice(0, 2)).toEqual([
+      "claude-code:found",
+      "claude-code-2:access-needed",
+    ]);
+    expect(rows[1]).toMatchObject({ extra: true, where: "claude", selected: false });
+  });
+
+  it("keeps an unreadable folder listed when a later folder holds the same history", () => {
+    let rows = waitingRows();
+    rows = mergeFinding(rows, finding("claude-code", "access-needed"), "claude", true);
+    rows = mergeFinding(rows, finding("claude-code", "found", 24), "claude2", false);
+    expect(statuses(rows).slice(0, 2)).toEqual([
+      "claude-code:access-needed",
+      "claude-code-2:found",
+    ]);
+    expect(rows[1]).toMatchObject({ extra: true, where: "claude2", selected: true });
+  });
+
   it("ignores progress from a later folder", () => {
     let rows = waitingRows();
     rows = mergeFinding(rows, finding("codex", "not-found"), "dev", true);

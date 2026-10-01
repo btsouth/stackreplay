@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { TargetKey } from "@/lib/routes";
+import type { StackSubscription } from "@/lib/current-stack";
 import { EVIDENCE_LABELS } from "@/lib/stack-analysis";
 import type { Investigation } from "@/lib/stack-investigations";
 import { EvidenceList } from "./evidence";
@@ -18,7 +18,7 @@ export function StackInvestigations({
   onTest,
 }: {
   items: readonly Investigation[];
-  onTest: (proposed: TargetKey[], trigger: HTMLButtonElement) => void;
+  onTest: (proposed: StackSubscription[], trigger: HTMLButtonElement) => void;
 }) {
   return (
     <ol className="stack-investigations" data-testid="stack-investigations">

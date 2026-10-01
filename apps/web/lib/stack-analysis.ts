@@ -1,6 +1,14 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import { formatUsd } from "@stackreplay/share";
+import {
+  accountNames,
+  accountSource,
+  isAccountKey,
+  toolNameOf,
+  type WorkloadAccount,
+} from "./accounts";
+import { type StackSubscription, stackKeys } from "./current-stack";
 import { marketRange } from "./decision-presentation";
 import type { MarketDecision } from "./market-decision";
 import { buildMyStack } from "./my-stack";
@@ -23,6 +31,7 @@ import {
   resolveReviewPeriod,
 } from "./review-period";
 import type { TargetKey } from "./routes";
+import { type Assignment, assignAccounts, scopeKey } from "./stack-accounts";
 import { DISCOVERY_FAMILIES, type DiscoveryGroupId, type NonPlanResponse } from "./stack-discovery";
 import { subscriptionPublishedTerms } from "./subscription-published-terms";
 
@@ -37,10 +46,12 @@ import { subscriptionPublishedTerms } from "./subscription-published-terms";
  * published allowances are relative statements, never token quotas, so plan
  * fit stays "cannot determine" unless recorded limit events say more.
  *
- * Association, not attribution: a recording tool's calls are associated with
- * the subscription family the reviewed discovery mapping names for that tool
+ * Association, not attribution: recorded work is associated with a
+ * subscription through the local account it was recorded in (one history
+ * location of one tool), as the person linked it, or else through the
+ * subscription family the reviewed discovery mapping names for that tool
  * (Claude Code → Claude plans). That is where the work was recorded, not proof
- * of which account paid for it.
+ * of which account paid for it. See `stack-accounts.ts`.
  */
 
 /** Trust vocabulary shared by every finding. The word is always shown. */
@@ -180,7 +191,21 @@ export function stackPeriodLabel(period: StackPeriod): string {
  */
 export type StackConfirmation =
   | { scope: "all" }
-  | { scope: "account"; sourceId: string; calls: number; label?: string | undefined };
+  | {
+      scope: "account";
+      sourceId: string;
+      /** The confirmed local account; absent on a confirmation made before accounts were keyed. */
+      accountKey?: string | undefined;
+      calls: number;
+      label?: string | undefined;
+    };
+
+/** One local account in the workload: whole-import calls order and name it. */
+export interface StackAccount extends WorkloadAccount {
+  name: string;
+  /** Inside the analysis period, when computed. */
+  facts?: WorkloadFacts | undefined;
+}
 
 export interface StackWorkload {
   period: StackPeriod;
@@ -194,6 +219,78 @@ export interface StackWorkload {
   paid?: Readonly<Record<string, string>> | undefined;
   /** The market calculation's scope identity for the whole period. */
   scopeDigest?: string | undefined;
+  /**
+   * Local accounts with history in the import (see `accounts.ts`). Absent on a
+   * workload built without them: each tool is then one account.
+   */
+  accounts?: readonly StackAccount[] | undefined;
+  /** Facts inside the period for sets of accounts, keyed by `scopeKey`. */
+  scopes?: Readonly<Record<string, WorkloadFacts>> | undefined;
+}
+
+/** The workload's accounts, or one default account per tool when none are recorded. */
+export function workloadAccounts(workload: StackWorkload | undefined): StackAccount[] {
+  if (!workload) return [];
+  if (workload.accounts) return [...workload.accounts];
+  const accounts = workload.importSources
+    .filter((source) => source.events > 0)
+    .map((source) => ({
+      key: `${source.id}:default`,
+      source: source.id,
+      calls: source.events,
+    }));
+  const names = accountNames(accounts);
+  return accounts.map((account) => ({
+    ...account,
+    name: names.get(account.key) ?? toolNameOf(account.source),
+    facts: workload.sources[account.source],
+  }));
+}
+
+/**
+ * Facts for a set of accounts inside the period: a computed scope, or a
+ * tool's own slice when the set is every account of that tool. Undefined when
+ * that combination was not calculated; never summed from parts.
+ */
+export function scopeFacts(
+  workload: StackWorkload,
+  keys: readonly string[],
+): WorkloadFacts | undefined {
+  if (keys.length === 0) return undefined;
+  const computed = workload.scopes?.[scopeKey(keys)];
+  if (computed) return computed;
+  const tools = toolsOf(keys, workloadAccounts(workload));
+  const tool = tools[0];
+  if (tools.length !== 1 || tool === undefined) return undefined;
+  const all = workloadAccounts(workload)
+    .filter((account) => account.source === tool)
+    .map((account) => account.key);
+  return all.length === keys.length && all.every((key) => keys.includes(key))
+    ? workload.sources[tool]
+    : keys.length === 1
+      ? workloadAccounts(workload).find((account) => account.key === keys[0])?.facts
+      : undefined;
+}
+
+/** A short, stable [a-z0-9] digest of a plan key, so ids derived from it cannot collide on truncation. */
+function planHash(plan: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < plan.length; index += 1)
+    hash = Math.imul(hash ^ plan.charCodeAt(index), 16777619);
+  return (hash >>> 0).toString(36);
+}
+
+/** A stack given as plan keys (older callers, tests) becomes one unlinked subscription each. */
+export function subscriptionsOf(
+  stack: readonly StackSubscription[] | readonly TargetKey[],
+): StackSubscription[] {
+  const seen = new Map<string, number>();
+  return stack.map((entry) => {
+    if (typeof entry !== "string") return entry;
+    const n = (seen.get(entry) ?? 0) + 1;
+    seen.set(entry, n);
+    return { id: `k${n}${planHash(entry)}`, plan: entry };
+  });
 }
 
 type Family = (typeof DISCOVERY_FAMILIES)[number];
@@ -367,8 +464,19 @@ export interface TierOption {
 
 export interface SubscriptionReport {
   key: TargetKey;
+  /** The plan's catalog id. */
   id: string;
+  /** This subscription's identity in the stack. */
+  subscriptionId: string;
+  /** Unique within the stack and safe for DOM ids: the plan id, then `-2`, `-3` for repeats. */
+  ref: string;
   name: string;
+  /** The local account this subscription is linked to, as the person stated it. */
+  account?: { key: string; name: string } | undefined;
+  /** Accounts whose recorded work this subscription is associated with. */
+  scopeKeys: string[];
+  /** Where that work was recorded, in words ("Claude Code account 2", "Codex"). */
+  scopeName?: string | undefined;
   available: boolean;
   price?: { amount: string; currency: string; interval: string } | undefined;
   monthlyUsd?: string | undefined;
@@ -382,6 +490,12 @@ export interface SubscriptionReport {
    * no-workload: nothing is selected to analyze.
    */
   visibility: "visible" | "not-imported" | "not-readable" | "no-workload";
+  /**
+   * Why a readable subscription has no history here: its linked account is not
+   * in this workload, or every loaded account of its tool is linked to another
+   * subscription.
+   */
+  visibilityReason?: "account-missing" | "linked-elsewhere" | undefined;
   activity?: {
     facts: WorkloadFacts;
     share: number;
@@ -401,6 +515,8 @@ export interface SubscriptionReport {
 }
 
 export interface Opportunity {
+  /** The subscription this finding is about, when it is about one. */
+  subscriptionId?: string | undefined;
   id: string;
   kind:
     | "unused"
@@ -417,12 +533,14 @@ export interface Opportunity {
   evidence: Evidence[];
   /** Signed change in published monthly USD subscription spend. */
   monthlyDelta?: string | undefined;
-  test?: { label: string; proposed: TargetKey[] } | undefined;
+  test?: { label: string; proposed: StackSubscription[] } | undefined;
   inspect?: { label: string; anchor: string } | undefined;
 }
 
 export interface OutsideWork {
   sourceId: string;
+  /** The accounts this work was recorded in. */
+  accounts: string[];
   name: string;
   facts: WorkloadFacts;
   share: number;
@@ -465,30 +583,49 @@ function listedModels(
   }));
 }
 
-function familyConfirmed(
-  family: Family,
+/**
+ * Whether the person confirmed complete history for exactly this set of
+ * accounts. A confirmation for one account covers that account only; an older
+ * confirmation that names a tool covers the set of all that tool's accounts.
+ */
+function scopeConfirmed(
+  keys: readonly string[],
   facts: WorkloadFacts,
   confirmation: StackConfirmation | undefined,
+  workload: StackWorkload,
 ): boolean {
   if (!confirmation) return false;
   if (confirmation.scope === "all") return true;
-  return (
-    family.sourceIds.length === 1 &&
-    family.sourceIds[0] === confirmation.sourceId &&
-    facts.calls === confirmation.calls
-  );
+  if (facts.calls !== confirmation.calls) return false;
+  if (confirmation.accountKey !== undefined)
+    return keys.length === 1 && keys[0] === confirmation.accountKey;
+  const tool = workloadAccounts(workload)
+    .filter((account) => account.source === confirmation.sourceId)
+    .map((account) => account.key);
+  return tool.length === keys.length && tool.every((key) => keys.includes(key));
 }
 
-function sourceConfirmed(
-  sourceId: string,
-  facts: WorkloadFacts,
-  confirmation: StackConfirmation | undefined,
-): boolean {
-  if (!confirmation) return false;
-  return (
-    confirmation.scope === "all" ||
-    (confirmation.sourceId === sourceId && facts.calls === confirmation.calls)
-  );
+/** The tools that recorded a set of accounts, from their history where loaded. */
+function toolsOf(keys: readonly string[], accounts: readonly StackAccount[]): string[] {
+  const sourceOf = new Map(accounts.map((account) => [account.key, account.source]));
+  return [...new Set(keys.map((key) => sourceOf.get(key) ?? accountSource(key)))];
+}
+
+/** Words for where a set of accounts recorded its work. */
+function scopeWords(
+  keys: readonly string[],
+  accounts: readonly StackAccount[],
+  workload: StackWorkload | undefined,
+): string | undefined {
+  if (keys.length === 0) return undefined;
+  if (keys.length === 1) return accounts.find((account) => account.key === keys[0])?.name;
+  const tools = toolsOf(keys, accounts);
+  const tool = tools[0];
+  if (tools.length !== 1 || tool === undefined) return undefined;
+  const name =
+    workload?.importSources.find((source) => source.id === tool)?.name ?? toolNameOf(tool);
+  const all = accounts.filter((account) => account.source === tool).length;
+  return all === keys.length ? name : `${name}, ${keys.length} accounts`;
 }
 
 function tierOptions(
@@ -526,7 +663,7 @@ function tierOptions(
     .sort((a, b) => new Decimal(a.monthlyUsd ?? 0).cmp(b.monthlyUsd ?? 0));
 }
 
-function toolName(family: Family, workload: StackWorkload | undefined): string {
+export function toolName(family: Family, workload: StackWorkload | undefined): string {
   const id = family.sourceIds[0] ?? family.groupId;
   return workload?.importSources.find((source) => source.id === id)?.name ?? SOURCE_NAMES[id] ?? id;
 }
@@ -537,12 +674,6 @@ const SOURCE_NAMES: Record<string, string> = {
   opencode: "OpenCode",
   hermes: "Hermes",
 };
-
-/** Facts for a family's recording tools inside the period (one tool per reviewed family). */
-function familyFacts(family: Family, workload: StackWorkload): WorkloadFacts | undefined {
-  const id = family.sourceIds[0];
-  return id === undefined ? undefined : workload.sources[id];
-}
 
 function inImport(family: Family, workload: StackWorkload): boolean {
   return workload.importSources.some(
@@ -586,7 +717,7 @@ function lineupScope(
 }
 
 export function analyzeStack(input: {
-  currentStack: readonly TargetKey[];
+  currentStack: readonly StackSubscription[] | readonly TargetKey[];
   rulesAsOf?: string | undefined;
   workload?: StackWorkload | undefined;
   /** Non-plan answers from stack discovery ("API / other billing"), by family. */
@@ -595,22 +726,61 @@ export function analyzeStack(input: {
   const rulesAsOf = input.rulesAsOf ?? DECISION_MARKET.rulesAt;
   const asOf = rulesAsOf.slice(0, 10);
   const catalog = publicCatalog(asOf);
-  const model = buildMyStack({ currentStack: input.currentStack, rulesAsOf });
+  const stack = subscriptionsOf(input.currentStack);
+  const counts: Record<string, number> = {};
+  for (const sub of stack) counts[sub.plan] = (counts[sub.plan] ?? 0) + 1;
+  const model = buildMyStack({ currentStack: stackKeys(stack), counts, rulesAsOf });
   const workload = input.workload;
   const period = workload?.period;
-  const plans = model.targets.filter((target) => target.kind === "plan");
+  const planSubs = stack.flatMap((sub) => {
+    const target = model.targets.find((entry) => entry.key === sub.plan);
+    return target?.kind === "plan" ? [{ sub, target }] : [];
+  });
+  const plans = planSubs.map((entry) => entry.target);
   const overallCalls = workload?.overall.calls ?? 0;
+  const accounts = workloadAccounts(workload);
+  const assignment = assignAccounts(
+    planSubs.map((entry) => entry.sub),
+    accounts,
+  );
+  const repeats = new Map<string, number>();
 
-  const subscriptions = plans.map((target): SubscriptionReport => {
+  const subscriptions = planSubs.map(({ sub, target }): SubscriptionReport => {
     const family = familyOfPlan(target.id);
     const terms = subscriptionPublishedTerms(target.id, asOf);
-    const siblings = family
-      ? plans.filter((other) => other.key !== target.key && familyOfPlan(other.id) === family)
+    const scope = assignment.scopes[sub.id] ?? [];
+    const missingAccount = assignment.missingAccount[sub.id];
+    const linkedKey =
+      missingAccount ??
+      (sub.account !== undefined && scope[0] === sub.account ? sub.account : undefined);
+    const shareKey = scopeKey(scope);
+    const siblings =
+      scope.length > 0
+        ? planSubs.filter(
+            (other) =>
+              other.sub.id !== sub.id &&
+              scopeKey(assignment.scopes[other.sub.id] ?? []) === shareKey,
+          )
+        : [];
+    const n = (repeats.get(target.id) ?? 0) + 1;
+    repeats.set(target.id, n);
+    const accountName = linkedKey
+      ? (accounts.find((account) => account.key === linkedKey)?.name ?? "A linked account")
+      : undefined;
+    const toolAccounts = family
+      ? accounts.filter((account) =>
+          (family.sourceIds as readonly string[]).includes(account.source),
+        )
       : [];
     const base: SubscriptionReport = {
       key: target.key,
       id: target.id,
+      subscriptionId: sub.id,
+      ref: n === 1 ? target.id : `${target.id}-${n}`,
       name: target.name,
+      ...(linkedKey && accountName ? { account: { key: linkedKey, name: accountName } } : {}),
+      scopeKeys: scope,
+      scopeName: scopeWords(scope, accounts, workload),
       available: target.available,
       price: target.publishedPrice,
       monthlyUsd: monthlyUsd(target.publishedPrice),
@@ -624,20 +794,27 @@ export function analyzeStack(input: {
             },
           }
         : {}),
-      sharedWith: siblings.map((other) => other.name),
+      sharedWith: siblings.map((other) => other.target.name),
       visibility: !workload
         ? "no-workload"
-        : !family
+        : !family || (family.sourceIds as readonly string[]).length === 0
           ? "not-readable"
-          : inImport(family, workload)
+          : scope.length > 0
             ? "visible"
             : "not-imported",
+      ...(workload && family && family.sourceIds.length > 0 && scope.length === 0
+        ? missingAccount
+          ? { visibilityReason: "account-missing" as const }
+          : toolAccounts.length > 0 && inImport(family, workload)
+            ? { visibilityReason: "linked-elsewhere" as const }
+            : {}
+        : {}),
       tiers: [],
       allowance: terms?.allowanceSummary,
       otherApps: terms?.otherApps,
       evidence: [],
     };
-    if (!family) {
+    if (!family || (family.sourceIds as readonly string[]).length === 0) {
       base.evidence.push({
         level: "unknown",
         text: `StackReplay cannot read ${target.name} usage history, so its use cannot be determined from your workload.`,
@@ -649,13 +826,19 @@ export function analyzeStack(input: {
     if (base.visibility === "not-imported") {
       base.evidence.push({
         level: "unknown",
-        text: `No ${tool} history is in this workload. Scan it to see how ${target.name} is used.`,
+        text:
+          base.visibilityReason === "account-missing"
+            ? `${target.name} is linked to ${accountName ?? "an account"}, which has no history in this workload. Scan that history to see how ${target.name} is used.`
+            : base.visibilityReason === "linked-elsewhere"
+              ? `Every ${tool} account in this workload is linked to another subscription. Link an account to ${target.name} to read its work.`
+              : `No ${tool} history is in this workload. Scan it to see how ${target.name} is used.`,
       });
       return base;
     }
-    const facts = familyFacts(family, workload);
+    const facts = scopeFacts(workload, scope);
     if (!facts) return base;
-    const confirmed = familyConfirmed(family, facts, workload.confirmation);
+    const where = base.scopeName ?? tool;
+    const confirmed = scopeConfirmed(scope, facts, workload.confirmation, workload);
     const models = listedModels(catalog, target.id, facts.models) ?? [];
     base.activity = {
       facts,
@@ -664,32 +847,41 @@ export function analyzeStack(input: {
       confirmed,
     };
     base.tiers = tierOptions(catalog, target.id, family, facts.models, rulesAsOf);
-    const familyPlans = [target, ...siblings];
-    const paid = familyPlans.map((plan) => workload.paid?.[plan.key]);
+    const shared = [{ sub, target }, ...siblings];
+    // A paid amount entered for this account's plan, or for the plan when it is the stack's only one.
+    const paidFor = (entry: (typeof shared)[number]) => {
+      const linked = entry.sub.account;
+      const keyed = linked ? workload.paid?.[`${entry.target.key}@${linked}`] : undefined;
+      if (keyed !== undefined) return keyed;
+      return planSubs.filter((other) => other.target.key === entry.target.key).length === 1
+        ? workload.paid?.[entry.target.key]
+        : undefined;
+    };
+    const paid = shared.map(paidFor);
     const allPaid = paid.every((amount) => amount !== undefined);
-    const prices = familyPlans.map((plan) => monthlyUsd(plan.publishedPrice));
+    const prices = shared.map((entry) => monthlyUsd(entry.target.publishedPrice));
     const price = allPaid
       ? paid.reduce((sum, amount) => sum.add(amount ?? "0"), new Decimal(0)).toString()
       : prices.every((amount) => amount !== undefined)
         ? prices.reduce((sum, amount) => sum.add(amount ?? "0"), new Decimal(0)).toString()
         : undefined;
-    const scope = lineupScope(facts, models);
-    base.relevantCalls = scope.facts.calls;
+    const lineup = lineupScope(facts, models);
+    base.relevantCalls = lineup.facts.calls;
     const lever =
-      facts.calls > 0 && scope.facts.calls === 0
+      facts.calls > 0 && lineup.facts.calls === 0
         ? {
             note: `None of the ${plural(facts.calls, "associated call")} used a model in ${target.name}'s published lineup.`,
           }
         : computeLeverage({
-            facts: scope.facts,
+            facts: lineup.facts,
             price,
             priceBasis: allPaid ? "paid" : "published",
             period,
             confirmed,
           });
-    if (lever.leverage && scope.excludedCalls > 0) {
-      lever.leverage.excludedCalls = scope.excludedCalls;
-      lever.leverage.note = `Counts the ${plural(scope.facts.calls, "call")} on models ${target.name} lists; ${plural(scope.excludedCalls, "other associated call")} (unlisted or unresolved models) are excluded. ${lever.leverage.note}`;
+    if (lever.leverage && lineup.excludedCalls > 0) {
+      lever.leverage.excludedCalls = lineup.excludedCalls;
+      lever.leverage.note = `Counts the ${plural(lineup.facts.calls, "call")} on models ${target.name} lists; ${plural(lineup.excludedCalls, "other associated call")} (unlisted or unresolved models) are excluded. ${lever.leverage.note}`;
     }
     base.leverage = lever.leverage;
     base.leverageNote = lever.note;
@@ -700,12 +892,17 @@ export function analyzeStack(input: {
     if (facts.calls === 0)
       base.evidence.push({
         level: confirmed ? "measured" : "estimated",
-        text: `No ${tool} activity was found in the imported histories for ${stackPeriodLabel(period)}.`,
+        text: `No ${where} activity was found in the imported histories for ${stackPeriodLabel(period)}.`,
       });
     else
       base.evidence.push({
         level: confirmed ? "measured" : "estimated",
-        text: `${plural(facts.calls, "recorded call")} from ${tool} (${percentText(base.activity.share)} of this period's calls) · ${scopeText}.`,
+        text: `${plural(facts.calls, "recorded call")} from ${where} (${percentText(base.activity.share)} of this period's calls) · ${scopeText}.`,
+      });
+    if (!linkedKey && toolAccounts.length > 1)
+      base.evidence.push({
+        level: "unknown",
+        text: `${target.name} is not linked to an account, so it is read with ${plural(scope.length, `${tool} account`)} no other subscription is linked to. Link it to its account to read only that account.`,
       });
     const unlisted = models.filter((model) => !model.listed);
     if (unlisted.length > 0)
@@ -722,8 +919,8 @@ export function analyzeStack(input: {
         level: facts.blocked.attempts > 0 || confirmed ? "measured" : "estimated",
         text:
           facts.blocked.attempts > 0
-            ? `${plural(facts.blocked.attempts, "blocked attempt")} on ${plural(facts.blocked.days, "day")} recorded in ${tool} history in this period.`
-            : `No limit events were recorded in ${tool} history in this period.`,
+            ? `${plural(facts.blocked.attempts, "blocked attempt")} on ${plural(facts.blocked.days, "day")} recorded in ${where} history in this period.`
+            : `No limit events were recorded in ${where} history in this period.`,
       });
     base.evidence.push({
       level: "unknown",
@@ -732,7 +929,7 @@ export function analyzeStack(input: {
     if (siblings.length > 0)
       base.evidence.push({
         level: "unknown",
-        text: `${tool} calls cannot be split between ${[target.name, ...siblings.map((s) => s.name)].join(" and ")}; they are shown for the group.`,
+        text: `${where} calls cannot be split between ${[target.name, ...siblings.map((s) => s.target.name)].join(" and ")}; they are shown for the group. Link each to its account to read them apart.`,
       });
     return base;
   });
@@ -759,8 +956,9 @@ export function analyzeStack(input: {
   const periodUsable = !!period && period.kind !== "unbounded" && period.days >= 28;
   for (const report of subscriptions) {
     if (report.visibility !== "visible" || !report.family) continue;
-    if (seen.has(report.family.groupId)) continue;
-    seen.add(report.family.groupId);
+    const shared = scopeKey(report.scopeKeys);
+    if (seen.has(shared)) continue;
+    seen.add(shared);
     const names = [report.name, ...report.sharedWith];
     if (report.leverage) {
       valued.push(report.leverage);
@@ -847,25 +1045,26 @@ export function analyzeStack(input: {
   }
 
   const outside: OutsideWork[] = workload
-    ? Object.entries(workload.sources)
-        .filter(([sourceId, facts]) => {
-          if (facts.calls === 0) return false;
+    ? Object.entries(assignment.unassigned)
+        .flatMap(([sourceId, keys]): OutsideWork[] => {
+          const facts = scopeFacts(workload, keys);
+          if (!facts || facts.calls === 0) return [];
           const family = familyOfSource(sourceId);
-          return !family || !plans.some((plan) => familyOfPlan(plan.id) === family);
-        })
-        .map(([sourceId, facts]) => {
-          const family = familyOfSource(sourceId);
-          return {
-            sourceId,
-            name:
-              workload.importSources.find((source) => source.id === sourceId)?.name ??
-              SOURCE_NAMES[sourceId] ??
+          return [
+            {
               sourceId,
-            facts,
-            share: overallCalls > 0 ? facts.calls / overallCalls : 0,
-            confirmed: sourceConfirmed(sourceId, facts, workload.confirmation),
-            familyName: family?.question ? family.name : undefined,
-          };
+              accounts: keys,
+              name:
+                scopeWords(keys, accounts, workload) ??
+                workload.importSources.find((source) => source.id === sourceId)?.name ??
+                SOURCE_NAMES[sourceId] ??
+                sourceId,
+              facts,
+              share: overallCalls > 0 ? facts.calls / overallCalls : 0,
+              confirmed: scopeConfirmed(keys, facts, workload.confirmation, workload),
+              familyName: family?.question ? family.name : undefined,
+            },
+          ];
         })
         .sort((a, b) => b.facts.calls - a.facts.calls)
     : [];
@@ -888,17 +1087,36 @@ export function analyzeStack(input: {
       workload,
       catalog,
       rulesAsOf,
-      currentStack: input.currentStack,
+      currentStack: stack,
+      assignment,
       familyResponses: input.familyResponses ?? {},
     }),
   };
 }
 
+/** "Claude Pro · Claude Code account 2" when the subscription is linked to an account. */
+export function reportTitle(report: Pick<SubscriptionReport, "name" | "account">): string {
+  return report.account ? `${report.name} · ${report.account.name}` : report.name;
+}
+
 const LOW_SHARE = 0.05;
 const CONSOLIDATE_SHARE = 0.9;
 
-function without(stack: readonly TargetKey[], remove: readonly TargetKey[]): TargetKey[] {
-  return stack.filter((key) => !remove.includes(key));
+/** The stack without these subscriptions. */
+function without(
+  stack: readonly StackSubscription[],
+  remove: readonly string[],
+): StackSubscription[] {
+  return stack.filter((entry) => !remove.includes(entry.id));
+}
+
+/** The stack with one subscription moved to another plan, keeping its account link. */
+export function replacePlan(
+  stack: readonly StackSubscription[],
+  subscriptionId: string,
+  plan: TargetKey,
+): StackSubscription[] {
+  return stack.map((entry) => (entry.id === subscriptionId ? { ...entry, plan } : entry));
 }
 
 function findOpportunities(context: {
@@ -907,7 +1125,8 @@ function findOpportunities(context: {
   workload: StackWorkload | undefined;
   catalog: PublicCatalog;
   rulesAsOf: string;
-  currentStack: readonly TargetKey[];
+  currentStack: readonly StackSubscription[];
+  assignment: Assignment;
   familyResponses: Partial<Record<DiscoveryGroupId, NonPlanResponse>>;
 }): Opportunity[] {
   const { subscriptions, workload, currentStack } = context;
@@ -920,16 +1139,17 @@ function findOpportunities(context: {
   for (const report of subscriptions) {
     const facts = report.activity?.facts;
     if (report.visibility !== "visible" || !facts || facts.calls !== 0 || !report.family) continue;
-    reported.add(report.key);
+    reported.add(report.subscriptionId);
     actions.push({
-      id: `unused:${report.id}`,
+      id: `unused:${report.ref}`,
+      subscriptionId: report.subscriptionId,
       kind: "unused",
       question: "Do you still need this subscription?",
-      subject: report.name,
-      statement: `No compatible ${report.family.tool} activity was found in the imported histories for ${periodText}.`,
+      subject: reportTitle(report),
+      statement: `No compatible ${report.scopeName ?? report.family.tool} activity was found in the imported histories for ${periodText}.`,
       figures: [
         { label: "Published price", value: priceText(report) },
-        { label: `${report.family.tool} calls this period`, value: "0" },
+        { label: `${report.scopeName ?? report.family.tool} calls this period`, value: "0" },
       ],
       evidence: [
         report.evidence[0] ?? { level: "estimated", text: "Imported histories only." },
@@ -939,7 +1159,7 @@ function findOpportunities(context: {
         },
       ],
       monthlyDelta: report.monthlyUsd ? new Decimal(report.monthlyUsd).neg().toString() : undefined,
-      test: { label: "Test removing it", proposed: without(currentStack, [report.key]) },
+      test: { label: "Test removing it", proposed: without(currentStack, [report.subscriptionId]) },
     });
   }
 
@@ -947,18 +1167,23 @@ function findOpportunities(context: {
   for (const report of subscriptions) {
     const activity = report.activity;
     if (report.visibility !== "visible" || !activity || !report.family) continue;
-    if (reported.has(report.key) || activity.facts.calls === 0 || activity.models.length === 0)
+    if (
+      reported.has(report.subscriptionId) ||
+      activity.facts.calls === 0 ||
+      activity.models.length === 0
+    )
       continue;
     const resolved = activity.models.reduce((sum, model) => sum + model.calls, 0);
     const listed = activity.models.filter((model) => model.listed);
     if (listed.length > 0 || resolved < activity.facts.calls * 0.8) continue;
-    reported.add(report.key);
-    const tool = report.family.tool;
+    reported.add(report.subscriptionId);
+    const tool = report.scopeName ?? report.family.tool;
     actions.push({
-      id: `off-lineup:${report.id}`,
+      id: `off-lineup:${report.ref}`,
+      subscriptionId: report.subscriptionId,
       kind: "off-lineup",
       question: "Do you still need this subscription?",
-      subject: report.name,
+      subject: reportTitle(report),
       statement: `None of the ${plural(activity.facts.calls, "recorded call")} from ${tool} used a model in ${report.name}'s reviewed published lineup. That work may have run on another sign-in or API keys.`,
       figures: [
         { label: "Published price", value: priceText(report) },
@@ -979,7 +1204,7 @@ function findOpportunities(context: {
         report.evidence[0] ?? { level: "estimated", text: "Imported histories only." },
       ],
       monthlyDelta: report.monthlyUsd ? new Decimal(report.monthlyUsd).neg().toString() : undefined,
-      test: { label: "Test removing it", proposed: without(currentStack, [report.key]) },
+      test: { label: "Test removing it", proposed: without(currentStack, [report.subscriptionId]) },
     });
   }
 
@@ -987,7 +1212,7 @@ function findOpportunities(context: {
   for (const report of subscriptions) {
     const activity = report.activity;
     if (report.visibility !== "visible" || !activity || activity.facts.calls === 0) continue;
-    if (reported.has(report.key) || !report.family) continue;
+    if (reported.has(report.subscriptionId) || !report.family) continue;
     // A cycle still in progress has not finished recording its value.
     const cycleRunning = workload.period.kind === "billing" && !workload.period.ended;
     const belowPrice =
@@ -996,20 +1221,21 @@ function findOpportunities(context: {
       !report.leverage.subset &&
       new Decimal(report.leverage.high).lt(1);
     if (activity.share >= LOW_SHARE && !belowPrice) continue;
-    reported.add(report.key);
+    reported.add(report.subscriptionId);
     const value = activity.facts.value ?? activity.facts.pricedValue;
     actions.push({
-      id: `low-use:${report.id}`,
+      id: `low-use:${report.ref}`,
+      subscriptionId: report.subscriptionId,
       kind: "low-use",
       question: "Do you still need this subscription?",
-      subject: report.name,
+      subject: reportTitle(report),
       statement: belowPrice
         ? `Its associated recorded work is valued at ${rangeText(report.leverage?.value ?? { low: "0", high: "0" })} at direct API rates, below its ${priceMoney(report.leverage?.price ?? "0")} ${report.leverage?.priceBasis === "paid" ? "paid amount" : "monthly price"}.`
-        : `Only ${percentText(activity.share)} of this period's recorded calls came from ${report.family.tool}.`,
+        : `Only ${percentText(activity.share)} of this period's recorded calls came from ${report.scopeName ?? report.family.tool}.`,
       figures: [
         { label: "Published price", value: priceText(report) },
         {
-          label: `${report.family.tool} calls`,
+          label: `${report.scopeName ?? report.family.tool} calls`,
           value: `${activity.facts.calls.toLocaleString("en-US")} · ${percentText(activity.share)}`,
         },
         ...(value
@@ -1029,19 +1255,31 @@ function findOpportunities(context: {
         },
       ],
       monthlyDelta: report.monthlyUsd ? new Decimal(report.monthlyUsd).neg().toString() : undefined,
-      test: { label: "Replay without it", proposed: without(currentStack, [report.key]) },
+      test: {
+        label: "Replay without it",
+        proposed: without(currentStack, [report.subscriptionId]),
+      },
     });
   }
 
   // 4. Work another selected subscription's published lineup already covers.
+  // Subscriptions sharing one set of accounts are one group; each linked account is its own.
   const byFamily = new Map<string, SubscriptionReport[]>();
   for (const report of subscriptions)
-    if (report.family && report.visibility === "visible")
-      byFamily.set(report.family.groupId, [...(byFamily.get(report.family.groupId) ?? []), report]);
+    if (report.family && report.visibility === "visible") {
+      const group = scopeKey(report.scopeKeys);
+      byFamily.set(group, [...(byFamily.get(group) ?? []), report]);
+    }
   for (const [, reports] of byFamily) {
     const first = reports[0];
     const facts = first?.activity?.facts;
-    if (!first || !facts || facts.calls === 0 || reports.some((r) => reported.has(r.key))) continue;
+    if (
+      !first ||
+      !facts ||
+      facts.calls === 0 ||
+      reports.some((r) => reported.has(r.subscriptionId))
+    )
+      continue;
     const resolved = facts.models.reduce((sum, model) => sum + model.calls, 0);
     if (resolved === 0 || resolved < facts.calls * 0.8) continue;
     // Fold a smaller tool's work into a subscription that already carries more
@@ -1062,7 +1300,7 @@ function findOpportunities(context: {
       .sort((a, b) => b.share - a.share);
     const receiver = receivers[0];
     if (!receiver) continue;
-    const keys = reports.map((r) => r.key);
+    const keys = reports.map((r) => r.subscriptionId);
     const delta = reports.every((r) => r.monthlyUsd)
       ? reports
           .reduce((sum, r) => sum.add(r.monthlyUsd ?? "0"), new Decimal(0))
@@ -1072,12 +1310,13 @@ function findOpportunities(context: {
     keys.forEach((key) => {
       reported.add(key);
     });
-    const tool = first.family?.tool ?? "this tool";
+    const tool = first.scopeName ?? first.family?.tool ?? "this tool";
     actions.push({
-      id: `consolidate:${first.family?.groupId}`,
+      id: `consolidate:${first.ref}`,
+      subscriptionId: first.subscriptionId,
       kind: "consolidate",
       question: "Could you consolidate?",
-      subject: `${reports.map((r) => r.name).join(" + ")} → ${receiver.other.name}`,
+      subject: `${reports.map(reportTitle).join(" + ")} → ${receiver.other.name}`,
       statement: `${percentText(receiver.share)} of recorded ${tool} calls with a resolved model used models that ${receiver.other.name}'s published lineup includes.`,
       figures: [
         { label: `${tool} calls`, value: facts.calls.toLocaleString("en-US") },
@@ -1112,7 +1351,8 @@ function findOpportunities(context: {
     const facts = report.activity?.facts;
     if (report.visibility !== "visible" || !facts || facts.calls === 0 || !report.monthlyUsd)
       continue;
-    if (reported.has(report.key) || report.sharedWith.length > 0 || !report.family) continue;
+    if (reported.has(report.subscriptionId) || report.sharedWith.length > 0 || !report.family)
+      continue;
     if (facts.blocked && facts.blocked.attempts > 0) continue;
     // A lineup check over unresolved calls would be vacuously true.
     const resolved = facts.models.reduce((sum, model) => sum + model.calls, 0);
@@ -1123,11 +1363,12 @@ function findOpportunities(context: {
     if (!lower?.monthlyUsd) continue;
     const delta = new Decimal(lower.monthlyUsd).minus(report.monthlyUsd).toString();
     downgrades.push({
-      id: `downgrade:${report.id}`,
+      id: `downgrade:${report.ref}`,
+      subscriptionId: report.subscriptionId,
       kind: "downgrade",
       question: "Could you downgrade?",
-      subject: `${report.name} → ${lower.name}`,
-      statement: `${lower.name} lists every model recorded from ${report.family.tool} in this period, for ${priceMoney(new Decimal(delta).neg().toString())} less per month.`,
+      subject: `${reportTitle(report)} → ${lower.name}`,
+      statement: `${lower.name} lists every model recorded from ${report.scopeName ?? report.family.tool} in this period, for ${priceMoney(new Decimal(delta).neg().toString())} less per month.`,
       figures: [
         { label: "Current", value: `${report.name} · ${priceText(report)}` },
         {
@@ -1148,7 +1389,7 @@ function findOpportunities(context: {
           ? [
               {
                 level: report.activity?.confirmed ? ("measured" as const) : ("estimated" as const),
-                text: `No limit events were recorded in ${report.family.tool} history in this period.`,
+                text: `No limit events were recorded in ${report.scopeName ?? report.family.tool} history in this period.`,
               },
             ]
           : []),
@@ -1160,7 +1401,7 @@ function findOpportunities(context: {
       monthlyDelta: delta,
       test: {
         label: `Test ${priceMoney(lower.monthlyUsd)} plan`,
-        proposed: currentStack.map((key) => (key === report.key ? lower.key : key)),
+        proposed: replacePlan(currentStack, report.subscriptionId, lower.key),
       },
     });
   }
@@ -1189,7 +1430,7 @@ function findOpportunities(context: {
     const price = monthlyUsd(candidate.price) ?? "0";
     if (new Decimal(value.low).lt(price)) continue;
     actions.push({
-      id: `uncovered:${work.sourceId}`,
+      id: `uncovered:${scopeKey(work.accounts)}`,
       kind: "uncovered",
       question: "Is this work outside your stack?",
       subject: `${work.name} · no ${family.name} plan selected`,
@@ -1219,7 +1460,14 @@ function findOpportunities(context: {
       monthlyDelta: price,
       test: {
         label: `Test adding ${candidate.name}`,
-        proposed: [...currentStack, `plan:${candidate.id}`],
+        proposed: [
+          ...currentStack,
+          {
+            id: `add${candidate.id.replace(/[^a-z0-9]/gu, "")}`.slice(0, 24),
+            plan: `plan:${candidate.id}` as TargetKey,
+            ...(work.accounts.length === 1 ? { account: work.accounts[0] } : {}),
+          },
+        ],
       },
     });
   }
@@ -1238,10 +1486,11 @@ function findOpportunities(context: {
     .map((report): Opportunity => {
       const leverage = report.leverage as Leverage;
       return {
-        id: `leverage:${report.id}`,
+        id: `leverage:${report.ref}`,
+        subscriptionId: report.subscriptionId,
         kind: "leverage",
         question: "Subscription leverage",
-        subject: report.name,
+        subject: reportTitle(report),
         statement: `${report.name} is associated with ${rangeText(leverage.value)} of API-equivalent recorded work, ${leverageText(leverage)} its ${priceMoney(leverage.price)} ${leverage.priceBasis === "paid" ? "paid amount" : "monthly price"}.`,
         figures: [
           {
@@ -1258,7 +1507,7 @@ function findOpportunities(context: {
             text: "Not money saved: it values the same recorded tokens at today's direct API rates.",
           },
         ],
-        inspect: { label: "Inspect the calculation", anchor: `report-${report.id}` },
+        inspect: { label: "Inspect the calculation", anchor: `report-${report.subscriptionId}` },
       };
     });
 
@@ -1358,10 +1607,10 @@ function planSummary(key: TargetKey, rulesAsOf: string) {
   return { key, id, name: plan?.name ?? id, monthlyUsd: monthlyUsd(plan?.price) };
 }
 
-function totalMonthly(keys: readonly TargetKey[], rulesAsOf: string): string | undefined {
-  const plans = keys
-    .filter((key) => key.startsWith("plan:"))
-    .map((key) => planSummary(key, rulesAsOf));
+function totalMonthly(subs: readonly StackSubscription[], rulesAsOf: string): string | undefined {
+  const plans = subs
+    .filter((sub) => sub.plan.startsWith("plan:"))
+    .map((sub) => planSummary(sub.plan, rulesAsOf));
   if (plans.length === 0) return "0";
   if (plans.some((plan) => plan.monthlyUsd === undefined)) return undefined;
   return plans.reduce((sum, plan) => sum.add(plan.monthlyUsd ?? "0"), new Decimal(0)).toString();
@@ -1373,16 +1622,16 @@ function totalMonthly(keys: readonly TargetKey[], rulesAsOf: string): string | u
  * capacity effects stay undetermined unless recorded limit events apply.
  */
 export function analyzeScenario(input: {
-  current: readonly TargetKey[];
-  proposed: readonly TargetKey[];
+  current: readonly StackSubscription[] | readonly TargetKey[];
+  proposed: readonly StackSubscription[] | readonly TargetKey[];
   workload?: StackWorkload | undefined;
   rulesAsOf?: string | undefined;
 }): ScenarioResult {
   const rulesAsOf = input.rulesAsOf ?? DECISION_MARKET.rulesAt;
   const asOf = rulesAsOf.slice(0, 10);
   const catalog = publicCatalog(asOf);
-  const current = [...new Set(input.current.filter((key) => key.startsWith("plan:")))];
-  const proposed = [...new Set(input.proposed.filter((key) => key.startsWith("plan:")))];
+  const current = subscriptionsOf(input.current).filter((sub) => sub.plan.startsWith("plan:"));
+  const proposed = subscriptionsOf(input.proposed).filter((sub) => sub.plan.startsWith("plan:"));
   const currentMonthly = totalMonthly(current, rulesAsOf);
   const proposedMonthly = totalMonthly(proposed, rulesAsOf);
   const monthlyDelta =
@@ -1392,27 +1641,50 @@ export function analyzeScenario(input: {
   const workload = input.workload;
   const periodText = workload ? stackPeriodLabel(workload.period) : undefined;
   const overallCalls = workload?.overall.calls ?? 0;
-  const groupOf = (key: TargetKey) => familyOfPlan(key.slice(5))?.groupId ?? key;
-  const groups = [...new Set([...current, ...proposed].map(groupOf))];
+  const accounts = workloadAccounts(workload);
+  const beforeScopes = assignAccounts(current, accounts).scopes;
+  const afterScopes = assignAccounts(proposed, accounts).scopes;
+  const accountLabels = new Map(accounts.map((account) => [account.key, account.name]));
+  // A change is read per set of accounts: subscriptions that carry the same
+  // recorded work before or after it are compared together; a subscription
+  // with no readable history is its own group, by family.
+  const groupOf = (sub: StackSubscription, scopes: Record<string, string[]>) => {
+    const keys = scopes[sub.id] ?? [];
+    return keys.length > 0
+      ? `scope:${scopeKey(keys)}`
+      : `plan:${familyOfPlan(sub.plan.slice(5))?.groupId ?? sub.plan}:${sub.account ?? ""}`;
+  };
+  const groups = [
+    ...new Set([
+      ...current.map((sub) => groupOf(sub, beforeScopes)),
+      ...proposed.map((sub) => groupOf(sub, afterScopes)),
+    ]),
+  ];
   const changes: ScenarioChange[] = [];
   const uncoveredFacts: { tool: string; facts: WorkloadFacts }[] = [];
 
   for (const group of groups) {
-    const before = current
-      .filter((key) => groupOf(key) === group)
-      .map((k) => planSummary(k, rulesAsOf));
-    const after = proposed
-      .filter((key) => groupOf(key) === group)
-      .map((k) => planSummary(k, rulesAsOf));
-    const same =
-      before.length === after.length &&
-      before.every((plan) => after.some((p) => p.key === plan.key));
-    if (same) continue;
+    const beforeSubs = current.filter((sub) => groupOf(sub, beforeScopes) === group);
+    const afterSubs = proposed.filter((sub) => groupOf(sub, afterScopes) === group);
+    const before = beforeSubs.map((sub) => planSummary(sub.plan, rulesAsOf));
+    const after = afterSubs.map((sub) => planSummary(sub.plan, rulesAsOf));
+    const sorted = (list: typeof before) =>
+      list
+        .map((plan) => plan.key)
+        .sort()
+        .join(",");
+    if (sorted(before) === sorted(after)) continue;
     const family = familyOfPlan((before[0] ?? after[0])?.id ?? "");
-    const facts = family && workload ? familyFacts(family, workload) : undefined;
-    const tool = family ? toolName(family, workload) : undefined;
+    const scope = group.startsWith("scope:") ? group.slice(6).split(",") : [];
+    const facts = workload && scope.length > 0 ? scopeFacts(workload, scope) : undefined;
+    const tool =
+      scope.length === 1
+        ? (accountLabels.get(scope[0] ?? "") ?? (family ? toolName(family, workload) : undefined))
+        : family
+          ? toolName(family, workload)
+          : undefined;
     const confirmed =
-      family && facts ? familyConfirmed(family, facts, workload?.confirmation) : false;
+      workload && facts ? scopeConfirmed(scope, facts, workload.confirmation, workload) : false;
     const level = confirmed ? ("measured" as const) : ("estimated" as const);
     const sum = (plans: typeof before) =>
       plans.every((plan) => plan.monthlyUsd !== undefined)
@@ -1426,7 +1698,7 @@ export function analyzeScenario(input: {
         : undefined;
     const names = (plans: typeof before) => plans.map((plan) => plan.name).join(" + ");
     const findings: Evidence[] = [];
-    const visible = !!family && !!workload && inImport(family, workload);
+    const visible = !!family && !!workload && scope.length > 0 && inImport(family, workload);
     const workText = (f: WorkloadFacts) =>
       `${plural(f.calls, "recorded call")} from ${tool} (${percentText(overallCalls ? f.calls / overallCalls : 0)} of this period)${
         f.value
@@ -1461,11 +1733,14 @@ export function analyzeScenario(input: {
         findings.push({ level, text: `Affects ${workText(facts)}` });
         const resolved = facts.models.reduce((total, model) => total + model.calls, 0);
         const receivers = proposed
-          .filter((key) => groupOf(key) !== group)
-          .map((key) => {
-            const listed = listedModels(catalog, key.slice(5), facts.models) ?? [];
+          .filter((sub) => groupOf(sub, afterScopes) !== group)
+          .map((sub) => {
+            const listed = listedModels(catalog, sub.plan.slice(5), facts.models) ?? [];
             const calls = listed.filter((m) => m.listed).reduce((total, m) => total + m.calls, 0);
-            return { plan: planSummary(key, rulesAsOf), share: resolved ? calls / resolved : 0 };
+            return {
+              plan: planSummary(sub.plan, rulesAsOf),
+              share: resolved ? calls / resolved : 0,
+            };
           })
           .sort((a, b) => b.share - a.share);
         const best = receivers[0];
@@ -1563,7 +1838,7 @@ export function analyzeScenario(input: {
       }
     }
     changes.push({
-      id: String(group),
+      id: group,
       kind: before.length && !after.length ? "removed" : !before.length ? "added" : "tier",
       title:
         before.length && !after.length
@@ -1608,23 +1883,74 @@ export function analyzeScenario(input: {
   };
 }
 
-/** The same stack serialized for a Replay link: catalog ids only. */
-export function stackParam(keys: readonly TargetKey[]): string {
-  return keys
-    .filter((key) => key.startsWith("plan:"))
-    .map((key) => key.slice(5))
+/**
+ * The same stack serialized for a Replay link: catalog plan ids, a plan
+ * repeated once per subscription, and `@` plus the account key when the
+ * subscription is linked to one. An account key is a salted local identity,
+ * never a path, and means nothing outside this browser.
+ */
+export function stackParam(stack: readonly StackSubscription[] | readonly TargetKey[]): string {
+  return subscriptionsOf(stack)
+    .filter((sub) => sub.plan.startsWith("plan:"))
+    .map((sub) => `${sub.plan.slice(5)}${sub.account ? `@${sub.account}` : ""}`)
     .join(",");
 }
-export function parseStackParam(value: string | undefined): TargetKey[] | undefined {
+export function parseStackParam(value: string | undefined): StackSubscription[] | undefined {
   if (value === undefined) return undefined;
-  const ids = value
+  const entries = value
     .split(",")
-    .map((id) => id.trim())
-    .filter((id) => /^[a-z0-9][a-z0-9-]{0,80}$/u.test(id));
-  return [...new Set(ids)].slice(0, 20).map((id): TargetKey => `plan:${id}`);
+    .map((entry) => entry.trim())
+    .flatMap((entry) => {
+      const [id = "", account] = entry.split("@");
+      if (!/^[a-z0-9][a-z0-9-]{0,80}$/u.test(id)) return [];
+      return [
+        { plan: `plan:${id}` as TargetKey, account: isAccountKey(account) ? account : undefined },
+      ];
+    })
+    .slice(0, 20);
+  return entries.map((entry, index) => ({
+    id: `u${index}${entry.plan.slice(5).replace(/[^a-z0-9]/gu, "")}`.slice(0, 24),
+    plan: entry.plan,
+    ...(entry.account ? { account: entry.account } : {}),
+  }));
 }
 
-/** Paid amounts entered for exactly this period, keyed by plan target. */
+/**
+ * Gives a linked proposal the ids of the subscriptions it repeats, so a kept
+ * plan reads as kept and a tier change reads as a change. A proposed entry
+ * pairs first with a current subscription of the same plan and account, then
+ * with one of the same plan family and account; each current subscription
+ * pairs at most once. The rest keep their own ids and read as added.
+ */
+export function alignProposal(
+  proposed: readonly StackSubscription[],
+  current: readonly StackSubscription[],
+): StackSubscription[] {
+  const free = [...current];
+  const pair =
+    (matches: (entry: StackSubscription, sub: StackSubscription) => boolean) =>
+    (entry: StackSubscription) => {
+      if (current.some((sub) => sub.id === entry.id)) return entry;
+      const index = free.findIndex((sub) => matches(entry, sub));
+      if (index < 0) return entry;
+      const [match] = free.splice(index, 1);
+      return match ? { ...entry, id: match.id } : entry;
+    };
+  const familyOf = (sub: StackSubscription) =>
+    sub.plan.startsWith("plan:") ? familyOfPlan(sub.plan.slice(5))?.groupId : undefined;
+  return proposed
+    .map(pair((entry, sub) => sub.plan === entry.plan && sub.account === entry.account))
+    .map(
+      pair(
+        (entry, sub) =>
+          familyOf(entry) !== undefined &&
+          familyOf(entry) === familyOf(sub) &&
+          sub.account === entry.account,
+      ),
+    );
+}
+
+/** Paid amounts entered for exactly this period, keyed by plan target (and `@account`). */
 export function paidForPeriod(
   billing: Readonly<Record<string, BillingFact>>,
   period: StackPeriod,
@@ -1650,12 +1976,12 @@ function bounded(text: string): string {
 /** A saved stack assessment's title: the proposed plans and the published spend change. */
 export function stackAssessmentTitle(
   result: ScenarioResult,
-  proposed: readonly TargetKey[],
+  proposed: readonly StackSubscription[] | readonly TargetKey[],
   rulesAsOf: string = DECISION_MARKET.rulesAt,
 ): string {
-  const names = proposed
-    .filter((key) => key.startsWith("plan:"))
-    .map((key) => planSummary(key, rulesAsOf).name);
+  const names = subscriptionsOf(proposed)
+    .filter((sub) => sub.plan.startsWith("plan:"))
+    .map((sub) => planSummary(sub.plan, rulesAsOf).name);
   return bounded(
     `Stack scenario: ${names.join(" + ") || "no subscriptions"}${
       result.monthlyDelta !== undefined ? ` (${signedMonthly(result.monthlyDelta)})` : ""

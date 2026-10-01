@@ -94,10 +94,9 @@ describe("personal questions", () => {
     ];
     const url = new URL(state.href, "https://x");
     expect(url.pathname).toBe("/app/replay");
-    expect(parseStackParam(url.searchParams.get("stack") ?? undefined)).toEqual([
-      "plan:anthropic-claude-max-5x",
-      "plan:openai-chatgpt-pro",
-    ]);
+    expect(
+      parseStackParam(url.searchParams.get("stack") ?? undefined)?.map((entry) => entry.plan),
+    ).toEqual(["plan:anthropic-claude-max-5x", "plan:openai-chatgpt-pro"]);
     expect(state.personal).toBe(
       "Claude Max 20x → Claude Max 5x, the rest of your stack unchanged.",
     );

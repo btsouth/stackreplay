@@ -128,15 +128,13 @@ describe("what to investigate", () => {
     });
     expect(row("spend")?.value).toBe("−$80/mo");
     expect(first?.monthlyDelta).toBe("-80");
-    expect(first?.action).toMatchObject({
-      kind: "test",
-      label: "Analyze downgrade",
-      proposed: [
-        "plan:anthropic-claude-pro",
-        "plan:openai-chatgpt-pro-20x",
-        "plan:command-code-pro",
-      ],
-    });
+    expect(first?.action).toMatchObject({ kind: "test", label: "Analyze downgrade" });
+    // The downgrade moves this subscription to the lower tier and keeps the others.
+    expect(first?.action?.kind === "test" ? first.action.proposed.map((s) => s.plan) : []).toEqual([
+      "plan:anthropic-claude-pro",
+      "plan:openai-chatgpt-pro-20x",
+      "plan:command-code-pro",
+    ]);
   });
 
   it("never turns non-calculable capacity into a fit claim either way", () => {

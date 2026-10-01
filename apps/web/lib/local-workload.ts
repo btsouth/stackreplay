@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { readCurrentStack, subscribeCurrentStack } from "./current-stack";
+import { readStackSubscriptions, stackKeys, subscribeCurrentStack } from "./current-stack";
 import { IMPORTS_STORE, LOCAL_DATABASE_NAME } from "./local-database";
 import type { TargetKey } from "./routes";
 import type { ImportRecord } from "./worker-protocol";
@@ -28,12 +28,15 @@ export interface LocalWorkloadSnapshot {
   presence: LocalPresence;
   personal: PersonalWorkload;
   stack: readonly TargetKey[];
+  /** Subscriptions per plan key; a plan paid for on two accounts counts 2. */
+  stackCounts: Readonly<Record<string, number>>;
 }
 
 const SERVER_SNAPSHOT: LocalWorkloadSnapshot = {
   presence: "checking",
   personal: { status: "idle" },
   stack: [],
+  stackCounts: {},
 };
 
 let snapshot: LocalWorkloadSnapshot = SERVER_SNAPSHOT;
@@ -105,8 +108,15 @@ export function probeLocalWorkload(): Promise<Exclude<LocalPresence, "checking">
 /** One probe per page load, shared by every island. */
 function startPresence(): Promise<Exclude<LocalPresence, "checking">> {
   if (presence === undefined) {
-    update({ stack: readCurrentStack() });
-    stopStack = subscribeCurrentStack(() => update({ stack: readCurrentStack() }));
+    const readStack = () => {
+      const subscriptions = readStackSubscriptions();
+      const stackCounts: Record<string, number> = {};
+      for (const entry of subscriptions)
+        stackCounts[entry.plan] = (stackCounts[entry.plan] ?? 0) + 1;
+      update({ stack: stackKeys(subscriptions), stackCounts });
+    };
+    readStack();
+    stopStack = subscribeCurrentStack(readStack);
     const probe = probeLocalWorkload().then((result) => {
       if (presence === probe) update({ presence: result });
       return result;

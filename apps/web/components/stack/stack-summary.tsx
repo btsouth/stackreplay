@@ -106,8 +106,9 @@ export function StackSummary({
             <details className="stack-price-note">
               <summary>What is included?</summary>
               <p>
-                One published price per selected plan, grouped by currency and billing interval.
-                Account and seat quantities, taxes, discounts and actual payments are not included.
+                One published price per subscription in your stack (two subscriptions of the same
+                plan count twice), grouped by currency and billing interval. Seat quantities, taxes,
+                discounts and actual payments are not included.
                 {model.unpricedPlans > 0
                   ? ` ${model.unpricedPlans} selected ${model.unpricedPlans === 1 ? "plan has" : "plans have"} no current published price.`
                   : ""}
@@ -173,10 +174,15 @@ export function StackSummary({
                   <li
                     key={line.key}
                     data-state={line.state}
-                    data-testid={`stack-coverage-${line.key.slice(5)}`}
+                    data-testid={`stack-coverage-${line.ref}`}
                   >
                     <span aria-hidden="true" className="stack-coverage-mark" />
-                    <span className="stack-coverage-plan">{line.plan}</span>
+                    <span className="stack-coverage-plan">
+                      {line.plan}
+                      {line.account ? (
+                        <span className="stack-coverage-account"> · {line.account}</span>
+                      ) : null}
+                    </span>
                     <span className="stack-coverage-text">{line.text}</span>
                   </li>
                 ))}

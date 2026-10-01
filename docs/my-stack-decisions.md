@@ -39,14 +39,21 @@ are part of each report and of "Recorded work outside your subscriptions".
 calculation sequentially (the Worker runs one market calculation at a time): the whole period, the
 confirmed account's scope when a confirmation names one, and each recording tool's calls through a
 new optional `sources` filter. With one tool, the whole-period result is reused. Results are cached
-by import, period, account and tools; the client now keeps eight bounded summaries instead of
-three, so Workload's overview, a billing review and one period's tool slices do not evict each
-other. Capacity evidence in a tool slice is limited to that tool's local accounts.
+by import, period, account, tools and accounts; the client keeps sixteen bounded summaries, so
+Workload's overview, a billing review, one period's tool slices and its account scopes do not evict
+each other. Capacity evidence in a slice is limited to that slice's local accounts.
+
+Several accounts on one provider are first-class (decision 69). The stack is a list of
+subscriptions, each optionally linked to a local account, and the same plan can appear twice. A
+linked subscription is read against its own account only; unlinked subscriptions of a family share
+the accounts no subscription is linked to; an account no subscription is read against is listed as work outside
+the stack. When a tool has several accounts, My Stack lists them ("Which subscription is each account
+read against?") with calls and limit events per account, a local label and its linked plan.
 
 `lib/stack-analysis.ts` is pure arithmetic over those results and reviewed catalog facts:
 `workloadFacts` reads a market result (per-model values reuse `marketModelCosts`), `analyzeStack`
 builds reports, leverage and opportunities, and `analyzeScenario` compares two stacks. Money is
-decimal throughout. Replay reads a proposed stack from `?stack=<plan ids>` (catalog ids only) and
+decimal throughout. Replay reads a proposed stack from `?stack=<plan ids>` (catalog ids, each optionally `@` a salted local account key) and
 renders the same editor and outcome; a saved assessment stores bounded finding lines for Compare.
 `lib/stack-investigations.ts` turns an analysis into the first screen: `stackCoverage` (which
 subscriptions this workload can evaluate) and `investigations` (at most three findings, each a set of
@@ -94,8 +101,10 @@ dollar.
 
 ## Limits and next steps
 
-- Per-tool association cannot tell two accounts of one tool apart unless a history confirmation
-  names the account.
+- An unlinked subscription is read with every account of its tool that nothing else is linked to;
+  link each subscription to its account to read them apart.
+- Accounts are history locations, not provider accounts: one provider account used from two
+  machines is two accounts here until linked to the same plan.
 - Published allowances are relative ("5× Pro"); no quota replay is attempted. Command Code and
   OpenCode publish dollar-denominated usage; modeling their credit pricing is a candidate next step.
 - Concentration of work in five-hour windows is in Workload's full-import analysis, not yet per tool

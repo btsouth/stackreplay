@@ -11,6 +11,7 @@ import {
   intakeBrowserCandidates,
   MAX_STREAMED_SOURCE_FILE_BYTES,
   safeIntakeMessage,
+  selectedLocation,
   streamedLines,
   unavailableCandidate,
 } from "./browser.js";
@@ -970,4 +971,109 @@ it("keeps the account identity across rescans with independently salted workload
   );
   expect(a.exported?.events[0]?.id).not.toBe(b.exported?.events[0]?.id);
   expect(JSON.stringify(a.exported)).not.toContain("local-account-salt");
+});
+
+describe("location accounts for sources without a native account", () => {
+  it("never folds two picked folders without a known layout into one location", () => {
+    expect(selectedLocation("work/rollout-a.jsonl", undefined)).not.toBe(
+      selectedLocation("archive/rollout-a.jsonl", undefined),
+    );
+    expect(selectedLocation(".codex/sessions/2026/a.jsonl", "codex")).toBe(
+      selectedLocation(".codex/sessions/2026/b.jsonl", "codex"),
+    );
+    expect(selectedLocation(".codex/sessions/a.jsonl", "codex")).not.toBe(
+      selectedLocation(".codex/sessions/a.jsonl", "location-1"),
+    );
+  });
+
+  const codex = (path: string, group?: string): BrowserCandidate => ({
+    ...candidate(path, CODEX_ROLLOUT),
+    ...(group ? { group } : {}),
+  });
+
+  it("gives each selected Codex location its own account and keeps event identity", async () => {
+    const one = await intakeBrowserCandidates(
+      [codex("sessions/2026/09/23/rollout-a.jsonl", "codex")],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT, sourceRootSalt: "local-account-salt" },
+    );
+    const two = await intakeBrowserCandidates(
+      [
+        codex("sessions/2026/09/23/rollout-a.jsonl", "codex"),
+        codex("sessions/2026/09/23/rollout-a.jsonl", "location-1"),
+      ],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT, sourceRootSalt: "local-account-salt" },
+    );
+    const single = one.exported?.events ?? [];
+    expect(single.length).toBeGreaterThan(0);
+    expect(new Set(single.map((e) => e.source.resourceInstanceId)).size).toBe(1);
+    expect(single[0]?.source.resourceInstanceId).toMatch(/^codex:sr_/u);
+    // The same bytes in a second location are an exact duplicate file, read once,
+    // so they belong to the first location's account.
+    expect(two.exported?.events.map((e) => e.id)).toEqual(single.map((e) => e.id));
+    expect(two.exported?.events[0]?.source.resourceInstanceId).toBe(
+      single[0]?.source.resourceInstanceId,
+    );
+  });
+
+  it("separates distinct Codex histories by location, stable across rescans", async () => {
+    const other = CODEX_ROLLOUT.replaceAll("22222222", "33333333");
+    const scan = (salt: string) =>
+      intakeBrowserCandidates(
+        [
+          codex("sessions/2026/09/23/rollout-a.jsonl", "codex"),
+          { ...candidate("sessions/2026/09/23/rollout-b.jsonl", other), group: "location-1" },
+        ],
+        syntheticCatalog(),
+        { now: NOW, salt, sourceRootSalt: "local-account-salt" },
+      );
+    const first = await scan("import-1");
+    const second = await scan("import-2");
+    const accounts = (result: typeof first) =>
+      [...new Set(result.exported?.events.map((e) => e.source.resourceInstanceId))].sort();
+    expect(accounts(first)).toHaveLength(2);
+    expect(accounts(second)).toEqual(accounts(first));
+    const exported = JSON.stringify(first.exported);
+    expect(exported).not.toContain("location-1");
+    expect(exported).not.toContain("sessions/2026");
+    expect(exported).not.toContain("local-account-salt");
+  });
+
+  it("separates Command Code accounts by location and leaves Claude accounts as they were", async () => {
+    const result = await intakeBrowserCandidates(
+      [
+        {
+          ...candidate(".commandcode/projects/p/s.jsonl", COMMAND_CODE_SESSION),
+          group: "command-code",
+        },
+        {
+          ...candidate(
+            ".commandcode/projects/p/s.jsonl",
+            COMMAND_CODE_SESSION.replaceAll(
+              "33333333-3333-4333-8333-333333333333",
+              "44444444-4444-4444-8444-444444444444",
+            ),
+          ),
+          group: "location-2",
+        },
+        { ...candidate(".claude/projects/p/a.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+      ],
+      syntheticCatalog(),
+      { now: NOW, salt: FIXTURE_SALT, sourceRootSalt: "local-account-salt" },
+    );
+    const bySource = (id: string) =>
+      new Set(
+        result.exported?.events
+          .filter((e) => e.source.adapterId === id)
+          .map((e) => e.source.resourceInstanceId),
+      );
+    expect([...bySource("command-code")].every((id) => id?.startsWith("command-code:sr_"))).toBe(
+      true,
+    );
+    expect(bySource("command-code").size).toBe(2);
+    expect([...bySource("claude-code")].every((id) => id?.startsWith("claude-code:sr_"))).toBe(
+      true,
+    );
+  });
 });

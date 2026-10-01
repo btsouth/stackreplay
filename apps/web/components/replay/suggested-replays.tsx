@@ -12,7 +12,11 @@ import {
   compatibleReplaySnapshots,
   saveCompletedReplay,
 } from "@/lib/completed-replays";
-import { readCurrentStack, subscribeCurrentStack } from "@/lib/current-stack";
+import {
+  readStackSubscriptions,
+  type StackSubscription,
+  subscribeCurrentStack,
+} from "@/lib/current-stack";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
 import { replayLink, routeCopy, routeLink } from "@/lib/replay-navigation";
@@ -29,8 +33,9 @@ import {
   TRANSLATION_PROFILES,
   type TranslationProfile,
 } from "@/lib/replay-strategies";
-import { suggestRoutes, supportedModelsFor, type TargetKey, workloadSlices } from "@/lib/routes";
+import { suggestRoutes, supportedModelsFor, workloadSlices } from "@/lib/routes";
 import {
+  alignProposal,
   type ScenarioResult,
   type StackWorkload,
   stackAssessmentLines,
@@ -54,8 +59,8 @@ export function SuggestedReplays({
   initialStack,
 }: {
   initialImportId?: string | undefined;
-  /** A proposed stack from My Stack's "Inspect in Replay": catalog plan ids only. */
-  initialStack?: TargetKey[] | undefined;
+  /** A proposed stack from My Stack's "Inspect in Replay": catalog plans and local account keys. */
+  initialStack?: StackSubscription[] | undefined;
 }) {
   const [state, setState] = useState<{
     record?: ImportRecord | undefined;
@@ -124,18 +129,18 @@ function StrategyWorkspace({
   initialStack,
 }: {
   record: ImportRecord;
-  initialStack?: TargetKey[] | undefined;
+  initialStack?: StackSubscription[] | undefined;
 }) {
   const rulesDate = DECISION_RULES_DATE;
   const [baseline, setBaseline] = useState<MarketDecision>();
   const [profile, setProfile] = useState<WorkloadProfile>();
   const [error, setError] = useState<string>();
   const [retry, setRetry] = useState(0);
-  const [stack, setStack] = useState<TargetKey[]>([]);
+  const [stack, setStack] = useState<StackSubscription[]>([]);
   const [choice, setChoice] = useState<"exact" | "stack" | TranslationProfile["id"] | undefined>(
     initialStack ? "stack" : undefined,
   );
-  const [proposedStack, setProposedStack] = useState<TargetKey[] | undefined>(initialStack);
+  const [proposedStack, setProposedStack] = useState<StackSubscription[] | undefined>(initialStack);
   const stackScenario = useRef<{ result: ScenarioResult; workload?: StackWorkload | undefined }>(
     undefined,
   );
@@ -160,10 +165,17 @@ function StrategyWorkspace({
   const resultAnchor = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const namespace = isSyntheticWorkload(record) ? `.demo.${record.id}` : "";
-    const read = () => setStack(readCurrentStack(namespace));
+    const read = () => setStack(readStackSubscriptions(namespace));
     read();
+    // A linked proposal pairs with the stack it was made from, so kept plans read as kept.
+    if (initialStack)
+      setProposedStack((proposal) =>
+        proposal === initialStack
+          ? alignProposal(initialStack, readStackSubscriptions(namespace))
+          : proposal,
+      );
     return subscribeCurrentStack(read);
-  }, [record]);
+  }, [record, initialStack]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: retry explicitly restarts preparation.
   useEffect(() => {
     const abort = new AbortController();
@@ -540,13 +552,13 @@ function StrategyWorkspace({
                 }
               />
             ) : null}
-            {stack.some((key) => key.startsWith("plan:")) ? (
+            {stack.some((entry) => entry.plan.startsWith("plan:")) ? (
               <Suggestion
                 title="Test a change to your stack"
                 mode="Stack scenario"
                 id="suggest-stack"
                 onClick={() => choose("stack")}
-                why={`${stack.filter((key) => key.startsWith("plan:")).length} confirmed subscriptions. Change a tier or remove one and see what StackReplay can determine about this workload; plan capacity stays undetermined.`}
+                why={`${stack.filter((entry) => entry.plan.startsWith("plan:")).length} confirmed subscriptions. Change a tier or remove one and see what StackReplay can determine about this workload; plan capacity stays undetermined.`}
               />
             ) : null}
           </details>

@@ -1370,3 +1370,36 @@ and every surface reads it through one resolver.
   Oct 5 to 7 open: they are swapped rest days inside the National Day break, and DeepSeek's
   "法定节假日" does not say whether they count. Command Code's records follow Command Code's own
   published off-peak dates, which include Oct 5 to 7.
+
+## 69. Several accounts on one provider are first-class (multi-account)
+
+- A local account is one history location of one recording tool: a second Claude config folder, a
+  copied Codex `sessions` folder. It is identified by the event's salted `resourceInstanceId`.
+  Claude Code already derived one per history root; the browser import now gives Codex, Command
+  Code and OpenCode one per selected location, attached after deduplication so event identity and
+  duplicate handling are unchanged. Events with no id (older imports, the CLI) form one default
+  account per tool, never guessed apart. An account is where work was recorded, not a provider's
+  statement of who paid. Reading the provider's own account id (Claude's `accountUuid`) is a later
+  refinement that changes how accounts are recognized, not how they are analyzed.
+- The stack is a list of subscriptions, each a plan plus an optional account link. The same plan
+  can appear more than once (two Claude Pro accounts). A link is the person's statement, set in My
+  Stack's account list; it is never inferred. Storage keeps writing the plan list
+  (`stackreplay.current-stack`) for older builds and adds `stackreplay.stack-subscriptions.v2`; a
+  read reconciles the two, so a change written by an older build is never lost.
+- Association (`lib/stack-accounts.ts`): a linked subscription gets its account's work and nothing
+  else; unlinked subscriptions of a family share the family's accounts no subscription is linked
+  to, which is how a one-account stack was always read; an account no subscription is associated
+  with is outside the stack. One account's work is never split between two plans, and a linked
+  account outranks a family default.
+- The market calculation takes an `accounts` filter. My Stack prices each set of accounts a
+  subscription reads, plus each account of a tool with several, as separate scopes after the
+  whole-period and per-tool results; facts for a set are never summed from parts. Capacity
+  evidence (blocked attempts) is scoped to the accounts in a set, and only accounts whose history
+  can record limit events (Claude Code roots) carry it.
+- Published totals count subscriptions, so two Claude Pro accounts add $40. Account labels are
+  local, at most 40 characters, keyed by the salted id, and never contain a path. A Replay link
+  carries `plan@account` with the salted key, which means nothing outside the browser that made it.
+  Clearing all local data removes subscriptions and account labels with the rest of the stack.
+- Known limits: a location's account id includes the history group it was selected under, so
+  scanning the same folders under different groups can change ids and a link then reads as "no
+  history in this workload"; a subscription with no history loaded can only be unlinked.

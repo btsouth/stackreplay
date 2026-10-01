@@ -762,6 +762,81 @@
   border-bottom: 1px solid var(--border);
   font-size: 0.85rem;
 }
+/* Accounts: one row per history location, linked to the subscription it pays for. */
+.stack-accounts {
+  display: grid;
+  gap: 0.75rem;
+}
+.stack-accounts-head,
+.stack-account {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.4fr) minmax(8rem, 0.7fr) minmax(9rem, 0.8fr) minmax(
+      11rem,
+      1fr
+    );
+  gap: 1rem;
+  align-items: center;
+}
+.stack-accounts-head {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.stack-account {
+  padding-block: 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+.stack-account-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+  min-width: 0;
+}
+.stack-account-name form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.stack-account-name input {
+  min-height: 44px;
+  min-width: 0;
+  width: 14rem;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  background: var(--background);
+  padding: 0 0.6rem;
+}
+.stack-account-name .stack-caption {
+  flex-basis: 100%;
+}
+.stack-account-title {
+  font-weight: 500;
+}
+.stack-account-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+.stack-account-link select {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--background);
+  padding: 0 0.6rem;
+}
+.stack-report-account,
+.stack-coverage-account {
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+.stack-scenario-account {
+  display: block;
+}
 .stack-access {
   border-top: 1px solid var(--border);
 }
@@ -949,7 +1024,7 @@
   justify-content: space-between;
   gap: 0.5rem 1rem;
 }
-.stack-scenario-change-heading h4 {
+.stack-scenario-change-heading h3 {
   font-size: 1rem;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -1173,6 +1248,17 @@
   }
 }
 @media (max-width: 900px) {
+  .stack-accounts-head {
+    display: none;
+  }
+  .stack-account {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.5rem 1rem;
+  }
+  .stack-account-name,
+  .stack-account-link {
+    grid-column: 1 / -1;
+  }
   .stack-summary-figures {
     grid-template-columns: minmax(0, 1fr);
   }

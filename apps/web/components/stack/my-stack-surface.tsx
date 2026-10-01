@@ -5,14 +5,23 @@ import { Check, ChevronDown, ChevronRight, LockKeyhole, Plus, RotateCcw, X } fro
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { partialScanOf } from "@/components/workload/evidence";
-import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
-import { buildMyStack, restoreRemovedTarget } from "@/lib/my-stack";
+import {
+  linkAccount,
+  readStackSubscriptions,
+  restoreSubscription,
+  type StackSubscription,
+  stackKeys,
+  subscribeCurrentStack,
+  writeStackSubscriptions,
+} from "@/lib/current-stack";
+import { buildMyStack } from "@/lib/my-stack";
 import type { TargetKey } from "@/lib/routes";
 import {
   analyzeScenario,
   analyzeStack,
   familyOfPlan,
   rangeText,
+  reportTitle,
   shareText,
   stackParam,
 } from "@/lib/stack-analysis";
@@ -38,6 +47,7 @@ import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { FamilyPlanChoices, NON_PLAN_CHOICES } from "./family-plan-choices";
+import { StackAccounts } from "./stack-accounts";
 import { StackInvestigations } from "./stack-investigations";
 import { StackPeriodLine, StackPeriodPanel } from "./stack-period";
 import { ScenarioEditor, ScenarioOutcome } from "./stack-scenario";
@@ -45,11 +55,17 @@ import { StackSummary, WorkloadMissing } from "./stack-summary";
 import { ApiTargetRow, SubscriptionReportRow } from "./subscription-report";
 
 type Undo =
-  | { kind: "removal"; key: TargetKey; index: number; name: string }
-  | { kind: "replace"; previous: TargetKey[] };
+  | { kind: "removal"; removed: StackSubscription; index: number; name: string }
+  | { kind: "replace"; previous: StackSubscription[] };
 
-const sameKeys = (a: readonly TargetKey[], b: readonly TargetKey[]) =>
-  a.length === b.length && a.every((key, index) => key === b[index]);
+const sameStack = (a: readonly StackSubscription[], b: readonly StackSubscription[]) =>
+  a.length === b.length &&
+  a.every(
+    (entry, index) =>
+      entry.id === b[index]?.id &&
+      entry.plan === b[index]?.plan &&
+      entry.account === b[index]?.account,
+  );
 
 /**
  * My Stack: am I buying the right AI subscriptions for the work I actually
@@ -59,7 +75,7 @@ const sameKeys = (a: readonly TargetKey[], b: readonly TargetKey[]) =>
  * something, with its evidence.
  */
 export function MyStackSurface({ initialImportId }: { initialImportId?: string | undefined }) {
-  const [stack, setStack] = useState<TargetKey[]>();
+  const [stack, setStack] = useState<StackSubscription[]>();
   const [importRead, setImportRead] = useState<{
     attempt: number;
     records?: ImportRecord[];
@@ -77,7 +93,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   const [preferences, setPreferences] = useState<DiscoveryPreferences>({ version: 1, groups: {} });
   const [setupOpen, setSetupOpen] = useState(false);
   const [periodOpen, setPeriodOpen] = useState(false);
-  const [proposed, setProposed] = useState<TargetKey[]>();
+  const [proposed, setProposed] = useState<StackSubscription[]>();
   const editorHeading = useRef<HTMLHeadingElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const editorTrigger = useRef<HTMLButtonElement | null>(null);
@@ -95,7 +111,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   }, [initialImportId]);
   useEffect(() => {
     const refresh = () => {
-      setStack(readCurrentStack());
+      setStack(readStackSubscriptions());
       setPreferences(readDiscoveryPreferences());
     };
     refresh();
@@ -138,6 +154,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     billing: local.billing,
     ready: local.ready && record !== undefined,
     partialScan,
+    stack,
   });
   const workload = stackWork.workload;
 
@@ -163,7 +180,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   const model = useMemo(
     () =>
       buildMyStack({
-        currentStack: stack ?? [],
+        currentStack: stackKeys(stack ?? []),
         rulesAsOf: DECISION_MARKET.rulesAt,
         workload:
           record && workload
@@ -182,7 +199,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     [stack, record, workload],
   );
   const currentStack = stack ?? [];
-  const currentPlans = currentStack.filter((key) => key.startsWith("plan:"));
+  const currentPlans = currentStack.filter((entry) => entry.plan.startsWith("plan:"));
+  const accountNameMap = useMemo(
+    () => new Map((workload?.accounts ?? []).map((account) => [account.key, account.name])),
+    [workload],
+  );
   const coverage = useMemo(() => stackCoverage(analysis, workload), [analysis, workload]);
   const findings = useMemo(
     () => investigations({ analysis, workload, currentStack: stack ?? [] }),
@@ -220,10 +241,10 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     (!chosenImport || record !== undefined);
 
   // A proposal nobody has edited follows the saved stack.
-  const lastStack = useRef<TargetKey[]>([]);
+  const lastStack = useRef<StackSubscription[]>([]);
   useEffect(() => {
     if (!stack) return;
-    setProposed((value) => (value && !sameKeys(value, lastStack.current) ? value : undefined));
+    setProposed((value) => (value && !sameStack(value, lastStack.current) ? value : undefined));
     lastStack.current = stack;
   }, [stack]);
 
@@ -277,7 +298,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
       { [activeGroup.groupId]: answer },
       Date.now(),
     );
-    setStack(readCurrentStack());
+    setStack(readStackSubscriptions());
     setPreferences(readDiscoveryPreferences());
     if (!result.stackSaved || !result.preferencesSaved) {
       setSaveFailed(true);
@@ -290,22 +311,29 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     setUndo(undefined);
     closeEditor();
   };
-  const remove = (key: TargetKey, name: string) => {
+  const remove = (subscriptionId: string, name: string) => {
     if (!canEdit) return;
-    const current = readCurrentStack();
-    const index = current.indexOf(key);
-    if (index < 0) return;
-    if (!writeCurrentStack(current.filter((target) => target !== key))) {
+    const current = readStackSubscriptions();
+    const index = current.findIndex((entry) => entry.id === subscriptionId);
+    const removed = current[index];
+    if (index < 0 || !removed) return;
+    const next = current.filter((entry) => entry.id !== subscriptionId);
+    if (!writeStackSubscriptions(next)) {
       setNotice("Could not remove this selection. Browser storage is unavailable.");
       setNoticeError(true);
       return;
     }
-    const family = model.families.filter((group) => group.currentTargets.includes(key));
+    // The family prompt is dismissed only when its last subscription goes.
+    const family = model.families.filter(
+      (group) =>
+        group.currentTargets.includes(removed.plan) &&
+        !next.some((entry) => group.currentTargets.includes(entry.plan)),
+    );
     const saved = writeDiscoveryPreferences(
       dismissDiscovery(family, readDiscoveryPreferences(), Date.now()),
     );
     setPreferences(readDiscoveryPreferences());
-    setUndo({ kind: "removal", key, index, name });
+    setUndo({ kind: "removal", removed, index, name });
     setNotice(
       saved
         ? `${name} removed from Current Stack.`
@@ -315,12 +343,12 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   };
   const undoChange = () => {
     if (!undo || !canEdit) return;
-    // Restore only this exact target, respecting selections changed in other tabs.
+    // Restore only this exact subscription, respecting selections changed in other tabs.
     const next =
       undo.kind === "removal"
-        ? restoreRemovedTarget(readCurrentStack(), undo.key, undo.index)
+        ? restoreSubscription(readStackSubscriptions(), undo.removed, undo.index)
         : undo.previous;
-    if (!writeCurrentStack(next)) {
+    if (!writeStackSubscriptions(next)) {
       setNotice(
         undo.kind === "removal"
           ? "Could not restore this selection. Browser storage is unavailable."
@@ -337,7 +365,25 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     setNoticeError(false);
     setUndo(undefined);
   };
-  const testChange = (next: TargetKey[], _trigger?: HTMLButtonElement) => {
+  const linkAccountTo = (account: string, plan: TargetKey | undefined) => {
+    if (!canEdit) return;
+    const previous = readStackSubscriptions();
+    const next = linkAccount(previous, account, plan);
+    if (!writeStackSubscriptions(next)) {
+      setNotice("Could not update your stack. Browser storage is unavailable.");
+      setNoticeError(true);
+      return;
+    }
+    const name = accountNameMap.get(account) ?? "This account";
+    setUndo({ kind: "replace", previous });
+    setNotice(
+      plan
+        ? `${name}'s work is now read against ${model.targets.find((target) => target.key === plan)?.name ?? plans.find((entry) => `plan:${entry.id}` === plan)?.name ?? "that plan"}.`
+        : `${name} is no longer linked to a subscription.`,
+    );
+    setNoticeError(false);
+  };
+  const testChange = (next: StackSubscription[], _trigger?: HTMLButtonElement) => {
     setProposed(next);
     requestAnimationFrame(() => {
       scenarioHeading.current?.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -346,12 +392,12 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   };
   const applyProposal = () => {
     if (!canEdit || !proposed) return;
-    const previous = readCurrentStack();
+    const previous = readStackSubscriptions();
     const next = [
-      ...proposed.filter((key) => key.startsWith("plan:")),
-      ...previous.filter((key) => key.startsWith("api:")),
+      ...proposed.filter((entry) => entry.plan.startsWith("plan:")),
+      ...previous.filter((entry) => entry.plan.startsWith("api:")),
     ];
-    if (!writeCurrentStack(next)) {
+    if (!writeStackSubscriptions(next)) {
       setNotice("Could not update your stack. Browser storage is unavailable.");
       setNoticeError(true);
       return;
@@ -359,7 +405,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     const emptied = model.families.filter(
       (group) =>
         group.currentTargets.length > 0 &&
-        !next.some((key) => familyOfPlan(key.slice(5))?.groupId === group.groupId),
+        !next.some((entry) => familyOfPlan(entry.plan.slice(5))?.groupId === group.groupId),
     );
     if (emptied.length)
       writeDiscoveryPreferences(dismissDiscovery(emptied, readDiscoveryPreferences(), Date.now()));
@@ -382,6 +428,10 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   const loading = record !== undefined && !workload && !stackWork.failed;
   const plansWithReports = analysis.subscriptions;
   const apiTargets = model.targets.filter((target) => target.kind === "api");
+  const multiAccount =
+    (workload?.accounts ?? []).length > 1 &&
+    new Set((workload?.accounts ?? []).map((account) => account.source)).size <
+      (workload?.accounts ?? []).length;
 
   const setupBody = (
     <div className="stack-setup-body">
@@ -693,13 +743,13 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               );
               return (
                 <SubscriptionReportRow
-                  key={report.key}
+                  key={report.subscriptionId}
                   report={report}
                   target={target}
                   period={workload?.period}
                   disabled={!canEdit}
                   currentStack={currentStack}
-                  onRemove={() => remove(report.key, report.name)}
+                  onRemove={() => remove(report.subscriptionId, reportTitle(report))}
                   onEdit={family ? (trigger) => openEditor(family, trigger) : undefined}
                   onTest={record ? testChange : undefined}
                 />
@@ -710,7 +760,10 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
                 key={target.key}
                 target={target}
                 disabled={!canEdit}
-                onRemove={() => remove(target.key, target.name)}
+                onRemove={() => {
+                  const entry = currentStack.find((sub) => sub.plan === target.key);
+                  if (entry) remove(entry.id, target.name);
+                }}
               />
             ))}
           </div>
@@ -719,7 +772,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               <p className="stack-eyebrow">Recorded work outside your subscriptions</p>
               <ul>
                 {analysis.outside.map((work) => (
-                  <li key={work.sourceId}>
+                  <li key={work.accounts.join(",") || work.sourceId}>
                     <span>{work.name}</span>
                     <span className="stack-mono">
                       {work.facts.calls.toLocaleString("en-US")} calls · {shareText(work.share)}
@@ -733,7 +786,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
                     </span>
                     <span className="stack-caption">
                       {work.familyName
-                        ? `No ${work.familyName} plan in your stack`
+                        ? currentPlans.some(
+                            (entry) => familyOfPlan(entry.plan.slice(5))?.name === work.familyName,
+                          )
+                          ? `Not linked to a ${work.familyName} subscription`
+                          : `No ${work.familyName} plan in your stack`
                         : "No subscription family StackReplay can associate"}
                     </span>
                   </li>
@@ -741,6 +798,27 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               </ul>
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {!empty && stack !== undefined && workload && multiAccount ? (
+        <section
+          className="stack-section"
+          aria-labelledby="stack-accounts-heading"
+          data-testid="stack-accounts-section"
+        >
+          <div className="stack-section-header">
+            <div>
+              <p className="stack-eyebrow">Accounts in this workload</p>
+              <h2 id="stack-accounts-heading">Which subscription is each account read against?</h2>
+            </div>
+          </div>
+          <StackAccounts
+            workload={workload}
+            stack={currentStack}
+            disabled={!canEdit}
+            onLink={linkAccountTo}
+          />
         </section>
       ) : null}
 
@@ -762,6 +840,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
             current={currentStack}
             proposed={proposal}
             onChange={(next) => setProposed(next)}
+            accountNames={accountNameMap}
             idPrefix="scenario"
           />
           <ScenarioOutcome result={scenario} />
@@ -835,10 +914,12 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
           <summary>Methodology, assumptions &amp; evidence</summary>
           <div className="stack-methodology-body">
             <p>
-              Recorded work is associated with a subscription through the recording tool (Claude
-              Code with Claude plans, Codex with ChatGPT plans, Command Code and OpenCode with their
-              own plans). That is where the work was recorded, not proof of which account paid for
-              it. Calls are never split between two plans of the same family.
+              Recorded work is associated with a subscription through the account it was recorded
+              in, when you link one, and otherwise through the recording tool (Claude Code with
+              Claude plans, Codex with ChatGPT plans, Command Code and OpenCode with their own
+              plans). An account is one history location of one tool. That is where the work was
+              recorded, not proof of which account paid for it. One account's calls are never split
+              between two plans.
             </p>
             <p>
               API-equivalent values reuse Workload's accepted market calculation: exact recorded

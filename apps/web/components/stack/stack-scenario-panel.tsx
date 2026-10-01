@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { partialScanOf } from "@/components/workload/evidence";
-import type { TargetKey } from "@/lib/routes";
+import type { StackSubscription } from "@/lib/current-stack";
 import {
   analyzeScenario,
   type ScenarioResult,
@@ -30,9 +30,9 @@ export function StackScenarioPanel({
   onResult,
 }: {
   record: ImportRecord;
-  current: readonly TargetKey[];
-  proposed: readonly TargetKey[];
-  onChange: (next: TargetKey[]) => void;
+  current: readonly StackSubscription[];
+  proposed: readonly StackSubscription[];
+  onChange: (next: StackSubscription[]) => void;
   /** The caller's own market calculation must finish first: the Worker runs one at a time. */
   enabled: boolean;
   onResult?: (result: ScenarioResult, workload: StackWorkload | undefined) => void;
@@ -45,6 +45,7 @@ export function StackScenarioPanel({
     billing: local.billing,
     ready: enabled && local.ready,
     partialScan: scan.unreadable + scan.other > 0,
+    stack: current,
   });
   const workload = stackWork.workload;
   const result = useMemo(
@@ -67,6 +68,9 @@ export function StackScenarioPanel({
         current={current}
         proposed={proposed}
         onChange={onChange}
+        accountNames={
+          new Map((workload?.accounts ?? []).map((account) => [account.key, account.name]))
+        }
         idPrefix="replay-scenario"
       />
       {stackWork.failed ? (

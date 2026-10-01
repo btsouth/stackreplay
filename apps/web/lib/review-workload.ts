@@ -1,5 +1,6 @@
 import { tokenAccountingOf } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
+import { accountKeyOf } from "./accounts";
 import { dateSchema, periodSchema, type ReviewHistory, type ReviewPeriod } from "./review-period";
 
 /** Chronological filtering has no billing-cycle length limit. Returns original event references. */
@@ -57,6 +58,14 @@ export function reviewWorkload(
     accounts.set(id, account);
   }
   history.accounts = [...accounts.values()];
+  const recorded = new Map<string, { key: string; source: string; calls: number }>();
+  for (const event of events) {
+    const key = accountKeyOf(event.source);
+    const account = recorded.get(key) ?? { key, source: event.source.adapterId, calls: 0 };
+    account.calls++;
+    recorded.set(key, account);
+  }
+  history.recordedAccounts = [...recorded.values()];
   const active = new Set<string>();
   for (const event of scoped) {
     if (event.source.nativeResponse) {

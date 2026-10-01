@@ -142,7 +142,24 @@ export function mergeFinding(
     return next;
   }
   if (finding.status === "checking") return rows;
-  if (FOUND.includes(existing.status)) {
+  // A history found in one folder and named but unreadable in another (a
+  // linked `projects`, say) is two locations: both stay listed, so the
+  // unreadable one can still be connected instead of hiding behind the other.
+  const readable = FOUND.includes(existing.status);
+  const unreadable = existing.status === "access-needed" && existing.unconfirmed !== true;
+  if (
+    (readable && finding.status === "access-needed" && finding.unconfirmed !== true) ||
+    (unreadable && finding.status === "found")
+  ) {
+    const siblings = rows.filter((row) => row.adapterId === finding.adapterId).length;
+    next.splice(
+      index + siblings,
+      0,
+      rowFromFinding(finding, `${finding.adapterId}-${siblings + 1}`, where, true, via),
+    );
+    return next;
+  }
+  if (readable) {
     if (finding.status !== "found") return rows;
     const siblings = rows.filter((row) => row.adapterId === finding.adapterId).length;
     next.splice(

@@ -244,6 +244,12 @@ export type WorkerRequest =
        * tool. My Stack prices each tool's slice with the same calculation.
        */
       sources?: string[];
+      /**
+       * Local accounts to keep, by account key (see `accounts.ts`); absent or
+       * empty keeps every account. My Stack prices each subscription's own
+       * accounts with the same calculation.
+       */
+      accounts?: string[];
       requestId: number;
       importId: string;
     }

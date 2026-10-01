@@ -4,12 +4,13 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import { useMemo, useState } from "react";
+import { newSubscriptionId, type StackSubscription } from "@/lib/current-stack";
 import { catalogPlansAt, loadPublicCatalog } from "@/lib/public-catalog";
 import type { TargetKey } from "@/lib/routes";
 import { familyOfPlan, priceMoney, rangeText, type ScenarioResult } from "@/lib/stack-analysis";
 import { EvidenceList } from "./evidence";
 
-const isPlan = (key: TargetKey) => key.startsWith("plan:");
+const isPlan = (entry: StackSubscription) => entry.plan.startsWith("plan:");
 
 function monthly(price: { amount: string; currency: string; interval: string } | undefined) {
   return price?.currency === "USD" && price.interval === "month" ? price.amount : undefined;
@@ -22,20 +23,37 @@ export function deltaText(delta: string | undefined): string {
   return `${value.isNegative() ? "−" : "+"}${priceMoney(value.abs().toString())}/mo`;
 }
 
+/** The DOM-safe reference of each subscription: its plan id, then `-2`, `-3` for repeats. */
+function refs(subscriptions: readonly StackSubscription[]): Map<string, string> {
+  const seen = new Map<string, number>();
+  const out = new Map<string, string>();
+  for (const sub of subscriptions) {
+    const id = sub.plan.slice(5);
+    const n = (seen.get(id) ?? 0) + 1;
+    seen.set(id, n);
+    out.set(sub.id, n === 1 ? id : `${id}-${n}`);
+  }
+  return out;
+}
+
 /**
- * The proposed stack beside the current one. Controlled: the caller owns both
- * lists, so My Stack and Replay's stack scenario edit the same shape. Nothing
- * here writes Current Stack.
+ * The proposed stack beside the current one, one row per subscription.
+ * Controlled: the caller owns both lists, so My Stack and Replay's stack
+ * scenario edit the same shape. A tier change keeps the subscription's account
+ * link. Nothing here writes Current Stack.
  */
 export function ScenarioEditor({
   current,
   proposed,
   onChange,
+  accountNames,
   idPrefix = "scenario",
 }: {
-  current: readonly TargetKey[];
-  proposed: readonly TargetKey[];
-  onChange: (next: TargetKey[]) => void;
+  current: readonly StackSubscription[];
+  proposed: readonly StackSubscription[];
+  onChange: (next: StackSubscription[]) => void;
+  /** Display names for linked accounts, by account key. */
+  accountNames?: ReadonlyMap<string, string> | undefined;
   idPrefix?: string;
 }) {
   const plans = useMemo(
@@ -46,39 +64,22 @@ export function ScenarioEditor({
   const name = (key: TargetKey) => planOf(key)?.name ?? key.slice(5);
   const currentPlans = current.filter(isPlan);
   const proposedPlans = proposed.filter(isPlan);
-  const familyKey = (key: TargetKey) => familyOfPlan(key.slice(5))?.groupId;
-  /** A tier change: the one other plan of this plan's family now proposed in its place. */
-  const replacementFor = (key: TargetKey): TargetKey | undefined => {
-    // Still proposed: a same-family plan beside it is an addition, not a tier change.
-    if (proposedPlans.includes(key)) return undefined;
-    const family = familyKey(key);
-    if (!family || currentPlans.filter((k) => familyKey(k) === family).length > 1) return undefined;
-    return proposedPlans.find(
-      (k) => k !== key && familyKey(k) === family && !currentPlans.includes(k),
-    );
-  };
-  const replacements = new Set(
-    currentPlans.map(replacementFor).filter((key): key is TargetKey => key !== undefined),
-  );
-  const added = proposedPlans.filter(
-    (key) => !currentPlans.includes(key) && !replacements.has(key),
-  );
-  const setRow = (key: TargetKey, choice: TargetKey | "remove") => {
-    const replacement = replacementFor(key);
-    const drop = new Set<TargetKey>([key, ...(replacement ? [replacement] : [])]);
-    const index = proposed.findIndex((k) => drop.has(k));
-    const next = proposed.filter((k) => !drop.has(k));
+  const currentRefs = refs(currentPlans);
+  const added = proposedPlans.filter((entry) => !currentPlans.some((c) => c.id === entry.id));
+  const accountOf = (entry: StackSubscription) =>
+    entry.account ? (accountNames?.get(entry.account) ?? "Linked account") : undefined;
+  const setRow = (sub: StackSubscription, choice: TargetKey | "remove") => {
+    const index = proposed.findIndex((entry) => entry.id === sub.id);
+    const next = proposed.filter((entry) => entry.id !== sub.id);
     if (choice !== "remove")
-      next.splice(index < 0 ? next.length : Math.min(index, next.length), 0, choice);
-    onChange([...new Set(next)]);
+      next.splice(index < 0 ? next.length : index, 0, { ...sub, plan: choice });
+    onChange(next);
   };
   const tierChoices = (key: TargetKey) => {
     const family = familyOfPlan(key.slice(5));
-    const siblings = family ? currentPlans.filter((k) => familyKey(k) === family.groupId) : [];
-    const ids =
-      family && siblings.length <= 1
-        ? [...new Set([key.slice(5), ...(family.planIds as readonly string[])])]
-        : [key.slice(5)];
+    const ids = family
+      ? [...new Set([key.slice(5), ...(family.planIds as readonly string[])])]
+      : [key.slice(5)];
     const known = ids
       .map((id) => plans.find((plan) => plan.id === id))
       .filter((plan) => plan !== undefined)
@@ -90,9 +91,10 @@ export function ScenarioEditor({
       : [{ id: key.slice(5), name: name(key) }, ...known];
   };
   const [addChoice, setAddChoice] = useState<TargetKey | "">("");
-  const addable = plans
-    .filter((plan) => !proposedPlans.includes(`plan:${plan.id}`))
-    .sort((a, b) => a.providerId.localeCompare(b.providerId) || a.name.localeCompare(b.name));
+  // A plan can be added more than once: a second account on the same tier is a second subscription.
+  const addable = [...plans].sort(
+    (a, b) => a.providerId.localeCompare(b.providerId) || a.name.localeCompare(b.name),
+  );
   const providers = [...new Set(addable.map((plan) => plan.providerId))];
   const providerNames = useMemo(
     () =>
@@ -108,16 +110,20 @@ export function ScenarioEditor({
     const amount = monthly(planOf(key)?.price);
     return amount ? `${priceMoney(amount)}/mo` : "Price unavailable";
   };
+  const label = (entry: StackSubscription) => {
+    const account = accountOf(entry);
+    return account ? `${name(entry.plan)} · ${account}` : name(entry.plan);
+  };
 
   return (
     <div className="stack-scenario-editor" data-testid={`${idPrefix}-editor`}>
       <div className="stack-scenario-column">
         <p className="stack-eyebrow">Current stack</p>
         <ul>
-          {currentPlans.map((key) => (
-            <li key={key}>
-              <span>{name(key)}</span>
-              <span className="stack-mono">{priceOf(key)}</span>
+          {currentPlans.map((entry) => (
+            <li key={entry.id}>
+              <span>{label(entry)}</span>
+              <span className="stack-mono">{priceOf(entry.plan)}</span>
             </li>
           ))}
           {currentPlans.length === 0 ? <li className="stack-caption">No subscriptions</li> : null}
@@ -126,37 +132,40 @@ export function ScenarioEditor({
       <div className="stack-scenario-column stack-scenario-proposed">
         <p className="stack-eyebrow">Proposed stack</p>
         <ul>
-          {currentPlans.map((key) => {
-            const replacement = replacementFor(key);
-            const kept = proposedPlans.includes(key);
-            const value = kept ? key : (replacement ?? "remove");
-            const changed = value !== key;
+          {currentPlans.map((entry) => {
+            const now = proposedPlans.find((other) => other.id === entry.id);
+            const value = now?.plan ?? "remove";
+            const changed = value !== entry.plan;
+            const ref = currentRefs.get(entry.id) ?? entry.plan.slice(5);
             return (
               <li
-                key={key}
+                key={entry.id}
                 data-state={value === "remove" ? "removed" : changed ? "changed" : "kept"}
               >
                 <label className="stack-scenario-choice">
-                  <span className="sr-only">Proposed plan in place of {name(key)}</span>
+                  <span className="sr-only">Proposed plan in place of {label(entry)}</span>
                   <select
                     value={value}
-                    data-testid={`${idPrefix}-plan-${key.slice(5)}`}
-                    onChange={(event) => setRow(key, event.target.value as TargetKey | "remove")}
+                    data-testid={`${idPrefix}-plan-${ref}`}
+                    onChange={(event) => setRow(entry, event.target.value as TargetKey | "remove")}
                   >
-                    {tierChoices(key).map((plan) => (
+                    {tierChoices(entry.plan).map((plan) => (
                       <option key={plan.id} value={`plan:${plan.id}`}>
                         {plan.name} · {priceOf(`plan:${plan.id}`)}
                       </option>
                     ))}
-                    <option value="remove">Remove {name(key)}</option>
+                    <option value="remove">Remove {name(entry.plan)}</option>
                   </select>
+                  {accountOf(entry) ? (
+                    <span className="stack-caption stack-scenario-account">{accountOf(entry)}</span>
+                  ) : null}
                 </label>
                 {changed ? (
                   <button
                     type="button"
                     className="stack-link"
-                    onClick={() => setRow(key, key)}
-                    aria-label={`Restore ${name(key)}`}
+                    onClick={() => setRow(entry, entry.plan)}
+                    aria-label={`Restore ${label(entry)}`}
                   >
                     Restore
                   </button>
@@ -164,8 +173,8 @@ export function ScenarioEditor({
                   <button
                     type="button"
                     className="stack-quiet-action"
-                    onClick={() => setRow(key, "remove")}
-                    aria-label={`Remove ${name(key)} from the proposed stack`}
+                    onClick={() => setRow(entry, "remove")}
+                    aria-label={`Remove ${label(entry)} from the proposed stack`}
                   >
                     Remove
                   </button>
@@ -173,18 +182,18 @@ export function ScenarioEditor({
               </li>
             );
           })}
-          {added.map((key) => (
-            <li key={key} data-state="added">
+          {added.map((entry) => (
+            <li key={entry.id} data-state="added">
               <span>
-                {name(key)} <span className="stack-caption">added</span>
+                {label(entry)} <span className="stack-caption">added</span>
               </span>
               <span className="stack-scenario-added-actions">
-                <span className="stack-mono">{priceOf(key)}</span>
+                <span className="stack-mono">{priceOf(entry.plan)}</span>
                 <button
                   type="button"
                   className="stack-quiet-action"
-                  onClick={() => onChange(proposed.filter((k) => k !== key))}
-                  aria-label={`Remove ${name(key)} from the proposed stack`}
+                  onClick={() => onChange(proposed.filter((other) => other.id !== entry.id))}
+                  aria-label={`Remove ${label(entry)} from the proposed stack`}
                 >
                   Remove
                 </button>
@@ -210,6 +219,9 @@ export function ScenarioEditor({
                     .map((plan) => (
                       <option key={plan.id} value={`plan:${plan.id}`}>
                         {plan.name} · {priceOf(`plan:${plan.id}`)}
+                        {proposedPlans.some((entry) => entry.plan === `plan:${plan.id}`)
+                          ? " · another one"
+                          : ""}
                       </option>
                     ))}
                 </optgroup>
@@ -222,7 +234,10 @@ export function ScenarioEditor({
               data-testid={`${idPrefix}-add-button`}
               onClick={() => {
                 if (!addChoice) return;
-                onChange([...new Set([...proposed, addChoice])]);
+                onChange([
+                  ...proposed,
+                  { id: newSubscriptionId(proposed.map((entry) => entry.id)), plan: addChoice },
+                ]);
                 setAddChoice("");
               }}
             >
@@ -273,7 +288,7 @@ export function ScenarioOutcome({
         {result.changes.map((change) => (
           <li key={change.id}>
             <div className="stack-scenario-change-heading">
-              <h4>{change.title}</h4>
+              <h3>{change.title}</h3>
               <span className="stack-mono">{deltaText(change.monthlyDelta)}</span>
             </div>
             <EvidenceList items={change.findings} />
