@@ -1,13 +1,15 @@
+import {
+  type BenchmarkData,
+  benchmarkEdition,
+  benchmarkName,
+  resolveComparison,
+} from "@stackreplay/benchmarks";
+import { benchmarkUrl } from "../benchmark-state";
 import { formatCatalogDate } from "../catalog-copy";
 import { basePrice, type ModelPrices, modelPrices } from "../market-discovery";
-import {
-  modelCapabilities,
-  modelContext,
-  modelSpecifications,
-  tokenSize,
-} from "../model-specifications";
+import { modelContext, modelSpecifications, tokenSize } from "../model-specifications";
 import { formatRate } from "../price-table";
-import type { PublicCatalog, PublicModelSummary } from "../public-catalog";
+import { loadCatalog, type PublicCatalog, type PublicModelSummary } from "../public-catalog";
 
 /**
  * The homepage model comparison: a few current releases side by side.
@@ -17,13 +19,14 @@ import type { PublicCatalog, PublicModelSummary } from "../public-catalog";
  * from the Models pages. An id the catalog no longer knows (or that names a
  * family rather than a release) is left out rather than failing the page.
  *
- * Editorial selection, not a ranking: current releases from different
- * developers across a wide price range.
+ * Editorial selection, not a ranking: the newest frontier release from each of five
+ * major developers as of September 30, 2026, across a wide price range.
  */
 export const FEATURED_MODEL_IDS = [
-  "claude-opus-5-5",
   "gpt-6-1-sol",
-  "gemini-3-1-pro",
+  "claude-opus-5-5",
+  "gemini-4-argon",
+  "grok-4-7",
   "deepseek-v4-1-flash",
 ] as const;
 
@@ -47,11 +50,15 @@ export interface ComparisonCell {
   absent?: boolean | undefined;
   /** Evidence link for this cell (benchmark rows carry one per score). */
   source?: { url: string; title: string } | undefined;
+  /** The row's highest reported value (lowest where lower is better), ties included. */
+  highest?: boolean | undefined;
 }
 
 export interface ComparisonRow {
   id: string;
   label: string;
+  /** Secondary words under the row label (benchmark metric). */
+  note?: string | undefined;
   /** Figures read down a column (prices, token counts) and are set in tabular figures. */
   numeric?: boolean | undefined;
   cells: readonly ComparisonCell[];
@@ -70,9 +77,8 @@ export interface ModelComparison {
   columns: readonly ComparisonColumn[];
   groups: readonly ComparisonGroup[];
   /**
-   * Benchmark rows appear only when reviewed evidence gives every column a
-   * result for the same benchmark, version, metric and task subset. None has
-   * landed in this catalog yet, so this is empty.
+   * Benchmark rows from the reviewed evidence package: exact definitions,
+   * results for at least three of the columns (see `benchmarkRows`).
    */
   benchmarks: readonly ComparisonRow[];
 }
@@ -97,13 +103,25 @@ export function featuredModels(
 
 export function featuredModelComparison(
   catalog: PublicCatalog,
-  options: { ids?: readonly string[]; benchmarks?: readonly ComparisonRow[] } = {},
+  options: {
+    ids?: readonly string[];
+    /** Precomputed rows (tests); otherwise built from `benchmarkData`. */
+    benchmarks?: readonly ComparisonRow[];
+    /** The reviewed benchmark evidence package, validated at the public boundary. */
+    benchmarkData?: BenchmarkData;
+  } = {},
 ): ModelComparison | undefined {
   const models = featuredModels(catalog, options.ids);
   // One model is not a comparison.
   if (models.length < 2) return undefined;
   const prices = new Map(models.map((model) => [model.id, modelPrices(model.id, catalog.asOf)]));
   const priceOf = (model: PublicModelSummary) => prices.get(model.id) ?? [];
+  const raw = loadCatalog();
+  // An announced model with no API yet: say so instead of "Not listed".
+  const notInApi = (model: PublicModelSummary) =>
+    raw.models[model.id]?.apiAvailability === "not_established" && priceOf(model).length === 0;
+  const priceCell = (model: PublicModelSummary, key: "input" | "output" | "cacheRead") =>
+    notInApi(model) ? absent("Not yet in API") : rateCell(priceOf(model), key);
 
   const columns: ComparisonColumn[] = models.map((model) => {
     const checked = [model.lastVerifiedAt, ...priceOf(model).map((price) => price.lastVerifiedAt)]
@@ -134,9 +152,9 @@ export function featuredModelComparison(
       label: "API list price",
       note: "Standard tier, per 1M tokens",
       rows: [
-        row("input", "Input", (model) => rateCell(priceOf(model), "input"), true),
-        row("cache-read", "Cached input", (model) => rateCell(priceOf(model), "cacheRead"), true),
-        row("output", "Output", (model) => rateCell(priceOf(model), "output"), true),
+        row("input", "Input", (model) => priceCell(model, "input"), true),
+        row("cache-read", "Cached input", (model) => priceCell(model, "cacheRead"), true),
+        row("output", "Output", (model) => priceCell(model, "output"), true),
       ],
     },
     {
@@ -169,22 +187,11 @@ export function featuredModelComparison(
       ],
     },
     {
-      id: "capabilities",
-      label: "Capabilities",
-      rows: [
-        row("capabilities", "Documented", (model) => {
-          const capabilities = modelCapabilities(model);
-          return capabilities.length === 0
-            ? absent("None recorded")
-            : { text: capabilities.join(" · ") };
-        }),
-      ],
-    },
-    {
       id: "access",
       label: "Where to use it",
       rows: [
         row("api", "Direct API", (model) => {
+          if (notInApi(model)) return absent("Announced, not yet available");
           const apis = model.places.filter((place) => place.kind === "api");
           return apis.length === 0
             ? absent("Not established")
@@ -204,5 +211,78 @@ export function featuredModelComparison(
     },
   ];
 
-  return { asOf: catalog.asOf, columns, groups, benchmarks: options.benchmarks ?? [] };
+  return {
+    asOf: catalog.asOf,
+    columns,
+    groups,
+    benchmarks:
+      options.benchmarks ??
+      (options.benchmarkData === undefined
+        ? []
+        : benchmarkRows(
+            options.benchmarkData,
+            models.map((model) => model.id),
+          )),
+  };
+}
+
+/** Fewest columns with a reported result before a benchmark row is worth showing. */
+export const MIN_BENCHMARK_COVERAGE = 3;
+export const MAX_BENCHMARK_ROWS = 4;
+
+/**
+ * Benchmark rows for the featured columns, from the reviewed evidence package.
+ *
+ * Each row is one exact benchmark definition (name, version, variant, metric
+ * and task subset); variants are separate definitions, so nothing is blended.
+ * A cell shows the evidence edition's primary observation for that model, the
+ * same one the Benchmarks page shows, with its reporter. A row needs results
+ * for at least three of the columns. The highest reported value is marked per
+ * row, ties included, exactly as the Benchmarks page marks it; it does not
+ * claim matching setups and there is no composite.
+ */
+export function benchmarkRows(
+  data: BenchmarkData,
+  modelIds: readonly string[],
+  options: { minimum?: number; limit?: number } = {},
+): ComparisonRow[] {
+  const minimum = options.minimum ?? MIN_BENCHMARK_COVERAGE;
+  const limit = options.limit ?? MAX_BENCHMARK_ROWS;
+  // With fewer columns than the minimum, every column must report: a row is
+  // never shown with fewer than three results unless there are fewer columns.
+  const rows = resolveComparison(data, modelIds, { coverage: "all" })
+    .map((row) => ({ row, present: row.cells.filter((cell) => cell.observation).length }))
+    .filter((entry) => entry.present >= Math.min(minimum, modelIds.length));
+  // Most columns covered first; definition order (the evidence package's) breaks ties.
+  rows.sort((a, b) => b.present - a.present);
+  return rows.slice(0, limit).map(({ row }) => ({
+    id: `benchmark:${row.definition.id}`,
+    label: benchmarkName(row.definition),
+    note: row.definition.metric,
+    numeric: true,
+    cells: row.cells.map((cell): ComparisonCell => {
+      const observation = cell.observation;
+      if (observation === undefined) return absent("Not reported");
+      return {
+        text: observation.displayValue,
+        detail: `Reported by ${observation.evaluator}`,
+        source: {
+          url: observation.sourceUrl,
+          title: `${observation.evaluator}: ${benchmarkName(row.definition)}`,
+        },
+        highest: row.highestModelIds.includes(cell.modelId) ? true : undefined,
+      };
+    }),
+  }));
+}
+
+/** The full benchmark sheet for exactly these models. */
+export function benchmarkSheetHref(modelIds: readonly string[]): string {
+  return benchmarkUrl({
+    modelIds: [...modelIds],
+    category: "all",
+    coverage: "all",
+    observationIds: [],
+    edition: benchmarkEdition,
+  });
 }

@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
-import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { homepageBriefing, marketFeed } from "@stackreplay/market-events";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { copyDefects } from "../lib/copy-lint";
 import { canonicalUsage } from "../lib/home/personal";
@@ -95,6 +95,10 @@ test.describe("homepage without a saved workload", () => {
   }, testInfo) => {
     const errors = collectConsoleErrors(page);
     const requests = captureRequests(page);
+    // The briefing ages on the reader's clock but never reads a day earlier than the build.
+    // Pinning the clock to the feed's review day makes the page's day the build day, so the
+    // expectations below come from the feed at that day and never depend on when CI runs.
+    await page.clock.setFixedTime(new Date(`${marketFeed.asOf}T12:00:00`));
     await page.goto("/");
     await expect(
       page.getByRole("heading", {
@@ -104,36 +108,65 @@ test.describe("homepage without a saved workload", () => {
     ).toBeVisible();
     await expect(page.getByTestId("home-trust")).toContainText("never uploaded");
 
-    // Market Pulse lists only changes derived from real catalog records.
-    const catalog = loadBundledCatalog();
+    // The AI market briefing reads the canonical feed: newest first, nothing older than 30 days.
+    const feedIds = new Set(marketFeed.events.map((event) => event.id));
+    const briefing = page.getByTestId("market-pulse");
+    await expect(briefing).toContainText("AI market");
     const items = page.getByTestId("market-pulse-item");
-    const count = await items.count();
-    expect(count).toBeGreaterThan(0);
-    expect(count).toBeLessThanOrEqual(5);
-    for (const pulseId of await items.evaluateAll((nodes) =>
-      nodes.map((node) => node.getAttribute("data-pulse-id") ?? ""),
-    )) {
-      const [category, id = "", date] = pulseId.split(":");
-      expect(id.startsWith("example-"), pulseId).toBe(false);
-      if (category === "model") expect(catalog.models[id]?.releaseDate, pulseId).toBeDefined();
-      else if (category === "plan") expect(catalog.plans[id], pulseId).toBeDefined();
-      else if (category === "price")
-        expect(
-          Object.values(catalog.pricing).some(
-            (price) => price.modelId === id && price.effectiveFrom === date,
-          ),
-          pulseId,
-        ).toBe(true);
-      else throw new Error(`Unexpected pulse row ${pulseId}`);
+    const today = (await briefing.getAttribute("data-today")) ?? "";
+    expect(today >= marketFeed.asOf).toBe(true);
+    // Exactly what the shared selection gives for that day: same ids, same order.
+    const expected = homepageBriefing(marketFeed.events, { today, limit: 5 }).map((e) => e.id);
+    await expect(items).toHaveCount(expected.length);
+    const rows = await items.evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        id: node.getAttribute("data-pulse-id") ?? "",
+        day: node.getAttribute("data-day") ?? "",
+        importance: node.getAttribute("data-importance") ?? "",
+      })),
+    );
+    for (const row of rows) {
+      expect(feedIds.has(row.id), row.id).toBe(true);
+      expect(row.importance).not.toBe("minor");
+      const age =
+        (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${row.day}T00:00:00Z`)) / 86_400_000;
+      expect(age, row.id).toBeGreaterThanOrEqual(0);
+      expect(age, row.id).toBeLessThanOrEqual(30);
     }
-    await expect(page.getByTestId("market-pulse")).not.toContainText("Benchmark");
+    expect(rows.map((row) => row.day)).toEqual([...rows.map((row) => row.day)].sort().reverse());
+    expect(rows.map((row) => row.id)).toEqual(expected);
+    // Beside the hero copy: the last seven days by kind, counted from the same feed.
+    const week = page.getByTestId("market-week");
+    const inWeek = marketFeed.events.filter((event) => {
+      const age =
+        (Date.parse(`${today}T00:00:00Z`) -
+          Date.parse(`${event.occurredAt.slice(0, 10)}T00:00:00Z`)) /
+        86_400_000;
+      return age >= 0 && age <= 7;
+    });
+    if (inWeek.length === 0) await expect(week).toHaveCount(0);
+    else await expect(week.locator("dd").first()).toHaveText(String(inWeek.length));
+    await expect(page.getByTestId("market-week-related")).toHaveCount(0);
+    await expect(briefing.getByRole("link", { name: /View all AI updates/u })).toHaveAttribute(
+      "href",
+      "/changelog",
+    );
 
-    // Public tables and cards, with no personal claims.
-    await expect(page.getByTestId("home-model-comparison").locator("th[scope=col]")).toHaveCount(4);
+    // Frontier right now: five flagships with verified benchmark rows.
+    const frontier = page.getByTestId("home-model-comparison");
+    await expect(frontier.locator("th[scope=col]")).toHaveCount(5);
+    await expect(page.getByTestId("home-benchmark-rows").locator("tr[data-row]")).not.toHaveCount(
+      0,
+    );
+    await expect(page.getByTestId("benchmark-sheet-link")).toHaveAttribute(
+      "href",
+      /\/benchmarks\?models=/u,
+    );
     await expect(page.getByTestId("model-usage-row")).toHaveAttribute("data-state", "public");
     await expect(page.getByTestId("benchmark-note")).toBeVisible();
     await expect(page.getByTestId("home-plan-card")).toHaveCount(4);
     await expect(page.getByTestId("personal-mark")).toHaveCount(0);
+    await expect(page.getByTestId("market-relevance")).toHaveCount(0);
     await expect(page.getByTestId("personal-intelligence")).toHaveAttribute(
       "data-personal",
       "public",
@@ -141,6 +174,8 @@ test.describe("homepage without a saved workload", () => {
     await expect(page.getByTestId("personal-question")).toHaveCount(8);
     await expect(page.getByTestId("personal-question").locator("a")).toHaveCount(0);
     await expect(page.getByTestId("personal-example")).toContainText("not yours");
+    // The old engine-first positioning is gone from the homepage.
+    await expect(page.locator("main")).not.toContainText(/Replay the difference|Any stack/u);
 
     // The personal action points at a scan, and the check created no local database.
     const action = page.getByTestId(
@@ -295,7 +330,7 @@ test.describe("homepage without a saved workload", () => {
       "My Stack",
       "Scan my history",
     ]);
-    expect(order).toContain("Explore models");
+    expect(order).toContain("Compare frontier models");
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
     await expect(page.getByTestId("home-plan-grid")).toHaveAttribute("tabindex", "0");
   });
@@ -395,6 +430,26 @@ test.describe("homepage with a saved workload", () => {
       "href",
       `/app/compare?import=${id}&view=billing`,
     );
+    // The bridge into personal intelligence counts market changes related by canonical identity.
+    const relevance = page.getByTestId("market-relevance");
+    await expect(relevance).toBeVisible();
+    const related = Number(await relevance.getAttribute("data-count"));
+    expect(related).toBeGreaterThan(0);
+    await expect(relevance).toContainText(
+      `${related} recent market ${related === 1 ? "change relates" : "changes relate"} to your workload or stack`,
+    );
+    for (const item of await page.getByTestId("market-relevance-item").all())
+      expect(["stack", "used", "related"]).toContain(await item.getAttribute("data-relation"));
+    // Claude's five-hour limit change names Claude Max 20x, which is in this stack.
+    await expect(
+      page.locator(
+        '[data-pulse-id="claude-five-hour-limits-raised"] [data-testid="personal-mark"]',
+      ),
+    ).toHaveCount(await page.locator('[data-pulse-id="claude-five-hour-limits-raised"]').count());
+    // A lookalike raw name never relates the Opus 5.5 release to this workload.
+    await expect(
+      page.locator('[data-pulse-id="claude-opus-5-5-released"] [data-relation="used"]'),
+    ).toHaveCount(0);
     expect(copyDefects(await page.locator("main").innerText())).toEqual([]);
     await shoot(page, "home-personal-desktop");
 

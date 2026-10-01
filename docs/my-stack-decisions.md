@@ -9,16 +9,20 @@ each with its evidence.
 
 ## Page
 
-1. **Summary.** Published monthly price of the stack, API-equivalent value of the recorded work in
-   the analysis period, and subscription leverage, with the period and its confirmation state on one
-   line. "Change period" edits the same review choice Workload's billing-period review uses.
-2. **Opportunities.** At most four findings the data supports, each with evidence words and one
-   test: no activity in an imported tool, calls that used no model in the plan's reviewed lineup,
-   a small share or a value below the price, consolidation into a subscription that already carries
-   more of the work, a cheaper tier that lists every recorded model, recorded work outside the stack,
-   and one factual leverage highlight. Nothing is added to fill the section.
+1. **Summary.** Three answers side by side: what the stack costs at published prices, what workload
+   is loaded (recorded calls or responses, the period, and the API-equivalent value), and analysis
+   coverage, which lists every subscription with whether this workload carries its tool's history.
+   When only some histories are loaded, a sentence names the subscriptions that are not evaluated and
+   their published spend. The period and its confirmation state follow on one line.
+2. **What to investigate.** At most three findings, leading with a cheaper-tier review for the
+   subscription carrying the most recorded work: current plan and price, recorded activity, recorded
+   capacity pressure (blocked attempts and the days they fell on), lower-tier model coverage, the
+   published spend change and whether an exact fit can be calculated. "Cannot be proven" stays a
+   value until a provider publishes a quota the engine can replay; recorded limit events make more
+   interruptions likely on a smaller allowance, never a certain failure. Removals the recorded work
+   supports and subscriptions the workload cannot see follow. Nothing is added to fill the section.
 3. **Subscription reports.** One ledger row per subscription: price, associated recorded calls and
-   share, API-equivalent value, leverage, active days, models, recorded limit events, and an evidence
+   share, API-equivalent value, recorded limit events, active days, models, and an evidence
    disclosure with the lineup check, published allowance and searchable model access. Plans whose
    tools StackReplay cannot read say so instead of showing zero.
 4. **Test a change.** Change a tier, remove, restore or add a catalog plan. The outcome gives the
@@ -44,6 +48,9 @@ other. Capacity evidence in a tool slice is limited to that tool's local account
 builds reports, leverage and opportunities, and `analyzeScenario` compares two stacks. Money is
 decimal throughout. Replay reads a proposed stack from `?stack=<plan ids>` (catalog ids only) and
 renders the same editor and outcome; a saved assessment stores bounded finding lines for Compare.
+`lib/stack-investigations.ts` turns an analysis into the first screen: `stackCoverage` (which
+subscriptions this workload can evaluate) and `investigations` (at most three findings, each a set of
+labelled evidence rows with an evidence word and one action).
 
 ## Period
 
@@ -80,7 +87,10 @@ Leverage is API-equivalent value of the associated work divided by one monthly p
 entered paid amount for exactly this period when present). It counts only calls on models the
 plan's reviewed lineup includes and names the rest as excluded. A priced subset gives a floor,
 marked "≥". Stack leverage covers the subscriptions StackReplay can read; readable plans with no
-qualifying work keep their price in the denominator. It is never called savings.
+qualifying work keep their price in the denominator. It is never called savings. Leverage is not a
+headline: a ratio whose meaning needs a paragraph of caveats does not answer the page's question, so
+it appears only inside each subscription's evidence disclosure as recorded value per published
+dollar.
 
 ## Limits and next steps
 

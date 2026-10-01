@@ -20,7 +20,7 @@ const PUBLIC_ROUTES = [
   { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Compare plans" },
   { path: "/methodology", heading: "Methodology" },
-  { path: "/changelog", heading: "Know what changed." },
+  { path: "/changelog", heading: "What changed in the AI market." },
 ] as const;
 
 test.describe("public site", () => {

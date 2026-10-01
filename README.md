@@ -1,8 +1,8 @@
 # StackReplay
 
-**Replay your real AI coding workload against other subscriptions before you switch.**
+**Know the AI market. Know what fits your workload.**
 
-*Your workload. Any stack. Replay the difference.*
+*Sourced AI model, benchmark, price and subscription intelligence, read against your own local AI history.*
 
 StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
 answer: **would another AI coding subscription actually handle the way I work?**

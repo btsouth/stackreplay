@@ -7,7 +7,6 @@ import {
   type ExampleWorkload,
   type HomeCatalogIndex,
   type PersonalSnapshot,
-  personalRelevance,
   personalSnapshot,
   type Share,
 } from "@/lib/home/personal";
@@ -93,7 +92,7 @@ function Metric({
   );
 }
 
-function PersonalPanel({ snapshot, affecting }: { snapshot: PersonalSnapshot; affecting: number }) {
+function PersonalPanel({ snapshot }: { snapshot: PersonalSnapshot }) {
   const span = recordedSpan(snapshot.firstEventAt, snapshot.lastEventAt);
   const plans = snapshot.stack.filter((line) => line.key.startsWith("plan:"));
   return (
@@ -150,14 +149,6 @@ function PersonalPanel({ snapshot, affecting }: { snapshot: PersonalSnapshot; af
           </p>
         )}
       </div>
-      {affecting > 0 ? (
-        <p className="text-sm" data-testid="personal-affecting">
-          <a href="#market-pulse" className="home-inline-link">
-            {affecting} recent market {affecting === 1 ? "change touches" : "changes touch"} your
-            stack or workload <span aria-hidden="true">↑</span>
-          </a>
-        </p>
-      ) : null}
       <Link
         href={`/app/workload?import=${encodeURIComponent(snapshot.importId)}`}
         className="home-button"
@@ -293,12 +284,10 @@ export function PersonalIntelligence({
   index,
   ladders,
   example,
-  pulse,
 }: {
   index: HomeCatalogIndex;
   ladders: FamilyLadders;
   example: ExampleWorkload | undefined;
-  pulse: readonly { planIds: readonly string[]; modelIds: readonly string[] }[];
 }) {
   const local: LocalWorkloadSnapshot = useLocalWorkload();
   const record = local.personal.status === "ready" ? local.personal.record : undefined;
@@ -308,10 +297,8 @@ export function PersonalIntelligence({
     return {
       snapshot: personalSnapshot(record, local.stack, index),
       states: questionStates({ importId: record.id, stack: local.stack, usage, index, ladders }),
-      affecting: pulse.filter((item) => personalRelevance(item, local.stack, usage) !== undefined)
-        .length,
     };
-  }, [record, local.stack, index, ladders, pulse]);
+  }, [record, local.stack, index, ladders]);
 
   const loading =
     local.presence === "present" &&
@@ -333,7 +320,7 @@ export function PersonalIntelligence({
         {view === undefined ? (
           <ScanPanel example={example} note={note} loading={loading} />
         ) : (
-          <PersonalPanel snapshot={view.snapshot} affecting={view.affecting} />
+          <PersonalPanel snapshot={view.snapshot} />
         )}
       </div>
       <div>

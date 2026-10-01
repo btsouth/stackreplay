@@ -1,7 +1,8 @@
 import Link from "next/link";
-import type { PulseItem } from "@/lib/home/market-pulse";
+import type { HomeCatalogIndex } from "@/lib/home/personal";
+import type { MarketEventView } from "@/lib/market/events";
 import { LocalWorkloadAction } from "../local-workload-action";
-import { MarketPulse } from "./market-pulse";
+import { MarketBriefing, MarketWeek } from "./market-briefing";
 
 export interface CatalogCoverage {
   models: number;
@@ -11,21 +12,23 @@ export interface CatalogCoverage {
 }
 
 /**
- * The first viewport: what StackReplay is (market intelligence), that it is
- * useful without a scan, and that a scan makes it personal. The right side is
- * real catalog data, not an illustration.
+ * The first viewport: what StackReplay is (AI market intelligence), and a
+ * live briefing of what changed in the market, from the canonical feed.
+ * The right side is real, dated, sourced events, not an illustration.
  */
 export function HomeHero({
   coverage,
-  pulse,
-  latest,
-  benchmarks,
+  briefing,
+  recent,
+  builtOn,
+  index,
 }: {
   coverage: CatalogCoverage;
-  pulse: readonly PulseItem[];
-  latest: string | undefined;
-  /** Whether reviewed benchmark evidence is published; the copy never claims it otherwise. */
-  benchmarks: boolean;
+  briefing: readonly MarketEventView[];
+  /** Every accepted event, any importance, no older than thirty days. */
+  recent: readonly MarketEventView[];
+  builtOn: string;
+  index: HomeCatalogIndex;
 }) {
   return (
     <section className="home-hero" aria-labelledby="home-title" data-testid="home-hero">
@@ -36,13 +39,13 @@ export function HomeHero({
           <span className="block text-muted-foreground">Know what fits your workload.</span>
         </h1>
         <p className="home-hero-lede">
-          Track model releases, {benchmarks ? "benchmarks, " : ""}pricing and subscription changes.
-          Then scan your local AI history to see what you actually use, what it would cost
-          elsewhere, and whether your current stack still makes sense.
+          Model releases, benchmarks, API prices and subscription changes, each with its source. Add
+          your local AI history and StackReplay shows which of them matter to you and what is worth
+          changing.
         </p>
         <div className="home-hero-actions">
-          <Link href="/models" className="home-button home-button-lg">
-            Explore models
+          <Link href="#frontier" className="home-button home-button-lg">
+            Compare frontier models
           </Link>
           <LocalWorkloadAction
             variant="hero"
@@ -50,40 +53,19 @@ export function HomeHero({
           />
         </div>
         <p className="home-trust" data-testid="home-trust">
-          Market facts cite their sources. Your history is analyzed in this browser and never
+          Market facts cite first-party sources. Your history is analyzed in this browser and never
           uploaded.{" "}
           <Link href="/methodology#privacy" className="home-inline-link">
             Privacy model
           </Link>
         </p>
-        <nav className="home-index" aria-label="On this page">
-          <a href="#public-intelligence">
-            <span className="home-index-number">01</span>
-            <span>
-              <span className="home-index-title">Public intelligence</span>
-              <span className="home-index-text">
-                Models, API prices, plan terms and dated changes, with sources. No scan needed.
-              </span>
-            </span>
-          </a>
-          <a href="#personal-intelligence">
-            <span className="home-index-number">02</span>
-            <span>
-              <span className="home-index-title">Personal intelligence</span>
-              <span className="home-index-text">
-                The same data applied to your own history: what you use, what it would cost
-                elsewhere, what fits.
-              </span>
-            </span>
-          </a>
-        </nav>
         <dl className="home-coverage" aria-label="Catalog coverage">
           <div>
-            <dt>Models</dt>
+            <dt>Models tracked</dt>
             <dd>{coverage.models}</dd>
           </div>
           <div>
-            <dt>With API list prices</dt>
+            <dt>With API prices</dt>
             <dd>{coverage.pricedModels}</dd>
           </div>
           <div>
@@ -95,8 +77,9 @@ export function HomeHero({
             <dd>{coverage.checkedThrough}</dd>
           </div>
         </dl>
+        <MarketWeek events={recent} builtOn={builtOn} index={index} />
       </div>
-      <MarketPulse items={pulse} latest={latest} />
+      <MarketBriefing events={briefing} builtOn={builtOn} index={index} />
     </section>
   );
 }

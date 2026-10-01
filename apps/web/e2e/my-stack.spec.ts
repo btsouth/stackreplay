@@ -142,7 +142,7 @@ for (const context of ["session-only", "missing"] as const) {
     await expect(page.getByTestId("stack-workload")).toHaveValue("");
     await expect(page.getByTestId("stack-workload").locator("option")).toHaveCount(1);
     await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
-    await expect(page.getByTestId("stack-opportunities")).toHaveCount(0);
+    await expect(page.getByTestId("stack-investigations")).toHaveCount(0);
     await page.getByRole("link", { name: "Manage plans without this workload →" }).click();
     await expect(page).toHaveURL(/\/app\/stack$/);
     await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
@@ -294,7 +294,7 @@ test("demo context is read-only, excludes activity and cannot change real select
   await expect(
     page.getByRole("button", { name: "Remove Command Code GOAT", exact: true }),
   ).toBeDisabled();
-  await expect(page.getByTestId("stack-opportunities")).toHaveCount(0);
+  await expect(page.getByTestId("stack-investigations")).toHaveCount(0);
   expect(await readStack(page)).toEqual(["plan:command-code-goat"]);
   expect(await page.evaluate((key) => localStorage.getItem(key), PREFERENCES)).toBe(
     '{"version":1,"groups":{"claude":{"response":"not-sure"}}}',

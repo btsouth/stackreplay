@@ -23,7 +23,11 @@ export const publicNavItems = [
   { label: "Benchmarks", href: "/benchmarks", description: "Verified model evaluation evidence" },
   { label: "Compare", href: "/compare", description: "Compare documented plan facts" },
   { label: "Plans", href: "/plans", description: "Every catalogued plan, with sources" },
-  { label: "Updates", href: "/changelog", description: "Market and catalog changes over time" },
+  {
+    label: "Updates",
+    href: "/changelog",
+    description: "Dated AI model, benchmark, price and plan changes",
+  },
 ] as const satisfies readonly PublicNavItem[];
 
 /** The same intelligence applied to the visitor's own workload, in this browser. */
@@ -75,7 +79,7 @@ export const publicFooterGroups = [
     title: "Trust",
     items: [
       { label: "Methodology", href: "/methodology" },
-      { label: "Market updates", href: "/changelog" },
+      { label: "AI updates", href: "/changelog" },
       { label: "Privacy model", href: "/methodology#privacy" },
       { label: "Catalog sources", href: "/plans" },
     ],

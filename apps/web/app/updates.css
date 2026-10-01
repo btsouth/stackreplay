@@ -1,0 +1,149 @@
+/*
+ * AI Updates: the canonical market feed, grouped by the day each event
+ * happened. Same paper-and-rule language as the rest of the market pages.
+ */
+
+@layer components {
+  .updates {
+    margin-top: 2rem;
+    min-width: 0;
+  }
+  .updates-filters {
+    margin: 0;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .updates-filters button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--control-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--foreground);
+  }
+  .updates-filters button:hover {
+    background: var(--surface-2);
+  }
+  .updates-filters button[aria-pressed="true"] {
+    border-color: var(--foreground);
+    background: var(--foreground);
+    color: var(--background);
+  }
+  .updates-filters button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .updates-filter-count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+  }
+  .updates-days {
+    display: grid;
+  }
+  .updates-day {
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (min-width: 900px) {
+    .updates-day {
+      grid-template-columns: 11rem minmax(0, 1fr);
+    }
+  }
+  .updates-day-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  @media (min-width: 900px) {
+    .updates-day-label {
+      position: sticky;
+      top: 5rem;
+      align-self: start;
+    }
+  }
+  .updates-source {
+    gap: 0.3rem;
+  }
+  .updates-events {
+    display: grid;
+    gap: 1.75rem;
+    min-width: 0;
+  }
+  .updates-event {
+    display: grid;
+    gap: 0.45rem;
+    min-width: 0;
+    scroll-margin-top: 6rem;
+  }
+  .updates-event:target {
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--accent);
+  }
+  .updates-event-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .updates-major {
+    color: var(--accent);
+  }
+  .updates-event-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.25;
+  }
+  .updates-event-summary {
+    max-width: 72ch;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+  .updates-event-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .updates-event-relation {
+    font-size: 0.82rem;
+    color: var(--accent);
+  }
+  .updates-event-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5rem;
+    font-size: 0.85rem;
+  }
+  .updates-event-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+  }
+}

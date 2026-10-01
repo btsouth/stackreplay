@@ -10,6 +10,7 @@
 @import "./my-stack.css";
 @import "./benchmarks.css";
 @import "./home.css";
+@import "./updates.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));

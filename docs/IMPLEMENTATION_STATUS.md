@@ -2,6 +2,22 @@
 
 ## Current milestone
 
+### Product rescue: AI market feed, frontier comparison, My Stack first screen (feat/product-rescue, not released)
+
+One canonical market event feed (`packages/market-events`, 25 reviewed events for Sep 1-30, 2026,
+every one dated by its provider and linked to a first-party source) now drives both the homepage
+briefing and `/changelog` ("AI updates", filterable by Models, Benchmarks, Subscriptions and
+Pricing). The briefing shows major and notable events newest first, never older than thirty days on
+the reader's own clock, with no category quota. Prices, context and benchmark results beside an
+event are read from the catalog and benchmark evidence at render time, never stored in the feed.
+The homepage frontier table features the newest frontier release of five developers and now renders
+benchmark rows from the verified evidence package (exact definition matches, at least three columns,
+best reported value marked). With a saved workload, events and models carry "In your stack", "Used by
+you" or "Relevant to you" by canonical id or reviewed plan family only. My Stack's first screen now
+answers what you pay, what workload is loaded, which subscriptions that workload can evaluate, and at
+most three things worth investigating; subscription leverage left the headline for the per-plan
+evidence disclosure. See [Public site](PUBLIC_SITE.md) and [My Stack decisions](my-stack-decisions.md).
+
 ### Homepage market and workload intelligence (feat/homepage-reset, not released)
 
 The homepage now leads with sourced market changes, current model comparisons and subscription

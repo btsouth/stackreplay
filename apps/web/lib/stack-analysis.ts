@@ -1295,8 +1295,26 @@ function lineupFinding(
   };
 }
 
+/**
+ * Whether published terms establish that `to` allows less usage than `from`.
+ * Only a stated multiple establishes it: "5× Pro session allowance" against
+ * the Pro allowance itself, or against a smaller multiple of the same base.
+ * A price difference alone never does.
+ */
+export function publishedAllowanceIsSmaller(from: string, to: string): boolean {
+  const multiple = (summary: string) => {
+    const match = /^(\d+(?:\.\d+)?)×\s+(\S+)/u.exec(summary);
+    return match ? { factor: Number(match[1]), base: match[2] ?? "" } : undefined;
+  };
+  const source = multiple(from);
+  if (source === undefined || source.factor <= 1) return false;
+  const target = multiple(to);
+  if (target === undefined) return to.startsWith(`${source.base} `);
+  return target.base === source.base && target.factor < source.factor;
+}
+
 /** "20× Pro session allowance → 5× Pro session allowance; five-hour and weekly limits." */
-function allowanceChange(from: string, to: string): string {
+export function allowanceChange(from: string, to: string): string {
   const [head = from, ...fromRest] = from.split("; ");
   const [next = to, ...toRest] = to.split("; ");
   const shared = fromRest.join("; ");
@@ -1506,7 +1524,9 @@ export function analyzeScenario(input: {
         const fromTerms = subscriptionPublishedTerms(from.id, asOf)?.allowanceSummary;
         const toTerms = subscriptionPublishedTerms(to.id, asOf)?.allowanceSummary;
         const lower =
-          from.monthlyUsd && to.monthlyUsd ? new Decimal(to.monthlyUsd).lt(from.monthlyUsd) : false;
+          fromTerms !== undefined &&
+          toTerms !== undefined &&
+          publishedAllowanceIsSmaller(fromTerms, toTerms);
         if (fromTerms && toTerms)
           findings.push({ level: "published", text: allowanceChange(fromTerms, toTerms) });
         if (facts && facts.calls > 0) {

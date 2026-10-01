@@ -6,6 +6,7 @@ import {
   canonicalUsage,
   type HomeCatalogIndex,
   lineupCoverage,
+  marketRelation,
   modelUsage,
   personalRelevance,
   personalSnapshot,
@@ -163,12 +164,112 @@ describe("personal relevance of market changes", () => {
   });
 });
 
+describe("market relations by canonical identity", () => {
+  const usage = canonicalUsage(workload);
+  const familyIndex: HomeCatalogIndex = {
+    ...index,
+    plans: {
+      ...index.plans,
+      "anthropic-claude-max-20x": {
+        ...(index.plans["anthropic-claude-max-20x"] as HomeCatalogIndex["plans"][string]),
+        family: "claude",
+      },
+      "anthropic-claude-max-5x": {
+        name: "Claude Max 5x",
+        providerName: "Anthropic",
+        price: { amount: "100", currency: "USD", interval: "month" },
+        family: "claude",
+      },
+    },
+  };
+  const stack: TargetKey[] = ["plan:anthropic-claude-max-20x"];
+
+  it("a plan in the stack reads 'In your stack'", () => {
+    expect(
+      marketRelation(
+        { planIds: ["anthropic-claude-max-20x"], modelIds: [] },
+        stack,
+        usage,
+        familyIndex,
+      ),
+    ).toMatchObject({ kind: "stack", label: "In your stack" });
+  });
+
+  it("an exact used model reads 'Used by you' with its recorded calls", () => {
+    expect(
+      marketRelation({ planIds: [], modelIds: ["gpt-6-1-sol"] }, [], usage, familyIndex),
+    ).toEqual({ kind: "used", label: "Used by you", detail: "40 recorded calls on GPT-6.1 Sol" });
+  });
+
+  it("a new release in a used family is relevant through the catalog familyId only", () => {
+    expect(
+      marketRelation({ planIds: [], modelIds: ["claude-opus-5-5"] }, [], usage, familyIndex),
+    ).toEqual({
+      kind: "related",
+      label: "Relevant to you",
+      detail: "You used Claude Opus 5 (50 recorded calls)",
+    });
+    // GPT-6 Sol shares most of GPT-6.1 Sol's name, but no family: no relation.
+    expect(
+      marketRelation({ planIds: [], modelIds: ["gpt-6-sol"] }, [], usage, familyIndex),
+    ).toBeUndefined();
+  });
+
+  it("a sibling plan of a stack plan is relevant through the reviewed plan family", () => {
+    expect(
+      marketRelation(
+        { planIds: ["anthropic-claude-max-5x"], modelIds: [] },
+        stack,
+        undefined,
+        familyIndex,
+      ),
+    ).toMatchObject({
+      kind: "related",
+      detail: "Same plan family as Claude Max 20x in your stack",
+    });
+    expect(
+      marketRelation({ planIds: ["google-ai-pro"], modelIds: [] }, stack, usage, familyIndex),
+    ).toBeUndefined();
+  });
+
+  it("never fuzzy-matches an unresolved lookalike name", () => {
+    // The workload recorded "claude-opus-5-5-preview" and "Claude Opus 5.5 (beta)" unresolved.
+    const noFamily: HomeCatalogIndex = {
+      ...familyIndex,
+      models: { ...familyIndex.models, "claude-opus-5-5": { name: "Claude Opus 5.5" } },
+    };
+    expect(
+      marketRelation({ planIds: [], modelIds: ["claude-opus-5-5"] }, [], usage, noFamily),
+    ).toBeUndefined();
+  });
+
+  it("unknown stays unknown without a workload or stack", () => {
+    expect(
+      marketRelation({ planIds: [], modelIds: ["gpt-6-1-sol"] }, [], undefined, familyIndex),
+    ).toBeUndefined();
+  });
+});
+
 describe("personal snapshot", () => {
   const record: Pick<ImportRecord, "id" | "label" | "summary"> = {
     id: "local-1",
     label: "September history",
     summary: workload,
   };
+
+  it("names the recording tools instead of a generated import label", () => {
+    expect(
+      personalSnapshot({ ...record, label: "Selected workload (1168 files)" }, [], index).label,
+    ).toBe("Claude Code + Codex history");
+    expect(personalSnapshot({ ...record, label: "Selected workload" }, [], index).label).toBe(
+      "Claude Code + Codex history",
+    );
+    // A label the user chose is kept, even one that mentions files.
+    expect(personalSnapshot(record, [], index).label).toBe("September history");
+    expect(personalSnapshot({ ...record, label: "Laptop (3 files)" }, [], index).label).toBe(
+      "Laptop (3 files)",
+    );
+  });
 
   it("summarizes stored facts without opening the payload", () => {
     const snapshot = personalSnapshot(record, [], index);

@@ -1,0 +1,759 @@
+{
+  "schemaVersion": 1,
+  "asOf": "2026-09-30",
+  "events": [
+    {
+      "id": "gemini-4-argon-announced",
+      "type": "model_announcement",
+      "importance": "major",
+      "occurredAt": "2026-09-30",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "google",
+      "modelIds": ["gemini-4-argon"],
+      "planIds": [],
+      "title": "Gemini 4 Argon announced",
+      "summary": "Google's new frontier model is rolling out first to trusted cyber defenders. Paid API customers and Google AI Ultra subscribers come next; no API date is published yet.",
+      "status": "announced",
+      "sources": [
+        {
+          "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon",
+          "title": "Gemini 4 Argon: our next era of frontier intelligence",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Today, we're announcing our new frontier model, Gemini 4 Argon, which is rolling out to a set of trusted cyber defenders through our Fairwind Program."
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["google-deepmind-argon-2026-09-30"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "google-argon-launch-results",
+      "type": "benchmark_update",
+      "importance": "minor",
+      "occurredAt": "2026-09-30",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "google",
+      "modelIds": ["gemini-4-argon", "gpt-6-astra", "claude-fable-5-1", "claude-opus-5-5"],
+      "planIds": [],
+      "title": "Google publishes Gemini 4 Argon results on 17 benchmarks",
+      "summary": "Google's launch table compares Gemini 4 Argon with GPT-6 Astra, Claude Fable 5.1 and Claude Opus 5.5 across coding, knowledge work, science, long context, multimodal and security benchmarks.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://deepmind.google/models/gemini/",
+          "title": "Gemini 4 Argon (Google DeepMind)",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Benchmark Notes Gemini 4 Argon GPT-6 Astra Claude Fable 5.1 Claude Opus 5.5 Vals Index Knowledge work 68.9% 63.1% 65.8% 67.0%"
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["google-deepmind-argon-2026-09-30"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "claude-sonnet-4-5-deprecated",
+      "type": "model_retirement",
+      "importance": "minor",
+      "occurredAt": "2026-09-30",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": ["claude-sonnet-4-5"],
+      "planIds": [],
+      "title": "Claude Sonnet 4.5 deprecated",
+      "summary": "Anthropic notified API developers that Claude Sonnet 4.5 retires on November 30, 2026, with Claude Sonnet 5.5 as the recommended replacement.",
+      "status": "scheduled",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Model deprecations - Claude Platform Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "2026-09-30: Claude Sonnet 4.5 model On September 30, 2026, Anthropic notified developers using Claude Sonnet 4.5 of its upcoming retirement on the Claude API. Retirement date November 30, 2026 claude-sonnet-4-5-20250929 claude-sonnet-5-5"
+        }
+      ],
+      "effectiveAt": "2026-11-30"
+    },
+    {
+      "id": "gpt-6-1-sol-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-29",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": ["gpt-6-1-sol"],
+      "planIds": [],
+      "title": "GPT-6.1 Sol released",
+      "summary": "OpenAI's new Sol model for complex coding and professional work, at a lower cost than GPT-6 Astra. Available in the API and in ChatGPT Work and Codex on paid plans.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/changelog",
+          "title": "Changelog | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sep 29 Feature gpt-6.1-sol v1/responses v1/chat/completions Released GPT-6.1 Sol ( gpt-6.1-sol ) for complex coding and professional work at a lower cost than GPT-6 Astra."
+        },
+        {
+          "url": "https://openai.com/index/introducing-gpt-6-1-sol/",
+          "title": "Introducing GPT-6.1 Sol",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Its standard API prices are $2 per million input tokens, $0.10 per million cached input tokens, and $10 per million output tokens."
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+          "title": "GPT-6.1 Sol Model | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "1,050,000 context window 128,000 max output tokens"
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["openai-sol-2026-09-29-max"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "chatgpt-pro-500-launched",
+      "type": "plan_launch",
+      "importance": "major",
+      "occurredAt": "2026-09-29",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": [],
+      "planIds": ["openai-chatgpt-pro-500"],
+      "title": "ChatGPT Pro 500 launched at $500 a month",
+      "summary": "A third Pro tier with the highest included usage of the Pro plans and Astra Ultrafast in ChatGPT Work and Codex. Pro 100 and Pro 200 remain.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+          "title": "ChatGPT - Release Notes",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "We're introducing Pro 500, a new $500/month plan with the highest included usage of the Pro plans and access to Astra Ultrafast in ChatGPT Work and Codex."
+        },
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "ChatGPT Pro now offers Pro 500, a new $500/month plan that includes Astra Ultrafast. Pro 200 is also available for new subscriptions again. New subscriptions that aren't eligible for grandfathering include a lower usage allowance."
+        }
+      ]
+    },
+    {
+      "id": "chatgpt-pro-200-reopened-lower-allowance",
+      "type": "plan_limit_change",
+      "importance": "notable",
+      "occurredAt": "2026-09-29",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": [],
+      "planIds": ["openai-chatgpt-pro-20x"],
+      "title": "ChatGPT Pro 200 reopens with a lower usage allowance",
+      "summary": "New subscribers can join Pro 200 again at $200 a month, with less included usage than before. Subscribers eligible for grandfathering keep the previous allowance through October 29.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Yes. New Pro 200 subscriptions are available from the pricing page. New subscriptions that aren't eligible for grandfathering include a lower usage allowance than previously offered with Pro 200 to reflect our increasingly efficient models. The monthly price remains $200."
+        },
+        {
+          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+          "title": "ChatGPT - Release Notes",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Pro 200 subscriptions: Pro 200 is available for new subscriptions again at $200/month. Included usage allowances are changing."
+        }
+      ]
+    },
+    {
+      "id": "gpt-6-astra-ultrafast",
+      "type": "api_availability",
+      "importance": "notable",
+      "occurredAt": "2026-09-29",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": ["gpt-6-astra"],
+      "planIds": ["openai-chatgpt-pro-500"],
+      "title": "GPT-6 Astra Ultrafast added to the API",
+      "summary": "A faster service tier for GPT-6 Astra: up to 6x faster generation in the API and up to 8x in Codex. In ChatGPT it is limited to Pro 500 and Enterprise.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/changelog",
+          "title": "Changelog | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sep 29 Feature gpt-6-astra v1/responses Added Ultrafast mode for GPT-6 Astra in the Responses API."
+        },
+        {
+          "url": "https://openai.com/index/devday-2026-recap/",
+          "title": "DevDay 2026 Recap",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Ultrafast offers up to 8x faster token generation (300 tokens per second) in Codex and up to 6x in the API."
+        }
+      ]
+    },
+    {
+      "id": "claude-sonnet-5-5-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-28",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": ["claude-sonnet-5-5"],
+      "planIds": [],
+      "title": "Claude Sonnet 5.5 released",
+      "summary": "Anthropic's new mid-tier model, priced the same as Sonnet 5 and available on the Claude API, Amazon Bedrock, Google Cloud and Microsoft Foundry.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/claude-sonnet-5-5",
+          "title": "Introducing Claude Sonnet 5.5",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sonnet 5.5 is priced the same as Sonnet 5 at $2 per million input tokens, $10 per million output tokens, and $0.20 per million tokens for cache reads, but it typically needs far fewer tokens to do the same work."
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+          "title": "Model deprecations - Claude Platform Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "claude-sonnet-5-5 Active N/A Not sooner than September 28, 2027"
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["anthropic-sonnet-2026-09-28"],
+        "headlineBenchmarkId": "terminal-bench-4-0"
+      }
+    },
+    {
+      "id": "anthropic-sonnet-5-5-results",
+      "type": "benchmark_update",
+      "importance": "minor",
+      "occurredAt": "2026-09-28",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": ["claude-sonnet-5-5"],
+      "planIds": [],
+      "title": "Anthropic publishes Claude Sonnet 5.5 launch results",
+      "summary": "Anthropic's launch results for Sonnet 5.5 include Terminal-Bench 4.0, where it reports 70.6% against Sonnet 5's 10.3%.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/claude-sonnet-5-5",
+          "title": "Introducing Claude Sonnet 5.5",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sonnet 5.5 scores 70.6% on Terminal-Bench 4.0, an agentic coding evaluation, compared to Sonnet 5’s 10.3%."
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["anthropic-sonnet-2026-09-28"],
+        "headlineBenchmarkId": "terminal-bench-4-0"
+      }
+    },
+    {
+      "id": "claude-opus-5-5-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-22",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": ["claude-opus-5-5"],
+      "planIds": [],
+      "title": "Claude Opus 5.5 released",
+      "summary": "Anthropic's new flagship. Input and output cost 20% less than Opus 5, and cache reads, most of the cost of agentic coding, 60% less.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/claude-opus-5-5",
+          "title": "Introducing Claude Opus 5.5",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Input and output tokens are $4 and $20 per million, 20% less than Opus 5. Cache reads (which make up the majority of agentic and coding work costs) are $0.20 per million tokens, 60% less than Opus 5."
+        },
+        {
+          "url": "https://platform.claude.com/docs/en/release-notes/api",
+          "title": "Claude API Release Notes",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 22, 2026 ... On Claude Opus 5.5, thinking can't be disabled: thinking: {\"type\": \"disabled\"} and thinking: {\"type\": \"enabled\", ...} return a 400 error."
+        }
+      ]
+    },
+    {
+      "id": "claude-five-hour-limits-raised",
+      "type": "plan_limit_change",
+      "importance": "notable",
+      "occurredAt": "2026-09-22",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": [],
+      "planIds": ["anthropic-claude-pro", "anthropic-claude-max-5x", "anthropic-claude-max-20x"],
+      "title": "Claude raises five-hour usage limits on paid plans",
+      "summary": "Alongside Opus 5.5, Anthropic increased five-hour usage limits on Pro, Max, Team and seat-based Enterprise plans, and gave subscribers a rate-limit reset they can save and use later.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://www.anthropic.com/claude-opus-5-5",
+          "title": "Introducing Claude Opus 5.5",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "In addition to the price drop, we're increasing five-hour usage limits on Pro, Max, Team, and seat-based Enterprise plans. We're also providing subscription users a rate limit reset, which you can now save and use whenever you choose."
+        }
+      ]
+    },
+    {
+      "id": "gpt-6-sol-luna-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-22",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": ["gpt-6-sol", "gpt-6-luna"],
+      "planIds": [],
+      "title": "GPT-6 Sol and GPT-6 Luna released",
+      "summary": "OpenAI's new Sol and Luna models, with API prices 50% below GPT-5.6 Sol and Luna's promotional pricing.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/changelog",
+          "title": "Changelog | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sep 22 Feature gpt-6-sol gpt-6-luna v1/responses v1/chat/completions Released GPT-6 Sol ( gpt-6-sol ) and GPT-6 Luna ( gpt-6-luna )."
+        },
+        {
+          "url": "https://openai.com/index/introducing-gpt-6-sol-and-luna/",
+          "title": "Introducing GPT-6 Sol and Luna",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "GPT-5.6 Sol to GPT-6 Sol $4 to $2 / $20 to $10 50% cheaper. GPT-5.6 Luna to GPT-6 Luna $0.20 to $0.10 / $1.20 to $0.50 50% cheaper. Prices are per 1 million tokens."
+        }
+      ]
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-released",
+      "type": "model_release",
+      "importance": "minor",
+      "occurredAt": "2026-09-22",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "xiaomi",
+      "modelIds": ["mimo-v2-6-pro", "mimo-v2-6-flash"],
+      "planIds": [],
+      "title": "Xiaomi MiMo-V2.6 Pro and Flash released with open weights",
+      "summary": "Xiaomi released and open-sourced the MiMo-V2.6 series, two multimodal models at the same API pricing as V2.5.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://mimo.mi.com/docs/en-US/news/latest/v2-6",
+          "title": "MiMo-V2.6: Scaling Up Reinforcement Learning for Self-Improvement | Xiaomi MiMo",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Today, we are officially releasing and open-sourcing the Xiaomi MiMo-V2.6 series. ... The MiMo-V2.6 series adopts the same API pricing as the V2.5 series."
+        },
+        {
+          "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+          "title": "MiMo-V2.6-Flash | Xiaomi MiMo",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Input (cache miss) $0.14 USD / Million tokens ... Output $0.28 USD / Million tokens ... Context Window 1M tokens"
+        }
+      ]
+    },
+    {
+      "id": "grok-4-7-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-21",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "x-ai",
+      "modelIds": ["grok-4-7"],
+      "planIds": [],
+      "title": "Grok 4.7 released",
+      "summary": "xAI's new frontier model for coding, agentic tasks and knowledge work, now on the xAI API with a 500K context window.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://docs.x.ai/developers/release-notes",
+          "title": "Release Notes | xAI Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 21 Grok 4.7 Grok 4.7, SpaceXAI's frontier model for coding, agentic tasks, and knowledge work, is now available on the xAI API as grok-4.7 . It has a 500k context window, text and image inputs with text-only output, and no text output limit. Pricing is $2 / $0.50 / $6 per 1M tokens"
+        },
+        {
+          "url": "https://x.ai/news/grok-4-7",
+          "title": "Introducing Grok 4.7",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sep 21, 2026 ... The model is priced starting at $2 per million input tokens and $6 per million output tokens. We also serve a fast variant with twice the output speed at twice the price."
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["spacexai-grok-2026-09-21"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "xai-grok-4-7-results",
+      "type": "benchmark_update",
+      "importance": "minor",
+      "occurredAt": "2026-09-21",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "x-ai",
+      "modelIds": ["grok-4-7"],
+      "planIds": [],
+      "title": "xAI publishes Grok 4.7 launch results",
+      "summary": "xAI's launch table reports Grok 4.7 on CursorBench 4.0, DeepSWE v1.1, EEBench, Terminal-Bench 4.0 and HealthBench Professional, among others.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://x.ai/news/grok-4-7",
+          "title": "Introducing Grok 4.7",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Token prices and benchmark scores for Grok 4.7, Grok 4.6, GPT-5.6 Sol, and Fable 5.1."
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["spacexai-grok-2026-09-21"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "qwen-3-8-omni-flash-released",
+      "type": "model_release",
+      "importance": "notable",
+      "occurredAt": "2026-09-18",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "alibaba",
+      "modelIds": ["qwen-3-8-omni-flash"],
+      "planIds": [],
+      "title": "Qwen3.8-Omni-Flash released",
+      "summary": "Qwen's next native omni-modal model takes text, image, audio and video input with up to 1M tokens of context, on Alibaba Cloud Model Studio.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://docs.qwencloud.com/changelog",
+          "title": "Changelog | QwenCloud Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 18, 2026 ... qwen3.8-omni-flash Qwen's next-generation native omni-modal model supports context lengths of up to 1M tokens and natively accepts text, image, audio, and video inputs."
+        }
+      ]
+    },
+    {
+      "id": "chatgpt-pro-200-paused",
+      "type": "plan_availability_change",
+      "importance": "notable",
+      "occurredAt": "2026-09-10",
+      "dateBasis": "provider_stated_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": [],
+      "planIds": ["openai-chatgpt-pro-20x"],
+      "title": "ChatGPT Pro 200 pauses new sign-ups",
+      "summary": "OpenAI paused new sign-ups and upgrades to the $200 Pro plan. Existing Pro 200 and Pro 100 subscriptions were not affected.",
+      "status": "paused",
+      "sources": [
+        {
+          "url": "https://web.archive.org/web/20260919102801/https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+          "title": "About ChatGPT Pro tiers (OpenAI Help Center), archived Sep 19, 2026",
+          "authority": "first_party",
+          "checkedAt": "2026-09-29",
+          "excerpt": "As of September 10, 2026, we're temporarily pausing new sign-ups and upgrades to the ChatGPT Pro $200 plan (Pro 20X)."
+        }
+      ]
+    },
+    {
+      "id": "deepseek-v4-1-flash-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-10",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "deepseek",
+      "modelIds": ["deepseek-v4-1-flash"],
+      "planIds": [],
+      "title": "DeepSeek-V4.1-Flash released",
+      "summary": "DeepSeek's first model in a new architecture family, with native visual understanding, a 1M-token context and open weights.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/updates/",
+          "title": "Change Log | DeepSeek API Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Date: 2026-09-10 DeepSeek-V4.1-Flash Release Today, we officially release the DeepSeek-V4.1-Flash model. It is the smallest model in our new architecture family, with native multimodal visual understanding."
+        },
+        {
+          "url": "https://www.deepseek.com/en/news/deepseek-v4-1-flash/",
+          "title": "Introducing DeepSeek-V4.1-Flash",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "552B-parameter MoE. New Causal Encoder-Decoder architecture: just 8B active parameters for input, 16B for output."
+        }
+      ],
+      "benchmark": {
+        "sourceSetIds": ["deepseek-flash-2026-09-10"],
+        "headlineBenchmarkId": "deep-swe-v1-1"
+      }
+    },
+    {
+      "id": "deepseek-api-prices-cut",
+      "type": "api_price_change",
+      "importance": "notable",
+      "occurredAt": "2026-09-10",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "deepseek",
+      "modelIds": ["deepseek-v4-1-flash"],
+      "planIds": [],
+      "title": "DeepSeek lowers API prices with V4.1-Flash",
+      "summary": "DeepSeek cut its API prices with the V4.1-Flash release, effective 04:00 UTC on September 10. Off-peak rates stay at half the peak rate.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://www.deepseek.com/en/news/deepseek-v4-1-flash/",
+          "title": "Introducing DeepSeek-V4.1-Flash",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "More efficient architecture. Lower API prices. ... New pricing takes effect at 04:00 UTC on Sept 10, 2026."
+        },
+        {
+          "url": "https://api-docs.deepseek.com/updates/",
+          "title": "Change Log | DeepSeek API Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "API pricing adjustment With the release of DeepSeek-V4.1-Flash, API prices have been reduced accordingly."
+        },
+        {
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "title": "Models & Pricing | DeepSeek API Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "PRICING (2) 1M INPUT TOKENS (CACHE MISS) OFF-PEAK $0.15 ... PEAK $0.3 ... 1M OUTPUT TOKENS OFF-PEAK $0.6 ... PEAK $1.2"
+        }
+      ]
+    },
+    {
+      "id": "deepseek-v4-flash-retired",
+      "type": "model_retirement",
+      "importance": "minor",
+      "occurredAt": "2026-09-10",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "deepseek",
+      "modelIds": ["deepseek-v4-flash", "deepseek-v4-flash-vision-exp"],
+      "planIds": [],
+      "title": "DeepSeek V4 Flash and V4 Flash Vision Exp retired",
+      "summary": "Both previous-generation models were retired. Their model names temporarily route to V4.1-Flash.",
+      "status": "retired",
+      "sources": [
+        {
+          "url": "https://api-docs.deepseek.com/updates/",
+          "title": "Change Log | DeepSeek API Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "The previous-generation models V4 Flash and V4 Flash Vision Exp have been retired; for compatibility, the model names deepseek-v4-flash and deepseek-v4-flash-vision-exp are temporarily routed to V4.1 Flash."
+        }
+      ]
+    },
+    {
+      "id": "gpt-6-astra-released",
+      "type": "model_release",
+      "importance": "major",
+      "occurredAt": "2026-09-03",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "openai",
+      "modelIds": ["gpt-6-astra"],
+      "planIds": [],
+      "title": "GPT-6 Astra released",
+      "summary": "OpenAI's most capable model, built for the hardest end-to-end work, released in the API. The ChatGPT rollout began with a limited set of organizations.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://developers.openai.com/api/docs/changelog",
+          "title": "Changelog | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Sep 3 Feature gpt-6-astra v1/responses v1/chat/completions Released GPT-6 Astra , our most capable model, built for the hardest end-to-end work."
+        },
+        {
+          "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+          "title": "ChatGPT - Release Notes",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Today we're introducing GPT-6 Astra, with improvements in coding, research, computer use, and complex, multi-step work."
+        },
+        {
+          "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+          "title": "GPT-6 Astra Model | OpenAI API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Input $10.00 Cached input $1.00 Cache writes $12.50 Output $50.00"
+        }
+      ]
+    },
+    {
+      "id": "qwen-3-8-max-0902-snapshot",
+      "type": "model_release",
+      "importance": "minor",
+      "occurredAt": "2026-09-02",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "alibaba",
+      "modelIds": ["qwen-3-8-max-0902"],
+      "planIds": [],
+      "title": "Qwen3.8-Max 0902 snapshot released",
+      "summary": "An upgraded Qwen3.8-Max snapshot. The qwen3.8-max endpoint moved to it on September 5 with pricing unchanged.",
+      "status": "effective",
+      "sources": [
+        {
+          "url": "https://docs.qwencloud.com/changelog",
+          "title": "Changelog | QwenCloud Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 2, 2026 qwen3.8-max-0902 ... is an upgraded snapshot of qwen3.8-max."
+        },
+        {
+          "url": "https://docs.qwencloud.com/changelog/model-updates/qwen3.8-max-upgrade",
+          "title": "Qwen3.8-Max Update Notice - QwenCloud",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Effective September 5, 2026 (UTC+8), QwenCloud will upgrade the qwen3.8-max model. After the upgrade, the qwen3.8-max endpoint will automatically transition to the snapshot version qwen3.8-max-0902, with billing items and pricing remaining unchanged."
+        }
+      ],
+      "effectiveAt": "2026-09-05"
+    },
+    {
+      "id": "gemini-3-8-flash-released",
+      "type": "model_release",
+      "importance": "notable",
+      "occurredAt": "2026-09-02",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "google",
+      "modelIds": ["gemini-3-8-flash"],
+      "planIds": [],
+      "title": "Gemini 3.8 Flash generally available",
+      "summary": "Google's most capable Flash model, aimed at long-horizon coding, agents and enterprise workflows, at the same introductory price as 3.7 Flash through December 31.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://ai.google.dev/gemini-api/docs/changelog?hl=en",
+          "title": "Release notes | Gemini API",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 2, 2026 Gemini 3.8 Flash generally available (GA) : Released gemini-3.8-flash , our most intelligent Flash model, engineered for long-horizon software engineering, autonomous agents, and complex enterprise workflows."
+        },
+        {
+          "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/3-8-flash-and-3-8-flash-cyber/",
+          "title": "Introducing Gemini 3.8 Flash and 3.8 Flash Cyber",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "It is available at the same introductory price as 3.7 Flash at $0.75 per million input tokens and $3.75 per million output tokens. ... Introductory price expires on December 31, 2026. Starting January 1, 2027, $1.50/1M input tokens and $7.50/1M output tokens will apply."
+        }
+      ]
+    },
+    {
+      "id": "muse-spark-1-3-released",
+      "type": "model_release",
+      "importance": "notable",
+      "occurredAt": "2026-09-02",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "meta",
+      "modelIds": ["muse-spark-1-3"],
+      "planIds": [],
+      "title": "Meta Muse Spark 1.3 released",
+      "summary": "Meta's updated Muse Spark model, available with max reasoning in Muse Code and the Meta Model API.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://research.meta.ai/blog/introducing-muse-spark-1-3",
+          "title": "Introducing Muse Spark 1.3 | Meta AI Research",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "September 2, 2026 - 3 minute read ... Muse Spark 1.3 with max reasoning is now available on Muse Code and Meta Model API. Get started at dev.meta.ai ."
+        }
+      ]
+    },
+    {
+      "id": "claude-fable-5-1-released",
+      "type": "model_release",
+      "importance": "notable",
+      "occurredAt": "2026-09-01",
+      "dateBasis": "provider_publication_date",
+      "discoveredAt": "2026-09-30",
+      "verifiedAt": "2026-09-30",
+      "providerId": "anthropic",
+      "modelIds": ["claude-fable-5-1"],
+      "planIds": [],
+      "title": "Claude Fable 5.1 released",
+      "summary": "A new Claude Fable release with a 1M-token context window and 128K maximum output.",
+      "status": "available",
+      "sources": [
+        {
+          "url": "https://platform.claude.com/docs/en/models/fable-5-1/overview",
+          "title": "Claude Fable 5.1 - Claude Platform Docs",
+          "authority": "first_party",
+          "checkedAt": "2026-09-30",
+          "excerpt": "Claude Fable 5.1 This model 1M 128K $10 / $50 Slower Adaptive (always on) high Jun 2026 ... Released September 1, 2026 Retirement Not sooner than September 1, 2027"
+        }
+      ]
+    }
+  ]
+}

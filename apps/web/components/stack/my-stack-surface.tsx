@@ -31,13 +31,14 @@ import {
   readDiscoveryPreferences,
   writeDiscoveryPreferences,
 } from "@/lib/stack-discovery-storage";
+import { investigations, stackCoverage } from "@/lib/stack-investigations";
 import { useReview } from "@/lib/use-review";
 import { useStackWorkload } from "@/lib/use-stack-workload";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { FamilyPlanChoices, NON_PLAN_CHOICES } from "./family-plan-choices";
-import { StackOpportunities } from "./stack-opportunities";
+import { StackInvestigations } from "./stack-investigations";
 import { StackPeriodLine, StackPeriodPanel } from "./stack-period";
 import { ScenarioEditor, ScenarioOutcome } from "./stack-scenario";
 import { StackSummary, WorkloadMissing } from "./stack-summary";
@@ -182,6 +183,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
   );
   const currentStack = stack ?? [];
   const currentPlans = currentStack.filter((key) => key.startsWith("plan:"));
+  const coverage = useMemo(() => stackCoverage(analysis, workload), [analysis, workload]);
+  const findings = useMemo(
+    () => investigations({ analysis, workload, currentStack: stack ?? [] }),
+    [analysis, workload, stack],
+  );
   const proposal = proposed ?? currentStack;
   const scenario = useMemo(
     () => analyzeScenario({ current: currentStack, proposed: proposal, workload }),
@@ -337,13 +343,6 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
       scenarioHeading.current?.scrollIntoView({ block: "start", behavior: "smooth" });
       scenarioHeading.current?.focus({ preventScroll: true });
     });
-  };
-  const inspect = (anchor: string) => {
-    const node = document.getElementById(anchor);
-    const details = node?.querySelector("details");
-    if (details) details.open = true;
-    node?.scrollIntoView({ block: "start", behavior: "smooth" });
-    node?.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true });
   };
   const applyProposal = () => {
     if (!canEdit || !proposed) return;
@@ -600,6 +599,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
         <StackSummary
           analysis={analysis}
           workload={workload}
+          coverage={coverage}
           workloadState={workloadState}
           onSetup={openSetup}
           period={
@@ -629,18 +629,23 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
       )}
 
       {!empty && stack !== undefined ? (
-        <section className="stack-section" aria-labelledby="stack-opportunities-heading">
+        <section
+          className="stack-section"
+          aria-labelledby="stack-investigate-heading"
+          data-testid="stack-investigate"
+        >
           <div className="stack-section-header">
             <div>
-              <p className="stack-eyebrow">01 / Opportunities</p>
-              <h2 id="stack-opportunities-heading">What this workload says about your stack</h2>
+              <p className="stack-eyebrow">01 / What to investigate</p>
+              <h2 id="stack-investigate-heading">What should you look at changing?</h2>
             </div>
             {workload ? (
               <p className="stack-caption">
-                {analysis.opportunities.length === 0
+                {findings.length === 0
                   ? "Nothing to act on"
-                  : `${analysis.opportunities.length} ${analysis.opportunities.length === 1 ? "finding" : "findings"}`}{" "}
-                from {workload.overall.calls.toLocaleString("en-US")} recorded calls
+                  : `${findings.length} ${findings.length === 1 ? "finding" : "findings"}`}{" "}
+                from {workload.overall.calls.toLocaleString("en-US")}{" "}
+                {workload.overall.distinctResponses ? "recorded responses" : "recorded calls"}
               </p>
             ) : null}
           </div>
@@ -652,12 +657,8 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
             <p className="stack-section-description" role="status">
               Reading this workload against your stack…
             </p>
-          ) : !workload ? null : analysis.opportunities.length > 0 ? (
-            <StackOpportunities
-              opportunities={analysis.opportunities}
-              onTest={testChange}
-              onInspect={inspect}
-            />
+          ) : !workload ? null : findings.length > 0 ? (
+            <StackInvestigations items={findings} onTest={testChange} />
           ) : (
             <p className="stack-section-description" data-testid="stack-no-opportunities">
               {workload.overall.calls === 0
@@ -682,7 +683,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               <span>Price</span>
               <span>Recorded calls</span>
               <span>API-equivalent</span>
-              <span>Leverage</span>
+              <span>Limit events</span>
             </div>
             {plansWithReports.map((report) => {
               const target = model.targets.find((entry) => entry.key === report.key);

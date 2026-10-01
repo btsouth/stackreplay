@@ -22,10 +22,22 @@ export function homeCatalogIndex(catalog: PublicCatalog): HomeCatalogIndex {
       ]),
     ),
     plans: Object.fromEntries(
-      catalog.plans.map((plan) => [
-        plan.id,
-        { name: planDisplayName(plan), providerName: plan.providerName, price: plan.price },
-      ]),
+      catalog.plans.map((plan) => {
+        const family = DISCOVERY_FAMILIES.find(
+          (entry) =>
+            (entry.planIds as readonly string[]).includes(plan.id) ||
+            (entry.otherPlanIds as readonly string[]).includes(plan.id),
+        )?.groupId;
+        return [
+          plan.id,
+          {
+            name: planDisplayName(plan),
+            providerName: plan.providerName,
+            price: plan.price,
+            ...(family === undefined ? {} : { family }),
+          },
+        ];
+      }),
     ),
     apiProviders: Object.fromEntries(
       bundledPublicApiProviders(catalog.asOf).map((provider) => [provider.id, provider.name]),

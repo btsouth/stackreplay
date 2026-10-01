@@ -211,7 +211,7 @@ export function buildCompareFacts(
     if (published)
       usageLines.push({
         text: published.statement,
-        detail: "Published terms; exact replay capacity not established",
+        detail: "Published terms; exact capacity not established",
       });
   }
 

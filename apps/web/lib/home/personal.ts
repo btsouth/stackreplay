@@ -27,6 +27,8 @@ export interface HomeCatalogIndex {
         name: string;
         providerName: string;
         price: { amount: string; currency: string; interval: string };
+        /** Reviewed subscription family (stack discovery), never a name match. */
+        family?: string | undefined;
       }
     >
   >;
@@ -174,7 +176,10 @@ export function personalSnapshot(
       : undefined;
   return {
     importId: record.id,
-    label: record.label,
+    label: displayLabel(
+      record.label,
+      usageTools.filter((source) => source.events > 0).map((source) => source.name),
+    ),
     firstEventAt: summary.firstEventAt,
     lastEventAt: summary.lastEventAt,
     calls: summary.eventCount,
@@ -201,6 +206,20 @@ export function personalSnapshot(
   };
 }
 
+/**
+ * The import worker names a multi-file selection "Selected workload (N files)"
+ * and an unnamed one "Selected workload". Those say nothing about the work, so
+ * the snapshot names the recording tools instead. A label the user chose stays.
+ */
+export function isGeneratedLabel(label: string): boolean {
+  return /^Selected workload(?: \(\d[\d,]* files?\))?$/u.test(label.trim());
+}
+
+function displayLabel(label: string, tools: readonly string[]): string {
+  if (!isGeneratedLabel(label) || tools.length === 0) return label;
+  return `${tools.join(" + ")} history`;
+}
+
 /** Decimal dollar strings summed in integer cents, so "19.99" + "20" is exactly "39.99". */
 export function addCents(amounts: readonly string[]): string {
   let cents = 0n;
@@ -222,6 +241,94 @@ export function personalRelevance(
   if (item.planIds.some((id) => stack.includes(`plan:${id}`))) return "stack";
   if (usage !== undefined && item.modelIds.some((id) => (usage.byModel.get(id) ?? 0) > 0))
     return "workload";
+  return undefined;
+}
+
+export type MarketRelationKind = "stack" | "used" | "related";
+
+export interface MarketRelation {
+  kind: MarketRelationKind;
+  /** "In your stack", "Used by you", "Relevant to you". */
+  label: string;
+  /** The established relation, in words ("12,402 recorded calls"). */
+  detail: string;
+}
+
+export const MARKET_RELATION_LABELS: Record<MarketRelationKind, string> = {
+  stack: "In your stack",
+  used: "Used by you",
+  related: "Relevant to you",
+};
+
+const callCount = (calls: number) => `${calls.toLocaleString("en-US")} recorded calls`;
+
+/**
+ * How a market event relates to this visitor, by canonical identity only:
+ *
+ * - stack: a plan the event names is in the Current Stack;
+ * - used: a model the event names has recorded calls under its exact id;
+ * - related: a model the event names shares the catalog `familyId` of a used
+ *   model, or a plan it names is in the same reviewed subscription family as
+ *   a plan in the stack.
+ *
+ * A raw, unresolved model name is never compared with anything, so a lookalike
+ * name relates to nothing. Unknown stays unknown: no relation is returned.
+ */
+export function marketRelation(
+  item: { planIds: readonly string[]; modelIds: readonly string[] },
+  stack: readonly TargetKey[],
+  usage: CanonicalUsage | undefined,
+  index: HomeCatalogIndex,
+): MarketRelation | undefined {
+  const stackPlans = stack.filter((key) => key.startsWith("plan:")).map((key) => key.slice(5));
+  const inStack = item.planIds.find((id) => stackPlans.includes(id));
+  if (inStack !== undefined)
+    return {
+      kind: "stack",
+      label: MARKET_RELATION_LABELS.stack,
+      detail: `${index.plans[inStack]?.name ?? "This plan"} is in your stack`,
+    };
+  if (usage !== undefined) {
+    const used = item.modelIds
+      .map((id) => ({ id, calls: usage.byModel.get(id) ?? 0 }))
+      .filter((entry) => entry.calls > 0)
+      .sort((a, b) => b.calls - a.calls)[0];
+    if (used !== undefined)
+      return {
+        kind: "used",
+        label: MARKET_RELATION_LABELS.used,
+        detail: `${callCount(used.calls)} on ${index.models[used.id]?.name ?? "this model"}`,
+      };
+    for (const id of item.modelIds) {
+      const family = index.models[id]?.familyId;
+      if (family === undefined) continue;
+      const sibling = [...usage.byModel]
+        .filter(
+          ([other, calls]) =>
+            calls > 0 &&
+            other !== id &&
+            (other === family || index.models[other]?.familyId === family),
+        )
+        .sort((a, b) => b[1] - a[1])[0];
+      if (sibling !== undefined)
+        return {
+          kind: "related",
+          label: MARKET_RELATION_LABELS.related,
+          detail: `You used ${index.models[sibling[0]]?.name ?? "another release"} (${callCount(sibling[1])})`,
+        };
+    }
+  }
+  for (const id of item.planIds) {
+    const family = index.plans[id]?.family;
+    if (family === undefined) continue;
+    const sibling = stackPlans.find((planId) => index.plans[planId]?.family === family);
+    if (sibling !== undefined)
+      return {
+        kind: "related",
+        label: MARKET_RELATION_LABELS.related,
+        detail: `Same plan family as ${index.plans[sibling]?.name ?? "a plan"} in your stack`,
+      };
+  }
   return undefined;
 }
 
