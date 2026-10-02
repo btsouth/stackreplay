@@ -19,6 +19,7 @@ export async function requestText(
       headers: {
         "User-Agent": USER_AGENT,
         Accept: "text/html, text/plain, application/json;q=0.9",
+        "Accept-Language": "en-US,en;q=0.9",
       },
     });
     const meta = {

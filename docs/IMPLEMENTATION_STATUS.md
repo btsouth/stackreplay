@@ -29,12 +29,13 @@ Verification date: October 1, 2026.
 
 ## Remaining work
 
-- **Catalog review:** the [October 1 watcher triage](catalog-watcher-triage.md)
-  records all 63 initial issues. Twenty-nine page-noise episodes were closed;
-  34 remain for catalog review, source verification, broken source references
-  or coverage research. Review Command Code's temporary allowances first, then
-  Sonnet 4.5's API deprecation and the large Google source changes. Detection
-  timestamps never establish effective dates or accepted facts.
+- **Catalog review:** the [October 2 watcher triage](catalog-watcher-triage.md)
+  consolidated the initial 63 issues into a six-item queue: five durable review
+  tracks for Google model/pricing/subscription pages, Kiro workflow credits and
+  rolling model coverage, plus one Command Code promotion recheck due October 8.
+  New actionable source changes use one bounded review digest instead of one
+  issue per URL. Detection timestamps never establish effective dates or accepted
+  facts.
 - **Performance:** #104 improved affected synthetic imports, but the latest
   documented 100,000-event replay-engine runs still missed the one-second
   target. The signature optimization has no owner multi-gigabyte speedup claim.

@@ -1,7 +1,10 @@
 import { fingerprint } from "./inventory.mjs";
-import { boundedDiff, markdownText as safe } from "./normalize.mjs";
+import { boundedDiff, classifySourceChange, markdownText as safe } from "./normalize.mjs";
+export const SOURCE_DIGEST_MARKER = "<!-- stackreplay-watcher:source-digest:v1 -->";
+export const NORMALIZER_VERSION = 2;
 export const emptyState = () => ({
   version: 1,
+  normalizerVersion: NORMALIZER_VERSION,
   sources: {},
   coverage: { candidates: {} },
   outbox: [],
@@ -17,6 +20,53 @@ export function validateState(state) {
   return state;
 }
 export const day = (timestamp) => timestamp?.slice(0, 10);
+export function renderSourceDigest(entries, observedAt, eventId) {
+  const changed = entries.filter((entry) => entry.eventType === "change");
+  const health = entries.filter((entry) => entry.eventType !== "change");
+  const summary = [
+    SOURCE_DIGEST_MARKER,
+    `<!-- stackreplay-watcher:event:${eventId} -->`,
+    "",
+    "Catalog watcher source review digest",
+    `Observation: ${safe(observedAt)}`,
+    `${changed.length} source change${changed.length === 1 ? "" : "s"}; ${health.length} health transition${health.length === 1 ? "" : "s"}.`,
+    "This digest groups every actionable source transition from one run. It does not change accepted catalog data.",
+    "",
+    "## Review queue",
+  ];
+  for (const entry of entries)
+    summary.push(
+      `- [${safe(entry.changeClass)}] ${safe(entry.providerId)} \`${safe(new URL(entry.sourceUrl).pathname.slice(0, 120))}\`: ${entry.affected.length} affected record${entry.affected.length === 1 ? "" : "s"}`,
+    );
+  summary.push("", "## Source evidence");
+  const output = [...summary];
+  let budget = 55000 - summary.join("\n").length;
+  let omitted = 0;
+  for (const entry of entries) {
+    const detail = [
+      "",
+      `### ${safe(entry.providerId)} / ${safe(entry.sourceKind)}`,
+      `Classification: ${safe(entry.changeClass)}; event: ${safe(entry.eventType)}`,
+      ...entry.body.split("\n").filter((line) => !line.startsWith("<!-- stackreplay-watcher:")),
+    ].join("\n");
+    if (detail.length > budget) {
+      omitted++;
+      continue;
+    }
+    budget -= detail.length;
+    output.push(detail);
+  }
+  if (omitted)
+    output.push(
+      "",
+      `${omitted} source section${omitted === 1 ? "" : "s"} omitted from this bounded digest; inspect watcher state and source URLs.`,
+    );
+  output.push(
+    "",
+    "Detection only. Observation timestamps are retrieval times, never effective dates.",
+  );
+  return `${output.join("\n")}\n`;
+}
 export function renderSourceIssue(source, previous, current, observation, eventId) {
   const rows = [
     `<!-- stackreplay-watcher:source:${source.id} -->`,
@@ -52,7 +102,13 @@ export function renderSourceIssue(source, previous, current, observation, eventI
   ];
   return `${rows.join("\n")}\n`;
 }
-export function transitionSource(source, previous, observation, now, { rebaseline = false } = {}) {
+export function transitionSource(
+  source,
+  previous,
+  observation,
+  now,
+  { rebaseline = false, normalizationMigration = false } = {},
+) {
   const failed = Boolean(observation.failure);
   const consecutiveFailures = failed ? (previous?.consecutiveFailures ?? 0) + 1 : 0;
   const hash = failed
@@ -95,17 +151,31 @@ export function transitionSource(source, previous, observation, now, { rebaselin
       : { text: observation.text, observedAt: now }),
     healthAlert: previous?.healthAlert ?? false,
   };
-  const changed =
+  const rawChanged =
     !failed &&
     Boolean(previous?.health.fingerprint) &&
     previous.health.fingerprint.sha256 !== hash.sha256;
+  const changed = rawChanged && !normalizationMigration;
+  const classification =
+    changed && previous?.text !== undefined && !failed
+      ? classifySourceChange(previous.text, current.text)
+      : { status: "review", signalLines: [] };
   const importantFailure =
     failed && ([404, 410].includes(observation.httpStatus) || consecutiveFailures >= 3);
   const alert =
     importantFailure && (!previous?.healthAlert || previous.health.failure !== health.failure);
   const recovery = !failed && previous?.healthAlert;
   current.healthAlert = failed ? previous?.healthAlert || importantFailure : false;
-  if (rebaseline || (!changed && !alert && !recovery)) return { current, changed, intent: null };
+  if (rebaseline || (!changed && !alert && !recovery))
+    return {
+      current,
+      changed: false,
+      normalizationBaseline: normalizationMigration && rawChanged,
+      changeClass: normalizationMigration ? "baseline" : classification.status,
+      intent: null,
+    };
+  if (changed && classification.status === "noise")
+    return { current, changed, changeClass: "noise", intent: null };
   const eventId = fingerprint(
     JSON.stringify([
       source.id,
@@ -119,6 +189,7 @@ export function transitionSource(source, previous, observation, now, { rebaselin
   return {
     current,
     changed,
+    changeClass: classification.status,
     intent: {
       kind: "source",
       marker: `<!-- stackreplay-watcher:source:${source.id} -->`,
@@ -126,6 +197,13 @@ export function transitionSource(source, previous, observation, now, { rebaselin
       title: `Catalog watcher: ${source.providerId} ${new URL(source.url).pathname.slice(0, 100)}`,
       body: renderSourceIssue(source, previous, current, observation, eventId),
       allowCreate: !recovery || changed,
+      changeClass: classification.status,
+      eventType: changed ? "change" : alert ? "failure" : "recovery",
+      observedAt: now,
+      sourceUrl: source.url,
+      providerId: source.providerId,
+      sourceKind: source.kind,
+      affected: source.affected,
     },
   };
 }
@@ -256,6 +334,7 @@ export function transitionCoverage(
           title: "Catalog watcher: model coverage candidates",
           body: renderCoverageIssue(current, newly, removed, apiError, now),
           allowCreate: current.length > 0,
+          labels: ["catalog:coverage"],
         }
       : null;
   return {
@@ -269,11 +348,33 @@ export function transitionCoverage(
 
 export function coalesceOutbox(intents) {
   const latestCoverage = intents.findLastIndex((intent) => intent.kind === "coverage");
-  return [
+  const sourceEntries = [
     ...new Map(
       intents
-        .filter((intent, index) => intent.kind !== "coverage" || index === latestCoverage)
-        .map((intent) => [`${intent.kind}:${intent.eventId}`, intent]),
+        .filter((intent) => intent.kind === "source")
+        .map((intent) => [intent.eventId, intent]),
     ).values(),
+  ];
+  const eventId = fingerprint(
+    sourceEntries
+      .map((entry) => entry.eventId)
+      .sort()
+      .join("\n"),
+  );
+  const digest =
+    sourceEntries.length > 0
+      ? {
+          kind: "source-digest",
+          marker: SOURCE_DIGEST_MARKER,
+          eventId,
+          title: "Catalog watcher: source review digest",
+          body: renderSourceDigest(sourceEntries, sourceEntries[0].observedAt, eventId),
+          allowCreate: sourceEntries.some((entry) => entry.allowCreate),
+          labels: ["catalog:review"],
+        }
+      : null;
+  return [
+    ...(digest ? [digest] : []),
+    ...intents.filter((intent, index) => intent.kind === "coverage" && index === latestCoverage),
   ];
 }

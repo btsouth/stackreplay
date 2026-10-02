@@ -2,8 +2,8 @@
 
 The first human queue review covered 63 open GitHub issues: 62 source episodes and
 one rolling model-coverage queue. Twenty-nine episodes were closed as page noise;
-34 remain open. No accepted catalog, price, model alias, plan rule or watcher state
-was changed. W3 catalog drafting remains deferred.
+34 remained open at that checkpoint. No accepted catalog, price, model alias, plan
+rule or watcher state was changed. W3 catalog drafting remains deferred.
 
 ## October 2 source-health follow-up
 
@@ -24,10 +24,56 @@ The two source-health episodes were repaired from their official replacements:
   title and verification date now record the published lifecycle facts. No
   capacity, pricing or current-availability claim was inferred.
 
-Command Code's Kimi K3 boost ([#59-62](https://github.com/btsouth/stackreplay/issues/59))
-still ends October 7, and the provider's free-request wording remains temporary.
-Those reports stay open for the October 8 source recheck instead of being turned
-into an unsupported Replay capacity model.
+Command Code's Kimi K3 boost still ends October 7, and the provider's free-request
+wording remains temporary. The four per-page reports were consolidated into
+[#62](https://github.com/btsouth/stackreplay/issues/62) for the October 8 source
+recheck instead of being turned into an unsupported Replay capacity model.
+
+## October 2 signal-quality consolidation
+
+The per-source episode model was replaced with the bounded source-review digest
+described in [Catalog watcher](catalog-watcher.md). The migration also requests US
+English, extracts `main`/`article` content instead of navigation and footers,
+classifies known counters/navigation as noise and silently rebaselines existing
+fingerprints under `normalizerVersion: 2`.
+
+The backlog was consolidated at the same time:
+
+- 10 Google locale/model-page episodes were closed as superseded by the durable
+  deprecation review [#43](https://github.com/btsouth/stackreplay/issues/43), the
+  pricing review [#55](https://github.com/btsouth/stackreplay/issues/55), and the
+  rolling coverage queue [#27](https://github.com/btsouth/stackreplay/issues/27).
+- [#66](https://github.com/btsouth/stackreplay/issues/66) and
+  [#68](https://github.com/btsouth/stackreplay/issues/68) were closed as duplicate
+  Google subscription episodes; English US review remains in
+  [#67](https://github.com/btsouth/stackreplay/issues/67).
+- [#57](https://github.com/btsouth/stackreplay/issues/57),
+  [#78](https://github.com/btsouth/stackreplay/issues/78) and
+  [#80](https://github.com/btsouth/stackreplay/issues/80) were closed as
+  documentation/navigation changes with no accepted model, price, limit or access
+  correction identified.
+- [#76](https://github.com/btsouth/stackreplay/issues/76) was closed as the FAQ
+  duplicate of the Kiro pricing review
+  [#77](https://github.com/btsouth/stackreplay/issues/77).
+- [#58](https://github.com/btsouth/stackreplay/issues/58) was closed after the
+  apparent Command Code diff resolved to ordering, a preview qualifier and
+  unchanged model rates.
+- [#83](https://github.com/btsouth/stackreplay/issues/83),
+  [#84](https://github.com/btsouth/stackreplay/issues/84),
+  [#85](https://github.com/btsouth/stackreplay/issues/85) and
+  [#86](https://github.com/btsouth/stackreplay/issues/86) were closed after the
+  documented MiniMax change was verified as Token Plan/M Plan terminology with
+  unchanged numeric pricing.
+
+The resulting queue is six issues: five durable review tracks
+([#27](https://github.com/btsouth/stackreplay/issues/27),
+[#43](https://github.com/btsouth/stackreplay/issues/43),
+[#55](https://github.com/btsouth/stackreplay/issues/55),
+[#67](https://github.com/btsouth/stackreplay/issues/67) and
+[#77](https://github.com/btsouth/stackreplay/issues/77)) plus one consolidated
+Command Code recheck ([#62](https://github.com/btsouth/stackreplay/issues/62)) due
+October 8. Existing individual issues are historical; new actionable changes use
+the digest marker and no longer create one issue per URL.
 
 ## Evidence and decision boundary
 
