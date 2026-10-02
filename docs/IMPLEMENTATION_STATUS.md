@@ -1,8 +1,61 @@
 # StackReplay Implementation Status
 
-## Current milestone
+## Current status: 2026-10-01
 
-### Initial scan signature reads (perf/initial-scan)
+StackReplay is live at [stackreplay.com](https://stackreplay.com). This status was
+reconciled against GitHub main `c22e471e`, its hosted checks and the production
+smoke on October 1. The milestone records below describe their original
+checkpoints; their historical test counts and limits are not current release gates.
+
+| Area | Landed work |
+| --- | --- |
+| History intake | [History discovery #4](https://github.com/btsouth/stackreplay/pull/4), [browser OpenCode #29](https://github.com/btsouth/stackreplay/pull/29), [large-history limits #39](https://github.com/btsouth/stackreplay/pull/39) |
+| Market and homepage | [Sourced market feed and My Stack #38](https://github.com/btsouth/stackreplay/pull/38), [homepage composition #41](https://github.com/btsouth/stackreplay/pull/41) |
+| Model coverage | [Coverage policy and release dates #21](https://github.com/btsouth/stackreplay/pull/21) |
+| Benchmarks | [Comparison builder #34](https://github.com/btsouth/stackreplay/pull/34), [verified Sol evidence #37](https://github.com/btsouth/stackreplay/pull/37) |
+| Workload pricing | [Multi-tool route-bound fix #40](https://github.com/btsouth/stackreplay/pull/40), [saved-result reuse and loading #102](https://github.com/btsouth/stackreplay/pull/102) |
+| Accounts and My Stack | [Multiple history accounts and subscription instances #103](https://github.com/btsouth/stackreplay/pull/103), [local Claude profile labels #105](https://github.com/btsouth/stackreplay/pull/105) |
+| Scan performance | [Scope-aware signature reads #104](https://github.com/btsouth/stackreplay/pull/104) |
+| Catalog maintenance | [Detection-only W1/W2 watcher #20](https://github.com/btsouth/stackreplay/pull/20); daily runs succeeded September 30 and October 1 |
+| Dependencies | [Next 16.3.6 #106](https://github.com/btsouth/stackreplay/pull/106) |
+
+The [main CI run](https://github.com/btsouth/stackreplay/actions/runs/36934341007)
+passed Checks, all four E2E shards and the E2E smoke aggregate. The
+[main CodeQL run](https://github.com/btsouth/stackreplay/actions/runs/36934340908)
+and Cloudflare Workers Builds check passed. A separate live deployment smoke
+passed all 13 routes/assets. No open Dependabot or code-scanning alerts were
+returned by GitHub. There were no open pull requests before this documentation pass.
+Verification date: October 1, 2026.
+
+## Remaining work
+
+- **Catalog review:** the [October 1 watcher triage](catalog-watcher-triage.md)
+  records all 63 initial issues. Twenty-nine page-noise episodes were closed;
+  34 remain for catalog review, source verification, broken source references
+  or coverage research. Review Command Code's temporary allowances first, then
+  Sonnet 4.5's API deprecation and the large Google source changes. Detection
+  timestamps never establish effective dates or accepted facts.
+- **Performance:** #104 improved affected synthetic imports, but the latest
+  documented 100,000-event replay-engine runs still missed the one-second
+  target. The signature optimization has no owner multi-gigabyte speedup claim.
+- **Physical acceptance:** real-folder and large-history checks have been
+  recorded at earlier checkpoints, including the history-discovery measurement
+  below. A current complete signoff for real Claude/Codex intake, permission
+  denial/recovery, keyboard and screen-reader use is not recorded here.
+- **Subscription capacity:** My Stack does not claim that a plan can carry the
+  workload when its quotas are opaque. Credit-priced Command Code/OpenCode
+  modeling and per-tool, per-period pressure views remain future work; see
+  [My Stack limits](my-stack-decisions.md#limits-and-next-steps).
+- **Automation:** W3 catalog PR drafting and independent benchmark feeds remain
+  deferred. W1/W2 signal review does not authorize automatic catalog admission.
+- **Dated catalog maintenance:** keep the MiMo October 21 deprecation and
+  promotional-price follow-ups in the [coverage roadmap](catalog-coverage-roadmap.md).
+- **Packaging:** a first public tag/GitHub Release remains optional. The website
+  deployment is already live; it does not depend on a tagged release.
+
+## Shipped implementation history
+
+### Initial scan signature reads (merged in PR #104)
 
 Duplicate signatures now read streamed files only when another candidate in the same
 existing location/account scope could match. Unrelated text files and equal-size files
@@ -35,7 +88,7 @@ comparison still exceeded one second on the slowest target in both main and bran
 an idle-core recheck also missed the absolute goal. This patch changes neither the
 engine nor its benchmark inputs and does not claim that existing goal is met.
 
-### Product rescue: AI market feed, frontier comparison, My Stack first screen (feat/product-rescue, not released)
+### AI market feed, frontier comparison, My Stack first screen (merged in PR #38)
 
 One canonical market event feed (`packages/market-events`, 25 reviewed events for Sep 1-30, 2026,
 every one dated by its provider and linked to a first-party source) now drives both the homepage
@@ -51,17 +104,17 @@ answers what you pay, what workload is loaded, which subscriptions that workload
 most three things worth investigating; subscription leverage left the headline for the per-plan
 evidence disclosure. See [Public site](PUBLIC_SITE.md) and [My Stack decisions](my-stack-decisions.md).
 
-### Homepage market and workload intelligence (feat/homepage-reset, not released)
+### Homepage market and workload intelligence (merged in PR #35; followed by #38 and #41)
 
 The homepage now leads with sourced market changes, current model comparisons and subscription
 terms, then applies the same catalog to the newest saved non-demo workload. Personal model usage
 matches canonical identities; stack markers and question links open the existing analyses. Header
 and hero actions retain the displayed workload when a newer demo exists. Reading the page starts
-no scan or replay Worker, uploads no history and creates no database on a first visit. Comparable
-benchmark rows await homepage integration; verified benchmark evidence remains available at
-`/benchmarks` through the public navigation. See [Public site](PUBLIC_SITE.md).
+no scan or replay Worker, uploads no history and creates no database on a first visit. Homepage
+benchmark integration followed in PR #38; the full evidence remains available at `/benchmarks`.
+See [Public site](PUBLIC_SITE.md).
 
-### My Stack decision surface (feat/my-stack-decisions, not released)
+### My Stack decision surface (shipped; account support followed in PR #103)
 
 `/app/stack` now reads the selected workload, in its billing period, against the confirmed
 subscriptions: published stack price, API-equivalent value of the recorded work, subscription
@@ -70,7 +123,7 @@ leverage, a short list of evidence-labelled opportunities, one report per subscr
 accepted market calculation through a new `sources` filter on `API_MARKET`. No plan capacity is
 modeled or claimed. See [My Stack decisions](my-stack-decisions.md).
 
-### History discovery (feat/history-discovery, not released)
+### History discovery (merged and deployed in PR #4)
 
 Find my AI histories comes before the scan instrument (decision 55). The user drops their home or
 profile folder, or a tool folder, on the page; discovery asks it by name for each adapter-registered
@@ -121,9 +174,9 @@ RC1 verification on the final tree (2026-09-24, local):
 | Playwright desktop and mobile | 296 passed, 32 skipped by design (project-specific and opt-in cases), 0 failed |
 | Opt-in 100k-event import | Passed: 69.6 MB, import 1.9 s, replay 2.8 s, every event replayed |
 
-Still open: the owner's physical acceptance in a desktop Chromium browser (real Claude Code and
-Codex folders, a large history, permission denial and recovery, and a keyboard and screen-reader
-pass). Browser automation does not stand in for those checks.
+At the RC1 checkpoint, the owner's full physical acceptance remained open. Later real-folder
+measurements are recorded above; the current outstanding signoff is described in Remaining work.
+Browser automation does not stand in for permission, keyboard or screen-reader acceptance.
 
 ### Milestone 4I — workload intelligence and translated Replay
 

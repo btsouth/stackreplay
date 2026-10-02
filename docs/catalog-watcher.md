@@ -76,10 +76,24 @@ pnpm --filter @stackreplay/catalog test:watcher
 
 Tests use no live sites or GitHub. They cover baseline/change/unchanged, reverse-reference deduplication, HTML churn, robots, redirects, timeout, 404, byte limits, non-text/JS-only sources, failures/recovery, new/disappeared/returning candidates, API outages, CLI safeguards, outbox coalescing and issue/state idempotency. The existing audit's offline Markdown output also matched the pre-refactor CLI byte for byte.
 
-## Live review and limitations
+## Pre-release live review and limitations (2026-09-29)
 
 The bounded 2026-09-29 review inventoried 184 sources and selected 12 across hosts: 10 received source HTTP responses, seven established baselines, five failed/skipped, zero unchanged/changed and zero duplicate URL requests. Thirteen source requests included redirects; twelve robots requests made 25 HTTP requests in total. W2 found 51 missing-model and 22 recent-release rows, all 73 initial research leads, producing one proposed rolling issue. No GitHub issue/state writes occurred.
 
 Observed limitations: DeepSeek returned HTML for robots, a Claude blog host's robots returned 502, ChatGPT pricing returned 403, and two Meta pages supplied insufficient visible text. Google redirected a model listing to a locale query, so locale churn may be noisy. NVIDIA and other rendered app shells may include meaningful-looking UI text; a successful fingerprint does not prove completeness. Short-page detection is a conservative heuristic, not a general JS-content detector. Generic navigation/date/UI changes may produce noise. These need observed signal review, not browser crawling or broad text removal.
 
-This review sampled sources rather than fetching all 184. The scheduled workflow and real state/issue delivery activate only after review and merge; network availability and GitHub branch restrictions can still fail a scheduled run. Fixtures verify delivery logic, not production activation. State growth is bounded by the blob cap; very large future catalogs may need per-source state files. W3 remains deferred until signal quality is observed.
+That pre-release review sampled sources rather than fetching all 184. W1/W2 subsequently merged in PR #20. The September 30 and October 1 scheduled runs succeeded and delivered state/issues; network availability and GitHub branch restrictions can still fail later runs. Fixtures verify delivery logic, not production activation. State growth is bounded by the blob cap; very large future catalogs may need per-source state files. W3 remains deferred until signal quality is observed.
+
+## Human triage
+
+[October 1 review](catalog-watcher-triage.md) compared the complete stored source
+snapshots behind all 63 open detections. Twenty-nine noise episodes were closed;
+34 remained open with labels separating catalog review, incomplete source review,
+source health and coverage research. Dates and labels describe this review only.
+
+A bounded issue excerpt can hide meaningful changes. Before closing a detection,
+read its full before/after snapshots; identical line inventories also need an order
+check when headings and values may have moved. Close only the reviewed episode,
+record its reason, and retain unclear or substantial changes for source verification.
+Closing an issue does not suppress future episodes from that source. No watcher
+normalization, state reset, auto-admission or W3 activation was part of this triage.

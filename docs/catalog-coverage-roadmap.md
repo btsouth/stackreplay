@@ -1,6 +1,6 @@
 # Models and providers roadmap
 
-Written 2026-09-29. This is the working plan for making the model and subscription pages the place people check for every popular coding model, keeping them current without manual watching, and adding benchmarks without cluttering the pages. Each slice is sized to ship as its own branch and PR. Update the status table when a slice lands.
+Written 2026-09-29; status reconciled 2026-10-01. This is the working plan for making the model and subscription pages the place people check for every popular coding model, keeping them current without manual watching, and adding benchmarks without cluttering the pages. Each slice is sized to ship as its own branch and PR. Update the status table when a slice lands.
 
 ## Status
 
@@ -9,21 +9,32 @@ Written 2026-09-29. This is the working plan for making the model and subscripti
 | 1 | Coverage audit script and first report | Done |
 | 2 | Link lineup entries to existing model pages | Done (`feat/models-batch-a`). The legacy names `DeepSeek V4 Flash` and `DeepSeek V4 Flash Vision Exp` link to their legacy-name pages, which say DeepSeek now serves both with V4.1 Flash |
 | 3 | Add missing models, batch A | Done (`feat/models-batch-a`): 18 models. Muse Spark 1.3 Contributor is a tier of Muse Spark 1.3 and is described on that page |
-| 4 | Add missing models, batch B, and a coverage policy | Implemented in `feat/catalog-coverage-release-dates`, pending PR review: all 51 rows classified, 27 releases and one family added; see [coverage policy](catalog-coverage-policy.md) |
-| 5 | Models page usability pass | Done on current `main`: table/cards, developer and access filters, sort direction, plan counts, key figures and API ids. Structured, sourced release dates and release-date sorting are implemented in `feat/catalog-coverage-release-dates`, pending PR review |
+| 4 | Add missing models, batch B, and a coverage policy | Done in [PR #21](https://github.com/btsouth/stackreplay/pull/21): all 51 rows classified, 27 releases and one family added; see [coverage policy](catalog-coverage-policy.md) |
+| 5 | Models page usability pass | Done on current `main`: table/cards, developer and access filters, sort direction, plan counts, key figures and API ids. Structured, sourced release dates and release-date sorting landed in PR #21 |
 | 6 | Watcher W1: source change detection | Done: merged in PR #20 (`ebf9f9e`) |
 | 7 | Watcher W2: new model detection | Done: merged in PR #20 (`ebf9f9e`) |
-| 8 | Watcher W3: drafted catalog PRs | Planned |
-| 9 | Benchmarks: licensing decision | Needs owner decision |
-| 10 | Benchmarks: data and UI | Blocked on 9 |
+| 8 | Watcher W3: drafted catalog PRs | Deferred pending signal quality; [October 1 triage](catalog-watcher-triage.md) records the first review |
+| 9 | Benchmarks: licensing decision | Provider-reported numerical facts admitted; independent feeds remain deferred. See [source policy](benchmark-sources.md#redistribution-decision) |
+| 10 | Benchmarks: data and UI | Done in [PR #34](https://github.com/btsouth/stackreplay/pull/34) and [PR #37](https://github.com/btsouth/stackreplay/pull/37): sourced comparison builder and model-page evidence |
 
 ## Dated follow-ups
+
+The October 1 triage retained Command Code's Kimi K3 allowance reports
+[#59](https://github.com/btsouth/stackreplay/issues/59),
+[#60](https://github.com/btsouth/stackreplay/issues/60),
+[#61](https://github.com/btsouth/stackreplay/issues/61) and
+[#62](https://github.com/btsouth/stackreplay/issues/62) for review before their
+published October 7 end. Anthropic's Sonnet 4.5 deprecation reports
+[#79](https://github.com/btsouth/stackreplay/issues/79) and
+[#82](https://github.com/btsouth/stackreplay/issues/82) also remain open; the official
+API retirement notice names November 30. These are source-review tasks. This
+triage did not change accepted allowances, lifecycle records or Replay rules.
 
 Promotional prices stay in the catalog only while they are kept current. Each promotional record carries the provider's label and, when published, the regular rate (`promotion` in the pricing schema); the model pages show both.
 
 - By 2026-11-21: OpenAI's GPT-5.6 Sol promotional rate is published as available "at least through November 21, 2026" with no later price. Recheck https://developers.openai.com/api/docs/pricing and record the new rate or a new end date.
 - 2027-01-01: Gemini 3.6, 3.7 and 3.8 Flash promotional records end on 2026-12-31 and their published 2027 records take over automatically. GitHub publishes no Copilot rate for them after that date; recheck https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing in December.
-- Monthly until the W1 watcher runs: MiniMax M3 ("Permanent 50% off") and LongCat 2.0 ("limited-time", no end date) publish no end date. Recheck https://platform.minimax.io/docs/guides/pricing-paygo and https://longcat.chat/platform/docs/pricing/longcat-2.0.
+- Monthly, with W1 detections reviewed by a person: MiniMax M3 ("Permanent 50% off") and LongCat 2.0 ("limited-time", no end date) publish no end date. Recheck https://platform.minimax.io/docs/guides/pricing-paygo and https://longcat.chat/platform/docs/pricing/longcat-2.0.
 - After 10:00 Beijing time on 2026-10-21: Xiaomi deprecates `mimo-v2.5` and `mimo-v2.5-pro` with no replacement model (https://mimo.mi.com/docs/en-US/updates/deprecate). Update the `mimo-v2-5` and `mimo-v2-5-pro` lifecycle, end their pricing records, and recheck the plan lineups that still list them.
 
 ## Rules every slice follows
@@ -105,27 +116,23 @@ The watcher finds changes and prepares them for review. It never publishes. It r
 
 **W3, drafted PRs.** For a W1 or W2 issue, a job (or an agent run by the owner) drafts the catalog edit following the checklist above, with the source excerpt in the PR description, and opens a PR against `main`. Drafting may be LLM-assisted, but the PR must cite the exact source text for every changed value, and CI must pass. The owner reviews and merges. Merging deploys.
 
-W1/W2 implementation and operating instructions: [Catalog watcher](catalog-watcher.md). The daily job uses a dedicated machine-only `watcher-state` branch. First observations baseline without source-change spam; source health alerts and one rolling coverage issue remain detection only. The MiMo deprecation follow-up above is explicitly registered for watching without changing its accepted records. W3 remains planned until W1/W2 signal quality has been reviewed.
+W1/W2 implementation and operating instructions: [Catalog watcher](catalog-watcher.md). The daily job uses a dedicated machine-only `watcher-state` branch. First observations baseline without source-change spam; source health alerts and one rolling coverage issue remain detection only. The MiMo deprecation follow-up above is explicitly registered for watching without changing its accepted records. W3 remains deferred after the first W1/W2 signal review; recurring page noise needs investigation before drafting automation is proposed.
 
-## Slices 9 and 10: benchmarks
+## Slices 9 and 10: implemented benchmark policy
 
-### Slice 9: licensing decision (owner)
+The initial licensing/options proposal was superseded by the reviewed
+[benchmark product](benchmarks-design.md) and [evidence source policy](benchmark-sources.md).
+PR #34 shipped the data foundation and comparison builder; PR #37 added verified
+Sol observations and row highlights. Benchmarks live in `packages/benchmarks`,
+separate from accepted pricing, limits and Replay execution.
 
-Checked 2026-09-29:
+The current edition stores selected developer-reported numerical facts with
+source-set provenance, exact benchmark definitions and evaluation-setup disclosures.
+The public builder and model-page sections preserve missing results, observation
+alternatives, ties and lower-is-better metrics. A row highlight does not establish
+matching setups or an overall model ranking.
 
-- Artificial Analysis free API: "Internal use only with attribution." Showing its scores on StackReplay needs the Commercial API ("Commercial redistribution with attribution", package-based quote via sales). Source: https://artificialanalysis.ai/data-api. Their site terms also prohibit scraping and building competing products.
-- OpenRouter: rankings and the scores it embeds cannot be scraped (terms, section 7).
-
-Options, which can be combined:
-
-1. Buy an Artificial Analysis Commercial API package. One source covers the intelligence index, coding index, speed and time to first token, with consistent methodology.
-2. Use openly licensed benchmark data. Candidates to verify before use: SWE-bench leaderboard, Terminal-Bench leaderboard, Epoch AI Benchmarking Hub. Check each one's data license and attribution terms and record them here before building.
-3. Show developer-reported scores from official model cards and announcements, labeled "reported by the developer" with the source and date. These are published facts, but they are not comparable across developers, so do not rank by them.
-
-### Slice 10: data and UI (after slice 9)
-
-- Store benchmark data separately from catalog YAML (for example `apps/web/lib/benchmarks-data.json` with source, license, retrieved date and methodology link per score). It must never feed Replay, Compare pricing or capacity.
-- Model page: one compact strip with at most three figures (overall, coding, speed), each with its source, as-of date and a link to the methodology. Label it as third-party measurement. No radar charts and no long score tables.
-- Models list: one optional sort by the headline score. No extra columns by default.
-- Missing scores show nothing rather than a zero or a dash row.
-- A scheduled job refreshes the data file through a PR, the same way W3 works.
+Artificial Analysis commercial ingestion, scraped OpenRouter rankings and bulk
+independent datasets remain excluded. Any new independent feed needs exact
+redistribution terms or permission before admission. Automatic benchmark ingestion
+remains out of scope; later editions require human review and preserve pinned links.

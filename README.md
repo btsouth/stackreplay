@@ -7,9 +7,10 @@
 StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
 answer: **would another AI coding subscription actually handle the way I work?**
 
-> **Status: RC1, live at [stackreplay.com](https://stackreplay.com).** The browser app scans local Claude Code and Codex history,
-> analyzes the workload, and replays it against a sourced catalog of real plans and Direct API
-> providers, in Exact or user-built Translated mode. There are no accounts and no cloud sync. What
+> **Status: live at [stackreplay.com](https://stackreplay.com), updated October 1, 2026.** The browser app reads local agent histories,
+> analyzes workloads, tracks multiple local history accounts and confirmed subscriptions, and
+> replays against sourced plan and Direct API targets. The public site includes a market feed and
+> benchmark comparisons. There are no hosted accounts or cloud sync. What
 > exists, what is verified and what is still open is tracked in
 > [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
 
@@ -96,13 +97,14 @@ stores only the aggregate result shown in its preview. Cloud sync is not impleme
   a Claude Code or Codex history folder, or accepts selected Codex, Claude Code and Command Code JSONL,
   ccusage JSON, ZIP archives and StackReplay exports. See [workload intake](docs/INGESTION.md) for exact format and privacy
   boundaries.
-- RC1 adds workload analysis (projects, chronology, time of day, pressure windows, models, token and
-  cache composition, sessions and scan evidence), Translated Replay as an explicit user-built
-  scenario, workload-aware Compare, and a homepage that replays an anonymized real workload against
-  real catalog targets.
+- RC1 introduced workload analysis (projects, chronology, pressure windows, models, token/cache
+  composition and scan evidence), explicit Translated Replay and workload-aware Compare. Later
+  releases added the sourced market feed, benchmark builder, My Stack, multiple accounts, and
+  import/loading improvements. See the current implementation status for landed PRs and limits.
 - The bundled catalog carries sourced public facts; synthetic `example-` data is kept for tests and
-  demos only. A real workload with an unresolved model identifier stays unmapped. Accounts and
-  cloud sync are not implemented.
+  demos only. A real workload with an unresolved model identifier stays unmapped. Multiple local
+  history accounts and subscription instances are supported; hosted accounts and cloud sync are
+  not implemented.
 
 `docs/IMPLEMENTATION_STATUS.md` is the source of truth for milestone state, verification results
 and known issues. `docs/ARCHITECTURE_DECISIONS.md` records the authoritative product and
