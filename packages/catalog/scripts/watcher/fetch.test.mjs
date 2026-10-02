@@ -46,6 +46,7 @@ test("robots and source requests are deduplicated even across concurrent consume
   assert.equal(watcher.stats.sourceRequests, 1);
   assert.equal(f.calls[1].options.redirect, "manual");
   assert.match(f.calls[1].options.headers["User-Agent"], /StackReplay/);
+  assert.equal(f.calls[1].options.headers["Accept-Language"], "en-US,en;q=0.9");
   assert.equal(f.calls[1].options.headers.Authorization, undefined);
 });
 test("robots disallow stops before page fetch and longest allow wins", async () => {

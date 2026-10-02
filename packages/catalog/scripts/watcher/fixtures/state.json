@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "normalizerVersion": 2,
   "sources": {
     "source-fixture": {
       "id": "source-fixture",

@@ -122,8 +122,10 @@ test("W2 updates/reopens one rolling issue and identical render is a no-op", asy
     title: "Model coverage candidates",
     body: "<!-- stackreplay-watcher:coverage:v1 -->\nCandidate A",
     allowCreate: true,
+    labels: ["catalog:coverage"],
   };
   assert.equal(await github.syncIssue(rolling), "created");
+  assert.deepEqual(s.issues[0].labels, ["catalog:coverage"]);
   assert.equal(await github.syncIssue(rolling), "unchanged");
   s.issues[0].state = "closed";
   assert.equal(
@@ -132,6 +134,27 @@ test("W2 updates/reopens one rolling issue and identical render is a no-op", asy
   );
   assert.equal(s.issues.length, 1);
   assert.equal(s.issues[0].state, "open");
+});
+test("source digest comments new episodes and reopens the same issue after closure", async () => {
+  const s = service();
+  const github = client(s);
+  const digest = (event) => ({
+    kind: "source-digest",
+    marker: "<!-- stackreplay-watcher:source-digest:v1 -->",
+    eventId: event,
+    title: "Catalog watcher: source review digest",
+    body: `<!-- stackreplay-watcher:source-digest:v1 -->\n<!-- stackreplay-watcher:event:${event} -->\nDigest ${event}`,
+    allowCreate: true,
+    labels: ["catalog:review"],
+  });
+  assert.equal(await github.syncIssue(digest("a")), "created");
+  assert.equal(await github.syncIssue(digest("b")), "commented");
+  assert.equal(s.comments.get(1).length, 1);
+  s.issues[0].state = "closed";
+  assert.equal(await github.syncIssue(digest("c")), "updated");
+  assert.equal(s.issues.length, 1);
+  assert.equal(s.issues[0].state, "open");
+  assert.match(s.issues[0].body, /Digest c/);
 });
 test("user-authored markers cannot hijack machine-owned issues", async () => {
   const s = service();

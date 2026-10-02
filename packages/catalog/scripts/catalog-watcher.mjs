@@ -10,6 +10,7 @@ import {
   coalesceOutbox,
   day,
   emptyState,
+  NORMALIZER_VERSION,
   transitionCoverage,
   transitionSource,
   validateState,
@@ -66,6 +67,7 @@ let previous = github
     : emptyState();
 if (rebaseline) previous = emptyState();
 for (const source of Object.values(previous.sources)) sourceHealthV1Schema.parse(source.health);
+const normalizationMigration = previous.normalizerVersion !== NORMALIZER_VERSION;
 const fixture = option("--fixtures")
   ? JSON.parse(readFileSync(option("--fixtures"), "utf8"))
   : null;
@@ -87,6 +89,7 @@ if (option("--source-limit")) {
 }
 const fetcher = fixture ? null : createSourceFetcher(inventory.policy);
 const state = structuredClone(previous);
+state.normalizerVersion = NORMALIZER_VERSION;
 const summary = {
   mode: apply ? "apply" : "dry-run",
   uniqueSources: inventory.sources.length,
@@ -95,6 +98,10 @@ const summary = {
   cachedToday: 0,
   unchanged: 0,
   changed: 0,
+  signalChanges: 0,
+  reviewChanges: 0,
+  suppressedNoise: 0,
+  normalizationBaselined: 0,
   baseline: 0,
   failedSkipped: 0,
   excluded: inventory.excluded?.length ?? 0,
@@ -109,14 +116,22 @@ await mapLimit(sources, 4, async (source) => {
   }
   const observation = fixture ? fixture.observations[source.id] : await fetcher.fetchSource(source);
   if (!observation) throw new Error(`Fixture missing observation ${source.id}`);
-  const result = transitionSource(source, prior, observation, now, { rebaseline });
+  const result = transitionSource(source, prior, observation, now, {
+    rebaseline,
+    normalizationMigration,
+  });
   sourceHealthV1Schema.parse(result.current.health);
   state.sources[source.id] = result.current;
   summary.fetched += observation.httpStatus ? 1 : 0;
   if (observation.failure) summary.failedSkipped++;
+  else if (result.normalizationBaseline) summary.normalizationBaselined++;
   else if (!prior?.health.fingerprint) summary.baseline++;
-  else if (result.changed) summary.changed++;
-  else summary.unchanged++;
+  else if (result.changed) {
+    summary.changed++;
+    if (result.changeClass === "noise") summary.suppressedNoise++;
+    else if (result.changeClass === "signal") summary.signalChanges++;
+    else summary.reviewChanges++;
+  } else summary.unchanged++;
   if (result.intent) state.outbox.push(result.intent);
 });
 let w2;

@@ -98,7 +98,7 @@ export function createGitHub({ token, repository, fetchImpl = fetch }) {
     }
     const open = matches.find((issue) => issue.state === "open");
     const eventMarker = `<!-- stackreplay-watcher:event:${intent.eventId} -->`;
-    if (intent.kind === "source") {
+    if (intent.kind === "source" || intent.kind === "source-digest") {
       // A closed issue for this exact episode means it has already been reviewed.
       if (matches.some((issue) => issue.body?.includes(eventMarker))) return "unchanged";
       for (const issue of matches) {
@@ -117,12 +117,32 @@ export function createGitHub({ token, repository, fetchImpl = fetch }) {
         });
         return "commented";
       }
+      if (intent.kind === "source-digest" && matches.length) {
+        if (!intent.allowCreate) return "no open issue";
+        const issue = matches[0];
+        const updated = await api(`/issues/${issue.number}`, {
+          method: "PATCH",
+          body: {
+            title: intent.title,
+            body: intent.body,
+            state: "open",
+            ...(intent.labels?.length ? { labels: intent.labels } : {}),
+          },
+        });
+        Object.assign(issue, updated);
+        return "updated";
+      }
     } else if (matches.length) {
       const issue = open ?? matches[0];
       if (issue.body === intent.body && issue.title === intent.title) return "unchanged";
       const updated = await api(`/issues/${issue.number}`, {
         method: "PATCH",
-        body: { title: intent.title, body: intent.body, state: "open" },
+        body: {
+          title: intent.title,
+          body: intent.body,
+          state: "open",
+          ...(intent.labels?.length ? { labels: intent.labels } : {}),
+        },
       });
       Object.assign(issue, updated);
       return "updated";
@@ -130,7 +150,11 @@ export function createGitHub({ token, repository, fetchImpl = fetch }) {
     if (!intent.allowCreate) return "no open issue";
     const created = await api("/issues", {
       method: "POST",
-      body: { title: intent.title, body: intent.body },
+      body: {
+        title: intent.title,
+        body: intent.body,
+        ...(intent.labels?.length ? { labels: intent.labels } : {}),
+      },
     });
     issues.unshift(created);
     return "created";

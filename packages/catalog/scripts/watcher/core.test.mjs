@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { collectInventory, fingerprint, sourceOwner } from "./inventory.mjs";
-import { boundedDiff, markdownText, normalize } from "./normalize.mjs";
+import { boundedDiff, classifySourceChange, markdownText, normalize } from "./normalize.mjs";
 import {
   coalesceOutbox,
   emptyState,
@@ -76,6 +76,18 @@ test("normalization ignores HTML churn while retaining prices and dates", () => 
   assert.doesNotMatch(text, /churn|color|Ignore hidden/);
   assert.notEqual(fingerprint(text), fingerprint(normalize(after, "text/html")));
   assert.equal(normalize(" A\r\n\r\nB  C ", "text/plain"), "A\nB C");
+  assert.equal(
+    normalize(
+      "<html><nav>Navigation</nav><main><article><h1>Pricing</h1><p>Price $4</p></article></main><footer>Copyright</footer></html>",
+      "text/html",
+    ),
+    "Pricing\nPrice $4",
+  );
+  assert.deepEqual(classifySourceChange("Price $4\nDownloads 19", "Price $4\nDownloads 20"), {
+    status: "noise",
+    signalLines: [],
+  });
+  assert.equal(classifySourceChange("Price $4", "Price $5").status, "signal");
 });
 test("first success baselines, unchanged creates no intent, subsequent change traces exact IDs", () => {
   const first = baseline();
@@ -90,6 +102,7 @@ test("first success baselines, unchanged creates no intent, subsequent change tr
   );
   assert.equal(changed.changed, true);
   assert.equal(changed.intent.kind, "source");
+  assert.equal(changed.changeClass, "signal");
   assert.match(changed.intent.body, /pricing: openai-gpt-x-standard/);
   assert.match(changed.intent.body, /Added: GPT-X input: \$3/);
   assert.match(changed.intent.body, /Removed: GPT-X input: \$4/);
@@ -153,6 +166,20 @@ test("long failures become stale without changing accepted records", () => {
     "stale",
   );
 });
+test("normalizer migration rebaselines content without reporting a source change", () => {
+  const previous = baseline();
+  const result = transitionSource(
+    source,
+    previous,
+    { ...observation, text: normalize(after, "text/html") },
+    now,
+    { normalizationMigration: true },
+  );
+  assert.equal(result.normalizationBaseline, true);
+  assert.equal(result.changed, false);
+  assert.equal(result.intent, null);
+  assert.notEqual(result.current.health.fingerprint.sha256, previous.health.fingerprint.sha256);
+});
 test("diff and untrusted markdown are bounded and inert", () => {
   assert.ok(boundedDiff("old\n".repeat(10000), "new\n".repeat(10000)).length < 3500);
   const rendered = markdownText(
@@ -207,12 +234,49 @@ test("unsupported state versions fail closed", () => {
   assert.throws(() => validateState({ ...emptyState(), version: 2 }));
 });
 
-test("pending source episodes survive retries while rolling issue delivery keeps the latest candidate set", () => {
-  const source = { kind: "source", eventId: "s" };
+test("source transitions coalesce into one digest while rolling coverage keeps the latest set", () => {
+  const source = {
+    kind: "source",
+    eventId: "s",
+    body: "source detail",
+    sourceUrl: "https://developers.openai.com/api/docs/pricing",
+    providerId: "openai",
+    sourceKind: "provider_pricing",
+    changeClass: "signal",
+    eventType: "change",
+    observedAt: now,
+    affected: ["model: gpt-x"],
+    allowCreate: true,
+  };
+  const retry = { ...source, body: "latest detail" };
   const old = { kind: "coverage", eventId: "a", body: "old" };
   const gone = { kind: "coverage", eventId: "b", body: "gone" };
   const returned = { kind: "coverage", eventId: "a", body: "latest" };
-  assert.deepEqual(coalesceOutbox([source, old, gone, source, returned]), [source, returned]);
+  const result = coalesceOutbox([source, old, gone, retry, returned]);
+  assert.equal(result.length, 2);
+  assert.equal(result[0].kind, "source-digest");
+  assert.match(result[0].body, /stackreplay-watcher:event:/);
+  assert.match(result[0].body, /latest detail/);
+  assert.deepEqual(result[1], returned);
+});
+test("large source digests stay bounded and say which evidence was omitted", () => {
+  const entries = Array.from({ length: 120 }, (_, index) => ({
+    kind: "source",
+    eventId: `event-${index}`,
+    body: `Source detail ${index}\n${"evidence ".repeat(400)}`,
+    sourceUrl: `https://developers.openai.com/api/docs/page-${index}`,
+    providerId: "openai",
+    sourceKind: "provider_docs",
+    changeClass: "review",
+    eventType: "change",
+    observedAt: now,
+    affected: [`model: model-${index}`],
+    allowCreate: true,
+  }));
+  const [digest] = coalesceOutbox(entries);
+  assert.equal(digest.kind, "source-digest");
+  assert.ok(digest.body.length < 60000);
+  assert.match(digest.body, /omitted from this bounded digest/);
 });
 
 test("large W2 sets and malicious display names cannot exceed GitHub body limits or create mentions", () => {
