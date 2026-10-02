@@ -1,7 +1,20 @@
 # Public Release Checklist
 
-Status as of 2026-09-21. The repository is **public** at
-https://github.com/btsouth/stackreplay and hosted CI is green.
+## Current deployment: 2026-10-01
+
+The product is live at [stackreplay.com](https://stackreplay.com). Main `c22e471e`
+has successful CI, CodeQL and Cloudflare Workers Builds checks; a live 13-route
+and asset smoke also passed. The current feature state, limitations and remaining
+physical signoff are in [Implementation status](IMPLEMENTATION_STATUS.md).
+A first public tag/GitHub Release is still optional and has not been created.
+
+The checklist below is the original September 21 publication record. Its test
+counts, file counts and repository description describe that checkpoint.
+
+## Initial publication record: 2026-09-21
+
+At initial publication the repository was **public** at
+https://github.com/btsouth/stackreplay and hosted CI was green.
 
 ## Gates
 
@@ -52,7 +65,7 @@ https://github.com/btsouth/stackreplay and hosted CI is green.
 
 - [ ] First public tag or release — optional, not required for publication; no GitHub Release,
       1.0 version, npm publication or container image has been created
-- [ ] Domain serving the product — https://stackreplay.com is not yet a live product deployment
+- [x] Domain serving the product: https://stackreplay.com is live; deployment and smoke rechecked October 1, 2026
 
 Local validation passed: frozen install, check/lint, contrast, typecheck, 220 tests, build and
 29 E2E tests (5 viewport-specific skips). Full evidence, benchmark samples and remaining
