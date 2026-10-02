@@ -30,12 +30,12 @@ Verification date: October 1, 2026.
 ## Remaining work
 
 - **Catalog review:** the [October 2 watcher triage](catalog-watcher-triage.md)
-  consolidated the initial 63 issues into a nine-item queue: five durable review
+  consolidated the initial 63 issues into a six-item queue: five durable review
   tracks for Google model/pricing/subscription pages, Kiro workflow credits and
-  rolling model coverage, plus four temporary Command Code checks due October 8.
+  rolling model coverage, plus one Command Code promotion recheck due October 8.
   New actionable source changes use one bounded review digest instead of one
-  issue per URL. Detection timestamps never establish effective dates or
-  accepted facts.
+  issue per URL. Detection timestamps never establish effective dates or accepted
+  facts.
 - **Performance:** #104 improved affected synthetic imports, but the latest
   documented 100,000-event replay-engine runs still missed the one-second
   target. The signature optimization has no owner multi-gigabyte speedup claim.

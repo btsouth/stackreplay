@@ -24,10 +24,10 @@ The two source-health episodes were repaired from their official replacements:
   title and verification date now record the published lifecycle facts. No
   capacity, pricing or current-availability claim was inferred.
 
-Command Code's Kimi K3 boost ([#59-62](https://github.com/btsouth/stackreplay/issues/59))
-still ends October 7, and the provider's free-request wording remains temporary.
-Those reports stay open for the October 8 source recheck instead of being turned
-into an unsupported Replay capacity model.
+Command Code's Kimi K3 boost still ends October 7, and the provider's free-request
+wording remains temporary. The four per-page reports were consolidated into
+[#62](https://github.com/btsouth/stackreplay/issues/62) for the October 8 source
+recheck instead of being turned into an unsupported Replay capacity model.
 
 ## October 2 signal-quality consolidation
 
@@ -65,14 +65,15 @@ The backlog was consolidated at the same time:
   documented MiniMax change was verified as Token Plan/M Plan terminology with
   unchanged numeric pricing.
 
-The resulting queue is nine issues: five durable review tracks
+The resulting queue is six issues: five durable review tracks
 ([#27](https://github.com/btsouth/stackreplay/issues/27),
 [#43](https://github.com/btsouth/stackreplay/issues/43),
 [#55](https://github.com/btsouth/stackreplay/issues/55),
-[#67](https://github.com/btsouth/stackreplay/issues/67),
-[#77](https://github.com/btsouth/stackreplay/issues/77)) and the four temporary
-Command Code checks due October 8. Existing individual issues are historical; new
-actionable changes use the digest marker and no longer create one issue per URL.
+[#67](https://github.com/btsouth/stackreplay/issues/67) and
+[#77](https://github.com/btsouth/stackreplay/issues/77)) plus one consolidated
+Command Code recheck ([#62](https://github.com/btsouth/stackreplay/issues/62)) due
+October 8. Existing individual issues are historical; new actionable changes use
+the digest marker and no longer create one issue per URL.
 
 ## Evidence and decision boundary
 
