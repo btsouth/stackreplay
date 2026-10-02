@@ -70,7 +70,7 @@ function WorkloadAccounts({ overview, importId }: { overview: MarketDecision; im
 }
 const day = (value: string) =>
   new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(
-    new Date(value.slice(0, 10) + "T00:00:00Z"),
+    new Date(`${value.slice(0, 10)}T00:00:00Z`),
   );
 const rangeText = (range: { low: string; high: string }) =>
   range.low === range.high ? usd(range.low) : `${usd(range.low)} – ${usd(range.high)}`;

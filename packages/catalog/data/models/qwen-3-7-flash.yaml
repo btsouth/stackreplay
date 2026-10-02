@@ -22,7 +22,7 @@ aliases:
     kind: provider_route
     harness: command-code
     sources:
-      - url: https://commandcode.ai/provider/v1/models
+      - url: https://api.commandcode.ai/provider/v1/models
         title: Command Code documented Provider API model list; exact route id and display name
         checkedAt: 2026-09-30
     lastVerifiedAt: 2026-09-30

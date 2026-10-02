@@ -2,6 +2,7 @@
   "version": 1,
   "hosts": {
     "ai.google.dev": "google",
+    "api.commandcode.ai": "command-code",
     "antigravity.google": "google",
     "gemini.google": "google",
     "support.google.com": "google",

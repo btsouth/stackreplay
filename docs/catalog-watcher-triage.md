@@ -5,6 +5,30 @@ one rolling model-coverage queue. Twenty-nine episodes were closed as page noise
 34 remain open. No accepted catalog, price, model alias, plan rule or watcher state
 was changed. W3 catalog drafting remains deferred.
 
+## October 2 source-health follow-up
+
+The two source-health episodes were repaired from their official replacements:
+
+- [#25](https://github.com/btsouth/stackreplay/issues/25): the Command Code Provider
+  API model list moved from `commandcode.ai/provider/v1/models` to the live
+  `api.commandcode.ai/provider/v1/models`. All 21 model references now use the
+  live endpoint, and the watcher host policy includes the API origin.
+- [#26](https://github.com/btsouth/stackreplay/issues/26): Anthropic consolidated
+  the retired Pro-usage article into
+  `support.claude.com/en/articles/8325606-what-is-the-pro-plan`. The dead source
+  and its Included usage term now point to the current article.
+- [#79](https://github.com/btsouth/stackreplay/issues/79) and
+  [#82](https://github.com/btsouth/stackreplay/issues/82): Anthropic's current
+  deprecation page confirms Sonnet 4.5 was deprecated September 30, 2026, with
+  API retirement November 30, 2026. The model was already `legacy`; its source
+  title and verification date now record the published lifecycle facts. No
+  capacity, pricing or current-availability claim was inferred.
+
+Command Code's Kimi K3 boost ([#59-62](https://github.com/btsouth/stackreplay/issues/59))
+still ends October 7, and the provider's free-request wording remains temporary.
+Those reports stay open for the October 8 source recheck instead of being turned
+into an unsupported Replay capacity model.
+
 ## Evidence and decision boundary
 
 The review used the full normalized source text in the

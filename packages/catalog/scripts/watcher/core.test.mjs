@@ -54,6 +54,13 @@ test("inventory deduplicates fragments, includes nested exact refs and respects 
     0,
   );
   assert.equal(sourceOwner("https://developers.openai.com/issues/12", policy), null);
+  assert.equal(
+    sourceOwner("https://api.commandcode.ai/provider/v1/models", {
+      hosts: { "api.commandcode.ai": "command-code" },
+      paths: {},
+    }),
+    "command-code",
+  );
   assert.throws(() => sourceOwner("http://developers.openai.com/a", policy));
 });
 test("normalization ignores HTML churn while retaining prices and dates", () => {

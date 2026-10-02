@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:9d5b2addc79a0fbe3c9851b920646bdd005321242922a4760a6d4504c2fd5201";
+export const BUNDLED_CATALOG_VERSION = "sha256:e2f70074d20c1cee525a41df9d6659e8b144b3ff82e6305f6424a1e66b13da83";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:9d5b2addc79a0fbe3c9851b920646bdd005321242922a4760a6d4504c2fd5201",
+  "catalogVersion": "sha256:e2f70074d20c1cee525a41df9d6659e8b144b3ff82e6305f6424a1e66b13da83",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -1179,22 +1179,22 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "sources": [
             {
               "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
-              "title": "Official developer identity documentation",
-              "checkedAt": "2026-09-30"
+              "title": "Anthropic model deprecations: Claude Sonnet 4.5 deprecated September 30, 2026; API retirement November 30, 2026",
+              "checkedAt": "2026-10-02"
             }
           ],
-          "lastVerifiedAt": "2026-09-30",
+          "lastVerifiedAt": "2026-10-02",
           "verificationStatus": "verified"
         }
       ],
       "sources": [
         {
           "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
-          "title": "Official developer identity documentation",
-          "checkedAt": "2026-09-30"
+          "title": "Anthropic model deprecations: Claude Sonnet 4.5 deprecated September 30, 2026; API retirement November 30, 2026",
+          "checkedAt": "2026-10-02"
         }
       ],
-      "lastVerifiedAt": "2026-09-30",
+      "lastVerifiedAt": "2026-10-02",
       "verificationStatus": "verified"
     },
     "claude-sonnet-4-6": {
@@ -1799,7 +1799,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "checkedAt": "2026-09-30"
             },
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -1979,7 +1979,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -2124,7 +2124,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -2798,7 +2798,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "checkedAt": "2026-09-30"
             },
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -4738,7 +4738,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -4780,7 +4780,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -4822,7 +4822,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -4864,7 +4864,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -5009,7 +5009,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
               "checkedAt": "2026-09-30"
             },
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -5638,7 +5638,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           },
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -5742,7 +5742,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6065,7 +6065,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6169,7 +6169,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           },
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6184,7 +6184,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6270,7 +6270,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           },
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6523,7 +6523,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6569,7 +6569,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -6940,7 +6940,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -7065,7 +7065,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -7170,7 +7170,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }
@@ -7212,7 +7212,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           "harness": "command-code",
           "sources": [
             {
-              "url": "https://commandcode.ai/provider/v1/models",
+              "url": "https://api.commandcode.ai/provider/v1/models",
               "title": "Command Code documented Provider API model list; exact route id and display name",
               "checkedAt": "2026-09-30"
             }

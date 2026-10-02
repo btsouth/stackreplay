@@ -35,7 +35,7 @@ aliases:
     - url: https://commandcode.ai/blog/glm-5-2-fast-is-live-in-command-code
       title: High-throughput build of GLM-5.2; default route prices are not inherited.
       checkedAt: 2026-09-30
-    - url: https://commandcode.ai/provider/v1/models
+    - url: https://api.commandcode.ai/provider/v1/models
       title: Command Code documented Provider API model list; exact route id and display name
       checkedAt: 2026-09-30
   lastVerifiedAt: 2026-09-30
