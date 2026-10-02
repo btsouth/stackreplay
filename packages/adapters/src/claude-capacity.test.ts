@@ -109,7 +109,7 @@ describe("native capacity evidence", () => {
 
 it("browser normalization retains capacity evidence and deduplicates it across session files", async () => {
   const contents = [
-    CLAUDE_CODE_SESSION + "\n" + JSON.stringify(row),
+    `${CLAUDE_CODE_SESSION}\n${JSON.stringify(row)}`,
     CLAUDE_CODE_SESSION +
       "\n" +
       JSON.stringify(row) +

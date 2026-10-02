@@ -5,9 +5,9 @@ developerId: anthropic
 sources:
   - &a1
     url: https://platform.claude.com/docs/en/about-claude/model-deprecations
-    title: Official developer identity documentation
-    checkedAt: 2026-09-30
-lastVerifiedAt: 2026-09-30
+    title: "Anthropic model deprecations: Claude Sonnet 4.5 deprecated September 30, 2026; API retirement November 30, 2026"
+    checkedAt: 2026-10-02
+lastVerifiedAt: 2026-10-02
 verificationStatus: verified
 releaseDate:
   date: 2025-09-29
@@ -21,7 +21,7 @@ aliases:
     kind: provider_id
     sources:
       - *a1
-    lastVerifiedAt: 2026-09-30
+    lastVerifiedAt: 2026-10-02
     verificationStatus: verified
 lifecycle: legacy
 familyId: claude-sonnet

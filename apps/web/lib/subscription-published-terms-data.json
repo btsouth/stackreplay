@@ -1567,7 +1567,6 @@
   "anthropic-claude-pro": {
     "checkedAt": "2026-09-29",
     "sourceUrls": [
-      "https://support.claude.com/en/articles/8324991-about-claude-s-pro-plan-usage",
       "https://support.claude.com/en/articles/11049741-what-is-the-max-plan",
       "https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans",
       "https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan",
@@ -1582,7 +1581,7 @@
       {
         "label": "Included usage",
         "value": "Pro usage allowance; five-hour and weekly limits. Actual use depends on models, conversation length and features; this is not a universal token quota.",
-        "sourceUrl": "https://support.claude.com/en/articles/8324991-about-claude-s-pro-plan-usage"
+        "sourceUrl": "https://support.claude.com/en/articles/8325606-what-is-the-pro-plan"
       },
       {
         "label": "Reset timing",

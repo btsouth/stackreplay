@@ -64,7 +64,7 @@ describe("pricing remediation: undocumented categories are unknown", () => {
   it("1. a missing nonzero cache price makes the event's monetary consumption unknown", () => {
     const outcome = moneyUnitsForUsage(
       completeUsage({ cacheReadTokens: 1_000_000 }),
-      pricingEntry("p", { input: "2.00", output: "4.00" })["p"],
+      pricingEntry("p", { input: "2.00", output: "4.00" }).p,
       { atMs: epochMsFromIso("2026-09-01T00:00:00Z") },
     );
     expect(outcome.known).toBe(false);
@@ -108,7 +108,7 @@ describe("pricing remediation: undocumented categories are unknown", () => {
   it("2. a missing nonzero reasoning price makes the event's monetary consumption unknown", () => {
     const outcome = moneyUnitsForUsage(
       completeUsage({ reasoningTokens: 1_000_000 }),
-      pricingEntry("p", { input: "2.00", output: "4.00" })["p"],
+      pricingEntry("p", { input: "2.00", output: "4.00" }).p,
       { atMs: epochMsFromIso("2026-09-01T00:00:00Z") },
     );
     expect(outcome.known).toBe(false);
@@ -142,7 +142,7 @@ describe("pricing remediation: undocumented categories are unknown", () => {
   });
 
   it("keeps missing telemetry and missing pricing distinguishable", () => {
-    const pricing = pricingEntry("p", { input: "2.00", output: "4.00" })["p"];
+    const pricing = pricingEntry("p", { input: "2.00", output: "4.00" }).p;
     const atMs = epochMsFromIso("2026-09-01T00:00:00Z");
 
     const telemetryGap = moneyUnitsForUsage({ inputTokens: 10 }, pricing, { atMs });
@@ -167,7 +167,7 @@ describe("pricing remediation: undocumented categories are unknown", () => {
       input: "2.00",
       output: "4.00",
       reasoning: { billedAs: "output" },
-    })["p"];
+    }).p;
     const outcome = moneyUnitsForUsage(
       completeUsage({ uncachedInputTokens: 500_000, reasoningTokens: 500_000 }),
       pricing,
@@ -179,7 +179,7 @@ describe("pricing remediation: undocumented categories are unknown", () => {
   });
 
   it("4. explicit zero usage in an unpriced category does not poison pricing", () => {
-    const pricing = pricingEntry("p", { input: "2.00", output: "4.00" })["p"];
+    const pricing = pricingEntry("p", { input: "2.00", output: "4.00" }).p;
     const outcome = moneyUnitsForUsage(
       completeUsage({
         uncachedInputTokens: 1_000_000,
@@ -210,7 +210,7 @@ describe("pricing remediation: conditional rate tiers", () => {
         },
       ],
     },
-  )["p"] as PricingV1;
+  ).p as PricingV1;
 
   it("5. long-context boundaries select the base tier through the threshold and the tier above it", () => {
     const atMs = epochMsFromIso("2026-09-01T00:00:00Z");
@@ -277,7 +277,7 @@ describe("pricing remediation: conditional rate tiers", () => {
         },
       ],
     },
-  )["p"] as PricingV1;
+  ).p as PricingV1;
 
   it("7. schedule boundaries select the documented rate at every edge", () => {
     const cases: Array<[string, boolean]> = [
@@ -471,7 +471,7 @@ describe("pricing remediation: decimal exactness", () => {
       input: "2.00",
       output: "4.00",
       cacheRead: "0.075",
-    })["p"];
+    }).p;
     const atMs = epochMsFromIso("2026-09-01T00:00:00Z");
     const one = moneyUnitsForUsage(completeUsage({ cacheReadTokens: 1_000_000 }), pricing, {
       atMs,
