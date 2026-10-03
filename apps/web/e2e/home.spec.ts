@@ -369,6 +369,7 @@ test.describe("homepage without a saved workload", () => {
       await expect(nav.getByRole("link")).toHaveText(
         [
           "Models",
+          "Providers",
           "Benchmarks",
           "Compare",
           "Plans",
@@ -405,13 +406,13 @@ test.describe("homepage without a saved workload", () => {
     }
     expect(order.slice(1, 9)).toEqual([
       "Models",
+      "Providers",
       "Benchmarks",
       "Compare",
       "Plans",
       "Updates",
       "Workload",
       "My Stack",
-      "Scan my history",
     ]);
     expect(order).toContain("Compare leading models");
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
