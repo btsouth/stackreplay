@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   type ComponentProps,
   type ReactNode,
@@ -523,6 +523,7 @@ export function CompareExplorer({
   /** The day the page resolved plan terms on; a plan's notice follows the viewer's day after hydration. */
   asOf: string;
 }) {
+  const router = useRouter();
   const [ids, setIds] = useState<string[]>(() =>
     routedSearch === undefined
       ? [...defaultPair]
@@ -540,22 +541,26 @@ export function CompareExplorer({
     setIds(readComparePlans(routedSearch, planIds, defaultPair));
     document.documentElement.removeAttribute("data-compare");
   }, [routedSearch, planIds, defaultPair]);
-  // The router commits navigation in a layout effect. Normalize only afterwards,
-  // using the incoming query rather than an earlier render's default selection.
+  // Once the router's layout commit has finished, the browser URL is authoritative.
+  // Cached vinext trees can restore an older useSearchParams snapshot on traversal.
+  // Reconcile selection before normalizing so that snapshot cannot erase the query.
   useEffect(() => {
     if (routedSearch === undefined || window.location.pathname !== "/compare") return;
-    const nextIds = readComparePlans(routedSearch, planIds, defaultPair);
+    const nextIds = readComparePlans(window.location.search, planIds, defaultPair);
+    setIds((current) =>
+      current.length === nextIds.length && current.every((id, index) => id === nextIds[index])
+        ? current
+        : nextIds,
+    );
     const next = `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
-      window.history.replaceState(null, "", next);
-  }, [routedSearch, planIds, defaultPair]);
+      router.replace(next, { scroll: false });
+  }, [routedSearch, planIds, defaultPair, router]);
   const selectPlans = (nextIds: string[]) => {
     setIds(nextIds);
-    window.history.replaceState(
-      null,
-      "",
-      `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`,
-    );
+    router.replace(`/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`, {
+      scroll: false,
+    });
   };
   const chosen = ids.flatMap((id) => {
     const plan = plans.find((entry) => entry.id === id);

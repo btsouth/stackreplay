@@ -15,6 +15,7 @@ for (const [id, name] of [
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/plans/${id}$`));
     await page.goForward();
+    await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=openai-chatgpt-pro$`));
     await expect(page.getByLabel("First plan")).toHaveValue(id);
     await page.getByLabel("Second plan").selectOption("google-code-assist-standard");
     await expect(page).toHaveURL(/right=google-code-assist-standard/u);
@@ -28,6 +29,9 @@ for (const [id, name] of [
       .click();
     await expect(page).toHaveURL(new RegExp(`/plans/${id}$`));
     await page.goBack();
+    await expect(page).toHaveURL(
+      new RegExp(`/compare\\?left=${id}&right=google-code-assist-standard$`),
+    );
     await expect(page.getByLabel("First plan")).toHaveValue(id);
     await expect(page.getByLabel("Second plan")).toHaveValue("google-code-assist-standard");
     if (id === "devin-teams") {
@@ -48,7 +52,32 @@ test("a full sibling comparison preserves the detail history entry", async ({ pa
   await page.goBack();
   await expect(page).toHaveURL(/\/plans\/devin-teams$/u);
   await page.goForward();
+  await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro$/u);
   await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
+  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+});
+
+test("shared comparison normalization preserves its hash and restored choices", async ({
+  page,
+}) => {
+  await page.goto("/compare?left=devin-teams#limits");
+  await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=openai-chatgpt-pro#limits$/u);
+  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
+  await page.getByLabel("Second plan").selectOption("devin-pro");
+  await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro#limits$/u);
+  await page
+    .getByTestId("compare-target")
+    .first()
+    .getByRole("link", { name: "Devin Teams", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/plans\/devin-teams$/u);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro#limits$/u);
+  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
+  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await page.goto("/compare?left=unknown&right=devin-pro&third=unknown#limits");
+  await expect(page).toHaveURL(/\/compare\?left=anthropic-claude-max-20x&right=devin-pro#limits$/u);
+  await expect(page.getByLabel("First plan")).toHaveValue("anthropic-claude-max-20x");
   await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
 });
 

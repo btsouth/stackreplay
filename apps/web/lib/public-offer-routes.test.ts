@@ -17,6 +17,7 @@ import { absoluteUrl } from "./site";
 const router = vi.hoisted(() => ({ search: "" }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(router.search),
+  useRouter: () => ({ replace: vi.fn() }),
   notFound: () => {
     throw new Error("Not found");
   },
