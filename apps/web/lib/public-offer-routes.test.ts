@@ -10,7 +10,7 @@ import sitemap from "../app/sitemap";
 import { CompareExplorer, RoutedCompareExplorer } from "../components/public/compare-explorer";
 import { PlanExplorer } from "../components/public/plan-explorer";
 import { buildCompareFacts, defaultComparePair } from "./compare-facts";
-import { loadPublicDirectory } from "./public-directory";
+import * as publicDirectoryModule from "./public-directory";
 import data from "./public-offers-data.json";
 import { publicPlanPricePresentation } from "./public-plan-price";
 import { absoluteUrl } from "./site";
@@ -23,7 +23,7 @@ vi.mock("next/navigation", () => ({
     throw new Error("Not found");
   },
 }));
-const catalog = loadPublicDirectory("2026-10-03");
+const catalog = publicDirectoryModule.loadPublicDirectory("2026-10-03");
 const facts = Object.fromEntries(
   catalog.plans.map((plan) => [plan.id, buildCompareFacts(plan, catalog.modelById)]),
 );
@@ -36,6 +36,7 @@ const compareProps = {
 };
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -95,6 +96,35 @@ describe("public offer routes and prices", () => {
       expect(entry()?.lastModified).toEqual(new Date("2026-10-03"));
     },
   );
+  it("keeps the calculator's offer observation separate from published terms review", async () => {
+    const publicCatalog = publicDirectoryModule.loadPublicDirectory("2026-10-03");
+    const offer = publicCatalog.planById("devin-teams");
+    if (offer?.kind !== "public_offer" || offer.publishedTerms === undefined) {
+      throw new Error("Missing Devin Teams public offer and terms");
+    }
+    const termsCheckedAt = "2026-10-07";
+    const clonedOffer = {
+      ...offer,
+      publishedTerms: { ...offer.publishedTerms, checkedAt: termsCheckedAt },
+    };
+    const clonedCatalog = {
+      ...publicCatalog,
+      plans: publicCatalog.plans.map((plan) => (plan.id === clonedOffer.id ? clonedOffer : plan)),
+      planById: (id: string) => (id === clonedOffer.id ? clonedOffer : publicCatalog.planById(id)),
+    };
+    const loadSpy = vi
+      .spyOn(publicDirectoryModule, "loadPublicDirectory")
+      .mockReturnValue(clonedCatalog);
+
+    const detail = renderToStaticMarkup(
+      await PlanPage({ params: Promise.resolve({ planId: "devin-teams" }) }),
+    );
+
+    expect(loadSpy).toHaveBeenCalled();
+    expect(detail).toContain("Published offer observed Oct 3, 2026");
+    expect(detail).toContain("Published terms checked 2026-10-07");
+    expect(detail).not.toContain("Published offer observed Oct 7, 2026");
+  });
   it("renders Google commitment and purchase qualifications in each hub offer row", async () => {
     const html = renderToStaticMarkup(
       await ProviderPage({ params: Promise.resolve({ providerId: "google" }) }),

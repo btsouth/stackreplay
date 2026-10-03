@@ -49,6 +49,13 @@ test("Devin Teams seat estimate is bounded to its accepted published formula", a
   const seats = calculator.getByLabel("Full developer seats");
 
   await expect(calculator).toBeVisible();
+  await expect(calculator).toContainText("Seat cost calculator");
+  await expect(calculator).toContainText("Estimate your monthly team fee");
+  await expect(calculator).toContainText(
+    "Enter the number of full developer seats to see the published monthly fee.",
+  );
+  await expect(calculator).toContainText("Use a whole number of seats.");
+  await expect(calculator).toContainText("Published formula");
   await expect(seats).toHaveValue("1");
   await expect(calculator).toContainText("$80 + 1 × $40");
   await expect(calculator.getByTestId("seat-estimate-total")).toContainText("$120");
@@ -75,6 +82,9 @@ test("Devin Teams seat estimate is bounded to its accepted published formula", a
   await seats.fill("5");
   await expect(seats).not.toHaveAttribute("aria-invalid", "true");
   await expect(calculator.getByTestId("seat-estimate-total")).toContainText("$280");
+  await expect(calculator).toContainText(
+    "Illustration based on the published monthly fee. Taxes, discounts and contract terms are not included.",
+  );
   await expect(calculator).toContainText("Published offer observed Oct 3, 2026");
   await expect(calculator.getByRole("link", { name: /Devin pricing and FAQ/u })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

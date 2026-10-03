@@ -116,7 +116,7 @@ export default async function PlanPage({ params }: Props) {
           <PlanPriceCalculator
             baseAmount={price.baseAmount}
             seatAmount={price.seatAmount}
-            observedAt={plan.publishedTerms?.checkedAt ?? plan.checkedAt}
+            observedAt={plan.checkedAt}
             source={calculatorSource}
           />
         )}

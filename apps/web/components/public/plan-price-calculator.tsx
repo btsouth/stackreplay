@@ -42,13 +42,12 @@ export function PlanPriceCalculator({
     >
       <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] lg:gap-12">
         <div className="min-w-0">
-          <p className="market-kicker">Informational monthly scenario</p>
+          <p className="market-kicker">Seat cost calculator</p>
           <h2 id={titleId} className="mt-2 text-2xl font-medium tracking-[-0.035em]">
-            Estimate a full developer seat mix
+            Estimate your monthly team fee
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Uses the published base and full developer seat amounts. This does not change the
-            catalog price or establish a purchase, workload capacity or invoice.
+            Enter the number of full developer seats to see the published monthly fee.
           </p>
           <label className="mt-6 block text-sm font-medium" htmlFor={`${titleId}-seats`}>
             Full developer seats
@@ -67,7 +66,7 @@ export function PlanPriceCalculator({
             className="mt-2 min-h-11 w-full max-w-xs border border-control-border bg-background px-3 py-2 text-base text-foreground tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           />
           <p id={hintId} className="market-muted mt-2">
-            Whole number of seats. Start with one to see this offer formula.
+            Use a whole number of seats.
           </p>
           {!estimate.ok && (
             <p id={errorId} role="alert" className="mt-2 text-sm text-negative">
@@ -76,7 +75,7 @@ export function PlanPriceCalculator({
           )}
         </div>
         <div className="min-w-0 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:border-border-strong lg:pl-8 lg:pt-0">
-          <p className="market-kicker">Recorded equation</p>
+          <p className="market-kicker">Published formula</p>
           <p className="mt-3 break-words font-mono text-sm leading-relaxed text-foreground">
             {baseDisplay} + {estimate.ok ? estimate.seatsDisplay : "—"} × {seatDisplay}
           </p>
@@ -102,9 +101,8 @@ export function PlanPriceCalculator({
             </p>
           )}
           <p className="mt-5 max-w-md text-xs leading-relaxed text-muted-foreground">
-            Monthly illustration only, not a catalog price, ranking, capacity estimate, replay,
-            invoice or purchase availability. Taxes, discounts, annual terms and commitment
-            requirements are not included.
+            Illustration based on the published monthly fee. Taxes, discounts and contract terms are
+            not included.
           </p>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
             Published offer observed {formatCatalogDate(observedAt)} · Source checked{" "}
