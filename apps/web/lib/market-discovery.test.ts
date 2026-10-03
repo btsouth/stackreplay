@@ -74,6 +74,43 @@ describe("public market discovery", () => {
     expect(modelPrices("claude-sonnet-5-5", "2026-09-27")).toEqual([]);
     expect(modelPrices("unpublished-model", "2026-09-28")).toEqual([]);
   });
+  it("records Mistral Large 3 as a Standard API list price from the first catalog observation", () => {
+    const rates = Object.values(loadCatalog().pricing).filter(
+      (price) => price.modelId === "mistral-large-3",
+    );
+    expect(rates).toHaveLength(1);
+    const record = rates[0];
+    expect(record).toMatchObject({
+      id: "mistral-large-3-api-pricing",
+      basis: "api_list_price",
+      effectiveFrom: "2026-10-03",
+      rates: { input: "0.5", output: "1.5", cacheRead: "0.05" },
+      verificationStatus: "verified",
+    });
+    expect(record?.serviceTier).toBeUndefined();
+    expect(record?.rates.cacheWrite).toBeUndefined();
+    expect(record?.sources).toEqual([
+      {
+        url: "https://docs.mistral.ai/inference/pricing",
+        title:
+          "Standard/default service tier, Mistral Large 3 row: input $0.5, cached input $0.05, output $1.5 per 1M tokens. First catalog observation is 2026-10-03; no provider-published price activation date is established in this source.",
+        checkedAt: "2026-10-03",
+      },
+    ]);
+
+    expect(basePrice(modelPrices("mistral-large-3", "2026-10-03"))?.rates).toMatchObject({
+      input: "0.5",
+      output: "1.5",
+      cacheRead: "0.05",
+    });
+    expect(modelPrices("mistral-large-3", "2026-10-02")).toEqual([]);
+
+    const publicModel = loadPublicCatalog("2026-10-03").modelById("mistral-large-3");
+    expect(publicModel?.lastVerifiedAt).toBe("2026-09-30");
+    expect(publicModel?.places).toContainEqual(
+      expect.objectContaining({ kind: "api", providerId: "mistral", label: "Mistral AI API" }),
+    );
+  });
   it("resolves explicit category aliases without inventing missing or cyclic rates", () => {
     expect(
       numericRate({ input: "2", output: "10", cacheRead: { billedAs: "input" } }, "cacheRead"),

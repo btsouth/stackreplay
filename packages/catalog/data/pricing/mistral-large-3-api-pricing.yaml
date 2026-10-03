@@ -1,0 +1,17 @@
+id: mistral-large-3-api-pricing
+role: pricing
+modelId: mistral-large-3
+currency: USD
+unit: per_1m_tokens
+basis: api_list_price
+rates:
+  input: '0.5'
+  output: '1.5'
+  cacheRead: '0.05'
+effectiveFrom: '2026-10-03'
+sources:
+- url: https://docs.mistral.ai/inference/pricing
+  title: 'Standard/default service tier, Mistral Large 3 row: input $0.5, cached input $0.05, output $1.5 per 1M tokens. First catalog observation is 2026-10-03; no provider-published price activation date is established in this source.'
+  checkedAt: '2026-10-03'
+lastVerifiedAt: '2026-10-03'
+verificationStatus: verified
