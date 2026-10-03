@@ -100,6 +100,7 @@ export interface PublicPlanSummary {
   providerName: string;
   versionId: string;
   effectiveFrom: string;
+  effectiveFromBasis?: LoadedPlanVersionV1["effectiveFromBasis"];
   price: PlanPriceV1;
   limits: readonly PlanLimitV1[];
   modelRules: readonly ModelRuleV1[];
@@ -273,6 +274,9 @@ function toPlanSummary(
     providerName: provider?.name ?? plan?.providerId ?? "Unknown provider",
     versionId: version.versionId,
     effectiveFrom: version.effectiveFrom,
+    ...(version.effectiveFromBasis !== undefined
+      ? { effectiveFromBasis: version.effectiveFromBasis }
+      : {}),
     price: version.price,
     limits: version.limits,
     modelRules: version.modelRules,

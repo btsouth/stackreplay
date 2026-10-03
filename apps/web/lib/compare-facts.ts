@@ -268,7 +268,13 @@ export function buildCompareFacts(
     evidence: plan.publishedTerms
       ? `Published terms checked ${formatCatalogDate(plan.publishedTerms.checkedAt)}`
       : verificationText(plan.verificationStatus, plan.lastVerifiedAt),
-    effective: `Rules in effect since ${formatCatalogDate(plan.effectiveFrom)}`,
+    effective: `${
+      plan.effectiveFromBasis === "provider"
+        ? "Provider rules effective from"
+        : plan.effectiveFromBasis === "catalog_recorded"
+          ? "Rules recorded in catalog on"
+          : "Rules version dated"
+    } ${formatCatalogDate(plan.effectiveFrom)}`,
     rules,
     ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
     ...(plan.publishedTerms ? { publishedTerms: plan.publishedTerms } : {}),

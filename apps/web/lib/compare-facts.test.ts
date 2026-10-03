@@ -43,6 +43,34 @@ function primaryText(facts: CompareFacts): string {
 }
 
 describe("public compare facts", () => {
+  it("distinguishes recorded coverage dates from provider effective dates", () => {
+    const current = loadPublicCatalog("2026-10-03");
+    for (const id of [
+      "kiro-free",
+      "kiro-pro",
+      "kiro-pro-plus",
+      "kiro-pro-max",
+      "kiro-power",
+      "cursor-teams-standard",
+      "cursor-teams-premium",
+    ]) {
+      const plan = current.planById(id);
+      expect(plan?.effectiveFromBasis, id).toBe("catalog_recorded");
+      if (!plan) throw new Error(`missing ${id}`);
+      expect(buildCompareFacts(plan, current.modelById).effective, id).toBe(
+        "Rules recorded in catalog on Oct 3, 2026",
+      );
+    }
+    for (const plan of current.plans) {
+      const facts = buildCompareFacts(plan, current.modelById);
+      if (plan.effectiveFromBasis === "provider") {
+        expect(facts.effective, plan.id).toMatch(/^Provider rules effective from /u);
+      } else {
+        expect(facts.effective, plan.id).not.toMatch(/effective from|in effect since/u);
+      }
+    }
+  });
+
   it("never uses catalog vocabulary in the primary rows", () => {
     for (const plan of catalog.plans) {
       const text = primaryText(buildCompareFacts(plan, catalog.modelById));
