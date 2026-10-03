@@ -396,7 +396,7 @@ test.describe("homepage without a saved workload", () => {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: /skip to content/iu })).toBeFocused();
     const order: string[] = [];
-    for (let step = 0; step < 12; step += 1) {
+    for (let step = 0; step < 13; step += 1) {
       await page.keyboard.press("Tab");
       order.push(
         await page.evaluate(
@@ -404,7 +404,7 @@ test.describe("homepage without a saved workload", () => {
         ),
       );
     }
-    expect(order.slice(1, 9)).toEqual([
+    expect(order.slice(1, 10)).toEqual([
       "Models",
       "Providers",
       "Benchmarks",
@@ -413,6 +413,7 @@ test.describe("homepage without a saved workload", () => {
       "Updates",
       "Workload",
       "My Stack",
+      "Scan my history",
     ]);
     expect(order).toContain("Compare leading models");
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
