@@ -145,12 +145,18 @@ export default async function ProviderPage({ params }: Props) {
               </Link>
             </h3>
             <p className="mt-2 text-lg break-words">{publicPlanPriceText(plan)}</p>
+            {plan.publishedTerms?.billingSummary && (
+              <p className="mt-2 text-sm">{plan.publishedTerms.billingSummary}</p>
+            )}
             <p className="market-muted mt-2">
               {planTools(plan).length
                 ? `Works with ${planTools(plan).join(" · ")}`
                 : "Tool compatibility not recorded."}
             </p>
             <p className="mt-2 text-sm">{planUsage(plan)}</p>
+            {plan.publishedTerms?.availabilityNote && (
+              <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
+            )}
             {plan.kind === "public_offer" && (
               <p className="market-muted mt-2">
                 Informational offer · Workload Replay unavailable.

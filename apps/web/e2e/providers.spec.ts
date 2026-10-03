@@ -62,16 +62,26 @@ test("provider offers preserve compound and licensed units without Replay links"
     true,
   );
   await page.goto("/providers/google");
-  await expect(
-    page
-      .getByTestId("provider-plan")
-      .filter({ has: page.locator('a[href="/plans/google-code-assist-standard"]') }),
-  ).toContainText("per licensed user / month");
-  await expect(
-    page
-      .getByTestId("provider-plan")
-      .filter({ has: page.locator('a[href="/plans/google-code-assist-enterprise"]') }),
-  ).toContainText("per licensed user / month");
+  const standard = page
+    .getByTestId("provider-plan")
+    .filter({ has: page.locator('a[href="/plans/google-code-assist-standard"]') });
+  const enterprise = page
+    .getByTestId("provider-plan")
+    .filter({ has: page.locator('a[href="/plans/google-code-assist-enterprise"]') });
+  await expect(standard).toContainText("per licensed user / month");
+  await expect(standard).toContainText(
+    "$22.80 per licensed user/month with a monthly commitment. Alternative: $19 per licensed user/month with a 12-month commitment, billed monthly.",
+  );
+  await expect(enterprise).toContainText("per licensed user / month");
+  await expect(enterprise).toContainText(
+    "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+  );
+  await expect(standard).toContainText(
+    "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+  );
+  await expect(enterprise).toContainText(
+    "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+  );
 });
 
 test("model-only and empty coverage stays accessible with unknowns and no API summary", async ({

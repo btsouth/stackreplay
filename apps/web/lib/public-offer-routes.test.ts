@@ -5,6 +5,7 @@ import PlanPage, {
   generateMetadata,
   generateStaticParams,
 } from "../app/(public)/plans/[planId]/page";
+import ProviderPage from "../app/(public)/providers/[providerId]/page";
 import sitemap from "../app/sitemap";
 import { CompareExplorer, RoutedCompareExplorer } from "../components/public/compare-explorer";
 import { PlanExplorer } from "../components/public/plan-explorer";
@@ -84,6 +85,31 @@ describe("public offer routes and prices", () => {
       expect(entry()?.lastModified).toEqual(new Date("2026-10-03"));
     },
   );
+  it("renders Google commitment and purchase qualifications in each hub offer row", async () => {
+    const html = renderToStaticMarkup(
+      await ProviderPage({ params: Promise.resolve({ providerId: "google" }) }),
+    );
+    const rows = [
+      ...html.matchAll(/<article[^>]*data-testid="provider-plan"[^>]*>([\s\S]*?)<\/article>/gu),
+    ].map((match) => match[1] ?? "");
+    const rowFor = (id: string) => {
+      const row = rows.find((entry) => entry.includes(`/plans/${id}`));
+      if (!row) throw new Error(`Missing Google provider offer row: ${id}`);
+      return row;
+    };
+
+    expect(rowFor("google-code-assist-standard")).toContain(
+      "$22.80 per licensed user/month with a monthly commitment. Alternative: $19 per licensed user/month with a 12-month commitment, billed monthly.",
+    );
+    expect(rowFor("google-code-assist-enterprise")).toContain(
+      "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+    );
+    for (const id of ["google-code-assist-standard", "google-code-assist-enterprise"]) {
+      expect(rowFor(id)).toContain(
+        "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+      );
+    }
+  });
   it("reads an incoming router query even when the browser URL is still the prior detail", () => {
     vi.stubGlobal("window", {
       location: { pathname: "/plans/cursor-teams-standard", search: "", hash: "" },
