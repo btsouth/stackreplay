@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { replayLink, routeCopy, routeLink } from "./replay-navigation";
 import {
   coverageShare,
+  isOrganizationPlan,
   type SuggestedRoute,
   suggestRoutes,
   supportedModelsFor,
@@ -74,6 +75,15 @@ function replayRoute(
 }
 
 describe("target coverage", () => {
+  it("classifies Cursor Teams plans as organization purchases", () => {
+    for (const id of ["cursor-teams-standard", "cursor-teams-premium"]) {
+      expect(isOrganizationPlan({ id, kind: "subscription" })).toBe(true);
+    }
+    for (const id of ["cursor-pro", "cursor-pro-plus", "cursor-ultra"]) {
+      expect(isOrganizationPlan({ id, kind: "subscription" })).toBe(false);
+    }
+  });
+
   // Each case replays every public target over every tool slice: well under a
   // second locally, several on a shared CI runner, so it declares its budget.
   it.each(WORKLOAD_ARCHETYPE_IDS)(

@@ -10,6 +10,7 @@ import { SubscriptionModelAccess } from "@/components/public/subscription-model-
 import { buildCompareFacts } from "@/lib/compare-facts";
 import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { publicPlanPriceText, publicPlanPriceUnit } from "@/lib/public-plan-price";
 import { publicPageMetadata } from "@/lib/site";
 
 interface Props {
@@ -62,7 +63,7 @@ export default async function PlanPage({ params }: Props) {
             ${Number(plan.price.amount).toLocaleString("en-US")}
           </p>
           <p className="market-muted">
-            USD / {plan.price.interval} · actual paid amount may differ
+            USD {publicPlanPriceUnit(plan)} · actual paid amount may differ
           </p>
           {plan.timeline !== undefined && (
             <PlanTermsNotice
@@ -203,8 +204,7 @@ export default async function PlanPage({ params }: Props) {
             >
               <span>{p.name}</span>
               <span className="font-mono text-sm">
-                ${p.price.amount} / {p.price.interval}{" "}
-                <span className="ml-4 text-accent">Compare ↗</span>
+                {publicPlanPriceText(p)} <span className="ml-4 text-accent">Compare ↗</span>
               </span>
             </Link>
           ))}

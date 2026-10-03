@@ -41,6 +41,21 @@ describe("public market discovery", () => {
       expect(loadPublicCatalog("2026-09-28").planById(id)?.limits).toEqual([]);
     }
   });
+  it("lists the October 3 public coding plans without making them replay targets", () => {
+    const { catalog } = marketDiscovery("2026-10-03");
+    for (const [id, amount] of [
+      ["kiro-free", "0"],
+      ["kiro-pro-plus", "40"],
+      ["kiro-pro-max", "100"],
+      ["kiro-power", "200"],
+      ["cursor-teams-standard", "40"],
+      ["cursor-teams-premium", "120"],
+    ] as const) {
+      expect(catalog.planById(id)?.price.amount, id).toBe(amount);
+      expect(catalog.planById(id)?.limits, id).toEqual([]);
+      expect(loadCatalog().plans[id]?.executionVersions ?? [], id).toEqual([]);
+    }
+  });
   it("shows current direct API rates and keeps cache scenarios separate", () => {
     const rates = modelPrices("claude-opus-5-5", "2026-09-28");
     expect(basePrice(rates)?.rates).toMatchObject({ input: "4", output: "20", cacheRead: "0.2" });

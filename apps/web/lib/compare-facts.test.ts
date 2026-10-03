@@ -43,6 +43,34 @@ function primaryText(facts: CompareFacts): string {
 }
 
 describe("public compare facts", () => {
+  it("distinguishes recorded coverage dates from provider effective dates", () => {
+    const current = loadPublicCatalog("2026-10-03");
+    for (const id of [
+      "kiro-free",
+      "kiro-pro",
+      "kiro-pro-plus",
+      "kiro-pro-max",
+      "kiro-power",
+      "cursor-teams-standard",
+      "cursor-teams-premium",
+    ]) {
+      const plan = current.planById(id);
+      expect(plan?.effectiveFromBasis, id).toBe("catalog_recorded");
+      if (!plan) throw new Error(`missing ${id}`);
+      expect(buildCompareFacts(plan, current.modelById).effective, id).toBe(
+        "Rules recorded in catalog on Oct 3, 2026",
+      );
+    }
+    for (const plan of current.plans) {
+      const facts = buildCompareFacts(plan, current.modelById);
+      if (plan.effectiveFromBasis === "provider") {
+        expect(facts.effective, plan.id).toMatch(/^Provider rules effective from /u);
+      } else {
+        expect(facts.effective, plan.id).not.toMatch(/effective from|in effect since/u);
+      }
+    }
+  });
+
   it("never uses catalog vocabulary in the primary rows", () => {
     for (const plan of catalog.plans) {
       const text = primaryText(buildCompareFacts(plan, catalog.modelById));
@@ -156,6 +184,51 @@ describe("public compare facts", () => {
         { id: "c", providerId: "y" },
       ]),
     ).toEqual(["a", "c"]);
+  });
+});
+
+describe("October 3 public coding coverage", () => {
+  const current = loadPublicCatalog("2026-10-03");
+  const factsFor = (id: string) => {
+    const plan = current.planById(id);
+    if (!plan) throw new Error(`missing ${id}`);
+    return buildCompareFacts(plan, current.modelById);
+  };
+
+  it("renders Kiro's numeric credits as buyer terms, not replay limits", () => {
+    for (const [id, summary] of [
+      ["kiro-free", "50 provider credits per month; add-ons unavailable"],
+      ["kiro-pro-plus", "2,000 credits per month; add-ons at $0.04 per credit"],
+      ["kiro-pro-max", "5,000 credits per month; add-ons at $0.04 per credit"],
+      ["kiro-power", "10,000 credits per month; add-ons at $0.04 per credit"],
+    ] as const) {
+      const facts = factsFor(id);
+      expect(facts.usage.numeric).toBe(false);
+      expect(facts.usage.lines[0]?.text).toBe(summary);
+    }
+    expect(factsFor("kiro-free").codingTools).not.toContain("Kiro Web");
+    expect(
+      factsFor("kiro-pro-plus").publishedTerms?.terms.find((term) => term.label === "Workflows")
+        ?.value,
+    ).toContain("existing account usage view");
+  });
+
+  it("shows Cursor Teams per-seat prices and per-user model pools", () => {
+    const standard = factsFor("cursor-teams-standard");
+    const premium = factsFor("cursor-teams-premium");
+    expect(standard.price).toBe("$40 per paid user / month");
+    expect(premium.price).toBe("$120 per paid user / month");
+    expect(factsFor("kiro-pro-plus").price).toBe("$40 per user / month");
+    expect(standard.usage.lines[0]?.text).toBe(
+      "Two monthly per-seat pools: Cursor Models and Other Models",
+    );
+    expect(
+      standard.publishedTerms?.terms.find((term) => term.label === "Cursor Token Rate")?.value,
+    ).toContain("input, output and cached tokens");
+    expect(
+      premium.publishedTerms?.terms.find((term) => term.label === "Included usage")?.value,
+    ).toContain("5x");
+    expect(standard.models.more.length + standard.models.featured.length).toBeGreaterThan(0);
   });
 });
 

@@ -192,6 +192,79 @@ describe("included plan counts", () => {
   });
 });
 
+describe("October 3 Kiro and Cursor Teams access", () => {
+  const at = "2026-10-03";
+  const namesAt = (id: string) => {
+    const access = subscriptionAccess(id, at);
+    if (!access) throw new Error(`Missing access for ${id}`);
+    return includedAccessModels(access).map((model) => model.name);
+  };
+
+  it("preserves the earlier Kiro Pro snapshot", () => {
+    const historical = subscriptionAccess("kiro-pro", "2026-10-02");
+    expect(historical?.checkedAt).toBe("2026-09-28");
+    expect(historical?.groups[1]?.label).toBe("Experimental rollout");
+    subscriptionAccess("kiro-pro", at);
+    expect(subscriptionAccess("kiro-pro", "2026-10-02")).toEqual(historical);
+  });
+
+  it("uses the current paid Kiro matrix and keeps Auto non-exact", () => {
+    const current = subscriptionAccess("kiro-pro", at);
+    if (!current) throw new Error("Missing Kiro Pro access");
+    const names = namesAt("kiro-pro");
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "Claude Opus 5.5",
+        "Claude Sonnet 5.5",
+        "GPT-5.6 Sol",
+        "GPT-5.6 Terra",
+        "GPT-5.6 Luna",
+      ]),
+    );
+    expect(names).not.toContain("Claude Fable 5.1");
+    expect(
+      current.groups[0]?.models.find((model) => model.modelId === "gpt-5-6-sol")?.note,
+    ).toContain("US-served");
+    expect(current.groups.find((group) => group.label === "Automatic selection")?.models).toEqual(
+      [],
+    );
+  });
+
+  it("shows the Free matrix separately and excludes Web", () => {
+    expect(namesAt("kiro-free")).toEqual(
+      expect.arrayContaining([
+        "Claude Sonnet 4.5",
+        "Claude Sonnet 4.0",
+        "DeepSeek 3.2",
+        "MiniMax M2.5",
+        "MiniMax M2.1",
+        "GLM-5",
+        "Qwen3 Coder Next",
+      ]),
+    );
+    expect(namesAt("kiro-free")).not.toContain("Claude Sonnet 5.5");
+    const free = subscriptionAccess("kiro-free", at);
+    expect(free?.groups.find((group) => group.label === "Automatic selection")?.models).toEqual([]);
+    expect(free?.groups[0]?.note).toContain("subject to rate limits");
+  });
+
+  it("shows two Cursor Teams pools without inventing an absolute size", () => {
+    for (const id of ["cursor-teams-standard", "cursor-teams-premium"]) {
+      const access = subscriptionAccess(id, at);
+      if (!access) throw new Error(`Missing access for ${id}`);
+      expect(access.groups.map((group) => group.label)).toEqual([
+        "Cursor Models pool",
+        "Other Models pool",
+        "Automatic selection",
+      ]);
+      expect(namesAt(id)).toContain("Claude Sonnet 5.5");
+      expect(access.groups[1]?.note).toContain("$0.25 per million token");
+      expect(access.groups[1]?.note).toContain("Auto and BYOK");
+    }
+    expect(subscriptionAccess("cursor-teams-premium", at)?.summary).toContain("5x Standard");
+  });
+});
+
 it("counts distinct published models, preserves route variants and excludes separately purchased access", () => {
   const access = {
     checkedAt: date,

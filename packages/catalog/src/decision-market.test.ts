@@ -6,6 +6,25 @@ import { compileExecutionPlan } from "./execution-compiler.js";
 
 const catalog = loadBundledCatalog();
 describe("D0 admitted market snapshot", () => {
+  it("does not admit the October 3 public coverage additions", () => {
+    for (const id of [
+      "kiro-free",
+      "kiro-pro-plus",
+      "kiro-pro-max",
+      "kiro-power",
+      "cursor-teams-standard",
+      "cursor-teams-premium",
+    ]) {
+      expect(
+        DECISION_MARKET.plans.find((plan) => plan.id === id),
+        id,
+      ).toBeUndefined();
+    }
+    expect(
+      DECISION_MARKET.plans.find((plan) => plan.id === "kiro-pro")?.artifact.planVersionId,
+    ).toBe("kiro-pro-current-20260927");
+  });
+
   it("reproduces every derived artifact with pinned overlays and catalog identity", () => {
     expect(DECISION_MARKET.catalogHash).toBe(catalog.catalogVersion);
     expect(DECISION_MARKET.plans).toHaveLength(23);

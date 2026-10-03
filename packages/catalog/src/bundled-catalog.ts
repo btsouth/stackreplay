@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:47ca2520d15a9dc108cd732e5d5022455c5b857ae1495ab778baaa5a24d6ef30";
+export const BUNDLED_CATALOG_VERSION = "sha256:ecd2d60abf72d20c6cd481705d8e5b7a18b53e14f7b89a9f64eed081b9416a9b";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:47ca2520d15a9dc108cd732e5d5022455c5b857ae1495ab778baaa5a24d6ef30",
+  "catalogVersion": "sha256:ecd2d60abf72d20c6cd481705d8e5b7a18b53e14f7b89a9f64eed081b9416a9b",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -11941,6 +11941,264 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "cursor-teams-premium": {
+      "id": "cursor-teams-premium",
+      "role": "plan",
+      "name": "Cursor Teams Premium",
+      "providerId": "cursor",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "120",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly price is $120 per paid user. The yearly toggle shows $96 per user per month, but annual commitment details are not published. Each paid seat receives two usage pools whose absolute sizes are not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Two separate per-seat pools, Cursor Models and Other Models, provide monthly usage. Cursor describes Premium as 5x usage or 5x Agent limits relative to Standard, but does not publish Standard's absolute amount or the exact scope of the multiple.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Each paid seat's pool resets at the start of the billing cycle. Usage does not transfer between members; no rollover term is published.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "On-demand usage is enabled by default and billed in arrears, with team spend controls available.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "cursor-token-rate",
+              "label": "Cursor Token Rate",
+              "statement": "Third-party model usage costs published model rates plus $0.25 per million tokens. The rate applies to input, output and cached tokens, including Auto and BYOK; Cursor Models are exempt.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Cursor editor and Agent · Cloud Agents and automations · Bugbot · team marketplace · centralized billing and administration · SAML/OIDC SSO.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "account-scope",
+              "label": "Account scope",
+              "statement": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No minimum-seat, trial, annual-commitment or country eligibility term is published.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "Named model access is plan- and organization-dependent. Auto chooses among supported models, but Cursor does not publish its exact request-to-model mapping.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5-1"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "composer-2-5"
+            },
+            {
+              "model": "gemini-3-1-pro"
+            },
+            {
+              "model": "gemini-3-8-flash"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "grok-4-5"
+            },
+            {
+              "model": "grok-4-6"
+            },
+            {
+              "model": "grok-4-7"
+            },
+            {
+              "model": "muse-spark-1-3"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://cursor.com/pricing",
+              "title": "Official current Teams Premium price and yearly toggle; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/account/teams/pricing",
+              "title": "Official Teams pools, relative allowance, on-demand and feature terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/models-and-pricing",
+              "title": "Official model pools and Cursor Token Rate",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/account/teams/setup",
+              "title": "Official Teams account and seat setup",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "cursor-teams-standard": {
+      "id": "cursor-teams-standard",
+      "role": "plan",
+      "name": "Cursor Teams Standard",
+      "providerId": "cursor",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "40",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly price is $40 per paid user. The yearly toggle shows $32 per user per month, but annual commitment details are not published. Each paid seat receives two usage pools whose absolute sizes are not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "Two separate per-seat pools, Cursor Models and Other Models, provide monthly usage. Cursor does not publish the absolute size of either pool.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Each paid seat's pool resets at the start of the billing cycle. Usage does not transfer between members; no rollover term is published.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "On-demand usage is enabled by default and billed in arrears, with team spend controls available.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "cursor-token-rate",
+              "label": "Cursor Token Rate",
+              "statement": "Third-party model usage costs published model rates plus $0.25 per million tokens. The rate applies to input, output and cached tokens, including Auto and BYOK; Cursor Models are exempt.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Cursor editor and Agent · Cloud Agents and automations · Bugbot · team marketplace · centralized billing and administration · SAML/OIDC SSO.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+            },
+            {
+              "id": "account-scope",
+              "label": "Account scope",
+              "statement": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No minimum-seat, trial, annual-commitment or country eligibility term is published.",
+              "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "Named model access is plan- and organization-dependent. Auto chooses among supported models, but Cursor does not publish its exact request-to-model mapping.",
+              "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5-1"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "composer-2-5"
+            },
+            {
+              "model": "gemini-3-1-pro"
+            },
+            {
+              "model": "gemini-3-8-flash"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "grok-4-5"
+            },
+            {
+              "model": "grok-4-6"
+            },
+            {
+              "model": "grok-4-7"
+            },
+            {
+              "model": "muse-spark-1-3"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://cursor.com/pricing",
+              "title": "Official current Teams price and yearly toggle; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/account/teams/pricing",
+              "title": "Official Teams pools, reset, on-demand and feature terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/models-and-pricing",
+              "title": "Official model pools and Cursor Token Rate",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://cursor.com/docs/account/teams/setup",
+              "title": "Official Teams account and seat setup",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
     "cursor-ultra": {
       "id": "cursor-ultra",
       "role": "plan",
@@ -16154,12 +16412,710 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ]
     },
+    "kiro-free": {
+      "id": "kiro-free",
+      "role": "plan",
+      "name": "Kiro Free",
+      "providerId": "kiro",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "0",
+            "interval": "month"
+          },
+          "billingMechanics": "Current free monthly offer recorded on October 3, 2026. The allowance is expressed in provider credits, not direct API dollars. The task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "50 provider credits refresh at the start of the next billing cycle. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "The usage cap renews at the start of the next billing cycle. Unused included credits do not roll over.",
+              "sourceUrl": "https://kiro.dev/docs/billing/"
+            },
+            {
+              "id": "after-limit",
+              "label": "After the limit",
+              "statement": "Add-on credits are unavailable on Free. Usage waits for the next reset.",
+              "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+              "topic": "after_limit"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Kiro IDE · Kiro CLI · Kiro Crew · ACP-compatible IDEs; Kiro Web is not included. Third-party automation harnesses are prohibited.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "availability",
+              "label": "Availability",
+              "statement": "Free is unavailable in Kiro Enterprise and AWS GovCloud (US). Individual plans are served from the commercial US geography; model access and rates can vary with provider geography and account controls.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "Free lists Claude Sonnet 4.5 and 4.0, DeepSeek 3.2, MiniMax M2.5 and M2.1, GLM-5, Qwen3 Coder Next, and Auto. Auto routes between supported models and does not publish one exact model identity.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-sonnet-4-5"
+            },
+            {
+              "model": "claude-sonnet-4"
+            },
+            {
+              "model": "deepseek-v3-2"
+            },
+            {
+              "model": "minimax-m2-5"
+            },
+            {
+              "model": "minimax-m2-1"
+            },
+            {
+              "model": "glm-5"
+            },
+            {
+              "model": "qwen3-coder-next"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://kiro.dev/pricing/",
+              "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/",
+              "title": "Official billing reset and no-rollover terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/add-on-credits/",
+              "title": "Official add-on availability terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/models/",
+              "title": "Official current free model matrix",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "kiro-power": {
+      "id": "kiro-power",
+      "role": "plan",
+      "name": "Kiro Power",
+      "providerId": "kiro",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "200",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "10,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "additional-credits",
+              "label": "Additional credits",
+              "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+              "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+              "topic": "after_limit"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+              "sourceUrl": "https://kiro.dev/docs/billing/"
+            },
+            {
+              "id": "workflows",
+              "label": "Workflows",
+              "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "availability",
+              "label": "Availability",
+              "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-6"
+            },
+            {
+              "model": "claude-opus-4-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-4-5"
+            },
+            {
+              "model": "claude-sonnet-4"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "deepseek-v3-2"
+            },
+            {
+              "model": "minimax-m2-5"
+            },
+            {
+              "model": "minimax-m2-1"
+            },
+            {
+              "model": "glm-5"
+            },
+            {
+              "model": "qwen3-coder-next"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://kiro.dev/pricing/",
+              "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/",
+              "title": "Official billing reset and rollover terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/add-on-credits/",
+              "title": "Official add-on price, purchase and expiry terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/models/",
+              "title": "Official current paid model matrix and geography",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "kiro-pro-max": {
+      "id": "kiro-pro-max",
+      "role": "plan",
+      "name": "Kiro Pro Max",
+      "providerId": "kiro",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "5,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "additional-credits",
+              "label": "Additional credits",
+              "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+              "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+              "topic": "after_limit"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+              "sourceUrl": "https://kiro.dev/docs/billing/"
+            },
+            {
+              "id": "workflows",
+              "label": "Workflows",
+              "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "availability",
+              "label": "Availability",
+              "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-6"
+            },
+            {
+              "model": "claude-opus-4-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-4-5"
+            },
+            {
+              "model": "claude-sonnet-4"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "deepseek-v3-2"
+            },
+            {
+              "model": "minimax-m2-5"
+            },
+            {
+              "model": "minimax-m2-1"
+            },
+            {
+              "model": "glm-5"
+            },
+            {
+              "model": "qwen3-coder-next"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://kiro.dev/pricing/",
+              "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/",
+              "title": "Official billing reset and rollover terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/add-on-credits/",
+              "title": "Official add-on price, purchase and expiry terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/models/",
+              "title": "Official current paid model matrix and geography",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
+    "kiro-pro-plus": {
+      "id": "kiro-pro-plus",
+      "role": "plan",
+      "name": "Kiro Pro+",
+      "providerId": "kiro",
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "40",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "2,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "additional-credits",
+              "label": "Additional credits",
+              "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+              "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+              "topic": "after_limit"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+              "sourceUrl": "https://kiro.dev/docs/billing/"
+            },
+            {
+              "id": "workflows",
+              "label": "Workflows",
+              "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "availability",
+              "label": "Availability",
+              "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-6"
+            },
+            {
+              "model": "claude-opus-4-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-4-5"
+            },
+            {
+              "model": "claude-sonnet-4"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "deepseek-v3-2"
+            },
+            {
+              "model": "minimax-m2-5"
+            },
+            {
+              "model": "minimax-m2-1"
+            },
+            {
+              "model": "glm-5"
+            },
+            {
+              "model": "qwen3-coder-next"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://kiro.dev/pricing/",
+              "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/",
+              "title": "Official billing reset and rollover terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/add-on-credits/",
+              "title": "Official add-on price, purchase and expiry terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/models/",
+              "title": "Official current paid model matrix and geography",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ]
+    },
     "kiro-pro": {
       "id": "kiro-pro",
       "role": "plan",
       "name": "Kiro Pro",
       "providerId": "kiro",
-      "versions": [],
+      "versions": [
+        {
+          "effectiveFrom": "2026-10-03",
+          "effectiveFromBasis": "catalog_recorded",
+          "price": {
+            "currency": "USD",
+            "amount": "20",
+            "interval": "month"
+          },
+          "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+          "limits": [],
+          "qualitativeLimits": [
+            {
+              "id": "included-usage",
+              "label": "Included usage",
+              "statement": "1,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "additional-credits",
+              "label": "Additional credits",
+              "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+              "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+              "topic": "after_limit"
+            },
+            {
+              "id": "reset-and-rollover",
+              "label": "Reset and rollover",
+              "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+              "sourceUrl": "https://kiro.dev/docs/billing/"
+            },
+            {
+              "id": "workflows",
+              "label": "Workflows",
+              "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "compatible-tools",
+              "label": "Compatible tools",
+              "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+              "sourceUrl": "https://kiro.dev/pricing/"
+            },
+            {
+              "id": "availability",
+              "label": "Availability",
+              "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            },
+            {
+              "id": "model-access-scope",
+              "label": "Model access scope",
+              "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+              "sourceUrl": "https://kiro.dev/docs/models/"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "gpt-5-6-sol"
+            },
+            {
+              "model": "gpt-5-6-terra"
+            },
+            {
+              "model": "gpt-5-6-luna"
+            },
+            {
+              "model": "claude-opus-5-5"
+            },
+            {
+              "model": "claude-opus-5"
+            },
+            {
+              "model": "claude-opus-4-8"
+            },
+            {
+              "model": "claude-opus-4-7"
+            },
+            {
+              "model": "claude-opus-4-6"
+            },
+            {
+              "model": "claude-opus-4-5"
+            },
+            {
+              "model": "claude-sonnet-5-5"
+            },
+            {
+              "model": "claude-sonnet-5"
+            },
+            {
+              "model": "claude-sonnet-4-6"
+            },
+            {
+              "model": "claude-sonnet-4-5"
+            },
+            {
+              "model": "claude-sonnet-4"
+            },
+            {
+              "model": "claude-haiku-4-5"
+            },
+            {
+              "model": "deepseek-v3-2"
+            },
+            {
+              "model": "minimax-m2-5"
+            },
+            {
+              "model": "minimax-m2-1"
+            },
+            {
+              "model": "glm-5"
+            },
+            {
+              "model": "qwen3-coder-next"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://kiro.dev/pricing/",
+              "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/",
+              "title": "Official billing reset and rollover terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/billing/add-on-credits/",
+              "title": "Official add-on price, purchase and expiry terms",
+              "checkedAt": "2026-10-03"
+            },
+            {
+              "url": "https://kiro.dev/docs/models/",
+              "title": "Official current paid model matrix and geography",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
       "executionVersions": [
         {
           "schemaVersion": 1,
@@ -21639,6 +22595,256 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Cursor Pro",
       "providerId": "cursor"
     },
+    "cursor-teams-premium@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "120",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly price is $120 per paid user. The yearly toggle shows $96 per user per month, but annual commitment details are not published. Each paid seat receives two usage pools whose absolute sizes are not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Two separate per-seat pools, Cursor Models and Other Models, provide monthly usage. Cursor describes Premium as 5x usage or 5x Agent limits relative to Standard, but does not publish Standard's absolute amount or the exact scope of the multiple.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Each paid seat's pool resets at the start of the billing cycle. Usage does not transfer between members; no rollover term is published.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "On-demand usage is enabled by default and billed in arrears, with team spend controls available.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "cursor-token-rate",
+          "label": "Cursor Token Rate",
+          "statement": "Third-party model usage costs published model rates plus $0.25 per million tokens. The rate applies to input, output and cached tokens, including Auto and BYOK; Cursor Models are exempt.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Cursor editor and Agent · Cloud Agents and automations · Bugbot · team marketplace · centralized billing and administration · SAML/OIDC SSO.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "account-scope",
+          "label": "Account scope",
+          "statement": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No minimum-seat, trial, annual-commitment or country eligibility term is published.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "Named model access is plan- and organization-dependent. Auto chooses among supported models, but Cursor does not publish its exact request-to-model mapping.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5-1"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "composer-2-5"
+        },
+        {
+          "model": "gemini-3-1-pro"
+        },
+        {
+          "model": "gemini-3-8-flash"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "grok-4-5"
+        },
+        {
+          "model": "grok-4-6"
+        },
+        {
+          "model": "grok-4-7"
+        },
+        {
+          "model": "muse-spark-1-3"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://cursor.com/pricing",
+          "title": "Official current Teams Premium price and yearly toggle; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/account/teams/pricing",
+          "title": "Official Teams pools, relative allowance, on-demand and feature terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Official model pools and Cursor Token Rate",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/account/teams/setup",
+          "title": "Official Teams account and seat setup",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "cursor-teams-premium@2026-10-03",
+      "planId": "cursor-teams-premium",
+      "planName": "Cursor Teams Premium",
+      "providerId": "cursor"
+    },
+    "cursor-teams-standard@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "40",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly price is $40 per paid user. The yearly toggle shows $32 per user per month, but annual commitment details are not published. Each paid seat receives two usage pools whose absolute sizes are not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "Two separate per-seat pools, Cursor Models and Other Models, provide monthly usage. Cursor does not publish the absolute size of either pool.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Each paid seat's pool resets at the start of the billing cycle. Usage does not transfer between members; no rollover term is published.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "On-demand usage is enabled by default and billed in arrears, with team spend controls available.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "cursor-token-rate",
+          "label": "Cursor Token Rate",
+          "statement": "Third-party model usage costs published model rates plus $0.25 per million tokens. The rate applies to input, output and cached tokens, including Auto and BYOK; Cursor Models are exempt.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Cursor editor and Agent · Cloud Agents and automations · Bugbot · team marketplace · centralized billing and administration · SAML/OIDC SSO.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+        },
+        {
+          "id": "account-scope",
+          "label": "Account scope",
+          "statement": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No minimum-seat, trial, annual-commitment or country eligibility term is published.",
+          "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "Named model access is plan- and organization-dependent. Auto chooses among supported models, but Cursor does not publish its exact request-to-model mapping.",
+          "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5-1"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "composer-2-5"
+        },
+        {
+          "model": "gemini-3-1-pro"
+        },
+        {
+          "model": "gemini-3-8-flash"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "grok-4-5"
+        },
+        {
+          "model": "grok-4-6"
+        },
+        {
+          "model": "grok-4-7"
+        },
+        {
+          "model": "muse-spark-1-3"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://cursor.com/pricing",
+          "title": "Official current Teams price and yearly toggle; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/account/teams/pricing",
+          "title": "Official Teams pools, reset, on-demand and feature terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/models-and-pricing",
+          "title": "Official model pools and Cursor Token Rate",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cursor.com/docs/account/teams/setup",
+          "title": "Official Teams account and seat setup",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "cursor-teams-standard@2026-10-03",
+      "planId": "cursor-teams-standard",
+      "planName": "Cursor Teams Standard",
+      "providerId": "cursor"
+    },
     "cursor-ultra@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "price": {
@@ -25641,6 +26847,691 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planId": "google-ai-ultra",
       "planName": "Google AI Ultra 5x",
       "providerId": "google"
+    },
+    "kiro-free@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "0",
+        "interval": "month"
+      },
+      "billingMechanics": "Current free monthly offer recorded on October 3, 2026. The allowance is expressed in provider credits, not direct API dollars. The task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "50 provider credits refresh at the start of the next billing cycle. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "The usage cap renews at the start of the next billing cycle. Unused included credits do not roll over.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "id": "after-limit",
+          "label": "After the limit",
+          "statement": "Add-on credits are unavailable on Free. Usage waits for the next reset.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+          "topic": "after_limit"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Kiro IDE · Kiro CLI · Kiro Crew · ACP-compatible IDEs; Kiro Web is not included. Third-party automation harnesses are prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "availability",
+          "label": "Availability",
+          "statement": "Free is unavailable in Kiro Enterprise and AWS GovCloud (US). Individual plans are served from the commercial US geography; model access and rates can vary with provider geography and account controls.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "Free lists Claude Sonnet 4.5 and 4.0, DeepSeek 3.2, MiniMax M2.5 and M2.1, GLM-5, Qwen3 Coder Next, and Auto. Auto routes between supported models and does not publish one exact model identity.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-sonnet-4-5"
+        },
+        {
+          "model": "claude-sonnet-4"
+        },
+        {
+          "model": "deepseek-v3-2"
+        },
+        {
+          "model": "minimax-m2-5"
+        },
+        {
+          "model": "minimax-m2-1"
+        },
+        {
+          "model": "glm-5"
+        },
+        {
+          "model": "qwen3-coder-next"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/",
+          "title": "Official billing reset and no-rollover terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/add-on-credits/",
+          "title": "Official add-on availability terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/models/",
+          "title": "Official current free model matrix",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "kiro-free@2026-10-03",
+      "planId": "kiro-free",
+      "planName": "Kiro Free",
+      "providerId": "kiro"
+    },
+    "kiro-power@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "200",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "10,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "additional-credits",
+          "label": "Additional credits",
+          "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+          "topic": "after_limit"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "id": "workflows",
+          "label": "Workflows",
+          "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "availability",
+          "label": "Availability",
+          "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-6"
+        },
+        {
+          "model": "claude-opus-4-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-4-5"
+        },
+        {
+          "model": "claude-sonnet-4"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "deepseek-v3-2"
+        },
+        {
+          "model": "minimax-m2-5"
+        },
+        {
+          "model": "minimax-m2-1"
+        },
+        {
+          "model": "glm-5"
+        },
+        {
+          "model": "qwen3-coder-next"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/",
+          "title": "Official billing reset and rollover terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/add-on-credits/",
+          "title": "Official add-on price, purchase and expiry terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/models/",
+          "title": "Official current paid model matrix and geography",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "kiro-power@2026-10-03",
+      "planId": "kiro-power",
+      "planName": "Kiro Power",
+      "providerId": "kiro"
+    },
+    "kiro-pro-max@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "5,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "additional-credits",
+          "label": "Additional credits",
+          "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+          "topic": "after_limit"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "id": "workflows",
+          "label": "Workflows",
+          "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "availability",
+          "label": "Availability",
+          "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-6"
+        },
+        {
+          "model": "claude-opus-4-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-4-5"
+        },
+        {
+          "model": "claude-sonnet-4"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "deepseek-v3-2"
+        },
+        {
+          "model": "minimax-m2-5"
+        },
+        {
+          "model": "minimax-m2-1"
+        },
+        {
+          "model": "glm-5"
+        },
+        {
+          "model": "qwen3-coder-next"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/",
+          "title": "Official billing reset and rollover terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/add-on-credits/",
+          "title": "Official add-on price, purchase and expiry terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/models/",
+          "title": "Official current paid model matrix and geography",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "kiro-pro-max@2026-10-03",
+      "planId": "kiro-pro-max",
+      "planName": "Kiro Pro Max",
+      "providerId": "kiro"
+    },
+    "kiro-pro-plus@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "40",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "2,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "additional-credits",
+          "label": "Additional credits",
+          "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+          "topic": "after_limit"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "id": "workflows",
+          "label": "Workflows",
+          "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "availability",
+          "label": "Availability",
+          "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-6"
+        },
+        {
+          "model": "claude-opus-4-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-4-5"
+        },
+        {
+          "model": "claude-sonnet-4"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "deepseek-v3-2"
+        },
+        {
+          "model": "minimax-m2-5"
+        },
+        {
+          "model": "minimax-m2-1"
+        },
+        {
+          "model": "glm-5"
+        },
+        {
+          "model": "qwen3-coder-next"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/",
+          "title": "Official billing reset and rollover terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/add-on-credits/",
+          "title": "Official add-on price, purchase and expiry terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/models/",
+          "title": "Official current paid model matrix and geography",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "kiro-pro-plus@2026-10-03",
+      "planId": "kiro-pro-plus",
+      "planName": "Kiro Pro+",
+      "providerId": "kiro"
+    },
+    "kiro-pro@2026-10-03": {
+      "effectiveFrom": "2026-10-03",
+      "effectiveFromBasis": "catalog_recorded",
+      "price": {
+        "currency": "USD",
+        "amount": "20",
+        "interval": "month"
+      },
+      "billingMechanics": "Current monthly offer recorded on October 3, 2026. Kiro credits measure work rather than API dollars. The base task-credit debit formula is not published, so exact subscription capacity is not admitted for replay.",
+      "limits": [],
+      "qualitativeLimits": [
+        {
+          "id": "included-usage",
+          "label": "Included usage",
+          "statement": "1,000 provider credits per billing month. Credits vary with model multiplier and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "additional-credits",
+          "label": "Additional credits",
+          "statement": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; add-ons roll over monthly and each purchase expires 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/",
+          "topic": "after_limit"
+        },
+        {
+          "id": "reset-and-rollover",
+          "label": "Reset and rollover",
+          "statement": "Included credits reset at the start of the billing month and do not roll over. Purchased add-ons roll over monthly until their 12-month expiry.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "id": "workflows",
+          "label": "Workflows",
+          "statement": "Workflows use the same Kiro credit model as other agent work; complexity affects usage and consumption appears in the existing account usage view. Kiro does not publish a separate workflow meter.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "compatible-tools",
+          "label": "Compatible tools",
+          "statement": "Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs · CI/CD automation. Third-party automation harnesses are prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "id": "availability",
+          "label": "Availability",
+          "statement": "Individual paid plans are served from the commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Availability remains subject to provider geography, client and account controls.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        },
+        {
+          "id": "model-access-scope",
+          "label": "Model access scope",
+          "statement": "The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only and excluded. Auto does not publish one exact model identity.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "gpt-5-6-sol"
+        },
+        {
+          "model": "gpt-5-6-terra"
+        },
+        {
+          "model": "gpt-5-6-luna"
+        },
+        {
+          "model": "claude-opus-5-5"
+        },
+        {
+          "model": "claude-opus-5"
+        },
+        {
+          "model": "claude-opus-4-8"
+        },
+        {
+          "model": "claude-opus-4-7"
+        },
+        {
+          "model": "claude-opus-4-6"
+        },
+        {
+          "model": "claude-opus-4-5"
+        },
+        {
+          "model": "claude-sonnet-5-5"
+        },
+        {
+          "model": "claude-sonnet-5"
+        },
+        {
+          "model": "claude-sonnet-4-6"
+        },
+        {
+          "model": "claude-sonnet-4-5"
+        },
+        {
+          "model": "claude-sonnet-4"
+        },
+        {
+          "model": "claude-haiku-4-5"
+        },
+        {
+          "model": "deepseek-v3-2"
+        },
+        {
+          "model": "minimax-m2-5"
+        },
+        {
+          "model": "minimax-m2-1"
+        },
+        {
+          "model": "glm-5"
+        },
+        {
+          "model": "qwen3-coder-next"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://kiro.dev/pricing/",
+          "title": "Official current price, credits, tools and account limits; catalog admission date, not a historical launch date",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/",
+          "title": "Official billing reset and rollover terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/billing/add-on-credits/",
+          "title": "Official add-on price, purchase and expiry terms",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://kiro.dev/docs/models/",
+          "title": "Official current paid model matrix and geography",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "kiro-pro@2026-10-03",
+      "planId": "kiro-pro",
+      "planName": "Kiro Pro",
+      "providerId": "kiro"
     },
     "ollama-cloud-max@2026-09-28": {
       "effectiveFrom": "2026-09-28",

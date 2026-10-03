@@ -1,11 +1,6 @@
-import {
-  exceedText,
-  formatCatalogDate,
-  limitSentence,
-  priceText,
-  verificationText,
-} from "./catalog-copy";
+import { exceedText, formatCatalogDate, limitSentence, verificationText } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
+import { publicPlanPriceText } from "./public-plan-price";
 import {
   accessModelKey,
   includedAccessModels,
@@ -252,7 +247,7 @@ export function buildCompareFacts(
     planId: plan.id,
     planName: plan.name,
     providerName: plan.providerName,
-    price: priceText(plan.price),
+    price: publicPlanPriceText(plan),
     models: {
       featured,
       more: included.filter((model) => !featured.includes(model)),
@@ -273,7 +268,13 @@ export function buildCompareFacts(
     evidence: plan.publishedTerms
       ? `Published terms checked ${formatCatalogDate(plan.publishedTerms.checkedAt)}`
       : verificationText(plan.verificationStatus, plan.lastVerifiedAt),
-    effective: `Rules in effect since ${formatCatalogDate(plan.effectiveFrom)}`,
+    effective: `${
+      plan.effectiveFromBasis === "provider"
+        ? "Provider rules effective from"
+        : plan.effectiveFromBasis === "catalog_recorded"
+          ? "Rules recorded in catalog on"
+          : "Rules version dated"
+    } ${formatCatalogDate(plan.effectiveFrom)}`,
     rules,
     ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
     ...(plan.publishedTerms ? { publishedTerms: plan.publishedTerms } : {}),
