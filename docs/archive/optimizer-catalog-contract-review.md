@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # Optimizer / execution catalog contract review
 
 Review date: 2026-09-27. Architecture only. Proposed contract for review, not an implemented schema or acceptance of provider facts.
@@ -15,7 +17,7 @@ Implementation inspected:
 - `packages/replay-engine/src/{optimizer.ts,optimizer-types.ts,exact-optimizer.ts,optimizer-assignment.ts,initial-capacity.ts,windows.ts,time.ts,units.ts,receipt.ts,api-replay.ts}`; the O2-to-O3A diff of exact optimization; `engine.ts` target validation, pricing preparation, constraint construction, atomic admission and initial-state integration.
 - `packages/replay-engine/src/initial-capacity.test.ts`; exact optimizer policy, scope, budget and initial-state tests; assignment oracle test inventory.
 - `apps/web/lib/optimizer-runtime.ts`, `apps/web/workers/optimizer.worker.ts`; optimizer and load-generation paths in `replay.worker.ts`, optimizer client and protocol paths; runtime/client/supersession test inventories.
-- `packages/catalog/src/{schema.ts,versions.ts,load.ts}` and `docs/{optimizer-architecture.md,optimizer-o2.md,optimizer-o3a.md,CATALOG_INTELLIGENCE.md}`.
+- `packages/catalog/src/{schema.ts,versions.ts,load.ts}` and `docs/{optimizer-architecture.md,archive/optimizer-o2.md,archive/optimizer-o3a.md,CATALOG_INTELLIGENCE.md}`.
 
 This is a source review with hand-worked adversarial fixtures, not a fresh test or performance run. Existing measurements and test counts are historical evidence from the O3A note, not reverified measurements.
 

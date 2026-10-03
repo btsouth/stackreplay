@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # C1 execution catalog and compiler
 
 C1 extends the existing `packages/catalog` plan record. It does not create a provider database or accept any of the execution-market research observations as provider facts. The only new plans in C1 are synthetic test records. The compiler target is the canonical `CompiledExecutionPlanV2` in `packages/schema/src/compiled-execution.ts`; O3B.1 owns scenario version 2, purchase-cycle arithmetic, concrete partition binding, and replay.

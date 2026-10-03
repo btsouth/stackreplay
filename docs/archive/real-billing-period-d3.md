@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # D3: Real billing-period review
 
 D3 prices the actual Claude model mix with exact direct API routes and exposes a
@@ -133,7 +135,7 @@ The direct engine review, including coverage, took 3.64 seconds for the original
 The production Worker review in omabox took 3.04 seconds initially and 2.88 seconds
 for the explicit period, returning a 43,689-byte aggregate. No POST occurred during
 import or review; the final real-data mobile screenshot has no horizontal overflow.
-See [aggregate timings](benchmarks/real-billing-period-d3.json).
+See [aggregate timings](../benchmarks/real-billing-period-d3.json).
 
 Exact real-review conclusion:
 

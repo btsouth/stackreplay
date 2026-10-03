@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # O2: exact-model optimization
 
 O2 is committed as `eb2233a525344d9cc277229cb8486ba36e779aef`.

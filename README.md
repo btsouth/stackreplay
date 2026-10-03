@@ -160,7 +160,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and expectations.
 
 ```
 apps/
-  web/            Next.js application (shell today; replay and public surfaces later)
+  web/            Next.js application with private workload and replay routes plus public site surfaces
   cli/            stackreplay CLI: detect, scan, export, replay, plans, doctor
 packages/
   replay-engine/  Deterministic replay simulation
@@ -172,7 +172,7 @@ packages/
   config/         Shared TypeScript configuration
   test-fixtures/  Deterministic synthetic demo data (no real user data)
 tooling/          Repository scripts (catalog validation, token contrast)
-docs/             Decisions, status and the public release checklist
+docs/             Documentation index (README), technical references, decisions and archived notes
 ```
 
 ## Contributing

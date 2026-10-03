@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # D4: One real Claude billing cycle
 
 D4 completes an account-scoped economic review using local invoice facts and the

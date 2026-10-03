@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # O3B.1: bound partitions and timezone-correct purchase cycles
 
 This repairs the O3B compiler/runtime boundary; it does not expand the candidate family, capacity mechanics, continuation modes or provider catalog. The architecture-review history remains unchanged.
@@ -91,8 +93,8 @@ Compile only immutable accepted schedule/price/entitlement semantics into versio
 
 - `apps/web/e2e/compiled-optimizer.spec.ts`
 - `docs/optimizer-architecture.md`
-- `docs/optimizer-o3b.md`
-- `docs/optimizer-o3b1.md`
+- `docs/archive/optimizer-o3b.md`
+- `docs/archive/optimizer-o3b1.md`
 - `packages/replay-engine/package.json`
 - `packages/replay-engine/src/compiled-capacity.ts`
 - `packages/replay-engine/src/compiled-optimizer.ts`

@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # D1 — The decision experience
 
 D1 makes the D0 market calculation the primary answer after import, on Workload,
@@ -117,7 +119,7 @@ concurrent test workers). These are observed runs, not a claimed engine speedup.
 | 100,000 | 7.58 s | 6.52 s | 47.3 ms | 34,961 |
 
 Repeated summaries were identical, cancelled runs emitted no stale success, and
-no assignment arrays reached the page. See `benchmarks/decision-experience-d1.json`.
+no assignment arrays reached the page. See `../benchmarks/decision-experience-d1.json`.
 The browser UI separately proves completed-summary reuse across the three decision
 surfaces; this does not bypass the engine benchmark's repeated executions.
 
