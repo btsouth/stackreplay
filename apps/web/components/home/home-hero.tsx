@@ -1,26 +1,8 @@
 import Link from "next/link";
-import type { HomeCatalogIndex } from "@/lib/home/personal";
-import type { MarketEventView } from "@/lib/market/events";
 import { LocalWorkloadAction } from "../local-workload-action";
-import { MarketBriefing, MarketWeek } from "./market-briefing";
 
-/**
- * The first viewport: a short product statement, then today's AI market from
- * the canonical feed. The newest event is the lead story and the next four
- * are compact rows, so the market reads before any product copy does.
- */
-export function HomeHero({
-  briefing,
-  recent,
-  builtOn,
-  index,
-}: {
-  briefing: readonly MarketEventView[];
-  /** Every accepted event, any importance, no older than thirty days. */
-  recent: readonly MarketEventView[];
-  builtOn: string;
-  index: HomeCatalogIndex;
-}) {
+/** Discovery first; returning readers keep their browser-local workload action. */
+export function HomeHero() {
   return (
     <section className="home-hero" aria-labelledby="home-title" data-testid="home-hero">
       <div className="home-intro">
@@ -33,14 +15,25 @@ export function HomeHero({
         </div>
         <div className="home-intro-side">
           <p className="home-intro-lede">
-            Model releases, benchmarks, prices and subscription changes, each with its source. Scan
-            your AI history locally and see which of them touch your own work.
+            Explore models, API prices and subscription access, with sources for each. Compare the
+            recorded facts before choosing what fits your work.
           </p>
+          <nav className="home-discovery-actions" aria-label="Explore the AI market">
+            <a href="/models" className="home-button">
+              Explore models <span aria-hidden="true">→</span>
+            </a>
+            <a href="/providers" className="home-button home-button-quiet">
+              Explore providers <span aria-hidden="true">→</span>
+            </a>
+            <a href="/compare" className="home-button home-button-quiet">
+              Compare plans <span aria-hidden="true">→</span>
+            </a>
+          </nav>
           <div className="home-hero-actions">
-            <Link href="#frontier" className="home-button">
+            <Link href="#frontier" className="home-cta-link">
               Compare leading models
             </Link>
-            <LocalWorkloadAction variant="hero" className="home-button home-button-quiet" />
+            <LocalWorkloadAction variant="hero" className="home-cta-link" />
           </div>
           <p className="home-trust" data-testid="home-trust">
             Your history is analyzed in this browser and never uploaded.{" "}
@@ -50,8 +43,6 @@ export function HomeHero({
           </p>
         </div>
       </div>
-      <MarketWeek events={recent} builtOn={builtOn} index={index} />
-      <MarketBriefing events={briefing} builtOn={builtOn} index={index} />
     </section>
   );
 }

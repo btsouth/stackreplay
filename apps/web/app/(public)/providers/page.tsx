@@ -21,6 +21,7 @@ export default function ProvidersPage() {
   return (
     <div>
       <MarketHeader
+        compact
         eyebrow="Providers / Follow the source"
         title="Explore the providers."
         description="See who develops the models, where API access is recorded and who publishes the plans. Coverage reflects sourced records, not the whole market."

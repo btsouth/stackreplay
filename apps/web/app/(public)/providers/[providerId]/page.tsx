@@ -87,136 +87,190 @@ export default async function ProviderPage({ params }: Props) {
     const plan = data.directory.planById(id);
     return plan ? [plan] : [];
   });
+  const apiModels = models(provider.apiModelIds);
   const events = data.events.filter((event) => provider.eventIds.includes(event.id));
+  const sections = [
+    {
+      id: "developed-models",
+      label: "Developed models",
+      count: developed.length,
+      empty: "No developed models recorded.",
+    },
+    {
+      id: "recorded-api",
+      label: "Recorded API access",
+      count: apiModels.length,
+      empty: "No API access recorded in this public view.",
+    },
+    {
+      id: "published-plans",
+      label: "Published plans and offers",
+      count: plans.length,
+      empty: "No current public plans or offers recorded.",
+    },
+    {
+      id: "provider-updates",
+      label: "Updates",
+      count: events.length,
+      empty: "No accepted provider updates recorded.",
+    },
+  ];
+  const emptySections = sections.filter((section) => section.count === 0);
   return (
-    <div>
+    <div className="market-provider-hub">
       <Link href="/providers" className="market-link">
         ← Providers
       </Link>
       <MarketHeader
+        compact
         eyebrow="Provider / Recorded coverage"
         title={provider.name}
         description="Developed models, recorded API access and published plans are separate relationships. Each section shows the records held for this provider."
       />
-      <section aria-labelledby="developed-models" className="mt-8">
-        <h2 id="developed-models" className="market-section-title">
-          Developed models
-        </h2>
-        <p className="market-muted">
-          {developed.filter((model) => model.kind === "release").length} releases ·{" "}
-          {
-            developed.filter((model) => model.kind === "release" && model.lifecycle === "legacy")
-              .length
-          }{" "}
-          legacy releases · {developed.filter((model) => model.kind === "family").length} family
-          records
-        </p>
-        <ModelRows models={developed} empty="No developed models recorded." />
-      </section>
-      <section aria-labelledby="recorded-api" className="mt-10">
-        <h2 id="recorded-api" className="market-section-title">
-          Recorded API access
-        </h2>
-        <p className="market-muted">
-          This public view records some API access routes. It is not a complete endpoint inventory.
-          Pricing belongs to the access route shown on each model page.
-        </p>
-        <ModelRows
-          models={models(provider.apiModelIds)}
-          empty="No API access recorded in this public view."
-        />
-      </section>
-      <section aria-labelledby="published-plans" className="mt-10">
-        <h2 id="published-plans" className="market-section-title">
-          Published plans and offers
-        </h2>
-        {plans.length === 0 && (
-          <p className="market-muted py-5">No current public plans or offers recorded.</p>
-        )}
-        {plans.map((plan) => (
-          <article
-            key={plan.id}
-            className="border-b border-border py-5"
-            data-testid="provider-plan"
-          >
-            <h3 className="text-lg">
-              <Link href={`/plans/${plan.id}`} className="hover:text-accent">
-                {plan.name} ↗
-              </Link>
-            </h3>
-            <p className="mt-2 text-lg break-words">{publicPlanPriceText(plan)}</p>
-            {plan.publishedTerms?.billingSummary && (
-              <p className="mt-2 text-sm">{plan.publishedTerms.billingSummary}</p>
-            )}
-            <p className="market-muted mt-2">
-              {planTools(plan).length
-                ? `Works with ${planTools(plan).join(" · ")}`
-                : "Tool compatibility not recorded."}
-            </p>
-            <p className="mt-2 text-sm">{planUsage(plan)}</p>
-            {plan.publishedTerms?.availabilityNote && (
-              <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
-            )}
-            {plan.kind === "public_offer" && (
-              <p className="market-muted mt-2">
-                Informational offer · Workload Replay unavailable.
-              </p>
-            )}
-            <p className="market-muted mt-2">
-              {plan.kind === "public_offer" ? "Offer observed" : "Plan checked"}{" "}
-              {formatCatalogDate(plan.lastVerifiedAt)}
-            </p>
-            <div className="mt-3">
-              <SourceList sources={plan.sources} />
-            </div>
-          </article>
+      <nav aria-label="Provider sections" className="market-section-jumps">
+        {[...sections.filter((section) => section.count > 0), ...emptySections].map((section) => (
+          <a key={section.id} href={`#${section.id}`} className="market-link">
+            {section.label} ↓
+          </a>
         ))}
-      </section>
-      <section aria-labelledby="provider-updates" className="mt-10">
-        <h2 id="provider-updates" className="market-section-title">
-          Updates
-        </h2>
-        <p className="market-muted">
-          Accepted updates from this provider, ordered by when they occurred.
-        </p>
-        {events.length === 0 && (
-          <p className="market-muted py-5">No accepted provider updates recorded.</p>
-        )}
-        {events.map((event) => (
-          <article
-            key={event.id}
-            className="border-b border-border py-5"
-            data-testid="provider-update"
-          >
-            <p className="market-kicker">
-              {formatCatalogDate(event.day)} · {event.typeLabel} · {event.status}
-            </p>
-            <h3 className="mt-2 text-lg">
-              <Link className="hover:text-accent" href={`/changelog#${event.id}`}>
-                {event.title} ↗
-              </Link>
-            </h3>
-            <p className="mt-2 text-sm">{event.summary}</p>
-            {event.effectiveAt && (
+        <a href="#provider-sources" className="market-link">
+          Sources ↓
+        </a>
+      </nav>
+      {developed.length > 0 && (
+        <section aria-labelledby="developed-models" className="mt-8">
+          <h2 id="developed-models" className="market-section-title">
+            Developed models
+          </h2>
+          <p className="market-muted">
+            {developed.filter((model) => model.kind === "release").length} releases ·{" "}
+            {
+              developed.filter((model) => model.kind === "release" && model.lifecycle === "legacy")
+                .length
+            }{" "}
+            legacy releases · {developed.filter((model) => model.kind === "family").length} family
+            records
+          </p>
+          <ModelRows models={developed} empty="No developed models recorded." />
+        </section>
+      )}
+      {apiModels.length > 0 && (
+        <section aria-labelledby="recorded-api" className="mt-10">
+          <h2 id="recorded-api" className="market-section-title">
+            Recorded API access
+          </h2>
+          <p className="market-muted">
+            This public view records some API access routes. It is not a complete endpoint
+            inventory. Pricing belongs to the access route shown on each model page.
+          </p>
+          <ModelRows models={apiModels} empty="No API access recorded in this public view." />
+        </section>
+      )}
+      {plans.length > 0 && (
+        <section aria-labelledby="published-plans" className="mt-10">
+          <h2 id="published-plans" className="market-section-title">
+            Published plans and offers
+          </h2>
+          {plans.map((plan) => (
+            <article
+              key={plan.id}
+              className="border-b border-border py-5"
+              data-testid="provider-plan"
+            >
+              <h3 className="text-lg">
+                <Link href={`/plans/${plan.id}`} className="hover:text-accent">
+                  {plan.name} ↗
+                </Link>
+              </h3>
+              <p className="mt-2 text-lg break-words">{publicPlanPriceText(plan)}</p>
+              {plan.publishedTerms?.billingSummary && (
+                <p className="mt-2 text-sm">{plan.publishedTerms.billingSummary}</p>
+              )}
               <p className="market-muted mt-2">
-                {event.status === "scheduled" ? "Scheduled for" : "Effective"}{" "}
-                {formatCatalogDate(event.effectiveAt.slice(0, 10))}
+                {planTools(plan).length
+                  ? `Works with ${planTools(plan).join(" · ")}`
+                  : "Tool compatibility not recorded."}
               </p>
-            )}
-            <p className="market-muted mt-2">
-              Event checked {formatCatalogDate(event.verifiedAt.slice(0, 10))} ·{" "}
-              <a
-                className="market-link"
-                href={event.source.url}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                {event.source.title} ↗
-              </a>
-            </p>
-          </article>
-        ))}
-      </section>
+              <p className="mt-2 text-sm">{planUsage(plan)}</p>
+              {plan.publishedTerms?.availabilityNote && (
+                <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
+              )}
+              {plan.kind === "public_offer" && (
+                <p className="market-muted mt-2">
+                  Informational offer · Workload Replay unavailable.
+                </p>
+              )}
+              <p className="market-muted mt-2">
+                {plan.kind === "public_offer" ? "Offer observed" : "Plan checked"}{" "}
+                {formatCatalogDate(plan.lastVerifiedAt)}
+              </p>
+              <div className="mt-3">
+                <SourceList sources={plan.sources} />
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
+      {events.length > 0 && (
+        <section aria-labelledby="provider-updates" className="mt-10">
+          <h2 id="provider-updates" className="market-section-title">
+            Updates
+          </h2>
+          <p className="market-muted">
+            Accepted updates from this provider, ordered by when they occurred.
+          </p>
+          {events.map((event) => (
+            <article
+              key={event.id}
+              className="border-b border-border py-5"
+              data-testid="provider-update"
+            >
+              <p className="market-kicker">
+                {formatCatalogDate(event.day)} · {event.typeLabel} · {event.status}
+              </p>
+              <h3 className="mt-2 text-lg">
+                <Link className="hover:text-accent" href={`/changelog#${event.id}`}>
+                  {event.title} ↗
+                </Link>
+              </h3>
+              <p className="mt-2 text-sm">{event.summary}</p>
+              {event.effectiveAt && (
+                <p className="market-muted mt-2">
+                  {event.status === "scheduled" ? "Scheduled for" : "Effective"}{" "}
+                  {formatCatalogDate(event.effectiveAt.slice(0, 10))}
+                </p>
+              )}
+              <p className="market-muted mt-2">
+                Event checked {formatCatalogDate(event.verifiedAt.slice(0, 10))} ·{" "}
+                <a
+                  className="market-link"
+                  href={event.source.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {event.source.title} ↗
+                </a>
+              </p>
+            </article>
+          ))}
+        </section>
+      )}
+      {emptySections.length > 0 && (
+        <aside className="market-provider-empty" aria-labelledby="no-provider-records">
+          <h2 id="no-provider-records" className="market-kicker">
+            No records in this public view
+          </h2>
+          <p className="market-muted market-provider-empty-note">
+            Recorded absence is not evidence of absence from the market.
+          </p>
+          {emptySections.map((section) => (
+            <section key={section.id} aria-labelledby={section.id}>
+              <h3 id={section.id}>{section.label}</h3>
+              <p className="market-muted">{section.empty}</p>
+            </section>
+          ))}
+        </aside>
+      )}
       <section aria-labelledby="provider-sources" className="mt-10">
         <h2 id="provider-sources" className="market-section-title">
           {provider.evidence.kind === "provider_record"

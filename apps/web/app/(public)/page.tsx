@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeHero } from "@/components/home/home-hero";
-import { MarketRelevanceSummary } from "@/components/home/market-briefing";
+import {
+  MarketBriefing,
+  MarketRelevanceSummary,
+  MarketWeek,
+} from "@/components/home/market-briefing";
 import { ModelComparisonSection } from "@/components/home/model-comparison";
 import { ForYou, PersonalIntelligence } from "@/components/home/personal-intelligence";
 import { SubscriptionWatch } from "@/components/home/subscription-watch";
@@ -17,9 +21,9 @@ import { loadPublicCatalog } from "@/lib/public-catalog";
 import { publicFreshness } from "@/lib/public-freshness";
 import { publicPageMetadata, siteName } from "@/lib/site";
 
-const title = `${siteName}: what is happening in the AI model and subscription market`;
+const title = `${siteName}: explore AI models, providers and plans`;
 const description =
-  "Dated, sourced AI model releases, benchmark results, API prices and subscription changes. Then see which of them matter to your own AI coding history, analyzed privately in your browser.";
+  "Explore sourced AI models, providers, API prices and subscription access. Follow dated market updates and see what matters to your own history, analyzed privately in your browser.";
 
 export const metadata: Metadata = publicPageMetadata({
   title,
@@ -44,14 +48,7 @@ export default function HomePage() {
 
   return (
     <div className="home" data-testid="home">
-      <HomeHero
-        briefing={briefingCandidates(events, today)}
-        recent={recent}
-        builtOn={today}
-        index={index}
-      />
-
-      <ForYou events={recent} builtOn={today} index={index} />
+      <HomeHero />
 
       {comparison === undefined ? null : (
         <ModelComparisonSection
@@ -60,6 +57,13 @@ export default function HomePage() {
           sheetHref={benchmarkSheetHref(comparison.columns.map((column) => column.id))}
         />
       )}
+
+      <ForYou events={recent} builtOn={today} index={index} />
+
+      <section className="home-market-updates" aria-label="Sourced AI market updates">
+        <MarketWeek events={recent} builtOn={today} index={index} />
+        <MarketBriefing events={briefingCandidates(events, today)} builtOn={today} index={index} />
+      </section>
 
       <SubscriptionWatch
         events={subscriptionEvents}
