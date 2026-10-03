@@ -74,6 +74,16 @@ describe("public offer routes and prices", () => {
       expect(detail).not.toContain("Rules in effect since");
       expect(detail).toContain("earlier terms and introduction date are not established");
       expect(detail).not.toMatch(/href="\/models\//u);
+      expect(detail.includes('data-testid="full-developer-seat-calculator"')).toBe(
+        id === "devin-teams",
+      );
+      if (id === "devin-teams") {
+        expect(detail).toContain("Full developer seats");
+        expect(detail).toContain("$80 + 1 × $40");
+        expect(detail).toContain("$120");
+        expect(detail).toContain("Published offer observed Oct 3, 2026");
+        expect(detail).toContain("Devin pricing and FAQ");
+      }
       expect(generateStaticParams()).toContainEqual({ planId: id });
       const metadata = await generateMetadata({ params: Promise.resolve({ planId: id }) });
       expect(metadata.alternates?.canonical).toBe(`/plans/${id}`);
