@@ -3,8 +3,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
 import type { CompareFacts } from "@/lib/compare-facts";
-import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
-import { publicPlanPriceUnit } from "@/lib/public-plan-price";
+import type { PublicProviderSummary } from "@/lib/public-catalog";
+import type { PublicDirectoryPlan } from "@/lib/public-directory";
+import {
+  comparePublicPlanPrices,
+  PUBLIC_PRICE_SORT_NOTE,
+  publicPlanPricePresentation,
+} from "@/lib/public-plan-price";
 export function PlanExplorer({
   plans,
   providers,
@@ -13,7 +18,7 @@ export function PlanExplorer({
   usage = {},
   asOf,
 }: {
-  plans: readonly PublicPlanSummary[];
+  plans: readonly PublicDirectoryPlan[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
   tools?: Record<string, string[]>;
@@ -38,9 +43,8 @@ export function PlanExplorer({
     )
     .sort((a, b) =>
       sort === "price"
-        ? Number(a.price.amount) - Number(b.price.amount)
-        : a.providerName.localeCompare(b.providerName) ||
-          Number(a.price.amount) - Number(b.price.amount),
+        ? comparePublicPlanPrices(a, b)
+        : a.providerName.localeCompare(b.providerName) || comparePublicPlanPrices(a, b),
     );
   return (
     <div>
@@ -84,12 +88,12 @@ export function PlanExplorer({
           Order by
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="provider">Provider</option>
-            <option value="price">Monthly price</option>
+            <option value="price">Published price</option>
           </select>
         </label>
       </div>
       <p role="status" className="market-muted border-b border-border pb-4">
-        {visible.length} plans · USD monthly list prices · taxes and annual offers may differ
+        {visible.length} plans · {PUBLIC_PRICE_SORT_NOTE}
       </p>
       <div data-testid="plan-results">
         {visible.slice(0, expanded ? undefined : 12).map((plan) => (
@@ -105,15 +109,27 @@ export function PlanExplorer({
                 {tools[plan.id]?.join(" · ") || "See provider access details"}
               </p>
             </div>
-            <div>
-              <p className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</p>
-              <p className="market-muted">{publicPlanPriceUnit(plan)}</p>
+            <div
+              className={
+                publicPlanPricePresentation(plan).formula ? "min-w-0 max-w-[11rem]" : undefined
+              }
+            >
+              <p
+                className={
+                  publicPlanPricePresentation(plan).formula
+                    ? "text-xl leading-relaxed"
+                    : "market-stat"
+                }
+              >
+                {publicPlanPricePresentation(plan).amount}
+              </p>
+              <p className="market-muted">{publicPlanPricePresentation(plan).unit}</p>
             </div>
             <div>
               <p className="text-sm leading-relaxed">
                 {usage[plan.id] ?? "Included model access. Usage varies with your work."}
               </p>
-              {plan.timeline !== undefined && (
+              {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
                 <PlanTermsNotice
                   asOf={asOf}
                   followToday
@@ -139,7 +155,7 @@ export function PlanExplorer({
                   </span>
                 ))}
                 {!facts[plan.id]?.models.featured.length &&
-                  "Model lineup in provider documentation"}
+                  (plan.modelAccess?.summary ?? "Model lineup in provider documentation")}
                 {(facts[plan.id]?.models.total ?? 0) > 3 && (
                   <Link
                     href={`/plans/${plan.id}#model-access`}
@@ -162,6 +178,11 @@ export function PlanExplorer({
                 Compare plans →
               </Link>
             </div>
+            {plan.kind === "public_offer" && (
+              <p className="market-plan-note text-xs text-muted-foreground">
+                {facts[plan.id]?.simulation}
+              </p>
+            )}
             {plan.publishedTerms?.availabilityNote && (
               <p className="market-plan-note text-xs text-warning">
                 {plan.publishedTerms.availabilityNote}

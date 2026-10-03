@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
-import { loadPublicCatalog } from "@/lib/public-catalog";
+import { loadPublicDirectory } from "@/lib/public-directory";
 import { absoluteUrl } from "@/lib/site";
 
 /**
  * Sitemap (M4). Public informational pages are indexable; `/app/*` is a private
  * local workspace and is deliberately absent. Plan and model pages come from the
- * real catalog, so the sitemap never advertises synthetic demo entries.
+ * public directory, so the sitemap never advertises synthetic demo entries.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const catalog = loadPublicCatalog();
+  const catalog = loadPublicDirectory();
 
   const staticEntries: MetadataRoute.Sitemap = [
     {

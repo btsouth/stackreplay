@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
 import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
 import { compareSearch, readComparePlans } from "@/lib/compare-url";
-import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
-import { publicPlanPriceUnit } from "@/lib/public-plan-price";
+import type { PublicProviderSummary } from "@/lib/public-catalog";
+import type { PublicDirectoryPlan } from "@/lib/public-directory";
+import { publicPlanPricePresentation } from "@/lib/public-plan-price";
 import { limitUnitText, limitWindowText } from "./plan-facts";
 import { SourceList, VerificationBadge } from "./provenance";
 import { PublishedUsageTable } from "./published-subscription-terms";
@@ -55,10 +64,16 @@ const MATRIX_ROWS = 16;
 function ModelMatrix({
   plans,
 }: {
-  plans: readonly { plan: PublicPlanSummary; facts: CompareFacts }[];
+  plans: readonly { plan: PublicDirectoryPlan; facts: CompareFacts }[];
 }) {
   const [expanded, setExpanded] = useState(false);
   const rows = compareModelMatrix(plans.map((entry) => entry.facts));
+  if (plans.some((entry) => entry.plan.kind === "public_offer"))
+    return (
+      <p className="text-muted-foreground">
+        Exact model comparison is unavailable for offers whose complete lineup is not established.
+      </p>
+    );
   if (rows.length === 0) return null;
   const shared = rows.filter((row) => row.included.every(Boolean)).length;
   const only = plans.map(
@@ -205,7 +220,20 @@ function AfterLimitCell({ facts }: { facts: CompareFacts }) {
   );
 }
 
-function InspectCell({ plan, facts }: { plan: PublicPlanSummary; facts: CompareFacts }) {
+function InspectCell({ plan, facts }: { plan: PublicDirectoryPlan; facts: CompareFacts }) {
+  if (plan.kind === "public_offer")
+    return (
+      <details>
+        <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4">
+          Inspect public offer and sources
+        </summary>
+        <div className="space-y-3 pb-4 pt-2 text-sm" data-testid="compare-inspect">
+          <p>{facts.effective}</p>
+          <p>{facts.simulation}</p>
+          <SourceList sources={plan.sources} />
+        </div>
+      </details>
+    );
   return (
     <details>
       <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
@@ -404,7 +432,7 @@ function TargetHeader({
   asOf,
   onRemove,
 }: {
-  plan: PublicPlanSummary;
+  plan: PublicDirectoryPlan;
   asOf: string;
   onRemove?: (() => void) | undefined;
 }) {
@@ -431,10 +459,16 @@ function TargetHeader({
         </Link>
       </h2>
       <p className="mt-3" data-testid="compare-price">
-        <span className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</span>
-        <span className="market-muted ml-2">{publicPlanPriceUnit(plan)}</span>
+        <span
+          className={
+            publicPlanPricePresentation(plan).formula ? "text-xl leading-relaxed" : "market-stat"
+          }
+        >
+          {publicPlanPricePresentation(plan).amount}
+        </span>
+        <span className="market-muted ml-2">{publicPlanPricePresentation(plan).unit}</span>
       </p>
-      {plan.timeline !== undefined && (
+      {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanTermsNotice
           asOf={asOf}
           followToday
@@ -448,12 +482,18 @@ function TargetHeader({
       {plan.publishedTerms?.availabilityNote && (
         <p className="mt-3 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
       )}
-      <Link
-        className="mt-1 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-        href={`/app/import?target=${encodeURIComponent(plan.id)}`}
-      >
-        Replay your workload here ↗
-      </Link>
+      {plan.kind === "public_offer" ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Published offer only; workload replay is unavailable.
+        </p>
+      ) : (
+        <Link
+          className="mt-1 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
+          href={`/app/import?target=${encodeURIComponent(plan.id)}`}
+        >
+          Replay your workload here ↗
+        </Link>
+      )}
     </section>
   );
 }
@@ -461,35 +501,67 @@ function TargetHeader({
 const PRIVACY_FALLBACK =
   "Privacy terms are not recorded here. Check the provider before sending sensitive work.";
 
+/** Read router-owned search data after client navigation, not an earlier window URL. */
+export function RoutedCompareExplorer(props: ComponentProps<typeof CompareExplorer>) {
+  const search = useSearchParams();
+  return <CompareExplorer {...props} routedSearch={search.toString()} />;
+}
+
 export function CompareExplorer({
   plans,
   providers,
   facts,
   defaultPair,
   asOf,
+  routedSearch,
 }: {
-  plans: readonly PublicPlanSummary[];
+  plans: readonly PublicDirectoryPlan[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
   defaultPair: readonly [string, string];
+  routedSearch?: string;
   /** The day the page resolved plan terms on; a plan's notice follows the viewer's day after hydration. */
   asOf: string;
 }) {
-  const [ids, setIds] = useState<string[]>([...defaultPair]);
-  const [hydrated, setHydrated] = useState(false);
+  const router = useRouter();
+  const [ids, setIds] = useState<string[]>(() =>
+    routedSearch === undefined
+      ? [...defaultPair]
+      : readComparePlans(
+          routedSearch,
+          plans.map((plan) => plan.id),
+          defaultPair,
+        ),
+  );
   const planIds = useMemo(() => plans.map((plan) => plan.id), [plans]);
-  // Apply a shared URL before first paint, then release the bootstrap mark.
+  // Select from router data before paint, without touching the previous page's history.
   useLayoutEffect(() => {
-    setIds(readComparePlans(window.location.search, planIds, defaultPair));
-    setHydrated(true);
+    // The static Suspense fallback is display-only.
+    if (routedSearch === undefined) return;
+    setIds(readComparePlans(routedSearch, planIds, defaultPair));
     document.documentElement.removeAttribute("data-compare");
-  }, [planIds, defaultPair]);
+  }, [routedSearch, planIds, defaultPair]);
+  // Once the router's layout commit has finished, the browser URL is authoritative.
+  // Cached vinext trees can restore an older useSearchParams snapshot on traversal.
+  // Reconcile selection before normalizing so that snapshot cannot erase the query.
   useEffect(() => {
-    if (!hydrated) return;
-    const next = `${window.location.pathname}${compareSearch(ids, defaultPair)}${window.location.hash}`;
+    if (routedSearch === undefined || window.location.pathname !== "/compare") return;
+    const nextIds = readComparePlans(window.location.search, planIds, defaultPair);
+    setIds((current) =>
+      current.length === nextIds.length && current.every((id, index) => id === nextIds[index])
+        ? current
+        : nextIds,
+    );
+    const next = `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
-      window.history.replaceState(window.history.state, "", next);
-  }, [ids, hydrated, defaultPair]);
+      router.replace(next, { scroll: false });
+  }, [routedSearch, planIds, defaultPair, router]);
+  const selectPlans = (nextIds: string[]) => {
+    setIds(nextIds);
+    router.replace(`/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`, {
+      scroll: false,
+    });
+  };
   const chosen = ids.flatMap((id) => {
     const plan = plans.find((entry) => entry.id === id);
     const planFacts = facts[id];
@@ -497,12 +569,9 @@ export function CompareExplorer({
   });
   const names = chosen.map((entry) => entry.plan.name);
   const setAt = (index: number, id: string) =>
-    setIds((current) => current.map((value, at) => (at === index ? id : value)));
+    selectPlans(ids.map((value, at) => (at === index ? id : value)));
   const addThird = () =>
-    setIds((current) => [
-      ...current,
-      planIds.find((id) => !current.includes(id)) ?? current[0] ?? "",
-    ]);
+    selectPlans([...ids, planIds.find((id) => !ids.includes(id)) ?? ids[0] ?? ""]);
   const selector = (label: string, index: number) => (
     <label key={label} className="flex min-w-0 flex-col gap-2 text-xs text-muted-foreground">
       {label}
@@ -561,7 +630,7 @@ export function CompareExplorer({
                 plan={entry.plan}
                 onRemove={
                   chosen.length === 3
-                    ? () => setIds((current) => current.filter((_, at) => at !== index))
+                    ? () => selectPlans(ids.filter((_, at) => at !== index))
                     : undefined
                 }
               />
@@ -638,7 +707,9 @@ export function CompareExplorer({
                   texts={chosen.map(
                     (entry) =>
                       entry.facts.publishedTerms?.billingSummary ??
-                      entry.plan.billingMechanics ??
+                      (entry.plan.kind === "catalog_plan"
+                        ? entry.plan.billingMechanics
+                        : undefined) ??
                       "Check provider billing terms.",
                   )}
                 />

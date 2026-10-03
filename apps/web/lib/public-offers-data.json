@@ -1,0 +1,170 @@
+[
+  {
+    "id": "devin-free",
+    "name": "Devin Free",
+    "providerId": "devin",
+    "providerName": "Devin",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "fixed",
+          "currency": "USD",
+          "amount": "0",
+          "interval": "month"
+        },
+        "sources": [
+          {
+            "url": "https://devin.ai/pricing",
+            "title": "Devin pricing and FAQ",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "devin-pro",
+    "name": "Devin Pro",
+    "providerId": "devin",
+    "providerName": "Devin",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "fixed",
+          "currency": "USD",
+          "amount": "20",
+          "interval": "month"
+        },
+        "sources": [
+          {
+            "url": "https://devin.ai/pricing",
+            "title": "Devin pricing and FAQ",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "devin-max",
+    "name": "Devin Max",
+    "providerId": "devin",
+    "providerName": "Devin",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "fixed",
+          "currency": "USD",
+          "amount": "200",
+          "interval": "month"
+        },
+        "sources": [
+          {
+            "url": "https://devin.ai/pricing",
+            "title": "Devin pricing and FAQ",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "devin-teams",
+    "name": "Devin Teams",
+    "providerId": "devin",
+    "providerName": "Devin",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "base_seat",
+          "currency": "USD",
+          "baseAmount": "80",
+          "seatAmount": "40",
+          "interval": "month",
+          "basis": "full_developer_seat"
+        },
+        "sources": [
+          {
+            "url": "https://devin.ai/pricing",
+            "title": "Devin pricing and FAQ",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "google-code-assist-standard",
+    "name": "Gemini Code Assist Standard",
+    "providerId": "google",
+    "providerName": "Google",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "per_user",
+          "currency": "USD",
+          "amount": "22.80",
+          "interval": "month",
+          "basis": "licensed_user"
+        },
+        "sources": [
+          {
+            "url": "https://cloud.google.com/products/gemini/pricing",
+            "title": "Gemini Code Assist pricing",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://docs.cloud.google.com/gemini/docs/quotas",
+            "title": "Gemini Code Assist quotas",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes",
+            "title": "Gemini Code Assist release notes",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "google-code-assist-enterprise",
+    "name": "Gemini Code Assist Enterprise",
+    "providerId": "google",
+    "providerName": "Google",
+    "observations": [
+      {
+        "checkedAt": "2026-10-03",
+        "price": {
+          "kind": "per_user",
+          "currency": "USD",
+          "amount": "54",
+          "interval": "month",
+          "basis": "licensed_user"
+        },
+        "sources": [
+          {
+            "url": "https://cloud.google.com/products/gemini/pricing",
+            "title": "Gemini Code Assist pricing",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://docs.cloud.google.com/gemini/docs/quotas",
+            "title": "Gemini Code Assist quotas",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes",
+            "title": "Gemini Code Assist release notes",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      }
+    ]
+  }
+]

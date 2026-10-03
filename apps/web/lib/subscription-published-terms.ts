@@ -44,7 +44,17 @@ export function subscriptionPublishedTerms(
   asOf: string,
 ): SubscriptionPublishedTerms | undefined {
   const stored = records[id];
-  const candidates = stored === undefined ? [] : Array.isArray(stored) ? stored : [stored];
+  return selectSubscriptionPublishedTerms(
+    stored === undefined ? [] : Array.isArray(stored) ? stored : [stored],
+    asOf,
+  );
+}
+
+/** Effective-date priority stays intact; the last same-day revision wins a full tie. */
+export function selectSubscriptionPublishedTerms(
+  candidates: readonly SubscriptionPublishedTerms[],
+  asOf: string,
+): SubscriptionPublishedTerms | undefined {
   let selected: SubscriptionPublishedTerms | undefined;
   for (const terms of candidates) {
     if (terms.checkedAt > asOf || (terms.effectiveFrom ?? "") > asOf) continue;
@@ -52,7 +62,7 @@ export function subscriptionPublishedTerms(
       selected === undefined ||
       (terms.effectiveFrom ?? "") > (selected.effectiveFrom ?? "") ||
       ((terms.effectiveFrom ?? "") === (selected.effectiveFrom ?? "") &&
-        terms.checkedAt > selected.checkedAt)
+        terms.checkedAt >= selected.checkedAt)
     )
       selected = terms;
   }
