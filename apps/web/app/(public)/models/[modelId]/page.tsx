@@ -51,7 +51,7 @@ export default async function ModelPage({ params }: Props) {
           plan.modelRules.some((rule) => rule.model === model.familyId && rule.excluded !== true),
         );
   const apis = model.places.filter((p) => p.kind === "api");
-  const apiIds = model.aliases.filter((alias) => alias.kind === "provider_id");
+  const modelIdentifiers = model.aliases.filter((alias) => alias.kind === "provider_id");
   const contextTokens = specifications?.contextTokens ?? specifications?.maxInputTokens;
   // The same records as the sections below; unpublished figures are left out.
   const glance: { label: string; value: string; href?: string; promo?: boolean }[] = [
@@ -110,7 +110,7 @@ export default async function ModelPage({ params }: Props) {
           )}
           <p className="market-muted mt-3">Catalog checked {model.lastVerifiedAt}</p>
         </div>
-        <aside className="market-model-profile" aria-label="API model ids">
+        <aside className="market-model-profile" aria-label="Model identifiers">
           {model.kind === "family" ? (
             <>
               <p className="market-kicker">Releases in this family</p>
@@ -120,11 +120,11 @@ export default async function ModelPage({ params }: Props) {
           ) : (
             <>
               <p className="market-kicker">
-                {apiIds.length > 1 ? "API model ids" : "API model id"}
+                {modelIdentifiers.length > 1 ? "Model identifiers" : "Model identifier"}
               </p>
-              {apiIds.length ? (
+              {modelIdentifiers.length ? (
                 <div className="market-api-ids">
-                  {apiIds.map((alias) => (
+                  {modelIdentifiers.map((alias) => (
                     <CopyApiId key={alias.id} value={alias.alias} />
                   ))}
                 </div>

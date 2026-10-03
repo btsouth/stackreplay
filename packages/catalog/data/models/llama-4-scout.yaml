@@ -29,10 +29,10 @@ specifications:
     - text
   knowledgeCutoff: August 2024
   notes:
-    - The model card states a 10M-token context window in shorthand. No exact integer context count is recorded.
+    - Meta lists a 10M-token context window.
     - The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.
     - The weights are published under the Llama 4 Community License, not Apache 2.0.
-    - Tool calling and structured output are not asserted because the reviewed base-weight model card does not explicitly guarantee either behavior.
+    - The base-weight model card does not explicitly document tool calling or structured-output guarantees.
   sources:
     - *a1
-pricingNote: Meta publishes open weights under the Llama 4 Community License. Royalty-free weight download is not a free hosted API; no Meta first-party hosted token price is published, and hosting or serving costs remain with the deployer. No pricing record is added.
+pricingNote: Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.

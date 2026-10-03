@@ -269,11 +269,11 @@ for (const theme of ["dark", "light"] as const) {
       await expect(planLink).toHaveAttribute("href", "#where-to-use");
       const listed = await page.getByTestId("model-plan-list").getByRole("link").count();
       await expect(planLink).toHaveText(`${listed} plans`);
-      await page.getByRole("button", { name: "Copy API model id" }).click();
+      await page.getByRole("button", { name: "Copy model identifier" }).click();
       await expect(page.getByTestId("copy-api-id-status")).toHaveText("Copied");
       expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("MiniMax-M3");
-      // Harness aliases are identity records, not API ids.
-      await expect(page.getByLabel("API model ids")).not.toContainText("minimax/minimax-m3");
+      // Harness aliases are identity records, not provider-issued identifiers.
+      await expect(page.getByLabel("Model identifiers")).not.toContainText("minimax/minimax-m3");
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
 
@@ -282,6 +282,29 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.getByTestId("model-glance")).not.toContainText("Input");
       await expect(page.getByTestId("model-glance")).not.toContainText("Max output");
       await expect(page.getByTestId("model-glance")).toContainText("Context1M");
+    });
+
+    test("labels weight and API identifiers neutrally and copies each exact id", async ({
+      page,
+      context,
+      browserName,
+    }) => {
+      test.skip(browserName !== "chromium", "Clipboard permissions are Chromium-specific.");
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+
+      for (const [path, identifier] of [
+        ["/models/llama-4-maverick", "meta-llama/Llama-4-Maverick-17B-128E-Instruct"],
+        ["/models/mistral-large-3", "mistral-large-2512"],
+      ] as const) {
+        await page.goto(path);
+        const identifiers = page.getByLabel("Model identifiers");
+        await expect(identifiers).toContainText(identifier);
+        await expect(identifiers.getByText("Model identifier", { exact: true })).toBeVisible();
+        const copy = identifiers.getByRole("button", { name: "Copy model identifier" });
+        await expect(copy).toHaveCount(1);
+        await copy.click();
+        expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(identifier);
+      }
     });
   });
 
@@ -336,7 +359,7 @@ for (const theme of ["dark", "light"] as const) {
       expect(cardPrices).toEqual([...cardPrices].sort((a, b) => a - b));
       await page.goto("/models/qwen-3-8-max");
       await expect(page.getByTestId("model-glance")).toBeVisible();
-      await expect(page.getByRole("button", { name: "Copy API model id" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy model identifier" })).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
     });

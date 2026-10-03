@@ -135,7 +135,9 @@ describe("P3 expanded model coverage", () => {
     expect(nova.specifications?.notes?.join(" ")).toContain("1M-token context");
     expect(nova.specifications?.notes?.join(" ")).toContain("64K maximum output");
     expect(nova.specifications?.notes?.join(" ")).toContain("tool schemas");
+    expect(nova.specifications?.notes?.join(" ")).not.toMatch(/not recorded|not asserted/u);
     expect(nova.pricingNote).toContain("region, service tier and inference mode");
+    expect(nova.pricingNote).not.toMatch(/no pricing record|not a durable zero-dollar/u);
 
     const commandA = model("cohere-command-a-plus");
     expect(commandA.specifications).toMatchObject({
@@ -150,6 +152,8 @@ describe("P3 expanded model coverage", () => {
     });
     expect(commandA.specifications?.notes?.join(" ")).toContain("Apache 2.0");
     expect(commandA.pricingNote).toContain("free API access until rate limits");
+    expect(commandA.pricingNote).toContain("Model Vault");
+    expect(commandA.pricingNote).not.toMatch(/no pricing record|zero-dollar/u);
 
     const north = model("cohere-north-mini-code");
     expect(north.specifications).toMatchObject({
@@ -161,9 +165,12 @@ describe("P3 expanded model coverage", () => {
     });
     expect(north.specifications?.contextTokens).toBeUndefined();
     expect(north.specifications?.maxOutputTokens).toBeUndefined();
-    expect(north.specifications?.notes?.join(" ")).toContain("256K context window");
+    expect(north.specifications?.notes?.join(" ")).toContain("256K-token context window");
     expect(north.specifications?.notes?.join(" ")).toContain("64K maximum output");
+    expect(north.specifications?.notes?.join(" ")).not.toMatch(/not recorded|not asserted/u);
     expect(north.pricingNote).toContain("Model Vault");
+    expect(north.pricingNote).toContain("evaluation");
+    expect(north.pricingNote).not.toMatch(/no pricing record|durable token price/u);
 
     for (const id of ["llama-4-maverick", "llama-4-scout"] as const) {
       const llama = model(id);
@@ -182,7 +189,10 @@ describe("P3 expanded model coverage", () => {
       expect(llama.specifications?.notes?.join(" ")).toContain(
         "Llama 4 Community License, not Apache 2.0",
       );
-      expect(llama.pricingNote).toContain("not a free hosted API");
+      expect(llama.specifications?.notes?.join(" ")).not.toMatch(/not recorded|not asserted/u);
+      expect(llama.pricingNote).toContain("first-party hosted token price");
+      expect(llama.pricingNote).toContain("hosting and serving costs");
+      expect(llama.pricingNote).not.toMatch(/no pricing record|free hosted API/u);
     }
     expect(model("llama-4-scout").specifications?.notes?.join(" ")).toContain("10M-token context");
   });

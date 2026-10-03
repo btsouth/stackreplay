@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:103996e145ebed6154b07ea74fa2a989ddd8ba9440ca41aaba8e1503d1fdb04c";
+export const BUNDLED_CATALOG_VERSION = "sha256:6be2d332c9448e271ad64435beca23dc5b4b09880fd0940f0561729e917556c6";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:103996e145ebed6154b07ea74fa2a989ddd8ba9440ca41aaba8e1503d1fdb04c",
+  "catalogVersion": "sha256:6be2d332c9448e271ad64435beca23dc5b4b09880fd0940f0561729e917556c6",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -477,8 +477,8 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "toolCalling": true,
         "knowledgeCutoff": "October 2025",
         "notes": [
-          "The official model card states a 1M-token context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.",
-          "Tool calling is supported. Dedicated structured outputs are listed as unsupported; constrained output through tool schemas is documented separately and is not recorded as dedicated structured-output support."
+          "AWS lists a 1M-token context window and 64K maximum output.",
+          "Tool calling is supported. Bedrock's dedicated Structured Outputs feature is listed as unsupported; tool schemas support constrained output."
         ],
         "sources": [
           {
@@ -493,7 +493,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Bedrock rates vary by region, service tier and inference mode. The reviewed sources do not publish one universal token price, so no pricing record is added.",
+      "pricingNote": "Bedrock rates vary by region, service tier and inference mode.",
       "apiAvailability": "available",
       "providerIds": [
         "amazon"
@@ -1649,7 +1649,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Cohere lists free API access until rate limits are reached. That is not a durable zero-dollar list price, and no normal token price is published in the reviewed sources, so no pricing record is added.",
+      "pricingNote": "Cohere currently offers free API access until rate limits are reached. Production deployment is available through Model Vault.",
       "apiAvailability": "available",
       "providerIds": [
         "cohere"
@@ -1726,7 +1726,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "toolCalling": true,
         "structuredOutput": true,
         "notes": [
-          "The model card states a 256K context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.",
+          "Cohere lists a 256K-token context window and 64K maximum output.",
           "The developer publishes open weights under Apache 2.0 at CohereLabs/North-Mini-Code-1.0."
         ],
         "sources": [
@@ -1742,7 +1742,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Cohere lists North Mini Code as free until rate limits for API evaluation, with production deployment documented through Model Vault. No durable token price is published, so no pricing record is added.",
+      "pricingNote": "Cohere offers API access for evaluation, free until rate limits are reached. Production deployment is available through Model Vault.",
       "apiAvailability": "available",
       "providerIds": [
         "cohere"
@@ -5435,10 +5435,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         ],
         "knowledgeCutoff": "August 2024",
         "notes": [
-          "The model card states a 1M-token context window in shorthand. No exact integer context count is recorded.",
+          "Meta lists a 1M-token context window.",
           "The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.",
           "The weights are published under the Llama 4 Community License, not Apache 2.0.",
-          "Tool calling and structured output are not asserted because the reviewed base-weight model card does not explicitly guarantee either behavior."
+          "The base-weight model card does not explicitly document tool calling or structured-output guarantees."
         ],
         "sources": [
           {
@@ -5448,7 +5448,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Royalty-free weight download is not a free hosted API; no Meta first-party hosted token price is published, and hosting or serving costs remain with the deployer. No pricing record is added.",
+      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.",
       "aliases": [
         {
           "id": "llama-4-maverick-official-weights-id",
@@ -5500,10 +5500,10 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         ],
         "knowledgeCutoff": "August 2024",
         "notes": [
-          "The model card states a 10M-token context window in shorthand. No exact integer context count is recorded.",
+          "Meta lists a 10M-token context window.",
           "The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.",
           "The weights are published under the Llama 4 Community License, not Apache 2.0.",
-          "Tool calling and structured output are not asserted because the reviewed base-weight model card does not explicitly guarantee either behavior."
+          "The base-weight model card does not explicitly document tool calling or structured-output guarantees."
         ],
         "sources": [
           {
@@ -5513,7 +5513,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           }
         ]
       },
-      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Royalty-free weight download is not a free hosted API; no Meta first-party hosted token price is published, and hosting or serving costs remain with the deployer. No pricing record is added.",
+      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.",
       "aliases": [
         {
           "id": "llama-4-scout-official-weights-id",

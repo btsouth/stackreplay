@@ -54,4 +54,4 @@ specifications:
   sources:
     - *a1
     - *a4
-pricingNote: Cohere lists free API access until rate limits are reached. That is not a durable zero-dollar list price, and no normal token price is published in the reviewed sources, so no pricing record is added.
+pricingNote: Cohere currently offers free API access until rate limits are reached. Production deployment is available through Model Vault.

@@ -46,9 +46,9 @@ specifications:
   toolCalling: true
   structuredOutput: true
   notes:
-    - The model card states a 256K context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.
+    - Cohere lists a 256K-token context window and 64K maximum output.
     - The developer publishes open weights under Apache 2.0 at CohereLabs/North-Mini-Code-1.0.
   sources:
     - *a1
     - *a4
-pricingNote: Cohere lists North Mini Code as free until rate limits for API evaluation, with production deployment documented through Model Vault. No durable token price is published, so no pricing record is added.
+pricingNote: Cohere offers API access for evaluation, free until rate limits are reached. Production deployment is available through Model Vault.

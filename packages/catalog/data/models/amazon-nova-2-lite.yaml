@@ -42,9 +42,9 @@ specifications:
   toolCalling: true
   knowledgeCutoff: October 2025
   notes:
-    - The official model card states a 1M-token context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.
-    - Tool calling is supported. Dedicated structured outputs are listed as unsupported; constrained output through tool schemas is documented separately and is not recorded as dedicated structured-output support.
+    - AWS lists a 1M-token context window and 64K maximum output.
+    - Tool calling is supported. Bedrock's dedicated Structured Outputs feature is listed as unsupported; tool schemas support constrained output.
   sources:
     - *a1
     - *a2
-pricingNote: Bedrock rates vary by region, service tier and inference mode. The reviewed sources do not publish one universal token price, so no pricing record is added.
+pricingNote: Bedrock rates vary by region, service tier and inference mode.
