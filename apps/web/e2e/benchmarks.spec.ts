@@ -220,3 +220,21 @@ test("custom picker, browser history and tablet navigation preserve selection wi
     "true",
   );
 });
+
+test("unscored selections change only after explicit recovery and retain browser history", async ({
+  page,
+}) => {
+  await page.goto("/benchmarks?models=qwen-3-8-max%2Ckimi-k3&coverage=all");
+  await expect(page.locator(".bench-empty")).toContainText(
+    "Qwen 3.8 Max, Kimi K3: no reported scores in this edition.",
+  );
+  await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Max" })).toBeVisible();
+  await expect(page).toHaveURL(/models=qwen-3-8-max%2Ckimi-k3/);
+  await page.getByRole("button", { name: "Show models with reported scores", exact: true }).click();
+  await expect(page.locator(".bench-empty")).toHaveCount(0);
+  expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
+  await expect(page).not.toHaveURL(/models=qwen-3-8-max/);
+  await page.goBack();
+  await expect(page.locator(".bench-empty")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Remove Kimi K3" })).toBeVisible();
+});

@@ -21,6 +21,28 @@ export interface BenchmarkModel {
   name: string;
   developer: string;
 }
+/** Only observations establish score coverage, not a source's model list. */
+export function reportedModelIds(data: BenchmarkData, models: readonly BenchmarkModel[]): string[] {
+  const scored = new Set(data.sourceSets.flatMap((set) => set.observations.map((o) => o.modelId)));
+  return models.filter((model) => scored.has(model.id)).map((model) => model.id);
+}
+
+/** Explicit recovery uses this edition and clears incompatible source/observation pins. */
+export function reportedScoresSelection(
+  data: BenchmarkData,
+  models: readonly BenchmarkModel[],
+): Partial<BenchmarkState> {
+  const scored = reportedModelIds(data, models);
+  const preset = frontierModelIds.filter((id) => scored.includes(id));
+  return {
+    modelIds: [...preset, ...scored.filter((id) => !preset.includes(id))].slice(0, 6),
+    coverage: "all",
+    category: "all",
+    sourceSetId: undefined,
+    observationIds: [],
+  };
+}
+
 const date = (s: string) =>
   new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(
     new Date(`${s}T12:00:00Z`),
@@ -101,6 +123,7 @@ export function BenchmarkExplorer({
   initial: BenchmarkState;
 }) {
   const [state, setState] = useState(initial);
+  const [ready, setReady] = useState(false);
   const editionData = Object.hasOwn(editions, state.edition) ? editions[state.edition] : undefined;
   const data = editionData ?? currentData;
   const [search, setSearch] = useState("");
@@ -112,6 +135,7 @@ export function BenchmarkExplorer({
   const dialog = useRef<HTMLDialogElement>(null);
   const completeSets = comparisonSets(data);
   useEffect(() => {
+    setReady(true);
     const pop = () =>
       setState(
         parseBenchmarkState(
@@ -155,6 +179,8 @@ export function BenchmarkExplorer({
   const selectedModels = state.modelIds
     .map((id) => models.find((m) => m.id === id))
     .filter((m): m is BenchmarkModel => Boolean(m));
+  const scoredModels = reportedModelIds(data, models);
+  const unscoredModels = selectedModels.filter((model) => !scoredModels.includes(model.id));
   const presentSources = data.sourceSets.filter((s) =>
     rows.some((r) => r.cells.some((c) => c.observation?.sourceSetId === s.id)),
   );
@@ -467,29 +493,34 @@ export function BenchmarkExplorer({
             benchmarks for this selection.
           </h2>
           <p>
-            Your models stay selected. View all reported results or change the category to explore
-            available evidence.
+            {unscoredModels.length > 0
+              ? `${unscoredModels.map((model) => model.name).join(", ")}: no reported scores in this edition. Your models stay selected until you choose another selection.`
+              : "Your models stay selected. View all reported results or change the category to explore available evidence."}
           </p>
           <button
             type="button"
             className="market-link"
-            onClick={() => change({ coverage: "all", category: "all" })}
+            disabled={!ready}
+            onClick={() =>
+              change(
+                unscoredModels.length > 0
+                  ? reportedScoresSelection(data, models)
+                  : { coverage: "all", category: "all" },
+              )
+            }
           >
-            View all reported results →
+            {unscoredModels.length > 0
+              ? "Show models with reported scores"
+              : "View all reported results →"}
           </button>
         </div>
       )}
-      {!source &&
-        selectedModels.some((m) => !data.sourceSets.some((s) => s.modelIds.includes(m.id))) && (
-          <p className="bench-coverage-note">
-            {selectedModels
-              .filter((m) => !data.sourceSets.some((s) => s.modelIds.includes(m.id)))
-              .map((m) => m.name)
-              .join(", ")}
-            : no numerical scores verified in this edition. These models remain selected; scores
-            from other model releases are never substituted.
-          </p>
-        )}
+      {!source && unscoredModels.length > 0 && (
+        <p className="bench-coverage-note">
+          {unscoredModels.map((m) => m.name).join(", ")}: no reported scores in this edition. These
+          models remain selected until you choose another selection.
+        </p>
+      )}
       <section
         id="benchmark-methodology"
         className="bench-methodology"

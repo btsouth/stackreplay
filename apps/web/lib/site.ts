@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 /**
  * Canonical public site configuration (M4).
  *
@@ -108,5 +110,20 @@ export function socialMetadata(input: { title: string; description: string; url?
       description: input.description,
       images: [brandAssets.openGraph.src],
     },
+  };
+}
+
+/** Page and social metadata share the same title, description and canonical path. */
+export function publicPageMetadata(input: {
+  title: string;
+  description: string;
+  path: string;
+  absoluteTitle?: boolean;
+}): Metadata {
+  return {
+    title: input.absoluteTitle ? { absolute: input.title } : input.title,
+    description: input.description,
+    alternates: { canonical: input.path },
+    ...socialMetadata({ ...input, url: input.path }),
   };
 }

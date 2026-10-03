@@ -17,6 +17,7 @@ import { modelPlanCount } from "@/lib/model-library";
 import { modelCapabilities, modelSpecifications, tokenSize } from "@/lib/model-specifications";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { publicPageMetadata } from "@/lib/site";
 
 interface Props {
   params: Promise<{ modelId: string }>;
@@ -27,11 +28,11 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { modelId } = await params;
   const model = loadPublicCatalog().modelById(modelId);
-  return {
+  return publicPageMetadata({
     title: model?.name ?? "Model not found",
     description: `${model?.name ?? "Model"}: published API pricing, subscription access and exact identity.`,
-    alternates: { canonical: `/models/${modelId}` },
-  };
+    path: `/models/${modelId}`,
+  });
 }
 export default async function ModelPage({ params }: Props) {
   const { modelId } = await params;

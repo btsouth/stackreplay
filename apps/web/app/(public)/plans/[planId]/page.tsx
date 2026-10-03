@@ -10,6 +10,7 @@ import { SubscriptionModelAccess } from "@/components/public/subscription-model-
 import { buildCompareFacts } from "@/lib/compare-facts";
 import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { publicPageMetadata } from "@/lib/site";
 
 interface Props {
   params: Promise<{ planId: string }>;
@@ -20,11 +21,11 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { planId } = await params;
   const p = loadPublicCatalog().planById(planId);
-  return {
+  return publicPageMetadata({
     title: p?.name ?? "Plan not found",
     description: `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
-    alternates: { canonical: `/plans/${planId}` },
-  };
+    path: `/plans/${planId}`,
+  });
 }
 export default async function PlanPage({ params }: Props) {
   const { planId } = await params;

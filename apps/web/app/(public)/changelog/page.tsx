@@ -5,13 +5,14 @@ import { SourceList } from "@/components/public/provenance";
 import { homeCatalogIndex } from "@/lib/home/catalog-index";
 import { marketEventViews } from "@/lib/market/events";
 import { deriveCatalogChanges, loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
+import { publicPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "AI updates",
   description:
     "Material AI model releases, benchmark results, API price changes and subscription changes from the major labs, dated by when they happened, each with its first-party source.",
-  alternates: { canonical: "/changelog" },
-};
+  path: "/changelog",
+});
 
 /**
  * AI Updates: the canonical market feed, the same one the homepage briefing

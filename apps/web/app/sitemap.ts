@@ -8,29 +8,48 @@ import { absoluteUrl } from "@/lib/site";
  * real catalog, so the sitemap never advertises synthetic demo entries.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   const catalog = loadPublicCatalog();
 
   const staticEntries: MetadataRoute.Sitemap = [
-    { url: absoluteUrl("/"), lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: absoluteUrl("/plans"), lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: absoluteUrl("/models"), lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     {
-      url: absoluteUrl("/benchmarks"),
-      lastModified: now,
+      url: absoluteUrl("/"),
+      lastModified: new Date(catalog.asOf),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: absoluteUrl("/plans"),
+      lastModified: new Date(catalog.asOf),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: absoluteUrl("/models"),
+      lastModified: new Date(catalog.asOf),
       changeFrequency: "weekly",
       priority: 0.8,
     },
-    { url: absoluteUrl("/compare"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    {
+      url: absoluteUrl("/benchmarks"),
+      lastModified: new Date(catalog.asOf),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl("/compare"),
+      lastModified: new Date(catalog.asOf),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
     {
       url: absoluteUrl("/methodology"),
-      lastModified: now,
+      lastModified: new Date(catalog.asOf),
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
       url: absoluteUrl("/changelog"),
-      lastModified: now,
+      lastModified: new Date(catalog.asOf),
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -38,7 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const planEntries: MetadataRoute.Sitemap = catalog.plans.map((plan) => ({
     url: absoluteUrl(`/plans/${plan.id}`),
-    lastModified: new Date(plan.lastVerifiedAt),
+    lastModified: new Date(plan.publishedTerms?.checkedAt ?? plan.lastVerifiedAt),
     changeFrequency: "weekly",
     priority: 0.8,
   }));

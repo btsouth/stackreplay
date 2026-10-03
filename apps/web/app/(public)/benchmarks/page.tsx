@@ -4,12 +4,13 @@ import { BenchmarkExplorer } from "@/components/public/benchmark-explorer";
 import { parseBenchmarkState } from "@/lib/benchmark-state";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
-export const metadata: Metadata = {
+import { publicPageMetadata } from "@/lib/site";
+export const metadata: Metadata = publicPageMetadata({
   title: "Model benchmarks",
   description:
     "Verified reported benchmark scores, exact versions, evaluation setups and original evidence. Compare the models you choose.",
-  alternates: { canonical: "/benchmarks" },
-};
+  path: "/benchmarks",
+});
 export default async function BenchmarksPage({
   searchParams,
 }: {

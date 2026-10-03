@@ -1,5 +1,6 @@
 import type { CatalogSourceV1 } from "@stackreplay/catalog";
 import { Badge } from "@stackreplay/ui";
+import { formatCatalogDate } from "@/lib/catalog-copy";
 
 /**
  * Provenance components (M4).
@@ -54,7 +55,10 @@ export function SourceList({ sources }: { sources: readonly CatalogSourceV1[] })
             target="_blank"
           >
             {source.title}
-          </a>
+          </a>{" "}
+          <span className="text-xs text-muted-foreground">
+            checked {formatCatalogDate(source.checkedAt)}
+          </span>
         </li>
       ))}
     </ul>
