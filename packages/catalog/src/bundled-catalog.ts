@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:11cd9fdcebd8f71de9ef862ec47b3c721ca73e95dbfb8b0b2832050418ccfc05";
+export const BUNDLED_CATALOG_VERSION = "sha256:6be2d332c9448e271ad64435beca23dc5b4b09880fd0940f0561729e917556c6";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:11cd9fdcebd8f71de9ef862ec47b3c721ca73e95dbfb8b0b2832050418ccfc05",
+  "catalogVersion": "sha256:6be2d332c9448e271ad64435beca23dc5b4b09880fd0940f0561729e917556c6",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -25,6 +25,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "amazon": {
+      "id": "amazon",
+      "role": "provider",
+      "name": "Amazon",
+      "sources": [
+        {
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md",
+          "title": "Amazon Bedrock model card for Amazon Nova 2 Lite",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "anthropic": {
@@ -58,6 +72,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-28",
+      "verificationStatus": "verified"
+    },
+    "cohere": {
+      "id": "cohere",
+      "role": "provider",
+      "name": "Cohere",
+      "sources": [
+        {
+          "url": "https://docs.cohere.com/docs/models",
+          "title": "Cohere current model IDs and direct API availability",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "command-code": {
@@ -422,6 +450,90 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     }
   },
   "models": {
+    "amazon-nova-2-lite": {
+      "id": "amazon-nova-2-lite",
+      "role": "model",
+      "name": "Amazon Nova 2 Lite",
+      "developerId": "amazon",
+      "releaseDate": {
+        "date": "2025-12-02",
+        "sources": [
+          {
+            "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md",
+            "title": "Amazon Bedrock model card for Amazon Nova 2 Lite",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "specifications": {
+        "inputModalities": [
+          "text",
+          "image",
+          "video"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "toolCalling": true,
+        "knowledgeCutoff": "October 2025",
+        "notes": [
+          "AWS lists a 1M-token context window and 64K maximum output.",
+          "Tool calling is supported. Bedrock's dedicated Structured Outputs feature is listed as unsupported; tool schemas support constrained output."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md",
+            "title": "Amazon Bedrock model card for Amazon Nova 2 Lite",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://docs.aws.amazon.com/nova/latest/nova2-userguide/using-tools.md",
+            "title": "Amazon Nova 2 tool use and constrained output through tool schemas",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "pricingNote": "Bedrock rates vary by region, service tier and inference mode.",
+      "apiAvailability": "available",
+      "providerIds": [
+        "amazon"
+      ],
+      "aliases": [
+        {
+          "id": "amazon-nova-2-lite-official-id",
+          "alias": "amazon.nova-2-lite-v1:0",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md",
+              "title": "Amazon Bedrock model card for Amazon Nova 2 Lite",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md",
+          "title": "Amazon Bedrock model card for Amazon Nova 2 Lite",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://docs.aws.amazon.com/nova/latest/nova2-userguide/using-tools.md",
+          "title": "Amazon Nova 2 tool use and constrained output through tool schemas",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://aws.amazon.com/bedrock/pricing/",
+          "title": "Amazon Bedrock pricing by region, service tier and inference mode",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified"
+    },
     "claude-fable-5-1": {
       "id": "claude-fable-5-1",
       "role": "model",
@@ -1485,6 +1597,195 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-24",
+      "verificationStatus": "verified"
+    },
+    "cohere-command-a-plus": {
+      "id": "cohere-command-a-plus",
+      "role": "model",
+      "name": "Command A+",
+      "developerId": "cohere",
+      "releaseDate": {
+        "date": "2026-05-20",
+        "sources": [
+          {
+            "url": "https://docs.cohere.com/docs/command-a-plus",
+            "title": "Cohere Command A+ model card",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://cohere.com/blog/command-a-plus",
+            "title": "Cohere Command A+ release announcement",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "specifications": {
+        "contextTokens": 128000,
+        "maxOutputTokens": 64000,
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "knowledgeCutoff": "April 1, 2025",
+        "notes": [
+          "The developer publishes open weights under Apache 2.0 at CohereLabs/command-a-plus-05-2026-w4a4."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.cohere.com/docs/command-a-plus",
+            "title": "Cohere Command A+ model card",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://huggingface.co/CohereLabs/command-a-plus-05-2026-w4a4",
+            "title": "Cohere-owned Command A+ open-weight model card and Apache 2.0 license",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "pricingNote": "Cohere currently offers free API access until rate limits are reached. Production deployment is available through Model Vault.",
+      "apiAvailability": "available",
+      "providerIds": [
+        "cohere"
+      ],
+      "aliases": [
+        {
+          "id": "cohere-command-a-plus-official-id",
+          "alias": "command-a-plus-05-2026",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.cohere.com/docs/command-a-plus",
+              "title": "Cohere Command A+ model card",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.cohere.com/docs/command-a-plus",
+          "title": "Cohere Command A+ model card",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cohere.com/blog/command-a-plus",
+          "title": "Cohere Command A+ release announcement",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cohere.com/pricing",
+          "title": "Cohere current API pricing and access conditions",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://huggingface.co/CohereLabs/command-a-plus-05-2026-w4a4",
+          "title": "Cohere-owned Command A+ open-weight model card and Apache 2.0 license",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified"
+    },
+    "cohere-north-mini-code": {
+      "id": "cohere-north-mini-code",
+      "role": "model",
+      "name": "North Mini Code",
+      "developerId": "cohere",
+      "releaseDate": {
+        "date": "2026-06-09",
+        "sources": [
+          {
+            "url": "https://docs.cohere.com/docs/north-mini-code-1.0",
+            "title": "Cohere North Mini Code model card",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://cohere.com/blog/north-mini-code",
+            "title": "Cohere North Mini Code release announcement",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "specifications": {
+        "inputModalities": [
+          "text"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "reasoning": true,
+        "toolCalling": true,
+        "structuredOutput": true,
+        "notes": [
+          "Cohere lists a 256K-token context window and 64K maximum output.",
+          "The developer publishes open weights under Apache 2.0 at CohereLabs/North-Mini-Code-1.0."
+        ],
+        "sources": [
+          {
+            "url": "https://docs.cohere.com/docs/north-mini-code-1.0",
+            "title": "Cohere North Mini Code model card",
+            "checkedAt": "2026-10-03"
+          },
+          {
+            "url": "https://huggingface.co/CohereLabs/North-Mini-Code-1.0",
+            "title": "Cohere-owned North Mini Code open-weight model card and Apache 2.0 license",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "pricingNote": "Cohere offers API access for evaluation, free until rate limits are reached. Production deployment is available through Model Vault.",
+      "apiAvailability": "available",
+      "providerIds": [
+        "cohere"
+      ],
+      "aliases": [
+        {
+          "id": "cohere-north-mini-code-official-id",
+          "alias": "north-mini-code-1-0",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://docs.cohere.com/docs/north-mini-code-1.0",
+              "title": "Cohere North Mini Code model card",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.cohere.com/docs/north-mini-code-1.0",
+          "title": "Cohere North Mini Code model card",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cohere.com/blog/north-mini-code",
+          "title": "Cohere North Mini Code release announcement",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://cohere.com/pricing",
+          "title": "Cohere current API pricing and access conditions",
+          "checkedAt": "2026-10-03"
+        },
+        {
+          "url": "https://huggingface.co/CohereLabs/North-Mini-Code-1.0",
+          "title": "Cohere-owned North Mini Code open-weight model card and Apache 2.0 license",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "composer-2-5": {
@@ -5107,6 +5408,136 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-30",
+      "verificationStatus": "verified"
+    },
+    "llama-4-maverick": {
+      "id": "llama-4-maverick",
+      "role": "model",
+      "name": "Llama 4 Maverick",
+      "developerId": "meta",
+      "releaseDate": {
+        "date": "2025-04-05",
+        "sources": [
+          {
+            "url": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+            "title": "Meta-owned Llama 4 Maverick model card",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "specifications": {
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "knowledgeCutoff": "August 2024",
+        "notes": [
+          "Meta lists a 1M-token context window.",
+          "The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.",
+          "The weights are published under the Llama 4 Community License, not Apache 2.0.",
+          "The base-weight model card does not explicitly document tool calling or structured-output guarantees."
+        ],
+        "sources": [
+          {
+            "url": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+            "title": "Meta-owned Llama 4 Maverick model card",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.",
+      "aliases": [
+        {
+          "id": "llama-4-maverick-official-weights-id",
+          "alias": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+              "title": "Meta-owned Llama 4 Maverick model card",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+          "title": "Meta-owned Llama 4 Maverick model card",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified"
+    },
+    "llama-4-scout": {
+      "id": "llama-4-scout",
+      "role": "model",
+      "name": "Llama 4 Scout",
+      "developerId": "meta",
+      "releaseDate": {
+        "date": "2025-04-05",
+        "sources": [
+          {
+            "url": "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+            "title": "Meta-owned Llama 4 Scout model card",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "specifications": {
+        "inputModalities": [
+          "text",
+          "image"
+        ],
+        "outputModalities": [
+          "text"
+        ],
+        "knowledgeCutoff": "August 2024",
+        "notes": [
+          "Meta lists a 10M-token context window.",
+          "The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.",
+          "The weights are published under the Llama 4 Community License, not Apache 2.0.",
+          "The base-weight model card does not explicitly document tool calling or structured-output guarantees."
+        ],
+        "sources": [
+          {
+            "url": "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+            "title": "Meta-owned Llama 4 Scout model card",
+            "checkedAt": "2026-10-03"
+          }
+        ]
+      },
+      "pricingNote": "Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.",
+      "aliases": [
+        {
+          "id": "llama-4-scout-official-weights-id",
+          "alias": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+          "kind": "provider_id",
+          "sources": [
+            {
+              "url": "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+              "title": "Meta-owned Llama 4 Scout model card",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+          "title": "Meta-owned Llama 4 Scout model card",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "longcat-2-0": {

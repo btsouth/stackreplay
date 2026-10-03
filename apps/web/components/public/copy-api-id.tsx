@@ -2,7 +2,7 @@
 import { Button } from "@stackreplay/ui";
 import { useId, useState } from "react";
 
-/** An exact provider API model id with a copy control. */
+/** An exact model identifier with a copy control. */
 export function CopyApiId({ value }: { value: string }) {
   const id = useId();
   const [status, setStatus] = useState("");
@@ -22,7 +22,7 @@ export function CopyApiId({ value }: { value: string }) {
       <Button
         variant="outline"
         size="sm"
-        aria-label="Copy API model id"
+        aria-label="Copy model identifier"
         aria-describedby={id}
         data-testid="copy-api-id"
         onClick={() => void copy()}

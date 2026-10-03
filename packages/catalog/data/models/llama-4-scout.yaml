@@ -1,0 +1,38 @@
+id: llama-4-scout
+role: model
+name: Llama 4 Scout
+developerId: meta
+sources:
+  - &a1
+    url: https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct
+    title: Meta-owned Llama 4 Scout model card
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified
+releaseDate:
+  date: 2025-04-05
+  sources:
+    - *a1
+aliases:
+  - id: llama-4-scout-official-weights-id
+    alias: meta-llama/Llama-4-Scout-17B-16E-Instruct
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-10-03
+    verificationStatus: verified
+specifications:
+  inputModalities:
+    - text
+    - image
+  outputModalities:
+    - text
+  knowledgeCutoff: August 2024
+  notes:
+    - Meta lists a 10M-token context window.
+    - The model card states that image understanding was tested with up to five images per prompt. This is a tested configuration, not a hard universal maximum.
+    - The weights are published under the Llama 4 Community License, not Apache 2.0.
+    - The base-weight model card does not explicitly document tool calling or structured-output guarantees.
+  sources:
+    - *a1
+pricingNote: Meta publishes open weights under the Llama 4 Community License. Meta does not publish a first-party hosted token price; hosting and serving costs depend on your deployment.

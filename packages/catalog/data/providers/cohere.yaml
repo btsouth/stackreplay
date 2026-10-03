@@ -1,0 +1,9 @@
+id: cohere
+role: provider
+name: Cohere
+sources:
+  - url: https://docs.cohere.com/docs/models
+    title: Cohere current model IDs and direct API availability
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified

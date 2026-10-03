@@ -1,6 +1,8 @@
 {
   "version": 1,
   "hosts": {
+    "aws.amazon.com": "amazon",
+    "docs.aws.amazon.com": "amazon",
     "ai.google.dev": "google",
     "api.commandcode.ai": "command-code",
     "antigravity.google": "google",
@@ -17,6 +19,8 @@
     "www.openai.com": "openai",
     "claude.com": "anthropic",
     "www.claude.com": "anthropic",
+    "cohere.com": "cohere",
+    "docs.cohere.com": "cohere",
     "code.claude.com": "anthropic",
     "docs.claude.com": "anthropic",
     "platform.claude.com": "anthropic",
@@ -69,6 +73,22 @@
       }
     ],
     "huggingface.co": [
+      {
+        "prefix": "/CohereLabs/command-a-plus-05-2026-w4a4",
+        "providerId": "cohere"
+      },
+      {
+        "prefix": "/CohereLabs/North-Mini-Code-1.0",
+        "providerId": "cohere"
+      },
+      {
+        "prefix": "/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+        "providerId": "meta"
+      },
+      {
+        "prefix": "/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+        "providerId": "meta"
+      },
       {
         "prefix": "/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
         "providerId": "nvidia"
