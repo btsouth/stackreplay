@@ -2148,157 +2148,334 @@
     ],
     "otherApps": "Using a ChatGPT plan in other apps through Sign in with ChatGPT is limited to Plus and Pro. API usage is billed separately."
   },
-  "google-ai-pro": {
-    "checkedAt": "2026-09-29",
-    "sourceUrls": [
-      "https://support.google.com/gemini/answer/16275805",
-      "https://gemini.google/us/subscriptions/?hl=en",
-      "https://support.google.com/googleone/answer/16287445?hl=en",
-      "https://support.google.com/gemini/answer/13594961"
-    ],
-    "allowanceSummary": "4× Free Gemini limits; 1,000 Flow credits",
-    "terms": [
-      {
-        "label": "Gemini allowance",
-        "value": "4× standard Free compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Reset timing",
-        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Flow credits",
-        "value": "1,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Coding tools",
-        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Extra usage",
-        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
-        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
-      },
-      {
-        "label": "Account and region",
-        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Privacy",
-        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
-        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
-      }
-    ],
-    "codingTools": ["Google Antigravity", "Jules"],
-    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
-    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
-    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
-  },
-  "google-ai-ultra": {
-    "checkedAt": "2026-09-29",
-    "sourceUrls": [
-      "https://support.google.com/gemini/answer/16275805",
-      "https://gemini.google/us/subscriptions/?hl=en",
-      "https://support.google.com/googleone/answer/16287445?hl=en",
-      "https://support.google.com/gemini/answer/13594961"
-    ],
-    "allowanceSummary": "5× AI Pro Gemini limits; 10,000 Flow credits",
-    "terms": [
-      {
-        "label": "Gemini allowance",
-        "value": "5× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Reset timing",
-        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Flow credits",
-        "value": "10,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Coding tools",
-        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Extra usage",
-        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
-        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
-      },
-      {
-        "label": "Account and region",
-        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Privacy",
-        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
-        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
-      }
-    ],
-    "codingTools": ["Google Antigravity", "Jules"],
-    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
-    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
-    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
-  },
-  "google-ai-ultra-20x": {
-    "checkedAt": "2026-09-29",
-    "sourceUrls": [
-      "https://support.google.com/gemini/answer/16275805",
-      "https://gemini.google/us/subscriptions/?hl=en",
-      "https://support.google.com/googleone/answer/16287445?hl=en",
-      "https://support.google.com/gemini/answer/13594961"
-    ],
-    "allowanceSummary": "20× AI Pro Gemini limits; 25,000 Flow credits",
-    "terms": [
-      {
-        "label": "Gemini allowance",
-        "value": "20× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Reset timing",
-        "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Flow credits",
-        "value": "25,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Coding tools",
-        "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
-        "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
-      },
-      {
-        "label": "Extra usage",
-        "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
-        "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
-      },
-      {
-        "label": "Account and region",
-        "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
-        "sourceUrl": "https://support.google.com/gemini/answer/16275805"
-      },
-      {
-        "label": "Privacy",
-        "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
-        "sourceUrl": "https://support.google.com/gemini/answer/13594961"
-      }
-    ],
-    "codingTools": ["Google Antigravity", "Jules"],
-    "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
-    "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
-    "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
-  }
+  "google-ai-pro": [
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961"
+      ],
+      "allowanceSummary": "4× Free Gemini limits; 1,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "4× standard Free compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "1,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models"
+      ],
+      "allowanceSummary": "4× Free Gemini limits; 1,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "4× standard Free compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "1,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models require a non-trial Google AI Pro subscription. Claude Sonnet 4.6, Claude Opus 4.6 and GPT-OSS 120B remain listed for Pro, with removal announced for November 2, 2026. Google does not publish a start date for the new Claude 5.5 eligibility.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    }
+  ],
+  "google-ai-ultra": [
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961"
+      ],
+      "allowanceSummary": "5× AI Pro Gemini limits; 10,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "5× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "10,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models"
+      ],
+      "allowanceSummary": "5× AI Pro Gemini limits; 10,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "5× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "10,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models are listed for Ultra; Claude 4.6 thinking models are not available on Ultra. GPT-OSS 120B remains listed, with removal announced for November 2, 2026. Google does not publish a start date for the lineup change.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    }
+  ],
+  "google-ai-ultra-20x": [
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961"
+      ],
+      "allowanceSummary": "20× AI Pro Gemini limits; 25,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "20× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "25,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models"
+      ],
+      "allowanceSummary": "20× AI Pro Gemini limits; 25,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "20× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "25,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models are listed for Ultra; Claude 4.6 thinking models are not available on Ultra. GPT-OSS 120B remains listed, with removal announced for November 2, 2026. Google does not publish a start date for the lineup change.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    }
+  ]
 }
