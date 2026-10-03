@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:e2f70074d20c1cee525a41df9d6659e8b144b3ff82e6305f6424a1e66b13da83";
+export const BUNDLED_CATALOG_VERSION = "sha256:47ca2520d15a9dc108cd732e5d5022455c5b857ae1495ab778baaa5a24d6ef30";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:e2f70074d20c1cee525a41df9d6659e8b144b3ff82e6305f6424a1e66b13da83",
+  "catalogVersion": "sha256:47ca2520d15a9dc108cd732e5d5022455c5b857ae1495ab778baaa5a24d6ef30",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -12556,6 +12556,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "effectiveFrom": "2026-09-22",
+          "effectiveTo": "2026-10-01",
           "price": {
             "currency": "USD",
             "amount": "19",
@@ -12774,6 +12775,239 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-10-02",
+          "effectiveFromBasis": "provider",
+          "price": {
+            "currency": "USD",
+            "amount": "19",
+            "interval": "month"
+          },
+          "billingMechanics": "$19 per granted seat per month, contributing 1,900 monthly AI credits per user to the organization pool.",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits per seat (1,900 credits = $19.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "19.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "additional-usage-beyond-the-pool",
+              "label": "Additional usage beyond the pool",
+              "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "policy-dependent-behaviour-when-pooled-credits-a",
+              "label": "Policy-dependent behaviour when pooled credits are exhausted",
+              "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "rate-limits-unquantified",
+              "label": "Rate limits (unquantified)",
+              "statement": "If you receive a limit error when using Copilot, you should: - Wait and try again. Rate limits are temporary. Often, waiting a short period and trying again resolves the issue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "The billing interval for Copilot Business seats is not stated as monthly or annual on the plans page; the price is quoted 'per granted seat per month'. The reset date for included credits is fixed to the calendar month and not the billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "october-2-model-retirements",
+              "label": "October 2 model retirements",
+              "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "Copilot model retirement history: four models retired October 2, 2026",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -12975,6 +13209,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "effectiveFrom": "2026-09-22",
+          "effectiveTo": "2026-10-01",
           "price": {
             "currency": "USD",
             "amount": "39",
@@ -13181,6 +13416,228 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             }
           ],
           "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-10-02",
+          "effectiveFromBasis": "provider",
+          "price": {
+            "currency": "USD",
+            "amount": "39",
+            "interval": "month"
+          },
+          "billingMechanics": "$39 per granted seat per month, contributing 3,900 monthly AI credits per user to the organization pool.",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits per seat (3,900 credits = $39.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "39.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "additional-usage-beyond-the-pool",
+              "label": "Additional usage beyond the pool",
+              "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+              "topic": "after_limit"
+            },
+            {
+              "id": "budget-controls-user-cost-center-enterprise-spen",
+              "label": "Budget controls (user, cost-center, enterprise spending limits)",
+              "statement": "If you have set a user-level budget and a user exhausts it, that user's access to Copilot is halted, regardless of whether the organization's pool still has capacity. A user can also be blocked by an enterprise spending limit before they reach their individual user-level budget, if the spending limit runs out first. There is no automatic fallback to lower-cost models when a budget is exhausted.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Same as Copilot Business: billing interval not stated as monthly/annual on the plans page; credits reset on the calendar month, not the billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "october-2-model-retirements",
+              "label": "October 2 model retirements",
+              "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "Copilot model retirement history: four models retired October 2, 2026",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
           "verificationStatus": "verified"
         }
       ]
@@ -13393,6 +13850,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "versions": [
         {
           "effectiveFrom": "2026-09-22",
+          "effectiveTo": "2026-10-01",
           "price": {
             "currency": "USD",
             "amount": "100",
@@ -13600,6 +14058,228 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-10-02",
+          "effectiveFromBasis": "provider",
+          "price": {
+            "currency": "USD",
+            "amount": "100",
+            "interval": "month"
+          },
+          "billingMechanics": "Copilot Max costs $100 USD per month and includes 20,000 monthly AI credits (10,000 base and 10,000 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (20,000 credits = $200.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "200.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "priority-premium-models",
+              "label": "Priority premium model access",
+              "statement": "GitHub describes Copilot Max as providing priority access to premium models; no numeric priority guarantee is published.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "october-2-model-retirements",
+              "label": "October 2 model retirements",
+              "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "pricingRef": "gpt-5-4-nano-github-pricing"
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "Copilot model retirement history: four models retired October 2, 2026",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -13801,6 +14481,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "effectiveFrom": "2026-09-22",
+          "effectiveTo": "2026-10-01",
           "price": {
             "currency": "USD",
             "amount": "39",
@@ -14014,6 +14695,234 @@ export const BUNDLED_CATALOG: CatalogV1 = {
           ],
           "lastVerifiedAt": "2026-09-23",
           "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-10-02",
+          "effectiveFromBasis": "provider",
+          "price": {
+            "currency": "USD",
+            "amount": "39",
+            "interval": "month"
+          },
+          "billingMechanics": "$39 per month, including 7,000 monthly AI credits (3,900 base and 3,100 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (7,000 credits = $70.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "70.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "None specific to Pro+ beyond the general absence of published numeric rate limits.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "annual-sonnet-4-6-exception",
+              "label": "Claude Sonnet 4.6 annual-plan exception",
+              "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            },
+            {
+              "id": "october-2-model-retirements",
+              "label": "October 2 model retirements",
+              "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "pricingRef": "claude-fable-5-github-pricing"
+            },
+            {
+              "model": "claude-fable-5-1",
+              "pricingRef": "claude-fable-5-1-github-pricing"
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "pricingRef": "claude-opus-4-8-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+            },
+            {
+              "model": "claude-opus-5",
+              "pricingRef": "claude-opus-5-github-pricing"
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "pricingRef": "gpt-5-4-nano-github-pricing"
+            },
+            {
+              "model": "gpt-5-5",
+              "pricingRef": "gpt-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "pricingRef": "gpt-5-6-sol-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "pricingRef": "gpt-6-astra-github-pricing"
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "pricingRef": "claude-opus-5-5-github-pricing"
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "pricingRef": "gpt-6-sol-github-pricing"
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "Copilot model retirement history: four models retired October 2, 2026",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
+          "verificationStatus": "verified"
         }
       ]
     },
@@ -14221,6 +15130,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         },
         {
           "effectiveFrom": "2026-09-22",
+          "effectiveTo": "2026-10-01",
           "price": {
             "currency": "USD",
             "amount": "10",
@@ -14439,6 +15349,240 @@ export const BUNDLED_CATALOG: CatalogV1 = {
             }
           ],
           "lastVerifiedAt": "2026-09-23",
+          "verificationStatus": "verified"
+        },
+        {
+          "effectiveFrom": "2026-10-02",
+          "effectiveFromBasis": "provider",
+          "price": {
+            "currency": "USD",
+            "amount": "10",
+            "interval": "month"
+          },
+          "billingMechanics": "$10 per month, including 1,500 monthly AI credits (1,000 base and 500 flex).",
+          "limits": [
+            {
+              "id": "monthly-ai-credits",
+              "label": "Monthly AI credits (1,500 credits = $15.00 at the documented $0.01 per credit)",
+              "type": "credit_pool",
+              "amount": "15.00",
+              "window": {
+                "type": "calendar",
+                "unit": "month",
+                "timezone": "UTC"
+              },
+              "exceed": "allow_overage"
+            }
+          ],
+          "qualitativeLimits": [
+            {
+              "id": "credit-reset-behaviour-no-carryover",
+              "label": "Credit reset behaviour (no carryover)",
+              "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month. This reset date is fixed and does not change based on your subscription billing date.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "code-completions-and-next-edit-suggestions-unlim",
+              "label": "Code completions and next edit suggestions (unlimited)",
+              "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-happens-when-included-credits-are-exhausted",
+              "label": "What happens when included credits are exhausted",
+              "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "topic": "after_limit"
+            },
+            {
+              "id": "additional-usage-budget-usd-fixed-conversion-rat",
+              "label": "Additional usage budget (USD, fixed conversion rate)",
+              "statement": "Your additional usage budget is set in US dollars, and your usage is shown in GitHub AI Credits. GitHub AI Credits draw down your budget at a fixed rate: 1 AI credits = $0.01 USD, so a $10 budget covers 1,000 AI credits.",
+              "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+            },
+            {
+              "id": "what-the-provider-does-not-publish",
+              "label": "What the provider does not publish",
+              "statement": "Copilot Pro is 'free for some users' (verified teachers, popular open-source maintainers) - the $10 USD/month is the standard price. The flex allotment is described as variable by GitHub.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "model-availability-scope",
+              "label": "Model availability by plan",
+              "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+              "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+            },
+            {
+              "id": "annual-sonnet-4-6-exception",
+              "label": "Claude Sonnet 4.6 annual-plan exception",
+              "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            },
+            {
+              "id": "october-2-model-retirements",
+              "label": "October 2 model retirements",
+              "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+              "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+            }
+          ],
+          "modelRules": [
+            {
+              "model": "claude-fable-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-fable-5-1",
+              "excluded": true
+            },
+            {
+              "model": "claude-haiku-4-5",
+              "pricingRef": "claude-haiku-4-5-github-pricing"
+            },
+            {
+              "model": "claude-opus-4-7",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-4-8-fast-mode",
+              "excluded": true
+            },
+            {
+              "model": "claude-opus-5",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-4-6",
+              "excluded": true
+            },
+            {
+              "model": "claude-sonnet-5",
+              "pricingRef": "claude-sonnet-5-github-pricing"
+            },
+            {
+              "model": "gemini-3-5-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-6-flash",
+              "excluded": true
+            },
+            {
+              "model": "gemini-3-7-flash",
+              "pricingRef": "gemini-3-7-flash-github-pricing"
+            },
+            {
+              "model": "gemini-3-8-flash",
+              "pricingRef": "gemini-3-8-flash-github-pricing"
+            },
+            {
+              "model": "gpt-5-3-codex",
+              "pricingRef": "gpt-5-3-codex-github-pricing"
+            },
+            {
+              "model": "gpt-5-4",
+              "pricingRef": "gpt-5-4-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-mini",
+              "pricingRef": "gpt-5-4-mini-github-pricing"
+            },
+            {
+              "model": "gpt-5-4-nano",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-5",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-luna",
+              "pricingRef": "gpt-5-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-5-6-sol",
+              "excluded": true
+            },
+            {
+              "model": "gpt-5-6-terra",
+              "pricingRef": "gpt-5-6-terra-github-pricing"
+            },
+            {
+              "model": "gpt-5-mini",
+              "pricingRef": "gpt-5-mini-github-pricing"
+            },
+            {
+              "model": "gpt-6-astra",
+              "excluded": true
+            },
+            {
+              "model": "grok-4-5",
+              "pricingRef": "grok-4-5-github-pricing"
+            },
+            {
+              "model": "grok-4-6",
+              "pricingRef": "grok-4-6-github-pricing"
+            },
+            {
+              "model": "grok-4-7",
+              "pricingRef": "grok-4-7-github-pricing"
+            },
+            {
+              "model": "kimi-k2-7-code",
+              "excluded": true
+            },
+            {
+              "model": "kimi-k3",
+              "pricingRef": "kimi-k3-github-pricing"
+            },
+            {
+              "model": "mai-code-1-1-flash",
+              "pricingRef": "mai-code-1-1-flash-github-pricing"
+            },
+            {
+              "model": "claude-opus-5-5",
+              "excluded": true
+            },
+            {
+              "model": "gpt-6-luna",
+              "pricingRef": "gpt-6-luna-github-pricing"
+            },
+            {
+              "model": "gpt-6-sol",
+              "excluded": true
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://docs.github.com/en/copilot/get-started/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+              "title": "GitHub plan documentation (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://github.com/features/copilot/plans",
+              "title": "GitHub pricing (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "GitHub model availability (official)",
+              "checkedAt": "2026-09-23"
+            },
+            {
+              "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+              "title": "Copilot model retirement history: four models retired October 2, 2026",
+              "checkedAt": "2026-10-03"
+            }
+          ],
+          "lastVerifiedAt": "2026-10-03",
           "verificationStatus": "verified"
         }
       ],
@@ -21096,6 +22240,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-business@2026-09-22": {
       "effectiveFrom": "2026-09-22",
+      "effectiveTo": "2026-10-01",
       "price": {
         "currency": "USD",
         "amount": "19",
@@ -21319,6 +22464,243 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Business",
       "providerId": "github"
     },
+    "github-copilot-business@2026-10-02": {
+      "effectiveFrom": "2026-10-02",
+      "effectiveFromBasis": "provider",
+      "price": {
+        "currency": "USD",
+        "amount": "19",
+        "interval": "month"
+      },
+      "billingMechanics": "$19 per granted seat per month, contributing 1,900 monthly AI credits per user to the organization pool.",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits per seat (1,900 credits = $19.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "19.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "additional-usage-beyond-the-pool",
+          "label": "Additional usage beyond the pool",
+          "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "policy-dependent-behaviour-when-pooled-credits-a",
+          "label": "Policy-dependent behaviour when pooled credits are exhausted",
+          "statement": "When your pooled AI credits are exhausted, what happens next depends on how you have configured policies for additional usage. - Additional usage allowed : Usage continues at published per-credit rates. The spend is charged to your organization or enterprise. Note that additional usage may be capped : if you hit the cap, you'll need to pay off any additional usage you've already consumed in order to continue. - Additional usage not allowed : Usage is blocked until the next billing cycle when monthly amounts are refreshed. ... Additional usage is enabled by default for organizations and enterprises.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "rate-limits-unquantified",
+          "label": "Rate limits (unquantified)",
+          "statement": "If you receive a limit error when using Copilot, you should: - Wait and try again. Rate limits are temporary. Often, waiting a short period and trying again resolves the issue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "The billing interval for Copilot Business seats is not stated as monthly or annual on the plans page; the price is quoted 'per granted seat per month'. The reset date for included credits is fixed to the calendar month and not the billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "october-2-model-retirements",
+          "label": "October 2 model retirements",
+          "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Copilot model retirement history: four models retired October 2, 2026",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-business@2026-10-02",
+      "planId": "github-copilot-business",
+      "planName": "Copilot Business",
+      "providerId": "github"
+    },
     "github-copilot-enterprise@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "effectiveTo": "2026-09-21",
@@ -21515,6 +22897,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-enterprise@2026-09-22": {
       "effectiveFrom": "2026-09-22",
+      "effectiveTo": "2026-10-01",
       "price": {
         "currency": "USD",
         "amount": "39",
@@ -21727,6 +23110,232 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Enterprise",
       "providerId": "github"
     },
+    "github-copilot-enterprise@2026-10-02": {
+      "effectiveFrom": "2026-10-02",
+      "effectiveFromBasis": "provider",
+      "price": {
+        "currency": "USD",
+        "amount": "39",
+        "interval": "month"
+      },
+      "billingMechanics": "$39 per granted seat per month, contributing 3,900 monthly AI credits per user to the organization pool.",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits per seat (3,900 credits = $39.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "39.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "additional-usage-beyond-the-pool",
+          "label": "Additional usage beyond the pool",
+          "statement": "Each license contributes AI credits to a shared enterprise pool, and usage beyond the pool is charged at $0.01 USD per AI credit.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans",
+          "topic": "after_limit"
+        },
+        {
+          "id": "budget-controls-user-cost-center-enterprise-spen",
+          "label": "Budget controls (user, cost-center, enterprise spending limits)",
+          "statement": "If you have set a user-level budget and a user exhausts it, that user's access to Copilot is halted, regardless of whether the organization's pool still has capacity. A user can also be blocked by an enterprise spending limit before they reach their individual user-level budget, if the spending limit runs out first. There is no automatic fallback to lower-cost models when a budget is exhausted.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits. They remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Same as Copilot Business: billing interval not stated as monthly/annual on the plans page; credits reset on the calendar month, not the billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "october-2-model-retirements",
+          "label": "October 2 model retirements",
+          "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Copilot model retirement history: four models retired October 2, 2026",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-enterprise@2026-10-02",
+      "planId": "github-copilot-enterprise",
+      "planName": "Copilot Enterprise",
+      "providerId": "github"
+    },
     "github-copilot-free@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "price": {
@@ -21925,6 +23534,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-max@2026-09-22": {
       "effectiveFrom": "2026-09-22",
+      "effectiveTo": "2026-10-01",
       "price": {
         "currency": "USD",
         "amount": "100",
@@ -22137,6 +23747,232 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Max",
       "providerId": "github"
     },
+    "github-copilot-max@2026-10-02": {
+      "effectiveFrom": "2026-10-02",
+      "effectiveFromBasis": "provider",
+      "price": {
+        "currency": "USD",
+        "amount": "100",
+        "interval": "month"
+      },
+      "billingMechanics": "Copilot Max costs $100 USD per month and includes 20,000 monthly AI credits (10,000 base and 10,000 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (20,000 credits = $200.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "200.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "priority-premium-models",
+          "label": "Priority premium model access",
+          "statement": "GitHub describes Copilot Max as providing priority access to premium models; no numeric priority guarantee is published.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "october-2-model-retirements",
+          "label": "October 2 model retirements",
+          "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "pricingRef": "gpt-5-4-nano-github-pricing"
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Copilot model retirement history: four models retired October 2, 2026",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-max@2026-10-02",
+      "planId": "github-copilot-max",
+      "planName": "Copilot Max",
+      "providerId": "github"
+    },
     "github-copilot-pro-plus@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "effectiveTo": "2026-09-21",
@@ -22333,6 +24169,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-pro-plus@2026-09-22": {
       "effectiveFrom": "2026-09-22",
+      "effectiveTo": "2026-10-01",
       "price": {
         "currency": "USD",
         "amount": "39",
@@ -22551,6 +24388,238 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "planName": "Copilot Pro+",
       "providerId": "github"
     },
+    "github-copilot-pro-plus@2026-10-02": {
+      "effectiveFrom": "2026-10-02",
+      "effectiveFromBasis": "provider",
+      "price": {
+        "currency": "USD",
+        "amount": "39",
+        "interval": "month"
+      },
+      "billingMechanics": "$39 per month, including 7,000 monthly AI credits (3,900 base and 3,100 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (7,000 credits = $70.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "70.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "None specific to Pro+ beyond the general absence of published numeric rate limits.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "annual-sonnet-4-6-exception",
+          "label": "Claude Sonnet 4.6 annual-plan exception",
+          "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        },
+        {
+          "id": "october-2-model-retirements",
+          "label": "October 2 model retirements",
+          "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "pricingRef": "claude-fable-5-github-pricing"
+        },
+        {
+          "model": "claude-fable-5-1",
+          "pricingRef": "claude-fable-5-1-github-pricing"
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "pricingRef": "claude-opus-4-8-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "pricingRef": "claude-opus-4-8-fast-mode-github-pricing"
+        },
+        {
+          "model": "claude-opus-5",
+          "pricingRef": "claude-opus-5-github-pricing"
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "pricingRef": "gpt-5-4-nano-github-pricing"
+        },
+        {
+          "model": "gpt-5-5",
+          "pricingRef": "gpt-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "pricingRef": "gpt-5-6-sol-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "pricingRef": "gpt-6-astra-github-pricing"
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "pricingRef": "claude-opus-5-5-github-pricing"
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "pricingRef": "gpt-6-sol-github-pricing"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Copilot model retirement history: four models retired October 2, 2026",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-pro-plus@2026-10-02",
+      "planId": "github-copilot-pro-plus",
+      "planName": "Copilot Pro+",
+      "providerId": "github"
+    },
     "github-copilot-pro@2026-09-21": {
       "effectiveFrom": "2026-09-21",
       "effectiveTo": "2026-09-21",
@@ -22753,6 +24822,7 @@ export const BUNDLED_CATALOG: CatalogV1 = {
     },
     "github-copilot-pro@2026-09-22": {
       "effectiveFrom": "2026-09-22",
+      "effectiveTo": "2026-10-01",
       "price": {
         "currency": "USD",
         "amount": "10",
@@ -22973,6 +25043,244 @@ export const BUNDLED_CATALOG: CatalogV1 = {
       "lastVerifiedAt": "2026-09-23",
       "verificationStatus": "verified",
       "versionId": "github-copilot-pro@2026-09-22",
+      "planId": "github-copilot-pro",
+      "planName": "Copilot Pro",
+      "providerId": "github"
+    },
+    "github-copilot-pro@2026-10-02": {
+      "effectiveFrom": "2026-10-02",
+      "effectiveFromBasis": "provider",
+      "price": {
+        "currency": "USD",
+        "amount": "10",
+        "interval": "month"
+      },
+      "billingMechanics": "$10 per month, including 1,500 monthly AI credits (1,000 base and 500 flex).",
+      "limits": [
+        {
+          "id": "monthly-ai-credits",
+          "label": "Monthly AI credits (1,500 credits = $15.00 at the documented $0.01 per credit)",
+          "type": "credit_pool",
+          "amount": "15.00",
+          "window": {
+            "type": "calendar",
+            "unit": "month",
+            "timezone": "UTC"
+          },
+          "exceed": "allow_overage"
+        }
+      ],
+      "qualitativeLimits": [
+        {
+          "id": "credit-reset-behaviour-no-carryover",
+          "label": "Credit reset behaviour (no carryover)",
+          "statement": "Included AI credits do not carry over between months. Unused credits are forfeited, and your allowance resets to the full monthly amount at 00:00:00 UTC on the first day of each calendar month. This reset date is fixed and does not change based on your subscription billing date.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "code-completions-and-next-edit-suggestions-unlim",
+          "label": "Code completions and next edit suggestions (unlimited)",
+          "statement": "Code completions and next edit suggestions are not billed in AI credits and remain unlimited for all paid plans.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-happens-when-included-credits-are-exhausted",
+          "label": "What happens when included credits are exhausted",
+          "statement": "When your AI credits are exhausted, you can: - Upgrade your plan. ... - Stay on your existing plan and pay for more usage. If your included credits are exhausted, you can continue working by setting a budget for additional usage . Note that additional usage may be capped , so to keep working, you'll need to pay off any additional usage you've already consumed in order to continue. - Alternatively, wait until the next monthly cycle when your included usage resets.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "topic": "after_limit"
+        },
+        {
+          "id": "additional-usage-budget-usd-fixed-conversion-rat",
+          "label": "Additional usage budget (USD, fixed conversion rate)",
+          "statement": "Your additional usage budget is set in US dollars, and your usage is shown in GitHub AI Credits. GitHub AI Credits draw down your budget at a fixed rate: 1 AI credits = $0.01 USD, so a $10 budget covers 1,000 AI credits.",
+          "sourceUrl": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing"
+        },
+        {
+          "id": "what-the-provider-does-not-publish",
+          "label": "What the provider does not publish",
+          "statement": "Copilot Pro is 'free for some users' (verified teachers, popular open-source maintainers) - the $10 USD/month is the standard price. The flex allotment is described as variable by GitHub.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "model-availability-scope",
+          "label": "Model availability by plan",
+          "statement": "Model access follows the published per-plan model table. Availability can also depend on organization policy and client support.",
+          "sourceUrl": "https://docs.github.com/en/copilot/get-started/plans"
+        },
+        {
+          "id": "annual-sonnet-4-6-exception",
+          "label": "Claude Sonnet 4.6 annual-plan exception",
+          "statement": "Claude Sonnet 4.6 is retired for monthly Copilot Pro and Pro+ subscribers but remains available to individual subscribers on annual billing. This monthly-priced target excludes it.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        },
+        {
+          "id": "october-2-model-retirements",
+          "label": "October 2 model retirements",
+          "statement": "Claude Opus 4.7, Gemini 3.5 Flash, Gemini 3.6 Flash and Kimi K2.7 Code retired from GitHub Copilot on October 2, 2026.",
+          "sourceUrl": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+        }
+      ],
+      "modelRules": [
+        {
+          "model": "claude-fable-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-fable-5-1",
+          "excluded": true
+        },
+        {
+          "model": "claude-haiku-4-5",
+          "pricingRef": "claude-haiku-4-5-github-pricing"
+        },
+        {
+          "model": "claude-opus-4-7",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-4-8-fast-mode",
+          "excluded": true
+        },
+        {
+          "model": "claude-opus-5",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-4-6",
+          "excluded": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "pricingRef": "claude-sonnet-5-github-pricing"
+        },
+        {
+          "model": "gemini-3-5-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-6-flash",
+          "excluded": true
+        },
+        {
+          "model": "gemini-3-7-flash",
+          "pricingRef": "gemini-3-7-flash-github-pricing"
+        },
+        {
+          "model": "gemini-3-8-flash",
+          "pricingRef": "gemini-3-8-flash-github-pricing"
+        },
+        {
+          "model": "gpt-5-3-codex",
+          "pricingRef": "gpt-5-3-codex-github-pricing"
+        },
+        {
+          "model": "gpt-5-4",
+          "pricingRef": "gpt-5-4-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-mini",
+          "pricingRef": "gpt-5-4-mini-github-pricing"
+        },
+        {
+          "model": "gpt-5-4-nano",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-5",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-luna",
+          "pricingRef": "gpt-5-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-5-6-sol",
+          "excluded": true
+        },
+        {
+          "model": "gpt-5-6-terra",
+          "pricingRef": "gpt-5-6-terra-github-pricing"
+        },
+        {
+          "model": "gpt-5-mini",
+          "pricingRef": "gpt-5-mini-github-pricing"
+        },
+        {
+          "model": "gpt-6-astra",
+          "excluded": true
+        },
+        {
+          "model": "grok-4-5",
+          "pricingRef": "grok-4-5-github-pricing"
+        },
+        {
+          "model": "grok-4-6",
+          "pricingRef": "grok-4-6-github-pricing"
+        },
+        {
+          "model": "grok-4-7",
+          "pricingRef": "grok-4-7-github-pricing"
+        },
+        {
+          "model": "kimi-k2-7-code",
+          "excluded": true
+        },
+        {
+          "model": "kimi-k3",
+          "pricingRef": "kimi-k3-github-pricing"
+        },
+        {
+          "model": "mai-code-1-1-flash",
+          "pricingRef": "mai-code-1-1-flash-github-pricing"
+        },
+        {
+          "model": "claude-opus-5-5",
+          "excluded": true
+        },
+        {
+          "model": "gpt-6-luna",
+          "pricingRef": "gpt-6-luna-github-pricing"
+        },
+        {
+          "model": "gpt-6-sol",
+          "excluded": true
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.github.com/en/copilot/get-started/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing",
+          "title": "GitHub plan documentation (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://github.com/features/copilot/plans",
+          "title": "GitHub pricing (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "GitHub model availability (official)",
+          "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Copilot model retirement history: four models retired October 2, 2026",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
+      "verificationStatus": "verified",
+      "versionId": "github-copilot-pro@2026-10-02",
       "planId": "github-copilot-pro",
       "planName": "Copilot Pro",
       "providerId": "github"
@@ -26743,14 +29051,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       },
       "effectiveFrom": "2026-09-23",
+      "effectiveTo": "2026-10-01",
       "sources": [
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Model retired from Copilot on October 2, 2026; historical billing rate ends October 1",
+          "checkedAt": "2026-10-03"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "claude-opus-4-8-fast-mode-github-pricing": {
@@ -27848,14 +30162,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       },
       "effectiveFrom": "2026-09-23",
+      "effectiveTo": "2026-10-01",
       "sources": [
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Model retired from Copilot on October 2, 2026; historical billing rate ends October 1",
+          "checkedAt": "2026-10-03"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "gemini-3-6-flash-api-reference-20260928": {
@@ -27913,15 +30233,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       },
       "effectiveFrom": "2026-09-23",
-      "effectiveTo": "2026-12-31",
+      "effectiveTo": "2026-10-01",
       "sources": [
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Model retired from Copilot on October 2, 2026; historical billing rate ends October 1",
+          "checkedAt": "2026-10-03"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "gemini-3-6-flash-pricing-2027": {
@@ -30284,14 +32609,20 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         "cacheRead": "0.19"
       },
       "effectiveFrom": "2026-09-23",
+      "effectiveTo": "2026-10-01",
       "sources": [
         {
           "url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
           "title": "GitHub Copilot current per-model AI-credit token rates, including any long-context tier",
           "checkedAt": "2026-09-23"
+        },
+        {
+          "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+          "title": "Model retired from Copilot on October 2, 2026; historical billing rate ends October 1",
+          "checkedAt": "2026-10-03"
         }
       ],
-      "lastVerifiedAt": "2026-09-23",
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "kimi-k3-api-reference-20260928": {

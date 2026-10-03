@@ -11,11 +11,14 @@ rates:
   reasoning:
     billedAs: output
 effectiveFrom: '2026-09-23'
-effectiveTo: '2026-12-31'
+effectiveTo: '2026-10-01'
 sources:
 - url: https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
   title: GitHub Copilot current per-model AI-credit token rates, including any long-context
     tier
   checkedAt: '2026-09-23'
-lastVerifiedAt: '2026-09-23'
+- url: https://docs.github.com/en/copilot/reference/ai-models/supported-models
+  title: Model retired from Copilot on October 2, 2026; historical billing rate ends October 1
+  checkedAt: '2026-10-03'
+lastVerifiedAt: '2026-10-03'
 verificationStatus: verified
