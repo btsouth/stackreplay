@@ -12,11 +12,24 @@ for (const [id, name] of [
     await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=`));
     await expect(page.getByLabel("First plan")).toHaveValue(id);
     await expect(page.getByTestId("compare-target").first()).toContainText(name);
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/plans/${id}$`));
+    await page.goForward();
+    await expect(page.getByLabel("First plan")).toHaveValue(id);
     await page.getByLabel("Second plan").selectOption("google-code-assist-standard");
     await expect(page).toHaveURL(/right=google-code-assist-standard/u);
     await expect(page.getByTestId("compare-target").nth(1)).toContainText(
       "Gemini Code Assist Standard",
     );
+    await page
+      .getByTestId("compare-target")
+      .first()
+      .getByRole("link", { name, exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`/plans/${id}$`));
+    await page.goBack();
+    await expect(page.getByLabel("First plan")).toHaveValue(id);
+    await expect(page.getByLabel("Second plan")).toHaveValue("google-code-assist-standard");
     if (id === "devin-teams") {
       await expect(page.getByTestId("compare-target").first()).toContainText(
         "$80/month base + $40/month per full developer seat",
@@ -25,6 +38,19 @@ for (const [id, name] of [
     }
   });
 }
+
+test("a full sibling comparison preserves the detail history entry", async ({ page }) => {
+  await page.goto("/plans/devin-teams");
+  await page.locator('a[href="/compare?left=devin-teams&right=devin-pro"]').click();
+  await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro$/u);
+  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
+  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await page.goBack();
+  await expect(page).toHaveURL(/\/plans\/devin-teams$/u);
+  await page.goForward();
+  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
+  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+});
 
 test("explicit public offer Replay targets cannot run or select another plan", async ({ page }) => {
   await importDemo(page, "moderate");

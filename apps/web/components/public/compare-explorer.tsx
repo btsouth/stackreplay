@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type ComponentProps, type ReactNode, useLayoutEffect, useMemo, useState } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
 import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
 import { compareSearch, readComparePlans } from "@/lib/compare-url";
@@ -526,22 +533,26 @@ export function CompareExplorer({
         ),
   );
   const planIds = useMemo(() => plans.map((plan) => plan.id), [plans]);
-  // Normalize the parsed selection in the same step. A passive effect must not
-  // overwrite a newly navigated query with the previous render's default IDs.
+  // Select from router data before paint, without touching the previous page's history.
   useLayoutEffect(() => {
-    // The static Suspense fallback is display-only and must not rewrite a navigation.
+    // The static Suspense fallback is display-only.
     if (routedSearch === undefined) return;
+    setIds(readComparePlans(routedSearch, planIds, defaultPair));
+    document.documentElement.removeAttribute("data-compare");
+  }, [routedSearch, planIds, defaultPair]);
+  // The router commits navigation in a layout effect. Normalize only afterwards,
+  // using the incoming query rather than an earlier render's default selection.
+  useEffect(() => {
+    if (routedSearch === undefined || window.location.pathname !== "/compare") return;
     const nextIds = readComparePlans(routedSearch, planIds, defaultPair);
-    setIds(nextIds);
     const next = `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
-      window.history.replaceState(window.history.state, "", next);
-    document.documentElement.removeAttribute("data-compare");
+      window.history.replaceState(null, "", next);
   }, [routedSearch, planIds, defaultPair]);
   const selectPlans = (nextIds: string[]) => {
     setIds(nextIds);
     window.history.replaceState(
-      window.history.state,
+      null,
       "",
       `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`,
     );

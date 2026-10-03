@@ -3227,7 +3227,7 @@
         "sourceUrl": "https://devin.ai/pricing"
       }
     ],
-    "codingTools": ["Devin Desktop", "Devin CLI"],
+    "codingTools": ["Devin Desktop", "Devin CLI", "Devin Cloud"],
     "billingSummary": "$200/month subscription; numeric usage allowance is not published.",
     "afterLimit": "Additional paid usage is offered at API pricing. Exact model rates, conversion and automatic-charge policy are not established."
   },
@@ -3262,7 +3262,7 @@
         "sourceUrl": "https://devin.ai/pricing"
       }
     ],
-    "codingTools": ["Devin Desktop", "Devin CLI"],
+    "codingTools": ["Devin Desktop", "Devin CLI", "Devin Cloud"],
     "billingSummary": "$80/month base + $40/month per full developer seat. Up to 200 users is the published team-size statement, not 200 included full developer seats.",
     "afterLimit": "Additional paid usage is offered at API pricing. Exact model rates, conversion and automatic-charge policy are not established."
   },

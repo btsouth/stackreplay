@@ -208,6 +208,13 @@ describe("directory isolation from accepted plans", () => {
 });
 
 describe("commercial offer facts", () => {
+  it("includes inherited Cloud access in every paid Devin tool filter", () => {
+    const discovery = marketDiscovery(date);
+    for (const id of ["devin-pro", "devin-max", "devin-teams"])
+      expect(discovery.tools[id], id).toContain("Devin Cloud");
+    expect(discovery.tools["devin-free"]).not.toContain("Devin Cloud");
+  });
+
   it("keeps formulas and licensed prices beside their billing basis", () => {
     const prices = Object.fromEntries(
       current.plans
