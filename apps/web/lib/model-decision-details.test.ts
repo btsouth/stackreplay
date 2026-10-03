@@ -11,14 +11,31 @@ function model(id: string) {
 }
 
 describe("public model decision details", () => {
+  it("shows scheduled API retirement without replacing the exact Sonnet release", () => {
+    const sonnet = model("claude-sonnet-4-5");
+    expect(sonnet.lifecycle).toBe("legacy");
+    const facts = MODEL_DECISION_DETAILS[sonnet.id]?.facts;
+    expect(facts?.find((fact) => fact.label === "API availability")?.value).toBe(
+      "Deprecated on September 30, 2026; API retirement scheduled for November 30, 2026.",
+    );
+    expect(facts?.find((fact) => fact.label === "Scope")?.value).toContain("Claude API");
+    expect(facts?.find((fact) => fact.label === "Recommended replacement")?.value).toContain(
+      "not an alias",
+    );
+    expect(
+      catalog.models.find((entry) =>
+        entry.aliases.some((alias) => alias.alias === "claude-sonnet-4-5-20250929"),
+      )?.id,
+    ).toBe(sonnet.id);
+  });
   it("adds decision overlays only to accepted exact releases", () => {
     const ids = catalog.models.filter((entry) => entry.kind === "release").map((entry) => entry.id);
     for (const id of Object.keys(MODEL_DECISION_DETAILS)) expect(ids).toContain(id);
     for (const entry of catalog.models) expect(entry.sources.length, entry.id).toBeGreaterThan(0);
-    for (const details of Object.values(MODEL_DECISION_DETAILS)) {
+    for (const [id, details] of Object.entries(MODEL_DECISION_DETAILS)) {
       expect(details.facts.length).toBeGreaterThan(0);
       expect(details.sources.length).toBeGreaterThan(0);
-      expect(details.checkedAt).toBe("2026-09-29");
+      expect(details.checkedAt).toBe(id === "claude-sonnet-4-5" ? "2026-10-03" : "2026-09-29");
       for (const source of details.sources) expect(source.url).toMatch(/^https:\/\//);
     }
   });

@@ -11,6 +11,32 @@ export interface ModelDecisionDetails {
 
 /** Public decision facts only. These never change execution routes, quotas or rate selection. */
 export const MODEL_DECISION_DETAILS: Record<string, ModelDecisionDetails> = {
+  "claude-sonnet-4-5": {
+    checkedAt: "2026-10-03",
+    sources: [
+      {
+        url: "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+        title: "Official Claude API deprecation notice",
+        checkedAt: "2026-10-03",
+      },
+    ],
+    facts: [
+      {
+        label: "API availability",
+        value: "Deprecated on September 30, 2026; API retirement scheduled for November 30, 2026.",
+      },
+      {
+        label: "Recommended replacement",
+        value:
+          "Claude Sonnet 5.5 (claude-sonnet-5-5). This is a migration recommendation, not an alias for Sonnet 4.5.",
+      },
+      {
+        label: "Scope",
+        value:
+          "This notice applies to the Claude API. It does not establish availability in Claude subscriptions or other providers.",
+      },
+    ],
+  },
   "claude-fable-5": {
     checkedAt: "2026-09-29",
     sources: [

@@ -2,9 +2,106 @@ import { describe, expect, it } from "vitest";
 import { buildCompareFacts } from "./compare-facts";
 import { loadPublicCatalog } from "./public-catalog";
 import { subscriptionPublishedTerms } from "./subscription-published-terms";
+import subscriptions from "./subscription-published-terms-data.json";
 
 const date = "2026-09-29";
 describe("published subscription decision facts", () => {
+  it("expires the reviewed Kimi offer on the provider's stated return date", () => {
+    for (const [id, regular, boosted] of [
+      ["command-code-goat", "$20", "$60"],
+      ["command-code-pro", "$30", "$70"],
+    ]) {
+      if (!id) throw Error("Missing plan ID");
+      const allowance = (asOf: string, name: string) =>
+        subscriptionPublishedTerms(id, asOf)
+          ?.tables?.find((table) => table.id === "model-allowances")
+          ?.rows.find((row) => row[0] === name)?.[1];
+      // No sourced start date: keep earlier reviewed disclosures intact.
+      expect(allowance("2026-10-02", "Kimi K3")).toBe(regular);
+      for (const asOf of ["2026-10-03", "2026-10-07"])
+        expect(allowance(asOf, "Kimi K3")).toBe(`${boosted} through October 7, 2026`);
+      expect(allowance("2026-10-08", "Kimi K3")).toBe(regular);
+      expect(allowance("2026-11-01", "Kimi K3")).toBe(regular);
+      expect(allowance("2026-10-08", "GLM-5.3 Flash")).toBe(`${boosted} while capacity lasts`);
+      expect(
+        subscriptionPublishedTerms(id, "2026-10-08")?.terms.some(
+          (term) => term.label === "Kimi K3 promotion",
+        ),
+      ).toBe(false);
+      expect(
+        subscriptionPublishedTerms(id, "2026-10-07")?.terms.find(
+          (term) => term.label === "Kimi K3 promotion",
+        )?.value,
+      ).toContain("enforced ZDR uses its default allowance");
+    }
+    // Reading later terms does not mutate the historical disclosure.
+    expect(subscriptionPublishedTerms("command-code-goat", date)?.checkedAt).toBe(date);
+  });
+  it("keeps free-model availability as a disclosure and leaves replay capacity unchanged", () => {
+    const current = loadPublicCatalog("2026-10-03");
+    const previous = loadPublicCatalog(date);
+    for (const id of [
+      "command-code-go",
+      "command-code-goat",
+      "command-code-pro",
+      "command-code-max-10x",
+      "command-code-max-20x",
+    ]) {
+      const plan = current.planById(id);
+      expect(plan, id).toBeDefined();
+      expect(plan?.limits).toEqual(previous.planById(id)?.limits);
+      const free = plan?.publishedTerms?.terms.find((term) => term.label === "Free Ling 3.1 Flash");
+      expect(free?.value).toContain("no daily request limit");
+      expect(free?.value).toContain("$1 in account credits");
+      expect(free?.value).toContain("requests cost no credits");
+      expect(free?.value).toContain("while available");
+    }
+    for (const [id, value] of [
+      ["command-code-max-10x", "$150"],
+      ["command-code-max-20x", "$300"],
+    ]) {
+      if (!id) throw Error("Missing plan ID");
+      expect(
+        subscriptionPublishedTerms(id, "2026-10-03")
+          ?.tables?.find((table) => table.id === "model-allowances")
+          ?.rows.find((row) => row[0] === "Kimi K3")?.[1],
+      ).toBe(value);
+    }
+  });
+  it("dates only the announced reversion and preserves earlier source records", () => {
+    for (const id of [
+      "command-code-go",
+      "command-code-goat",
+      "command-code-pro",
+      "command-code-max-10x",
+      "command-code-max-20x",
+    ] as const) {
+      const historical = JSON.parse(JSON.stringify(subscriptions[id]));
+      const reviewed = subscriptionPublishedTerms(id, "2026-10-03");
+      expect(reviewed?.checkedAt).toBe("2026-10-03");
+      expect(reviewed).not.toHaveProperty("effectiveFrom");
+      expect(subscriptionPublishedTerms(id, "2026-09-28")).toBeUndefined();
+      // Read the expiry first to catch accidental mutation of earlier records.
+      subscriptionPublishedTerms(id, "2026-10-08");
+      expect(subscriptionPublishedTerms(id, date)).toEqual(historical);
+      expect(subscriptions[id]).toEqual(historical);
+    }
+    for (const id of ["command-code-goat", "command-code-pro"]) {
+      const reverted = subscriptionPublishedTerms(id, "2026-10-08");
+      expect(reverted?.effectiveFrom).toBe("2026-10-08");
+      expect(reverted?.checkedAt).toBe("2026-10-03");
+      expect(
+        reverted?.terms.find((term) => term.label === "GLM-5.3 Flash promotion")?.value,
+      ).toContain("while capacity lasts");
+    }
+    const go = subscriptionPublishedTerms("command-code-go", "2026-10-03");
+    expect(
+      go?.tables
+        ?.find((table) => table.id === "model-allowances")
+        ?.rows.find((row) => row[0] === "GLM-5.3 Flash")?.[1],
+    ).toBe("$10 while capacity lasts");
+    expect(go?.terms.some((term) => term.label === "Kimi K3 promotion")).toBe(false);
+  });
   it("keeps current published terms separate from historical replay constraints", () => {
     const catalog = loadPublicCatalog(date);
     const plan = catalog.planById("opencode-go");

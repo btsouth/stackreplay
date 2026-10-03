@@ -1,3 +1,4 @@
+import { commandCodePublishedTerms } from "./command-code-published-terms";
 import opencode from "./opencode-published-terms-data.json";
 import subscriptions from "./subscription-published-terms-data.json";
 
@@ -30,7 +31,7 @@ export interface SubscriptionPublishedTerms {
    */
   effectiveFrom?: string;
 }
-const records = { ...subscriptions, ...opencode } as Record<
+const records = { ...subscriptions, ...opencode, ...commandCodePublishedTerms } as Record<
   string,
   SubscriptionPublishedTerms | SubscriptionPublishedTerms[]
 >;
