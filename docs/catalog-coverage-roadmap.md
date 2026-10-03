@@ -47,6 +47,8 @@ Promotional prices stay in the catalog only while they are kept current. Each pr
 - Missing facts stay missing. Never infer a price, limit or context size. The existing pages already show "not published" states.
 - Heavy validation (full unit and Playwright suites) runs on devbox. `review/opencode-terms/HANDOFF.md` has the rsync command and logs layout. Do not rsync `.claude/launch.json`; it is local-only and fails `pnpm check` on devbox.
 
+Owner decision 2026-10-03: a pilot using OpenRouter's documented Data API is allowed. The data is licensed CC BY 4.0 (https://openrouter.ai/docs/cookbook/administration/data-api). Use only documented endpoints, carry the citation line each endpoint specifies plus an as-of timestamp, label usage rankings as OpenRouter platform traffic rather than model quality, and do not scrape.
+
 ## Coverage audit
 
 `node packages/catalog/scripts/coverage-audit.mjs [--online] [--out FILE]`

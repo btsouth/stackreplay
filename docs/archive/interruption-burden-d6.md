@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # Observed interruption burden (D6)
 
 The completed billing review keeps confirmed spend and current published API

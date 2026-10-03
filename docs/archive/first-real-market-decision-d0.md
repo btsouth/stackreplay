@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # D0 — First useful real-market decision
 
 After importing the representative workload, Workload now leads with **$5.93–$6.10 at the pinned published API prices**, explains the sole pricing interpretation behind the range, and retains all 900 calls. This is a token-usage counterfactual, not an actual invoice, subscription cancellation recommendation, or globally cheapest stack.
@@ -65,7 +67,7 @@ Browser measurements use the final production owner/child pipeline under concurr
 | 50,000 | 5.521 / 5.145 s | 41.1 ms | 34,920 bytes |
 | 100,000 | 9.162 / 9.967 s | 67.0 ms | 34,961 bytes |
 
-Every run priced all calls in both scenarios. Repeats were byte-identical, cancelled runs emitted no final success, and page heartbeat timers continued throughout. Page payload growth is numeric aggregate length, not event-count-sized assignments. Two scenarios deliberately cost two evaluations; this is not a comparison against a one-run O3A benchmark. No new heap/RSS profiling was performed or inferred from these measurements. [Machine-readable results](benchmarks/market-decision-d0.json).
+Every run priced all calls in both scenarios. Repeats were byte-identical, cancelled runs emitted no final success, and page heartbeat timers continued throughout. Page payload growth is numeric aggregate length, not event-count-sized assignments. Two scenarios deliberately cost two evaluations; this is not a comparison against a one-run O3A benchmark. No new heap/RSS profiling was performed or inferred from these measurements. [Machine-readable results](../benchmarks/market-decision-d0.json).
 
 Validation: complete unit suite **1,350 passed**; complete browser suite **389 passed, 49 intentional platform-specific skips** (438 cases, zero failures); typecheck, production web/dependency build and `pnpm check` passed (eight pre-existing informational lint suggestions). New coverage includes category overlay isolation/expiry/determinism, admission and context tiers, explicit-only variants, missing discriminator, both exact receipt totals, nanosecond scope, repeated evaluation, stale/cancelled requests, dark/light/mobile/reduced-motion and axe checks, long-scope explanation, and the 10k/50k/100k pipeline. Existing O2/O3A/O3B matching, scopes, capacity fixtures, import, persistence, pricing, sharing and cancellation suites remain intact.
 

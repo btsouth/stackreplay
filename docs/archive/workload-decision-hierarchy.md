@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # Workload decision hierarchy
 
 Workload opens with account and period setup until history coverage and same-period billing facts are confirmed. Configured reviews collapse those controls into an editable review bar. Incomplete pricing remains explicit and never produces a whole-workload ratio.

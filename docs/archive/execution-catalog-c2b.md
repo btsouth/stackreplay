@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # C2B: P0 current execution market expansion
 
 Reviewed on 2026-09-27. This is a manually admitted current-market snapshot. The ten new execution versions and two new direct pricing records activate at `2026-09-27T17:38:00Z`, end exclusively at `2026-10-27T00:00:00Z`, and were compiled at `2026-09-27T17:39:00Z`. The end is a catalog review horizon, not a provider expiration. Provider publication dates and historical effective dates were not inferred from observation or review time. All new accepted versions use `basis: current-market` and `effectiveDateBasis: catalog_activation`, even where a provider has announced an earlier launch. The new prices are USD web or API standard text prices, with the stated unit basis. Account, region, cohort, optional credit, and protocol conditions are never inferred from a provider name.

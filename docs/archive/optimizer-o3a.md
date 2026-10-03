@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # O3A: runtime hardening and initial capacity
 
 O2 was reviewed with no unrelated changes, its 357 engine tests passed again,
@@ -276,4 +278,4 @@ Complete O3A file inventory (29 files):
 - Browser tests/profiling: `apps/web/e2e/optimizer-runtime.spec.ts`,
   `apps/web/bench/optimizer-fixture.ts`, `optimizer-baseline.worker.ts`,
   `optimizer-owner.worker.ts`, `optimizer-browser.mjs`, `optimizer-runtime-browser.mjs`.
-- Documentation: `docs/optimizer-o2.md`, `docs/optimizer-o3a.md`.
+- Documentation: `docs/archive/optimizer-o2.md`, `docs/archive/optimizer-o3a.md`.

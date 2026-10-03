@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # Observed subscription capacity (D5)
 
 A billing review now pairs current published API economics with locally observed

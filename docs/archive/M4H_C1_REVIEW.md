@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # M4H-C1 historical LimitWatch review
 
 This is an internal research dossier. No candidate here is accepted catalog truth. The reviewed LimitWatch repository is [`btsouth/limitwatch`](https://github.com/btsouth/limitwatch) at `e135b9492b0a09cda9ca49496206f09d90cb8fde`. The pinned StackReplay starting commit is `f02a9112f17c7f9edbc204a7e80b200175b12697`. Research was performed on 2026-09-23. The temporary LimitWatch checkout is not needed to read or validate these artifacts.

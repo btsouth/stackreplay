@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # D2: Guided billing-period review
 
 Workload, Import Ready and Compare now lead with an explicit **Billing-period
@@ -149,7 +151,7 @@ Measured on devbox under four concurrent browser workers. Repeats were identical
 cancelled runs produced no stale success. D1's recorded measurements used a different
 run environment, so these are regression observations, not a claimed speedup.
 The 100k payload adds 178 bytes to D1's recorded summary. See the
-[aggregate benchmark](benchmarks/billing-period-review-d2.json).
+[aggregate benchmark](../benchmarks/billing-period-review-d2.json).
 
 ## Remaining limits
 

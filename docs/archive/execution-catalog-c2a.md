@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # C2A: current execution-market admission pilot
 
 Reviewed on 2026-09-27. This is a manually admitted **current-market** snapshot, not a claim that these terms applied to earlier workloads. The selected `rulesAt` for compilation is `2026-09-27T14:40:00Z`. All five accepted versions and their three new pricing records activate at `2026-09-27T14:38:00Z` and end exclusively at `2026-10-27T00:00:00Z`. That end is a catalog review horizon, not a provider-announced expiration. The providers' actual effective dates were not established. Source publication dates were not inferred from retrieval dates. Claim `observedAt`, `reviewedAt`, `effectiveDateBasis: catalog_activation`, and version `catalogActivatedAt` are recorded separately. A later review must create new versions or extend reviewed validity; it must not assume these rates remain current indefinitely.

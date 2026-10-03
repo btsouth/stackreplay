@@ -49,9 +49,10 @@ Exit codes
   0 success   1 usage error   2 operation failed
 
 Privacy
-  Scanning is local and offline. Prompts, responses, file contents, file paths
-  and repository names are never read or exported; project and session
-  identifiers leave this machine only as salted hashes.
+  Scanning is local and offline. History files are read locally; conversation
+  content is discarded and never stored or uploaded. File paths and repository
+  names are never exported; project and session identifiers leave this machine
+  only as salted hashes.
 `;
 
 const COMMAND_HELP: Record<string, string> = {

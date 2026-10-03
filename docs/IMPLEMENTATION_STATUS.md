@@ -205,7 +205,7 @@ with a visible notice; `claude-sonnet-5` is offered on the Anthropic API per Ant
 ### Milestone 4H-C1 — selective historical LimitWatch review
 
 Eleven historical research candidates and seven real, narrowly scoped source entries now sit under
-`data/catalog-intelligence/m4h-c1`, with a deterministic manifest and [review dossier](M4H_C1_REVIEW.md).
+`data/catalog-intelligence/m4h-c1`, with a deterministic manifest and [review dossier](archive/M4H_C1_REVIEW.md).
 Three receive a research recommendation of `READY_FOR_CATALOG_REVIEW`; the others retain unresolved
 date, identity, or archival-authority findings. No accepted provider, plan, model, pricing, version,
 constraint, alias, availability, Replay target, public page, or changelog was changed. Real-candidate

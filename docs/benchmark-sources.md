@@ -89,6 +89,8 @@ or permission, recorded in its source metadata before admission. Public access
 alone is not a redistribution license. Independent sets cannot use the provider
 facts basis; validation requires a license or permission basis.
 
+Owner decision 2026-10-03: a pilot using OpenRouter's documented Data API is allowed. The data is licensed CC BY 4.0 (https://openrouter.ai/docs/cookbook/administration/data-api). Use only documented endpoints, carry the citation line each endpoint specifies plus an as-of timestamp, label usage rankings as OpenRouter platform traffic rather than model quality, and do not scrape.
+
 ## Maintenance
 
 Source IDs are dated snapshots. Observation identity is

@@ -1,3 +1,5 @@
+> Archived 2026-10-03. Historical milestone note; may not match the current app. See docs/README.md.
+
 # O3B: compiled execution runtime
 
 This implements the provider-neutral target of [the locked contract review](optimizer-catalog-contract-review.md). That decision record is unchanged. No real-provider plan or capacity claim is added. All new fixtures are synthetic.
@@ -92,7 +94,7 @@ The acceptance families cover opaque capacity; simultaneous session/week/month/s
 | 100,000 | multi / 1 | 1936 / 2057 | 122.5 | 7.8 | 22.1 | 592 |
 | 100,000 | pools / 1 | 1071 / 1531 | 120.3 | 7.8 | 22.1 | 602 |
 
-[Machine-readable samples](benchmarks/optimizer-o3b.json) include all three runs per case and each cancellation phase. The multi fixture has simultaneous session/week/month/model constraints; the pools fixture uses two independent balances. These are single-choice rich allocations, not a claim that a 100k branching rich search completes.
+[Machine-readable samples](../benchmarks/optimizer-o3b.json) include all three runs per case and each cancellation phase. The multi fixture has simultaneous session/week/month/model constraints; the pools fixture uses two independent balances. These are single-choice rich allocations, not a claim that a 100k branching rich search completes.
 
 All 27 measured runs retained only the owner after release. All 45 phase-cancellation checks removed the child and emitted no success, with measured acknowledgement at most 9.1 ms; child disappearance was checked after the harness's 100 ms observation delay. Main-thread maximum timer gap was 16.6 ms. Within each three-run case, released owner heap spread was at most 13.1 KiB. Changing plans/scope, cancellation and a subsequent run completed without monotonic retained growth. Fixed-input winners and totals matched across all three repetitions.
 
@@ -120,8 +122,8 @@ Compile selectors to finite exact identities and unambiguous included routes; va
 - `apps/web/workers/optimizer.worker.ts`
 - `docs/benchmarks/optimizer-o3b.json`
 - `docs/optimizer-architecture.md`
-- `docs/optimizer-o3a.md`
-- `docs/optimizer-o3b.md`
+- `docs/archive/optimizer-o3a.md`
+- `docs/archive/optimizer-o3b.md`
 - `packages/catalog/src/index.ts`
 - `packages/catalog/src/schema.ts`
 - `packages/catalog/src/validate.ts`
