@@ -8,29 +8,41 @@ import { absoluteUrl } from "@/lib/site";
  * real catalog, so the sitemap never advertises synthetic demo entries.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   const catalog = loadPublicCatalog();
 
   const staticEntries: MetadataRoute.Sitemap = [
-    { url: absoluteUrl("/"), lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: absoluteUrl("/plans"), lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: absoluteUrl("/models"), lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     {
-      url: absoluteUrl("/benchmarks"),
-      lastModified: now,
+      url: absoluteUrl("/"),
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: absoluteUrl("/plans"),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: absoluteUrl("/models"),
       changeFrequency: "weekly",
       priority: 0.8,
     },
-    { url: absoluteUrl("/compare"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    {
+      url: absoluteUrl("/benchmarks"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl("/compare"),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
     {
       url: absoluteUrl("/methodology"),
-      lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
       url: absoluteUrl("/changelog"),
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -38,7 +50,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const planEntries: MetadataRoute.Sitemap = catalog.plans.map((plan) => ({
     url: absoluteUrl(`/plans/${plan.id}`),
-    lastModified: new Date(plan.lastVerifiedAt),
+    // A plan page changes when any reviewed part changes, not only its terms.
+    lastModified: new Date(
+      Math.max(
+        Date.parse(plan.lastVerifiedAt),
+        Date.parse(plan.publishedTerms?.checkedAt ?? plan.lastVerifiedAt),
+        Date.parse(plan.modelAccess?.checkedAt ?? plan.lastVerifiedAt),
+      ),
+    ),
     changeFrequency: "weekly",
     priority: 0.8,
   }));

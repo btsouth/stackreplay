@@ -4,13 +4,14 @@ import { MarketHeader } from "@/components/public/market-header";
 import { buildCompareFacts, type CompareFacts, defaultComparePair } from "@/lib/compare-facts";
 import { planTools } from "@/lib/market-discovery";
 import { loadPublicCatalog } from "@/lib/public-catalog";
+import { publicPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Compare plans",
   description:
     "Compare two or three AI coding plans on price, included models, coding tools, usage limits and what happens after the limit, with sources.",
-  alternates: { canonical: "/compare" },
-};
+  path: "/compare",
+});
 
 /** Common questions, as ready-made comparisons. Editorial shortcuts, not rankings. */
 const QUICK_COMPARISONS = [

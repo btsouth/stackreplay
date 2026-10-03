@@ -2,14 +2,54 @@ import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
-import { repositoryUrl } from "@/lib/site";
+import { publicFreshness } from "@/lib/public-freshness";
+import { publicPageMetadata, repositoryUrl } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
   title: "Methodology",
   description:
-    "How StackReplay replays a workload: admission, accounting, windows, coverage, confidence, money handling and the limits of a simulation.",
-  alternates: { canonical: "/methodology" },
-};
+    "How StackReplay sources models, prices, subscription terms, benchmarks and AI updates, plus how private workload replays are calculated.",
+  path: "/methodology",
+});
+
+const catalogSections = [
+  {
+    heading: "What the catalog covers",
+    body: [
+      "StackReplay brings together AI model releases, API list prices and subscription plans so you can compare access and costs, then explore what fits your own coding workload. The catalog includes model developers and providers that offer access to their models; those are different roles.",
+      "The pages show the sourced records in the repository, including current and legacy releases. They are not a complete list of the market or a recommendation of every listed product. Models and plans have different levels of pricing, access and benchmark coverage. Synthetic example records used by demos and tests are kept out of the public catalog.",
+    ],
+  },
+  {
+    heading: "What checked and verified mean",
+    body: [
+      "A checked date records when a source or claim was reviewed. It is not the model's release date or a promise that the provider has not changed anything since. Each source link shows its own checked date, and prices, plan terms, benchmarks and updates can have different review dates.",
+      "Verified means the catalog records supporting evidence for that claim. Measured and estimated are separate labels, and unknown stays unknown. A verified benchmark is a checked reported result, not a test run by StackReplay. A plan's published product terms can be checked more recently than its executable Replay rules.",
+    ],
+  },
+  {
+    heading: "Where prices and plan terms come from",
+    body: [
+      "Price and plan pages link the recorded sources, including provider pricing pages and product documentation. API list prices have effective dates and can differ by endpoint, service tier, cache policy or usage conditions. The main model price uses accepted standard-tier API list-price records; other tiers and conditions are shown separately where recorded.",
+      "Subscription pages keep published prices, model access and usage terms separate from rules that Replay can calculate. An unpublished numerical allowance stays unpublished. Relative allowances and qualitative limits do not become invented token or request budgets. List prices exclude discounts, taxes and negotiated deals and need not match your invoice.",
+    ],
+  },
+  {
+    heading: "How to read benchmark scores",
+    body: [
+      "The benchmark sheet preserves each test's version, metric and task subset, with the reporting source and evaluation setup. Many results are developer reported. Different effort settings, tools, evaluation software, fallbacks and deployments can change a score, so values from different sources are not automatically comparable.",
+      "StackReplay does not normalize scores or create a combined rating. A highlighted value is only the highest reported value in that row, or the lowest when lower is better. It does not establish equal setups or an overall ranking. Missing scores say Not reported; another release's score is never borrowed.",
+      "The evidence panel keeps alternative reported results and links the original methodology. Shared benchmarks requires a reported score for every selected model. All reported results keeps coverage gaps visible. A dated edition identifies a saved collection of evidence so older comparison links retain their results.",
+    ],
+  },
+  {
+    heading: "How AI updates are selected",
+    body: [
+      "The homepage and AI updates page read the same versioned feed of model releases, benchmark results, API price changes and subscription changes. Each accepted event has a first-party source, an occurrence date and a verification date. Its linked model, plan and benchmark identities are checked against the catalog and evidence.",
+      "The homepage briefing selects recent events using the feed's recorded importance and date. It is a selection of recorded changes, not a complete news feed. Prices and benchmark figures beside an update come from the accepted catalog and benchmark records, so they use the same facts as the detail pages.",
+    ],
+  },
+] as const;
 
 const sections = [
   {
@@ -109,14 +149,44 @@ export default function MethodologyPage() {
       <header className="flex flex-col gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Methodology</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Track less, explain more. This page describes exactly how a replay is calculated and where
-          its answers stop being trustworthy.
+          What is covered, where the evidence comes from, and what the numbers can tell you.
         </p>
-        <p className="text-xs text-muted-foreground">
-          Engine {ENGINE_VERSION} · methodology {REPLAY_METHODOLOGY_VERSION} · catalog{" "}
-          {shortCatalogVersion(catalog.catalogVersion)}
-        </p>
+        <p className="max-w-3xl text-sm text-muted-foreground">{publicFreshness(catalog)}.</p>
+        <Link
+          className="text-sm text-accent underline underline-offset-2"
+          href="#replay-methodology"
+        >
+          Workload replay and accounting details
+        </Link>
       </header>
+
+      <div className="flex flex-col gap-6">
+        {catalogSections.map((section) => (
+          <section key={section.heading} className="flex flex-col gap-2">
+            <h2 className="text-lg font-medium text-foreground">{section.heading}</h2>
+            {section.body.map((paragraph) => (
+              <p key={paragraph.slice(0, 32)} className="max-w-3xl text-sm text-muted-foreground">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        ))}
+      </div>
+
+      <section id="replay-methodology" className="flex scroll-mt-24 flex-col gap-3">
+        <h2 className="text-xl font-semibold text-foreground">Workload replay and accounting</h2>
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          The details below explain how your recorded workload is simulated against documented
+          rules.
+        </p>
+        <details className="text-xs text-muted-foreground">
+          <summary>Technical versions for reproducing a replay</summary>
+          <p>
+            Engine {ENGINE_VERSION} · methodology {REPLAY_METHODOLOGY_VERSION} · catalog{" "}
+            {shortCatalogVersion(catalog.catalogVersion)}
+          </p>
+        </details>
+      </section>
 
       <div className="flex flex-col gap-6">
         {sections.map((section) => (

@@ -4,12 +4,13 @@ import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { PlanExplorer } from "@/components/public/plan-explorer";
 import { buildCompareFacts } from "@/lib/compare-facts";
 import { marketDiscovery, planUsage } from "@/lib/market-discovery";
-export const metadata: Metadata = {
+import { publicPageMetadata } from "@/lib/site";
+export const metadata: Metadata = publicPageMetadata({
   title: "Subscriptions",
   description:
     "Compare AI coding subscriptions by monthly price, included models, compatible tools and published usage terms.",
-  alternates: { canonical: "/plans" },
-};
+  path: "/plans",
+});
 export default function PlansPage() {
   const { catalog, tools } = marketDiscovery();
   const facts = Object.fromEntries(
