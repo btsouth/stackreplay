@@ -90,16 +90,16 @@ jobs:
         run: pnpm --filter "@stackreplay/web..." build
       - name: Run Playwright tests
         run: pnpm --filter @stackreplay/web test:e2e --shard=${{ matrix.shard }}/4
-      - name: Build Workers app for comparison history regression
+      - name: Build Workers app for public URL history regressions
         if: matrix.shard == 1
         run: pnpm --filter @stackreplay/web build:vinext
-      - name: Run comparison history tests on Workers
+      - name: Run public URL history tests on Workers
         if: matrix.shard == 1
         env:
           STACKREPLAY_E2E_RUNTIME: workers
         run: >-
-          pnpm --filter @stackreplay/web test:e2e e2e/public-offers.spec.ts
-          --grep "detail client navigation|full sibling comparison|shared comparison normalization"
+          pnpm --filter @stackreplay/web test:e2e e2e/public-offers.spec.ts e2e/providers.spec.ts
+          --grep "detail client navigation|full sibling comparison|shared comparison normalization|provider discovery|shared provider role"
           --workers=2
       - name: Upload Playwright report on failure
         if: failure()

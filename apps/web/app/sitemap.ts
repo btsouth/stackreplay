@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { loadPublicDirectory } from "@/lib/public-directory";
+import { loadPublicProviderDirectory } from "@/lib/public-providers";
 import { absoluteUrl } from "@/lib/site";
 
 /**
@@ -9,6 +10,7 @@ import { absoluteUrl } from "@/lib/site";
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const catalog = loadPublicDirectory();
+  const providers = loadPublicProviderDirectory(catalog.asOf).providers;
 
   const staticEntries: MetadataRoute.Sitemap = [
     {
@@ -48,6 +50,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
+  staticEntries.push({ url: absoluteUrl("/providers"), changeFrequency: "weekly", priority: 0.8 });
+  // Identity checks do not date the joined hub page.
+  const providerEntries: MetadataRoute.Sitemap = providers.map((provider) => ({
+    url: absoluteUrl(`/providers/${provider.id}`),
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
   const planEntries: MetadataRoute.Sitemap = catalog.plans.map((plan) => ({
     url: absoluteUrl(`/plans/${plan.id}`),
     // A plan page changes when any reviewed part changes, not only its terms.
@@ -69,5 +79,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }));
 
-  return [...staticEntries, ...planEntries, ...modelEntries];
+  return [...staticEntries, ...planEntries, ...modelEntries, ...providerEntries];
 }

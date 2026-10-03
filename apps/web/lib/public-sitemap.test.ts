@@ -3,6 +3,10 @@ import { loadPublicDirectory, type PublicDirectory } from "@/lib/public-director
 import sitemap from "../app/sitemap";
 import { absoluteUrl } from "./site";
 
+vi.mock("@/lib/public-providers", () => ({
+  loadPublicProviderDirectory: () => ({ providers: [{ id: "provider-a" }, { id: "devin" }] }),
+}));
+
 vi.mock("@/lib/public-directory", () => ({
   loadPublicDirectory: vi.fn(),
 }));
@@ -13,6 +17,7 @@ const indexEntries = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/plans", changeFrequency: "weekly", priority: 0.9 },
   { path: "/models", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/providers", changeFrequency: "weekly", priority: 0.8 },
   { path: "/benchmarks", changeFrequency: "weekly", priority: 0.8 },
   { path: "/compare", changeFrequency: "weekly", priority: 0.7 },
   { path: "/methodology", changeFrequency: "monthly", priority: 0.6 },
@@ -107,6 +112,19 @@ describe("public sitemap content dates", () => {
       expect(firstEntry).not.toHaveProperty("lastModified");
       expect(second.get(url)).toEqual(firstEntry);
     }
+  });
+
+  it("includes hub paths without inferred dates", () => {
+    for (const id of ["provider-a", "devin"]) {
+      expect(sitemap().find((entry) => entry.url === absoluteUrl(`/providers/${id}`))).toEqual({
+        url: absoluteUrl(`/providers/${id}`),
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
+    }
+    expect(
+      sitemap().some((entry) => entry.url.includes("example-") || entry.url.includes("/app/")),
+    ).toBe(false);
   });
 
   it("keeps a newer rule review when published terms are older", () => {

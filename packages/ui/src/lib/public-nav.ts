@@ -20,6 +20,11 @@ export interface PublicNavItem {
 /** Public market intelligence: readable without scanning anything. */
 export const publicNavItems = [
   { label: "Models", href: "/models", description: "Models, published prices and access" },
+  {
+    label: "Providers",
+    href: "/providers",
+    description: "Developers, API access and published plans",
+  },
   { label: "Benchmarks", href: "/benchmarks", description: "Verified model evaluation evidence" },
   { label: "Compare", href: "/compare", description: "Compare documented plan facts" },
   { label: "Plans", href: "/plans", description: "Every catalogued plan, with sources" },
@@ -70,6 +75,7 @@ export const publicFooterGroups = [
     items: [
       { label: "Scan your AI history", href: "/app/import" },
       { label: "Models", href: "/models" },
+      { label: "Providers", href: "/providers" },
       { label: "Benchmarks", href: "/benchmarks" },
       { label: "Plans", href: "/plans" },
       { label: "Compare", href: "/compare" },

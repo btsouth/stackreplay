@@ -55,6 +55,11 @@ const DISCOVERY_ORDER: readonly string[] = [
   "gpt-5-3-codex",
   "grok-4-7",
 ];
+/** Existing editorial membership, shared by public provider discovery. */
+export function isFeaturedModel(id: string): boolean {
+  return DISCOVERY_ORDER.includes(id);
+}
+
 export function byDiscoveryOrder(left: PublicModelSummary, right: PublicModelSummary): number {
   const rank = (id: string) => {
     const index = DISCOVERY_ORDER.indexOf(id);
