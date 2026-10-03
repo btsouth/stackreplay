@@ -187,6 +187,8 @@ const ORGANIZATION_PLANS: ReadonlySet<string> = new Set([
   "github-copilot-business",
   "github-copilot-enterprise",
   "openai-chatgpt-business",
+  "cursor-teams-standard",
+  "cursor-teams-premium",
 ]);
 
 export function isOrganizationPlan(coverage: Pick<TargetCoverage, "id" | "kind">): boolean {

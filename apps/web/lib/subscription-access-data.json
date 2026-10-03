@@ -3546,15 +3546,456 @@
       }
     ]
   },
-  "kiro-pro": {
-    "checkedAt": "2026-09-28",
-    "summary": "Use Auto or choose a named model. Experimental and Enterprise-only access are distinguished from general Pro availability.",
+  "cursor-teams-standard": {
+    "checkedAt": "2026-10-03",
+    "summary": "Paid Teams seats include two monthly model pools. Absolute pool sizes are not published, and availability can depend on the team and account.",
     "groups": [
       {
-        "label": "Named model selection",
+        "label": "Cursor Models pool",
         "access": "included",
-        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
         "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Composer 2.5",
+            "modelId": "composer-2-5"
+          }
+        ],
+        "note": "Included for each paid seat. Cursor does not publish the pool's absolute size; fast and extended-context modes have separate usage rates."
+      },
+      {
+        "label": "Other Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          }
+        ],
+        "note": "Third-party model usage, Auto and BYOK requests incur the $0.25 per million token Cursor Token Rate; Cursor Models are exempt. Cursor does not publish the pool's absolute size."
+      },
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [],
+        "note": "Auto routes among supported models; Cursor does not publish an exact request-to-model mapping."
+      }
+    ]
+  },
+  "cursor-teams-premium": {
+    "checkedAt": "2026-10-03",
+    "summary": "Paid Teams seats include two monthly model pools. Premium is 5x Standard usage or Agent limits, but the absolute base is unpublished.",
+    "groups": [
+      {
+        "label": "Cursor Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing",
+        "models": [
+          {
+            "name": "Grok 4.7",
+            "modelId": "grok-4-7"
+          },
+          {
+            "name": "Grok 4.6",
+            "modelId": "grok-4-6"
+          },
+          {
+            "name": "Grok 4.5",
+            "modelId": "grok-4-5"
+          },
+          {
+            "name": "Composer 2.5",
+            "modelId": "composer-2-5"
+          }
+        ],
+        "note": "Included for each paid seat. Premium is described as 5x Standard, whose absolute amount is unpublished; fast and extended-context modes have separate usage rates."
+      },
+      {
+        "label": "Other Models pool",
+        "access": "included",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [
+          {
+            "name": "Claude Fable 5.1",
+            "modelId": "claude-fable-5-1"
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
+          },
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol"
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra"
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna"
+          },
+          {
+            "name": "Gemini 3.1 Pro",
+            "modelId": "gemini-3-1-pro"
+          },
+          {
+            "name": "Gemini 3.8 Flash",
+            "modelId": "gemini-3-8-flash"
+          },
+          {
+            "name": "Muse Spark 1.3",
+            "modelId": "muse-spark-1-3"
+          }
+        ],
+        "note": "Third-party model usage, Auto and BYOK requests incur the $0.25 per million token Cursor Token Rate; Cursor Models are exempt. Cursor does not publish the pool's absolute size."
+      },
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing",
+        "models": [],
+        "note": "Auto routes among supported models; Cursor does not publish an exact request-to-model mapping."
+      }
+    ]
+  },
+  "kiro-pro": [
+    {
+      "checkedAt": "2026-09-28",
+      "summary": "Use Auto or choose a named model. Experimental and Enterprise-only access are distinguished from general Pro availability.",
+      "groups": [
+        {
+          "label": "Named model selection",
+          "access": "included",
+          "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+          "models": [
+            {
+              "name": "Claude Opus 5",
+              "modelId": "claude-opus-5"
+            },
+            {
+              "name": "Claude Opus 4.8",
+              "modelId": "claude-opus-4-8"
+            },
+            {
+              "name": "Claude Opus 4.7",
+              "modelId": "claude-opus-4-7"
+            },
+            {
+              "name": "Claude Opus 4.6",
+              "modelId": "claude-opus-4-6"
+            },
+            {
+              "name": "Claude Opus 4.5",
+              "modelId": "claude-opus-4-5"
+            },
+            {
+              "name": "Claude Sonnet 5",
+              "modelId": "claude-sonnet-5"
+            },
+            {
+              "name": "Claude Sonnet 4.6",
+              "modelId": "claude-sonnet-4-6"
+            },
+            {
+              "name": "Claude Sonnet 4.5",
+              "modelId": "claude-sonnet-4-5"
+            },
+            {
+              "name": "Claude Sonnet 4.0",
+              "modelId": "claude-sonnet-4"
+            },
+            {
+              "name": "Claude Haiku 4.5",
+              "modelId": "claude-haiku-4-5"
+            },
+            {
+              "name": "MiniMax M2.5",
+              "modelId": "minimax-m2-5"
+            },
+            {
+              "name": "GLM-5",
+              "modelId": "glm-5"
+            },
+            {
+              "name": "DeepSeek 3.2",
+              "modelId": "deepseek-v3-2"
+            },
+            {
+              "name": "MiniMax M2.1",
+              "modelId": "minimax-m2-1"
+            },
+            {
+              "name": "Qwen3 Coder Next",
+              "modelId": "qwen3-coder-next"
+            }
+          ],
+          "note": "Availability varies by AWS region and client."
+        },
+        {
+          "label": "Experimental rollout",
+          "access": "conditional",
+          "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+          "models": [
+            {
+              "name": "Claude Opus 5.5",
+              "modelId": "claude-opus-5-5"
+            },
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol"
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra"
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna"
+            }
+          ],
+          "note": "Paid-plan rollout in us-east-1 and eu-central-1. Fable 5.1 preview is Enterprise-only."
+        },
+        {
+          "label": "Automatic selection",
+          "access": "automatic",
+          "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+          "models": [],
+          "note": "Auto routes between supported models and is not one exact model."
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "summary": "Paid tiers use the current named-model matrix plus Auto. Fable 5.1 is Enterprise-only and excluded.",
+      "groups": [
+        {
+          "label": "Paid model matrix",
+          "access": "included",
+          "sourceUrl": "https://kiro.dev/docs/models/",
+          "models": [
+            {
+              "name": "GPT-5.6 Sol",
+              "modelId": "gpt-5-6-sol",
+              "note": "US-served regardless of enterprise profile region."
+            },
+            {
+              "name": "GPT-5.6 Terra",
+              "modelId": "gpt-5-6-terra",
+              "note": "US-served regardless of enterprise profile region."
+            },
+            {
+              "name": "GPT-5.6 Luna",
+              "modelId": "gpt-5-6-luna",
+              "note": "US-served regardless of enterprise profile region."
+            },
+            {
+              "name": "Claude Opus 5.5",
+              "modelId": "claude-opus-5-5"
+            },
+            {
+              "name": "Claude Opus 5",
+              "modelId": "claude-opus-5"
+            },
+            {
+              "name": "Claude Opus 4.8",
+              "modelId": "claude-opus-4-8"
+            },
+            {
+              "name": "Claude Opus 4.7",
+              "modelId": "claude-opus-4-7"
+            },
+            {
+              "name": "Claude Opus 4.6",
+              "modelId": "claude-opus-4-6"
+            },
+            {
+              "name": "Claude Opus 4.5",
+              "modelId": "claude-opus-4-5"
+            },
+            {
+              "name": "Claude Sonnet 5.5",
+              "modelId": "claude-sonnet-5-5"
+            },
+            {
+              "name": "Claude Sonnet 5",
+              "modelId": "claude-sonnet-5"
+            },
+            {
+              "name": "Claude Sonnet 4.6",
+              "modelId": "claude-sonnet-4-6"
+            },
+            {
+              "name": "Claude Sonnet 4.5",
+              "modelId": "claude-sonnet-4-5"
+            },
+            {
+              "name": "Claude Sonnet 4.0",
+              "modelId": "claude-sonnet-4"
+            },
+            {
+              "name": "Claude Haiku 4.5",
+              "modelId": "claude-haiku-4-5"
+            },
+            {
+              "name": "DeepSeek 3.2",
+              "modelId": "deepseek-v3-2"
+            },
+            {
+              "name": "MiniMax M2.5",
+              "modelId": "minimax-m2-5"
+            },
+            {
+              "name": "MiniMax M2.1",
+              "modelId": "minimax-m2-1"
+            },
+            {
+              "name": "GLM-5",
+              "modelId": "glm-5"
+            },
+            {
+              "name": "Qwen3 Coder Next",
+              "modelId": "qwen3-coder-next"
+            }
+          ],
+          "note": "Normal paid-tier eligibility replaces the earlier experimental rollout label. Individual paid plans are served from the commercial US geography. Other enterprise profile models follow the documented profile geography. Availability remains subject to provider geography, client and account controls."
+        },
+        {
+          "label": "Automatic selection",
+          "access": "automatic",
+          "sourceUrl": "https://kiro.dev/docs/models/",
+          "models": [],
+          "note": "Auto routes between supported models; Kiro does not publish an exact request-to-model mapping."
+        }
+      ]
+    }
+  ],
+  "kiro-free": {
+    "checkedAt": "2026-10-03",
+    "summary": "Free includes named open-weight and Claude choices plus Auto. Add-ons and Kiro Web are unavailable.",
+    "groups": [
+      {
+        "label": "Included models",
+        "access": "included",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [
+          {
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
+          },
+          {
+            "name": "Claude Sonnet 4.0",
+            "modelId": "claude-sonnet-4"
+          },
+          {
+            "name": "DeepSeek 3.2",
+            "modelId": "deepseek-v3-2"
+          },
+          {
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
+          },
+          {
+            "name": "MiniMax M2.1",
+            "modelId": "minimax-m2-1"
+          },
+          {
+            "name": "GLM-5",
+            "modelId": "glm-5"
+          },
+          {
+            "name": "Qwen3 Coder Next",
+            "modelId": "qwen3-coder-next"
+          }
+        ],
+        "note": "Individual Free access is served from the commercial US geography and is subject to rate limits, client support and provider availability."
+      },
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [],
+        "note": "Auto routes between supported models; Kiro does not publish an exact request-to-model mapping."
+      }
+    ]
+  },
+  "kiro-pro-plus": {
+    "checkedAt": "2026-10-03",
+    "summary": "Paid tiers use the current named-model matrix plus Auto. Fable 5.1 is Enterprise-only and excluded.",
+    "groups": [
+      {
+        "label": "Paid model matrix",
+        "access": "included",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
           {
             "name": "Claude Opus 5",
             "modelId": "claude-opus-5"
@@ -3574,6 +4015,10 @@
           {
             "name": "Claude Opus 4.5",
             "modelId": "claude-opus-4-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
           },
           {
             "name": "Claude Sonnet 5",
@@ -3596,58 +4041,242 @@
             "modelId": "claude-haiku-4-5"
           },
           {
-            "name": "MiniMax M2.5",
-            "modelId": "minimax-m2-5"
-          },
-          {
-            "name": "GLM-5",
-            "modelId": "glm-5"
-          },
-          {
             "name": "DeepSeek 3.2",
             "modelId": "deepseek-v3-2"
+          },
+          {
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
           },
           {
             "name": "MiniMax M2.1",
             "modelId": "minimax-m2-1"
           },
           {
+            "name": "GLM-5",
+            "modelId": "glm-5"
+          },
+          {
             "name": "Qwen3 Coder Next",
             "modelId": "qwen3-coder-next"
           }
         ],
-        "note": "Availability varies by AWS region and client."
+        "note": "Individual paid plans are served from the commercial US geography. Other enterprise profile models follow the documented profile geography. Availability remains subject to provider geography, client and account controls."
       },
       {
-        "label": "Experimental rollout",
-        "access": "conditional",
-        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [],
+        "note": "Auto routes between supported models; Kiro does not publish an exact request-to-model mapping."
+      }
+    ]
+  },
+  "kiro-pro-max": {
+    "checkedAt": "2026-10-03",
+    "summary": "Paid tiers use the current named-model matrix plus Auto. Fable 5.1 is Enterprise-only and excluded.",
+    "groups": [
+      {
+        "label": "Paid model matrix",
+        "access": "included",
+        "sourceUrl": "https://kiro.dev/docs/models/",
         "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna",
+            "note": "US-served regardless of enterprise profile region."
+          },
           {
             "name": "Claude Opus 5.5",
             "modelId": "claude-opus-5-5"
           },
           {
-            "name": "GPT-5.6 Sol",
-            "modelId": "gpt-5-6-sol"
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
           },
           {
-            "name": "GPT-5.6 Terra",
-            "modelId": "gpt-5-6-terra"
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
           },
           {
-            "name": "GPT-5.6 Luna",
-            "modelId": "gpt-5-6-luna"
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
+          },
+          {
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
+          },
+          {
+            "name": "Claude Sonnet 4.0",
+            "modelId": "claude-sonnet-4"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "DeepSeek 3.2",
+            "modelId": "deepseek-v3-2"
+          },
+          {
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
+          },
+          {
+            "name": "MiniMax M2.1",
+            "modelId": "minimax-m2-1"
+          },
+          {
+            "name": "GLM-5",
+            "modelId": "glm-5"
+          },
+          {
+            "name": "Qwen3 Coder Next",
+            "modelId": "qwen3-coder-next"
           }
         ],
-        "note": "Paid-plan rollout in us-east-1 and eu-central-1. Fable 5.1 preview is Enterprise-only."
+        "note": "Individual paid plans are served from the commercial US geography. Other enterprise profile models follow the documented profile geography. Availability remains subject to provider geography, client and account controls."
       },
       {
         "label": "Automatic selection",
         "access": "automatic",
-        "sourceUrl": "https://kiro.dev/docs/models/available-models/",
+        "sourceUrl": "https://kiro.dev/docs/models/",
         "models": [],
-        "note": "Auto routes between supported models and is not one exact model."
+        "note": "Auto routes between supported models; Kiro does not publish an exact request-to-model mapping."
+      }
+    ]
+  },
+  "kiro-power": {
+    "checkedAt": "2026-10-03",
+    "summary": "Paid tiers use the current named-model matrix plus Auto. Fable 5.1 is Enterprise-only and excluded.",
+    "groups": [
+      {
+        "label": "Paid model matrix",
+        "access": "included",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [
+          {
+            "name": "GPT-5.6 Sol",
+            "modelId": "gpt-5-6-sol",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Terra",
+            "modelId": "gpt-5-6-terra",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "GPT-5.6 Luna",
+            "modelId": "gpt-5-6-luna",
+            "note": "US-served regardless of enterprise profile region."
+          },
+          {
+            "name": "Claude Opus 5.5",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "name": "Claude Opus 5",
+            "modelId": "claude-opus-5"
+          },
+          {
+            "name": "Claude Opus 4.8",
+            "modelId": "claude-opus-4-8"
+          },
+          {
+            "name": "Claude Opus 4.7",
+            "modelId": "claude-opus-4-7"
+          },
+          {
+            "name": "Claude Opus 4.6",
+            "modelId": "claude-opus-4-6"
+          },
+          {
+            "name": "Claude Opus 4.5",
+            "modelId": "claude-opus-4-5"
+          },
+          {
+            "name": "Claude Sonnet 5.5",
+            "modelId": "claude-sonnet-5-5"
+          },
+          {
+            "name": "Claude Sonnet 5",
+            "modelId": "claude-sonnet-5"
+          },
+          {
+            "name": "Claude Sonnet 4.6",
+            "modelId": "claude-sonnet-4-6"
+          },
+          {
+            "name": "Claude Sonnet 4.5",
+            "modelId": "claude-sonnet-4-5"
+          },
+          {
+            "name": "Claude Sonnet 4.0",
+            "modelId": "claude-sonnet-4"
+          },
+          {
+            "name": "Claude Haiku 4.5",
+            "modelId": "claude-haiku-4-5"
+          },
+          {
+            "name": "DeepSeek 3.2",
+            "modelId": "deepseek-v3-2"
+          },
+          {
+            "name": "MiniMax M2.5",
+            "modelId": "minimax-m2-5"
+          },
+          {
+            "name": "MiniMax M2.1",
+            "modelId": "minimax-m2-1"
+          },
+          {
+            "name": "GLM-5",
+            "modelId": "glm-5"
+          },
+          {
+            "name": "Qwen3 Coder Next",
+            "modelId": "qwen3-coder-next"
+          }
+        ],
+        "note": "Individual paid plans are served from the commercial US geography. Other enterprise profile models follow the documented profile geography. Availability remains subject to provider geography, client and account controls."
+      },
+      {
+        "label": "Automatic selection",
+        "access": "automatic",
+        "sourceUrl": "https://kiro.dev/docs/models/",
+        "models": [],
+        "note": "Auto routes between supported models; Kiro does not publish an exact request-to-model mapping."
       }
     ]
   },

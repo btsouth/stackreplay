@@ -1,11 +1,6 @@
-import {
-  exceedText,
-  formatCatalogDate,
-  limitSentence,
-  priceText,
-  verificationText,
-} from "./catalog-copy";
+import { exceedText, formatCatalogDate, limitSentence, verificationText } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
+import { publicPlanPriceText } from "./public-plan-price";
 import {
   accessModelKey,
   includedAccessModels,
@@ -252,7 +247,7 @@ export function buildCompareFacts(
     planId: plan.id,
     planName: plan.name,
     providerName: plan.providerName,
-    price: priceText(plan.price),
+    price: publicPlanPriceText(plan),
     models: {
       featured,
       more: included.filter((model) => !featured.includes(model)),

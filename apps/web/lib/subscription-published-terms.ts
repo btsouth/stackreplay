@@ -15,6 +15,8 @@ export interface SubscriptionPublishedTerms {
   checkedAt: string;
   sourceUrls: string[];
   allowanceSummary: string;
+  /** Sourced unit for the displayed monthly price, separate from Replay purchases. */
+  priceBasis?: "user" | "paid_user";
   terms: { label: string; value: string; sourceUrl: string }[];
   tables?: PublishedTermsTable[];
   codingTools?: string[];

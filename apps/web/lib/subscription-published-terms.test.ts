@@ -154,4 +154,62 @@ describe("published subscription decision facts", () => {
       }
     }
   });
+
+  it("adds October 3 Kiro and Cursor Teams terms without rewriting older Kiro terms", () => {
+    const historical = subscriptionPublishedTerms("kiro-pro", "2026-10-02");
+    expect(historical?.checkedAt).toBe("2026-09-29");
+    expect(
+      historical?.tables
+        ?.find((table) => table.id === "model-multipliers")
+        ?.rows.some((row) => row[0] === "Claude Sonnet 5.5"),
+    ).toBe(false);
+
+    const current = subscriptionPublishedTerms("kiro-pro", "2026-10-03");
+    expect(current?.checkedAt).toBe("2026-10-03");
+    expect(
+      current?.tables
+        ?.find((table) => table.id === "model-multipliers")
+        ?.rows.find((row) => row[0] === "Claude Sonnet 5.5"),
+    ).toEqual(["Claude Sonnet 5.5", "1.3×"]);
+    expect(current?.terms.find((term) => term.label === "Workflows")?.value).toContain(
+      "existing account usage view",
+    );
+    expect(subscriptionPublishedTerms("kiro-pro", "2026-10-02")).toEqual(historical);
+  });
+
+  it("records the six new public plans' buyer terms on October 3 only", () => {
+    for (const [id, allowance] of [
+      ["kiro-free", "50 provider credits per month; add-ons unavailable"],
+      ["kiro-pro-plus", "2,000 credits per month; add-ons at $0.04 per credit"],
+      ["kiro-pro-max", "5,000 credits per month; add-ons at $0.04 per credit"],
+      ["kiro-power", "10,000 credits per month; add-ons at $0.04 per credit"],
+      ["cursor-teams-standard", "Two monthly per-seat pools: Cursor Models and Other Models"],
+      [
+        "cursor-teams-premium",
+        "Two monthly per-seat pools; Premium is 5x Standard usage or Agent limits",
+      ],
+    ] as const) {
+      expect(subscriptionPublishedTerms(id, "2026-10-02"), id).toBeUndefined();
+      const terms = subscriptionPublishedTerms(id, "2026-10-03");
+      expect(terms?.checkedAt, id).toBe("2026-10-03");
+      expect(terms?.allowanceSummary, id).toBe(allowance);
+      expect(
+        terms?.sourceUrls.every((url) => url.startsWith("https://")),
+        id,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps Cursor Teams pool sizes and annual terms explicitly unknown", () => {
+    for (const id of ["cursor-teams-standard", "cursor-teams-premium"]) {
+      const terms = subscriptionPublishedTerms(id, "2026-10-03");
+      expect(terms?.terms.find((term) => term.label === "Included usage")?.value).toContain(
+        "does not publish the absolute size",
+      );
+      expect(terms?.availabilityNote).toContain("minimum seats");
+      expect(terms?.terms.find((term) => term.label === "Cursor Token Rate")?.value).toContain(
+        "input, output and cached tokens",
+      );
+    }
+  });
 });

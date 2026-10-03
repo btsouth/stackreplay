@@ -6,6 +6,7 @@ import { PlanTermsNotice } from "@/components/plan-history";
 import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
 import { compareSearch, readComparePlans } from "@/lib/compare-url";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
+import { publicPlanPriceUnit } from "@/lib/public-plan-price";
 import { limitUnitText, limitWindowText } from "./plan-facts";
 import { SourceList, VerificationBadge } from "./provenance";
 import { PublishedUsageTable } from "./published-subscription-terms";
@@ -431,7 +432,7 @@ function TargetHeader({
       </h2>
       <p className="mt-3" data-testid="compare-price">
         <span className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</span>
-        <span className="market-muted ml-2">/ {plan.price.interval}</span>
+        <span className="market-muted ml-2">{publicPlanPriceUnit(plan)}</span>
       </p>
       {plan.timeline !== undefined && (
         <PlanTermsNotice

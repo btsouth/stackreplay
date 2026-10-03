@@ -1,0 +1,74 @@
+id: kiro-free
+role: plan
+name: Kiro Free
+providerId: kiro
+versions:
+- effectiveFrom: '2026-10-03'
+  effectiveFromBasis: catalog_recorded
+  price:
+    currency: USD
+    amount: '0'
+    interval: month
+  billingMechanics: Current free monthly offer recorded on October 3, 2026. The
+    allowance is expressed in provider credits, not direct API dollars. The task-credit
+    debit formula is not published, so exact subscription capacity is not admitted
+    for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: 50 provider credits refresh at the start of the next billing cycle.
+      Credits measure work with model multipliers and task complexity; the base task-credit
+      debit formula is not published.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: reset-and-rollover
+    label: Reset and rollover
+    statement: The usage cap renews at the start of the next billing cycle. Unused
+      included credits do not roll over.
+    sourceUrl: https://kiro.dev/docs/billing/
+  - id: after-limit
+    label: After the limit
+    statement: Add-on credits are unavailable on Free. Usage waits for the next reset.
+    sourceUrl: https://kiro.dev/docs/billing/add-on-credits/
+    topic: after_limit
+  - id: compatible-tools
+    label: Compatible tools
+    statement: Kiro IDE · Kiro CLI · Kiro Crew · ACP-compatible IDEs; Kiro Web is
+      not included. Third-party automation harnesses are prohibited.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: availability
+    label: Availability
+    statement: Free is unavailable in Kiro Enterprise and AWS GovCloud (US). Individual
+      plans are served from the commercial US geography; model access and rates can
+      vary with provider geography and account controls.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: model-access-scope
+    label: Model access scope
+    statement: Free lists Claude Sonnet 4.5 and 4.0, DeepSeek 3.2, MiniMax M2.5
+      and M2.1, GLM-5, Qwen3 Coder Next, and Auto. Auto routes between supported
+      models and does not publish one exact model identity.
+    sourceUrl: https://kiro.dev/docs/models/
+  modelRules:
+  - model: claude-sonnet-4-5
+  - model: claude-sonnet-4
+  - model: deepseek-v3-2
+  - model: minimax-m2-5
+  - model: minimax-m2-1
+  - model: glm-5
+  - model: qwen3-coder-next
+  sources:
+  - url: https://kiro.dev/pricing/
+    title: Official current price, credits, tools and account limits; catalog admission
+      date, not a historical launch date
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/billing/
+    title: Official billing reset and no-rollover terms
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/billing/add-on-credits/
+    title: Official add-on availability terms
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/models/
+    title: Official current free model matrix
+    checkedAt: '2026-10-03'
+  lastVerifiedAt: '2026-10-03'
+  verificationStatus: verified

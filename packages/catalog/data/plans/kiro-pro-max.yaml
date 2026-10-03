@@ -1,0 +1,95 @@
+id: kiro-pro-max
+role: plan
+name: Kiro Pro Max
+providerId: kiro
+versions:
+- effectiveFrom: '2026-10-03'
+  effectiveFromBasis: catalog_recorded
+  price:
+    currency: USD
+    amount: '100'
+    interval: month
+  billingMechanics: Current monthly offer recorded on October 3, 2026. Kiro credits
+    measure work rather than API dollars. The base task-credit debit formula is not
+    published, so exact subscription capacity is not admitted for replay.
+  limits: []
+  qualitativeLimits:
+  - id: included-usage
+    label: Included usage
+    statement: 5,000 provider credits per billing month. Credits vary with model
+      multiplier and task complexity; the base task-credit debit formula is not published.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: additional-credits
+    label: Additional credits
+    statement: Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan
+      credits are consumed first; add-ons roll over monthly and each purchase expires
+      12 months after purchase.
+    sourceUrl: https://kiro.dev/docs/billing/add-on-credits/
+    topic: after_limit
+  - id: reset-and-rollover
+    label: Reset and rollover
+    statement: Included credits reset at the start of the billing month and do not
+      roll over. Purchased add-ons roll over monthly until their 12-month expiry.
+    sourceUrl: https://kiro.dev/docs/billing/
+  - id: workflows
+    label: Workflows
+    statement: Workflows use the same Kiro credit model as other agent work; complexity
+      affects usage and consumption appears in the existing account usage view. Kiro
+      does not publish a separate workflow meter.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: compatible-tools
+    label: Compatible tools
+    statement: Kiro IDE · Kiro CLI · Kiro Web · Kiro Crew · ACP-compatible IDEs ·
+      CI/CD automation. Third-party automation harnesses are prohibited.
+    sourceUrl: https://kiro.dev/pricing/
+  - id: availability
+    label: Availability
+    statement: Individual paid plans are served from the commercial US geography.
+      GPT-5.6 is US-served regardless of enterprise profile region; other models follow
+      the documented profile geography. Availability remains subject to provider geography,
+      client and account controls.
+    sourceUrl: https://kiro.dev/docs/models/
+  - id: model-access-scope
+    label: Model access scope
+    statement: The current paid matrix includes GPT-5.6 Sol, Terra and Luna; Claude
+      Opus and Sonnet families through Opus 5.5 and Sonnet 5.5; DeepSeek 3.2; MiniMax
+      M2.5 and M2.1; GLM-5; Qwen3 Coder Next; and Auto. Fable 5.1 is Enterprise-only
+      and excluded. Auto does not publish one exact model identity.
+    sourceUrl: https://kiro.dev/docs/models/
+  modelRules:
+  - model: gpt-5-6-sol
+  - model: gpt-5-6-terra
+  - model: gpt-5-6-luna
+  - model: claude-opus-5-5
+  - model: claude-opus-5
+  - model: claude-opus-4-8
+  - model: claude-opus-4-7
+  - model: claude-opus-4-6
+  - model: claude-opus-4-5
+  - model: claude-sonnet-5-5
+  - model: claude-sonnet-5
+  - model: claude-sonnet-4-6
+  - model: claude-sonnet-4-5
+  - model: claude-sonnet-4
+  - model: claude-haiku-4-5
+  - model: deepseek-v3-2
+  - model: minimax-m2-5
+  - model: minimax-m2-1
+  - model: glm-5
+  - model: qwen3-coder-next
+  sources:
+  - url: https://kiro.dev/pricing/
+    title: Official current price, credits, tools and account limits; catalog admission
+      date, not a historical launch date
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/billing/
+    title: Official billing reset and rollover terms
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/billing/add-on-credits/
+    title: Official add-on price, purchase and expiry terms
+    checkedAt: '2026-10-03'
+  - url: https://kiro.dev/docs/models/
+    title: Official current paid model matrix and geography
+    checkedAt: '2026-10-03'
+  lastVerifiedAt: '2026-10-03'
+  verificationStatus: verified

@@ -933,38 +933,209 @@
       }
     ]
   },
-  "kiro-pro": {
-    "checkedAt": "2026-09-29",
+  "kiro-pro": [
+    {
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://kiro.dev/pricing/",
+        "https://kiro.dev/faq/",
+        "https://kiro.dev/docs/models/"
+      ],
+      "allowanceSummary": "1,000 credits per month; add-ons at $0.04 per credit",
+      "terms": [
+        {
+          "label": "Included usage",
+          "value": "1,000 monthly credits. Credits measure work, with model multipliers and task complexity; they are not a fixed number of prompts.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Additional credits",
+          "value": "Individuals buy prepaid add-ons at $0.04 per credit. Organization overage must be enabled by an administrator.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Reset and rollover",
+          "value": "Included credits reset on the first of each calendar month and do not carry over. Purchased add-ons expire 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Billing",
+          "value": "Subscriptions bill on the first of the month; the initial partial month is prorated by Kiro. Taxes are additional.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Tools",
+          "value": "Kiro IDE, CLI, web, Crew and ACP-compatible IDEs. Routing subscription use through unrelated third-party automation harnesses is not permitted.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Privacy",
+          "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+          "sourceUrl": "https://kiro.dev/faq/"
+        }
+      ],
+      "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro web", "ACP-compatible IDEs"],
+      "afterLimit": "Prepaid add-ons; enterprise overage only when enabled.",
+      "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts excluded from improvement.",
+      "billingSummary": "Calendar-month billing; first month prorated; add-ons expire in 12 months.",
+      "tables": [
+        {
+          "id": "model-multipliers",
+          "title": "Credit use by model",
+          "columns": ["Model", "Relative to Auto"],
+          "rows": [
+            ["GPT-5.6 Sol", "4.4×; 8.8× above 272K"],
+            ["GPT-5.6 Terra", "2.2×; 4.4× above 272K"],
+            ["GPT-5.6 Luna", "1.1×; 2.2× above 272K"],
+            ["Claude Opus 5.5", "2.0×"],
+            ["Claude Opus 5", "2.2×"],
+            ["Claude Opus 4.8", "2.2×"],
+            ["Claude Opus 4.7", "2.2×"],
+            ["Claude Opus 4.6", "2.2×"],
+            ["Claude Opus 4.5", "2.2×"],
+            ["Claude Sonnet 5", "1.3×"],
+            ["Claude Sonnet 4.6", "1.3×"],
+            ["Claude Sonnet 4.5", "1.3×"],
+            ["Claude Sonnet 4.0", "1.3×"],
+            ["Auto", "1.0×"],
+            ["Claude Haiku 4.5", "0.4×"],
+            ["DeepSeek 3.2", "0.25×"],
+            ["MiniMax M2.5", "0.25×"],
+            ["GLM-5", "0.5×"],
+            ["MiniMax M2.1", "0.15×"],
+            ["Qwen3 Coder Next", "0.05×"]
+          ],
+          "note": "Task-cost multipliers, not credits per prompt or token quotas. Regional and experimental-model conditions apply. Enterprise-only Fable preview is excluded.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://kiro.dev/pricing/",
+        "https://kiro.dev/docs/billing/",
+        "https://kiro.dev/docs/billing/add-on-credits/",
+        "https://kiro.dev/docs/models/",
+        "https://kiro.dev/docs/workflows/",
+        "https://kiro.dev/faq/"
+      ],
+      "allowanceSummary": "1,000 credits per month; add-ons at $0.04 per credit",
+      "terms": [
+        {
+          "label": "Included usage",
+          "value": "1,000 provider credits reset at the start of the billing month. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Additional credits",
+          "value": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; purchases roll over monthly and each purchase expires 12 months after purchase.",
+          "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/"
+        },
+        {
+          "label": "Reset and rollover",
+          "value": "Included credits reset at the start of the billing month and do not carry over. Purchased add-ons roll over monthly until their 12-month expiry.",
+          "sourceUrl": "https://kiro.dev/docs/billing/"
+        },
+        {
+          "label": "Billing",
+          "value": "$20 per user per month, excluding taxes. A first upgrade can be prorated with the full tier allocation; a second upgrade in that first month is backdated. No annual option is published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Workflows",
+          "value": "Workflows use the same Kiro work-credit model as other agent work. Complexity affects usage, consumption appears in the existing account usage view, and no separate workflow meter is published.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Tools",
+          "value": "Kiro IDE, CLI, Web, Crew, ACP-compatible IDEs and CI/CD automation. Routing subscription use through unrelated third-party automation harnesses is prohibited.",
+          "sourceUrl": "https://kiro.dev/pricing/"
+        },
+        {
+          "label": "Account and region",
+          "value": "Individual paid access is served from Kiro's commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Teams are supported up to 500 users, and every developer needs a subscription.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        },
+        {
+          "label": "Privacy",
+          "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+          "sourceUrl": "https://kiro.dev/faq/"
+        }
+      ],
+      "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro Web", "ACP-compatible IDEs", "CI/CD"],
+      "afterLimit": "Prepaid add-ons are consumed after plan credits; packs roll over monthly and expire 12 months after purchase.",
+      "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+      "billingSummary": "Monthly per user; included credits reset monthly and do not roll over; no annual option is published.",
+      "tables": [
+        {
+          "id": "model-multipliers",
+          "title": "Credit use by model",
+          "columns": ["Model", "Relative to Auto"],
+          "rows": [
+            ["GPT-5.6 Sol", "4.4×; 8.8× above 272K"],
+            ["GPT-5.6 Terra", "2.2×; 4.4× above 272K"],
+            ["GPT-5.6 Luna", "1.1×; 2.2× above 272K"],
+            ["Claude Opus 5.5", "2.0×"],
+            ["Claude Opus 5", "2.2×"],
+            ["Claude Opus 4.8", "2.2×"],
+            ["Claude Opus 4.7", "2.2×"],
+            ["Claude Opus 4.6", "2.2×"],
+            ["Claude Opus 4.5", "2.2×"],
+            ["Claude Sonnet 5.5", "1.3×"],
+            ["Claude Sonnet 5", "1.3×"],
+            ["Claude Sonnet 4.6", "1.3×"],
+            ["Claude Sonnet 4.5", "1.3×"],
+            ["Claude Sonnet 4.0", "1.3×"],
+            ["Auto", "1.0×"],
+            ["Claude Haiku 4.5", "0.4×"],
+            ["DeepSeek 3.2", "0.25×"],
+            ["MiniMax M2.5", "0.25×"],
+            ["GLM-5", "0.5×"],
+            ["MiniMax M2.1", "0.15×"],
+            ["Qwen3 Coder Next", "0.05×"]
+          ],
+          "note": "Display-only task-cost multipliers relative to Auto. They do not establish credits per prompt, token quotas or the base task-credit debit. Regional eligibility applies; Enterprise-only Fable preview is excluded.",
+          "sourceUrl": "https://kiro.dev/docs/models/"
+        }
+      ],
+      "priceBasis": "user"
+    }
+  ],
+  "kiro-free": {
+    "checkedAt": "2026-10-03",
     "sourceUrls": [
       "https://kiro.dev/pricing/",
-      "https://kiro.dev/faq/",
-      "https://kiro.dev/docs/models/"
+      "https://kiro.dev/docs/billing/",
+      "https://kiro.dev/docs/billing/add-on-credits/",
+      "https://kiro.dev/docs/models/",
+      "https://kiro.dev/faq/"
     ],
-    "allowanceSummary": "1,000 credits per month; add-ons at $0.04 per credit",
+    "allowanceSummary": "50 provider credits per month; add-ons unavailable",
     "terms": [
       {
         "label": "Included usage",
-        "value": "1,000 monthly credits. Credits measure work, with model multipliers and task complexity; they are not a fixed number of prompts.",
-        "sourceUrl": "https://kiro.dev/pricing/"
-      },
-      {
-        "label": "Additional credits",
-        "value": "Individuals buy prepaid add-ons at $0.04 per credit. Organization overage must be enabled by an administrator.",
+        "value": "50 provider credits refresh at the start of the next billing cycle. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
         "sourceUrl": "https://kiro.dev/pricing/"
       },
       {
         "label": "Reset and rollover",
-        "value": "Included credits reset on the first of each calendar month and do not carry over. Purchased add-ons expire 12 months after purchase.",
-        "sourceUrl": "https://kiro.dev/pricing/"
+        "value": "The usage cap renews at the start of the next billing cycle. Unused included credits do not roll over.",
+        "sourceUrl": "https://kiro.dev/docs/billing/"
       },
       {
-        "label": "Billing",
-        "value": "Subscriptions bill on the first of the month; the initial partial month is prorated by Kiro. Taxes are additional.",
-        "sourceUrl": "https://kiro.dev/pricing/"
+        "label": "After the limit",
+        "value": "Add-on credits are unavailable. When the included credits run out, usage waits for the next reset.",
+        "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/"
       },
       {
         "label": "Tools",
-        "value": "Kiro IDE, CLI, web, Crew and ACP-compatible IDEs. Routing subscription use through unrelated third-party automation harnesses is not permitted.",
+        "value": "Kiro IDE, CLI, Crew and ACP-compatible IDEs. Kiro Web and third-party automation harnesses are not included.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Account and region",
+        "value": "Individual Free access is served from Kiro's commercial US geography and is unavailable in Kiro Enterprise and AWS GovCloud (US). Rate limits apply, and model availability can vary with provider geography or account controls.",
         "sourceUrl": "https://kiro.dev/pricing/"
       },
       {
@@ -973,41 +1144,320 @@
         "sourceUrl": "https://kiro.dev/faq/"
       }
     ],
-    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro web", "ACP-compatible IDEs"],
-    "afterLimit": "Prepaid add-ons; enterprise overage only when enabled.",
-    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts excluded from improvement.",
-    "billingSummary": "Calendar-month billing; first month prorated; add-ons expire in 12 months.",
-    "tables": [
+    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro Crew", "ACP-compatible IDEs"],
+    "afterLimit": "Wait for the next billing-cycle reset; add-ons are unavailable.",
+    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+    "billingSummary": "Free monthly provider credits; the usage cap renews next cycle and unused included credits do not roll over."
+  },
+  "kiro-pro-plus": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://kiro.dev/pricing/",
+      "https://kiro.dev/docs/billing/",
+      "https://kiro.dev/docs/billing/add-on-credits/",
+      "https://kiro.dev/docs/models/",
+      "https://kiro.dev/docs/workflows/",
+      "https://kiro.dev/faq/"
+    ],
+    "allowanceSummary": "2,000 credits per month; add-ons at $0.04 per credit",
+    "terms": [
       {
-        "id": "model-multipliers",
-        "title": "Credit use by model",
-        "columns": ["Model", "Relative to Auto"],
-        "rows": [
-          ["GPT-5.6 Sol", "4.4×; 8.8× above 272K"],
-          ["GPT-5.6 Terra", "2.2×; 4.4× above 272K"],
-          ["GPT-5.6 Luna", "1.1×; 2.2× above 272K"],
-          ["Claude Opus 5.5", "2.0×"],
-          ["Claude Opus 5", "2.2×"],
-          ["Claude Opus 4.8", "2.2×"],
-          ["Claude Opus 4.7", "2.2×"],
-          ["Claude Opus 4.6", "2.2×"],
-          ["Claude Opus 4.5", "2.2×"],
-          ["Claude Sonnet 5", "1.3×"],
-          ["Claude Sonnet 4.6", "1.3×"],
-          ["Claude Sonnet 4.5", "1.3×"],
-          ["Claude Sonnet 4.0", "1.3×"],
-          ["Auto", "1.0×"],
-          ["Claude Haiku 4.5", "0.4×"],
-          ["DeepSeek 3.2", "0.25×"],
-          ["MiniMax M2.5", "0.25×"],
-          ["GLM-5", "0.5×"],
-          ["MiniMax M2.1", "0.15×"],
-          ["Qwen3 Coder Next", "0.05×"]
-        ],
-        "note": "Task-cost multipliers, not credits per prompt or token quotas. Regional and experimental-model conditions apply. Enterprise-only Fable preview is excluded.",
+        "label": "Included usage",
+        "value": "2,000 provider credits reset at the start of the billing month. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Additional credits",
+        "value": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; purchases roll over monthly and each purchase expires 12 months after purchase.",
+        "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits reset at the start of the billing month and do not carry over. Purchased add-ons roll over monthly until their 12-month expiry.",
+        "sourceUrl": "https://kiro.dev/docs/billing/"
+      },
+      {
+        "label": "Billing",
+        "value": "$40 per user per month, excluding taxes. A first upgrade can be prorated with the full tier allocation; a second upgrade in that first month is backdated. No annual option is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Workflows",
+        "value": "Workflows use the same Kiro work-credit model as other agent work. Complexity affects usage, consumption appears in the existing account usage view, and no separate workflow meter is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Tools",
+        "value": "Kiro IDE, CLI, Web, Crew, ACP-compatible IDEs and CI/CD automation. Routing subscription use through unrelated third-party automation harnesses is prohibited.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Account and region",
+        "value": "Individual paid access is served from Kiro's commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Teams are supported up to 500 users, and every developer needs a subscription.",
         "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Model multipliers",
+        "value": "Kiro publishes model multipliers from 0.05x to 4.4x relative to Auto, with GPT-5.6 rates doubling above 272K context. They are display-only and do not establish task debits or token quotas.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Privacy",
+        "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+        "sourceUrl": "https://kiro.dev/faq/"
       }
-    ]
+    ],
+    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro Web", "ACP-compatible IDEs", "CI/CD"],
+    "afterLimit": "Prepaid add-ons are consumed after plan credits; packs roll over monthly and expire 12 months after purchase.",
+    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+    "billingSummary": "Monthly per user; included credits reset monthly and do not roll over; no annual option is published.",
+    "priceBasis": "user"
+  },
+  "kiro-pro-max": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://kiro.dev/pricing/",
+      "https://kiro.dev/docs/billing/",
+      "https://kiro.dev/docs/billing/add-on-credits/",
+      "https://kiro.dev/docs/models/",
+      "https://kiro.dev/docs/workflows/",
+      "https://kiro.dev/faq/"
+    ],
+    "allowanceSummary": "5,000 credits per month; add-ons at $0.04 per credit",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "5,000 provider credits reset at the start of the billing month. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Additional credits",
+        "value": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; purchases roll over monthly and each purchase expires 12 months after purchase.",
+        "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits reset at the start of the billing month and do not carry over. Purchased add-ons roll over monthly until their 12-month expiry.",
+        "sourceUrl": "https://kiro.dev/docs/billing/"
+      },
+      {
+        "label": "Billing",
+        "value": "$100 per user per month, excluding taxes. A first upgrade can be prorated with the full tier allocation; a second upgrade in that first month is backdated. No annual option is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Workflows",
+        "value": "Workflows use the same Kiro work-credit model as other agent work. Complexity affects usage, consumption appears in the existing account usage view, and no separate workflow meter is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Tools",
+        "value": "Kiro IDE, CLI, Web, Crew, ACP-compatible IDEs and CI/CD automation. Routing subscription use through unrelated third-party automation harnesses is prohibited.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Account and region",
+        "value": "Individual paid access is served from Kiro's commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Teams are supported up to 500 users, and every developer needs a subscription.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Model multipliers",
+        "value": "Kiro publishes model multipliers from 0.05x to 4.4x relative to Auto, with GPT-5.6 rates doubling above 272K context. They are display-only and do not establish task debits or token quotas.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Privacy",
+        "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+        "sourceUrl": "https://kiro.dev/faq/"
+      }
+    ],
+    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro Web", "ACP-compatible IDEs", "CI/CD"],
+    "afterLimit": "Prepaid add-ons are consumed after plan credits; packs roll over monthly and expire 12 months after purchase.",
+    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+    "billingSummary": "Monthly per user; included credits reset monthly and do not roll over; no annual option is published.",
+    "priceBasis": "user"
+  },
+  "kiro-power": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://kiro.dev/pricing/",
+      "https://kiro.dev/docs/billing/",
+      "https://kiro.dev/docs/billing/add-on-credits/",
+      "https://kiro.dev/docs/models/",
+      "https://kiro.dev/docs/workflows/",
+      "https://kiro.dev/faq/"
+    ],
+    "allowanceSummary": "10,000 credits per month; add-ons at $0.04 per credit",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "10,000 provider credits reset at the start of the billing month. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Additional credits",
+        "value": "Prepaid add-ons cost $0.04 per credit in packs from $5 to $100. Plan credits are consumed first; purchases roll over monthly and each purchase expires 12 months after purchase.",
+        "sourceUrl": "https://kiro.dev/docs/billing/add-on-credits/"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Included credits reset at the start of the billing month and do not carry over. Purchased add-ons roll over monthly until their 12-month expiry.",
+        "sourceUrl": "https://kiro.dev/docs/billing/"
+      },
+      {
+        "label": "Billing",
+        "value": "$200 per user per month, excluding taxes. A first upgrade can be prorated with the full tier allocation; a second upgrade in that first month is backdated. No annual option is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Workflows",
+        "value": "Workflows use the same Kiro work-credit model as other agent work. Complexity affects usage, consumption appears in the existing account usage view, and no separate workflow meter is published.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Tools",
+        "value": "Kiro IDE, CLI, Web, Crew, ACP-compatible IDEs and CI/CD automation. Routing subscription use through unrelated third-party automation harnesses is prohibited.",
+        "sourceUrl": "https://kiro.dev/pricing/"
+      },
+      {
+        "label": "Account and region",
+        "value": "Individual paid access is served from Kiro's commercial US geography. GPT-5.6 is US-served regardless of enterprise profile region; other models follow the documented profile geography. Teams are supported up to 500 users, and every developer needs a subscription.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Model multipliers",
+        "value": "Kiro publishes model multipliers from 0.05x to 4.4x relative to Auto, with GPT-5.6 rates doubling above 272K context. They are display-only and do not establish task debits or token quotas.",
+        "sourceUrl": "https://kiro.dev/docs/models/"
+      },
+      {
+        "label": "Privacy",
+        "value": "Social-login and AWS Builder ID content may be used for service improvement unless opted out. IAM Identity Center or external-identity-provider enterprise content is excluded.",
+        "sourceUrl": "https://kiro.dev/faq/"
+      }
+    ],
+    "codingTools": ["Kiro IDE", "Kiro CLI", "Kiro Web", "ACP-compatible IDEs", "CI/CD"],
+    "afterLimit": "Prepaid add-ons are consumed after plan credits; packs roll over monthly and expire 12 months after purchase.",
+    "privacySummary": "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+    "billingSummary": "Monthly per user; included credits reset monthly and do not roll over; no annual option is published.",
+    "priceBasis": "user"
+  },
+  "cursor-teams-standard": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://cursor.com/pricing",
+      "https://cursor.com/docs/account/teams/pricing",
+      "https://cursor.com/docs/models-and-pricing",
+      "https://cursor.com/docs/account/teams/setup",
+      "https://cursor.com/data-use"
+    ],
+    "allowanceSummary": "Two monthly per-seat pools: Cursor Models and Other Models",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Each paid seat receives monthly usage across two separate pools. Cursor Models includes Grok 4.7, 4.6 and 4.5 plus Composer 2.5. Other Models includes third-party models at published model rates. Cursor does not publish the absolute size of either pool.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Each seat's pools reset at the start of the billing cycle. Usage is allocated per user and does not transfer between team members. No rollover term is published.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "On-demand usage",
+        "value": "On-demand usage is enabled by default and billed in arrears. Team spending limits can cap it.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Cursor Token Rate",
+        "value": "$0.25 per million tokens applies to third-party model input, output and cached tokens, including Auto and BYOK requests. Cursor Models are exempt; third-party token usage also pays the published model rate.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Per-seat billing",
+        "value": "$40 per paid user per month, excluding taxes. The yearly toggle shows $32 per user per month, but annual commitment, cancellation, renewal and minimum-seat terms are not published.",
+        "sourceUrl": "https://cursor.com/pricing"
+      },
+      {
+        "label": "Tools and administration",
+        "value": "Cursor editor and Agent, Cloud Agents, automations, Bugbot, team marketplace, centralized billing and administration, usage analytics, team privacy mode and SAML/OIDC SSO.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Account scope",
+        "value": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No Teams trial, promotion, minimum-seat or country-eligibility term is published.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+      },
+      {
+        "label": "Privacy",
+        "value": "Team privacy mode is available. Cursor's data-use terms govern model training and retention; third-party model providers have separate terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor", "Cursor Agent", "Cloud Agents", "Bugbot"],
+    "afterLimit": "On-demand usage continues by default at published model rates, plus the Cursor Token Rate for third-party models. Billing is in arrears and team spend controls can limit it.",
+    "privacySummary": "Team privacy mode is available; Cursor and third-party model-provider data terms remain separate.",
+    "billingSummary": "Per paid user; monthly pools reset each billing cycle. A yearly toggle exists, but commitment terms are unpublished.",
+    "availabilityNote": "Absolute pool sizes, annual commitment, minimum seats, trial availability and country eligibility are not published.",
+    "priceBasis": "paid_user"
+  },
+  "cursor-teams-premium": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://cursor.com/pricing",
+      "https://cursor.com/docs/account/teams/pricing",
+      "https://cursor.com/docs/models-and-pricing",
+      "https://cursor.com/docs/account/teams/setup",
+      "https://cursor.com/data-use"
+    ],
+    "allowanceSummary": "Two monthly per-seat pools; Premium is 5x Standard usage or Agent limits",
+    "terms": [
+      {
+        "label": "Included usage",
+        "value": "Each paid seat receives monthly usage across the same two pools as Standard. Cursor describes Premium as 5x usage or 5x Agent limits relative to Standard, but Standard's absolute amount and the exact scope of the multiple are not published. Cursor does not publish the absolute size of either pool.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Reset and rollover",
+        "value": "Each seat's pools reset at the start of the billing cycle. Usage is allocated per user and does not transfer between team members. No rollover term is published.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "On-demand usage",
+        "value": "On-demand usage is enabled by default and billed in arrears. Team spending limits can cap it.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Cursor Token Rate",
+        "value": "$0.25 per million tokens applies to third-party model input, output and cached tokens, including Auto and BYOK requests. Cursor Models are exempt; third-party token usage also pays the published model rate.",
+        "sourceUrl": "https://cursor.com/docs/models-and-pricing"
+      },
+      {
+        "label": "Per-seat billing",
+        "value": "$120 per paid user per month, excluding taxes. The yearly toggle shows $96 per user per month, but annual commitment, cancellation, renewal and minimum-seat terms are not published.",
+        "sourceUrl": "https://cursor.com/pricing"
+      },
+      {
+        "label": "Tools and administration",
+        "value": "Cursor editor and Agent, Cloud Agents, automations, Bugbot, team marketplace, centralized billing and administration, usage analytics, team privacy mode and SAML/OIDC SSO.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/pricing"
+      },
+      {
+        "label": "Account scope",
+        "value": "A Teams account can belong to one team at a time. A free admin-only seat has no Cursor access. No Teams trial, promotion, minimum-seat or country-eligibility term is published.",
+        "sourceUrl": "https://cursor.com/docs/account/teams/setup"
+      },
+      {
+        "label": "Privacy",
+        "value": "Team privacy mode is available. Cursor's data-use terms govern model training and retention; third-party model providers have separate terms.",
+        "sourceUrl": "https://cursor.com/data-use"
+      }
+    ],
+    "codingTools": ["Cursor editor", "Cursor Agent", "Cloud Agents", "Bugbot"],
+    "afterLimit": "On-demand usage continues by default at published model rates, plus the Cursor Token Rate for third-party models. Billing is in arrears and team spend controls can limit it.",
+    "privacySummary": "Team privacy mode is available; Cursor and third-party model-provider data terms remain separate.",
+    "billingSummary": "Per paid user; monthly pools reset each billing cycle. A yearly toggle exists, but commitment terms are unpublished.",
+    "availabilityNote": "Premium's 5x claim is relative to an unpublished Standard amount. Absolute pool sizes, annual commitment, minimum seats, trial availability and country eligibility are not published.",
+    "priceBasis": "paid_user"
   },
   "github-copilot-free": {
     "checkedAt": "2026-09-29",

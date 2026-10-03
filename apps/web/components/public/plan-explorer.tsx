@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
 import type { CompareFacts } from "@/lib/compare-facts";
 import type { PublicPlanSummary, PublicProviderSummary } from "@/lib/public-catalog";
+import { publicPlanPriceUnit } from "@/lib/public-plan-price";
 export function PlanExplorer({
   plans,
   providers,
@@ -106,7 +107,7 @@ export function PlanExplorer({
             </div>
             <div>
               <p className="market-stat">${Number(plan.price.amount).toLocaleString("en-US")}</p>
-              <p className="market-muted">/ {plan.price.interval}</p>
+              <p className="market-muted">{publicPlanPriceUnit(plan)}</p>
             </div>
             <div>
               <p className="text-sm leading-relaxed">

@@ -1,6 +1,20 @@
 import type { CatalogV1 } from "@stackreplay/catalog";
 import { describe, expect, it } from "vitest";
-import { currentVersionOf, isSyntheticCatalogId, loadPublicCatalog } from "./public-catalog";
+import {
+  currentVersionOf,
+  isSyntheticCatalogId,
+  loadCatalog,
+  loadPublicCatalog,
+} from "./public-catalog";
+
+const OCTOBER_PUBLIC_ADDITIONS = [
+  ["kiro-free", "0"],
+  ["kiro-pro-plus", "40"],
+  ["kiro-pro-max", "100"],
+  ["kiro-power", "200"],
+  ["cursor-teams-standard", "40"],
+  ["cursor-teams-premium", "120"],
+] as const;
 
 /**
  * The public read model is what every public page and the sitemap are built from, so it
@@ -8,6 +22,38 @@ import { currentVersionOf, isSyntheticCatalogId, loadPublicCatalog } from "./pub
  * demos, kept for M3 behaviour) out of anything a visitor reads as a real claim.
  */
 describe("public catalog read model", () => {
+  it("adds the six reference plans on October 3 without executable admission", () => {
+    const before = loadPublicCatalog("2026-10-02");
+    const current = loadPublicCatalog("2026-10-03");
+    const stored = loadCatalog();
+    for (const [id, amount] of OCTOBER_PUBLIC_ADDITIONS) {
+      expect(before.planById(id), id).toBeUndefined();
+      const plan = current.planById(id);
+      expect(plan, id).toBeDefined();
+      expect(plan?.price).toEqual({ currency: "USD", amount, interval: "month" });
+      expect(plan?.limits).toEqual([]);
+      expect(plan?.modelAccess?.checkedAt).toBe("2026-10-03");
+      expect(plan?.publishedTerms?.checkedAt).toBe("2026-10-03");
+      expect(stored.plans[id]?.executionVersions ?? []).toEqual([]);
+      expect(stored.plans[id]?.versions).toHaveLength(1);
+      expect(stored.plans[id]?.versions[0]?.effectiveFrom).toBe("2026-10-03");
+      expect(stored.plans[id]?.versions[0]?.effectiveFromBasis).toBe("catalog_recorded");
+    }
+  });
+
+  it("keeps Kiro Pro's accepted execution version separate from its public version", () => {
+    const plan = loadCatalog().plans["kiro-pro"];
+    expect(plan?.versions.map((version) => version.effectiveFrom)).toEqual(["2026-10-03"]);
+    expect(plan?.executionVersions?.map((version) => version.id)).toEqual([
+      "kiro-pro-current-20260927",
+    ]);
+    expect(plan?.executionVersions?.[0]?.purchase).toMatchObject({
+      kind: "subscription",
+      term: "month",
+      fixedUsd: "20",
+    });
+  });
+
   it("returns no synthetic provider, plan or model id", () => {
     const catalog = loadPublicCatalog("2026-09-21");
 
