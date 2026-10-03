@@ -32,7 +32,6 @@ const compareProps = {
   defaultPair: defaultComparePair(catalog.plans),
   asOf: catalog.asOf,
 };
-const strip = (html: string) => html.replace(/<[^>]+>/gu, "").replace(/&amp;/gu, "&");
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -62,9 +61,9 @@ describe("public offer routes and prices", () => {
         createElement(CompareExplorer, { ...compareProps, routedSearch: `left=${id}` }),
       );
       for (const html of [detail, directory, compare]) {
-        expect(strip(html)).toContain(price.amount);
-        expect(strip(html)).toContain(price.unit);
-        expect(strip(html)).toContain("Published offer only; workload replay is unavailable.");
+        expect(html).toContain(price.amount);
+        expect(html).toContain(price.unit);
+        expect(html).toContain("Published offer only; workload replay is unavailable.");
         expect(html).not.toContain(`/app/import?target=${id}`);
         expect(html).not.toContain("0 models included");
       }
@@ -91,10 +90,8 @@ describe("public offer routes and prices", () => {
     for (const id of ["kiro-pro", "cursor-teams-standard", "devin-teams"]) {
       router.search = `left=${id}`;
       const html = renderToStaticMarkup(createElement(RoutedCompareExplorer, compareProps));
-      const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/gu)].map((match) =>
-        strip(match[1] ?? ""),
-      );
-      expect(headings[0]).toBe(catalog.planById(id)?.name);
+      const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/gu)];
+      expect(headings[0]?.[1]).toContain(`>${catalog.planById(id)?.name}</a>`);
     }
   });
   it("retains the existing catalog target CTA and does not change normal price labels", () => {
@@ -106,6 +103,6 @@ describe("public offer routes and prices", () => {
     );
     expect(html).toContain("/app/import?target=anthropic-claude-max-20x");
     expect(html).toContain("/app/import?target=openai-chatgpt-pro");
-    expect(strip(html)).toContain("$200");
+    expect(html).toContain("$200");
   });
 });
