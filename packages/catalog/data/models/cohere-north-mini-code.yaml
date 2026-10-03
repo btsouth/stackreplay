@@ -1,0 +1,54 @@
+id: cohere-north-mini-code
+role: model
+name: North Mini Code
+developerId: cohere
+providerIds:
+  - cohere
+apiAvailability: available
+sources:
+  - &a1
+    url: https://docs.cohere.com/docs/north-mini-code-1.0
+    title: Cohere North Mini Code model card
+    checkedAt: 2026-10-03
+  - &a2
+    url: https://cohere.com/blog/north-mini-code
+    title: Cohere North Mini Code release announcement
+    checkedAt: 2026-10-03
+  - &a3
+    url: https://cohere.com/pricing
+    title: Cohere current API pricing and access conditions
+    checkedAt: 2026-10-03
+  - &a4
+    url: https://huggingface.co/CohereLabs/North-Mini-Code-1.0
+    title: Cohere-owned North Mini Code open-weight model card and Apache 2.0 license
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified
+releaseDate:
+  date: 2026-06-09
+  sources:
+    - *a1
+    - *a2
+aliases:
+  - id: cohere-north-mini-code-official-id
+    alias: north-mini-code-1-0
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-10-03
+    verificationStatus: verified
+specifications:
+  inputModalities:
+    - text
+  outputModalities:
+    - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  notes:
+    - The model card states a 256K context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.
+    - The developer publishes open weights under Apache 2.0 at CohereLabs/North-Mini-Code-1.0.
+  sources:
+    - *a1
+    - *a4
+pricingNote: Cohere lists North Mini Code as free until rate limits for API evaluation, with production deployment documented through Model Vault. No durable token price is published, so no pricing record is added.

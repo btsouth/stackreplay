@@ -1,0 +1,57 @@
+id: cohere-command-a-plus
+role: model
+name: Command A+
+developerId: cohere
+providerIds:
+  - cohere
+apiAvailability: available
+sources:
+  - &a1
+    url: https://docs.cohere.com/docs/command-a-plus
+    title: Cohere Command A+ model card
+    checkedAt: 2026-10-03
+  - &a2
+    url: https://cohere.com/blog/command-a-plus
+    title: Cohere Command A+ release announcement
+    checkedAt: 2026-10-03
+  - &a3
+    url: https://cohere.com/pricing
+    title: Cohere current API pricing and access conditions
+    checkedAt: 2026-10-03
+  - &a4
+    url: https://huggingface.co/CohereLabs/command-a-plus-05-2026-w4a4
+    title: Cohere-owned Command A+ open-weight model card and Apache 2.0 license
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified
+releaseDate:
+  date: 2026-05-20
+  sources:
+    - *a1
+    - *a2
+aliases:
+  - id: cohere-command-a-plus-official-id
+    alias: command-a-plus-05-2026
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-10-03
+    verificationStatus: verified
+specifications:
+  contextTokens: 128000
+  maxOutputTokens: 64000
+  inputModalities:
+    - text
+    - image
+  outputModalities:
+    - text
+  reasoning: true
+  toolCalling: true
+  structuredOutput: true
+  knowledgeCutoff: April 1, 2025
+  notes:
+    - The developer publishes open weights under Apache 2.0 at CohereLabs/command-a-plus-05-2026-w4a4.
+  sources:
+    - *a1
+    - *a4
+pricingNote: Cohere lists free API access until rate limits are reached. That is not a durable zero-dollar list price, and no normal token price is published in the reviewed sources, so no pricing record is added.

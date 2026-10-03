@@ -1,0 +1,9 @@
+id: amazon
+role: provider
+name: Amazon
+sources:
+  - url: https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md
+    title: Amazon Bedrock model card for Amazon Nova 2 Lite
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified

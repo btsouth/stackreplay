@@ -1,0 +1,50 @@
+id: amazon-nova-2-lite
+role: model
+name: Amazon Nova 2 Lite
+developerId: amazon
+providerIds:
+  - amazon
+apiAvailability: available
+sources:
+  - &a1
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.md
+    title: Amazon Bedrock model card for Amazon Nova 2 Lite
+    checkedAt: 2026-10-03
+  - &a2
+    url: https://docs.aws.amazon.com/nova/latest/nova2-userguide/using-tools.md
+    title: Amazon Nova 2 tool use and constrained output through tool schemas
+    checkedAt: 2026-10-03
+  - &a3
+    url: https://aws.amazon.com/bedrock/pricing/
+    title: Amazon Bedrock pricing by region, service tier and inference mode
+    checkedAt: 2026-10-03
+lastVerifiedAt: 2026-10-03
+verificationStatus: verified
+releaseDate:
+  date: 2025-12-02
+  sources:
+    - *a1
+aliases:
+  - id: amazon-nova-2-lite-official-id
+    alias: "amazon.nova-2-lite-v1:0"
+    kind: provider_id
+    sources:
+      - *a1
+    lastVerifiedAt: 2026-10-03
+    verificationStatus: verified
+specifications:
+  inputModalities:
+    - text
+    - image
+    - video
+  outputModalities:
+    - text
+  toolCalling: true
+  knowledgeCutoff: October 2025
+  notes:
+    - The official model card states a 1M-token context window and a 64K maximum output in shorthand. Exact integer counts are not published and are not recorded here.
+    - Tool calling is supported. Dedicated structured outputs are listed as unsupported; constrained output through tool schemas is documented separately and is not recorded as dedicated structured-output support.
+  sources:
+    - *a1
+    - *a2
+pricingNote: Bedrock rates vary by region, service tier and inference mode. The reviewed sources do not publish one universal token price, so no pricing record is added.
