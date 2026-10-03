@@ -7,43 +7,57 @@ import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
 import { SourceList } from "@/components/public/provenance";
 import { PublishedSubscriptionTerms } from "@/components/public/published-subscription-terms";
 import { SubscriptionModelAccess } from "@/components/public/subscription-model-access";
-import { buildCompareFacts } from "@/lib/compare-facts";
+import {
+  buildCompareFacts,
+  PUBLIC_OFFER_REPLAY_UNAVAILABLE,
+  publicOfferObservationText,
+} from "@/lib/compare-facts";
 import { planTools, planUsage } from "@/lib/market-discovery";
-import { loadPublicCatalog } from "@/lib/public-catalog";
-import { publicPlanPriceText, publicPlanPriceUnit } from "@/lib/public-plan-price";
+import { loadPublicDirectory } from "@/lib/public-directory";
+import {
+  comparePublicPlanPrices,
+  publicPlanPricePresentation,
+  publicPlanPriceText,
+} from "@/lib/public-plan-price";
 import { publicPageMetadata } from "@/lib/site";
 
 interface Props {
   params: Promise<{ planId: string }>;
 }
 export function generateStaticParams() {
-  return loadPublicCatalog().plans.map((p) => ({ planId: p.id }));
+  return loadPublicDirectory().plans.map((p) => ({ planId: p.id }));
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { planId } = await params;
-  const p = loadPublicCatalog().planById(planId);
+  const p = loadPublicDirectory().planById(planId);
   return publicPageMetadata({
     title: p?.name ?? "Plan not found",
-    description: `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
+    description:
+      p?.kind === "public_offer"
+        ? `${p.name}: ${publicPlanPriceText(p)}. Published offer; workload replay is unavailable.`
+        : `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
     path: `/plans/${planId}`,
   });
 }
 export default async function PlanPage({ params }: Props) {
   const { planId } = await params;
-  const catalog = loadPublicCatalog();
+  const catalog = loadPublicDirectory();
   const plan = catalog.planById(planId);
   if (!plan) notFound();
   const facts = buildCompareFacts(plan, catalog.modelById);
   const tools = planTools(plan);
-  const practicalTerms = plan.qualitativeLimits.filter(
-    (term) =>
-      !/Included usage|Compatible tools|What the provider does not publish|Model availability scope|route pricing depends|funding|purchase cap/i.test(
-        term.label,
-      ) && !/after|overage|exhaust|exceed|continuation/i.test(term.label),
-  );
+  const practicalTerms =
+    plan.kind === "catalog_plan"
+      ? plan.qualitativeLimits.filter(
+          (term) =>
+            !/Included usage|Compatible tools|What the provider does not publish|Model availability scope|route pricing depends|funding|purchase cap/i.test(
+              term.label,
+            ) && !/after|overage|exhaust|exceed|continuation/i.test(term.label),
+        )
+      : [];
   const siblings = catalog.plans
     .filter((p) => p.providerId === plan.providerId && p.id !== plan.id)
-    .sort((a, b) => Number(a.price.amount) - Number(b.price.amount));
+    .sort(comparePublicPlanPrices);
   return (
     <div>
       <header className="market-header">
@@ -59,13 +73,19 @@ export default async function PlanPage({ params }: Props) {
         </div>
         <aside className="self-end border-l-2 border-accent pl-6">
           <p className="market-kicker">Published subscription price</p>
-          <p className="my-3 text-[clamp(4rem,8vw,7rem)] leading-none tracking-[-.06em]">
-            ${Number(plan.price.amount).toLocaleString("en-US")}
+          <p
+            className={
+              publicPlanPricePresentation(plan).formula
+                ? "my-3 max-w-sm text-2xl leading-relaxed"
+                : "my-3 text-[clamp(4rem,8vw,7rem)] leading-none tracking-[-.06em]"
+            }
+          >
+            {publicPlanPricePresentation(plan).amount}
           </p>
           <p className="market-muted">
-            USD {publicPlanPriceUnit(plan)} · actual paid amount may differ
+            USD {publicPlanPricePresentation(plan).unit} · actual paid amount may differ
           </p>
-          {plan.timeline !== undefined && (
+          {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
             <PlanTermsNotice
               asOf={catalog.asOf}
               followToday
@@ -93,27 +113,33 @@ export default async function PlanPage({ params }: Props) {
         <div>
           <p className="market-kicker mb-3">Model access</p>
           <p className="text-lg" data-testid="plan-models-summary">
-            {facts.models.total ? `${facts.models.total} named models` : "Provider model lineup"}
+            {facts.models.total
+              ? `${facts.models.total} named models`
+              : plan.kind === "public_offer"
+                ? "Exact model lineup not established"
+                : "Provider model lineup"}
           </p>
         </div>
-        {plan.relativeAllowances?.map((allowance) => (
-          <div data-testid="plan-relative-allowance" key={allowance.comparedToPlanName}>
-            <p className="market-kicker mb-3">Included usage</p>
-            <p className="text-lg">
-              {allowance.multiple}× {allowance.comparedToPlanName} usage
-            </p>
-            <p className="market-muted">A multiple, not a published quota</p>
-          </div>
-        ))}
+        {plan.kind === "catalog_plan" &&
+          plan.relativeAllowances?.map((allowance) => (
+            <div data-testid="plan-relative-allowance" key={allowance.comparedToPlanName}>
+              <p className="market-kicker mb-3">Included usage</p>
+              <p className="text-lg">
+                {allowance.multiple}× {allowance.comparedToPlanName} usage
+              </p>
+              <p className="market-muted">A multiple, not a published quota</p>
+            </div>
+          ))}
         <div>
           <p className="market-kicker mb-3">Billing</p>
-          <p className="text-lg">
-            {plan.price.interval === "month" ? "Monthly" : plan.price.interval} subscription
-          </p>
+          <p className="text-lg">{publicPlanPriceText(plan)}</p>
         </div>
       </section>
-      {plan.timeline !== undefined && (
+      {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanHistory asOf={catalog.asOf} followToday id="history" plan={plan.timeline} />
+      )}
+      {plan.kind === "public_offer" && (
+        <p className="market-muted my-5">{PUBLIC_OFFER_REPLAY_UNAVAILABLE}</p>
       )}
       <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">
@@ -121,7 +147,7 @@ export default async function PlanPage({ params }: Props) {
         </div>
         {plan.publishedTerms ? (
           <PublishedSubscriptionTerms terms={plan.publishedTerms} />
-        ) : (
+        ) : plan.kind === "catalog_plan" ? (
           <>
             {plan.limits.length > 0 && <LimitTable limits={plan.limits} />}
             <div className="market-plan-terms">
@@ -146,6 +172,8 @@ export default async function PlanPage({ params }: Props) {
               <p className="market-muted mt-5 max-w-3xl">{plan.billingMechanics}</p>
             )}
           </>
+        ) : (
+          <p className="market-muted">Published usage details are not established.</p>
         )}
       </section>
       <section id="model-access" className="mt-10 scroll-mt-24">
@@ -154,7 +182,7 @@ export default async function PlanPage({ params }: Props) {
         </div>
         {plan.modelAccess ? (
           <SubscriptionModelAccess access={plan.modelAccess} />
-        ) : facts.models.total > 0 ? (
+        ) : plan.kind === "catalog_plan" && facts.models.total > 0 ? (
           <>
             <p className="market-muted mb-4">
               Exact releases verified in this catalog. The provider may offer additional models;
@@ -216,45 +244,52 @@ export default async function PlanPage({ params }: Props) {
         </summary>
         <div className="space-y-5 py-5">
           <p className="market-muted">
-            {plan.limits.length
+            {plan.kind === "catalog_plan" && plan.limits.length
               ? "Published rules are available for this plan."
               : "Published price and access do not establish a deterministic workload allowance."}
           </p>
           <ul className="space-y-4" data-testid="qualitative-limits">
-            {plan.qualitativeLimits.map((limit) => (
-              <li key={limit.id}>
-                <p className="text-sm font-medium">{limit.label}</p>
-                <p className="market-muted mt-1 max-w-3xl">{limit.statement}</p>
-              </li>
-            ))}
+            {plan.kind === "catalog_plan" &&
+              plan.qualitativeLimits.map((limit) => (
+                <li key={limit.id}>
+                  <p className="text-sm font-medium">{limit.label}</p>
+                  <p className="market-muted mt-1 max-w-3xl">{limit.statement}</p>
+                </li>
+              ))}
           </ul>
           <SourceList sources={plan.sources} />
-          <p className="market-muted">
-            Catalog record {plan.versionId}.{" "}
-            {plan.currentMarketOnly
-              ? "Current-market observation; not evidence of historical terms."
-              : "Catalog dates identify recorded rule versions. New admissions do not establish a provider launch date."}{" "}
-            Provider credits are specific to that provider. Listing a price does not establish
-            capacity, equivalent experience or that a plan could replace another.
-          </p>
-          <fieldset aria-label="Plan version history" data-testid="version-table">
-            {catalog.planVersions(plan.id).map((v) => (
-              <p className="market-muted" key={v.versionId}>
-                {v.effectiveFrom} · ${v.price.amount}/{v.price.interval} · checked{" "}
-                {v.lastVerifiedAt}
-                {v.cohort !== undefined
-                  ? ` · ${plan.timeline?.cohorts?.find((c) => c.id === v.cohort)?.label ?? v.cohort} only${v.effectiveTo === undefined ? "" : `, through ${v.effectiveTo}`}`
-                  : ""}
-                {v.withdrawn !== undefined
-                  ? ` · ${v.withdrawn.reason}, never in effect`
-                  : v.effectiveFrom > catalog.asOf
-                    ? " · scheduled, not yet in effect"
-                    : v.versionId === plan.versionId
-                      ? " · in effect for new subscribers"
-                      : ""}
-              </p>
-            ))}
-          </fieldset>
+          {plan.kind === "catalog_plan" ? (
+            <p className="market-muted">
+              Catalog record {plan.versionId}.{" "}
+              {plan.currentMarketOnly
+                ? "Current-market observation; not evidence of historical terms."
+                : "Catalog dates identify recorded rule versions. New admissions do not establish a provider launch date."}{" "}
+              Provider credits are specific to that provider. Listing a price does not establish
+              capacity, equivalent experience or that a plan could replace another.
+            </p>
+          ) : (
+            <p className="market-muted">{publicOfferObservationText(plan)}</p>
+          )}
+          {plan.kind === "catalog_plan" && (
+            <fieldset aria-label="Plan version history" data-testid="version-table">
+              {catalog.planVersions(plan.id).map((v) => (
+                <p className="market-muted" key={v.versionId}>
+                  {v.effectiveFrom} · ${v.price.amount}/{v.price.interval} · checked{" "}
+                  {v.lastVerifiedAt}
+                  {v.cohort !== undefined
+                    ? ` · ${plan.timeline?.cohorts?.find((c) => c.id === v.cohort)?.label ?? v.cohort} only${v.effectiveTo === undefined ? "" : `, through ${v.effectiveTo}`}`
+                    : ""}
+                  {v.withdrawn !== undefined
+                    ? ` · ${v.withdrawn.reason}, never in effect`
+                    : v.effectiveFrom > catalog.asOf
+                      ? " · scheduled, not yet in effect"
+                      : v.versionId === plan.versionId
+                        ? " · in effect for new subscribers"
+                        : ""}
+                </p>
+              ))}
+            </fieldset>
+          )}
         </div>
       </details>
       <MarketFooter />

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { CompareExplorer } from "@/components/public/compare-explorer";
+import { Suspense } from "react";
+import { CompareExplorer, RoutedCompareExplorer } from "@/components/public/compare-explorer";
 import { MarketHeader } from "@/components/public/market-header";
 import { buildCompareFacts, type CompareFacts, defaultComparePair } from "@/lib/compare-facts";
 import { planTools } from "@/lib/market-discovery";
-import { loadPublicCatalog } from "@/lib/public-catalog";
+import { loadPublicDirectory } from "@/lib/public-directory";
 import { publicPageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = publicPageMetadata({
@@ -21,9 +22,9 @@ const QUICK_COMPARISONS = [
   ["command-code-pro", "opencode-go-plus"],
 ] as const;
 
-// The page stays static: the plans in ?left=&right=&third= are read in the browser (see CompareExplorer).
+// The page stays static; the explorer reads router search data inside Suspense.
 export default function ComparePage() {
-  const catalog = loadPublicCatalog();
+  const catalog = loadPublicDirectory();
   const facts: Record<string, CompareFacts> = Object.fromEntries(
     catalog.plans.map((plan) => [
       plan.id,
@@ -64,13 +65,25 @@ export default function ComparePage() {
       {catalog.plans.length === 0 ? (
         <p className="text-sm text-muted-foreground">No sourced plan is listed yet.</p>
       ) : (
-        <CompareExplorer
-          plans={catalog.plans}
-          providers={catalog.providers}
-          facts={facts}
-          defaultPair={defaultComparePair(catalog.plans)}
-          asOf={catalog.asOf}
-        />
+        <Suspense
+          fallback={
+            <CompareExplorer
+              plans={catalog.plans}
+              providers={catalog.providers}
+              facts={facts}
+              defaultPair={defaultComparePair(catalog.plans)}
+              asOf={catalog.asOf}
+            />
+          }
+        >
+          <RoutedCompareExplorer
+            plans={catalog.plans}
+            providers={catalog.providers}
+            facts={facts}
+            defaultPair={defaultComparePair(catalog.plans)}
+            asOf={catalog.asOf}
+          />
+        </Suspense>
       )}
     </div>
   );

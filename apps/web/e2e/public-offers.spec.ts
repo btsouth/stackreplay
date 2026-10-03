@@ -1,0 +1,45 @@
+import { expect, test } from "@playwright/test";
+import { importDemo, setRulesAsOf } from "./helpers";
+
+for (const [id, name] of [
+  ["kiro-pro", "Kiro Pro"],
+  ["cursor-teams-standard", "Cursor Teams Standard"],
+  ["devin-teams", "Devin Teams"],
+] as const) {
+  test(`detail client navigation preserves ${id} in Compare`, async ({ page }) => {
+    await page.goto(`/plans/${id}`);
+    await page.getByRole("link", { name: "Compare this plan ↗", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=`));
+    await expect(page.getByLabel("First plan")).toHaveValue(id);
+    await expect(page.getByTestId("compare-target").first()).toContainText(name);
+    await page.getByLabel("Second plan").selectOption("google-code-assist-standard");
+    await expect(page).toHaveURL(/right=google-code-assist-standard/u);
+    await expect(page.getByTestId("compare-target").nth(1)).toContainText(
+      "Gemini Code Assist Standard",
+    );
+    if (id === "devin-teams") {
+      await expect(page.getByTestId("compare-target").first()).toContainText(
+        "$80/month base + $40/month per full developer seat",
+      );
+      await expect(page.locator('a[href="/app/import?target=devin-teams"]')).toHaveCount(0);
+    }
+  });
+}
+
+test("explicit public offer Replay targets cannot run or select another plan", async ({ page }) => {
+  await importDemo(page, "moderate");
+  for (const id of [
+    "devin-free",
+    "devin-pro",
+    "devin-max",
+    "devin-teams",
+    "google-code-assist-standard",
+    "google-code-assist-enterprise",
+  ]) {
+    await page.goto(`/app/replay?mode=custom&target=${id}`);
+    await setRulesAsOf(page, "2026-10-03");
+    await expect(page.getByTestId("run-replay")).toBeDisabled();
+    await expect(page.locator('[data-testid^="plan-"][aria-pressed="true"]')).toHaveCount(0);
+    await expect(page.getByTestId("replay-result")).toHaveCount(0);
+  }
+});

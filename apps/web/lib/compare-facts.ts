@@ -1,5 +1,6 @@
 import { exceedText, formatCatalogDate, limitSentence, verificationText } from "./catalog-copy";
 import { lifecycleRank, type PublicModelSummary, type PublicPlanSummary } from "./public-catalog";
+import type { DirectoryPublicOffer } from "./public-directory";
 import { publicPlanPriceText } from "./public-plan-price";
 import {
   accessModelKey,
@@ -69,6 +70,13 @@ export interface CompareFacts {
   rules: readonly CompareRule[];
   modelAccess?: SubscriptionAccess;
   publishedTerms?: SubscriptionPublishedTerms;
+}
+
+export const PUBLIC_OFFER_REPLAY_UNAVAILABLE =
+  "Published offer only; workload replay is unavailable.";
+
+export function publicOfferObservationText(plan: DirectoryPublicOffer): string {
+  return `Public offer checked ${formatCatalogDate(plan.checkedAt)}; earlier terms and introduction date are not established.`;
 }
 
 export const FEATURED_MODEL_COUNT = 4;
@@ -160,9 +168,34 @@ function featureModels(ranked: readonly CompareModel[], count: number): CompareM
 }
 
 export function buildCompareFacts(
-  plan: PublicPlanSummary,
+  plan: PublicPlanSummary | DirectoryPublicOffer,
   modelById: (id: string) => PublicModelSummary | undefined,
 ): CompareFacts {
+  if (!("modelRules" in plan)) {
+    const terms = plan.publishedTerms;
+    return {
+      planId: plan.id,
+      planName: plan.name,
+      providerName: plan.providerName,
+      price: publicPlanPriceText(plan),
+      models: { featured: [], more: [], total: 0 },
+      codingTools: terms?.codingTools ?? [],
+      ...(terms?.otherApps ? { otherApps: terms.otherApps } : {}),
+      usage: {
+        numeric: false,
+        lines: terms
+          ? [{ text: terms.allowanceSummary, detail: "Published information only" }]
+          : [],
+      },
+      simulation: PUBLIC_OFFER_REPLAY_UNAVAILABLE,
+      afterLimit: { lines: terms?.afterLimit ? [terms.afterLimit] : [], quotes: [] },
+      evidence: `Public offer checked ${formatCatalogDate(plan.checkedAt)}`,
+      effective: publicOfferObservationText(plan),
+      rules: [],
+      ...(plan.modelAccess ? { modelAccess: plan.modelAccess } : {}),
+      ...(terms ? { publishedTerms: terms } : {}),
+    };
+  }
   const replayIncluded = plan.modelRules
     .filter((rule) => rule.excluded !== true)
     .map((rule, index) => ({ index, model: modelById(rule.model), id: rule.model }))

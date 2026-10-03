@@ -19,11 +19,14 @@ describe("public market discovery", () => {
       const plan = catalog.planById(id);
       expect(plan, id).toBeDefined();
       expect(plan?.sources.length).toBeGreaterThan(0);
-      expect(plan?.limits).toEqual([]);
+      if (plan?.kind !== "catalog_plan") throw new Error("Expected catalog plan");
+      expect(plan.limits).toEqual([]);
     }
     expect(catalog.plans.some((plan) => plan.id.includes("-api-"))).toBe(false);
-    expect(catalog.planById("command-code-goat")?.price.amount).toBe("10");
-    expect(catalog.planById("ollama-cloud-pro")?.currentMarketOnly).toBe(true);
+    const goat = catalog.planById("command-code-goat");
+    const ollama = catalog.planById("ollama-cloud-pro");
+    expect(goat?.kind === "catalog_plan" && goat.price.amount).toBe("10");
+    expect(ollama?.kind === "catalog_plan" && ollama.currentMarketOnly).toBe(true);
   });
   it("does not backdate new offers or expose expired execution snapshots", () => {
     expect(loadPublicCatalog("2026-09-27").planById("clinepass")).toBeUndefined();
@@ -51,8 +54,10 @@ describe("public market discovery", () => {
       ["cursor-teams-standard", "40"],
       ["cursor-teams-premium", "120"],
     ] as const) {
-      expect(catalog.planById(id)?.price.amount, id).toBe(amount);
-      expect(catalog.planById(id)?.limits, id).toEqual([]);
+      const plan = catalog.planById(id);
+      if (plan?.kind !== "catalog_plan") throw new Error("Expected catalog plan");
+      expect(plan.price.amount, id).toBe(amount);
+      expect(plan.limits, id).toEqual([]);
       expect(loadCatalog().plans[id]?.executionVersions ?? [], id).toEqual([]);
     }
   });

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildCompareFacts } from "./compare-facts";
 import { loadPublicCatalog } from "./public-catalog";
-import { subscriptionPublishedTerms } from "./subscription-published-terms";
+import {
+  type SubscriptionPublishedTerms,
+  selectSubscriptionPublishedTerms,
+  subscriptionPublishedTerms,
+} from "./subscription-published-terms";
 import subscriptions from "./subscription-published-terms-data.json";
 
 const date = "2026-09-29";
@@ -210,6 +214,45 @@ describe("published subscription decision facts", () => {
       expect(terms?.terms.find((term) => term.label === "Cursor Token Rate")?.value).toContain(
         "input, output and cached tokens",
       );
+    }
+  });
+});
+
+describe("same-day terms revisions", () => {
+  it("chooses the last appended complete tie and retains future effective-date priority", () => {
+    const first: SubscriptionPublishedTerms = {
+      checkedAt: "2026-10-03",
+      sourceUrls: [],
+      allowanceSummary: "First",
+      terms: [],
+    };
+    const revised = { ...first, allowanceSummary: "Revised" };
+    const future = { ...first, effectiveFrom: "2026-10-10", allowanceSummary: "Future" };
+    expect(selectSubscriptionPublishedTerms([first, revised, future], "2026-10-03")).toBe(revised);
+    expect(selectSubscriptionPublishedTerms([first, revised, future], "2026-10-10")).toBe(future);
+    expect(selectSubscriptionPublishedTerms([future, revised], "2026-10-10")).toBe(future);
+    expect(
+      selectSubscriptionPublishedTerms([{ ...first, checkedAt: "2026-10-04" }, first], "2026-10-04")
+        ?.checkedAt,
+    ).toBe("2026-10-04");
+    expect(selectSubscriptionPublishedTerms([first, revised], "2026-10-02")).toBeUndefined();
+  });
+  it("keeps previous Google snapshots and adds sourced cessation and separate API billing", () => {
+    for (const id of ["google-ai-pro", "google-ai-ultra", "google-ai-ultra-20x"] as const) {
+      const records = subscriptions[id];
+      expect(records).toHaveLength(3);
+      expect(subscriptionPublishedTerms(id, "2026-10-02")).toEqual(records[0]);
+      expect(subscriptionPublishedTerms(id, "2026-10-03")).toEqual(records[2]);
+      const terms = subscriptionPublishedTerms(id, "2026-10-03");
+      expect(terms).not.toHaveProperty("effectiveFrom");
+      expect(terms?.availabilityNote).toContain("ceased June 18, 2026");
+      expect(terms?.availabilityNote).toContain("Standard and Enterprise are unaffected");
+      expect(
+        terms?.terms.find((term) => term.label === "Conflicting CLI quota documentation")?.value,
+      ).toContain("No restoration evidence");
+      expect(terms?.afterLimit).toContain("only for products that accept them");
+      expect(terms?.afterLimit).toContain("separately billed");
+      expect(terms?.codingTools).toEqual(["Google Antigravity", "Jules"]);
     }
   });
 });

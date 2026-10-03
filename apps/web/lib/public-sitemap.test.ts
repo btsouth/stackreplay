@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadPublicCatalog, type PublicCatalog } from "@/lib/public-catalog";
+import { loadPublicDirectory, type PublicDirectory } from "@/lib/public-directory";
 import sitemap from "../app/sitemap";
 import { absoluteUrl } from "./site";
 
-vi.mock("@/lib/public-catalog", () => ({
-  loadPublicCatalog: vi.fn(),
+vi.mock("@/lib/public-directory", () => ({
+  loadPublicDirectory: vi.fn(),
 }));
 
-const mockedLoadPublicCatalog = vi.mocked(loadPublicCatalog);
+const mockedLoadPublicDirectory = vi.mocked(loadPublicDirectory);
 
 const indexEntries = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
@@ -19,7 +19,7 @@ const indexEntries = [
   { path: "/changelog", changeFrequency: "weekly", priority: 0.6 },
 ] as const;
 
-function catalogFixture(): PublicCatalog {
+function catalogFixture(): PublicDirectory {
   const asOf = new Date().toISOString().slice(0, 10);
   return {
     catalogVersion: "test",
@@ -27,6 +27,8 @@ function catalogFixture(): PublicCatalog {
     providers: [],
     plans: [
       {
+        kind: "catalog_plan",
+        publicPrice: { kind: "fixed", currency: "USD", amount: "20", interval: "month" },
         id: "plan-a",
         name: "Plan A",
         providerId: "provider-a",
@@ -83,7 +85,7 @@ function catalogFixture(): PublicCatalog {
 describe("public sitemap content dates", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    mockedLoadPublicCatalog.mockImplementation(catalogFixture);
+    mockedLoadPublicDirectory.mockImplementation(catalogFixture);
   });
 
   afterEach(() => {
@@ -112,7 +114,7 @@ describe("public sitemap content dates", () => {
     const plan = catalog.plans[0];
     if (!plan) throw new Error("Missing fixture plan");
     plan.lastVerifiedAt = "2025-05-10";
-    mockedLoadPublicCatalog.mockReturnValue(catalog);
+    mockedLoadPublicDirectory.mockReturnValue(catalog);
 
     expect(
       sitemap().find((entry) => entry.url === absoluteUrl("/plans/plan-a"))?.lastModified,

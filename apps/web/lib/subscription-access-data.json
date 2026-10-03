@@ -5542,5 +5542,35 @@
         }
       ]
     }
-  ]
+  ],
+  "devin-free": {
+    "checkedAt": "2026-10-03",
+    "summary": "Restricted model selection and agent quota; unlimited Tab and inline edits. The complete exact model lineup is not established.",
+    "groups": []
+  },
+  "devin-pro": {
+    "checkedAt": "2026-10-03",
+    "summary": "Full model lineup and Cloud agents are advertised. The complete exact model lineup is not established.",
+    "groups": []
+  },
+  "devin-max": {
+    "checkedAt": "2026-10-03",
+    "summary": "More usage quota than Pro is advertised. The complete exact model lineup is not established.",
+    "groups": []
+  },
+  "devin-teams": {
+    "checkedAt": "2026-10-03",
+    "summary": "Team offering for up to 200 users. Exact model entitlements and the complete team capacity matrix are not established.",
+    "groups": []
+  },
+  "google-code-assist-standard": {
+    "checkedAt": "2026-10-03",
+    "summary": "Licensed Gemini CLI and IDE agent-mode access. The complete exact current model matrix is not established; model and preview eligibility can depend on administrator settings.",
+    "groups": []
+  },
+  "google-code-assist-enterprise": {
+    "checkedAt": "2026-10-03",
+    "summary": "Licensed Gemini CLI and IDE agent-mode access. The complete exact current model matrix is not established; model and preview eligibility can depend on administrator settings.",
+    "groups": []
+  }
 }

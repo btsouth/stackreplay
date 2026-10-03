@@ -2706,6 +2706,82 @@
       "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
       "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
       "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models",
+        "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals",
+        "https://geminicli.com/docs/resources/quota-and-pricing/",
+        "https://geminicli.com/docs/get-started/authentication/"
+      ],
+      "allowanceSummary": "4× Free Gemini limits; 1,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "4× standard Free compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "1,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models require a non-trial Google AI Pro subscription. Claude Sonnet 4.6, Claude Opus 4.6 and GPT-OSS 120B remain listed for Pro, with removal announced for November 2, 2026. Google does not publish a start date for the new Claude 5.5 eligibility.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        },
+        {
+          "label": "Consumer CLI and IDE availability",
+          "value": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected.",
+          "sourceUrl": "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals"
+        },
+        {
+          "label": "Conflicting CLI quota documentation",
+          "value": "The CLI quota page last updated June 18 still lists consumer allowances and conflicts with the dedicated deprecation notice updated September 2. No restoration evidence is established; do not treat that quota page as current consumer CLI entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/resources/quota-and-pricing/"
+        },
+        {
+          "label": "API billing and credit scope",
+          "value": "Eligible extra AI credits apply only to supported products that accept them. Gemini API-key and Vertex billing is separate and does not inherit subscription credits or API entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/get-started/authentication/"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for each product reset, or purchase eligible extra AI credits only for products that accept them. Paid Gemini API-key and Vertex usage is separately billed, not subscription credits or automatic subscription continuation.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+      "availabilityNote": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected."
     }
   ],
   "google-ai-ultra": [
@@ -2816,6 +2892,82 @@
       "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
       "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
       "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models",
+        "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals",
+        "https://geminicli.com/docs/resources/quota-and-pricing/",
+        "https://geminicli.com/docs/get-started/authentication/"
+      ],
+      "allowanceSummary": "5× AI Pro Gemini limits; 10,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "5× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "10,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models are listed for Ultra; Claude 4.6 thinking models are not available on Ultra. GPT-OSS 120B remains listed, with removal announced for November 2, 2026. Google does not publish a start date for the lineup change.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        },
+        {
+          "label": "Consumer CLI and IDE availability",
+          "value": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected.",
+          "sourceUrl": "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals"
+        },
+        {
+          "label": "Conflicting CLI quota documentation",
+          "value": "The CLI quota page last updated June 18 still lists consumer allowances and conflicts with the dedicated deprecation notice updated September 2. No restoration evidence is established; do not treat that quota page as current consumer CLI entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/resources/quota-and-pricing/"
+        },
+        {
+          "label": "API billing and credit scope",
+          "value": "Eligible extra AI credits apply only to supported products that accept them. Gemini API-key and Vertex billing is separate and does not inherit subscription credits or API entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/get-started/authentication/"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for each product reset, or purchase eligible extra AI credits only for products that accept them. Paid Gemini API-key and Vertex usage is separately billed, not subscription credits or automatic subscription continuation.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+      "availabilityNote": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected."
     }
   ],
   "google-ai-ultra-20x": [
@@ -2926,6 +3078,294 @@
       "afterLimit": "Wait for product reset or purchase eligible extra AI credits.",
       "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
       "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies."
+    },
+    {
+      "checkedAt": "2026-10-03",
+      "sourceUrls": [
+        "https://support.google.com/gemini/answer/16275805",
+        "https://gemini.google/us/subscriptions/?hl=en",
+        "https://support.google.com/googleone/answer/16287445?hl=en",
+        "https://support.google.com/gemini/answer/13594961",
+        "https://antigravity.google/docs/models",
+        "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals",
+        "https://geminicli.com/docs/resources/quota-and-pricing/",
+        "https://geminicli.com/docs/get-started/authentication/"
+      ],
+      "allowanceSummary": "20× AI Pro Gemini limits; 25,000 Flow credits",
+      "terms": [
+        {
+          "label": "Gemini allowance",
+          "value": "20× AI Pro compute-based limits. Consumption depends on prompt complexity, model, features and conversation length.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Reset timing",
+          "value": "Gemini limits refresh every five hours until the weekly limit is reached. Other products have separate limits.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Flow credits",
+          "value": "25,000 Google Flow credits for creative generation. These are distinct from Gemini and coding-agent allowances.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Coding tools",
+          "value": "Includes Antigravity and Jules access with plan-dependent limits. These do not establish a general-purpose Gemini API balance.",
+          "sourceUrl": "https://gemini.google/us/subscriptions/?hl=en"
+        },
+        {
+          "label": "Extra usage",
+          "value": "Eligible members can buy additional AI credits. Supported products and expiry terms are shown at purchase; check the credit activity page.",
+          "sourceUrl": "https://support.google.com/googleone/answer/16287445?hl=en"
+        },
+        {
+          "label": "Account and region",
+          "value": "Personal Google accounts only. Age, country and feature availability restrictions apply.",
+          "sourceUrl": "https://support.google.com/gemini/answer/16275805"
+        },
+        {
+          "label": "Privacy",
+          "value": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+          "sourceUrl": "https://support.google.com/gemini/answer/13594961"
+        },
+        {
+          "label": "Antigravity model access",
+          "value": "Claude Sonnet 5.5 and Claude Opus 5.5 thinking models are listed for Ultra; Claude 4.6 thinking models are not available on Ultra. GPT-OSS 120B remains listed, with removal announced for November 2, 2026. Google does not publish a start date for the lineup change.",
+          "sourceUrl": "https://antigravity.google/docs/models"
+        },
+        {
+          "label": "Consumer CLI and IDE availability",
+          "value": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected.",
+          "sourceUrl": "https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals"
+        },
+        {
+          "label": "Conflicting CLI quota documentation",
+          "value": "The CLI quota page last updated June 18 still lists consumer allowances and conflicts with the dedicated deprecation notice updated September 2. No restoration evidence is established; do not treat that quota page as current consumer CLI entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/resources/quota-and-pricing/"
+        },
+        {
+          "label": "API billing and credit scope",
+          "value": "Eligible extra AI credits apply only to supported products that accept them. Gemini API-key and Vertex billing is separate and does not inherit subscription credits or API entitlement.",
+          "sourceUrl": "https://geminicli.com/docs/get-started/authentication/"
+        }
+      ],
+      "codingTools": ["Google Antigravity", "Jules"],
+      "afterLimit": "Wait for each product reset, or purchase eligible extra AI credits only for products that accept them. Paid Gemini API-key and Vertex usage is separately billed, not subscription credits or automatic subscription continuation.",
+      "billingSummary": "Monthly plan; each product has separate usage limits and credit rules.",
+      "privacySummary": "Gemini activity controls affect model-improvement use. Safety review and service processing can still occur with activity off; other Google tools have separate policies.",
+      "availabilityNote": "Google-login Gemini CLI and IDE access for Free, Google AI Pro and Google AI Ultra ceased June 18, 2026. Licensed Code Assist Standard and Enterprise are unaffected."
     }
-  ]
+  ],
+  "devin-free": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": ["https://devin.ai/pricing"],
+    "allowanceSummary": "Restricted agent quota; unlimited Tab and inline edits. Numeric agent capacity is not published.",
+    "terms": [
+      {
+        "label": "Model access",
+        "value": "Restricted model selection and agent quota; unlimited Tab and inline edits. The complete exact model lineup is not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Usage scope",
+        "value": "Message cost depends on model, task and reasoning. Numeric allowance, credit units, rollover and reset anchor or timezone are not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "SWE-2 promotion",
+        "value": "The pricing page checked October 3, 2026 announced a SWE-2 Free Desktop/CLI promotion ending October 16, 2026. No precise expiry time is established; this dated announcement does not establish ongoing free access after its end.",
+        "sourceUrl": "https://devin.ai/pricing"
+      }
+    ],
+    "codingTools": ["Devin Desktop", "Devin CLI"],
+    "billingSummary": "Free plan; exact agent quota is not published.",
+    "afterLimit": "Continuation beyond the restricted agent quota is not established."
+  },
+  "devin-pro": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": ["https://devin.ai/pricing"],
+    "allowanceSummary": "Paid usage allowance renews daily and weekly; numeric capacity is not published.",
+    "terms": [
+      {
+        "label": "Model access",
+        "value": "Full model lineup and Cloud agents are advertised. The complete exact model lineup is not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Usage scope",
+        "value": "Message cost depends on model, task and reasoning. Numeric allowance, credit units, rollover and reset anchor or timezone are not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "SWE-2 promotion",
+        "value": "The pricing page checked October 3, 2026 announced a SWE-2 Free Desktop/CLI promotion ending October 16, 2026. No precise expiry time is established; this dated announcement does not establish ongoing free access after its end.",
+        "sourceUrl": "https://devin.ai/pricing"
+      }
+    ],
+    "codingTools": ["Devin Desktop", "Devin CLI", "Devin Cloud"],
+    "billingSummary": "$20/month subscription; numeric usage allowance is not published.",
+    "afterLimit": "Additional paid usage is offered at API pricing. Exact model rates, conversion and automatic-charge policy are not established."
+  },
+  "devin-max": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": ["https://devin.ai/pricing"],
+    "allowanceSummary": "Paid usage allowance renews daily and weekly; numeric capacity is not published.",
+    "terms": [
+      {
+        "label": "Model access",
+        "value": "More usage quota than Pro is advertised. The complete exact model lineup is not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Usage scope",
+        "value": "Message cost depends on model, task and reasoning. Numeric allowance, credit units, rollover and reset anchor or timezone are not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "SWE-2 promotion",
+        "value": "The pricing page checked October 3, 2026 announced a SWE-2 Free Desktop/CLI promotion ending October 16, 2026. No precise expiry time is established; this dated announcement does not establish ongoing free access after its end.",
+        "sourceUrl": "https://devin.ai/pricing"
+      }
+    ],
+    "codingTools": ["Devin Desktop", "Devin CLI"],
+    "billingSummary": "$200/month subscription; numeric usage allowance is not published.",
+    "afterLimit": "Additional paid usage is offered at API pricing. Exact model rates, conversion and automatic-charge policy are not established."
+  },
+  "devin-teams": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": ["https://devin.ai/pricing"],
+    "allowanceSummary": "Paid usage allowance renews daily and weekly; numeric capacity is not published.",
+    "terms": [
+      {
+        "label": "Model access",
+        "value": "Team offering for up to 200 users. Exact model entitlements and the complete team capacity matrix are not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Usage scope",
+        "value": "Message cost depends on model, task and reasoning. Numeric allowance, credit units, rollover and reset anchor or timezone are not established.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "SWE-2 promotion",
+        "value": "The pricing page checked October 3, 2026 announced a SWE-2 Free Desktop/CLI promotion ending October 16, 2026. No precise expiry time is established; this dated announcement does not establish ongoing free access after its end.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Teams fee",
+        "value": "$80/month base + $40/month per full developer seat. Up to 200 users is the published team-size statement, not 200 included full developer seats.",
+        "sourceUrl": "https://devin.ai/pricing"
+      },
+      {
+        "label": "Enterprise",
+        "value": "Enterprise pricing is a sales quote; no fixed price is published.",
+        "sourceUrl": "https://devin.ai/pricing"
+      }
+    ],
+    "codingTools": ["Devin Desktop", "Devin CLI"],
+    "billingSummary": "$80/month base + $40/month per full developer seat. Up to 200 users is the published team-size statement, not 200 included full developer seats.",
+    "afterLimit": "Additional paid usage is offered at API pricing. Exact model rates, conversion and automatic-charge policy are not established."
+  },
+  "google-code-assist-standard": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://cloud.google.com/products/gemini/pricing",
+      "https://docs.cloud.google.com/gemini/docs/quotas",
+      "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes",
+      "https://geminicli.com/docs/get-started/authentication/"
+    ],
+    "allowanceSummary": "Shared daily model-request allowance for licensed Gemini CLI and IDE agent mode across models; one prompt can use multiple model calls.",
+    "terms": [
+      {
+        "label": "Licensed pricing",
+        "value": "$22.80 per licensed user/month with a monthly commitment. Alternative: $19 per licensed user/month with a 12-month commitment, billed monthly.",
+        "sourceUrl": "https://cloud.google.com/products/gemini/pricing"
+      },
+      {
+        "label": "Daily request scope",
+        "value": "Gemini CLI and IDE agent mode share the daily model-request allowance across models. One prompt can use multiple model calls.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      },
+      {
+        "label": "Unestablished details",
+        "value": "Numeric per-minute quota, daily reset timezone and the complete exact current model matrix are not established here.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      },
+      {
+        "label": "Sales availability",
+        "value": "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes"
+      },
+      {
+        "label": "Separate API billing",
+        "value": "Paid Gemini API-key and Vertex routes are separately billed. These licenses do not establish an API credit balance or automatic paid continuation.",
+        "sourceUrl": "https://geminicli.com/docs/get-started/authentication/"
+      }
+    ],
+    "tables": [
+      {
+        "id": "daily-model-requests",
+        "title": "Published daily model requests",
+        "columns": ["Surface", "Model requests per licensed user/day"],
+        "rows": [["Gemini CLI + IDE agent mode (shared)", "1,500"]],
+        "note": "Shared across models and both surfaces; one prompt can trigger multiple model calls. Published information only, not executable Replay limits. Numeric per-minute quota and reset timezone are not established.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      }
+    ],
+    "codingTools": ["Gemini CLI", "Gemini Code Assist IDE"],
+    "billingSummary": "$22.80 per licensed user/month with a monthly commitment. Alternative: $19 per licensed user/month with a 12-month commitment, billed monthly.",
+    "availabilityNote": "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+    "afterLimit": "Paid API-key or Vertex authentication uses separate API billing. Automatic license overage and exact paid API quotas are not established here."
+  },
+  "google-code-assist-enterprise": {
+    "checkedAt": "2026-10-03",
+    "sourceUrls": [
+      "https://cloud.google.com/products/gemini/pricing",
+      "https://docs.cloud.google.com/gemini/docs/quotas",
+      "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes",
+      "https://geminicli.com/docs/get-started/authentication/"
+    ],
+    "allowanceSummary": "Shared daily model-request allowance for licensed Gemini CLI and IDE agent mode across models; one prompt can use multiple model calls.",
+    "terms": [
+      {
+        "label": "Licensed pricing",
+        "value": "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+        "sourceUrl": "https://cloud.google.com/products/gemini/pricing"
+      },
+      {
+        "label": "Daily request scope",
+        "value": "Gemini CLI and IDE agent mode share the daily model-request allowance across models. One prompt can use multiple model calls.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      },
+      {
+        "label": "Unestablished details",
+        "value": "Numeric per-minute quota, daily reset timezone and the complete exact current model matrix are not established here.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      },
+      {
+        "label": "Sales availability",
+        "value": "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/codeassist/release-notes"
+      },
+      {
+        "label": "Separate API billing",
+        "value": "Paid Gemini API-key and Vertex routes are separately billed. These licenses do not establish an API credit balance or automatic paid continuation.",
+        "sourceUrl": "https://geminicli.com/docs/get-started/authentication/"
+      }
+    ],
+    "tables": [
+      {
+        "id": "daily-model-requests",
+        "title": "Published daily model requests",
+        "columns": ["Surface", "Model requests per licensed user/day"],
+        "rows": [["Gemini CLI + IDE agent mode (shared)", "2,000"]],
+        "note": "Shared across models and both surfaces; one prompt can trigger multiple model calls. Published information only, not executable Replay limits. Numeric per-minute quota and reset timezone are not established.",
+        "sourceUrl": "https://docs.cloud.google.com/gemini/docs/quotas"
+      }
+    ],
+    "codingTools": ["Gemini CLI", "Gemini Code Assist IDE"],
+    "billingSummary": "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+    "availabilityNote": "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.",
+    "afterLimit": "Paid API-key or Vertex authentication uses separate API billing. Automatic license overage and exact paid API quotas are not established here."
+  }
 }

@@ -1,7 +1,8 @@
 import { type PricingV1, pricingServiceTierOf } from "@stackreplay/catalog";
 import { limitSentence } from "./catalog-copy";
 import { buildCompareFacts } from "./compare-facts";
-import { loadCatalog, loadPublicCatalog, type PublicPlanSummary } from "./public-catalog";
+import { loadCatalog, type PublicPlanSummary } from "./public-catalog";
+import { type DirectoryPublicOffer, loadPublicDirectory } from "./public-directory";
 
 export type ModelPrices = Pick<
   PricingV1,
@@ -52,8 +53,9 @@ const HARNESS_NAMES: Record<string, string> = {
   "kiro-ide": "Kiro",
   "kiro-cli": "Kiro",
 };
-export function planTools(plan: PublicPlanSummary): string[] {
+export function planTools(plan: PublicPlanSummary | DirectoryPublicOffer): string[] {
   if (plan.publishedTerms?.codingTools) return plan.publishedTerms.codingTools;
+  if (!("modelRules" in plan)) return [];
   const explicit = plan.qualitativeLimits.find((limit) => limit.label === "Compatible tools");
   if (explicit) return explicit.statement.split(" · ");
   const catalog = loadCatalog();
@@ -66,7 +68,9 @@ export function planTools(plan: PublicPlanSummary): string[] {
   if (routes.some((route) => route.protocol === "ollama-cloud")) tools.push("Ollama");
   return [...new Set([...tools, ...buildCompareFacts(plan, () => undefined).codingTools])];
 }
-export function planUsage(plan: PublicPlanSummary): string {
+export function planUsage(plan: PublicPlanSummary | DirectoryPublicOffer): string {
+  if (!("modelRules" in plan))
+    return plan.publishedTerms?.allowanceSummary ?? "Published usage details are not established.";
   return (
     plan.publishedTerms?.allowanceSummary ??
     plan.qualitativeLimits.find((limit) => limit.label === "Included usage")?.statement ??
@@ -76,7 +80,7 @@ export function planUsage(plan: PublicPlanSummary): string {
   );
 }
 export function marketDiscovery(date?: string) {
-  const catalog = loadPublicCatalog(date);
+  const catalog = loadPublicDirectory(date);
   return {
     catalog,
     prices: Object.fromEntries(
