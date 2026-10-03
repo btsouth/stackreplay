@@ -1,0 +1,248 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { MarketFooter, MarketHeader } from "@/components/public/market-header";
+import { SourceList, VerificationBadge } from "@/components/public/provenance";
+import { formatCatalogDate } from "@/lib/catalog-copy";
+import { planTools, planUsage } from "@/lib/market-discovery";
+import { modelCapabilities, modelContext, tokenSize } from "@/lib/model-specifications";
+import type { PublicModelSummary } from "@/lib/public-catalog";
+import { publicPlanPriceText } from "@/lib/public-plan-price";
+import { loadPublicProviderDirectory } from "@/lib/public-providers";
+import { publicPageMetadata } from "@/lib/site";
+
+interface Props {
+  params: Promise<{ providerId: string }>;
+}
+export function generateStaticParams() {
+  return loadPublicProviderDirectory().providers.map((provider) => ({ providerId: provider.id }));
+}
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { providerId } = await params;
+  const provider = loadPublicProviderDirectory().providerById(providerId);
+  if (!provider) notFound();
+  return publicPageMetadata({
+    title: provider.name,
+    description: `${provider.name}: developed models, recorded API access, published plans and sourced updates.`,
+    path: `/providers/${providerId}`,
+  });
+}
+function ModelRows({ models, empty }: { models: readonly PublicModelSummary[]; empty: string }) {
+  if (!models.length) return <p className="market-muted py-5">{empty}</p>;
+  return (
+    <div>
+      {models.map((model) => {
+        const context = model.kind === "family" ? undefined : modelContext(model);
+        return (
+          <article
+            key={model.id}
+            className="border-b border-border py-5"
+            data-testid="provider-model"
+          >
+            <h3 className="text-lg">
+              <Link href={`/models/${model.id}`} className="hover:text-accent">
+                {model.name} ↗
+              </Link>
+            </h3>
+            <p className="market-muted mt-2">
+              {model.kind === "family" ? "Family identity" : "Model release"} ·{" "}
+              {model.lifecycle ?? "Lifecycle not recorded"}
+            </p>
+            {model.kind === "release" && (
+              <p className="mt-2 text-sm">
+                {context?.value === undefined
+                  ? "Context / max input not recorded"
+                  : `${tokenSize(context.value)} ${context.label}`}{" "}
+                ·{" "}
+                {model.releaseDate === undefined
+                  ? "Release date not recorded"
+                  : `Released ${formatCatalogDate(model.releaseDate.date)}`}
+              </p>
+            )}
+            {model.kind === "release" && modelCapabilities(model).length > 0 && (
+              <p className="market-muted mt-2">{modelCapabilities(model).join(" · ")}</p>
+            )}
+            <p className="market-muted mt-2">
+              Identity checked {formatCatalogDate(model.lastVerifiedAt)}. Access and pricing details
+              on the model page.
+            </p>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+export default async function ProviderPage({ params }: Props) {
+  const { providerId } = await params;
+  const data = loadPublicProviderDirectory();
+  const provider = data.providerById(providerId);
+  if (!provider) notFound();
+  const models = (ids: readonly string[]) =>
+    ids.flatMap((id) => {
+      const model = data.directory.modelById(id);
+      return model ? [model] : [];
+    });
+  const developed = models(provider.developedModelIds);
+  const plans = provider.planIds.flatMap((id) => {
+    const plan = data.directory.planById(id);
+    return plan ? [plan] : [];
+  });
+  const events = data.events.filter((event) => provider.eventIds.includes(event.id));
+  return (
+    <div>
+      <Link href="/providers" className="market-link">
+        ← Providers
+      </Link>
+      <MarketHeader
+        eyebrow="Provider / Recorded coverage"
+        title={provider.name}
+        description="Developed models, recorded API access and published plans are separate relationships. Each section shows the records held for this provider."
+      />
+      <section aria-labelledby="developed-models" className="mt-8">
+        <h2 id="developed-models" className="market-section-title">
+          Developed models
+        </h2>
+        <p className="market-muted">
+          {developed.filter((model) => model.kind === "release").length} releases ·{" "}
+          {
+            developed.filter((model) => model.kind === "release" && model.lifecycle === "legacy")
+              .length
+          }{" "}
+          legacy releases · {developed.filter((model) => model.kind === "family").length} family
+          records
+        </p>
+        <ModelRows models={developed} empty="No developed models recorded." />
+      </section>
+      <section aria-labelledby="recorded-api" className="mt-10">
+        <h2 id="recorded-api" className="market-section-title">
+          Recorded API access
+        </h2>
+        <p className="market-muted">
+          This public view records some API access routes. It is not a complete endpoint inventory.
+          Pricing belongs to the access route shown on each model page.
+        </p>
+        <ModelRows
+          models={models(provider.apiModelIds)}
+          empty="No API access recorded in this public view."
+        />
+      </section>
+      <section aria-labelledby="published-plans" className="mt-10">
+        <h2 id="published-plans" className="market-section-title">
+          Published plans and offers
+        </h2>
+        {plans.length === 0 && (
+          <p className="market-muted py-5">No current public plans or offers recorded.</p>
+        )}
+        {plans.map((plan) => (
+          <article
+            key={plan.id}
+            className="border-b border-border py-5"
+            data-testid="provider-plan"
+          >
+            <h3 className="text-lg">
+              <Link href={`/plans/${plan.id}`} className="hover:text-accent">
+                {plan.name} ↗
+              </Link>
+            </h3>
+            <p className="mt-2 text-lg break-words">{publicPlanPriceText(plan)}</p>
+            {plan.publishedTerms?.billingSummary && (
+              <p className="mt-2 text-sm">{plan.publishedTerms.billingSummary}</p>
+            )}
+            <p className="market-muted mt-2">
+              {planTools(plan).length
+                ? `Works with ${planTools(plan).join(" · ")}`
+                : "Tool compatibility not recorded."}
+            </p>
+            <p className="mt-2 text-sm">{planUsage(plan)}</p>
+            {plan.publishedTerms?.availabilityNote && (
+              <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
+            )}
+            {plan.kind === "public_offer" && (
+              <p className="market-muted mt-2">
+                Informational offer · Workload Replay unavailable.
+              </p>
+            )}
+            <p className="market-muted mt-2">
+              {plan.kind === "public_offer" ? "Offer observed" : "Plan checked"}{" "}
+              {formatCatalogDate(plan.lastVerifiedAt)}
+            </p>
+            <div className="mt-3">
+              <SourceList sources={plan.sources} />
+            </div>
+          </article>
+        ))}
+      </section>
+      <section aria-labelledby="provider-updates" className="mt-10">
+        <h2 id="provider-updates" className="market-section-title">
+          Updates
+        </h2>
+        <p className="market-muted">
+          Accepted updates from this provider, ordered by when they occurred.
+        </p>
+        {events.length === 0 && (
+          <p className="market-muted py-5">No accepted provider updates recorded.</p>
+        )}
+        {events.map((event) => (
+          <article
+            key={event.id}
+            className="border-b border-border py-5"
+            data-testid="provider-update"
+          >
+            <p className="market-kicker">
+              {formatCatalogDate(event.day)} · {event.typeLabel} · {event.status}
+            </p>
+            <h3 className="mt-2 text-lg">
+              <Link className="hover:text-accent" href={`/changelog#${event.id}`}>
+                {event.title} ↗
+              </Link>
+            </h3>
+            <p className="mt-2 text-sm">{event.summary}</p>
+            {event.effectiveAt && (
+              <p className="market-muted mt-2">
+                {event.status === "scheduled" ? "Scheduled for" : "Effective"}{" "}
+                {formatCatalogDate(event.effectiveAt.slice(0, 10))}
+              </p>
+            )}
+            <p className="market-muted mt-2">
+              Event checked {formatCatalogDate(event.verifiedAt.slice(0, 10))} ·{" "}
+              <a
+                className="market-link"
+                href={event.source.url}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {event.source.title} ↗
+              </a>
+            </p>
+          </article>
+        ))}
+      </section>
+      <section aria-labelledby="provider-sources" className="mt-10">
+        <h2 id="provider-sources" className="market-section-title">
+          {provider.evidence.kind === "provider_record"
+            ? "Provider identity sources"
+            : "Publisher offer sources"}
+        </h2>
+        {provider.evidence.kind === "provider_record" ? (
+          <div className="my-4">
+            <VerificationBadge
+              status={provider.evidence.verificationStatus}
+              lastVerifiedAt={provider.evidence.lastVerifiedAt}
+            />
+            <p className="market-muted mt-2">
+              This check covers the provider identity. Models, plans and events carry their own
+              sources and dates.
+            </p>
+          </div>
+        ) : (
+          <p className="market-muted my-4">
+            Publisher identity comes from the sourced public offers below. No separate provider
+            identity check is recorded.
+          </p>
+        )}
+        <SourceList sources={provider.evidence.sources} />
+      </section>
+      <MarketFooter />
+    </div>
+  );
+}

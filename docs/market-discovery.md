@@ -53,3 +53,9 @@ This release adds no watcher, telemetry, backend store or pricing engine. Public
 plan discovery does not automatically add a newly listed commercial offer to local
 Current Stack or make it replayable. Imported histories and personal billing facts
 are not required or published. Manual catalog review remains the admission gate.
+
+## Provider directory
+
+`/providers` starts with an editorial Featured selection; All, search and role/tool filters reach the full accepted directory. Featured reuses the model library shortlist and an explicit plan selection, never traffic or quality scores. A tool match means matching published plans, not compatibility for every developed model.
+
+Provider hubs join exact model developer IDs, existing API places, plan publisher IDs and event owner IDs. They include all real provider identities and selected public-offer publishers, including empty hubs. API coverage is incomplete; hubs do not summarize token rates. Provider identity checks, model facts, plan/offer observations and event dates remain separate. Hub sitemap entries have no inferred modification date. The base public catalog and Replay choices are unchanged.
