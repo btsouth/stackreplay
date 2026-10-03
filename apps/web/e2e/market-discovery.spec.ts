@@ -61,7 +61,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   await expect(rows).toHaveCount(1);
   await page.getByLabel("Find a model, family name or exact alias").clear();
   await page.getByLabel("Order by").selectOption("name");
-  await expect(rows.first()).toContainText("Claude Fable");
+  await expect(rows.first()).toContainText("Amazon Nova 2 Lite");
 });
 
 test("selected comparisons sort by the active price category, highest first", async ({ page }) => {
