@@ -8,10 +8,10 @@
 
 import type { CatalogV1 } from "./catalog.js";
 
-export const BUNDLED_CATALOG_VERSION = "sha256:ecd2d60abf72d20c6cd481705d8e5b7a18b53e14f7b89a9f64eed081b9416a9b";
+export const BUNDLED_CATALOG_VERSION = "sha256:11cd9fdcebd8f71de9ef862ec47b3c721ca73e95dbfb8b0b2832050418ccfc05";
 
 export const BUNDLED_CATALOG: CatalogV1 = {
-  "catalogVersion": "sha256:ecd2d60abf72d20c6cd481705d8e5b7a18b53e14f7b89a9f64eed081b9416a9b",
+  "catalogVersion": "sha256:11cd9fdcebd8f71de9ef862ec47b3c721ca73e95dbfb8b0b2832050418ccfc05",
   "providers": {
     "alibaba": {
       "id": "alibaba",
@@ -34810,6 +34810,29 @@ export const BUNDLED_CATALOG: CatalogV1 = {
         }
       ],
       "lastVerifiedAt": "2026-09-29",
+      "verificationStatus": "verified"
+    },
+    "mistral-large-3-api-pricing": {
+      "id": "mistral-large-3-api-pricing",
+      "role": "pricing",
+      "modelId": "mistral-large-3",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "basis": "api_list_price",
+      "rates": {
+        "input": "0.5",
+        "output": "1.5",
+        "cacheRead": "0.05"
+      },
+      "effectiveFrom": "2026-10-03",
+      "sources": [
+        {
+          "url": "https://docs.mistral.ai/inference/pricing",
+          "title": "Standard/default service tier, Mistral Large 3 row: input $0.5, cached input $0.05, output $1.5 per 1M tokens. First catalog observation is 2026-10-03; no provider-published price activation date is established in this source.",
+          "checkedAt": "2026-10-03"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-03",
       "verificationStatus": "verified"
     },
     "muse-spark-1-3-api-reference-20260928": {
