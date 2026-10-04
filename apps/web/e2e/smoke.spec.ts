@@ -17,12 +17,19 @@ test("the app entry opens Import on a first visit, with working navigation", asy
   }
 });
 
-test("public and workspace content use the shared safe rail", async ({ page }, testInfo) => {
+test("public and workspace content keep safe gutters", async ({ page }, testInfo) => {
   for (const route of ["/", "/methodology", "/app/import", "/app/settings"]) {
     await page.goto(route);
-    const gutter = await page
-      .getByRole("main")
-      .evaluate((main) => Number.parseFloat(getComputedStyle(main).paddingLeft));
+    // The recap homepage owns section gutters; catalog and app shells own main gutters.
+    const rail = route === "/" ? page.locator(".replay-hero") : page.getByRole("main");
+    const gutter = await rail.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return Math.min(
+        rect.left + Number.parseFloat(style.paddingLeft),
+        innerWidth - rect.right + Number.parseFloat(style.paddingRight),
+      );
+    });
     expect(gutter).toBeGreaterThanOrEqual(testInfo.project.name === "mobile" ? 20 : 32);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,

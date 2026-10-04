@@ -159,6 +159,24 @@ test.describe("public site accessibility", () => {
     await expect(skipLink).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.locator("#main-content")).toBeFocused();
+    const homepageNav = page.getByRole("navigation", { name: "Main navigation" });
+    for (const [label, href] of [
+      ["Models & plans", "/models"],
+      [testInfo.project.name === "mobile" ? "Replay my history" : "Get my recap", "/app/import"],
+      [
+        testInfo.project.name === "mobile" ? "Source code" : "GitHub",
+        "https://github.com/btsouth/stackreplay",
+      ],
+    ]) {
+      const link = page.getByRole("link", { name: label }).first();
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", href);
+      await link.focus();
+      await expect(link).toBeFocused();
+    }
+    await homepageNav.getByRole("link", { name: "Models & plans" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/models$/u);
     // Every primary destination is reachable and labelled. Wide viewports show the
     // header navigation; narrow ones reach the same destinations through the menu
     // button's panel, and the footer lists them at every width.
