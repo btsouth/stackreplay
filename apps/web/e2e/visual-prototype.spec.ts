@@ -8,13 +8,22 @@ test("homepage chart, complete rows and mobile metrics stay usable", async ({ pa
   await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 900 });
   await page.goto("/");
   await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
+  await expect(page.getByRole("button", { name: "API price", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  const priceCount = await page.locator(".v-price-row").count();
+  expect(priceCount).toBe(60);
+  await page.getByLabel("Chart developer").selectOption("openai");
+  expect(await page.locator(".v-price-row").count()).toBeLessThan(priceCount);
+  await page.getByRole("button", { name: "Price vs score", exact: true }).click();
   await expect(page.getByLabel("Chart benchmark")).toHaveValue("deep-swe-v1-1");
-  await expect(page.locator(".v-chart-foot")).toContainText("7 models plotted");
+  await expect(page.locator(".v-chart-foot")).toContainText("7 models with scores");
   await expect(page.locator(".v-table-scroll tbody tr").first()).toContainText("Claude Opus 5.5");
   await expect(page.locator(".v-table-scroll tbody tr").first()).toContainText("$4.00");
   if (isMobile) {
     await expect(page.locator(".v-mobile-chart")).toBeVisible();
-    await expect(page.locator(".v-mobile-chart")).toContainText("$0.2625 / 1M tokens");
+    await expect(page.locator(".v-mobile-chart")).toContainText("$0.26 / 1M tokens");
     await expect(
       page.locator(".v-table-scroll tbody tr").first().locator('[data-label="Output / 1M"]'),
     ).toBeVisible();
@@ -24,7 +33,7 @@ test("homepage chart, complete rows and mobile metrics stay usable", async ({ pa
     await expect(page.locator(".v-chart-tip")).toBeVisible();
   }
   await page.getByLabel("Chart benchmark").selectOption("terminal-bench-4-0");
-  await expect(page.locator(".v-chart-foot")).toContainText("6 models plotted");
+  await expect(page.locator(".v-chart-foot")).toContainText("6 models with scores");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const results = await new AxeBuilder({ page }).include(".visual").analyze();
   expect(
@@ -34,7 +43,7 @@ test("homepage chart, complete rows and mobile metrics stay usable", async ({ pa
   ).toEqual([]);
 });
 
-test("search and model rows open a shareable comparison", async ({ page }) => {
+test("search and model rows open a shareable comparison", async ({ page, isMobile }) => {
   await page.goto("/");
   await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await page.getByLabel("Search models to compare").fill("GPT-6.1");
@@ -50,6 +59,7 @@ test("search and model rows open a shareable comparison", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await page.getByRole("button", { name: "Add Claude Opus 5.5 to compare", exact: true }).click();
+  if (isMobile) await page.getByRole("button", { name: "Show more models ↓" }).click();
   await page.getByRole("button", { name: "Add GPT-6.1 Sol to compare", exact: true }).click();
   await page.locator(".v-compare-tray").getByRole("link", { name: "Compare models →" }).click();
   await expect(page).toHaveURL(/models=claude-opus-5-5,gpt-6-1-sol/u);

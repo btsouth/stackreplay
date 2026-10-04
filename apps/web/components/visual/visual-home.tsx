@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  apiPriceModels,
   chartModels,
+  planLeaders,
   type VisualBenchmark,
   type VisualData,
   type VisualModel,
@@ -193,7 +195,97 @@ function Scatter({ models, benchmark }: { models: VisualModel[]; benchmark: Visu
             </span>
           ))}
         </div>
-        <span>{points.length} models plotted</span>
+        <span>{points.length} models with scores</span>
+      </div>
+    </>
+  );
+}
+
+function ApiPrices({ models }: { models: VisualModel[] }) {
+  const [lab, setLab] = useState("");
+  const all = apiPriceModels(models);
+  const rows = apiPriceModels(models, lab);
+  const positive = all
+    .flatMap((model) => [Number(model.input), Number(model.output)])
+    .filter((value) => value > 0);
+  const min = Math.floor(Math.log10(Math.min(...positive, 0.1)));
+  const max = Math.max(min + 1, Math.ceil(Math.log10(Math.max(...positive, 1))));
+  const position = (value: string | undefined) =>
+    Number(value) === 0 ? 0 : 4 + ((Math.log10(Number(value)) - min) / (max - min)) * 92;
+  return (
+    <>
+      <div className="v-price-tools">
+        <select
+          aria-label="Chart developer"
+          value={lab}
+          onChange={(event) => setLab(event.target.value)}
+        >
+          <option value="">All developers</option>
+          {[...new Set(all.map((model) => model.lab))].sort().map((id) => (
+            <option key={id} value={id}>
+              {all.find((model) => model.lab === id)?.developer}
+            </option>
+          ))}
+        </select>
+        <span>{rows.length} priced models</span>
+      </div>
+      <div className="v-price-axis" aria-hidden="true">
+        <span>Model</span>
+        <div>
+          {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((tick) => (
+            <span key={tick} style={{ left: `${position(String(10 ** tick))}%` }}>
+              {money(String(10 ** tick))}
+            </span>
+          ))}
+        </div>
+        <span>In / Out</span>
+      </div>
+      <section
+        className="v-price-scroll"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: Focus enables keyboard scrolling through the complete price chart.
+        tabIndex={0}
+        aria-label="API prices, ranked by input price"
+      >
+        {rows.map((model) => (
+          <Link
+            className="v-price-row"
+            key={model.id}
+            href={compareHref([model.id])}
+            title={`${model.name} · ${model.developer} · Input $${model.input}, output $${model.output} per 1M tokens`}
+          >
+            <span className="v-price-name">
+              <i style={{ background: labColor(model.lab) }} />
+              {model.name}
+            </span>
+            <span className="v-price-plot" aria-hidden="true">
+              <span
+                className="v-price-line"
+                style={{
+                  left: `${Math.min(position(model.input), position(model.output))}%`,
+                  width: `${Math.abs(position(model.output) - position(model.input))}%`,
+                  background: labColor(model.lab),
+                }}
+              />
+              <i
+                className="v-price-input"
+                style={{ left: `${position(model.input)}%`, background: labColor(model.lab) }}
+              />
+              <i
+                className="v-price-output"
+                style={{ left: `${position(model.output)}%`, borderColor: labColor(model.lab) }}
+              />
+            </span>
+            <span className="v-price-values">
+              <span>{money(model.input)}</span>
+              <span>{money(model.output)}</span>
+            </span>
+          </Link>
+        ))}
+      </section>
+      <div className="v-price-foot">
+        <span>● Input &nbsp; ○ Output</span>
+        <span>USD / 1M tokens · log scale</span>
+        <span>Scroll to explore ↓</span>
       </div>
     </>
   );
@@ -207,16 +299,17 @@ export function VisualHome({
   data: VisualData;
   events: { id: string; title: string; day: string; href: string }[];
 }) {
+  const [chartTab, setChartTab] = useState("prices");
   const [benchmarkId, setBenchmarkId] = useState(data.benchmarks[0]?.id ?? "");
   const [sort, setSort] = useState<Sort>("coverage");
   const [ascending, setAscending] = useState(false);
   const [query, setQuery] = useState("");
-  const [limit, setLimit] = useState(12);
+  const [limit, setLimit] = useState(7);
   const [selected, setSelected] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 760px)");
-    const sync = () => setLimit(media.matches ? 6 : 12);
+    const sync = () => setLimit(media.matches ? 3 : 7);
     sync();
     setReady(true);
     media.addEventListener("change", sync);
@@ -224,11 +317,7 @@ export function VisualHome({
   }, []);
   const benchmark = data.benchmarks.find((item) => item.id === benchmarkId) ?? data.benchmarks[0];
   if (!benchmark) return null;
-  const scored = data.models.filter((model) =>
-    data.benchmarks.some((item) => item.scores[model.id]),
-  );
-  const cheap = scored
-    .filter((model) => model.blended !== undefined)
+  const cheap = apiPriceModels(data.models)
     .sort((a, b) => Number(a.blended) - Number(b.blended))
     .slice(0, 6);
   const best = data.models
@@ -239,10 +328,7 @@ export function VisualHome({
         (benchmark.higherIsBetter ? 1 : -1),
     )
     .slice(0, 6);
-  const context = data.models
-    .filter((model) => model.context !== undefined)
-    .sort((a, b) => (b.context ?? 0) - (a.context ?? 0))
-    .slice(0, 6);
+  const included = planLeaders(data.models);
   const richness = (model: VisualModel) =>
     [model.input, model.output, model.context, benchmark.scores[model.id]].filter(
       (item) => item !== undefined,
@@ -321,29 +407,39 @@ export function VisualHome({
           }}
         />
       </section>
-      <section className="v-chart-section" aria-labelledby="capability-heading">
+      <section
+        className="v-chart-section"
+        data-chart-view={chartTab}
+        aria-labelledby="capability-heading"
+      >
         <div className="v-section-head">
           <div>
-            <h2 id="capability-heading">More capability. Less cost.</h2>
+            <h2 id="capability-heading">
+              {chartTab === "prices" ? "API prices at a glance." : "Price meets performance."}
+            </h2>
           </div>
           <div className="v-controls">
-            <select
-              disabled={!ready}
-              aria-label="Chart benchmark"
-              value={benchmark.id}
-              onChange={(event) => setBenchmarkId(event.target.value)}
-            >
-              {data.benchmarks.slice(0, 4).map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} · {item.coverage} models
-                </option>
-              ))}
-            </select>
+            {chartTab === "scores" && (
+              <select
+                disabled={!ready}
+                aria-label="Chart benchmark"
+                value={benchmark.id}
+                onChange={(event) => setBenchmarkId(event.target.value)}
+              >
+                {data.benchmarks.slice(0, 4).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} · {item.coverage} models
+                  </option>
+                ))}
+              </select>
+            )}
             <Info label="Chart pricing and methodology">
-              <strong>Price versus capability</strong>
+              <strong>API prices and benchmark scores</strong>
               <p>
-                Blended price = (3 × input + output) / 4, for a 3:1 input to output token mix.
-                Standard API base rates; conditional rates may vary.
+                API price ranks every model with published input and output base rates. Filled dots
+                are input; hollow dots are output. Zero rates sit at the left edge. Blended price =
+                (3 × input + output) / 4, for a 3:1 input to output token mix. Standard API base
+                rates; conditional rates may vary.
               </p>
               <p>
                 The horizontal price axis is logarithmic. Scores retain their original benchmark
@@ -355,23 +451,39 @@ export function VisualHome({
               </p>
               <Link href="/methodology">Methodology →</Link>
             </Info>
-            <BenchmarkInfo benchmark={benchmark} />
+            {chartTab === "scores" && <BenchmarkInfo benchmark={benchmark} />}
           </div>
         </div>
-        <Scatter models={data.models} benchmark={benchmark} />
-        <p className="v-caption">
-          {data.models.length - points.length} models without both price and score are not shown.
-        </p>
+        <fieldset className="v-chart-tabs" aria-label="Chart view">
+          <button
+            type="button"
+            aria-pressed={chartTab === "prices"}
+            onClick={() => setChartTab("prices")}
+          >
+            API price
+          </button>
+          <button
+            type="button"
+            aria-pressed={chartTab === "scores"}
+            onClick={() => setChartTab("scores")}
+          >
+            Price vs score
+          </button>
+        </fieldset>
+        {chartTab === "prices" ? (
+          <ApiPrices models={data.models} />
+        ) : (
+          <Scatter models={data.models} benchmark={benchmark} />
+        )}
       </section>
       <div className="v-leaderboards">
         <section>
           <div className="v-section-head">
-            <h2>Cheapest frontier models</h2>
+            <h2>Lowest API price</h2>
             <Info label="Cheapest models selection">
               <p>
-                Lowest blended base price among models with at least one published benchmark score.
-                Scores can come from different benchmarks; this is a price order, not a capability
-                ranking.
+                Lowest blended published API base price, using three input tokens per output token.
+                This ranks price across all priced catalog models.
               </p>
             </Info>
           </div>
@@ -394,18 +506,21 @@ export function VisualHome({
         </section>
         <section>
           <div className="v-section-head">
-            <h2>Largest context window</h2>
-            <Info label="Context window sources">
+            <h2>Most included in coding plans</h2>
+            <Info label="Coding plan inclusion">
               <p>
-                Published context token limits, read from model specifications. Max input limits are
-                not substituted for context. See each model for conditions and source details.
+                Number of distinct catalogued coding plans that include each model. Plan inclusion
+                does not imply unlimited usage; see each plan for limits.
               </p>
-              <Link href="/models">Model specifications →</Link>
+              <Link href="/compare">Compare coding plans →</Link>
             </Info>
           </div>
           <Bars
-            items={context.map((model) => ({ model, value: model.context ?? 0 }))}
-            format={tokens}
+            items={included.map((model) => ({
+              model,
+              value: new Set(model.plans.map((plan) => plan.id)).size,
+            }))}
+            format={(value) => `${value} plans`}
           />
         </section>
       </div>
@@ -421,7 +536,7 @@ export function VisualHome({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
-              setLimit(12);
+              setLimit(window.matchMedia("(max-width: 760px)").matches ? 3 : 7);
             }}
           />
           <span>
@@ -503,10 +618,18 @@ export function VisualHome({
                   <td data-label="Developer" data-missing={!model.developer}>
                     {model.developer || "–"}
                   </td>
-                  <td data-label="Input / 1M" data-missing={model.input === undefined}>
+                  <td
+                    title={model.input === undefined ? undefined : `$${model.input} / 1M tokens`}
+                    data-label="Input / 1M"
+                    data-missing={model.input === undefined}
+                  >
                     {money(model.input)}
                   </td>
-                  <td data-label="Output / 1M" data-missing={model.output === undefined}>
+                  <td
+                    title={model.output === undefined ? undefined : `$${model.output} / 1M tokens`}
+                    data-label="Output / 1M"
+                    data-missing={model.output === undefined}
+                  >
                     {money(model.output)}
                   </td>
                   <td data-label="Context" data-missing={model.context === undefined}>
@@ -522,7 +645,13 @@ export function VisualHome({
           </table>
         </div>
         {limit < rows.length && (
-          <button type="button" className="v-more" onClick={() => setLimit(limit + 12)}>
+          <button
+            type="button"
+            className="v-more"
+            onClick={() =>
+              setLimit(limit + (window.matchMedia("(max-width: 760px)").matches ? 3 : 7))
+            }
+          >
             Show more models ↓
           </button>
         )}

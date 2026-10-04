@@ -6,7 +6,16 @@ import { tokenSize } from "@/lib/model-specifications";
 import { formatRate } from "@/lib/price-table";
 import type { VisualBenchmark, VisualModel } from "@/lib/visual-model-data";
 
-export const money = (value: string | undefined) => (value === undefined ? "–" : formatRate(value));
+export const money = (value: string | undefined) =>
+  value === undefined
+    ? "–"
+    : Number(value) > 0 && Number(value) < 0.01
+      ? "<$0.01"
+      : new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 2,
+        }).format(Number(value));
 export const tokens = (value: number | undefined) => (value === undefined ? "–" : tokenSize(value));
 const labs = [
   "amazon",
@@ -53,6 +62,13 @@ export function ModelInfo({ model }: { model: VisualModel }) {
   return (
     <Info label={`Sources and conditions for ${model.name}`}>
       <strong>{model.name}</strong>
+      {model.input !== undefined && <p>Exact input rate: {formatRate(model.input)} / 1M tokens</p>}
+      {model.output !== undefined && (
+        <p>Exact output rate: {formatRate(model.output)} / 1M tokens</p>
+      )}
+      {model.blended !== undefined && (
+        <p>Exact blended rate: {formatRate(model.blended)} / 1M tokens</p>
+      )}
       {model.details.map((detail) => (
         <p key={detail}>{detail}</p>
       ))}
@@ -196,7 +212,12 @@ export function Bars({
   return (
     <div className="v-bars">
       {items.map(({ model, value }) => (
-        <Link href={compareHref([model.id])} className="v-bar-row" key={model.id}>
+        <Link
+          href={compareHref([model.id])}
+          className="v-bar-row"
+          key={model.id}
+          title={`${model.name}: ${value}${detail ? ` · ${detail(model)}` : ""}`}
+        >
           <span className="v-bar-label">
             {model.name}
             {detail && <small>{detail(model)}</small>}

@@ -107,6 +107,31 @@ export function chartModels(
   );
 }
 
+/** Price coverage is independent of benchmark coverage. Zero rates remain visible. */
+export function apiPriceModels(models: readonly VisualModel[], lab = ""): VisualModel[] {
+  const rate = (value: string | undefined) =>
+    value !== undefined && /^\d+(\.\d+)?$/u.test(value) && Number.isFinite(Number(value));
+  return models
+    .filter((model) => rate(model.input) && rate(model.output) && (!lab || model.lab === lab))
+    .sort(
+      (a, b) =>
+        Number(a.input) - Number(b.input) ||
+        Number(a.output) - Number(b.output) ||
+        a.name.localeCompare(b.name),
+    );
+}
+
+export function planLeaders(models: readonly VisualModel[]): VisualModel[] {
+  return models
+    .filter((model) => model.plans.length > 0)
+    .sort(
+      (a, b) =>
+        new Set(b.plans.map((plan) => plan.id)).size -
+          new Set(a.plans.map((plan) => plan.id)).size || a.name.localeCompare(b.name),
+    )
+    .slice(0, 6);
+}
+
 export function visualModelData(catalog: PublicCatalog, evidence: BenchmarkData): VisualData {
   const models = catalog.models
     .filter((model) => model.kind === "release")
