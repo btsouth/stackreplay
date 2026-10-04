@@ -122,7 +122,7 @@ export function buildRecap(
       day.output += n;
     }
     const id = e.model.canonicalId ?? e.model.rawName;
-    const model = catalog.models[id];
+    const model = e.model.canonicalId ? catalog.models[e.model.canonicalId] : undefined;
     const family = model?.developerId ?? "other";
     const row = models.get(id) ?? {
       id,

@@ -317,7 +317,9 @@ export function RecapSurface({
                 <span className="recap-local">● ONLY IN YOUR BROWSER</span>
               </div>
               <div className="recap-hero-number">
-                {recap.priced ? recapUsd(recap.usd) : compactNumber(recap.output)}
+                {recap.priced
+                  ? recapUsd(recap.usd)
+                  : compactNumber(recap.outputKnown ? recap.output : recap.records)}
                 {recap.usdHigh !== recap.usd && (
                   <span className="recap-hero-range">to {recapUsd(recap.usdHigh)}</span>
                 )}
@@ -328,8 +330,10 @@ export function RecapSurface({
                     of API-priced work
                     {recap.priced < recap.records ? <small> · priced subset</small> : null}
                   </>
-                ) : (
+                ) : recap.outputKnown ? (
                   "logged output tokens"
+                ) : (
+                  "logged activity records"
                 )}
                 <Info label="How API-equivalent value is calculated">
                   <p>
@@ -470,33 +474,35 @@ export function RecapSurface({
               </div>
             </section>
             <div className="recap-two-column">
-              <section className="recap-panel">
-                <span className="recap-eyebrow">THE CAST</span>
-                <h2>Your model mix.</h2>
-                <p className="recap-subtitle">Output tokens, week by week.</p>
-                <Mix recap={recap} />
-                <div className="recap-models">
-                  {recap.models.slice(0, 7).map((m, i) => (
-                    <div key={m.id}>
-                      <span className="recap-model-rank">{String(i + 1).padStart(2, "0")}</span>
-                      <i style={{ background: color(m.family) }} />
-                      <span className="recap-model-name">{m.name}</span>
-                      <span>
-                        {compactNumber(m.output)}
-                        <small>output tokens</small>
-                      </span>
-                      <span>
-                        {m.priced
-                          ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
-                          : "Unpriced"}
-                        <small>
-                          {m.priced < m.records && m.priced ? "priced subset" : "API equivalent"}
-                        </small>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              {recap.outputKnown > 0 && (
+                <section className="recap-panel">
+                  <span className="recap-eyebrow">THE CAST</span>
+                  <h2>Your model mix.</h2>
+                  <p className="recap-subtitle">Output tokens, week by week.</p>
+                  <Mix recap={recap} />
+                  <div className="recap-models">
+                    {recap.models.slice(0, 7).map((m, i) => (
+                      <div key={m.id}>
+                        <span className="recap-model-rank">{String(i + 1).padStart(2, "0")}</span>
+                        <i style={{ background: color(m.family) }} />
+                        <span className="recap-model-name">{m.name}</span>
+                        <span>
+                          {compactNumber(m.output)}
+                          <small>output tokens</small>
+                        </span>
+                        <span>
+                          {m.priced
+                            ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
+                            : "Unpriced"}
+                          <small>
+                            {m.priced < m.records && m.priced ? "priced subset" : "API equivalent"}
+                          </small>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
               <div className="recap-right-column">
                 <section className="recap-panel">
                   <span className="recap-eyebrow">YOUR TOOLBOX</span>
@@ -513,8 +519,10 @@ export function RecapSurface({
                           <i style={{ width: `${(t.records / recap.records) * 100}%` }} />
                         </div>
                         <small>
-                          {t.records.toLocaleString()} records · {compactNumber(t.output)} output
-                          tokens
+                          {t.records.toLocaleString()} records
+                          {recap.outputKnown > 0
+                            ? ` · ${compactNumber(t.output)} output tokens`
+                            : ""}
                         </small>
                       </div>
                     ))}

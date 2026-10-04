@@ -43,14 +43,18 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
   text(`${recap.start}  →  ${recap.end}`, pad, portrait ? 116 : 102, 18, "#a7b6bc");
   const heroY = portrait ? 230 : 164;
   const range = recap.usdHigh !== recap.usd;
-  const hero = recap.priced ? recapUsd(recap.usd) : compactNumber(recap.output);
+  const hero = recap.priced
+    ? recapUsd(recap.usd)
+    : compactNumber(recap.outputKnown ? recap.output : recap.records);
   text(hero, pad, heroY, portrait ? 154 : 116, "#f6f2e9", 700);
   text(
     recap.priced
       ? range
         ? `to ${recapUsd(recap.usdHigh)} of API-priced work`
         : "of API-priced work"
-      : "logged output tokens",
+      : recap.outputKnown
+        ? "logged output tokens"
+        : "logged activity records",
     pad,
     heroY + (portrait ? 174 : 128),
     portrait ? 38 : 28,
