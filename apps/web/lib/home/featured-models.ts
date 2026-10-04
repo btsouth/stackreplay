@@ -4,9 +4,11 @@ import {
   benchmarkName,
   resolveComparison,
 } from "@stackreplay/benchmarks";
+import { selectApiTokenEstimate } from "../api-token-estimate-source";
 import { benchmarkUrl } from "../benchmark-state";
 import { formatCatalogDate } from "../catalog-copy";
 import { basePrice, type ModelPrices, modelPrices } from "../market-discovery";
+import { numericRate } from "../market-prices";
 import { modelContext, modelSpecifications, tokenSize } from "../model-specifications";
 import { formatRate } from "../price-table";
 import { loadCatalog, type PublicCatalog, type PublicModelSummary } from "../public-catalog";
@@ -82,10 +84,55 @@ export interface ComparisonGroup {
   rows: readonly ComparisonRow[];
 }
 
+export interface GuidePrice {
+  /**
+   * Comparable rates come from one verified, current, unconditional Standard
+   * API list-price record. Qualified rates are the selected record's base
+   * values with the record's own condition shown beside them. Unavailable
+   * rates are not substituted from another record.
+   */
+  state: "comparable" | "qualified" | "unavailable";
+  input: ComparisonCell;
+  output: ComparisonCell;
+  cacheRead: ComparisonCell;
+  /** Exact decimal strings, present only for comparable rows. */
+  inputPerMillion?: string | undefined;
+  outputPerMillion?: string | undefined;
+  note?: string | undefined;
+}
+
+export interface GuideModel {
+  id: string;
+  name: string;
+  developer: string | undefined;
+  href: string;
+  released: string | undefined;
+  status: "announced" | "released";
+  checkedAt: string;
+  price: GuidePrice;
+  modalities: ComparisonCell;
+  context: ComparisonCell;
+  maxInput: ComparisonCell;
+  subscriptions: {
+    text: string;
+    detail?: string | undefined;
+  };
+}
+
+export interface GuidePriceScale {
+  /** Largest exact input/output rate shared by every eligible row. */
+  max: number;
+  /** Fractions of `max`, keyed by model id. Bars are zero-based and linear. */
+  rows: Readonly<Record<string, { input: number; output: number }>>;
+}
+
 export interface ModelComparison {
   asOf: string;
   columns: readonly ComparisonColumn[];
   groups: readonly ComparisonGroup[];
+  guide: readonly GuideModel[];
+  /** Present only when at least two rows have strictly comparable rates. */
+  priceScale?: GuidePriceScale | undefined;
   /**
    * Benchmark rows from the reviewed evidence package: exact definitions,
    * results for at least three of the columns (see `benchmarkRows`).
@@ -95,9 +142,139 @@ export interface ModelComparison {
 
 const absent = (text: string): ComparisonCell => ({ text, absent: true });
 
+/** Exact published rate text; an absent rate is never rendered as zero. */
+export function guideRateCell(rate: string | undefined): ComparisonCell {
+  return rate === undefined ? absent("Not listed") : { text: formatRate(rate) };
+}
+
+const INPUT_MODALITY_LABELS: Record<"text" | "image" | "audio" | "video" | "pdf", string> = {
+  text: "Text input",
+  image: "Image input",
+  audio: "Audio input",
+  video: "Video input",
+  pdf: "PDF input",
+};
+
+/** Documented input modalities; an absent specification is not a claim of unsupported input. */
+export function inputModalitiesCell(model: PublicModelSummary): ComparisonCell {
+  const modalities = modelSpecifications(model)?.inputModalities;
+  if (modalities === undefined || modalities.length === 0)
+    return absent("Input modalities not recorded");
+  return { text: modalities.map((modality) => INPUT_MODALITY_LABELS[modality]).join(", ") };
+}
+
 function rateCell(prices: readonly ModelPrices[], key: "input" | "output" | "cacheRead") {
   const rate = basePrice(prices)?.rates[key];
-  return rate === undefined ? absent("Not listed") : { text: formatRate(rate) };
+  return guideRateCell(rate);
+}
+
+function naturalJoin(parts: readonly string[]): string {
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0] ?? "";
+  const last = parts.at(-1);
+  if (last === undefined) return parts.join(", ");
+  return `${parts.slice(0, -1).join(", ")}${parts.length > 2 ? "," : ""} and ${last}`;
+}
+
+/**
+ * The base rates and a schedule tier's replacement rates, named together so a
+ * peak-window label cannot be read as applying to the displayed base amounts.
+ */
+function conditionalPriceNote(
+  price: Pick<ModelPrices, "tiers">,
+  pricingNote: string | undefined,
+): string {
+  const tiers = price.tiers ?? [];
+  const inputTiers = tiers.filter((tier) => "inputTokensAbove" in tier.when);
+  const scheduleTiers = tiers.filter((tier) => "utcWindows" in tier.when);
+  const parts =
+    inputTiers.length > 0
+      ? [`Conditional pricing: ${inputTiers.map((tier) => tier.label).join(" · ")}.`]
+      : scheduleTiers.length > 0
+        ? ["Conditional pricing."]
+        : [];
+
+  if (scheduleTiers.length > 0) {
+    parts.push("The displayed rates are off-peak/base rates.");
+    for (const tier of scheduleTiers) {
+      const schedule = "utcWindows" in tier.when ? tier.when : undefined;
+      const input = numericRate(tier.rates, "input");
+      const cacheRead = numericRate(tier.rates, "cacheRead");
+      const output = numericRate(tier.rates, "output");
+      const rates = naturalJoin(
+        [
+          input === undefined ? undefined : `input ${formatRate(input)}`,
+          cacheRead === undefined ? undefined : `cached input ${formatRate(cacheRead)}`,
+          output === undefined ? undefined : `output ${formatRate(output)}`,
+        ].filter((value): value is string => value !== undefined),
+      );
+      const condition = tier.label.replace(/^Peak:\s*/iu, "");
+      parts.push(`During the peak window (${condition}), the peak rates are ${rates}.`);
+      if (schedule?.unestablishedUtcDates !== undefined) {
+        parts.push(
+          `The source does not establish whether peak rates apply on ${naturalJoin(
+            schedule.unestablishedUtcDates.map(formatCatalogDate),
+          )}; those dates are not confirmed off-peak.`,
+        );
+      }
+    }
+  }
+  if (pricingNote !== undefined) parts.push(pricingNote);
+  return parts.join(" ");
+}
+
+/**
+ * Shared linear scale for marked comparable rates. Fewer than two rows, or no
+ * positive rate, means no graphic: text remains the complete presentation.
+ */
+export function guidePriceScale(rows: readonly GuideModel[]): GuidePriceScale | undefined {
+  const eligible = rows.flatMap((row) => {
+    if (row.price.state !== "comparable") return [];
+    const input = Number(row.price.inputPerMillion);
+    const output = Number(row.price.outputPerMillion);
+    if (!Number.isFinite(input) || !Number.isFinite(output) || input < 0 || output < 0) return [];
+    return [{ id: row.id, input, output }];
+  });
+  if (eligible.length < 2) return undefined;
+  const max = Math.max(...eligible.flatMap((row) => [row.input, row.output]));
+  if (max <= 0) return undefined;
+  return {
+    max,
+    rows: Object.fromEntries(
+      eligible.map((row) => [
+        row.id,
+        {
+          input: row.input / max,
+          output: row.output / max,
+        },
+      ]),
+    ),
+  };
+}
+
+function unavailablePriceNote(
+  reason:
+    | "no_current_base"
+    | "unverified"
+    | "ambiguous"
+    | "conditional"
+    | "promotion"
+    | "invalid_rates",
+): string {
+  switch (reason) {
+    case "no_current_base":
+      return "No current standard API list rate is recorded.";
+    case "unverified":
+      return "A current rate is recorded but not verified, so it is not shown as a comparison.";
+    case "ambiguous":
+      return "Current standard API list rates conflict, so no single rate is selected.";
+    case "conditional":
+      return "The current rate is conditional and could not be matched to displayed base rates.";
+    case "promotion":
+      return "The current rate is promotional and could not be matched to displayed base rates.";
+    case "invalid_rates":
+      return "The current record does not contain valid input and output token rates.";
+  }
 }
 
 /** Resolve the configured ids to releases the catalog still carries. */
@@ -132,6 +309,80 @@ export function featuredModelComparison(
     raw.models[model.id]?.apiAvailability === "not_established" && priceOf(model).length === 0;
   const priceCell = (model: PublicModelSummary, key: "input" | "output" | "cacheRead") =>
     notInApi(model) ? absent("Not yet in API") : rateCell(priceOf(model), key);
+  const guidePrice = (model: PublicModelSummary): GuidePrice => {
+    if (notInApi(model)) {
+      return {
+        state: "unavailable",
+        input: absent("Not yet in API"),
+        output: absent("Not yet in API"),
+        cacheRead: absent("Not yet in API"),
+        note: "Announced; a standard API list rate is not established.",
+      };
+    }
+    const eligibility = selectApiTokenEstimate(Object.values(raw.pricing), model.id, catalog.asOf);
+    if (eligibility.state === "eligible") {
+      const record = raw.pricing[eligibility.pricingId];
+      return {
+        state: "comparable",
+        input: guideRateCell(eligibility.inputRatePerMillion),
+        output: guideRateCell(eligibility.outputRatePerMillion),
+        cacheRead: guideRateCell(
+          record === undefined ? undefined : numericRate(record.rates, "cacheRead"),
+        ),
+        inputPerMillion: eligibility.inputRatePerMillion,
+        outputPerMillion: eligibility.outputRatePerMillion,
+        note: "Verified, unconditional Standard API list rate.",
+      };
+    }
+
+    const price = basePrice(priceOf(model));
+    if (
+      eligibility.reason === "ambiguous" &&
+      price !== undefined &&
+      price.endpointId !== undefined
+    ) {
+      return {
+        state: "qualified",
+        input: guideRateCell(price.rates.input),
+        output: guideRateCell(price.rates.output),
+        cacheRead: guideRateCell(price.rates.cacheRead),
+        note: "Comparable pricing is unavailable because current route records conflict. These are the current explicit-route base rates; no bar is drawn.",
+      };
+    }
+    if (
+      eligibility.reason === "conditional" &&
+      price !== undefined &&
+      (price.tiers?.length ?? 0) > 0
+    ) {
+      return {
+        state: "qualified",
+        input: guideRateCell(price.rates.input),
+        output: guideRateCell(price.rates.output),
+        cacheRead: guideRateCell(price.rates.cacheRead),
+        note: conditionalPriceNote(price, model.pricingNote),
+      };
+    }
+    if (
+      eligibility.reason === "promotion" &&
+      price !== undefined &&
+      price.promotion !== undefined
+    ) {
+      return {
+        state: "qualified",
+        input: guideRateCell(price.rates.input),
+        output: guideRateCell(price.rates.output),
+        cacheRead: guideRateCell(price.rates.cacheRead),
+        note: `Promotional rate: ${price.promotion.label}.${model.pricingNote === undefined ? "" : ` ${model.pricingNote}`}`,
+      };
+    }
+    return {
+      state: "unavailable",
+      input: absent("Not listed"),
+      output: absent("Not listed"),
+      cacheRead: absent("Not listed"),
+      note: unavailablePriceNote(eligibility.reason),
+    };
+  };
 
   const columns: ComparisonColumn[] = models.map((model) => {
     const checked = [model.lastVerifiedAt, ...priceOf(model).map((price) => price.lastVerifiedAt)]
@@ -148,6 +399,44 @@ export function featuredModelComparison(
       familyId: model.familyId,
       status: notInApi(model) ? "announced" : "released",
     };
+  });
+  const guide: GuideModel[] = models.flatMap((model, index) => {
+    const column = columns[index];
+    if (column === undefined) return [];
+    const specs = modelSpecifications(model);
+    const plans = model.places.filter((place) => place.kind === "plan");
+    const namedPlans = plans.slice(0, 2).map((place) => place.label);
+    const rest = plans.length - namedPlans.length;
+    return [
+      {
+        id: column.id,
+        name: column.name,
+        developer: column.developer,
+        href: column.href,
+        released: column.released,
+        status: column.status,
+        checkedAt: column.checkedAt,
+        price: guidePrice(model),
+        modalities: inputModalitiesCell(model),
+        context:
+          specs?.contextTokens === undefined
+            ? absent("Not documented")
+            : { text: tokenSize(specs.contextTokens) },
+        maxInput:
+          specs?.maxInputTokens === undefined
+            ? absent("Not documented")
+            : { text: tokenSize(specs.maxInputTokens) },
+        subscriptions: {
+          text:
+            plans.length === 0
+              ? "None catalogued"
+              : `${plans.length} ${plans.length === 1 ? "plan" : "plans"}`,
+          ...(namedPlans.length === 0
+            ? {}
+            : { detail: `${namedPlans.join(", ")}${rest > 0 ? ` +${rest} more` : ""}` }),
+        },
+      },
+    ];
   });
 
   const row = (
@@ -226,6 +515,8 @@ export function featuredModelComparison(
     asOf: catalog.asOf,
     columns,
     groups,
+    guide,
+    priceScale: guidePriceScale(guide),
     benchmarks:
       options.benchmarks ??
       (options.benchmarkData === undefined

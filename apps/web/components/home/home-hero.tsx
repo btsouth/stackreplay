@@ -9,25 +9,27 @@ export function HomeHero() {
         <div className="home-intro-title">
           <p className="home-kicker">AI model + subscription intelligence</p>
           <h1 id="home-title" className="home-h1">
-            <span className="block">Know the AI market.</span>{" "}
-            <span className="block home-h1-second">Know what fits your workload.</span>
+            <span className="block">Compare AI models.</span>{" "}
+            <span className="block home-h1-second">See published prices, inputs and access.</span>
           </h1>
         </div>
         <div className="home-intro-side">
           <p className="home-intro-lede">
-            Explore models, API prices and subscription access, with sources for each. Compare the
-            recorded facts before choosing what fits your work.
+            Five current releases, with sourced API rates, input support, context and subscription
+            access.
           </p>
           <nav className="home-discovery-actions" aria-label="Explore the AI market">
             <a href="/models" className="home-button">
               Explore models <span aria-hidden="true">→</span>
             </a>
-            <a href="/providers" className="home-button home-button-quiet">
-              Explore providers <span aria-hidden="true">→</span>
-            </a>
-            <a href="/compare" className="home-button home-button-quiet">
-              Compare plans <span aria-hidden="true">→</span>
-            </a>
+            <div className="home-secondary-actions">
+              <a href="/providers" className="home-cta-link">
+                Explore providers <span aria-hidden="true">→</span>
+              </a>
+              <a href="/compare" className="home-cta-link">
+                Compare plans <span aria-hidden="true">→</span>
+              </a>
+            </div>
           </nav>
           <div className="home-hero-actions">
             <Link href="#frontier" className="home-cta-link">
