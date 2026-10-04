@@ -9,6 +9,7 @@ import {
   resolveComparison,
 } from "@stackreplay/benchmarks";
 import Link from "next/link";
+import { benchmarkSourceDate } from "@/lib/benchmark-source-date";
 import { BenchmarkEvidence } from "./benchmark-explorer";
 
 export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelId: string }) {
@@ -73,10 +74,7 @@ export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelI
         return (
           <div className="bench-model-source" key={set.id}>
             <h3>
-              {set.evaluator} ·{" "}
-              {new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(
-                new Date(`${set.publishedAt}T12:00:00Z`),
-              )}
+              {set.evaluator} · {benchmarkSourceDate(set)}
             </h3>
             <p className="bench-source-label">
               {evidenceLabel(set.evidenceClass)} · {set.title}

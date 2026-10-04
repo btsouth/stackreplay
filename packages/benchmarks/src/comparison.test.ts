@@ -31,7 +31,7 @@ describe("model-first comparison evidence", () => {
     expect(
       resolveComparison(data, frontierModelIds, { coverage: "shared" }).map((r) => r.definition.id),
     ).toEqual(["deep-swe-v1-1", "terminal-bench-science-0-1"]);
-    expect(benchmarkEdition).toBe("2026-10-04-v4");
+    expect(benchmarkEdition).toBe("2026-10-04-v5");
   });
   it("preserves the published v1 edition and rejects unknown edition keys", () => {
     const first = validateBenchmarkData(benchmarkDataForEdition("2026-09-30-v1"), models);
@@ -59,12 +59,22 @@ describe("model-first comparison evidence", () => {
     expect(third?.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
     expect(third?.definitions).toHaveLength(44);
     expect(third).not.toBe(benchmarkData);
-    expect(benchmarkDataForEdition("2026-10-04-v4")).toBe(benchmarkData);
-    expect(benchmarkData.sourceSets).toHaveLength(15);
+    const fourth = benchmarkDataForEdition("2026-10-04-v4");
+    expect(serializedHash(fourth)).toBe(
+      "25d62d073ab8f34c3ce6dd92f892e380660831e3dafd6302c610657ca85925be",
+    );
+    expect(fourth?.schemaVersion).toBe(1);
+    expect(fourth?.sourceSets).toHaveLength(15);
+    expect(fourth?.sourceSets.flatMap((s) => s.observations)).toHaveLength(208);
+    expect(fourth).not.toBe(benchmarkData);
+    expect(benchmarkDataForEdition("2026-10-04-v5")).toBe(benchmarkData);
+    expect(benchmarkData.schemaVersion).toBe(2);
+    expect(benchmarkData.sourceSets).toHaveLength(16);
+    expect(benchmarkData.sourceSets.slice(0, 15)).toEqual(fourth?.sourceSets);
     expect(benchmarkData.definitions).toEqual(third?.definitions);
     expect(benchmarkData.primarySelections).toEqual(third?.primarySelections);
     expect(benchmarkData.sourceSets.slice(0, 12)).toEqual(third?.sourceSets);
-    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(208);
+    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(209);
     expect(benchmarkData.definitions).toHaveLength(44);
     expect(benchmarkDataForEdition("unpublished")).toBeUndefined();
     expect(benchmarkDataForEdition("toString")).toBeUndefined();

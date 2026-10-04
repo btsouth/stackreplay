@@ -1,5 +1,7 @@
 import {
   type BenchmarkData,
+  type BenchmarkDataV1,
+  type BenchmarkDataV2,
   type BenchmarkObservation,
   type ComparisonRow,
   evidenceLabel,
@@ -65,8 +67,7 @@ export interface BenchmarkExportModel {
   name: string;
 }
 
-export interface BenchmarkExport {
-  exportVersion: 1;
+interface BenchmarkExportView {
   edition: string;
   comparisonUrl: string;
   models: BenchmarkExportModel[];
@@ -93,11 +94,16 @@ export interface BenchmarkExport {
       alternativeObservationIds: string[];
     }[];
   }[];
-  fullProvenance: {
-    scope: "Full immutable evidence edition, including sources and alternatives outside the selected view";
-    data: BenchmarkData;
-  };
 }
+type FullProvenance<Data> = {
+  scope: "Full immutable evidence edition, including sources and alternatives outside the selected view";
+  data: Data;
+};
+export type BenchmarkExport = BenchmarkExportView &
+  (
+    | { exportVersion: 1; fullProvenance: FullProvenance<BenchmarkDataV1> }
+    | { exportVersion: 2; fullProvenance: FullProvenance<BenchmarkDataV2> }
+  );
 
 /** Export stored facts without rounding, inferred configuration or a blanket data license. */
 export function buildBenchmarkExport({
@@ -119,8 +125,7 @@ export function buildBenchmarkExport({
     if (!model) throw new Error("Invalid model selection");
     return { id: model.id, name: model.name };
   });
-  return {
-    exportVersion: 1,
+  const selected: BenchmarkExportView = {
     edition: state.edition,
     comparisonUrl: new URL(benchmarkUrl(state), origin).href,
     models: selectedModels,
@@ -148,10 +153,10 @@ export function buildBenchmarkExport({
         alternativeObservationIds: cell.alternatives.map(observationId),
       })),
     })),
-    fullProvenance: {
-      scope:
-        "Full immutable evidence edition, including sources and alternatives outside the selected view",
-      data,
-    },
   };
+  const scope =
+    "Full immutable evidence edition, including sources and alternatives outside the selected view";
+  return data.schemaVersion === 1
+    ? { exportVersion: 1, ...selected, fullProvenance: { scope, data } }
+    : { exportVersion: 2, ...selected, fullProvenance: { scope, data } };
 }

@@ -27,7 +27,7 @@ describe("public benchmark edition validation", () => {
 
 describe("dated provider public catalog mapping", () => {
   it("maps only the three admitted releases and preserves historical coverage", () => {
-    const data = loadPublicBenchmarks();
+    const data = loadPublicBenchmarks("2026-10-04-v4");
     const added = data.sourceSets.slice(12);
     expect(added.flatMap((s) => s.modelIds)).toEqual(["qwen-3-8-max", "glm-5-3", "minimax-m3"]);
     expect(added.map((s) => s.observations[0]?.displayValue)).toEqual(["86.6%", "88.2%", "66.0%"]);

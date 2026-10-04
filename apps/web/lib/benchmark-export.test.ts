@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   type BenchmarkData,
   benchmarkEdition,
@@ -5,8 +6,9 @@ import {
   observationId,
   resolveComparison,
 } from "@stackreplay/benchmarks";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
+  type BenchmarkExport,
   benchmarkEvidenceSummary,
   buildBenchmarkExport,
   resolveBenchmarkView,
@@ -36,7 +38,7 @@ describe("selected benchmark JSON", () => {
     const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
     const query = `models=gpt-6-1-sol,gemini-4-argon&category=coding&observation=${pin}`;
     const payload = exportFor(query);
-    expect(payload.exportVersion).toBe(1);
+    expect(payload.exportVersion).toBe(2);
     expect(payload.comparisonUrl).toBe(
       new URL(benchmarkUrl(stateFor(query)), "https://stackreplay.com").href,
     );
@@ -96,7 +98,7 @@ describe("selected benchmark JSON", () => {
     expect(current.fullProvenance.data).toEqual(data);
     expect(
       current.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-    ).toHaveLength(208);
+    ).toHaveLength(209);
   });
 
   it("preserves displayed row order, explicit null gaps and exact definitions", () => {
@@ -172,7 +174,7 @@ describe("selected benchmark JSON", () => {
   });
 
   it.each([
-    "models=qwen-3-8-max,kimi-k3&coverage=shared",
+    "models=qwen-3-8-max,deepseek-v4-pro&coverage=shared",
     "models=gpt-6-1-sol&category=security",
     "models=gpt-6-1-sol&category=security&observation=openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol",
   ])("allows a valid empty view: %s", (query) => {
@@ -360,7 +362,9 @@ describe("admitted Epoch evidence in the selected export", () => {
 
 describe("dated provider selected evidence export", () => {
   it("retains raw notation, metric interpretation and missing Kimi without changing v3", () => {
-    const payload = exportFor("models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3");
+    const payload = exportFor(
+      "edition=2026-10-04-v4&models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3",
+    );
     expect(payload.edition).toBe("2026-10-04-v4");
     expect(payload.rows).toHaveLength(1);
     const row = payload.rows[0];
@@ -379,4 +383,102 @@ describe("dated provider selected evidence export", () => {
     expect(old.rows).toEqual([]);
     expect(old.fullProvenance.data.sourceSets).toHaveLength(12);
   });
+});
+
+describe("immutable schema-1 pinned JSON bytes", () => {
+  it("edition=2026-09-30-v1", () => {
+    const payload = exportFor(
+      "edition=2026-09-30-v1&models=gemini-4-argon,gpt-6-astra&category=security&source=google-deepmind-argon-2026-09-30",
+    );
+    expect(payload.exportVersion).toBe(1);
+    expect(payload.fullProvenance.data.schemaVersion).toBe(1);
+    expect(createHash("sha256").update(JSON.stringify(payload)).digest("hex")).toBe(
+      "fb36236baa8f23ffbcc0bcfe4048421d3bbb684aed6268d6e289259c715660cd",
+    );
+    expect(
+      createHash("sha256")
+        .update(JSON.stringify(payload, null, 2))
+        .digest("hex"),
+    ).toBe("c726a6b6c76226d25e3b0fd5cfc9394f2908882dd1a34f330b0cd38ae0be0018");
+  });
+  it("edition=2026-09-30-v2", () => {
+    const payload = exportFor(
+      "edition=2026-09-30-v2&models=gpt-6-1-sol&category=coding&observation=openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol",
+    );
+    expect(payload.exportVersion).toBe(1);
+    expect(payload.fullProvenance.data.schemaVersion).toBe(1);
+    expect(createHash("sha256").update(JSON.stringify(payload)).digest("hex")).toBe(
+      "dfe1e091fc0b271961bbabfc6111c0e7137121954a9c1ddaf83393251fb93dc6",
+    );
+    expect(
+      createHash("sha256")
+        .update(JSON.stringify(payload, null, 2))
+        .digest("hex"),
+    ).toBe("b4b7436d2220ebecb5e13cc6e8c971a875978d825ed7e92416d4477c605334be");
+  });
+  it("edition=2026-10-04-v3", () => {
+    const payload = exportFor(
+      "edition=2026-10-04-v3&models=qwen-3-8-max-0902&category=science&observation=epoch-gpqa-qwen-0902-xhigh-2026-10-04.epoch-gpqa-diamond-revision-unreported.qwen-3-8-max-0902",
+    );
+    expect(payload.exportVersion).toBe(1);
+    expect(payload.fullProvenance.data.schemaVersion).toBe(1);
+    expect(createHash("sha256").update(JSON.stringify(payload)).digest("hex")).toBe(
+      "e320afaedf63d4b6a97a5b334ec2aa2c67381bfd0bb0653828b72fd2f912be58",
+    );
+    expect(
+      createHash("sha256")
+        .update(JSON.stringify(payload, null, 2))
+        .digest("hex"),
+    ).toBe("3a0255f0d840b5e64bf5d65fed48eef301946fd0c09d87a8a6ef90cbce5d547e");
+  });
+  it("edition=2026-10-04-v4", () => {
+    const payload = exportFor(
+      "edition=2026-10-04-v4&models=qwen-3-8-max,kimi-k3&observation=qwen-max-terminal-2026-08-03.terminal-bench-2-1.qwen-3-8-max",
+    );
+    expect(payload.exportVersion).toBe(1);
+    expect(payload.fullProvenance.data.schemaVersion).toBe(1);
+    expect(createHash("sha256").update(JSON.stringify(payload)).digest("hex")).toBe(
+      "5410ed9a973edabd5f4643e9a285d1f22acb504534927b762e53ba675d6ce069",
+    );
+    expect(
+      createHash("sha256")
+        .update(JSON.stringify(payload, null, 2))
+        .digest("hex"),
+    ).toBe("7b443c86b9ff636202a90b40f80378086775e484e07f79a1ed1c7049d366e398");
+  });
+});
+
+describe("schema-2 full provenance export", () => {
+  it.each(["models=kimi-k3", "models=gpt-6-1-sol&category=security"])(
+    "uses export 2 even when Kimi is outside the visible view: %s",
+    (query) => {
+      const payload = exportFor(query);
+      expect(payload.exportVersion).toBe(2);
+      expect(payload.fullProvenance.data.schemaVersion).toBe(2);
+      const source = payload.fullProvenance.data.sourceSets.find(
+        (s) => s.id === "kimi-k3-terminal-checked-2026-10-04",
+      );
+      expect(source?.publishedAt).toBeNull();
+      expect(source?.observations[0]?.value).toBe(88.3);
+      expect(source?.observations[0]?.displayValue).toBe("88.3%");
+      if (query.includes("security")) expect(payload.rows).toEqual([]);
+      else {
+        expect(payload.rows[0]?.cells[0]?.observationId).toBe(
+          "kimi-k3-terminal-checked-2026-10-04.terminal-bench-2-1.kimi-k3",
+        );
+        expect(payload.rows[0]?.cells[0]?.observation?.notes).toContain(
+          "not provider-explicit notation",
+        );
+      }
+    },
+  );
+});
+
+it("discriminates valid export/schema version pairs in the public type", () => {
+  expectTypeOf<
+    Extract<BenchmarkExport, { exportVersion: 1 }>["fullProvenance"]["data"]["schemaVersion"]
+  >().toEqualTypeOf<1>();
+  expectTypeOf<
+    Extract<BenchmarkExport, { exportVersion: 2 }>["fullProvenance"]["data"]["schemaVersion"]
+  >().toEqualTypeOf<2>();
 });

@@ -100,7 +100,13 @@ choices reproducible.
 New releases add snapshots. Existing share links remain reproducible. Editorial
 presets may change through review, and unpinned defaults may adopt newly reviewed
 observations according to documented selection decisions. Every score continues
-to display its own source date. A newer benchmark version creates a new
+to display its own source date. Schema 2 requires publication as an ISO date or
+explicit null, shown as "Publication date unreported". Observation and rights
+checks remain required ISO dates; they never supply a missing publication.
+Observation checks must not precede known publication. Strict schema 1 remains
+available without rewriting archived data. Only the exact three legacy Epoch
+pilot sources label their stored dates "Archive checked", preserving their
+original-publication caveat. A newer benchmark version creates a new
 definition and never overwrites an older version.
 
 Updates are manual review and checked-in data. Automatic ingestion and
@@ -174,8 +180,12 @@ Empty views have no claimed class or checked date; invalid selections explain th
 error and disable Download JSON rather than presenting fallback evidence.
 
 Download JSON uses the same resolution, category filter and row order as the table.
-Version 1 includes the exact edition, absolute comparison link, ordered model IDs
-and display names, requested controls and explicit observation pins. Rows retain
+Schema-1 editions keep byte-compatible export version 1. Schema-2 editions use
+export version 2 even if the unknown-publication source is outside the view,
+because the full provenance appendix retains that edition. The export type
+discriminates the valid export/schema pairings 1/1 and 2/2. Neither version
+changes saved URL state, catalog versions or Replay. Both include the exact
+edition, absolute comparison link, ordered model IDs and display names, requested controls and explicit observation pins. Rows retain
 exact definitions, numeric and original display values, selected observation IDs,
 selection reasons, setup labels and all numeric highlights, including ties and
 lower-is-better metrics. Unreported cells have explicit null values.

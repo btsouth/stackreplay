@@ -22,7 +22,11 @@ if (!firstSet) throw new Error("Missing checked-in source set");
 const models = Object.fromEntries(
   benchmarkData.sourceSets.flatMap((set) => set.modelIds).map((id) => [id, { id }]),
 );
-const valid = () => validateBenchmarkData(structuredClone(benchmarkData), models);
+const valid = () => {
+  const data = validateBenchmarkData(structuredClone(benchmarkData), models);
+  if (data.schemaVersion !== 2) throw new Error("Expected current schema 2 fixture");
+  return data;
+};
 
 describe("reviewed Google Argon evidence", () => {
   it("matches every cell independently captured from the live official table", () => {

@@ -207,3 +207,28 @@ describe("readable benchmark image pagination", () => {
     expect(wrapImageText(url, 120, "note", measure).join("")).toBe(url);
   });
 });
+
+it("keeps unknown publication, observation and rights checks separate with exact source terms", () => {
+  const { payload } = exportFor("models=kimi-k3");
+  const pages = paginateBenchmarkImages(payload, measure);
+  const text = pages
+    .flatMap((p) => p.texts)
+    .map((t) => t.text)
+    .join("\n");
+  expect(text).toContain("88.3%");
+  expect(text).toContain("Publication date unreported · Rights checked 2026-10-04");
+  expect(text).toContain("Checked 2026-10-04");
+  expect(text).toContain("Reporter-run · Effort: max");
+  expect(text).toContain("Original source: https://www.kimi.com/blog/kimi-k3");
+  expect(text).toContain("Terms: https://www.kimi.com/blog/kimi-k3");
+  expect(text).toContain("full setup, uncertainty and provenance (JSON)");
+  expect(text).not.toContain("null");
+  expect(text).not.toContain("Source publication 2026-10-04");
+  expect(text).not.toContain("CC BY");
+  for (const page of pages)
+    for (const block of page.texts) {
+      expect(block.lines.join("")).toBe(block.text.replaceAll("\n", ""));
+      for (const line of block.lines)
+        expect(block.x + measure(line, block.style)).toBeLessThanOrEqual(page.width - 48);
+    }
+});

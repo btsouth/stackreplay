@@ -2,6 +2,7 @@ import definitions from "./data/definitions.json" with { type: "json" };
 import epochDefinitions from "./data/epoch-gpqa-definitions.json" with { type: "json" };
 import epochPilot from "./data/epoch-gpqa-pilot-2026-10-04.json" with { type: "json" };
 import googleArgon from "./data/google-deepmind-argon-2026-09-30.json" with { type: "json" };
+import kimiTerminal from "./data/kimi-terminal-checked-2026-10-04.json" with { type: "json" };
 import openaiSol from "./data/openai-sol-2026-09-29.json" with { type: "json" };
 import openaiDefinitions from "./data/openai-sol-definitions.json" with { type: "json" };
 import openaiSelections from "./data/openai-sol-primary-selections.json" with { type: "json" };
@@ -18,13 +19,13 @@ import type {
   BenchmarkObservation,
   BenchmarkSourceSet,
 } from "./schema.js";
-import { benchmarkDataSchema } from "./schema.js";
+import { benchmarkDataV1Schema, benchmarkDataV2Schema } from "./schema.js";
 
 export * from "./comparison.js";
 export * from "./schema.js";
 
 /** Versioned evidence only. There is no catalog, price, optimizer or Replay import. */
-const firstEdition = benchmarkDataSchema.parse({
+const firstEdition = benchmarkDataV1Schema.parse({
   schemaVersion: 1,
   definitions,
   sourceSets: [googleArgon, ...providerObservations],
@@ -46,23 +47,29 @@ const firstEdition = benchmarkDataSchema.parse({
   ],
 });
 
-const secondEdition = benchmarkDataSchema.parse({
+const secondEdition = benchmarkDataV1Schema.parse({
   ...firstEdition,
   definitions: [...definitions, ...openaiDefinitions],
   sourceSets: [...firstEdition.sourceSets, ...openaiSol],
   primarySelections: [...firstEdition.primarySelections, ...openaiSelections],
 });
 
-const thirdEdition = benchmarkDataSchema.parse({
+const thirdEdition = benchmarkDataV1Schema.parse({
   ...secondEdition,
   definitions: [...secondEdition.definitions, ...epochDefinitions],
   sourceSets: [...secondEdition.sourceSets, ...epochPilot],
   primarySelections: [...secondEdition.primarySelections],
 });
 
-export const benchmarkData = benchmarkDataSchema.parse({
+const fourthEdition = benchmarkDataV1Schema.parse({
   ...thirdEdition,
   sourceSets: [...thirdEdition.sourceSets, ...providerTerminalPilot],
+});
+
+export const benchmarkData = benchmarkDataV2Schema.parse({
+  ...fourthEdition,
+  schemaVersion: 2,
+  sourceSets: [...fourthEdition.sourceSets, kimiTerminal],
 });
 
 /** Published editions remain available so shared links retain their exact evidence. */
@@ -70,7 +77,8 @@ export const benchmarkEditions = {
   "2026-09-30-v1": firstEdition,
   "2026-09-30-v2": secondEdition,
   "2026-10-04-v3": thirdEdition,
-  "2026-10-04-v4": benchmarkData,
+  "2026-10-04-v4": fourthEdition,
+  "2026-10-04-v5": benchmarkData,
 };
 export function benchmarkDataForEdition(edition: string) {
   return Object.hasOwn(benchmarkEditions, edition)

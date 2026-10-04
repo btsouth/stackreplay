@@ -313,21 +313,21 @@ test("custom picker, browser history and tablet navigation preserve selection wi
 test("unscored selections change only after explicit recovery and retain browser history", async ({
   page,
 }) => {
-  await page.goto("/benchmarks?models=qwen-3-8-flash%2Ckimi-k3&coverage=all");
+  await page.goto("/benchmarks?models=qwen-3-8-flash%2Cdeepseek-v4-pro&coverage=all");
   await expect(page.locator(".bench-empty")).toContainText(
-    "Qwen 3.8 Flash, Kimi K3: no reported scores in this edition.",
+    "Qwen 3.8 Flash, DeepSeek-V4-Pro-0813: no reported scores in this edition.",
   );
   await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Flash" })).toBeVisible();
   await expect(page.locator(".bench-picker")).toContainText("No verified scores yet");
   await expect(page.getByRole("button", { name: "Download JSON", exact: true })).toBeEnabled();
-  await expect(page).toHaveURL(/models=qwen-3-8-flash%2Ckimi-k3/);
+  await expect(page).toHaveURL(/models=qwen-3-8-flash%2Cdeepseek-v4-pro/);
   await page.getByRole("button", { name: "Show models with reported scores", exact: true }).click();
   await expect(page.locator(".bench-empty")).toHaveCount(0);
   expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
   await expect(page).not.toHaveURL(/models=qwen-3-8-flash/);
   await page.goBack();
   await expect(page.locator(".bench-empty")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Remove Kimi K3" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Remove DeepSeek-V4-Pro-0813" })).toBeVisible();
 });
 
 test("Download JSON matches pinned visible evidence, share URL and native keyboard action", async ({
@@ -351,12 +351,12 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   const downloading = page.waitForEvent("download");
   await page.keyboard.press("Enter");
   const download = await downloading;
-  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v4.json");
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v5.json");
   const file = testInfo.outputPath("selected-benchmark-evidence.json");
   await download.saveAs(file);
   const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
-  expect(payload.exportVersion).toBe(1);
-  expect(payload.edition).toBe("2026-10-04-v4");
+  expect(payload.exportVersion).toBe(2);
+  expect(payload.edition).toBe("2026-10-04-v5");
   expect(payload.comparisonUrl).toBe(shareUrl);
   expect(payload.requested.observationIds).toEqual([pin]);
   expect(payload.requested.category).toBe("coding");
@@ -386,7 +386,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   });
   expect(
     payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-  ).toHaveLength(208);
+  ).toHaveLength(209);
   await page.reload();
   await expect(page.locator('[data-benchmark-id="deep-swe-v1-1"]')).toContainText("75.22%");
 });
@@ -474,7 +474,7 @@ test("Download JSON allows valid empty views, rejects unresolved coverage and re
     if (query.startsWith("edition=")) {
       await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
       await expect(page.locator("tbody tr")).toHaveCount(22);
-      await expect(page).toHaveURL(/edition=2026-10-04-v4/);
+      await expect(page).toHaveURL(/edition=2026-10-04-v5/);
     }
     expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
     await expect(page).not.toHaveURL(
@@ -670,7 +670,7 @@ for (const theme of ["dark", "light"] as const)
       return JSON.parse(await readFile(file, "utf8")) as BenchmarkExport;
     };
     const payload = await downloadJson("epoch-science-all.json");
-    expect(payload.edition).toBe("2026-10-04-v4");
+    expect(payload.edition).toBe("2026-10-04-v5");
     expect(payload.requested).toMatchObject({
       modelIds: [...epochModels, "gpt-6-1-sol"],
       category: "science",
@@ -706,10 +706,10 @@ for (const theme of ["dark", "light"] as const)
     });
     expect(payload.fullProvenance.scope).toContain("Full immutable evidence edition");
     expect(payload.fullProvenance.data.definitions).toHaveLength(44);
-    expect(payload.fullProvenance.data.sourceSets).toHaveLength(15);
+    expect(payload.fullProvenance.data.sourceSets).toHaveLength(16);
     expect(
       payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-    ).toHaveLength(208);
+    ).toHaveLength(209);
     const epochSources = payload.fullProvenance.data.sourceSets.filter(
       (source) => source.evaluator === "Epoch AI",
     );
@@ -846,7 +846,7 @@ for (const [index, modelId] of epochModels.entries())
     const link = source.locator(".bench-model-grid dt a");
     await expect(link).toHaveAttribute(
       "href",
-      new RegExp(`edition=2026-10-04-v4&observation=epoch-gpqa-.*${modelId}`),
+      new RegExp(`edition=2026-10-04-v5&observation=epoch-gpqa-.*${modelId}`),
     );
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -871,7 +871,7 @@ test("dated provider facts: exact releases, qualified JSON, missing Kimi and imm
     "zai-glm-5-3-terminal-2026-08-14",
     "minimax-m3-terminal-2026-06-01",
   ];
-  await page.goto(`/benchmarks?models=${modelIds.join(",")}`);
+  await page.goto(`/benchmarks?edition=2026-10-04-v4&models=${modelIds.join(",")}`);
   const row = page.locator('[data-benchmark-id="terminal-bench-2-1"]');
   await expect(row).toContainText("Different or unreported setups");
   for (const [index, score] of ["86.6%", "88.2%", "66.0%"].entries())
@@ -957,7 +957,7 @@ test("dated provider facts: exact releases, qualified JSON, missing Kimi and imm
     const link = source.locator(".bench-model-grid dt a");
     await expect(link).toHaveAttribute(
       "href",
-      new RegExp(`edition=2026-10-04-v4&observation=${sourceIds[index]}`),
+      new RegExp(`edition=2026-10-04-v5&observation=${sourceIds[index]}`),
     );
     await source.getByText("Methodology & sources", { exact: true }).click();
     await source.locator("details details > summary").click();
@@ -969,4 +969,59 @@ test("dated provider facts: exact releases, qualified JSON, missing Kimi and imm
         "missing date qualification",
     );
   }
+});
+
+test("Kimi unknown publication: model, evidence, current JSON and off-view provenance", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/benchmarks?models=kimi-k3");
+  await expect(page.locator(".bench-header")).toContainText("Publication date unreported");
+  await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+  await expect(page.locator(".bench-header")).not.toContainText("Published Oct 4");
+  const row = page.locator('[data-benchmark-id="terminal-bench-2-1"]');
+  await expect(row).toContainText("88.3%");
+  await row.locator('[data-model-id="kimi-k3"] button').click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("Publication date unreported");
+  await expect(dialog).toContainText("Kimi Code (version unreported)");
+  await expect(dialog).toContainText("raw notation 88.3");
+  await expect(dialog).toContainText("Temperature = 1.0; top-p = 1.0");
+  await expect(dialog).toContainText("do not establish article publication");
+  await page.keyboard.press("Escape");
+  for (const query of ["models=kimi-k3", "models=gpt-6-1-sol&category=security"]) {
+    await page.goto(`/benchmarks?${query}`);
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download JSON", exact: true }).click();
+    const download = await downloading;
+    expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v5.json");
+    const file = testInfo.outputPath(
+      query.includes("security") ? "kimi-off-view.json" : "kimi-selected.json",
+    );
+    await download.saveAs(file);
+    const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
+    expect(payload.exportVersion).toBe(2);
+    expect(payload.fullProvenance.data.schemaVersion).toBe(2);
+    expect(payload.fullProvenance.data.sourceSets).toHaveLength(16);
+    const source = payload.fullProvenance.data.sourceSets.find(
+      (s) => s.id === "kimi-k3-terminal-checked-2026-10-04",
+    );
+    expect(source?.publishedAt).toBeNull();
+    expect(source?.observations[0]?.value).toBe(88.3);
+    expect(source?.observations[0]?.comparisonGroup).toBeUndefined();
+    if (query.includes("security")) expect(payload.rows).toEqual([]);
+  }
+  await page.goto("/models/kimi-k3");
+  const source = page.getByRole("region", { name: "Benchmarks", exact: true });
+  await expect(source.locator("h3")).toHaveText("Moonshot AI · Publication date unreported");
+  await expect(source).toContainText("88.3%");
+  await source.getByText("Methodology & sources", { exact: true }).click();
+  await source.locator("details details > summary").click();
+  await expect(source).toContainText("Oct 4, 2026");
+  await expect(source).toContainText("no arithmetic rescaling");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await source.locator(".bench-model-grid dt a").click();
+  await expect(page).toHaveURL(
+    /edition=2026-10-04-v5&observation=kimi-k3-terminal-checked-2026-10-04/,
+  );
+  await expect(page.locator(".bench-header")).toContainText("Publication date unreported");
 });

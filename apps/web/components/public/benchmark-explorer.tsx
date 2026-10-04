@@ -19,6 +19,7 @@ import {
   buildBenchmarkExport,
   resolveBenchmarkView,
 } from "@/lib/benchmark-export";
+import { benchmarkSourceDate } from "@/lib/benchmark-source-date";
 import { type BenchmarkState, benchmarkUrl, parseBenchmarkState } from "@/lib/benchmark-state";
 
 const BenchmarkImageDialog = lazy(() =>
@@ -90,7 +91,7 @@ export function BenchmarkEvidence({
   return (
     <div className="bench-evidence">
       <p className="bench-source-label">
-        {set.evaluator} · {date(set.publishedAt)} · {evidenceLabel(set.evidenceClass)}
+        {set.evaluator} · {benchmarkSourceDate(set)} · {evidenceLabel(set.evidenceClass)}
       </p>
       <dl>
         <div>
@@ -269,7 +270,7 @@ export function BenchmarkExplorer({
               : (visibleSource?.title ?? "Compare the models you choose")}
           </p>
           <p>
-            {!error && visibleSource && `Published ${date(visibleSource.publishedAt)} · `}
+            {!error && visibleSource && `${benchmarkSourceDate(visibleSource)} · `}
             {!error && checkedAt
               ? `Latest check ${date(checkedAt)}`
               : "No visible evidence to summarize"}
@@ -665,7 +666,7 @@ export function BenchmarkExplorer({
           <details key={s.id}>
             <summary>
               <span className="bench-source-number">{i + 1}</span> {s.evaluator} · {s.title} ·{" "}
-              {date(s.publishedAt)}
+              {benchmarkSourceDate(s)}
             </summary>
             <p className="bench-source-label">
               {evidenceLabel(s.evidenceClass)} ·{" "}
