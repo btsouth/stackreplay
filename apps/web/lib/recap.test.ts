@@ -19,10 +19,10 @@ describe("private recap metrics", () => {
     expect(r.start).toBe("2026-03-08");
     expect(r.days).toHaveLength(30);
     expect(r.records).toBe(2);
-    expect(r.longestStreak).toBe(2);
+    expect(r.longestStreak).toBe(4);
     expect(r.streak).toBe(0);
   });
-  it("counts a yesterday-anchored streak and native tool/session identities", () => {
+  it("keeps yesterday's streak open today and counts native tool/session identities", () => {
     const events = [
       "2026-10-01T10:00:00Z",
       "2026-10-02T23:00:00Z",
@@ -176,4 +176,100 @@ it("counts exclusive categories once, including cache-only and partial records",
   ).toBe(12);
   expect(totalTokensOf({ ...event, usage: { inputTokens: 0 } })).toBe(0);
   expect(totalTokensOf({ ...event, usage: {} })).toBeUndefined();
+});
+
+describe("full-history activity", () => {
+  it("does not clip either streak when the period changes", () => {
+    const events = Array.from({ length: 120 }, (_, i) => ({
+      ...event,
+      id: `day-${i}`,
+      occurredAt: new Date(Date.parse("2026-10-04T12:00:00Z") - i * 86400000).toISOString(),
+    }));
+    for (const period of ["30", "90", "all"] as const) {
+      const recap = buildRecap(events, period, "2026-10-04T16:00:00Z", "UTC");
+      expect(recap.streak).toBe(120);
+      expect(recap.longestStreak).toBe(120);
+      expect(recap.records).toBe(period === "all" ? 120 : Number(period));
+    }
+  });
+  it("unions sources at local midnight rather than UTC midnight", () => {
+    const events = ["2026-10-03T03:59:00Z", "2026-10-03T04:00:00Z", "2026-10-04T04:00:00Z"].map(
+      (occurredAt, i) => ({
+        ...event,
+        id: `source-${i}`,
+        occurredAt,
+        source: { ...event.source, adapterId: ["codex", "claude-code", "command-code"][i]! },
+      }),
+    );
+    const recap = buildRecap(events, "30", "2026-10-04T12:00:00Z", "America/Kentucky/Louisville");
+    expect(recap.streak).toBe(3);
+    expect(recap.longestStreak).toBe(3);
+    expect(recap.days.filter((d) => d.records).map((d) => d.date)).toEqual([
+      "2026-10-02",
+      "2026-10-03",
+      "2026-10-04",
+    ]);
+    expect(buildRecap(events, "30", "2026-10-04T12:00:00Z", "UTC").streak).toBe(2);
+  });
+  it("marks only the first and last local days of aggregate activity, preserving volume and costs", () => {
+    const aggregate = {
+      ...event,
+      id: "aggregate",
+      source: { ...event.source, adapterId: "hermes" },
+      confidence: { ...event.confidence, usage: "estimated" as const },
+      occurredAt: "2026-03-09T04:01:00Z",
+      requestStartedAt: "2026-03-07T04:59:00Z",
+      requestEndedAt: "2026-03-09T04:01:00Z",
+    };
+    const recap = buildRecap(
+      [
+        aggregate,
+        {
+          ...aggregate,
+          id: "native",
+          source: { ...event.source, adapterId: "codex" },
+          confidence: { ...event.confidence, usage: "exact" as const },
+        },
+      ],
+      "30",
+      "2026-03-09T12:00:00Z",
+      "America/Kentucky/Louisville",
+    );
+    expect(recap.streak).toBe(1);
+    expect(recap.longestStreak).toBe(1);
+    expect(recap.days.filter((d) => d.records).map((d) => d.records)).toEqual([1, 2]);
+    expect(recap.records).toBe(2);
+    expect(recap.days.reduce((n, d) => n + d.output, 0)).toBe(recap.output);
+  });
+  it("clips an ongoing aggregate at today and ignores future or reversed spans", () => {
+    const aggregate = {
+      ...event,
+      source: { ...event.source, adapterId: "hermes" },
+      confidence: { ...event.confidence, usage: "estimated" as const },
+      occurredAt: "2026-10-06T12:00:00Z",
+      requestStartedAt: "2026-10-01T12:00:00Z",
+      requestEndedAt: "2026-10-06T12:00:00Z",
+    };
+    const recap = buildRecap([aggregate], "all", "2026-10-04T12:00:00Z", "UTC");
+    expect(recap.streak).toBe(1);
+    expect(recap.records).toBe(0);
+    expect(
+      buildRecap(
+        [{ ...aggregate, requestStartedAt: "2026-10-07T12:00:00Z" }],
+        "all",
+        "2026-10-04T12:00:00Z",
+        "UTC",
+      ).streak,
+    ).toBe(0);
+  });
+  it("keeps the current streak alive before today's first activity", () => {
+    const events = ["2026-10-01", "2026-10-02", "2026-10-03"].map((d, i) => ({
+      ...event,
+      id: `grace-${i}`,
+      occurredAt: `${d}T12:00:00Z`,
+    }));
+    const recap = buildRecap(events, "30", "2026-10-04T08:00:00Z", "UTC");
+    expect(recap.streak).toBe(3);
+    expect(recap.longestStreak).toBe(3);
+  });
 });

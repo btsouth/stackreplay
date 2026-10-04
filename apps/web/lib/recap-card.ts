@@ -118,7 +118,7 @@ export async function renderRecapCard(
   const stats = [
     [compactNumber(recap.sessions), "sessions"],
     [String(recap.days.filter((d) => d.records).length), "active days"],
-    [`${recap.longestStreak} days`, "longest streak"],
+    [`${recap.longestStreak} days`, "longest streak (all time)"],
   ];
   const statY = portrait ? 705 : 505;
   stats.forEach(([value, label], i) => {

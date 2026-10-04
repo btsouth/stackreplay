@@ -58,7 +58,7 @@ export function RecapShareCard({
       </div>
       <div className="replay-card-bottom">
         <span>{recap.sessions.toLocaleString()} sessions</span>
-        <span>{recap.longestStreak} day streak</span>
+        <span>{recap.longestStreak} days · longest streak (all time)</span>
         <span>{sample ? "Illustrative sample" : "Only in your browser"}</span>
       </div>
     </article>
