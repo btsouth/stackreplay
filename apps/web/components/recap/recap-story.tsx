@@ -31,6 +31,15 @@ function Facts({ values }: { values: [string, string][] }) {
           <strong>{v}</strong>
           <span>
             {l}
+            {l === "active days" && (
+              <Info label="What counts as an active day">
+                An active day has at least one usage record from any scanned source, in your local
+                timezone. Hermes aggregates without per-call timestamps cover every calendar day
+                from first seen to last seen. Tokens and costs stay on the recorded end date.
+                Current streak counts back from today; an inactive today means zero. Longest streak
+                uses all supplied history. The period filter only scopes volume, costs and charts.
+              </Info>
+            )}
             {l === "sessions" && (
               <Info label="What counts as a session">
                 Sessions include recorded child agents; they are not a count of human conversations.
@@ -197,7 +206,7 @@ export function RecapStory({
               ? [[recap.sessions.toLocaleString(), "sessions"] as [string, string]]
               : []),
             [String(recap.days.filter((x) => x.records).length), "active days"],
-            [String(recap.streak), "current day streak"],
+            [String(recap.streak), "current streak"],
           ]}
         />
       </section>
@@ -205,7 +214,7 @@ export function RecapStory({
         <Heading
           number="02 / CONSISTENCY"
           title="You kept showing up."
-          note={`${recap.longestStreak} days · your longest activity streak`}
+          note={`${recap.longestStreak} days · longest streak (all time)`}
         />
         <Heatmap recap={recap} period={period} />
       </section>

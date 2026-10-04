@@ -94,6 +94,47 @@ const dayMs = 86400000;
 function nextDay(date: string, offset = 1) {
   return new Date(Date.parse(`${date}T00:00:00Z`) + offset * dayMs).toISOString().slice(0, 10);
 }
+/** Activity uses the full supplied history. Aggregate spans mark days without allocating tokens. */
+export function recapActivity(
+  events: readonly TextUsageEventV1[],
+  now: string,
+  local: (at: string) => { date: string },
+) {
+  const nowMs = Date.parse(now);
+  const end = local(now).date;
+  const days = new Map<string, number>();
+  for (const event of events) {
+    const at = Date.parse(event.occurredAt);
+    if (!Number.isFinite(at)) continue;
+    // Hermes reports a session/model aggregate, not per-call timestamps.
+    const aggregate = event.source.adapterId === "hermes" && event.confidence.usage === "estimated";
+    const from = aggregate ? Date.parse(event.requestStartedAt ?? event.occurredAt) : at;
+    const to = aggregate ? Date.parse(event.requestEndedAt ?? event.occurredAt) : at;
+    const validSpan = Number.isFinite(from) && Number.isFinite(to) && from <= to;
+    const startMs = validSpan ? from : at;
+    const endMs = validSpan ? to : at;
+    if (startMs > nowMs) continue;
+    for (
+      let date = local(new Date(startMs).toISOString()).date;
+      date <= local(new Date(Math.min(endMs, nowMs)).toISOString()).date;
+      date = nextDay(date)
+    ) {
+      days.set(date, (days.get(date) ?? 0) + 1);
+    }
+  }
+  const dates = [...days.keys()].sort();
+  let run = 0;
+  let longestStreak = 0;
+  let previous: string | undefined;
+  for (const date of dates) {
+    run = previous && nextDay(previous) === date ? run + 1 : 1;
+    longestStreak = Math.max(longestStreak, run);
+    previous = date;
+  }
+  let streak = 0;
+  for (let date = end; days.has(date); date = nextDay(date, -1)) streak++;
+  return { days, streak, longestStreak };
+}
 /** Calendar-day periods, local dates and hours; engine quotes at pinned current list prices. No content is read. */
 export function buildRecap(
   events: readonly TextUsageEventV1[],
@@ -131,17 +172,16 @@ export function buildRecap(
     return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
   };
   const end = local(now).date;
-  const first = events.reduce((a, e) => {
-    const d = local(e.occurredAt).date;
-    return d < a ? d : a;
-  }, end);
+  const activity = recapActivity(events, now, local);
+  const first = [...activity.days.keys()].reduce((a, d) => (d < a ? d : a), end);
   const start = period === "all" ? first : nextDay(end, -(Number(period) - 1));
   const selected = events.filter((e) => {
     const d = local(e.occurredAt).date;
     return d >= start && d <= end && Date.parse(e.occurredAt) <= Date.parse(now);
   });
   const days = new Map<string, { date: string; records: number; output: number }>();
-  for (let d = start; d <= end; d = nextDay(d)) days.set(d, { date: d, records: 0, output: 0 });
+  for (let d = start; d <= end; d = nextDay(d))
+    days.set(d, { date: d, records: activity.days.get(d) ?? 0, output: 0 });
   const models = new Map<string, RecapModel>();
   const tools = new Map<string, { id: string; records: number; output: number; total: number }>();
   const weeks = new Map<string, Record<string, number>>();
@@ -178,7 +218,6 @@ export function buildRecap(
     }
     const day = days.get(date);
     if (day) {
-      day.records++;
       day.output += n;
     }
     const id = e.model.canonicalId ?? e.model.rawName;
@@ -320,16 +359,7 @@ export function buildRecap(
   deep.months = [...months.values()].sort((a, b) => a.date.localeCompare(b.date));
   deep.cacheSavings = cacheSavings.toString();
   const daily = [...days.values()];
-  let run = 0;
-  let longestStreak = 0;
-  for (const d of daily) {
-    run = d.records ? run + 1 : 0;
-    longestStreak = Math.max(longestStreak, run);
-  }
-  let streak = 0;
-  let i = daily.length - 1;
-  if (!daily[i]?.records) i--;
-  for (; i >= 0 && daily[i]?.records; i--) streak++;
+  const { streak, longestStreak } = activity;
   return {
     period,
     deep,

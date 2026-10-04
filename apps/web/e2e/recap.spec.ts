@@ -119,3 +119,38 @@ test("payment comparison requires confirmation and persists local choices", asyn
   await expect(page.getByRole("checkbox", { name: /Max 5/u })).not.toBeChecked();
   await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
 });
+
+test("streaks use full local history while the period scopes totals", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
+  await gotoImport(page);
+  const workload = stackWorkloadFile();
+  const base = workload.events[0]!;
+  workload.events = Array.from({ length: 120 }, (_, i) => ({
+    ...base,
+    id: `streak-day-${i}`,
+    occurredAt: new Date(Date.parse("2026-10-04T08:00:00Z") - i * 86400000).toISOString(),
+    usage: { inputTokens: 1, outputTokens: 1 },
+    source: { ...base.source, nativeEventHash: `streak-record-${i}` },
+  })).reverse();
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "synthetic-streak.stackreplay.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(workload)),
+  });
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
+  const streak = page
+    .locator(".recap-fact-strip > div")
+    .filter({ has: page.getByText("current streak", { exact: true }) });
+  for (const period of ["30 days", "90 days", "All time"]) {
+    await page.getByRole("radio", { name: period, exact: true }).check();
+    await expect(streak.locator("strong")).toHaveText("120");
+    await expect(page.locator(".recap-activity .recap-section-heading p")).toHaveText(
+      "120 days · longest streak (all time)",
+    );
+  }
+  await page.getByLabel("What counts as an active day").click();
+  await expect(page.locator(".recap-info[open]")).toContainText("first seen to last seen");
+  await expect(page.locator(".recap-info[open]")).toContainText(
+    "Current streak counts back from today",
+  );
+});
