@@ -5,14 +5,16 @@ export function MarketHeader({
   title,
   description,
   children,
+  compact = false,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   children?: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <header className="market-header">
+    <header className={compact ? "market-header market-header-compact" : "market-header"}>
       <div>
         <p className="market-kicker">{eyebrow}</p>
         <h1>{title}</h1>

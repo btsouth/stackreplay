@@ -1029,3 +1029,125 @@ html[data-compare] [data-compare-results] {
     letter-spacing: 0;
   }
 }
+
+/* The compact header is opt-in for public discovery and provider hubs. */
+.market-header-compact {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0.75rem 0 1.5rem;
+  gap: 1.25rem;
+}
+.market-header-compact:has(.market-feature) {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 2rem;
+}
+.market-header-compact h1 {
+  font-size: clamp(2.25rem, 4vw, 3.75rem);
+  margin: 0.6rem 0 0.75rem;
+}
+.market-header-compact .market-description {
+  max-width: 68ch;
+}
+.market-header-compact .market-feature {
+  padding: 0.75rem 1rem;
+}
+.market-section-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+}
+.market-section-jumps a:focus-visible,
+.market-provider-coverage summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.market-provider-row {
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 0 0.75rem;
+}
+.market-provider-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem 2rem;
+  align-items: center;
+}
+.market-provider-counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.market-provider-counts dt,
+.market-provider-coverage dt {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.market-provider-counts dd {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.25rem;
+}
+.market-provider-coverage summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.8rem;
+  min-height: 44px;
+  align-content: center;
+  width: fit-content;
+}
+.market-provider-coverage dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0.5rem 0 1rem;
+}
+.market-provider-coverage dd {
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.35rem;
+}
+.market-provider-empty {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 1.25rem;
+}
+.market-provider-empty-note {
+  margin: 0.75rem 0;
+}
+.market-provider-empty section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 0.25rem 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.market-provider-empty h3 {
+  scroll-margin-top: 5.5rem;
+}
+[data-model-results] > .market-price-comparison {
+  margin-top: 2.5rem;
+  scroll-margin-top: 5.5rem;
+}
+@media (max-width: 700px) {
+  .market-header-compact:has(.market-feature) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .market-header-compact h1 {
+    font-size: 2.5rem;
+  }
+  .market-header-compact .market-feature h2 {
+    font-size: 1.15rem;
+    margin: 0.35rem 0;
+  }
+  .market-provider-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .market-provider-coverage dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .market-provider-empty section {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .market-provider-hub > section {
+    margin-top: 1.5rem;
+  }
+}

@@ -153,21 +153,25 @@ export function ModelExplorer({
     setDirection(next);
   };
   const directionLabels = sortDirectionLabels(sort);
+  const ready = layout !== undefined;
   return (
     <div data-model-results>
-      <ModelPriceComparison models={models} prices={prices} selected={selected} />
       <div className="market-section-title">
-        <span>02 / Explore models</span>
+        <span>01 / Explore models</span>
         <span>
           {modelsInView(models, "models").length} models · {modelsInView(models, "legacy").length}{" "}
           legacy
         </span>
       </div>
+      <a href="#published-api-rates" className="market-link">
+        Compare published API rates ↓
+      </a>
       <div className="market-filters">
         <label className="grow">
           Find a model, family name or exact alias
           <input
             type="search"
+            disabled={!ready}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search models…"
@@ -175,7 +179,11 @@ export function ModelExplorer({
         </label>
         <label>
           Developer
-          <select value={developer} onChange={(e) => setDeveloper(e.target.value)}>
+          <select
+            disabled={!ready}
+            value={developer}
+            onChange={(e) => setDeveloper(e.target.value)}
+          >
             <option value="all">All developers</option>
             {developers.map((d) => (
               <option key={d.id} value={d.id}>
@@ -186,7 +194,11 @@ export function ModelExplorer({
         </label>
         <label>
           Capability
-          <select value={capability} onChange={(e) => setCapability(e.target.value)}>
+          <select
+            disabled={!ready}
+            value={capability}
+            onChange={(e) => setCapability(e.target.value)}
+          >
             <option value="all">All capabilities</option>
             {CAPABILITIES.map((item) => (
               <option key={item}>{item}</option>
@@ -196,7 +208,11 @@ export function ModelExplorer({
         </label>
         <label>
           Order by
-          <select value={sort} onChange={(e) => changeSort(e.target.value as ModelSortKey)}>
+          <select
+            disabled={!ready}
+            value={sort}
+            onChange={(e) => changeSort(e.target.value as ModelSortKey)}
+          >
             {SORT_OPTIONS.map(([id, label]) => (
               <option key={id} value={id}>
                 {label}
@@ -208,7 +224,7 @@ export function ModelExplorer({
           Direction
           <select
             value={directionLabels ? direction : "fixed"}
-            disabled={!directionLabels}
+            disabled={!ready || !directionLabels}
             onChange={(e) => setDirection(e.target.value as SortDirection)}
             data-testid="model-sort-direction"
           >
@@ -228,6 +244,7 @@ export function ModelExplorer({
           <label>
             <input
               type="checkbox"
+              disabled={!ready}
               checked={inSubscription}
               onChange={(e) => setInSubscription(e.target.checked)}
             />
@@ -236,6 +253,7 @@ export function ModelExplorer({
           <label>
             <input
               type="checkbox"
+              disabled={!ready}
               checked={withApiPrice}
               onChange={(e) => setWithApiPrice(e.target.checked)}
             />
@@ -255,6 +273,7 @@ export function ModelExplorer({
             <button
               type="button"
               key={id}
+              disabled={!ready}
               data-testid={`model-view-${id}`}
               aria-pressed={!query && view === id}
               onClick={() => {
@@ -289,6 +308,7 @@ export function ModelExplorer({
                   type="button"
                   key={id}
                   aria-pressed={layout === id}
+                  disabled={!ready}
                   data-layout={id}
                   data-testid={`model-layout-${id}`}
                   onClick={() => setLayout(id)}
@@ -302,7 +322,10 @@ export function ModelExplorer({
       </div>
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
-          <p className="market-muted">Your selected models are compared above and below.</p>
+          <p className="market-muted">
+            Your selected models are compared below. View their published rates in the rate
+            comparison.
+          </p>
           <button type="button" onClick={() => setSelected([])} className="market-link">
             Clear comparison
           </button>
@@ -362,7 +385,7 @@ export function ModelExplorer({
                         type="checkbox"
                         aria-label={`Compare ${model.name}`}
                         checked={selected.includes(model.id)}
-                        disabled={selected.length >= 4 && !selected.includes(model.id)}
+                        disabled={!ready || (selected.length >= 4 && !selected.includes(model.id))}
                         onChange={(e) =>
                           setSelected(
                             e.target.checked
@@ -456,6 +479,7 @@ export function ModelExplorer({
           {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
         </button>
       )}
+      <ModelPriceComparison models={models} prices={prices} selected={selected} />
     </div>
   );
 }

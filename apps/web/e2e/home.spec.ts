@@ -301,10 +301,12 @@ test.describe("homepage without a saved workload", () => {
           };
         });
     if (testInfo.project.name === "mobile") {
-      // The lead story comes before the longer pitch, so it starts on the first screen.
-      const leadBox = await box("[data-lead]");
-      expect(leadBox.top).toBeLessThan(page.viewportSize()?.height ?? 0);
-      expect((await box(".home-intro-side")).top).toBeGreaterThan(leadBox.bottom);
+      // Discovery actions precede the featured comparison and the sourced briefing.
+      const actions = await box(".home-discovery-actions");
+      expect(actions.bottom).toBeLessThan(page.viewportSize()?.height ?? 0);
+      expect((await box('[data-testid="home-model-comparison"]')).bottom).toBeLessThan(
+        (await box("[data-lead]")).top,
+      );
       const region = page.getByTestId("model-table-region");
       expect(await region.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
       await region.focus();
@@ -313,17 +315,17 @@ test.describe("homepage without a saved workload", () => {
     } else {
       for (const width of [1600, 1440, 1280]) {
         await page.setViewportSize({ width, height: width === 1280 ? 800 : 900 });
-        // The lead story and the compact rows sit side by side, all five in the first screen.
+        // Updates retain their side-by-side layout below the discovery comparison.
         const leadBox = await box("[data-lead]");
         const rows = await page
           .locator(".home-brief")
           .evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect()));
         for (const row of rows) expect(row.left).toBeGreaterThan(leadBox.right);
-        const last = rows.at(-1);
-        if (last !== undefined)
-          expect(last.bottom + (await page.evaluate(() => scrollY))).toBeLessThanOrEqual(
-            (page.viewportSize()?.height ?? 0) + 40,
-          );
+        const actions = await box(".home-discovery-actions");
+        expect(actions.bottom).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0);
+        expect((await box('[data-testid="home-model-comparison"]')).bottom).toBeLessThan(
+          leadBox.top,
+        );
         // Wide screens use the width: the content column is at least 1240px at 1600.
         if (width === 1600) {
           const home = await box('[data-testid="home"]');
@@ -395,16 +397,8 @@ test.describe("homepage without a saved workload", () => {
     await page.goto("/");
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: /skip to content/iu })).toBeFocused();
-    const order: string[] = [];
-    for (let step = 0; step < 13; step += 1) {
-      await page.keyboard.press("Tab");
-      order.push(
-        await page.evaluate(
-          () => (document.activeElement as HTMLElement | null)?.innerText.trim() ?? "",
-        ),
-      );
-    }
-    expect(order.slice(1, 10)).toEqual([
+    const nav = page.getByTestId("public-nav");
+    const headerLinks = [
       "Models",
       "Providers",
       "Benchmarks",
@@ -414,8 +408,36 @@ test.describe("homepage without a saved workload", () => {
       "Workload",
       "My Stack",
       "Scan my history",
-    ]);
-    expect(order).toContain("Compare leading models");
+    ];
+    await expect(nav.getByRole("link")).toHaveText(headerLinks, { useInnerText: true });
+    const hero = page.getByTestId("home-hero");
+    await expect(page.getByTestId("local-action-hero")).toHaveAttribute("data-local", "none");
+    // Accessible names omit decorative arrows; innerText includes them. Walk
+    // every expected control in DOM order instead of sampling a fixed tab count.
+    const focusSequence = [
+      page.getByRole("link", { name: "StackReplay home", exact: true }),
+      ...headerLinks.map((name) => nav.getByRole("link", { name, exact: true })),
+      ...[
+        "Explore models",
+        "Explore providers",
+        "Compare plans",
+        "Compare leading models",
+        "Scan my AI history",
+        "Privacy model",
+      ].map((name) => hero.getByRole("link", { name, exact: true })),
+      page.getByTestId("benchmark-sheet-link"),
+      page
+        .getByRole("navigation", { name: "More on models" })
+        .getByRole("link", { name: "All models", exact: true }),
+      page.getByTestId("model-table-region"),
+    ];
+    for (const control of focusSequence) {
+      await page.keyboard.press("Tab");
+      await expect(control).toBeFocused();
+    }
+    await expect(
+      page.getByRole("link", { name: "Compare leading models", exact: true }),
+    ).toHaveAttribute("href", "#frontier");
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
   });
 });

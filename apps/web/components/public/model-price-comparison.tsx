@@ -66,9 +66,13 @@ export function ModelPriceComparison({
   };
 
   return (
-    <section aria-label="Published API rates" className="market-price-comparison">
+    <section
+      id="published-api-rates"
+      aria-label="Published API rates"
+      className="market-price-comparison"
+    >
       <div className="market-section-title">
-        <span>01 / Published API rates</span>
+        <span>02 / Published API rates</span>
         <span>USD per million tokens</span>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">

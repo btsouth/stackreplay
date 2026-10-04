@@ -143,7 +143,7 @@ export function ProviderExplorer({
       </div>
       <p className="market-muted mb-4">
         Featured providers are editorial starting points for text, chat and coding, not a usage or
-        quality ranking.
+        quality ranking. Zero means no records in this public view, not absence from the market.
       </p>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
         <p className="market-muted" role="status">
@@ -163,23 +163,65 @@ export function ProviderExplorer({
       </div>
       <div data-testid="provider-results">
         {visible.map((row) => (
-          <article key={row.id} className="border-b border-border py-6" data-testid="provider-row">
-            <h2 className="text-xl">
-              <Link className="hover:text-accent" href={`/providers/${row.id}`}>
-                {row.name} ↗
-              </Link>
-            </h2>
-            <p className="market-muted mt-2">
-              {row.releases} developed releases ({row.legacy} legacy) · {row.families} family
-              records · {row.apiReleases} releases with recorded API access · {row.plans} published
-              plans and offers · {row.updates} accepted updates
-            </p>
+          <article key={row.id} className="market-provider-row" data-testid="provider-row">
+            <div className="market-provider-overview">
+              <div>
+                <h2 className="text-xl">
+                  <Link className="hover:text-accent" href={`/providers/${row.id}`}>
+                    {row.name} ↗
+                  </Link>
+                </h2>
+                <p className="market-muted mt-2">
+                  {[
+                    row.releases + row.families > 0 ? "Model developer" : undefined,
+                    row.apiRecords > 0 ? "API access provider" : undefined,
+                    row.plans > 0 ? "Plan publisher" : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || "No model or plan roles recorded"}
+                </p>
+              </div>
+              <dl className="market-provider-counts">
+                <div>
+                  <dt>Developed releases</dt>
+                  <dd>{row.releases}</dd>
+                </div>
+                <div>
+                  <dt>Published plans / offers</dt>
+                  <dd>{row.plans}</dd>
+                </div>
+              </dl>
+            </div>
             {state.tool !== "all" && (
               <p className="mt-2 text-sm">
                 {matchingPublishedPlans(row, state.tool)} matching published plans · {state.tool}.
-                Model counts above show total coverage.
+                Developed releases and detailed model counts show total coverage; published plans /
+                offers shows the total for this provider.
               </p>
             )}
+            <details className="market-provider-coverage">
+              <summary>
+                Coverage details<span className="sr-only"> for {row.name}</span>
+              </summary>
+              <dl>
+                <div>
+                  <dt>Legacy developed releases</dt>
+                  <dd>{row.legacy}</dd>
+                </div>
+                <div>
+                  <dt>Family records</dt>
+                  <dd>{row.families}</dd>
+                </div>
+                <div>
+                  <dt>Releases with recorded API access</dt>
+                  <dd>{row.apiReleases}</dd>
+                </div>
+                <div>
+                  <dt>Accepted updates</dt>
+                  <dd>{row.updates}</dd>
+                </div>
+              </dl>
+            </details>
           </article>
         ))}
         {visible.length === 0 && (

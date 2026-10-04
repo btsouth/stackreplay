@@ -199,10 +199,12 @@ test("model capabilities filter and selected specifications are useful without o
   page,
 }) => {
   await page.goto("/models");
+  await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
   await page
     .getByRole("combobox", { name: "Capability", exact: true })
     .selectOption("long-context");
   await page.getByLabel("Find a model, family name or exact alias").fill("Sonnet 5.5");
+  await expect(page.getByTestId("model-row")).toHaveCount(1);
   await expect(page.getByTestId("model-row")).toContainText("1M context");
   await page.getByRole("checkbox", { name: "Compare Claude Sonnet 5.5", exact: true }).check();
   await expect(page.getByRole("region", { name: "Selected model specifications" })).toContainText(

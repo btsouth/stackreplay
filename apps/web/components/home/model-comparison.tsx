@@ -96,10 +96,9 @@ function GroupRow({ span, label, note }: { span: number; label: string; note?: s
 }
 
 /**
- * "Models that matter right now": the newest release from five major labs,
- * reported benchmark results first (exact values, each on its own benchmark's
- * scale, credited to its reporter), then published API prices, limits and
- * where to use each model. A semantic table: on narrow screens it scrolls
+ * The existing editorial model selection, with published API prices, limits
+ * and access first, followed by exact benchmark values credited to their reporter.
+ * A semantic table: on narrow screens it scrolls
  * sideways inside its own keyboard-focusable region with the labels pinned.
  */
 export function ModelComparisonSection({
@@ -122,13 +121,14 @@ export function ModelComparisonSection({
     >
       <header className="home-section-head">
         <div>
-          <p className="home-kicker">Leading models</p>
+          <p className="home-kicker">Featured models / Editorial selection</p>
           <h2 id="compare-models-heading" className="home-h2">
             Models that matter right now
           </h2>
           <p className="home-lede">
-            The newest model from each of {comparison.columns.length} major labs, side by side:
-            reported benchmark results, list prices, limits and where you can use each one.
+            An editorial selection from {comparison.columns.length} major labs, not a usage or
+            quality ranking. Published API prices, limits and access first; reported benchmarks keep
+            their own sources and setups.
           </p>
         </div>
         <nav className="home-cta-group" aria-label="More on models">
@@ -178,18 +178,6 @@ export function ModelComparisonSection({
               ))}
             </tr>
           </thead>
-          {comparison.benchmarks.length === 0 ? null : (
-            <tbody data-group="benchmarks" data-testid="home-benchmark-rows">
-              <GroupRow
-                span={span}
-                label="Reported benchmarks"
-                note="exact version · bar shows the score on a 0–100% scale · setups may differ"
-              />
-              {comparison.benchmarks.map((row) => (
-                <Row key={row.id} row={row} score />
-              ))}
-            </tbody>
-          )}
           {comparison.groups.map((group) => (
             <tbody key={group.id} data-group={group.id}>
               <GroupRow
@@ -202,6 +190,18 @@ export function ModelComparisonSection({
               ))}
             </tbody>
           ))}
+          {comparison.benchmarks.length === 0 ? null : (
+            <tbody data-group="benchmarks" data-testid="home-benchmark-rows">
+              <GroupRow
+                span={span}
+                label="Reported benchmarks"
+                note="exact version · bar shows the score on a 0–100% scale · setups may differ"
+              />
+              {comparison.benchmarks.map((row) => (
+                <Row key={row.id} row={row} score />
+              ))}
+            </tbody>
+          )}
           <tbody data-group="personal">
             <ModelUsageRow
               columns={comparison.columns.map((column) => ({

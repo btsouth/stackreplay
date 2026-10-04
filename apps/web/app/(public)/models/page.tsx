@@ -17,6 +17,7 @@ export default function ModelsPage() {
   return (
     <div>
       <MarketHeader
+        compact
         eyebrow="The model field guide"
         title="Know your models."
         description="Compare the cost. Find the access. Put the alternatives to work on your own history."
