@@ -190,7 +190,7 @@ describe("OpenCode browser collection parity", () => {
       syntheticCatalog(),
       options,
     );
-    expect(result.outcomes[0]?.reason).toContain("128 MB");
+    expect(result.outcomes[0]?.reason).toContain("1 GB");
     expect(read).not.toHaveBeenCalled();
     await withDatabase(async (_path, bytes) => {
       const other = candidate("other/opencode.db-wal", new Uint8Array(1));

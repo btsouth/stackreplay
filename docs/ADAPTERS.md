@@ -116,7 +116,7 @@ transaction, following SQLite's [WAL reader algorithm](https://sqlite.org/filefo
 Discovery probes the named database and companion without listing the data folder. Close
 OpenCode before selecting a consistent snapshot; include the log if present. Without a log,
 a WAL-mode main file is accepted with a warning that recent usage may be missing. Files and
-the combined snapshot are each bounded to 128 MB; larger histories can still use the native
+the combined snapshot are each bounded to 1 GB; larger histories can still use the native
 CLI collector and import its portable export. Legacy JSON layouts remain unsupported.
 
 **Source.** The OpenCode data directory, `opencode.db` (SQLite). Assistant messages live in
@@ -350,7 +350,7 @@ native collection. Recorded billing provider and recognized billing endpoint tak
 model inference. Only explicit `subscription_included` mode establishes subscription billing;
 transport names such as `chat_completions` do not. Unknown serving routes stay unattributed. The
 aggregate is dated at `last_seen`, not spread across its interval. Browser SQLite keeps the existing
-128 MB per-file safety bound; larger stores need a local normalized export. Raw database content
+1 GB per-file safety bound; larger stores need a local normalized export. Raw database content
 is never uploaded. Project labels remain browser-local metadata, absent from portable exports and
 cards.
 

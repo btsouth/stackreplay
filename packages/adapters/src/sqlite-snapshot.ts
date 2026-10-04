@@ -4,7 +4,9 @@
  * Never checkpoints or writes the originating tool's files. Only checksum-valid
  * frames through the last committed transaction enter the transient snapshot.
  */
-export const MAX_BROWSER_DATABASE_BYTES = 128 * 1024 * 1024;
+// Real histories can exceed 600 MB. Keep a finite per-file and reconstructed-image
+// ceiling, while allowing those histories through the shared browser adapters.
+export const MAX_BROWSER_DATABASE_BYTES = 1024 * 1024 * 1024;
 
 function view(bytes: Uint8Array): DataView {
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -30,7 +32,7 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
     database.length > MAX_BROWSER_DATABASE_BYTES ||
     (wal?.length ?? 0) > MAX_BROWSER_DATABASE_BYTES
   )
-    throw new Error("OpenCode database files exceed the 128 MB browser limit; use a CLI export.");
+    throw new Error("OpenCode database files exceed the 1 GB browser limit; use a CLI export.");
   if (
     database.length < 100 ||
     new TextDecoder().decode(database.subarray(0, 16)) !== "SQLite format 3\u0000"
@@ -77,7 +79,7 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
       const committedPages = log.getUint32(offset + 4);
       if (committedPages > 0) {
         if (committedPages * pageSize > MAX_BROWSER_DATABASE_BYTES)
-          throw new Error("OpenCode database exceeds the 128 MB browser limit; use a CLI export.");
+          throw new Error("OpenCode database exceeds the 1 GB browser limit; use a CLI export.");
         pages = committedPages;
         committedEnd = offset + 24 + pageSize;
       }

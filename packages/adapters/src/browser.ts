@@ -992,7 +992,7 @@ export async function intakeBrowserCandidates(
           (companion?.size ?? 0) > MAX_BROWSER_DATABASE_BYTES
         )
           throw new Error(
-            "Session database files exceed the 128 MB browser limit; use a CLI export.",
+            "Session database files exceed the 1 GB browser limit; use a CLI export.",
           );
         if (!candidate.arrayBuffer || (companion && !companion.arrayBuffer))
           throw new Error("Selected session database bytes are unavailable.");
