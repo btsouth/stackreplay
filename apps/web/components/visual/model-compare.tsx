@@ -101,6 +101,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
                     : "v-metric-cell"
                 }
               >
+                <span className="v-metric-model">{model.name}</span>
                 <strong>{formatter(value)}</strong>
                 {value !== undefined && (
                   <span className="v-bar-track">
