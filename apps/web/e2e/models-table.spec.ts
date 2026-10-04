@@ -284,6 +284,33 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.getByTestId("model-glance")).toContainText("Context1M");
     });
 
+    test("model access rows keep paid-seat and fixed billing bases", async ({ page }) => {
+      await page.goto("/models/claude-opus-5-5");
+      const paidSeat = page.locator(
+        '[data-testid="model-plan-row"][data-plan-id="cursor-teams-standard"]',
+      );
+      await expect(paidSeat).toContainText("Cursor Teams Standard");
+      await expect(paidSeat).toContainText("$40 per paid user / month");
+      await expect(paidSeat).toContainText(
+        "Per paid user; monthly pools reset each billing cycle.",
+      );
+      await expect(paidSeat).toContainText("Absolute pool sizes, annual commitment");
+
+      const fixed = page.locator(
+        '[data-testid="model-plan-row"][data-plan-id="anthropic-claude-pro"]',
+      );
+      await expect(fixed).toContainText("$20 / month");
+      await expect(fixed).not.toContainText("per paid user");
+
+      await page.goto("/models/claude-sonnet-4-5");
+      const free = page.locator('[data-testid="model-plan-row"][data-plan-id="kiro-free"]');
+      await expect(free).toContainText("Kiro Free");
+      await expect(free).toContainText("Free");
+      await expect(free).not.toContainText("$0 / month");
+      await expectNoHorizontalOverflow(page);
+      await expectNoSeriousViolations(page);
+    });
+
     test("labels weight and API identifiers neutrally and copies each exact id", async ({
       page,
       context,
@@ -348,6 +375,9 @@ for (const theme of ["dark", "light"] as const) {
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
       await page.getByRole("button", { name: "Cards", exact: true }).click();
+      const firstCard = page.getByTestId("model-row").first();
+      await expect(firstCard).toContainText("Base API rate · USD / 1M tokens");
+      await expect(firstCard).toContainText("Input $/1M");
       await page.getByLabel("Direction").selectOption("ascending");
       const cardInputs = await page
         .getByTestId("model-row")

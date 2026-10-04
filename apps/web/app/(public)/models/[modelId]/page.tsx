@@ -18,8 +18,44 @@ import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
 import { modelPlanCount } from "@/lib/model-library";
 import { modelCapabilities, modelSpecifications, tokenSize } from "@/lib/model-specifications";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
-import { loadPublicCatalog } from "@/lib/public-catalog";
+import {
+  loadPublicCatalog,
+  type PublicModelPlace,
+  type PublicPlanSummary,
+} from "@/lib/public-catalog";
+import { publicPlanPriceText } from "@/lib/public-plan-price";
 import { publicPageMetadata } from "@/lib/site";
+
+function PlanAccessPrice({
+  plan,
+  fallbackPrice,
+}: {
+  plan: PublicPlanSummary | undefined;
+  fallbackPrice?: PublicModelPlace["price"];
+}) {
+  const price = plan
+    ? publicPlanPriceText(plan)
+    : fallbackPrice
+      ? `$${fallbackPrice.amount} / ${fallbackPrice.interval}`
+      : "Price not verified";
+  return (
+    <div className="w-full shrink-0 sm:w-auto sm:max-w-sm sm:text-right">
+      <span className="font-mono text-sm">
+        {price} <span className="text-accent">↗</span>
+      </span>
+      {plan?.publishedTerms?.billingSummary && (
+        <p className="market-muted mt-2 sm:ml-auto sm:max-w-sm">
+          {plan.publishedTerms.billingSummary}
+        </p>
+      )}
+      {plan?.publishedTerms?.availabilityNote && (
+        <p className="mt-2 text-xs text-warning sm:ml-auto sm:max-w-sm">
+          {plan.publishedTerms.availabilityNote}
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface Props {
   params: Promise<{ modelId: string }>;
@@ -298,19 +334,21 @@ export default async function ModelPage({ params }: Props) {
         </div>
       ))}
       <div data-testid="model-plan-list">
-        {plans.map((p) => (
-          <Link
-            key={p.planId}
-            href={`/plans/${p.planId}`}
-            className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4 hover:text-accent"
-          >
-            <span>{p.label}</span>
-            <span className="font-mono text-sm">
-              {p.price ? `$${p.price.amount} / ${p.price.interval}` : "Price not verified"}{" "}
-              <span className="ml-4 text-accent">↗</span>
-            </span>
-          </Link>
-        ))}
+        {plans.map((p) => {
+          const plan = p.planId ? catalog.planById(p.planId) : undefined;
+          return (
+            <Link
+              key={p.planId ?? p.label}
+              href={`/plans/${p.planId}`}
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4 hover:text-accent"
+              data-testid="model-plan-row"
+              data-plan-id={p.planId}
+            >
+              <span>{p.label}</span>
+              <PlanAccessPrice plan={plan} fallbackPrice={p.price} />
+            </Link>
+          );
+        })}
       </div>
       {familyPlans.length > 0 && (
         <section className="my-6">
@@ -323,12 +361,12 @@ export default async function ModelPage({ params }: Props) {
             <Link
               key={plan.id}
               href={`/plans/${plan.id}`}
-              className="flex justify-between gap-4 border-b border-border py-4 hover:text-accent"
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4 hover:text-accent"
+              data-testid="family-plan-row"
+              data-plan-id={plan.id}
             >
               <span>{plan.name}</span>
-              <span className="font-mono text-sm">
-                ${plan.price.amount} / {plan.price.interval} ↗
-              </span>
+              <PlanAccessPrice plan={plan} />
             </Link>
           ))}
         </section>

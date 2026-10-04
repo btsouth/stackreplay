@@ -509,6 +509,16 @@
   }
 }
 
+.market-model-card-rates {
+  grid-column: span 3;
+  min-width: 0;
+}
+.market-model-card-rates > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
 .market-model-price-context {
   grid-column: span 3;
   max-width: 65ch;
