@@ -8,6 +8,7 @@ let driver: Promise<SqlJsStatic> | undefined;
 export async function openBrowserOpenCode(
   database: Uint8Array,
   wal?: Uint8Array,
+  source: "opencode" | "hermes" = "opencode",
 ): Promise<SqliteDatabase> {
   const bytes = sqliteSnapshot(database, wal);
   driver ??= import("sql.js/dist/sql-asm.js").then((module) => module.default());
@@ -15,20 +16,12 @@ export async function openBrowserOpenCode(
   const db = new SQL.Database(bytes);
   try {
     db.run("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
-    const tables = db.exec(
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('message', 'session')",
-    );
-    if (tables[0]?.values.length !== 2)
-      throw new Error("Selected SQLite database is not an OpenCode session history.");
-    for (const [table, required] of [
-      ["message", ["id", "session_id", "time_created", "data"]],
-      ["session", ["id", "directory"]],
-    ] as const) {
-      const columns = new Set(
-        db.exec(`PRAGMA table_info(${table})`)[0]?.values.map((row) => row[1]),
-      );
-      if (required.some((column) => !columns.has(column)))
-        throw new Error("Selected OpenCode database has an unsupported session layout.");
+    const required = source === "hermes"
+      ? [["session_model_usage", ["session_id", "model", "billing_provider", "billing_base_url", "billing_mode", "task", "first_seen", "last_seen", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "reasoning_tokens", "api_call_count", "estimated_cost_usd", "actual_cost_usd"]], ["sessions", ["id", "cwd", "git_repo_root"]]] as const
+      : [["message", ["id", "session_id", "time_created", "data"]], ["session", ["id", "directory"]]] as const;
+    for (const [table, fields] of required) {
+      const columns = new Set(db.exec(`PRAGMA table_info(${table})`)[0]?.values.map((row) => row[1]));
+      if (fields.some((column) => !columns.has(column))) throw new Error(`Selected SQLite database is not a supported ${source === "hermes" ? "Hermes" : "OpenCode"} session history.`);
     }
   } catch (error) {
     db.close();

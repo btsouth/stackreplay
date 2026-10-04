@@ -123,6 +123,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
           let currentModel: string | undefined;
           let lineIndex = 0;
           let fileEvents = 0;
+          let requestStart: number | undefined;
+          let subagent = false;
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -140,6 +142,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (payload === undefined) continue;
 
             if (type === "session_meta") {
+              const source = payload.source;
+              subagent = typeof source === "object" && source !== null && "subagent" in source;
               sessionId =
                 readString(payload, "id") ?? readString(payload, "session_id") ?? sessionId;
               projectKey = readString(payload, "cwd") ?? projectKey;
@@ -148,6 +152,12 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (type === "turn_context") {
               currentModel = readString(payload, "model") ?? currentModel;
               projectKey = readString(payload, "cwd") ?? projectKey;
+              continue;
+            }
+            // Only explicit API request boundaries qualify. task_started is a tool-inclusive turn.
+            if (type === "event_msg" && ["request_started", "api_request_started"].includes(readString(payload, "type") ?? "")) {
+              const at = readString(record, "timestamp");
+              requestStart = at ? epochMsFromIso(at) : undefined;
               continue;
             }
             if (type !== "event_msg") continue;
@@ -278,6 +288,7 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   sessionId,
                   identity,
                   occurredAtMs,
+                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs } : {}),
                   rawModel: currentModel,
                   usage,
                   ...(projectKey !== undefined ? { projectKey } : {}),
@@ -290,6 +301,7 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 eventContext(env, options),
               ),
             );
+            requestStart = undefined;
             fileEvents += 1;
           }
           stats.sessionsScanned += 1;

@@ -4,6 +4,7 @@ export const BROWSER_SOURCE_FORMATS = [
   { id: "claude-code", name: "Claude Code", format: "session JSONL" },
   { id: "command-code", name: "Command Code", format: "session JSONL" },
   { id: "opencode", name: "OpenCode", format: "session SQLite (CLI / desktop)" },
+  { id: "hermes", name: "Hermes", format: "session/model SQLite" },
   { id: "ccusage", name: "ccusage", format: "JSON" },
 ] as const;
 

@@ -12,32 +12,16 @@ import {
 } from "@/lib/current-stack";
 import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
-import { familyColors, type Recap, type RecapPeriod, topRecapModels } from "@/lib/recap";
-import { compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
+import { type Recap, type RecapPeriod } from "@/lib/recap";
+import { recapUsd, renderRecapCard } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
-import { Heatmap, Mix } from "./recap-charts";
+import { PeriodControl } from "./period-control";
+import { RecapStory } from "./recap-story";
 import { RecapShareCard } from "./recap-share-card";
 
-const toolNames: Record<string, string> = {
-  "claude-code": "Claude Code",
-  codex: "Codex",
-  opencode: "OpenCode",
-  "command-code": "Command Code",
-  hermes: "Hermes",
-  ccusage: "ccusage import",
-};
-const color = (family: string) => familyColors[family] ?? familyColors.other;
-function Info({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="recap-info">
-      <summary aria-label={label}>i</summary>
-      <div>{children}</div>
-    </details>
-  );
-}
 export function RecapSurface({
   initialImportId,
   initialTarget,
@@ -185,18 +169,7 @@ export function RecapSurface({
           </h1>
         </div>
         <div className="recap-controls">
-          <label className="sr-only" htmlFor="recap-period">
-            Recap period
-          </label>
-          <select
-            id="recap-period"
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as RecapPeriod)}
-          >
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="all">All time</option>
-          </select>
+          <PeriodControl value={period} onChange={setPeriod} />
           {imports.length > 1 && (
             <select aria-label="History" value={id} onChange={(e) => setId(e.target.value)}>
               {imports.map((r) => (
@@ -231,220 +204,7 @@ export function RecapSurface({
       {recap &&
         (recap.records ? (
           <div data-testid="recap-ready">
-            <section className="recap-hero">
-              <div className="recap-hero-top">
-                <span className="recap-eyebrow">
-                  {recap.start} / {recap.end}
-                </span>
-                <span className="recap-local">● ONLY IN YOUR BROWSER</span>
-              </div>
-              <div className="recap-hero-number">
-                {recap.priced
-                  ? recapUsd(recap.usd)
-                  : compactNumber(recap.totalKnown ? recap.total : recap.records)}
-              </div>
-              <div className="recap-hero-caption">
-                {recap.priced
-                  ? "of AI coding at API prices"
-                  : recap.totalKnown
-                    ? "logged total tokens"
-                    : "logged activity records"}
-                <Info label="How API-equivalent value is calculated">
-                  <p>
-                    What the priced records would cost at their model developer's catalog API list
-                    prices, pinned to {recap.rulesAsOf}. The replay engine accounts for input,
-                    output, cache, reasoning and supported rate conditions.
-                  </p>
-                  {recap.usdHigh !== recap.usd && (
-                    <p>
-                      {recapUsd(recap.usd)} to {recapUsd(recap.usdHigh)}: cache-write lifetimes are
-                      unreported for {recap.cacheScenarioRecords.toLocaleString()} records. The main
-                      number uses the 5-minute rate; the upper bound uses the 1-hour rate.
-                    </p>
-                  )}
-                  <p>
-                    {recap.priced.toLocaleString()} of {recap.records.toLocaleString()} usage
-                    records priced ({Math.round((recap.priced / recap.records) * 100)}%). Unknown
-                    models or incomplete pricing are excluded. This is an estimate, not a bill or
-                    savings.
-                  </p>
-                </Info>
-              </div>
-              {multiplierText && recap.priced > 0 && (
-                <p className="recap-plan-comparison">
-                  <strong>{multiplierText}</strong>
-                  <Info label="How the payment multiplier is calculated">
-                    <p>
-                      API-equivalent value divided by (your confirmed monthly plan cost ×{" "}
-                      {recap.days.length} days / 30.4). Rounded to a whole number and shown only at
-                      2× or above. The same lower cache-rate scenario is used throughout.
-                    </p>
-                    <p>
-                      Current published plan prices are the reference you confirmed. Taxes,
-                      discounts, plan changes and separate API charges are excluded.
-                    </p>
-                  </Info>
-                </p>
-              )}
-            </section>
-            <section className="recap-stats" aria-label="Your key numbers">
-              {[
-                [
-                  `${recap.streak}`,
-                  "day activity streak",
-                  "Days with logged usage, anchored to today or yesterday. Includes agent activity.",
-                ],
-                ...(recap.totalKnown
-                  ? [
-                      [
-                        compactNumber(recap.total),
-                        "total tokens",
-                        `Reported input, output, cache read, cache write and separate reasoning, respecting accounting flags. Missing categories are excluded. ${recap.totalKnown.toLocaleString()} of ${recap.records.toLocaleString()} records report at least one token category.`,
-                      ],
-                    ]
-                  : []),
-                ...(recap.sessions
-                  ? [
-                      [
-                        recap.sessions.toLocaleString(),
-                        "sessions",
-                        `${recap.sessionKnown.toLocaleString()} records have native session identity. Distinct tool and session pairs, including sessions started by child agents; not user visits.`,
-                      ],
-                    ]
-                  : []),
-                [
-                  new Date(Date.UTC(2026, 0, 1, recap.busiestHour)).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    timeZone: "UTC",
-                  }),
-                  "busiest hour",
-                  `Most usage records by local hour in ${recap.timeZone}, not human work time.`,
-                ],
-              ].map(([value, label, method]) => (
-                <div key={label}>
-                  <strong>{value}</strong>
-                  <span>
-                    {label}
-                    <Info label={`About ${label}`}>
-                      <p>{method}</p>
-                    </Info>
-                  </span>
-                </div>
-              ))}
-            </section>
-            <section className="recap-panel">
-              <div className="recap-section-heading">
-                <div>
-                  <h2>A little, then a lot.</h2>
-                </div>
-                <span>
-                  {recap.days.filter((d) => d.records).length} active days
-                  <Info label="About activity">
-                    <p>
-                      Each square counts normalized usage records on a local calendar day in{" "}
-                      {recap.timeZone}. Darker means more activity. Aggregate imports place usage on
-                      their recorded timestamp; records across tools are not equivalent API calls.
-                      Only the selected local history is covered.
-                    </p>
-                  </Info>
-                </span>
-              </div>
-              <Heatmap recap={recap} />
-              <div className="recap-calendar-footer">
-                <span>From the first active week. Each cell is a day.</span>
-                <span>
-                  Less <i /> <i /> <i /> More
-                </span>
-              </div>
-            </section>
-            <div className="recap-two-column">
-              {recap.totalKnown > 0 && (
-                <section className="recap-panel">
-                  <h2>
-                    Your model mix.{" "}
-                    <Info label="About model API values">
-                      <p>
-                        Each model uses the same lower cache-rate scenario as the hero. Unreported
-                        cache-write lifetimes use the 5-minute rate; the 1-hour rate can yield a
-                        higher value. Unknown or incomplete prices are excluded.
-                      </p>
-                    </Info>
-                  </h2>
-                  <p className="recap-subtitle">Total tokens, week by week.</p>
-                  <Mix recap={recap} />
-                  <div className="recap-models">
-                    {topRecapModels(recap.models, 7).map((m, i) => (
-                      <div key={m.id}>
-                        <span className="recap-model-rank">{String(i + 1).padStart(2, "0")}</span>
-                        <i style={{ background: color(m.family) }} />
-                        <span className="recap-model-name">{m.name}</span>
-                        <span>
-                          {compactNumber(m.total)}
-                          <small>total tokens</small>
-                        </span>
-                        <span>
-                          {m.priced ? recapUsd(m.usd) : "Unpriced"}
-                          <small>
-                            {m.priced < m.records && m.priced ? "priced records" : "API equivalent"}
-                          </small>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-              <div className="recap-right-column">
-                <section className="recap-panel">
-                  <h2>Many tools. One story.</h2>
-                  <p className="recap-subtitle">Share of total tokens.</p>
-                  <div className="recap-tools">
-                    {[...recap.tools]
-                      .sort((a, b) => b.total - a.total)
-                      .map((t) => (
-                        <div key={t.id}>
-                          <div>
-                            <strong>{toolNames[t.id] ?? t.id}</strong>
-                            <span>{Math.round((t.total / Math.max(1, recap.total)) * 100)}%</span>
-                          </div>
-                          <div className="recap-tool-track">
-                            <i
-                              style={{ width: `${(t.total / Math.max(1, recap.total)) * 100}%` }}
-                            />
-                          </div>
-                          <small>
-                            {t.records.toLocaleString()}{" "}
-                            {t.id === "hermes" ? "session/model aggregates" : "records"}
-                            {recap.totalKnown > 0
-                              ? ` · ${compactNumber(t.total)} total tokens`
-                              : ""}
-                          </small>
-                        </div>
-                      ))}
-                  </div>
-                </section>
-                <section className="recap-panel recap-facts">
-                  <h2>Patterns worth keeping.</h2>
-                  <p>
-                    <strong>{recap.longestStreak} days</strong>
-                    <span>Your longest logged activity streak.</span>
-                  </p>
-                  <p>
-                    <strong>
-                      {new Date(`${recap.busiestDay}T12:00:00Z`).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        timeZone: "UTC",
-                      })}
-                    </strong>
-                    <span>Your busiest day by usage records.</span>
-                  </p>
-                  <p>
-                    <strong>{Math.round(recap.lateNightShare * 100)}%</strong>
-                    <span>Of usage records landed between midnight and 5 AM.</span>
-                  </p>
-                </section>
-              </div>
-            </div>
+            <RecapStory recap={recap} period={period} projects={imports.find(r=>r.id===id)?.localProjects ?? []} {...(multiplierText ? {multiplierText}: {})} />
             <div style={{ maxWidth: "600px", margin: "32px auto" }}>
               <RecapShareCard recap={recap} />
             </div>
