@@ -98,19 +98,20 @@ export async function renderRecapCard(
     });
     text(`${weeks[0]?.date ?? recap.start}  →  ${recap.end}`, pad, 1244, 18, "#a7b6bc");
   } else {
-    text("DAILY ACTIVITY", pad, 515, 13, "#a7b6bc", 600);
+    text("DAILY ACTIVITY", 800, 173, 13, "#a7b6bc", 600);
     const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
     const weeks = Math.ceil((days.length + offset) / 7);
-    const gap = Math.min(2, (w - pad * 2) / Math.max(1, weeks) / 4);
-    const cell = Math.min(5, (w - pad * 2 - (weeks - 1) * gap) / weeks);
+    const available = w - pad - 800;
+    const gap = Math.min(3, available / Math.max(1, weeks) / 4);
+    const cell = Math.min(16, (available - (weeks - 1) * gap) / weeks);
     const max = Math.max(1, ...days.map((d) => d.records));
     days.forEach((day, i) => {
       const position = i + offset;
       ctx.fillStyle = day.records ? "#8dbba8" : "#33434a";
       ctx.globalAlpha = day.records ? 0.3 + 0.7 * Math.sqrt(day.records / max) : 1;
       ctx.fillRect(
-        pad + Math.floor(position / 7) * (cell + gap),
-        535 + (position % 7) * (cell + gap),
+        800 + Math.floor(position / 7) * (cell + gap),
+        201 + (position % 7) * (cell + gap),
         cell,
         cell,
       );
