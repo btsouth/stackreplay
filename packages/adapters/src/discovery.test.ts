@@ -537,12 +537,16 @@ describe("direct roots", () => {
     expect(status.OpenCode).toMatchObject({ status: "found", importable: true, fileCount: 1 });
   });
 
-  it("recognizes a custom HERMES_HOME as found but not readable in the browser", async () => {
+  it("recognizes a custom HERMES_HOME as browser-importable", async () => {
     const { status } = await discover(
       { "state.db": 1, "config.yaml": 1, sessions: {} },
       { root: "hermes-agent-data" },
     );
-    expect(status.Hermes).toMatchObject({ status: "unsupported", location: ["state.db"] });
+    expect(status.Hermes).toMatchObject({
+      status: "found",
+      importable: true,
+      location: ["state.db"],
+    });
     expect(status.Codex?.status).toBe("not-found");
   });
 
@@ -569,7 +573,7 @@ describe("direct roots", () => {
       "found",
       "found",
       "found",
-      "unsupported",
+      "found",
     ]);
   });
 });

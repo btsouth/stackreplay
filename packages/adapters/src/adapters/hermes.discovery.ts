@@ -3,7 +3,7 @@ import type { SourceDiscovery } from "../discovery-types.js";
 /**
  * Hermes keeps `~/.hermes/` on Linux, macOS and WSL2 (usage in `state.db`), and
  * native Windows defaults `HERMES_HOME` to `%LOCALAPPDATA%\hermes`. Its SQLite
- * store is not parsed in the browser.
+ * usage metadata is parsed through the shared adapter in the browser.
  */
 export const HERMES_DISCOVERY: SourceDiscovery = {
   adapterId: "hermes",
