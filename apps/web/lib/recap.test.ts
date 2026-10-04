@@ -211,7 +211,7 @@ describe("full-history activity", () => {
     ]);
     expect(buildRecap(events, "30", "2026-10-04T12:00:00Z", "UTC").streak).toBe(2);
   });
-  it("spreads only aggregate activity across local days, preserving volume and costs", () => {
+  it("marks only the first and last local days of aggregate activity, preserving volume and costs", () => {
     const aggregate = {
       ...event,
       id: "aggregate",
@@ -235,9 +235,9 @@ describe("full-history activity", () => {
       "2026-03-09T12:00:00Z",
       "America/Kentucky/Louisville",
     );
-    expect(recap.streak).toBe(4);
-    expect(recap.longestStreak).toBe(4);
-    expect(recap.days.filter((d) => d.records).map((d) => d.records)).toEqual([1, 1, 1, 2]);
+    expect(recap.streak).toBe(1);
+    expect(recap.longestStreak).toBe(1);
+    expect(recap.days.filter((d) => d.records).map((d) => d.records)).toEqual([1, 2]);
     expect(recap.records).toBe(2);
     expect(recap.days.reduce((n, d) => n + d.output, 0)).toBe(recap.output);
   });
@@ -251,7 +251,7 @@ describe("full-history activity", () => {
       requestEndedAt: "2026-10-06T12:00:00Z",
     };
     const recap = buildRecap([aggregate], "all", "2026-10-04T12:00:00Z", "UTC");
-    expect(recap.streak).toBe(4);
+    expect(recap.streak).toBe(1);
     expect(recap.records).toBe(0);
     expect(
       buildRecap(
@@ -261,5 +261,15 @@ describe("full-history activity", () => {
         "UTC",
       ).streak,
     ).toBe(0);
+  });
+  it("keeps the current streak alive before today's first activity", () => {
+    const events = ["2026-10-01", "2026-10-02", "2026-10-03"].map((d, i) => ({
+      ...event,
+      id: `grace-${i}`,
+      occurredAt: `${d}T12:00:00Z`,
+    }));
+    const recap = buildRecap(events, "30", "2026-10-04T08:00:00Z", "UTC");
+    expect(recap.streak).toBe(3);
+    expect(recap.longestStreak).toBe(3);
   });
 });

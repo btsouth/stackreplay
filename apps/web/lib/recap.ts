@@ -114,13 +114,13 @@ export function recapActivity(
     const startMs = validSpan ? from : at;
     const endMs = validSpan ? to : at;
     if (startMs > nowMs) continue;
-    for (
-      let date = local(new Date(startMs).toISOString()).date;
-      date <= local(new Date(Math.min(endMs, nowMs)).toISOString()).date;
-      date = nextDay(date)
-    ) {
-      days.set(date, (days.get(date) ?? 0) + 1);
-    }
+    // Aggregates only prove activity on the days they were first and last seen; an open
+    // session spanning idle days must not invent the days in between.
+    const marked = new Set([
+      local(new Date(startMs).toISOString()).date,
+      local(new Date(Math.min(endMs, nowMs)).toISOString()).date,
+    ]);
+    for (const date of marked) days.set(date, (days.get(date) ?? 0) + 1);
   }
   const dates = [...days.keys()].sort();
   let run = 0;
@@ -131,8 +131,10 @@ export function recapActivity(
     longestStreak = Math.max(longestStreak, run);
     previous = date;
   }
+  // Today without activity yet keeps yesterday's streak alive.
   let streak = 0;
-  for (let date = end; days.has(date); date = nextDay(date, -1)) streak++;
+  const from = days.has(end) ? end : nextDay(end, -1);
+  for (let date = from; days.has(date); date = nextDay(date, -1)) streak++;
   return { days, streak, longestStreak };
 }
 /** Calendar-day periods, local dates and hours; engine quotes at pinned current list prices. No content is read. */
