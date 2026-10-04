@@ -367,7 +367,7 @@ export function CurrentSpend({
               {rows
                 .map(
                   (row) =>
-                    `${row.plan.name} × ${counts[`plan:${row.plan.id}`] ?? 1}: ${formatUsd(row.plan.price.amount)} per ${row.plan.price.interval} × ${count(periodDays)} days × ${row.plan.price.interval === "month" ? "12 ÷ 365" : "1 ÷ 365"} = ${formatCents(row.cents ?? 0n)}`,
+                    `${row.plan.name}${(counts[`plan:${row.plan.id}`] ?? 1) > 1 ? ` × ${counts[`plan:${row.plan.id}`]}` : ""}: ${formatUsd(row.plan.price.amount)} per ${row.plan.price.interval} × ${count(periodDays)} days × ${row.plan.price.interval === "month" ? "12 ÷ 365" : "1 ÷ 365"} = ${formatCents(row.cents ?? 0n)}`,
                 )
                 .join("; ")}
               .
