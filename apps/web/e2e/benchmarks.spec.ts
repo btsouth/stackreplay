@@ -828,9 +828,12 @@ for (const [index, modelId] of epochModels.entries())
   test(`Epoch model provenance: ${modelId}`, async ({ page }, testInfo) => {
     await page.goto(`/models/${modelId}`);
     const section = page.getByRole("region", { name: "Benchmarks", exact: true });
-    const source = section
-      .locator(".bench-model-source")
-      .filter({ has: page.getByRole("heading", { name: "Epoch AI · Oct 4, 2026", exact: true }) });
+    const source = section.locator(".bench-model-source").filter({
+      has: page.getByRole("heading", {
+        name: "Epoch AI · Archive checked Oct 4, 2026",
+        exact: true,
+      }),
+    });
     await expect(source).toContainText("Independent evaluation");
     await expect(source).toContainText(epochExactDisplays[index] ?? "missing expected score");
     await source.getByText("Methodology & sources", { exact: true }).click();
