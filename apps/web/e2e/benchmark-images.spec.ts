@@ -476,3 +476,37 @@ test("PNG preparation failure: useful retry prepares a fresh download", async ({
   const fresh = await openImages(page);
   await expect(fresh.getByRole("alert")).toHaveCount(0);
 });
+
+test("PNG dated providers: v4 facts, publication attribution and Kimi missing source scope", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/benchmarks?models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3&category=coding");
+  const dialog = await openImages(page);
+  const text = dialog.locator(".bench-image-text");
+  await expect(text).toContainText("2026-10-04-v4");
+  await expect(text).toContainText("86.6%");
+  await expect(text).toContainText("88.2%");
+  await expect(text).toContainText("66.0%");
+  await expect(text).toContainText("Different or unreported setups");
+  await expect(text).toContainText("Reporter-run · Effort unreported");
+  await expect(text).toContainText("full setup, uncertainty and provenance (JSON)");
+  for (const url of [
+    "https://www.qwencloud.com/news/qwen-3-8-max",
+    "https://z.ai/blog/glm-5.3",
+    "https://www.minimax.io/blog/minimax-m3",
+  ])
+    await expect(text).toContainText(url);
+  for (const date of ["2026-08-03", "2026-08-14", "2026-06-01"])
+    await expect(text).toContainText(date);
+  await expect(text).not.toContainText("CC BY 4.0");
+  await downloadPng(page, testInfo, "dated-provider-facts");
+  await expect(dialog.locator(".bench-image-page-count")).toHaveText("Page 1 of 2");
+  await dialog.getByRole("button", { name: "Next page" }).click();
+  await expect(text).toContainText("Kimi K3");
+  await expect(text).toContainText("Not reported");
+  await expect(text).not.toContainText("Sources used on this page");
+  await expect(text).not.toContainText("qwencloud.com");
+  await expect(text).not.toContainText("minimax.io");
+  await expect(text).not.toContainText("z.ai/blog");
+  await downloadPng(page, testInfo, "dated-provider-kimi-missing");
+});

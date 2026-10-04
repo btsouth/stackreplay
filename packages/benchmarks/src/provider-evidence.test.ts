@@ -62,7 +62,7 @@ describe("official provider source transcriptions", () => {
       expect(source?.redistribution.basis).toBe("official_provider_facts");
     });
   it("does not import independent restricted datasets or mistake Sol 6 for Sol 6.1", () => {
-    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(208);
     expect(
       benchmarkData.sourceSets
         .filter((s) => s.redistribution.basis === "official_provider_facts")

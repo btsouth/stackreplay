@@ -24,3 +24,17 @@ describe("public benchmark edition validation", () => {
     );
   });
 });
+
+describe("dated provider public catalog mapping", () => {
+  it("maps only the three admitted releases and preserves historical coverage", () => {
+    const data = loadPublicBenchmarks();
+    const added = data.sourceSets.slice(12);
+    expect(added.flatMap((s) => s.modelIds)).toEqual(["qwen-3-8-max", "glm-5-3", "minimax-m3"]);
+    expect(added.map((s) => s.observations[0]?.displayValue)).toEqual(["86.6%", "88.2%", "66.0%"]);
+    expect(data.sourceSets.flatMap((s) => s.modelIds)).not.toContain("kimi-k3");
+    const old = loadPublicBenchmarks("2026-10-04-v3");
+    expect(old.sourceSets).toHaveLength(12);
+    expect(old.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+    expect(data.sourceSets.slice(0, 12)).toEqual(old.sourceSets);
+  });
+});

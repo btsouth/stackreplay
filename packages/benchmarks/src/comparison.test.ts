@@ -31,7 +31,7 @@ describe("model-first comparison evidence", () => {
     expect(
       resolveComparison(data, frontierModelIds, { coverage: "shared" }).map((r) => r.definition.id),
     ).toEqual(["deep-swe-v1-1", "terminal-bench-science-0-1"]);
-    expect(benchmarkEdition).toBe("2026-10-04-v3");
+    expect(benchmarkEdition).toBe("2026-10-04-v4");
   });
   it("preserves the published v1 edition and rejects unknown edition keys", () => {
     const first = validateBenchmarkData(benchmarkDataForEdition("2026-09-30-v1"), models);
@@ -51,8 +51,20 @@ describe("model-first comparison evidence", () => {
       "eb2da8c32f7b303849da09338c62f0cda6ba07655f3045b8b2b955f0a94aec31",
     );
     expect(benchmarkDataForEdition("2026-09-30-v2")).not.toBe(benchmarkData);
-    expect(benchmarkDataForEdition("2026-10-04-v3")).toBe(benchmarkData);
-    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+    const third = benchmarkDataForEdition("2026-10-04-v3");
+    expect(serializedHash(third)).toBe(
+      "ca3504c9c63e27544d86fc1f020dd65cfe472ec364ba69c13f31eae0155de14f",
+    );
+    expect(third?.sourceSets).toHaveLength(12);
+    expect(third?.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+    expect(third?.definitions).toHaveLength(44);
+    expect(third).not.toBe(benchmarkData);
+    expect(benchmarkDataForEdition("2026-10-04-v4")).toBe(benchmarkData);
+    expect(benchmarkData.sourceSets).toHaveLength(15);
+    expect(benchmarkData.definitions).toEqual(third?.definitions);
+    expect(benchmarkData.primarySelections).toEqual(third?.primarySelections);
+    expect(benchmarkData.sourceSets.slice(0, 12)).toEqual(third?.sourceSets);
+    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(208);
     expect(benchmarkData.definitions).toHaveLength(44);
     expect(benchmarkDataForEdition("unpublished")).toBeUndefined();
     expect(benchmarkDataForEdition("toString")).toBeUndefined();

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "qwen-max-terminal-2026-08-03",
+    "kind": "model_observations",
+    "title": "Qwen3.8-Max release: Terminal-Bench 2.1",
+    "evaluator": "QwenCloud Team",
+    "publishedAt": "2026-08-03",
+    "sourceUrl": "https://www.qwencloud.com/news/qwen-3-8-max",
+    "methodologyUrl": "https://www.qwencloud.com/news/qwen-3-8-max",
+    "evidenceClass": "developer_reported",
+    "methodologySummary": "QwenCloud reports Qwen3.8-Max evaluated with Claude Code, avg@10, a 5-hour timeout and max_tokens=131,072.",
+    "limitations": [
+      "This selected numerical fact is developer reported. StackReplay did not reproduce the evaluation. Different or unreported setups do not establish a matched comparison.",
+      "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs.",
+      "Publication uses the visible article and official news-list date 2026-08-03. The HTML meta date is 2026-07-20 15:56:48; this discrepancy is unresolved.",
+      "Claude Code version, reasoning effort, tools, temperature/top-p, API surface and sandbox details are unreported. The avg@10 label is retained without inferring a scored task count.",
+      "The provider table omits the unit marker. Percent display is StackReplay's metric interpretation using the official Terminal-Bench 2.1 accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1), not a claim of leaderboard admission or exact task counts."
+    ],
+    "redistribution": {
+      "basis": "official_provider_facts",
+      "rationale": "Selected first-party numerical fact with source attribution and our own short methodology description under the existing provider-facts policy. No explicit benchmark dataset redistribution grant was observed. This basis does not cover publisher charts, prose, questions, answers, logs or underlying datasets.",
+      "termsUrl": "https://www.qwencloud.com/news/qwen-3-8-max",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["qwen-3-8-max"],
+    "benchmarkIds": ["terminal-bench-2-1"],
+    "observations": [
+      {
+        "benchmarkId": "terminal-bench-2-1",
+        "modelId": "qwen-3-8-max",
+        "value": 86.6,
+        "displayValue": "86.6%",
+        "evaluator": "QwenCloud Team",
+        "evidenceClass": "developer_reported",
+        "sourceSetId": "qwen-max-terminal-2026-08-03",
+        "sourceUrl": "https://www.qwencloud.com/news/qwen-3-8-max",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "QwenCloud Team administered and reported the evaluation",
+        "harness": "Claude Code (version unreported; avg@10)",
+        "notes": "The raw table score is 86.6 in the Qwen3.8-Max column. The provider source omits the unit marker. StackReplay interprets the raw notation 86.6 on Terminal-Bench 2.1's published percent accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1); numeric value is unchanged, with no arithmetic rescaling. The display % is this documented metric interpretation, not provider-explicit notation. This is the unsuffixed release, not Qwen3.8-Max-0902. Timeout: 5 hours; max_tokens=131,072. Claude Code avg@10 is the reported aggregation label. Publication uses the visible article and official news-list date 2026-08-03. The HTML meta date is 2026-07-20 15:56:48; this discrepancy is unresolved.",
+        "uncertainty": "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs. Claude Code version, reasoning effort, tools, temperature/top-p, API surface and sandbox details are unreported. The avg@10 label is retained without inferring a scored task count."
+      }
+    ]
+  },
+  {
+    "id": "zai-glm-5-3-terminal-2026-08-14",
+    "kind": "model_observations",
+    "title": "GLM-5.3 release: Terminal-Bench 2.1",
+    "evaluator": "Z.ai",
+    "publishedAt": "2026-08-14",
+    "sourceUrl": "https://z.ai/blog/glm-5.3",
+    "methodologyUrl": "https://z.ai/blog/glm-5.3",
+    "evidenceClass": "developer_reported",
+    "methodologySummary": "Z.ai reports GLM-5.3 evaluated with Claude Code 2.1.207, temperature=1.0, top_p=1, max_new_tokens=65,536 and a 6-hour timeout.",
+    "limitations": [
+      "This selected numerical fact is developer reported. StackReplay did not reproduce the evaluation. Different or unreported setups do not establish a matched comparison.",
+      "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs.",
+      "Publication uses the official blog root data date 2026-08-14. The related documentation dateModified 2026-09-18 is not the blog publication date.",
+      "Reasoning effort, tools, trial count, API surface and sandbox details are unreported for Terminal-Bench 2.1. Terminal-Bench 3.0 effort, aggregation and context/output settings are not applied to this observation.",
+      "The provider table omits the unit marker. Percent display is StackReplay's metric interpretation using the official Terminal-Bench 2.1 accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1), not a claim of leaderboard admission or exact task counts."
+    ],
+    "redistribution": {
+      "basis": "official_provider_facts",
+      "rationale": "Selected first-party numerical fact with source attribution and our own short methodology description under the existing provider-facts policy. No explicit benchmark dataset redistribution grant was observed. This basis does not cover publisher charts, prose, questions, answers, logs or underlying datasets.",
+      "termsUrl": "https://z.ai/blog/glm-5.3",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["glm-5-3"],
+    "benchmarkIds": ["terminal-bench-2-1"],
+    "observations": [
+      {
+        "benchmarkId": "terminal-bench-2-1",
+        "modelId": "glm-5-3",
+        "value": 88.2,
+        "displayValue": "88.2%",
+        "evaluator": "Z.ai",
+        "evidenceClass": "developer_reported",
+        "sourceSetId": "zai-glm-5-3-terminal-2026-08-14",
+        "sourceUrl": "https://z.ai/blog/glm-5.3",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "Z.ai administered and reported the evaluation",
+        "harness": "Claude Code 2.1.207",
+        "notes": "The raw table score is 88.2 in the GLM-5.3 column. The provider source omits the unit marker. StackReplay interprets the raw notation 88.2 on Terminal-Bench 2.1's published percent accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1); numeric value is unchanged, with no arithmetic rescaling. The display % is this documented metric interpretation, not provider-explicit notation. Temperature=1.0; top_p=1; max_new_tokens=65,536; timeout=6 hours. Settings are specific to Terminal-Bench 2.1. Publication uses the official blog root data date 2026-08-14. The related documentation dateModified 2026-09-18 is not the blog publication date.",
+        "uncertainty": "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs. Reasoning effort, tools, trial count, API surface and sandbox details are unreported for Terminal-Bench 2.1. Terminal-Bench 3.0 effort, aggregation and context/output settings are not applied to this observation."
+      }
+    ]
+  },
+  {
+    "id": "minimax-m3-terminal-2026-06-01",
+    "kind": "model_observations",
+    "title": "MiniMax M3 release: Terminal-Bench 2.1",
+    "evaluator": "MiniMax",
+    "publishedAt": "2026-06-01",
+    "sourceUrl": "https://www.minimax.io/blog/minimax-m3",
+    "methodologyUrl": "https://www.minimax.io/blog/minimax-m3",
+    "evidenceClass": "developer_reported",
+    "methodologySummary": "MiniMax reports M3 evaluated through its official API using Terminus 2 on internal infrastructure, an 8C16G sandbox, a 2-hour timeout and 128K maximum output tokens.",
+    "limitations": [
+      "This selected numerical fact is developer reported. StackReplay did not reproduce the evaluation. Different or unreported setups do not establish a matched comparison.",
+      "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs.",
+      "Publication uses the visible article date 2026-06-01. JSON-LD datePublished is 2026-05-31T17:31:18.000Z; both source dates are retained.",
+      "The official API evaluation surface is reported; the exact endpoint and model version are unreported. Reasoning effort, tools, trial count, temperature/top-p and the exact Terminus 2 revision are unreported."
+    ],
+    "redistribution": {
+      "basis": "official_provider_facts",
+      "rationale": "Selected first-party numerical fact with source attribution and our own short methodology description under the existing provider-facts policy. No explicit benchmark dataset redistribution grant was observed. This basis does not cover publisher charts, prose, questions, answers, logs or underlying datasets.",
+      "termsUrl": "https://www.minimax.io/blog/minimax-m3",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["minimax-m3"],
+    "benchmarkIds": ["terminal-bench-2-1"],
+    "observations": [
+      {
+        "benchmarkId": "terminal-bench-2-1",
+        "modelId": "minimax-m3",
+        "value": 66.0,
+        "displayValue": "66.0%",
+        "evaluator": "MiniMax",
+        "evidenceClass": "developer_reported",
+        "sourceSetId": "minimax-m3-terminal-2026-06-01",
+        "sourceUrl": "https://www.minimax.io/blog/minimax-m3",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "MiniMax administered and reported the evaluation",
+        "harness": "Terminus 2",
+        "notes": "The source explicitly reports 66.0%. Internal infrastructure; sandbox=8C16G; timeout=2 hours; maximum output tokens=128K. The source says models other than its named foreign leaderboard entries were tested via official API; M3 is a MiniMax-tested result. No foreign developer score is admitted. Publication uses the visible article date 2026-06-01. JSON-LD datePublished is 2026-05-31T17:31:18.000Z; both source dates are retained.",
+        "uncertainty": "Evaluation start, completion and original run publication dates, actual scored task count, task subset, suite revision beyond 2.1, exact model endpoint/version, prompts, seeds and error handling are unreported. Publication dates identify the source articles, not the evaluation runs. The official API evaluation surface is reported; the exact endpoint and model version are unreported. Reasoning effort, tools, trial count, temperature/top-p and the exact Terminus 2 revision are unreported.",
+        "provider": "MiniMax official API (exact endpoint/version unreported)"
+      }
+    ]
+  }
+]
