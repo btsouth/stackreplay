@@ -8,7 +8,12 @@ for (const [id, name] of [
 ] as const) {
   test(`detail client navigation preserves ${id} in Compare`, async ({ page }) => {
     await page.goto(`/plans/${id}`);
-    await page.getByRole("link", { name: "Compare this plan ↗", exact: true }).click();
+    const compareLink = page.getByRole("link", { name: "Compare this plan ↗", exact: true });
+    await expect(compareLink).toHaveAttribute(
+      "href",
+      `/compare?left=${id}&right=openai-chatgpt-pro`,
+    );
+    await compareLink.click();
     await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=`));
     await expect(page.getByLabel("First plan")).toHaveValue(id);
     await expect(page.getByTestId("compare-target").first()).toContainText(name);
