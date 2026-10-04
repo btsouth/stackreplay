@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { familyColors, type Recap, topRecapModels } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
-import "./recap-share-card.css";
 /** The live counterpart to renderRecapCard: same recap, formatting and ranking. */
 export function RecapShareCard({
   recap,
@@ -13,7 +12,7 @@ export function RecapShareCard({
   sample?: boolean;
 }) {
   return (
-    <section
+    <article
       className="replay-card"
       aria-label={sample ? "Fictional sample recap for Alex" : "Your share card preview"}
     >
@@ -64,6 +63,6 @@ export function RecapShareCard({
         <span>{recap.longestStreak} day streak</span>
         <span>{sample ? "Illustrative sample" : "Only in your browser"}</span>
       </div>
-    </section>
+    </article>
   );
 }

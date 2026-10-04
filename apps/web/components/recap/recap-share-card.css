@@ -128,3 +128,8 @@
     font-size: 9px;
   }
 }
+
+/* Fixed numeral measure prevents the caption moving as the counter changes. */
+.replay-card-total strong {
+  min-width: 5.2ch;
+}

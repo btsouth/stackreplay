@@ -20,7 +20,6 @@ import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { Heatmap, Mix } from "./recap-charts";
 import { RecapShareCard } from "./recap-share-card";
-import "./recap.css";
 
 const toolNames: Record<string, string> = {
   "claude-code": "Claude Code",

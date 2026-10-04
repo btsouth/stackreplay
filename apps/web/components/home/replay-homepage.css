@@ -1480,3 +1480,56 @@
     font-size: 10px !important;
   }
 }
+
+.replay-orbit:before {
+  content: "";
+  position: absolute;
+  top: 16%;
+  left: 12%;
+  width: 9px;
+  height: 9px;
+  background: #eaa487;
+  border-radius: 50%;
+  box-shadow: 0 0 24px #eaa48788;
+}
+.replay-orbit {
+  animation: replay-hero-orbit 35s linear infinite;
+}
+.replay-reveal.is-visible .replay-folders > span {
+  animation: replay-folder-in 0.8s both;
+}
+.replay-reveal.is-visible .replay-folders > span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.replay-reveal.is-visible .replay-folders > span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.replay-reveal.is-visible .replay-mini-cards > div {
+  animation: replay-fan-in 1s both;
+}
+.replay-reveal.is-visible .replay-mini-cards > div + div {
+  animation-delay: 0.13s;
+}
+@keyframes replay-folder-in {
+  from {
+    translate: -22px 12px;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes replay-fan-in {
+  from {
+    translate: -15px 25px;
+    scale: 0.9;
+  }
+  to {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+@keyframes replay-hero-orbit {
+  to {
+    transform: translate(-50%, -50%) rotateX(55deg) rotateZ(335deg);
+  }
+}

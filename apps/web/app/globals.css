@@ -10,6 +10,10 @@
 @import "./my-stack.css";
 @import "./benchmarks.css";
 @import "./home.css";
+/* Replay launch styles are in the blocking root sheet to keep first paint stable. */
+@import "../components/home/replay-homepage.css";
+@import "../components/recap/recap-share-card.css";
+@import "../components/recap/recap.css";
 @import "./updates.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */

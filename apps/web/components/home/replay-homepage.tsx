@@ -13,15 +13,11 @@ import { Heatmap, Mix } from "@/components/recap/recap-charts";
 import { RecapShareCard } from "@/components/recap/recap-share-card";
 import { sampleRecap } from "@/lib/home/recap-sample";
 import { renderRecapCard } from "@/lib/recap-card";
-import "../recap/recap.css";
-import "./replay-homepage.css";
 
 const tools = ["Claude Code", "Codex", "OpenCode", "Command Code", "Hermes", "T3 Code"];
-export function ReplayHomepage() {
-  const root = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
+/** Only the live card rerenders while counting; the scroll story remains still. */
+function AnimatedRecapCard() {
   const [progress, setProgress] = useState(1);
-  const [downloadError, setDownloadError] = useState("");
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     let raf = 0;
@@ -35,6 +31,26 @@ export function ReplayHomepage() {
       setProgress(0);
       raf = requestAnimationFrame(tick);
     }
+    const settle = () => {
+      if (reduced.matches) {
+        cancelAnimationFrame(raf);
+        setProgress(1);
+      }
+    };
+    reduced.addEventListener("change", settle);
+    return () => {
+      cancelAnimationFrame(raf);
+      reduced.removeEventListener("change", settle);
+    };
+  }, []);
+  return <RecapShareCard recap={sampleRecap} progress={progress} sample />;
+}
+export function ReplayHomepage() {
+  const root = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const [downloadError, setDownloadError] = useState("");
+  useEffect(() => {
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries)
@@ -50,14 +66,11 @@ export function ReplayHomepage() {
     });
     const settle = () => {
       if (reduced.matches) {
-        cancelAnimationFrame(raf);
-        setProgress(1);
         if (stage.current) stage.current.style.transform = "none";
       }
     };
     reduced.addEventListener("change", settle);
     return () => {
-      cancelAnimationFrame(raf);
       observer.disconnect();
       reduced.removeEventListener("change", settle);
     };
@@ -141,7 +154,7 @@ export function ReplayHomepage() {
             <div className="replay-orbit" aria-hidden="true" />
             <div className="replay-card-shadow" aria-hidden="true" />
             <div className="replay-card-position" ref={stage}>
-              <RecapShareCard recap={sampleRecap} progress={progress} sample />
+              <AnimatedRecapCard />
             </div>
             <div className="replay-sticker">
               <span>Local logs.</span>
