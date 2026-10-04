@@ -69,7 +69,7 @@ function Scatter({ models, benchmark }: { models: VisualModel[]; benchmark: Visu
         <svg
           viewBox="0 0 1060 420"
           aria-label={`API blended price versus ${benchmark.name}`}
-          role="img"
+          role="group"
         >
           <title>Price versus benchmark score. Select a model for its price and evidence.</title>
           {[0, 1, 2, 3, 4].map((tick) => {
