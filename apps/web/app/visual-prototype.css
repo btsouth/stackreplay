@@ -978,3 +978,7 @@
     align-items: center;
   }
 }
+
+.visual [data-missing="true"] {
+  color: var(--muted-foreground);
+}

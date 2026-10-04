@@ -7,6 +7,7 @@ test.beforeEach(async ({ page }) => {
 test("homepage chart, complete rows and mobile metrics stay usable", async ({ page, isMobile }) => {
   await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 900 });
   await page.goto("/");
+  await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await expect(page.getByLabel("Chart benchmark")).toHaveValue("deep-swe-v1-1");
   await expect(page.locator(".v-chart-foot")).toContainText("7 models plotted");
   await expect(page.locator(".v-table-scroll tbody tr").first()).toContainText("Claude Opus 5.5");
@@ -35,6 +36,7 @@ test("homepage chart, complete rows and mobile metrics stay usable", async ({ pa
 
 test("search and model rows open a shareable comparison", async ({ page }) => {
   await page.goto("/");
+  await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await page.getByLabel("Search models to compare").fill("GPT-6.1");
   await page.getByLabel("Search models to compare").press("Enter");
   await expect(page).toHaveURL(/\/compare\/models\?models=gpt-6-1-sol$/u);
@@ -46,6 +48,7 @@ test("search and model rows open a shareable comparison", async ({ page }) => {
   await expect(page.locator(".v-model-cards article")).toHaveCount(2);
   await expect(page.locator(".v-compare-section").first()).toContainText("$4.00");
   await page.goto("/");
+  await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await page.getByRole("button", { name: "Add Claude Opus 5.5 to compare", exact: true }).click();
   await page.getByRole("button", { name: "Add GPT-6.1 Sol to compare", exact: true }).click();
   await page.locator(".v-compare-tray").getByRole("link", { name: "Compare models →" }).click();
@@ -59,12 +62,14 @@ test("comparison preserves selection, shared coverage and browser history", asyn
 }) => {
   await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 900 });
   await page.goto("/compare/models?models=gpt-6-1-sol,claude-opus-5-5,deepseek-v4-1-flash");
+  await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await expect(page.locator(".v-model-cards article")).toHaveCount(3);
   await expect(page.locator(".v-benchmark-group")).toHaveCount(1);
   await page.getByRole("checkbox", { name: "Include unshared benchmarks" }).check();
   await expect(page).toHaveURL(/benchmarks=all/u);
   await expect(page.locator(".v-benchmark-group")).toHaveCount(8);
   await page.reload();
+  await expect(page.locator(".visual")).toHaveAttribute("data-ready", "true");
   await expect(page.getByRole("checkbox", { name: "Include unshared benchmarks" })).toBeChecked();
   await page.getByRole("button", { name: "Remove Claude Opus 5.5", exact: true }).click();
   await expect(page.locator(".v-model-cards article")).toHaveCount(2);

@@ -136,7 +136,7 @@ export function Picker({
       </span>
       <input
         aria-label={label}
-        placeholder={disabled ? "Four models selected" : label}
+        placeholder={disabled && exclude.length >= 4 ? "Four models selected" : label}
         disabled={disabled}
         value={query}
         onFocus={() => setFocused(true)}

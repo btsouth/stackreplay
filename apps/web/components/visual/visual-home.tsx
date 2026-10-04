@@ -66,6 +66,7 @@ function Scatter({ models, benchmark }: { models: VisualModel[]; benchmark: Visu
   return (
     <>
       <div className="v-scatter">
+        {/* biome-ignore lint/a11y/useSemanticElements: SVG point links need a group role; an HTML fieldset cannot replace this SVG. */}
         <svg
           viewBox="0 0 1060 420"
           aria-label={`API blended price versus ${benchmark.name}`}
@@ -212,10 +213,12 @@ export function VisualHome({
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(12);
   const [selected, setSelected] = useState<string[]>([]);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 760px)");
     const sync = () => setLimit(media.matches ? 6 : 12);
     sync();
+    setReady(true);
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
@@ -302,13 +305,14 @@ export function VisualHome({
   ];
   const points = chartModels(data.models, benchmark);
   return (
-    <div className="visual v-home">
+    <div className="visual v-home" data-ready={ready}>
       <section className="v-hero">
         <h1>
           Compare AI models
           <br className="v-mobile-break" /> and coding plans.
         </h1>
         <Picker
+          disabled={!ready}
           models={[...data.models].sort(
             (a, b) => Number(Boolean(b.blended)) - Number(Boolean(a.blended)),
           )}
@@ -324,6 +328,7 @@ export function VisualHome({
           </div>
           <div className="v-controls">
             <select
+              disabled={!ready}
               aria-label="Chart benchmark"
               value={benchmark.id}
               onChange={(event) => setBenchmarkId(event.target.value)}
@@ -487,7 +492,7 @@ export function VisualHome({
                       className="v-row-select"
                       aria-label={`${selected.includes(model.id) ? "Remove" : "Add"} ${model.name} ${selected.includes(model.id) ? "from" : "to"} compare`}
                       aria-pressed={selected.includes(model.id)}
-                      disabled={selected.length === 4 && !selected.includes(model.id)}
+                      disabled={!ready || (selected.length === 4 && !selected.includes(model.id))}
                       onClick={() => add(model.id)}
                     >
                       <i style={{ background: labColor(model.lab) }} />
@@ -495,11 +500,19 @@ export function VisualHome({
                       <span>{selected.includes(model.id) ? "✓" : "+"}</span>
                     </button>
                   </td>
-                  <td data-label="Developer">{model.developer || "–"}</td>
-                  <td data-label="Input / 1M">{money(model.input)}</td>
-                  <td data-label="Output / 1M">{money(model.output)}</td>
-                  <td data-label="Context">{tokens(model.context)}</td>
-                  <td data-label={benchmark.name}>
+                  <td data-label="Developer" data-missing={!model.developer}>
+                    {model.developer || "–"}
+                  </td>
+                  <td data-label="Input / 1M" data-missing={model.input === undefined}>
+                    {money(model.input)}
+                  </td>
+                  <td data-label="Output / 1M" data-missing={model.output === undefined}>
+                    {money(model.output)}
+                  </td>
+                  <td data-label="Context" data-missing={model.context === undefined}>
+                    {tokens(model.context)}
+                  </td>
+                  <td data-label={benchmark.name} data-missing={!benchmark.scores[model.id]}>
                     {benchmark.scores[model.id]?.displayValue ?? "–"}
                   </td>
                   <td data-label="Plans">{model.plans.length}</td>

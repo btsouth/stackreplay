@@ -35,6 +35,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
   const [all, setAll] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     const sync = () => {
       const state = readSelection(data, defaults);
@@ -42,6 +43,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
       setAll(state.all);
     };
     sync();
+    setReady(true);
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, [data, defaults]);
@@ -92,6 +94,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
             return (
               <div
                 key={model.id}
+                data-missing={value === undefined}
                 className={
                   value !== undefined && Number(value) === best && values.length > 1
                     ? "v-metric-cell v-winner"
@@ -117,12 +120,12 @@ export function ModelCompare({ data }: { data: VisualData }) {
     );
   };
   return (
-    <div className="visual v-compare">
+    <div className="visual v-compare" data-ready={ready}>
       <div className="v-compare-intro">
         <Link href="/">← Explore models</Link>
         <div className="v-section-head">
           <h1>Find the right fit.</h1>
-          <button type="button" className="v-outline" onClick={share}>
+          <button type="button" className="v-outline" disabled={!ready} onClick={share}>
             {copied ? "Link copied ✓" : "Copy comparison link ↗"}
           </button>
         </div>
@@ -131,7 +134,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
       <Picker
         models={data.models}
         exclude={ids}
-        disabled={ids.length >= 4}
+        disabled={!ready || ids.length >= 4}
         label="Add a model to compare"
         onPick={(id) => update([...ids, id])}
       />
@@ -142,6 +145,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
               <button
                 type="button"
                 className="v-remove"
+                disabled={!ready}
                 aria-label={`Remove ${model.name}`}
                 onClick={() => update(ids.filter((id) => id !== model.id))}
               >
@@ -242,6 +246,7 @@ export function ModelCompare({ data }: { data: VisualData }) {
               <label className="v-switch">
                 <input
                   type="checkbox"
+                  disabled={!ready}
                   checked={all}
                   onChange={(event) => {
                     update(ids, event.target.checked);
