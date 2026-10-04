@@ -1,6 +1,7 @@
 import type { Recap } from "../recap";
 /** Fictional Alex's nine-month recap. Aggregate illustration, never a user's logs or a pricing quote. */
 export const sampleRecap: Recap = {
+  period: "all",
   start: "2026-01-01",
   end: "2026-09-30",
   timeZone: "UTC",
