@@ -417,7 +417,7 @@ export function RecapStory({
             <div className="recap-hour-head">
               <span />
               {[0, 6, 12, 18, 23].map((h) => (
-                <span key={`${day}-${h}:00`} style={{ gridColumn: h + 2 }}>
+                <span key={String(h)} style={{ gridColumn: h + 2 }}>
                   {String(h).padStart(2, "0")}
                 </span>
               ))}
@@ -425,8 +425,7 @@ export function RecapStory({
             {[1, 2, 3, 4, 5, 6, 0].map((day, i) => (
               <div className="recap-hour-row" key={day}>
                 <span>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}</span>
-                {d.hours[day]!.map((n, h) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: Hour positions are fixed, never reordered.
+                {d.hours[day]!.map((n, hour) => ({ n, hour })).map(({ n, hour: h }) => (
                   <i
                     key={`${day}-${h}:00`}
                     className={`intensity-${n ? Math.max(1, Math.ceil(4 * Math.sqrt(n / maxHour))) : 0}`}
