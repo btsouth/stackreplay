@@ -21,7 +21,16 @@ export function ModelBenchmarks({ data, modelId }: { data: BenchmarkData; modelI
   const sets = data.sourceSets.filter((s) =>
     s.observations.some((o) => primaryIds.has(observationId(o))),
   );
-  if (!sets.length) return null;
+  if (!sets.length)
+    return (
+      <section className="bench-model-section" aria-labelledby="model-benchmarks-title">
+        <div className="market-section-title">
+          <h2 id="model-benchmarks-title">Benchmarks</h2>
+          <Link href={`/benchmarks?edition=${benchmarkEdition}`}>Open benchmark sheet →</Link>
+        </div>
+        <p className="market-muted">No benchmark evidence recorded for this exact release.</p>
+      </section>
+    );
   function groups(observations: BenchmarkObservation[]) {
     return benchmarkCategories.map((category) => {
       const entries = observations.filter(

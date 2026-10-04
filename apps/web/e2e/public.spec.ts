@@ -238,8 +238,17 @@ test.describe("public site", () => {
     await expect(page.getByTestId("model-table")).toContainText("Family name");
     await page.goto("/models/claude-opus");
     await expect(page.getByText("A family of model releases.", { exact: true })).toBeVisible();
-    await expect(page.locator("main section")).toContainText("Claude Opus 5.5");
+    await expect(page.getByRole("region", { name: "Related releases" })).toContainText(
+      "Claude Opus 5.5",
+    );
+    await expect(page.getByRole("region", { name: "Benchmarks" })).toHaveCount(0);
+    await expect(
+      page.getByText("No benchmark evidence recorded for this exact release."),
+    ).toHaveCount(0);
     await expect(page.getByText("Aliases, routes and identity", { exact: true })).toBeVisible();
+    await page.goto("/models/claude-opus-5-5");
+    await expect(page.getByRole("heading", { level: 1, name: "Claude Opus 5.5" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Benchmarks" })).toBeVisible();
   });
 
   test("public navigation identifies the current section on desktop and mobile", async ({
