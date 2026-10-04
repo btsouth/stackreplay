@@ -8,7 +8,7 @@ let driver: Promise<SqlJsStatic> | undefined;
 export async function openBrowserOpenCode(
   database: Uint8Array,
   wal?: Uint8Array,
-  source: "opencode" | "hermes" = "opencode",
+  source: "opencode" | "hermes" | "t3-code" = "opencode",
 ): Promise<SqliteDatabase> {
   const bytes = sqliteSnapshot(database, wal);
   driver ??= import("sql.js/dist/sql-asm.js").then((module) => module.default());
@@ -17,35 +17,42 @@ export async function openBrowserOpenCode(
   try {
     db.run("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
     const required =
-      source === "hermes"
+      source === "t3-code"
         ? ([
             [
-              "session_model_usage",
-              [
-                "session_id",
-                "model",
-                "billing_provider",
-                "billing_base_url",
-                "billing_mode",
-                "task",
-                "first_seen",
-                "last_seen",
-                "input_tokens",
-                "output_tokens",
-                "cache_read_tokens",
-                "cache_write_tokens",
-                "reasoning_tokens",
-                "api_call_count",
-                "estimated_cost_usd",
-                "actual_cost_usd",
-              ],
+              "projection_thread_sessions",
+              ["thread_id", "provider_name", "provider_session_id", "runtime_mode"],
             ],
-            ["sessions", ["id", "cwd", "git_repo_root"]],
           ] as const)
-        : ([
-            ["message", ["id", "session_id", "time_created", "data"]],
-            ["session", ["id", "directory"]],
-          ] as const);
+        : source === "hermes"
+          ? ([
+              [
+                "session_model_usage",
+                [
+                  "session_id",
+                  "model",
+                  "billing_provider",
+                  "billing_base_url",
+                  "billing_mode",
+                  "task",
+                  "first_seen",
+                  "last_seen",
+                  "input_tokens",
+                  "output_tokens",
+                  "cache_read_tokens",
+                  "cache_write_tokens",
+                  "reasoning_tokens",
+                  "api_call_count",
+                  "estimated_cost_usd",
+                  "actual_cost_usd",
+                ],
+              ],
+              ["sessions", ["id", "cwd", "git_repo_root"]],
+            ] as const)
+          : ([
+              ["message", ["id", "session_id", "time_created", "data"]],
+              ["session", ["id", "directory"]],
+            ] as const);
     for (const [table, fields] of required) {
       const columns = new Set(
         db.exec(`PRAGMA table_info(${table})`)[0]?.values.map((row) => row[1]),

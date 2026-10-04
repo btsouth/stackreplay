@@ -34,6 +34,8 @@ for (const temporary of [false, true])
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    await page.getByRole("radio", { name: "All time" }).check();
+    await expect(page.locator(".recap-year-grid")).toBeVisible();
     const cell = await page.locator(".recap-calendar-week > div").first().boundingBox();
     expect(cell).toBeTruthy();
     expect(Math.abs(cell!.width - cell!.height)).toBeLessThan(1);

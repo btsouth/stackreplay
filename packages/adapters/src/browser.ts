@@ -17,10 +17,16 @@ import { createCodexAdapter } from "./adapters/codex.js";
 import { createCommandCodeAdapter } from "./adapters/command-code.js";
 import { createHermesAdapter } from "./adapters/hermes.js";
 import { createOpenCodeAdapter } from "./adapters/opencode.js";
+import { createT3CodeAdapter } from "./adapters/t3-code.js";
 import type { BrowserSourceId } from "./browser-formats.js";
 import { openBrowserOpenCode } from "./browser-sqlite.js";
 import { dedupeEvents } from "./dedup.js";
-import { generateSalt, normalizeProjectKey, sourceRootHash } from "./identity.js";
+import {
+  generateSalt,
+  nativeSessionHash,
+  normalizeProjectKey,
+  sourceRootHash,
+} from "./identity.js";
 import { createModelMapper } from "./models.js";
 import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
 import type { SqliteDatabase } from "./sqlite.js";
@@ -220,7 +226,7 @@ export function isBrowserSourceCandidate(path: string): boolean {
   return (
     !/\.[^./\\]+$/u.test(path) ||
     /\.(json|jsonl|txt|stackreplay)$/iu.test(path) ||
-    /(?:^|[/\\])(?:opencode|state)\.db(?:-wal)?$/iu.test(path)
+    /(?:^|[/\\])(?:(?:opencode|state)\.db|state\.sqlite)(?:-wal)?$/iu.test(path)
   );
 }
 
@@ -793,6 +799,8 @@ export async function intakeBrowserCandidates(
         normalizedPath(entry.path) === `${normalizedPath(candidate.path)}-wal`,
     );
   const sources = new Set<keyof typeof ADAPTERS>();
+  const t3Sessions = new Set<string>();
+  let t3Collected = false;
   /** Raw project keys stay inside this function; only derived labels leave it. */
   const projectKeys = new Map<string, string>();
   const scanProgress = {
@@ -908,7 +916,7 @@ export async function intakeBrowserCandidates(
     // This file's read first, then the next few behind it.
     for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
-    if (/(?:^|[/\\])(?:opencode|state)\.db-wal$/iu.test(candidate.path)) {
+    if (/(?:^|[/\\])(?:(?:opencode|state)\.db|state\.sqlite)-wal$/iu.test(candidate.path)) {
       const paired = candidates.some(
         (entry) =>
           entry.group === candidate.group &&
@@ -968,8 +976,9 @@ export async function intakeBrowserCandidates(
     let content = "";
     let signature: string | undefined;
     let database: SqliteDatabase | undefined;
+    const t3 = /(?:^|[/\\])state\.sqlite$/iu.test(candidate.path);
     const hermes = /(?:^|[/\\])state\.db$/iu.test(candidate.path);
-    const sqlite = /(?:^|[/\\])(?:opencode|state)\.db$/iu.test(candidate.path);
+    const sqlite = t3 || /(?:^|[/\\])(?:opencode|state)\.db$/iu.test(candidate.path);
     try {
       budget.add("readBytes", candidate.readCost ?? candidate.size);
       if (sqlite) {
@@ -998,7 +1007,11 @@ export async function intakeBrowserCandidates(
         if (wal) await hash.update(wal);
         signature = await hash.digest();
         if (options.signal?.aborted) throw new BrowserIntakeCancelledError();
-        database = await openBrowserOpenCode(bytes, wal, hermes ? "hermes" : "opencode");
+        database = await openBrowserOpenCode(
+          bytes,
+          wal,
+          t3 ? "t3-code" : hermes ? "hermes" : "opencode",
+        );
         if (!companion && bytes[18] === 2)
           warnings.push({
             code: "SESSION_PARTIAL",
@@ -1056,6 +1069,34 @@ export async function intakeBrowserCandidates(
       continue;
     }
     if (signature !== undefined) seen.add(signature);
+    if (t3 && database) {
+      const path = "/selected/state.sqlite";
+      const attribution = await createT3CodeAdapter().collectAttribution(
+        {
+          platform: "linux",
+          homeDir: "/selected",
+          env: {},
+          fs: singleFileSystem(path, "", candidate.lastModified, candidate.size),
+          openDatabase: async () => database!,
+        },
+        { now: new Date(options.now), salt, mapper, roots: ["/selected"] },
+      );
+      for (const key of attribution.byProviderSession.keys()) {
+        const [adapter, session] = key.split("\u0000");
+        if (adapter && session) t3Sessions.add(`${adapter}:${nativeSessionHash(salt, session)}`);
+      }
+      warnings.push(...attribution.warnings);
+      t3Collected = true;
+      outcomes.push({
+        path: display,
+        status: "companion",
+        source: "T3 Code",
+        reason: "Harness attribution only; underlying usage counted once",
+        events: 0,
+      });
+      report(index + 1, false);
+      continue;
+    }
     const detection = sqlite
       ? {
           id: hermes ? ("hermes" as const) : ("opencode" as const),
@@ -1167,6 +1208,13 @@ export async function intakeBrowserCandidates(
     report(index + 1, result.events.length === 0);
   }
   if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
+  for (const event of events) {
+    if (
+      event.source.nativeSessionHash &&
+      t3Sessions.has(`${event.source.adapterId}:${event.source.nativeSessionHash}`)
+    )
+      event.harness = { id: "t3-code", attribution: "exact" };
+  }
   const deduped = dedupeEvents(events);
   // Location accounts are attached after deduplication, so identity and
   // duplicate handling are exactly what they were for these sources. Only a
@@ -1210,6 +1258,14 @@ export async function intakeBrowserCandidates(
     supported: true,
     role: ADAPTERS[id].kind,
   }));
+  if (t3Collected)
+    detectedSources.push({
+      adapterId: "t3-code",
+      name: "T3 Code",
+      detected: true,
+      supported: true,
+      role: "attribution",
+    });
   const exported: StackReplayExportV1 = {
     format: "stackreplay",
     version: 1,

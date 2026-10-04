@@ -288,3 +288,40 @@ describe("Hermes browser collection parity", () => {
     });
   });
 });
+
+describe("T3 browser attribution", () => {
+  it.each([false, true])(
+    "attributes selected provider sessions without adding usage, reverse=%s",
+    async (reverse) => {
+      await withTempDir(async (root) => {
+        const t3 = `${root}/state.sqlite`,
+          open = `${root}/opencode.db`;
+        await createSqliteFixture(open, OPENCODE_FIXTURE_SQL);
+        const db = new DatabaseSync(open);
+        const rows = db.prepare("select id from session").all();
+        db.close();
+        await createSqliteFixture(t3, [
+          "CREATE TABLE projection_thread_sessions(thread_id TEXT,provider_name TEXT,provider_session_id TEXT,runtime_mode TEXT)",
+          ...rows.map(
+            (row, i) =>
+              `INSERT INTO projection_thread_sessions VALUES ('thread-${i}', 'opencode', '${String(row.id).replaceAll("'", "''")}', 'auto')`,
+          ),
+        ]);
+        const files = [
+          candidate("opencode.db", new Uint8Array(await readFile(open))),
+          candidate("state.sqlite", new Uint8Array(await readFile(t3))),
+        ];
+        const result = await intakeBrowserCandidates(
+          reverse ? files.reverse() : files,
+          syntheticCatalog(),
+          options,
+        );
+        expect(result.exported!.events).toHaveLength(2);
+        expect(result.exported!.events.every((e) => e.harness?.id === "t3-code")).toBe(true);
+        expect(result.exported!.detectedSources.find((s) => s.adapterId === "t3-code")?.role).toBe(
+          "attribution",
+        );
+      });
+    },
+  );
+});

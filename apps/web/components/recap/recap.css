@@ -1165,3 +1165,16 @@
     font-size: 20px;
   }
 }
+.recap-year-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.recap-model-identity strong,
+.recap-speed-row strong {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .recap-mix text {
+    font-size: 28px;
+  }
+}

@@ -80,7 +80,12 @@ export function Heatmap({ recap, period = "all" }: { recap: Recap; period?: Reca
           return (
             <div className="recap-year" key={year}>
               <span>{year}</span>
-              <div className="recap-year-scroll">
+              <div
+                className="recap-year-scroll"
+                tabIndex={0}
+                role="region"
+                aria-label={`${year} activity calendar, scroll for later months`}
+              >
                 <div className="recap-year-months">
                   {[
                     "Jan",
@@ -161,13 +166,13 @@ export function Mix({ recap }: { recap: Recap }) {
         {[0, 0.25, 0.5, 0.75, 1].map((p) => (
           <g key={p}>
             <line
-              x1="75"
+              x1="140"
               x2="935"
               y1={225 - p * 180}
               y2={225 - p * 180}
               className="recap-chart-grid"
             />
-            <text x="62" y={229 - p * 180} textAnchor="end">
+            <text x="132" y={229 - p * 180} textAnchor="end">
               {compactNumber(max * p)}
             </text>
           </g>
@@ -182,7 +187,7 @@ export function Mix({ recap }: { recap: Recap }) {
                 return (
                   <rect
                     key={f}
-                    x={80 + i * width}
+                    x={150 + i * width}
                     y={base}
                     width={Math.max(1, width * 0.75)}
                     height={height}
@@ -195,8 +200,8 @@ export function Mix({ recap }: { recap: Recap }) {
               })}
               {!sums[i] && (
                 <line
-                  x1={80 + i * width}
-                  x2={80 + i * width + width * 0.75}
+                  x1={150 + i * width}
+                  x2={150 + i * width + width * 0.75}
                   y1="224"
                   y2="224"
                   stroke="var(--muted-foreground)"
@@ -206,14 +211,14 @@ export function Mix({ recap }: { recap: Recap }) {
               {(i === 0 ||
                 i === recap.weeks.length - 1 ||
                 i % Math.ceil(recap.weeks.length / 5) === 0) && (
-                <text x={80 + i * width} y="251">
+                <text x={150 + i * width} y="251">
                   {w.date.slice(5)}
                 </text>
               )}
             </g>
           );
         })}
-        <text x="80" y="22">
+        <text x="150" y="22">
           peak week: {shortDate(recap.weeks[peak]?.date ?? recap.start)} · {compactNumber(max)}{" "}
           tokens
         </text>
