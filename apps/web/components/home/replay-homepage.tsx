@@ -65,7 +65,7 @@ export function ReplayHomepage() {
   async function download(portrait: boolean) {
     try {
       setDownloadError("");
-      const blob = await renderRecapCard(sampleRecap, portrait, "51× the sample’s plan cost");
+      const blob = await renderRecapCard(sampleRecap, portrait, "51× the sample’s plan cost", true);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
