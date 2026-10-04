@@ -314,7 +314,9 @@ export function createHermesAdapter(): LocalSourceAdapter {
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
                 ...(projectKey !== undefined ? { projectKey } : {}),
                 harnessId: HARNESS_IDS.hermes,
-                ...(servingProvider ? { providerId: servingProvider, providerAttribution: "exact" as const } : {}),
+                ...(servingProvider
+                  ? { providerId: servingProvider, providerAttribution: "exact" as const }
+                  : {}),
                 workloadCategory: "agent",
                 // A row that covers several API calls is not an exact per-call
                 // counter, and neither is a row that reports no count: the
@@ -354,19 +356,37 @@ export function createHermesAdapter(): LocalSourceAdapter {
 export function hermesServingProvider(value: unknown, baseUrl?: unknown): string | undefined {
   const name = typeof value === "string" ? value.trim().toLowerCase() : "";
   const names: Record<string, string> = {
-    anthropic: "anthropic", "openai-api": "openai", "openai-codex": "openai",
-    openai: "openai", commandcode: "command-code", "command-code": "command-code",
-    "opencode-go": "opencode", "opencode-zen": "opencode", opencode: "opencode",
-    deepseek: "deepseek", "z-ai": "z-ai", zai: "z-ai", "z.ai": "z-ai",
-    clinepass: "cline", "ollama-cloud": "ollama",
+    anthropic: "anthropic",
+    "openai-api": "openai",
+    "openai-codex": "openai",
+    openai: "openai",
+    commandcode: "command-code",
+    "command-code": "command-code",
+    "opencode-go": "opencode",
+    "opencode-zen": "opencode",
+    opencode: "opencode",
+    deepseek: "deepseek",
+    "z-ai": "z-ai",
+    zai: "z-ai",
+    "z.ai": "z-ai",
+    clinepass: "cline",
+    "ollama-cloud": "ollama",
   };
   if (names[name]) return names[name];
   if (typeof baseUrl === "string") {
     try {
       const host = new URL(baseUrl).hostname;
-      const hosts: Record<string, string> = { "api.anthropic.com": "anthropic", "api.openai.com": "openai", "api.deepseek.com": "deepseek", "api.z.ai": "z-ai", "api.commandcode.ai": "command-code" };
+      const hosts: Record<string, string> = {
+        "api.anthropic.com": "anthropic",
+        "api.openai.com": "openai",
+        "api.deepseek.com": "deepseek",
+        "api.z.ai": "z-ai",
+        "api.commandcode.ai": "command-code",
+      };
       if (hosts[host]) return hosts[host];
-    } catch { /* Unknown routes remain unattributed. */ }
+    } catch {
+      /* Unknown routes remain unattributed. */
+    }
   }
   return undefined;
 }

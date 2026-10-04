@@ -1216,6 +1216,14 @@ html[data-compare] [data-compare-results] {
   font-style: normal;
   font-display: swap;
 }
-:root { --font-geist-sans: "Instrument Sans"; }
-body { font-variant-numeric: tabular-nums; }
-.replay-home h1, .replay-home h2, .replay-hero-title { letter-spacing: -0.03em; }
+:root {
+  --font-geist-sans: "Instrument Sans";
+}
+body {
+  font-variant-numeric: tabular-nums;
+}
+.replay-home h1,
+.replay-home h2,
+.replay-hero-title {
+  letter-spacing: -0.03em;
+}

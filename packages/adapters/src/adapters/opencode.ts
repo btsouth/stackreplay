@@ -259,7 +259,7 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
           const sessionId = toText(row.session_id) ?? "unknown-session";
           const identity = toText(row.id) ?? `${occurredAtMs}#${stats.recordsRead}`;
           const rawProvider = toText(row.provider_id);
-          
+
           const cost = toFiniteNumber(row.cost);
           const nativeCost = cost !== undefined ? decimalStringFromNumber(cost) : undefined;
           const directory = toText(row.directory);
@@ -275,7 +275,9 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
                 ...(directory !== undefined ? { projectKey: directory } : {}),
                 harnessId: HARNESS_IDS.opencode,
-                ...(rawProvider !== undefined ? { providerId: rawProvider, providerAttribution: "exact" as const } : {}),
+                ...(rawProvider !== undefined
+                  ? { providerId: rawProvider, providerAttribution: "exact" as const }
+                  : {}),
                 workloadCategory: "coding",
               },
               eventContext(env, options),

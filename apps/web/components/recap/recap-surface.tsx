@@ -12,15 +12,15 @@ import {
 } from "@/lib/current-stack";
 import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
-import { type Recap, type RecapPeriod } from "@/lib/recap";
+import type { Recap, RecapPeriod } from "@/lib/recap";
 import { recapUsd, renderRecapCard } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { PeriodControl } from "./period-control";
-import { RecapStory } from "./recap-story";
 import { RecapShareCard } from "./recap-share-card";
+import { RecapStory } from "./recap-story";
 
 export function RecapSurface({
   initialImportId,
@@ -204,7 +204,12 @@ export function RecapSurface({
       {recap &&
         (recap.records ? (
           <div data-testid="recap-ready">
-            <RecapStory recap={recap} period={period} projects={imports.find(r=>r.id===id)?.localProjects ?? []} {...(multiplierText ? {multiplierText}: {})} />
+            <RecapStory
+              recap={recap}
+              period={period}
+              projects={imports.find((r) => r.id === id)?.localProjects ?? []}
+              {...(multiplierText ? { multiplierText } : {})}
+            />
             <div style={{ maxWidth: "600px", margin: "32px auto" }}>
               <RecapShareCard recap={recap} />
             </div>

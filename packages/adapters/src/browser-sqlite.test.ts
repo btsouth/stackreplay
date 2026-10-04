@@ -248,3 +248,43 @@ describe("WAL snapshots", () => {
     });
   });
 });
+
+describe("Hermes browser collection parity", () => {
+  it("imports state.db through the shared native adapter with recorded billing routes", async () => {
+    const { HERMES_FIXTURE_SQL } = await import("./fixtures/content.js");
+    const { createHermesAdapter } = await import("./adapters/hermes.js");
+    await withTempDir(async (root) => {
+      const path = `${root}/.hermes/state.db`;
+      await createSqliteFixture(path, HERMES_FIXTURE_SQL);
+      const bytes = new Uint8Array(await readFile(path));
+      const browser = await intakeBrowserCandidates(
+        [candidate(".hermes/state.db", bytes)],
+        syntheticCatalog(),
+        options,
+      );
+      const native = await createHermesAdapter().collect(
+        createFixtureEnvironment({ homeDir: root }),
+        { salt: FIXTURE_SALT, now: new Date(now), mapper: createModelMapper(syntheticCatalog()) },
+      );
+      expect(
+        browser.exported?.events.map((e) => ({
+          usage: e.usage,
+          model: e.model,
+          provider: e.provider,
+          harness: e.harness,
+          at: e.occurredAt,
+        })),
+      ).toEqual(
+        native.events.map((e) => ({
+          usage: e.usage,
+          model: e.model,
+          provider: e.provider,
+          harness: e.harness,
+          at: e.occurredAt,
+        })),
+      );
+      expect(browser.exported?.events.length).toBeGreaterThan(0);
+      expect(browser.outcomes[0]!.status).toBe("imported");
+    });
+  });
+});

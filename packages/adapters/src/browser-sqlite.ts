@@ -16,12 +16,44 @@ export async function openBrowserOpenCode(
   const db = new SQL.Database(bytes);
   try {
     db.run("PRAGMA trusted_schema = OFF; PRAGMA query_only = ON;");
-    const required = source === "hermes"
-      ? [["session_model_usage", ["session_id", "model", "billing_provider", "billing_base_url", "billing_mode", "task", "first_seen", "last_seen", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "reasoning_tokens", "api_call_count", "estimated_cost_usd", "actual_cost_usd"]], ["sessions", ["id", "cwd", "git_repo_root"]]] as const
-      : [["message", ["id", "session_id", "time_created", "data"]], ["session", ["id", "directory"]]] as const;
+    const required =
+      source === "hermes"
+        ? ([
+            [
+              "session_model_usage",
+              [
+                "session_id",
+                "model",
+                "billing_provider",
+                "billing_base_url",
+                "billing_mode",
+                "task",
+                "first_seen",
+                "last_seen",
+                "input_tokens",
+                "output_tokens",
+                "cache_read_tokens",
+                "cache_write_tokens",
+                "reasoning_tokens",
+                "api_call_count",
+                "estimated_cost_usd",
+                "actual_cost_usd",
+              ],
+            ],
+            ["sessions", ["id", "cwd", "git_repo_root"]],
+          ] as const)
+        : ([
+            ["message", ["id", "session_id", "time_created", "data"]],
+            ["session", ["id", "directory"]],
+          ] as const);
     for (const [table, fields] of required) {
-      const columns = new Set(db.exec(`PRAGMA table_info(${table})`)[0]?.values.map((row) => row[1]));
-      if (fields.some((column) => !columns.has(column))) throw new Error(`Selected SQLite database is not a supported ${source === "hermes" ? "Hermes" : "OpenCode"} session history.`);
+      const columns = new Set(
+        db.exec(`PRAGMA table_info(${table})`)[0]?.values.map((row) => row[1]),
+      );
+      if (fields.some((column) => !columns.has(column)))
+        throw new Error(
+          `Selected SQLite database is not a supported ${source === "hermes" ? "Hermes" : "OpenCode"} session history.`,
+        );
     }
   } catch (error) {
     db.close();

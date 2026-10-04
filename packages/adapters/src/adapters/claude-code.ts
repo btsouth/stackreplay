@@ -63,7 +63,8 @@ interface ResponseCandidate {
 /** Prefer the completed response and its final output count over streaming rows. */
 function preferResponse(candidate: ResponseCandidate, previous: ResponseCandidate): boolean {
   if (candidate.final !== previous.final) return candidate.final;
-  const delta = (candidate.draft.usage.outputTokens ?? 0) - (previous.draft.usage.outputTokens ?? 0);
+  const delta =
+    (candidate.draft.usage.outputTokens ?? 0) - (previous.draft.usage.outputTokens ?? 0);
   return delta > 0 || (delta === 0 && candidate.draft.occurredAtMs > previous.draft.occurredAtMs);
 }
 
@@ -280,9 +281,15 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             sessionId = readString(record, "sessionId") ?? sessionId;
             const messageId = readString(message, "id");
             const requestId = readString(record, "requestId");
-            if (messageId && !starts.has(messageId) && requestStart !== undefined) starts.set(messageId, requestStart);
+            if (messageId && !starts.has(messageId) && requestStart !== undefined)
+              starts.set(messageId, requestStart);
             const started = messageId ? starts.get(messageId) : undefined;
-            const reliable = message.stop_reason != null && record.isSidechain !== true && !file.includes("/subagents/") && started !== undefined && started < occurredAtMs;
+            const reliable =
+              message.stop_reason != null &&
+              record.isSidechain !== true &&
+              !file.includes("/subagents/") &&
+              started !== undefined &&
+              started < occurredAtMs;
             const identity =
               messageId !== undefined
                 ? messageId

@@ -258,13 +258,26 @@ export function buildRecap(
         costDays.set(date, (costDays.get(date) ?? new Decimal(0)).add(low));
         const month = date.slice(0, 7);
         const monthly = months.get(month) ?? { date: month, usd: "0", priced: 0 };
-        monthly.usd = new Decimal(monthly.usd).add(low).toString(); monthly.priced++; months.set(month, monthly);
+        monthly.usd = new Decimal(monthly.usd).add(low).toString();
+        monthly.priced++;
+        months.set(month, monthly);
         if (chosenPrice && (event.usage.cacheReadTokens ?? 0) > 0) {
           const u = event.usage;
-          const uncached = { ...u, inputTokens: (u.inputTokens ?? 0) + (u.accounting?.cacheReadIncludedInInput === true ? 0 : (u.cacheReadTokens ?? 0)), cacheReadTokens: 0 };
+          const uncached = {
+            ...u,
+            inputTokens:
+              (u.inputTokens ?? 0) +
+              (u.accounting?.cacheReadIncludedInInput === true ? 0 : (u.cacheReadTokens ?? 0)),
+            cacheReadTokens: 0,
+          };
           const actual = moneyUnitsForUsage(u, chosenPrice, { atMs: Date.parse(event.occurredAt) });
-          const without = moneyUnitsForUsage(uncached, chosenPrice, { atMs: Date.parse(event.occurredAt) });
-          if (actual.known && without.known && without.units.greaterThanOrEqualTo(actual.units)) { cacheSavings = cacheSavings.add(without.units.sub(actual.units)); deep.cacheSavingsRecords++; }
+          const without = moneyUnitsForUsage(uncached, chosenPrice, {
+            atMs: Date.parse(event.occurredAt),
+          });
+          if (actual.known && without.known && without.units.greaterThanOrEqualTo(actual.units)) {
+            cacheSavings = cacheSavings.add(without.units.sub(actual.units));
+            deep.cacheSavingsRecords++;
+          }
         }
         row.priced++;
         if (scenario) {
@@ -278,8 +291,10 @@ export function buildRecap(
       },
     );
   }
-  deep.costDays = [...costDays].map(([date, usd]) => ({ date, usd: usd.toString() })).sort((a,b)=>a.date.localeCompare(b.date));
-  deep.months = [...months.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  deep.costDays = [...costDays]
+    .map(([date, usd]) => ({ date, usd: usd.toString() }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  deep.months = [...months.values()].sort((a, b) => a.date.localeCompare(b.date));
   deep.cacheSavings = cacheSavings.toString();
   const daily = [...days.values()];
   let run = 0;

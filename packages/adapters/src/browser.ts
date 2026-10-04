@@ -1057,7 +1057,10 @@ export async function intakeBrowserCandidates(
     }
     if (signature !== undefined) seen.add(signature);
     const detection = sqlite
-      ? { id: hermes ? "hermes" as const : "opencode" as const, reason: "Local session database" }
+      ? {
+          id: hermes ? ("hermes" as const) : ("opencode" as const),
+          reason: "Local session database",
+        }
       : detectBrowserSource(content);
     if (detection.id === undefined) {
       const plainText = /\.txt$/iu.test(candidate.path);

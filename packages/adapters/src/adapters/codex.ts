@@ -155,7 +155,10 @@ export function createCodexAdapter(): LocalSourceAdapter {
               continue;
             }
             // Only explicit API request boundaries qualify. task_started is a tool-inclusive turn.
-            if (type === "event_msg" && ["request_started", "api_request_started"].includes(readString(payload, "type") ?? "")) {
+            if (
+              type === "event_msg" &&
+              ["request_started", "api_request_started"].includes(readString(payload, "type") ?? "")
+            ) {
               const at = readString(record, "timestamp");
               requestStart = at ? epochMsFromIso(at) : undefined;
               continue;
@@ -288,7 +291,9 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   sessionId,
                   identity,
                   occurredAtMs,
-                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs } : {}),
+                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs
+                    ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs }
+                    : {}),
                   rawModel: currentModel,
                   usage,
                   ...(projectKey !== undefined ? { projectKey } : {}),
