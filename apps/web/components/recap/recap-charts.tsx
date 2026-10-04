@@ -80,9 +80,7 @@ export function Mix({ recap }: { recap: Recap }) {
                     rx="2"
                     fill={color(f)}
                   >
-                    <title>
-                      {w.date}, {f}: {compactNumber(w.families[f] ?? 0)} total tokens
-                    </title>
+                    <title>{`${w.date}, ${f}: ${compactNumber(w.families[f] ?? 0)} total tokens`}</title>
                   </rect>
                 );
               })}
