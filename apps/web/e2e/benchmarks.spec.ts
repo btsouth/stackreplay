@@ -61,7 +61,7 @@ test("published v1 links retain the original coverage instead of adopting new sc
   await expect(page.locator("tbody tr")).toHaveCount(17);
   await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(0);
   await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
-  await expect(page.locator("tbody tr")).toHaveCount(21);
+  await expect(page.locator("tbody tr")).toHaveCount(22);
   await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(6);
 });
 test("Google sheet has four headers, 17 complete rows and exact representative scores", async ({

@@ -115,6 +115,13 @@ describe("reviewed Epoch GPQA Diamond pilot", () => {
       expect(observation.notes).toContain(`stderr is ${record.stderr}`);
       expect(observation.notes).toContain(`run ID ${record.runId}`);
       expect(observation.notes).toContain(`evaluation start timestamp ${record.startedAt}`);
+      expect(observation.notes).toContain(
+        "ZIP SHA256 86e6667353c6c8c396feaa84eabc5d9ce160ee6fa22b2cd5abb72e26614e788c",
+      );
+      expect(observation.notes).toContain(
+        "complete archive-member SHA256 c5fed6f394d650dada5c5d14c325a0ccbd61b742b555b95ca971d5a1fed3b4d1",
+      );
+      expect(set.redistribution.rationale).toContain("use-this-data terms state");
       expect(JSON.stringify(set)).not.toContain("comparisonGroup");
     }
 

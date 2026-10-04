@@ -90,14 +90,17 @@ discrepancy is preserved.
 The stored percentages are parsed from the source's exact decimal conversion
 strings. Raw accuracy fractions and stderr values remain in each observation's
 notes; stderr is not presented as a 95% confidence interval. Published run IDs
-and evaluation start timestamps are retained exactly. The three partial source
-sets do not create complete source-sheet links and have no comparison group.
+and evaluation start timestamps are retained exactly. Observation notes also
+retain the checked ZIP and complete CSV member SHA256 fingerprints. The three
+partial source sets do not create complete source-sheet links and have no
+comparison group.
 
 These sets use Epoch AI's licensed dataset terms, not the provider-facts basis.
 The narrow basis covers only the selected Epoch-produced numerical records and
-linked metadata, under the archive README's CC BY 4.0 link and its external-data
-carveout. Attribution names Epoch AI and "Capabilities & benchmarking", links
-the original data and license, identifies the selected Diamond subset and unit
+linked metadata. The archive README links CC BY 4.0; Epoch's use-this-data
+terms separately preserve the original licensing of external data. Attribution
+names Epoch AI and "Capabilities & benchmarking", links the original data and
+license, identifies the selected Diamond subset and unit
 conversion, and implies no endorsement. It does not license the mixed archive,
 GPQA questions or answers, logs, provider prose, or artwork.
 
