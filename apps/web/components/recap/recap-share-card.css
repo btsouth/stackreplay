@@ -1,0 +1,130 @@
+.replay-card {
+  color: #f6f0ff;
+  background: radial-gradient(ellipse at 100% 0%, #503863 0%, transparent 65%), #181222;
+  border: 1px solid #655174;
+  border-radius: 20px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 40px 100px #0007;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+.replay-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #ccc0df;
+}
+.replay-card-top > span:first-child {
+  font-size: 19px;
+  font-weight: 650;
+}
+.replay-card-period {
+  font-size: 11px;
+  color: #b5a8c8;
+  margin-top: 24px;
+}
+.replay-card-total {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 2px 0 14px;
+  flex-wrap: wrap;
+}
+.replay-card-total strong {
+  font-size: clamp(54px, 6vw, 91px);
+  font-weight: 650;
+  letter-spacing: -0.065em;
+  line-height: 1.12;
+  font-variant-numeric: tabular-nums;
+}
+.replay-card-total span {
+  font-size: 14px;
+  color: #c9bfdc;
+}
+.replay-card-value {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #ffffff1a;
+}
+.replay-card-value strong {
+  font-size: 32px;
+  letter-spacing: -0.04em;
+  color: #d3f99b;
+  font-variant-numeric: tabular-nums;
+}
+.replay-card-value span {
+  font-size: 14px;
+  color: #c9bfdc;
+}
+.replay-card-models {
+  margin-top: 24px;
+}
+.replay-card-model-heading {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #c9bfdc;
+  margin-bottom: 17px;
+}
+.replay-card-model {
+  margin-top: 15px;
+}
+.replay-card-model > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.replay-card-track {
+  height: 5px;
+  border-radius: 5px;
+  background: #ffffff0d;
+  overflow: hidden;
+}
+.replay-card-track i {
+  display: block;
+  width: var(--bar-width);
+  height: 100%;
+  background: var(--bar-color);
+  border-radius: inherit;
+  transform-origin: left;
+  animation: replay-bar 1.5s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  animation-delay: var(--bar-delay);
+}
+.replay-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #b7adca;
+  font-size: 11px;
+  margin-top: 28px;
+}
+@keyframes replay-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .replay-card * {
+    animation: none !important;
+  }
+}
+@media (max-width: 600px) {
+  .replay-card {
+    padding: 23px;
+    border-radius: 16px;
+  }
+  .replay-card-total strong {
+    font-size: 67px;
+  }
+  .replay-card-bottom {
+    font-size: 9px;
+  }
+}

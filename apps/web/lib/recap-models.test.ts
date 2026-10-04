@@ -6,6 +6,7 @@ const model = (id: string, output: number, family = "openai"): RecapModel => ({
   id,
   name: id,
   output,
+  total: output,
   family,
   records: 1,
   priced: 0,
@@ -14,8 +15,12 @@ const model = (id: string, output: number, family = "openai"): RecapModel => ({
   cacheScenarioRecords: 0,
 });
 describe("top recap models", () => {
-  it("ranks by output rather than records, without mutating the input", () => {
-    const rows = [{ ...model("low", 10), records: 100 }, model("high", 30), model("mid", 20)];
+  it("ranks by total tokens rather than output or records, without mutating the input", () => {
+    const rows = [
+      { ...model("low", 10), output: 999, records: 100 },
+      model("high", 30),
+      model("mid", 20),
+    ];
     expect(topRecapModels(rows).map((m) => m.id)).toEqual(["high", "mid", "low"]);
     expect(rows.map((m) => m.id)).toEqual(["low", "high", "mid"]);
   });

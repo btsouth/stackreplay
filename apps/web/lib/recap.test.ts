@@ -2,7 +2,7 @@ import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal, replayObservingQuotes } from "@stackreplay/replay-engine";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { buildRecap, outputOf } from "./recap";
+import { buildRecap, outputOf, totalTokensOf } from "./recap";
 
 const base = buildDemoExport("billing").events;
 const event = base[0]!;
@@ -105,7 +105,7 @@ describe("private recap metrics", () => {
     expect(r.models.reduce((s, m) => s + m.output, 0)).toBe(r.output);
     expect(
       r.weeks.reduce((s, w) => s + Object.values(w.families).reduce((a, b) => a + b, 0), 0),
-    ).toBe(r.output);
+    ).toBe(r.total);
     expect(JSON.stringify(base)).toBe(before);
   });
   it("has no phantom metrics for empty history", () => {
@@ -140,4 +140,40 @@ it("uses both documented cache-write TTL prices as a scenario range", () => {
   expect(r.usdHigh).toBe("8");
   expect(r.cacheScenarioRecords).toBe(1);
   expect(r.priced).toBe(1);
+});
+
+it("counts exclusive categories once, including cache-only and partial records", () => {
+  const usage = {
+    inputTokens: 1000,
+    outputTokens: 100,
+    cacheReadTokens: 600,
+    cacheWriteTokens: 200,
+    reasoningTokens: 30,
+  };
+  for (const included of [true, false]) {
+    const e = {
+      ...event,
+      usage: {
+        ...usage,
+        accounting: {
+          cacheReadIncludedInInput: included,
+          cacheWriteIncludedInInput: included,
+          reasoningIncludedInOutput: included,
+        },
+      },
+    };
+    expect(totalTokensOf(e)).toBe(included ? 1100 : 1930);
+    const r = buildRecap([e], "all", "2026-10-04T12:00:00Z", "UTC");
+    expect(r.total).toBe(included ? 1100 : 1930);
+    expect(r.models[0]?.total).toBe(r.total);
+    expect(r.tools[0]?.total).toBe(r.total);
+  }
+  expect(
+    totalTokensOf({
+      ...event,
+      usage: { cacheReadTokens: 12, accounting: { cacheReadIncludedInInput: false } },
+    }),
+  ).toBe(12);
+  expect(totalTokensOf({ ...event, usage: { inputTokens: 0 } })).toBe(0);
+  expect(totalTokensOf({ ...event, usage: {} })).toBeUndefined();
 });
