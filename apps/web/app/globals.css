@@ -8,6 +8,7 @@
 @import "./result.css";
 @import "./plan-history.css";
 @import "./my-stack.css";
+@import "./plan-confirmation.css";
 @import "./benchmarks.css";
 @import "./home.css";
 /* Replay launch styles are in the blocking root sheet to keep first paint stable. */

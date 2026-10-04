@@ -35,6 +35,8 @@ import { serviceTierV1Schema } from "./service-tier.js";
 export const subscriptionTargetV1Schema = z
   .strictObject({
     type: z.literal("subscription"),
+    /** Purchased accounts; absent means one. Numeric capacity uses aggregate scaling. */
+    quantity: z.number().int().min(1).max(10).optional(),
     planVersionId: z.string().min(1).optional(),
     planId: z.string().min(1).optional(),
     /** Explicit cross-model substitution policy (M4B). Never a catalog fact. */

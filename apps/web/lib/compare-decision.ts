@@ -102,10 +102,15 @@ export function configuredPlans(current: readonly TargetKey[], rulesAsOf: string
 
 /** A total exists only when every selected plan has the same monthly billing basis. */
 export function configuredMonthlyPrice(
-  plans: readonly Pick<BundledPlanSummary, "price">[],
+  plans: readonly (Pick<BundledPlanSummary, "price"> & { id?: string })[],
+  counts: Readonly<Record<string, number>> = {},
 ): string | undefined {
   if (plans.length === 0 || plans.some((plan) => plan.price.interval !== "month")) return undefined;
-  return addAmounts(plans.map((plan) => plan.price.amount));
+  return addAmounts(
+    plans.flatMap((plan) =>
+      Array.from({ length: counts[`plan:${plan.id}`] ?? 1 }, () => plan.price.amount),
+    ),
+  );
 }
 
 /** Plan configuration remains explicit; the catalog is only a picker. */

@@ -48,6 +48,7 @@ import {
 } from "@/components/replay/translation";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import { plainRange } from "@/components/workload/format";
+import { readStackSubscriptions, stackCounts } from "@/lib/current-stack";
 import { formatUsd } from "@/lib/money-display";
 import { versionTermsLabel } from "@/lib/plan-terms";
 import { catalogPlansAt } from "@/lib/public-catalog";
@@ -55,6 +56,7 @@ import { type TargetCoverage, targetCoverages, workloadSlice } from "@/lib/route
 import { defaultRulesDate } from "@/lib/rules-date";
 import { createRunGuard } from "@/lib/run-guard";
 import { replayShareV2, type ShareOptions } from "@/lib/share-v2";
+import { discoveryNamespace } from "@/lib/stack-discovery-storage";
 import { browserTimeZone } from "@/lib/time-zone";
 import { localDayOf } from "@/lib/timeline";
 import { useWorkloadProfile } from "@/lib/use-workload-profile";
@@ -535,6 +537,10 @@ export function ReplaySurface({
           : {
               type: "subscription",
               planId: selectedPlan.id,
+              quantity:
+                stackCounts(readStackSubscriptions(workload ? discoveryNamespace(workload) : ""))[
+                  `plan:${selectedPlan.id}`
+                ] ?? 1,
               ...(planCohort === undefined ? {} : { cohort: planCohort }),
               ...translation,
             };
@@ -1576,7 +1582,7 @@ function ReplayResult({
   const resultTier = result.target.type === "api" ? result.target.serviceTier : undefined;
   const verdictTarget = apiTarget
     ? `${targetName} API${resultTier === undefined ? "" : ` (${SERVICE_TIER_NAMES[resultTier]} tier)`}`
-    : targetName;
+    : `${targetName}${result.target.type === "subscription" && (result.target.quantity ?? 1) > 1 ? ` ×${result.target.quantity}` : ""}`;
   const composed = verdictOfOutcome(outcome, verdictTarget, {
     timeZone: browserTimeZone(),
     catalog: loadBundledCatalog(),

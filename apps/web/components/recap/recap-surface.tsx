@@ -6,6 +6,7 @@ import {
   newSubscriptionId,
   readStackSubscriptions,
   type StackSubscription,
+  stackCounts,
   stackKeys,
   subscribeCurrentStack,
   writeStackSubscriptions,
@@ -116,14 +117,16 @@ export function RecapSurface({
     () =>
       buildMyStack({
         currentStack: stackKeys(stack),
-        counts: Object.fromEntries(
-          stackKeys(stack).map((key) => [key, stack.filter((s) => s.plan === key).length]),
-        ),
+        counts: stackCounts(stack),
         rulesAsOf: now.slice(0, 10),
       }),
     [stack, now],
   );
-  const selectedPlanCount = stack.filter((s) => s.plan.startsWith("plan:")).length;
+  const counts = stackCounts(stack);
+  const selectedPlanCount = Object.entries(counts).reduce(
+    (sum, [key, quantity]) => sum + (key.startsWith("plan:") ? quantity : 0),
+    0,
+  );
   const monthly = planSummary.totals.find((t) => t.currency === "USD" && t.interval === "month");
   const monthlyCost =
     selectedPlanCount && !planSummary.unpricedPlans && planSummary.totals.length === 1 && monthly
@@ -290,9 +293,7 @@ export function RecapSurface({
                               />
                               <span>
                                 {p.name}
-                                {stack.filter((s) => s.plan === key).length > 1
-                                  ? ` × ${stack.filter((s) => s.plan === key).length}`
-                                  : ""}
+                                {(counts[key] ?? 1) > 1 ? ` × ${counts[key]}` : ""}
                                 <small>{publishedPriceText(p.price)}</small>
                               </span>
                             </label>

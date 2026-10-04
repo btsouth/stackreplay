@@ -8,7 +8,7 @@ import {
   toolNameOf,
   type WorkloadAccount,
 } from "./accounts";
-import { type StackSubscription, stackKeys } from "./current-stack";
+import { type StackSubscription, stackKeys, subscriptionQuantity } from "./current-stack";
 import { marketRange } from "./decision-presentation";
 import type { MarketDecision } from "./market-decision";
 import { buildMyStack } from "./my-stack";
@@ -332,8 +332,11 @@ function plansAt(rulesAsOf: string): ReturnType<typeof catalogPlansAt> {
 
 function monthlyUsd(
   price: { amount: string; currency: string; interval: string } | undefined,
+  quantity = 1,
 ): string | undefined {
-  return price?.currency === "USD" && price.interval === "month" ? price.amount : undefined;
+  return price?.currency === "USD" && price.interval === "month"
+    ? new Decimal(price.amount).mul(quantity).toString()
+    : undefined;
 }
 
 /** A published price: whole dollars when there are no cents ("$20", "$9.99"). */
@@ -634,16 +637,17 @@ function tierOptions(
   family: Family,
   models: readonly { id: string; calls: number }[],
   asOf: string,
+  quantity = 1,
 ): TierOption[] {
   const plans = plansAt(asOf);
   const current = plans.find((plan) => plan.id === planId);
-  const currentPrice = monthlyUsd(current?.price);
+  const currentPrice = monthlyUsd(current?.price, quantity);
   if (!currentPrice) return [];
   return (family.planIds as readonly string[])
     .filter((id) => id !== planId)
     .flatMap((id): TierOption[] => {
       const plan = plans.find((entry) => entry.id === id);
-      const price = monthlyUsd(plan?.price);
+      const price = monthlyUsd(plan?.price, quantity);
       if (!plan || !price || new Decimal(price).eq(currentPrice)) return [];
       const listed = listedModels(catalog, id, models) ?? [];
       return [
@@ -728,7 +732,7 @@ export function analyzeStack(input: {
   const catalog = publicCatalog(asOf);
   const stack = subscriptionsOf(input.currentStack);
   const counts: Record<string, number> = {};
-  for (const sub of stack) counts[sub.plan] = (counts[sub.plan] ?? 0) + 1;
+  for (const sub of stack) counts[sub.plan] = (counts[sub.plan] ?? 0) + subscriptionQuantity(sub);
   const model = buildMyStack({ currentStack: stackKeys(stack), counts, rulesAsOf });
   const workload = input.workload;
   const period = workload?.period;
@@ -777,13 +781,13 @@ export function analyzeStack(input: {
       id: target.id,
       subscriptionId: sub.id,
       ref: n === 1 ? target.id : `${target.id}-${n}`,
-      name: target.name,
+      name: `${target.name}${subscriptionQuantity(sub) > 1 ? ` ×${subscriptionQuantity(sub)}` : ""}`,
       ...(linkedKey && accountName ? { account: { key: linkedKey, name: accountName } } : {}),
       scopeKeys: scope,
       scopeName: scopeWords(scope, accounts, workload),
       available: target.available,
       price: target.publishedPrice,
-      monthlyUsd: monthlyUsd(target.publishedPrice),
+      monthlyUsd: monthlyUsd(target.publishedPrice, subscriptionQuantity(sub)),
       ...(family && family.sourceIds.length > 0
         ? {
             family: {
@@ -846,7 +850,14 @@ export function analyzeStack(input: {
       models,
       confirmed,
     };
-    base.tiers = tierOptions(catalog, target.id, family, facts.models, rulesAsOf);
+    base.tiers = tierOptions(
+      catalog,
+      target.id,
+      family,
+      facts.models,
+      rulesAsOf,
+      subscriptionQuantity(sub),
+    );
     const shared = [{ sub, target }, ...siblings];
     // A paid amount entered for this account's plan, or for the plan when it is the stack's only one.
     const paidFor = (entry: (typeof shared)[number]) => {
@@ -859,7 +870,9 @@ export function analyzeStack(input: {
     };
     const paid = shared.map(paidFor);
     const allPaid = paid.every((amount) => amount !== undefined);
-    const prices = shared.map((entry) => monthlyUsd(entry.target.publishedPrice));
+    const prices = shared.map((entry) =>
+      monthlyUsd(entry.target.publishedPrice, subscriptionQuantity(entry.sub)),
+    );
     const price = allPaid
       ? paid.reduce((sum, amount) => sum.add(amount ?? "0"), new Decimal(0)).toString()
       : prices.every((amount) => amount !== undefined)
@@ -934,8 +947,8 @@ export function analyzeStack(input: {
     return base;
   });
 
-  const monthlyPrices = plans
-    .map((target) => monthlyUsd(target.publishedPrice))
+  const monthlyPrices = planSubs
+    .map(({ sub, target }) => monthlyUsd(target.publishedPrice, subscriptionQuantity(sub)))
     .filter((amount): amount is string => amount !== undefined);
   const monthly = monthlyPrices.length
     ? monthlyPrices.reduce((sum, amount) => sum.add(amount), new Decimal(0)).toString()
@@ -1601,16 +1614,22 @@ export interface ScenarioResult {
     | undefined;
 }
 
-function planSummary(key: TargetKey, rulesAsOf: string) {
+function planSummary(key: TargetKey, rulesAsOf: string, quantity = 1) {
   const id = key.slice(5);
   const plan = plansAt(rulesAsOf).find((entry) => entry.id === id);
-  return { key, id, name: plan?.name ?? id, monthlyUsd: monthlyUsd(plan?.price) };
+  return {
+    key,
+    id,
+    name: `${plan?.name ?? id}${quantity > 1 ? ` ×${quantity}` : ""}`,
+    quantity,
+    monthlyUsd: monthlyUsd(plan?.price, quantity),
+  };
 }
 
 function totalMonthly(subs: readonly StackSubscription[], rulesAsOf: string): string | undefined {
   const plans = subs
     .filter((sub) => sub.plan.startsWith("plan:"))
-    .map((sub) => planSummary(sub.plan, rulesAsOf));
+    .map((sub) => planSummary(sub.plan, rulesAsOf, subscriptionQuantity(sub)));
   if (plans.length === 0) return "0";
   if (plans.some((plan) => plan.monthlyUsd === undefined)) return undefined;
   return plans.reduce((sum, plan) => sum.add(plan.monthlyUsd ?? "0"), new Decimal(0)).toString();
@@ -1666,11 +1685,15 @@ export function analyzeScenario(input: {
   for (const group of groups) {
     const beforeSubs = current.filter((sub) => groupOf(sub, beforeScopes) === group);
     const afterSubs = proposed.filter((sub) => groupOf(sub, afterScopes) === group);
-    const before = beforeSubs.map((sub) => planSummary(sub.plan, rulesAsOf));
-    const after = afterSubs.map((sub) => planSummary(sub.plan, rulesAsOf));
+    const before = beforeSubs.map((sub) =>
+      planSummary(sub.plan, rulesAsOf, subscriptionQuantity(sub)),
+    );
+    const after = afterSubs.map((sub) =>
+      planSummary(sub.plan, rulesAsOf, subscriptionQuantity(sub)),
+    );
     const sorted = (list: typeof before) =>
       list
-        .map((plan) => plan.key)
+        .map((plan) => `${plan.key}*${plan.quantity}`)
         .sort()
         .join(",");
     if (sorted(before) === sorted(after)) continue;
@@ -1738,7 +1761,7 @@ export function analyzeScenario(input: {
             const listed = listedModels(catalog, sub.plan.slice(5), facts.models) ?? [];
             const calls = listed.filter((m) => m.listed).reduce((total, m) => total + m.calls, 0);
             return {
-              plan: planSummary(sub.plan, rulesAsOf),
+              plan: planSummary(sub.plan, rulesAsOf, subscriptionQuantity(sub)),
               share: resolved ? calls / resolved : 0,
             };
           })
@@ -1892,7 +1915,10 @@ export function analyzeScenario(input: {
 export function stackParam(stack: readonly StackSubscription[] | readonly TargetKey[]): string {
   return subscriptionsOf(stack)
     .filter((sub) => sub.plan.startsWith("plan:"))
-    .map((sub) => `${sub.plan.slice(5)}${sub.account ? `@${sub.account}` : ""}`)
+    .map(
+      (sub) =>
+        `${sub.plan.slice(5)}${subscriptionQuantity(sub) > 1 ? `*${subscriptionQuantity(sub)}` : ""}${sub.account ? `@${sub.account}` : ""}`,
+    )
     .join(",");
 }
 export function parseStackParam(value: string | undefined): StackSubscription[] | undefined {
@@ -1901,16 +1927,24 @@ export function parseStackParam(value: string | undefined): StackSubscription[] 
     .split(",")
     .map((entry) => entry.trim())
     .flatMap((entry) => {
-      const [id = "", account] = entry.split("@");
+      const [selection = "", account] = entry.split("@");
+      const [id = "", count] = selection.split("*");
+      const quantity = count === undefined ? 1 : Number(count);
+      if (count !== undefined && !/^(?:[1-9]|10)$/.test(count)) return [];
       if (!/^[a-z0-9][a-z0-9-]{0,80}$/u.test(id)) return [];
       return [
-        { plan: `plan:${id}` as TargetKey, account: isAccountKey(account) ? account : undefined },
+        {
+          plan: `plan:${id}` as TargetKey,
+          quantity,
+          account: isAccountKey(account) ? account : undefined,
+        },
       ];
     })
     .slice(0, 20);
   return entries.map((entry, index) => ({
     id: `u${index}${entry.plan.slice(5).replace(/[^a-z0-9]/gu, "")}`.slice(0, 24),
     plan: entry.plan,
+    ...(entry.quantity > 1 ? { quantity: entry.quantity } : {}),
     ...(entry.account ? { account: entry.account } : {}),
   }));
 }
@@ -1981,7 +2015,7 @@ export function stackAssessmentTitle(
 ): string {
   const names = subscriptionsOf(proposed)
     .filter((sub) => sub.plan.startsWith("plan:"))
-    .map((sub) => planSummary(sub.plan, rulesAsOf).name);
+    .map((sub) => planSummary(sub.plan, rulesAsOf, subscriptionQuantity(sub)).name);
   return bounded(
     `Stack scenario: ${names.join(" + ") || "no subscriptions"}${
       result.monthlyDelta !== undefined ? ` (${signedMonthly(result.monthlyDelta)})` : ""

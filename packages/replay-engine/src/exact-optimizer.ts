@@ -38,6 +38,7 @@ import type {
   ExactOptimizationResult,
   OptimizationScope,
 } from "./optimizer-types.js";
+import { planWithQuantity } from "./plan-quantity.js";
 import { isoFromEpochMs, parseInstant } from "./time.js";
 import { sliceCalendarWindows, toTimedEvents } from "./windows.js";
 
@@ -218,10 +219,13 @@ function prepare(input: ExactOptimizationInput): Prepared {
         capacityEvidence: { 0: evidence },
       });
       const versionId = run.routes[0]?.result.subscription?.planVersionId;
-      const version = versionId === undefined ? undefined : catalog.planVersions[versionId];
+      const catalogVersion = versionId === undefined ? undefined : catalog.planVersions[versionId];
+      const version = catalogVersion
+        ? planWithQuantity(catalogVersion, target.quantity)
+        : undefined;
       if (version === undefined) throw new Error("Validated subscription has no plan version");
       const id = `subscription:${version.versionId}`;
-      const signature = JSON.stringify(evidence);
+      const signature = JSON.stringify([evidence, target.quantity ?? 1]);
       const previous = seen.get(id);
       if (previous !== undefined) {
         if (previous !== signature) unsupported(`Conflicting capacity evidence for ${id}`);
@@ -922,6 +926,11 @@ export function optimizeExactModels(
       retainedAssignmentSets: explanation === undefined ? 0 : 1,
     },
     assumptions: [
+      ...(prepared.subscriptions.some((entry) => (entry.resource.target.quantity ?? 1) > 1)
+        ? [
+            "Purchased account quantities use aggregate numeric capacity with the original reset schedule. Independent account pools and windows are not simulated.",
+          ]
+        : []),
       "Optimum is over the declared API pool and subscription singleton/pair family, not arbitrary purchases.",
       "Each selected subscription is purchased at period.start for one full UTC calendar month; no proration or multi-cycle extrapolation.",
       "Initial allowance is explicit: supplied consumption applies only to its stated active window; unlisted pools start fresh. No historical calls are fabricated.",

@@ -307,12 +307,14 @@ export function PurchaseComparison({
   record,
   profile,
   current,
+  counts = {},
   rulesAsOf,
 }: {
   decision: PurchaseDecision;
   record: ImportRecord;
   profile: WorkloadProfile;
   current: readonly TargetKey[];
+  counts?: Readonly<Record<string, number>>;
   rulesAsOf: string;
 }) {
   const client = getWorkerClient();
@@ -320,12 +322,24 @@ export function PurchaseComparison({
   const [chosenPlan, setChosenPlan] = useState<string | undefined>();
   const [pair, setPair] = useState<Pair | undefined>();
   const planId = chosenPlan ?? selectedPlan(decision, current, rulesAsOf);
-  const pairKey = [record.id, decision, planId, rulesAsOf].join("|");
+  const quantity = counts[`plan:${planId}`] ?? 1;
+  const pairKey = [record.id, decision, planId, quantity, rulesAsOf].join("|");
   const shown = pair?.key === pairKey ? pair : undefined;
   const names = new Map(record.summary.usageSources.map((item) => [item.adapterId, item.name]));
   const slice = workloadSlice(profile.sources, names, [definition.source]);
   const options = targetCoverages(slice, rulesAsOf, { synthetic: isSyntheticWorkload(record) });
-  const plan = eligiblePlans(decision, rulesAsOf).find((item) => item.id === planId);
+  const unitPlan = eligiblePlans(decision, rulesAsOf).find((item) => item.id === planId);
+  const plan = unitPlan
+    ? {
+        ...unitPlan,
+        price: {
+          ...unitPlan.price,
+          amount:
+            configuredMonthlyPrice(Array.from({ length: quantity }, () => unitPlan)) ??
+            unitPlan.price.amount,
+        },
+      }
+    : undefined;
   const planCoverage = options.find((item) => item.key === `plan:${planId}`);
   const apiCoverage = options.find((item) => item.key === `api:${definition.api}`);
   const planName = plan?.name ?? "Selected subscription";
@@ -346,7 +360,7 @@ export function PurchaseComparison({
       try {
         const result = await client.runReplay(
           record.id,
-          { type: "subscription", planId },
+          { type: "subscription", planId, quantity },
           rulesAsOf,
           undefined,
           { sources: [definition.source] },
@@ -369,7 +383,7 @@ export function PurchaseComparison({
     return () => {
       active = false;
     };
-  }, [client, definition.api, definition.source, pairKey, planId, record.id, rulesAsOf]);
+  }, [client, definition.api, definition.source, pairKey, planId, quantity, record.id, rulesAsOf]);
 
   return (
     <section className="flex min-w-0 flex-col gap-6" data-testid="purchase-comparison">
@@ -488,19 +502,21 @@ export function StackComparison({
   record,
   profile,
   current,
+  counts = {},
   rulesAsOf,
   onCurrentChange,
 }: {
   record: ImportRecord;
   profile: WorkloadProfile;
   current: readonly TargetKey[];
+  counts?: Readonly<Record<string, number>>;
   rulesAsOf: string;
   onCurrentChange: (keys: TargetKey[]) => void;
 }) {
   const plans = configuredPlans(current, rulesAsOf);
   const [pickerOpen, setPickerOpen] = useState(plans.length === 0);
   const support = configuredStackSupport(profile.sources, current, rulesAsOf);
-  const monthly = configuredMonthlyPrice(plans);
+  const monthly = configuredMonthlyPrice(plans, counts);
   const names = new Map(record.summary.usageSources.map((item) => [item.adapterId, item.name]));
   const value = profile.value;
   const picker = configurablePlans(rulesAsOf, isSyntheticWorkload(record));
