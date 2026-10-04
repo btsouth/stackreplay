@@ -103,7 +103,7 @@ test("filtered SSR, reload, successive choices and detail history retain committ
   await expect(page.locator("#deepseek-api-prices-cut")).toBeVisible();
 });
 
-test("first values normalize by replacement; unknown and valid empty providers recover without query or hash loss", async ({
+test("duplicate first values normalize by replacement and Back/Forward retain selection history", async ({
   page,
 }) => {
   const anchor = "#gemini-4-argon-announced";
@@ -118,6 +118,12 @@ test("first values normalize by replacement; unknown and valid empty providers r
   await assertSelection(page, "anthropic", "models");
   await page.goForward();
   await assertSelection(page, "google", "benchmarks");
+});
+
+test("unknown providers suppress feeds and rows while valid empty and invalid filters recover", async ({
+  page,
+}) => {
+  const anchor = "#gemini-4-argon-announced";
   await page.goto(`/changelog?provider=not-a-provider&type=all&utm=kept${anchor}`);
   await expect(page).toHaveURL(`/changelog?provider=not-a-provider&utm=kept${anchor}`);
   await expect(page.getByRole("status")).toContainText("Provider not recognized.");
@@ -151,6 +157,12 @@ test("first values normalize by replacement; unknown and valid empty providers r
   await assertSelection(page, "mistral", "pricing");
   await page.getByRole("button", { name: "Clear filters" }).click();
   await assertSelection(page, null, "all");
+});
+
+test("explicit all filters normalize while preserving unrelated query and hash", async ({
+  page,
+}) => {
+  const anchor = "#gemini-4-argon-announced";
   await page.goto(`/changelog?provider=all&type=all&utm=kept${anchor}`);
   await expect(page).toHaveURL(`/changelog?utm=kept${anchor}`);
   await assertSelection(page, null, "all");
