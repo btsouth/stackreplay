@@ -190,9 +190,13 @@ describe("OpenCode browser collection parity", () => {
       syntheticCatalog(),
       options,
     );
-    expect(result.outcomes[0]?.reason).toContain("128 MB");
+    expect(result.outcomes[0]?.reason).toContain("1 GB");
     expect(read).not.toHaveBeenCalled();
     await withDatabase(async (_path, bytes) => {
+      // Exercise the size-dispatch branch without allocating a 600 MB test database.
+      const large = { ...candidate("opencode.db", bytes), size: 600 * 1024 * 1024 };
+      const imported = await intakeBrowserCandidates([large], syntheticCatalog(), options);
+      expect(imported.exported?.events).toHaveLength(2);
       const other = candidate("other/opencode.db-wal", new Uint8Array(1));
       const result = await intakeBrowserCandidates(
         [candidate("first/opencode.db", bytes), other],
@@ -246,5 +250,120 @@ describe("WAL snapshots", () => {
       expect(sqliteSnapshot(bytes)).not.toBe(bytes);
       expect(bytes).toEqual(before);
     });
+  });
+});
+
+describe("Hermes browser collection parity", () => {
+  it("imports state.db through the shared native adapter with recorded billing routes", async () => {
+    const { HERMES_FIXTURE_SQL } = await import("./fixtures/content.js");
+    const { createHermesAdapter } = await import("./adapters/hermes.js");
+    await withTempDir(async (root) => {
+      const path = `${root}/.hermes/state.db`;
+      await createSqliteFixture(path, HERMES_FIXTURE_SQL);
+      const bytes = new Uint8Array(await readFile(path));
+      const browser = await intakeBrowserCandidates(
+        [candidate(".hermes/state.db", bytes)],
+        syntheticCatalog(),
+        options,
+      );
+      const native = await createHermesAdapter().collect(
+        createFixtureEnvironment({ homeDir: root }),
+        { salt: FIXTURE_SALT, now: new Date(now), mapper: createModelMapper(syntheticCatalog()) },
+      );
+      expect(
+        browser.exported?.events.map((e) => ({
+          usage: e.usage,
+          model: e.model,
+          provider: e.provider,
+          harness: e.harness,
+          at: e.occurredAt,
+        })),
+      ).toEqual(
+        native.events.map((e) => ({
+          usage: e.usage,
+          model: e.model,
+          provider: e.provider,
+          harness: e.harness,
+          at: e.occurredAt,
+        })),
+      );
+      expect(browser.exported?.events.length).toBeGreaterThan(0);
+      expect(browser.outcomes[0]!.status).toBe("imported");
+    });
+  });
+});
+
+describe("T3 browser attribution", () => {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ])(
+    "attributes selected provider sessions without adding usage, reverse=%s zip=%s",
+    async (reverse, zipped) => {
+      await withTempDir(async (root) => {
+        const t3 = `${root}/state.sqlite`,
+          open = `${root}/opencode.db`;
+        await createSqliteFixture(open, OPENCODE_FIXTURE_SQL);
+        const db = new DatabaseSync(open);
+        const rows = db.prepare("select id from session").all();
+        db.close();
+        await createSqliteFixture(t3, [
+          "CREATE TABLE projection_thread_sessions(thread_id TEXT,provider_name TEXT,provider_session_id TEXT,runtime_mode TEXT)",
+          ...rows.map(
+            (row, i) =>
+              `INSERT INTO projection_thread_sessions VALUES ('thread-${i}', 'opencode', '${String(row.id).replaceAll("'", "''")}', 'auto')`,
+          ),
+        ]);
+        const files = [
+          candidate("opencode.db", new Uint8Array(await readFile(open))),
+          candidate("state.sqlite", new Uint8Array(await readFile(t3))),
+        ];
+        const selected = reverse ? files.reverse() : files;
+        const expanded = zipped
+          ? await expandZipCandidate(
+              candidate(
+                "history.zip",
+                zipSync(
+                  Object.fromEntries(
+                    await Promise.all(
+                      selected.map(async (f) => [f.path, new Uint8Array(await f.arrayBuffer!())]),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : undefined;
+        expect(expanded?.outcomes ?? []).toEqual([]);
+        const result = await intakeBrowserCandidates(
+          expanded?.candidates ?? selected,
+          syntheticCatalog(),
+          options,
+        );
+        expect(result.exported!.events).toHaveLength(2);
+        expect(result.exported!.events.every((e) => e.harness?.id === "t3-code")).toBe(true);
+        expect(result.exported!.detectedSources.find((s) => s.adapterId === "t3-code")?.role).toBe(
+          "attribution",
+        );
+      });
+    },
+  );
+});
+
+it.each([
+  ["state.db", "Hermes"],
+  ["state.sqlite", "T3 Code"],
+  ["opencode.db", "OpenCode"],
+])("names the required database for an unpaired %s log", async (name, source) => {
+  const result = await intakeBrowserCandidates(
+    [candidate(`${name}-wal`, new Uint8Array(32))],
+    syntheticCatalog(),
+    options,
+  );
+  expect(result.outcomes[0]).toMatchObject({
+    source,
+    status: "unsupported",
+    reason: `Select ${name} together with its write-ahead log`,
   });
 });

@@ -15,11 +15,18 @@ import { ccusageRows, createCcusageAdapter } from "./adapters/ccusage.js";
 import { createClaudeCodeAdapter } from "./adapters/claude-code.js";
 import { createCodexAdapter } from "./adapters/codex.js";
 import { createCommandCodeAdapter } from "./adapters/command-code.js";
+import { createHermesAdapter } from "./adapters/hermes.js";
 import { createOpenCodeAdapter } from "./adapters/opencode.js";
+import { createT3CodeAdapter } from "./adapters/t3-code.js";
 import type { BrowserSourceId } from "./browser-formats.js";
 import { openBrowserOpenCode } from "./browser-sqlite.js";
 import { dedupeEvents } from "./dedup.js";
-import { generateSalt, normalizeProjectKey, sourceRootHash } from "./identity.js";
+import {
+  generateSalt,
+  nativeSessionHash,
+  normalizeProjectKey,
+  sourceRootHash,
+} from "./identity.js";
 import { createModelMapper } from "./models.js";
 import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
 import type { SqliteDatabase } from "./sqlite.js";
@@ -117,6 +124,7 @@ const ADAPTERS = {
   "claude-code": createClaudeCodeAdapter(),
   "command-code": createCommandCodeAdapter(),
   opencode: createOpenCodeAdapter(),
+  hermes: createHermesAdapter(),
   ccusage: createCcusageAdapter(),
 } as const satisfies Record<BrowserSourceId, ReturnType<typeof createCodexAdapter>>;
 
@@ -218,7 +226,7 @@ export function isBrowserSourceCandidate(path: string): boolean {
   return (
     !/\.[^./\\]+$/u.test(path) ||
     /\.(json|jsonl|txt|stackreplay)$/iu.test(path) ||
-    /(?:^|[/\\])opencode\.db(?:-wal)?$/iu.test(path)
+    /(?:^|[/\\])(?:(?:opencode|state)\.db|state\.sqlite)(?:-wal)?$/iu.test(path)
   );
 }
 
@@ -287,7 +295,7 @@ export async function expandZipCandidate(
     }
     if (
       !/\.(json|jsonl)$/iu.test(normalized) &&
-      !/(?:^|\/)opencode\.db(?:-wal)?$/iu.test(normalized)
+      !/(?:^|\/)(?:(?:opencode|state)\.db|state\.sqlite)(?:-wal)?$/iu.test(normalized)
     ) {
       outcomes.push({
         path: safeCandidateName(normalized),
@@ -737,8 +745,8 @@ export function selectedLocation(path: string, group: string | undefined): strin
   // (the picker's own folder name); a lone file has none and stays its group's.
   const root =
     layout?.[1] ??
-    (/(?:^|\/)opencode\.db(?:-wal)?$/iu.test(normalized)
-      ? normalized.replace(/(?:^|\/)opencode\.db(?:-wal)?$/iu, "")
+    (/(?:^|\/)(?:opencode|state)\.db(?:-wal)?$/iu.test(normalized)
+      ? normalized.replace(/(?:^|\/)(?:opencode|state)\.db(?:-wal)?$/iu, "")
       : normalized.includes("/")
         ? (normalized.split("/")[0] ?? "")
         : "");
@@ -791,6 +799,8 @@ export async function intakeBrowserCandidates(
         normalizedPath(entry.path) === `${normalizedPath(candidate.path)}-wal`,
     );
   const sources = new Set<keyof typeof ADAPTERS>();
+  const t3Sessions = new Set<string>();
+  let t3Collected = false;
   /** Raw project keys stay inside this function; only derived labels leave it. */
   const projectKeys = new Map<string, string>();
   const scanProgress = {
@@ -852,15 +862,21 @@ export async function intakeBrowserCandidates(
     /\.jsonl$/iu.test(candidate.path) &&
     candidate.stream !== undefined &&
     candidate.peekText !== undefined;
+  const databaseFile = (candidate: BrowserCandidate): boolean =>
+    /(?:^|[/\\])(?:opencode\.db|state\.db|state\.sqlite)(?:-wal)?$/iu.test(candidate.path);
   const fileLimit = (candidate: BrowserCandidate): number =>
-    streams(candidate) ? MAX_STREAMED_SOURCE_FILE_BYTES : MAX_SOURCE_FILE_BYTES;
+    databaseFile(candidate)
+      ? MAX_BROWSER_DATABASE_BYTES
+      : streams(candidate)
+        ? MAX_STREAMED_SOURCE_FILE_BYTES
+        : MAX_SOURCE_FILE_BYTES;
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
   /** Exact-file matches already include this history scope in their key. */
   const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
     const path = normalizedPath(candidate.path);
-    const selectedRoot = /(?:^|\/)opencode\.db$/iu.test(path)
-      ? path.replace(/(?:^|\/)opencode\.db$/iu, "")
+    const selectedRoot = /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
+      ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
       : path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
     return selectedRoot === undefined
       ? undefined
@@ -906,20 +922,26 @@ export async function intakeBrowserCandidates(
     // This file's read first, then the next few behind it.
     for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
     const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
-    if (/(?:^|[/\\])opencode\.db-wal$/iu.test(candidate.path)) {
+    if (/(?:^|[/\\])(?:(?:opencode|state)\.db|state\.sqlite)-wal$/iu.test(candidate.path)) {
       const paired = candidates.some(
         (entry) =>
           entry.group === candidate.group &&
           `${normalizedPath(entry.path)}-wal` === normalizedPath(candidate.path),
       );
+      const sourceName = /state\.sqlite/iu.test(candidate.path)
+        ? "T3 Code"
+        : /state\.db/iu.test(candidate.path)
+          ? "Hermes"
+          : "OpenCode";
+      const databaseName = normalizedPath(candidate.path).split("/").at(-1)!.replace(/-wal$/iu, "");
       outcomes.push({
         path: display,
         status: paired ? "companion" : "unsupported",
-        source: "OpenCode",
+        source: sourceName,
         events: 0,
         reason: paired
-          ? "Companion log is read with its OpenCode database"
-          : "Select opencode.db together with its write-ahead log",
+          ? `Companion log is read with its ${sourceName} database`
+          : `Select ${databaseName} together with its write-ahead log`,
       });
       report(index + 1, false);
       continue;
@@ -938,9 +960,11 @@ export async function intakeBrowserCandidates(
       outcomes.push({
         path: display,
         status: "unsupported",
-        reason: streams(candidate)
-          ? "File exceeds the 2 GB session file limit"
-          : "File exceeds the 512 MB source parser limit",
+        reason: databaseFile(candidate)
+          ? "Session database files exceed the 1 GB browser limit; use a CLI export."
+          : streams(candidate)
+            ? "File exceeds the 2 GB session file limit"
+            : "File exceeds the 512 MB source parser limit",
         events: 0,
       });
       report(index + 1, true);
@@ -966,7 +990,9 @@ export async function intakeBrowserCandidates(
     let content = "";
     let signature: string | undefined;
     let database: SqliteDatabase | undefined;
-    const sqlite = /(?:^|[/\\])opencode\.db$/iu.test(candidate.path);
+    const t3 = /(?:^|[/\\])state\.sqlite$/iu.test(candidate.path);
+    const hermes = /(?:^|[/\\])state\.db$/iu.test(candidate.path);
+    const sqlite = t3 || /(?:^|[/\\])(?:opencode|state)\.db$/iu.test(candidate.path);
     try {
       budget.add("readBytes", candidate.readCost ?? candidate.size);
       if (sqlite) {
@@ -976,10 +1002,10 @@ export async function intakeBrowserCandidates(
           (companion?.size ?? 0) > MAX_BROWSER_DATABASE_BYTES
         )
           throw new Error(
-            "OpenCode database files exceed the 128 MB browser limit; use a CLI export.",
+            "Session database files exceed the 1 GB browser limit; use a CLI export.",
           );
         if (!candidate.arrayBuffer || (companion && !companion.arrayBuffer))
-          throw new Error("Selected OpenCode database bytes are unavailable.");
+          throw new Error("Selected session database bytes are unavailable.");
         const bytes = new Uint8Array(await candidate.arrayBuffer());
         examined(candidate.size);
         let wal: Uint8Array | undefined;
@@ -995,12 +1021,16 @@ export async function intakeBrowserCandidates(
         if (wal) await hash.update(wal);
         signature = await hash.digest();
         if (options.signal?.aborted) throw new BrowserIntakeCancelledError();
-        database = await openBrowserOpenCode(bytes, wal);
+        database = await openBrowserOpenCode(
+          bytes,
+          wal,
+          t3 ? "t3-code" : hermes ? "hermes" : "opencode",
+        );
         if (!companion && bytes[18] === 2)
           warnings.push({
             code: "SESSION_PARTIAL",
             message:
-              "OpenCode database was selected without its write-ahead log; recent sessions may be missing. Close OpenCode or include opencode.db-wal if present.",
+              "Session database was selected without its write-ahead log; recent sessions may be missing. Close the harness or include the matching database-wal file if present.",
           });
       } else if (streaming) {
         const peek = peekOf(index);
@@ -1028,11 +1058,11 @@ export async function intakeBrowserCandidates(
         sqlite
           ? {
               path: display,
-              source: "OpenCode",
+              source: t3 ? "T3 Code" : hermes ? "Hermes" : "OpenCode",
               status: "unreadable",
               events: 0,
               reason: safeIntakeMessage(
-                error instanceof Error ? error.message : "Could not read OpenCode database",
+                error instanceof Error ? error.message : "Could not read session database",
               ),
             }
           : unreadableOutcome(display, error),
@@ -1053,8 +1083,39 @@ export async function intakeBrowserCandidates(
       continue;
     }
     if (signature !== undefined) seen.add(signature);
+    if (t3 && database) {
+      const path = "/selected/state.sqlite";
+      const attribution = await createT3CodeAdapter().collectAttribution(
+        {
+          platform: "linux",
+          homeDir: "/selected",
+          env: {},
+          fs: singleFileSystem(path, "", candidate.lastModified, candidate.size),
+          openDatabase: async () => database!,
+        },
+        { now: new Date(options.now), salt, mapper, roots: ["/selected"] },
+      );
+      for (const key of attribution.byProviderSession.keys()) {
+        const [adapter, session] = key.split("\u0000");
+        if (adapter && session) t3Sessions.add(`${adapter}:${nativeSessionHash(salt, session)}`);
+      }
+      warnings.push(...attribution.warnings);
+      t3Collected = true;
+      outcomes.push({
+        path: display,
+        status: "companion",
+        source: "T3 Code",
+        reason: "Harness attribution only; underlying usage counted once",
+        events: 0,
+      });
+      report(index + 1, false);
+      continue;
+    }
     const detection = sqlite
-      ? { id: "opencode" as const, reason: "OpenCode CLI / desktop session database" }
+      ? {
+          id: hermes ? ("hermes" as const) : ("opencode" as const),
+          reason: "Local session database",
+        }
       : detectBrowserSource(content);
     if (detection.id === undefined) {
       const plainText = /\.txt$/iu.test(candidate.path);
@@ -1074,7 +1135,7 @@ export async function intakeBrowserCandidates(
     // A synthetic collection root lets the original adapter read File contents
     // through its injected FileSystem without access to Node or the host disk.
     const name = display.replace(/[\\/]/gu, "_");
-    const path = `/selected/${sqlite ? "opencode.db" : name}`;
+    const path = `/selected/${sqlite ? (hermes ? "state.db" : "opencode.db") : name}`;
     const env: SourceEnvironment = {
       platform: "linux",
       homeDir: "/selected",
@@ -1161,6 +1222,13 @@ export async function intakeBrowserCandidates(
     report(index + 1, result.events.length === 0);
   }
   if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
+  for (const event of events) {
+    if (
+      event.source.nativeSessionHash &&
+      t3Sessions.has(`${event.source.adapterId}:${event.source.nativeSessionHash}`)
+    )
+      event.harness = { id: "t3-code", attribution: "exact" };
+  }
   const deduped = dedupeEvents(events);
   // Location accounts are attached after deduplication, so identity and
   // duplicate handling are exactly what they were for these sources. Only a
@@ -1204,6 +1272,14 @@ export async function intakeBrowserCandidates(
     supported: true,
     role: ADAPTERS[id].kind,
   }));
+  if (t3Collected)
+    detectedSources.push({
+      adapterId: "t3-code",
+      name: "T3 Code",
+      detected: true,
+      supported: true,
+      role: "attribution",
+    });
   const exported: StackReplayExportV1 = {
     format: "stackreplay",
     version: 1,

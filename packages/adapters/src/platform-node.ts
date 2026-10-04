@@ -1,10 +1,37 @@
+import { execFile } from "node:child_process";
 import { createReadStream } from "node:fs";
 import { readdir, readFile, realpath, stat } from "node:fs/promises";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { createInterface } from "node:readline";
+import { promisify } from "node:util";
 import type { FileSystem } from "./types.js";
 
 export function createNodeFileSystem(): FileSystem {
+  const roots = new Map<string, Promise<string | undefined>>();
+  const run = promisify(execFile);
   return {
+    projectRoot(path) {
+      let result = roots.get(path);
+      if (!result) {
+        result = (async () => {
+          try {
+            const { stdout } = await run(
+              "git",
+              ["-C", path, "rev-parse", "--show-toplevel", "--git-common-dir"],
+              { timeout: 2000 },
+            );
+            const [root, common] = stdout.trim().split("\n");
+            if (!root || !common) return undefined;
+            const gitDir = isAbsolute(common) ? common : resolve(path, common);
+            return gitDir.endsWith("/.git") ? dirname(gitDir) : root;
+          } catch {
+            return undefined;
+          }
+        })();
+        roots.set(path, result);
+      }
+      return result;
+    },
     realPath: realpath,
     async exists(path: string): Promise<boolean> {
       try {

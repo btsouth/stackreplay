@@ -131,7 +131,7 @@
 .replay-hero h1 {
   font-size: clamp(58px, 6vw, 86px);
   line-height: 1.025;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.03em;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -297,7 +297,7 @@
 .replay-privacy h2 {
   font-size: clamp(38px, 4vw, 58px);
   line-height: 1.08;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.03em;
   font-weight: 550;
 }
 .replay-story h2 span,
@@ -796,7 +796,7 @@
 }
 .replay-closing h2 {
   font-size: clamp(60px, 7vw, 100px);
-  letter-spacing: -0.06em;
+  letter-spacing: -0.03em;
   font-weight: 550;
   line-height: 1.1;
   margin-bottom: 34px;
@@ -1032,7 +1032,7 @@
   }
   .replay-hero h1 {
     font-size: clamp(43px, 11.6vw, 72px);
-    letter-spacing: -0.07em;
+    letter-spacing: -0.03em;
   }
   .replay-lede {
     font-size: 15px;

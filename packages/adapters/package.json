@@ -25,6 +25,10 @@
     "./discovery": {
       "types": "./dist/discovery.d.ts",
       "default": "./dist/discovery.js"
+    },
+    "./models": {
+      "types": "./dist/models.d.ts",
+      "default": "./dist/models.js"
     }
   },
   "files": [

@@ -1,7 +1,10 @@
+import { createModelMapper } from "@stackreplay/adapters/models";
 import type { CatalogV1 } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal, moneyUnitsForUsage, replayObservingQuotes } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
+
+import { deepRecap, type RecapDeep } from "./recap-deep";
 
 export type RecapPeriod = "30" | "90" | "all";
 export interface RecapModel {
@@ -17,6 +20,9 @@ export interface RecapModel {
   cacheScenarioRecords: number;
 }
 export interface Recap {
+  period: RecapPeriod;
+  deep?: RecapDeep;
+  sourceCoverage?: { name: string; role: string; status: string }[];
   start: string;
   end: string;
   timeZone: string;
@@ -96,6 +102,20 @@ export function buildRecap(
   timeZone: string,
   catalog: CatalogV1 = loadBundledCatalog(),
 ): Recap {
+  const mapper = createModelMapper(catalog);
+  events = events.map((e) =>
+    e.model.canonicalId
+      ? e
+      : {
+          ...e,
+          model: mapper.map(e.model.rawName, {
+            harness:
+              e.harness?.id === "t3-code"
+                ? e.source.adapterId
+                : (e.harness?.id ?? e.source.adapterId),
+          }).model,
+        },
+  );
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
@@ -125,6 +145,10 @@ export function buildRecap(
   const models = new Map<string, RecapModel>();
   const tools = new Map<string, { id: string; records: number; output: number; total: number }>();
   const weeks = new Map<string, Record<string, number>>();
+  for (const date of days.keys()) {
+    const week = nextDay(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7));
+    weeks.set(week, {});
+  }
   const hours = Array<number>(24).fill(0);
   const sessions = new Set<string>();
   let output = 0;
@@ -191,6 +215,16 @@ export function buildRecap(
     mix[family] = (mix[family] ?? 0) + t;
     weeks.set(week, mix);
   }
+  const deep = deepRecap(selected, events, local, now);
+  const firstSeenCount = deep.firstSeen.length;
+  deep.firstSeen = deep.firstSeen.flatMap((entry) => {
+    const model = catalog.models[entry.id];
+    return model ? [{ ...entry, name: model.name }] : [];
+  });
+  deep.omittedFirstSeen = firstSeenCount - deep.firstSeen.length;
+  const costDays = new Map<string, Decimal>();
+  const months = new Map<string, { date: string; usd: string; priced: number }>();
+  let cacheSavings = new Decimal(0);
   // Price each model at its developer's published direct API route, never a cheapest-provider comparison.
   for (const [id, row] of models) {
     const model = catalog.models[id];
@@ -207,6 +241,7 @@ export function buildRecap(
         let low = quote.amount;
         let high = quote.amount;
         let scenario = false;
+        let chosenPrice = quote.pricingId ? catalog.pricing[quote.pricingId] : undefined;
         // Claude logs do not retain cache TTL. Both documented TTL rates form a range,
         // rather than treating an unreported TTL as a known 5-minute write.
         if (
@@ -236,11 +271,37 @@ export function buildRecap(
               low = sorted[0]?.toString();
               high = sorted[1]?.toString();
               scenario = true;
+              chosenPrice = variants[0];
             }
           }
         }
         if (low === undefined || high === undefined || (outcome !== "priced" && !scenario)) return;
         priced++;
+        const date = local(event.occurredAt).date;
+        costDays.set(date, (costDays.get(date) ?? new Decimal(0)).add(low));
+        const month = date.slice(0, 7);
+        const monthly = months.get(month) ?? { date: month, usd: "0", priced: 0 };
+        monthly.usd = new Decimal(monthly.usd).add(low).toString();
+        monthly.priced++;
+        months.set(month, monthly);
+        if (chosenPrice && (event.usage.cacheReadTokens ?? 0) > 0) {
+          const u = event.usage;
+          const uncached = {
+            ...u,
+            inputTokens:
+              (u.inputTokens ?? 0) +
+              (u.accounting?.cacheReadIncludedInInput === true ? 0 : (u.cacheReadTokens ?? 0)),
+            cacheReadTokens: 0,
+          };
+          const actual = moneyUnitsForUsage(u, chosenPrice, { atMs: Date.parse(event.occurredAt) });
+          const without = moneyUnitsForUsage(uncached, chosenPrice, {
+            atMs: Date.parse(event.occurredAt),
+          });
+          if (actual.known && without.known && without.units.greaterThanOrEqualTo(actual.units)) {
+            cacheSavings = cacheSavings.add(without.units.sub(actual.units));
+            deep.cacheSavingsRecords++;
+          }
+        }
         row.priced++;
         if (scenario) {
           cacheScenarioRecords++;
@@ -253,6 +314,11 @@ export function buildRecap(
       },
     );
   }
+  deep.costDays = [...costDays]
+    .map(([date, usd]) => ({ date, usd: usd.toString() }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  deep.months = [...months.values()].sort((a, b) => a.date.localeCompare(b.date));
+  deep.cacheSavings = cacheSavings.toString();
   const daily = [...days.values()];
   let run = 0;
   let longestStreak = 0;
@@ -265,6 +331,8 @@ export function buildRecap(
   if (!daily[i]?.records) i--;
   for (; i >= 0 && daily[i]?.records; i--) streak++;
   return {
+    period,
+    deep,
     start,
     end,
     timeZone,

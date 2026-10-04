@@ -4,7 +4,9 @@
  * Never checkpoints or writes the originating tool's files. Only checksum-valid
  * frames through the last committed transaction enter the transient snapshot.
  */
-export const MAX_BROWSER_DATABASE_BYTES = 128 * 1024 * 1024;
+// Real histories can exceed 600 MB. Keep a finite per-file and reconstructed-image
+// ceiling, while allowing those histories through the shared browser adapters.
+export const MAX_BROWSER_DATABASE_BYTES = 1024 * 1024 * 1024;
 
 function view(bytes: Uint8Array): DataView {
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -30,7 +32,7 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
     database.length > MAX_BROWSER_DATABASE_BYTES ||
     (wal?.length ?? 0) > MAX_BROWSER_DATABASE_BYTES
   )
-    throw new Error("OpenCode database files exceed the 128 MB browser limit; use a CLI export.");
+    throw new Error("Session database files exceed the 1 GB browser limit; use a CLI export.");
   if (
     database.length < 100 ||
     new TextDecoder().decode(database.subarray(0, 16)) !== "SQLite format 3\u0000"
@@ -42,11 +44,13 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
   if (pageSize < 512 || pageSize > 65536 || (pageSize & (pageSize - 1)) !== 0)
     throw new Error("SQLite database has an invalid page size.");
   if (database.length % pageSize !== 0)
-    throw new Error("SQLite database is incomplete. Close OpenCode and select its files again.");
+    throw new Error(
+      "SQLite database is incomplete. Close the source app and select its files again.",
+    );
   let committedEnd = 32;
   let pages = database.length / pageSize;
   if (wal && wal.length > 0) {
-    if (wal.length < 32) throw new Error("OpenCode write-ahead log has an incomplete header.");
+    if (wal.length < 32) throw new Error("SQLite write-ahead log has an incomplete header.");
     const log = view(wal);
     const magic = log.getUint32(0);
     if (
@@ -54,11 +58,11 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
       log.getUint32(4) !== 3007000 ||
       log.getUint32(8) !== pageSize
     )
-      throw new Error("OpenCode write-ahead log does not match the database format.");
+      throw new Error("SQLite write-ahead log does not match the database format.");
     const littleEndian = magic === 0x377f0682;
     let sum = checksum(log, 0, 24, littleEndian);
     if (sum[0] !== log.getUint32(24) || sum[1] !== log.getUint32(28))
-      throw new Error("OpenCode write-ahead log header failed its checksum.");
+      throw new Error("SQLite write-ahead log header failed its checksum.");
     for (let offset = 32; offset + 24 + pageSize <= wal.length; offset += 24 + pageSize) {
       // A reused log can retain old frames after its current valid tail.
       if (
@@ -73,11 +77,11 @@ export function sqliteSnapshot(database: Uint8Array, wal?: Uint8Array): Uint8Arr
       sum = nextSum;
       const page = log.getUint32(offset);
       if (page === 0 || page * pageSize > MAX_BROWSER_DATABASE_BYTES)
-        throw new Error("OpenCode write-ahead log exceeds the browser snapshot limit.");
+        throw new Error("SQLite write-ahead log exceeds the browser snapshot limit.");
       const committedPages = log.getUint32(offset + 4);
       if (committedPages > 0) {
         if (committedPages * pageSize > MAX_BROWSER_DATABASE_BYTES)
-          throw new Error("OpenCode database exceeds the 128 MB browser limit; use a CLI export.");
+          throw new Error("Session database exceeds the 1 GB browser limit; use a CLI export.");
         pages = committedPages;
         committedEnd = offset + 24 + pageSize;
       }

@@ -141,8 +141,8 @@ test("the happy path opens a recap after scanning and can reopen workload detail
   await page.getByTestId("build-workload").click();
   await expect(page.getByTestId("scan-instrument")).toBeVisible();
   await expect(page).toHaveURL(/\/app\/recap\?import=/u);
-  await page.getByLabel("Recap period").selectOption("all");
-  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await page.getByRole("radio", { name: "All time", exact: true }).check();
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   await inspectLatestImport(page);
   const sources = page.getByTestId("detected-sources").first();
   await expect(sources).toContainText("Claude Code");

@@ -1,5 +1,5 @@
 import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
+
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { compareInitScript } from "@/lib/compare-url";
@@ -54,12 +54,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={GeistMono.variable} suppressHydrationWarning>
       <head>
+        <link
+          rel="preload"
+          href="/fonts/instrument-sans.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="anonymous"
+        />
         {/* Applies the stored (or system) theme before first paint. */}
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap script, no user input */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

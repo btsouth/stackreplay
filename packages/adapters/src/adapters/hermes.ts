@@ -1,8 +1,9 @@
 import type { TextUsageV1 } from "@stackreplay/schema";
-import { buildEvent, eventContext, HARNESS_IDS, providerIdForModel } from "../event-builder.js";
+import { buildEvent, eventContext, HARNESS_IDS } from "../event-builder.js";
 import { inWindow } from "../files.js";
 import { decimalStringFromNumber } from "../identity.js";
 import { joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   MAX_EPOCH_MS,
   openReadOnly,
@@ -90,7 +91,7 @@ export function createHermesAdapter(): LocalSourceAdapter {
         const databasePath = hermesStateDatabase(env);
         const database = readable ? await env.fs.stat(databasePath) : null;
         if (database !== null && database.kind === "file") {
-          const db = await openReadOnly(databasePath);
+          const db = await (env.openDatabase ?? openReadOnly)(databasePath);
           if (db === undefined) {
             supported = false;
             note = "state.db exists but could not be opened read-only";
@@ -150,7 +151,7 @@ export function createHermesAdapter(): LocalSourceAdapter {
         const databasePath = joinPath(env.platform, root, "state.db");
         const info = await env.fs.stat(databasePath);
         if (info === null || info.kind !== "file") continue;
-        const db = await openReadOnly(databasePath);
+        const db = await (env.openDatabase ?? openReadOnly)(databasePath);
         if (db === undefined) {
           warnings.add("SOURCE_UNREADABLE", "could not open state.db read-only", databasePath);
           continue;
@@ -288,7 +289,7 @@ export function createHermesAdapter(): LocalSourceAdapter {
           const estimatedCost = toFiniteNumber(row.estimated_cost_usd);
           const cost = actualCost ?? estimatedCost;
           const nativeCost = cost !== undefined ? decimalStringFromNumber(cost) : undefined;
-          const mappedProvider = providerIdForModel(options.mapper, rawModel);
+          const servingProvider = hermesServingProvider(row.billing_provider, row.billing_base_url);
           const projectKey = toText(row.cwd) ?? toText(row.git_repo_root);
           const callCount = toSafeCount(row.api_call_count);
           // Usage confidence follows the call count, and only a row that says it
@@ -312,13 +313,22 @@ export function createHermesAdapter(): LocalSourceAdapter {
                 rawModel,
                 usage,
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
-                ...(projectKey !== undefined ? { projectKey } : {}),
+                ...(projectKey !== undefined
+                  ? { projectKey: await projectKeyFor(env, projectKey) }
+                  : {}),
                 harnessId: HARNESS_IDS.hermes,
-                ...(mappedProvider !== undefined
-                  ? { providerId: mappedProvider }
-                  : billingProvider !== undefined
-                    ? { providerId: billingProvider, providerAttribution: "exact" as const }
-                    : {}),
+                ...(servingProvider
+                  ? { providerId: servingProvider, providerAttribution: "exact" as const }
+                  : {}),
+                ...(billingMode === "subscription_included"
+                  ? {
+                      billing: {
+                        kind: "subscription" as const,
+                        attribution: "exact" as const,
+                        ...(servingProvider ? { providerId: servingProvider } : {}),
+                      },
+                    }
+                  : {}),
                 workloadCategory: "agent",
                 // A row that covers several API calls is not an exact per-call
                 // counter, and neither is a row that reports no count: the
@@ -352,4 +362,46 @@ export function createHermesAdapter(): LocalSourceAdapter {
       return { adapterId: ADAPTER_ID, events, warnings: warnings.toArray(), stats };
     },
   };
+}
+
+/** Recorded billing route only. Never infer a serving provider from the model's lab. */
+export function hermesServingProvider(value: unknown, baseUrl?: unknown): string | undefined {
+  const name = typeof value === "string" ? value.trim().toLowerCase() : "";
+  const names: Record<string, string> = {
+    anthropic: "anthropic",
+    "openai-api": "openai",
+    "openai-codex": "openai",
+    openai: "openai",
+    commandcode: "command-code",
+    "command-code": "command-code",
+    "opencode-go": "opencode",
+    "opencode-zen": "opencode",
+    opencode: "opencode",
+    deepseek: "deepseek",
+    "z-ai": "z-ai",
+    zai: "z-ai",
+    "z.ai": "z-ai",
+    clinepass: "cline",
+    "ollama-cloud": "ollama",
+  };
+  if (typeof baseUrl === "string") {
+    try {
+      const host = new URL(baseUrl).hostname;
+      const hosts: Record<string, string> = {
+        "api.anthropic.com": "anthropic",
+        "api.openai.com": "openai",
+        "api.deepseek.com": "deepseek",
+        "api.z.ai": "z-ai",
+        "api.commandcode.ai": "command-code",
+        "api.cline.bot": "cline",
+        "opencode.ai": "opencode",
+        "ollama.com": "ollama",
+        "chatgpt.com": "openai",
+      };
+      if (hosts[host]) return hosts[host];
+    } catch {
+      /* Unknown routes remain unattributed. */
+    }
+  }
+  return names[name];
 }

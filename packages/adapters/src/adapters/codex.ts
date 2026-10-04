@@ -11,6 +11,7 @@ import {
 import { epochMsFromIso } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readNumber, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   type CollectOptions,
   type CollectResult,
@@ -123,6 +124,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
           let currentModel: string | undefined;
           let lineIndex = 0;
           let fileEvents = 0;
+          let requestStart: number | undefined;
+          let subagent = false;
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -140,6 +143,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (payload === undefined) continue;
 
             if (type === "session_meta") {
+              const source = payload.source;
+              subagent = typeof source === "object" && source !== null && "subagent" in source;
               sessionId =
                 readString(payload, "id") ?? readString(payload, "session_id") ?? sessionId;
               projectKey = readString(payload, "cwd") ?? projectKey;
@@ -148,6 +153,22 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (type === "turn_context") {
               currentModel = readString(payload, "model") ?? currentModel;
               projectKey = readString(payload, "cwd") ?? projectKey;
+              continue;
+            }
+            // Last input before a model response is a latency proxy, including scheduling.
+            // task_started spans tools and is not an input boundary.
+            if (
+              (type === "event_msg" &&
+                ["user_message", "request_started", "api_request_started"].includes(
+                  readString(payload, "type") ?? "",
+                )) ||
+              (type === "response_item" &&
+                (readString(payload, "type") === "function_call_output" ||
+                  (readString(payload, "type") === "message" &&
+                    readString(payload, "role") === "user")))
+            ) {
+              const at = readString(record, "timestamp");
+              requestStart = at ? epochMsFromIso(at) : undefined;
               continue;
             }
             if (type !== "event_msg") continue;
@@ -278,9 +299,14 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   sessionId,
                   identity,
                   occurredAtMs,
+                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs
+                    ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs }
+                    : {}),
                   rawModel: currentModel,
                   usage,
-                  ...(projectKey !== undefined ? { projectKey } : {}),
+                  ...(projectKey !== undefined
+                    ? { projectKey: await projectKeyFor(env, projectKey) }
+                    : {}),
                   harnessId: HARNESS_IDS.codex,
                   ...(providerIdForModel(options.mapper, currentModel) !== undefined
                     ? { providerId: providerIdForModel(options.mapper, currentModel) as string }
@@ -290,6 +316,7 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 eventContext(env, options),
               ),
             );
+            requestStart = undefined;
             fileEvents += 1;
           }
           stats.sessionsScanned += 1;

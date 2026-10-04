@@ -120,7 +120,7 @@ export function createT3CodeAdapter(): AttributionAdapter {
           const databasePath = joinPath(env.platform, root, "state.sqlite");
           const database = await env.fs.stat(databasePath);
           if (database !== null && database.kind === "file") {
-            const db = await openReadOnly(databasePath);
+            const db = await (env.openDatabase ?? openReadOnly)(databasePath);
             if (db !== undefined) {
               try {
                 const rows = db.all(
@@ -200,7 +200,7 @@ export function createT3CodeAdapter(): AttributionAdapter {
         const databasePath = joinPath(env.platform, root, "state.sqlite");
         const database = await env.fs.stat(databasePath);
         if (database !== null && database.kind === "file") {
-          const db = await openReadOnly(databasePath);
+          const db = await (env.openDatabase ?? openReadOnly)(databasePath);
           if (db === undefined) {
             warnings.add(
               "SOURCE_UNREADABLE",
