@@ -2,6 +2,7 @@ import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { Mix } from "../components/recap/recap-charts";
 import { RecapStory } from "../components/recap/recap-story";
 import { buildRecap, totalTokensOf } from "./recap";
 import { costTrendBuckets, developerNames } from "./recap-deep";
@@ -212,4 +213,30 @@ it("keeps unpriced rows muted and partial pricing in popovers", () => {
   expect(html).toContain('aria-label="About the model API equivalent"');
   expect(html).not.toContain("subset");
   expect(html).not.toContain("$0 API equivalent");
+});
+
+it.each([13, 39])("keeps all %s weekly model bars inside the plot", (count) => {
+  const recap = buildRecap([], "all", now, "UTC");
+  recap.models = [
+    {
+      id: "gpt-6-1-sol",
+      name: "GPT-6.1 Sol",
+      family: "openai",
+      total: 1,
+      output: 1,
+      records: 1,
+      priced: 0,
+      usd: "0",
+      usdHigh: "0",
+      cacheScenarioRecords: 0,
+    },
+  ];
+  recap.weeks = Array.from({ length: count }, (_, i) => ({
+    date: new Date(Date.UTC(2026, 0, 1 + i * 7)).toISOString().slice(0, 10),
+    families: { openai: 1 },
+  }));
+  const html = renderToStaticMarkup(createElement(Mix, { recap }));
+  const bars = [...html.matchAll(/<rect[^>]*x="([^"]+)"[^>]*width="([^"]+)"/g)];
+  expect(bars).toHaveLength(count);
+  for (const bar of bars) expect(Number(bar[1]) + Number(bar[2])).toBeLessThanOrEqual(935);
 });

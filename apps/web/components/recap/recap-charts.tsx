@@ -153,7 +153,7 @@ export function Mix({ recap }: { recap: Recap }) {
   const families = [...new Set(recap.models.map((m) => m.family))];
   const sums = recap.weeks.map((w) => Object.values(w.families).reduce((a, b) => a + b, 0));
   const max = Math.max(1, ...sums),
-    width = 850 / Math.max(1, recap.weeks.length);
+    width = 785 / Math.max(1, recap.weeks.length);
   const peak = sums.indexOf(max);
   return (
     <>
@@ -211,7 +211,11 @@ export function Mix({ recap }: { recap: Recap }) {
               {(i === 0 ||
                 i === recap.weeks.length - 1 ||
                 i % Math.ceil(recap.weeks.length / 5) === 0) && (
-                <text x={150 + i * width} y="251">
+                <text
+                  x={150 + i * width}
+                  y="251"
+                  textAnchor={i === recap.weeks.length - 1 ? "end" : "start"}
+                >
                   {w.date.slice(5)}
                 </text>
               )}

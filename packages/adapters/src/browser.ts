@@ -295,7 +295,7 @@ export async function expandZipCandidate(
     }
     if (
       !/\.(json|jsonl)$/iu.test(normalized) &&
-      !/(?:^|\/)(?:opencode|state)\.db(?:-wal)?$/iu.test(normalized)
+      !/(?:^|\/)(?:(?:opencode|state)\.db|state\.sqlite)(?:-wal)?$/iu.test(normalized)
     ) {
       outcomes.push({
         path: safeCandidateName(normalized),
@@ -928,18 +928,20 @@ export async function intakeBrowserCandidates(
           entry.group === candidate.group &&
           `${normalizedPath(entry.path)}-wal` === normalizedPath(candidate.path),
       );
+      const sourceName = /state\.sqlite/iu.test(candidate.path)
+        ? "T3 Code"
+        : /state\.db/iu.test(candidate.path)
+          ? "Hermes"
+          : "OpenCode";
+      const databaseName = normalizedPath(candidate.path).split("/").at(-1)!.replace(/-wal$/iu, "");
       outcomes.push({
         path: display,
         status: paired ? "companion" : "unsupported",
-        source: /state\.sqlite/iu.test(candidate.path)
-          ? "T3 Code"
-          : /state\.db/iu.test(candidate.path)
-            ? "Hermes"
-            : "OpenCode",
+        source: sourceName,
         events: 0,
         reason: paired
-          ? "Companion log is read with its OpenCode database"
-          : "Select opencode.db together with its write-ahead log",
+          ? `Companion log is read with its ${sourceName} database`
+          : `Select ${databaseName} together with its write-ahead log`,
       });
       report(index + 1, false);
       continue;

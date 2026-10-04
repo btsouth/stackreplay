@@ -294,9 +294,14 @@ describe("Hermes browser collection parity", () => {
 });
 
 describe("T3 browser attribution", () => {
-  it.each([false, true])(
-    "attributes selected provider sessions without adding usage, reverse=%s",
-    async (reverse) => {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ])(
+    "attributes selected provider sessions without adding usage, reverse=%s zip=%s",
+    async (reverse, zipped) => {
       await withTempDir(async (root) => {
         const t3 = `${root}/state.sqlite`,
           open = `${root}/opencode.db`;
@@ -315,8 +320,24 @@ describe("T3 browser attribution", () => {
           candidate("opencode.db", new Uint8Array(await readFile(open))),
           candidate("state.sqlite", new Uint8Array(await readFile(t3))),
         ];
+        const selected = reverse ? files.reverse() : files;
+        const expanded = zipped
+          ? await expandZipCandidate(
+              candidate(
+                "history.zip",
+                zipSync(
+                  Object.fromEntries(
+                    await Promise.all(
+                      selected.map(async (f) => [f.path, new Uint8Array(await f.arrayBuffer!())]),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : undefined;
+        expect(expanded?.outcomes ?? []).toEqual([]);
         const result = await intakeBrowserCandidates(
-          reverse ? files.reverse() : files,
+          expanded?.candidates ?? selected,
           syntheticCatalog(),
           options,
         );
@@ -328,4 +349,21 @@ describe("T3 browser attribution", () => {
       });
     },
   );
+});
+
+it.each([
+  ["state.db", "Hermes"],
+  ["state.sqlite", "T3 Code"],
+  ["opencode.db", "OpenCode"],
+])("names the required database for an unpaired %s log", async (name, source) => {
+  const result = await intakeBrowserCandidates(
+    [candidate(`${name}-wal`, new Uint8Array(32))],
+    syntheticCatalog(),
+    options,
+  );
+  expect(result.outcomes[0]).toMatchObject({
+    source,
+    status: "unsupported",
+    reason: `Select ${name} together with its write-ahead log`,
+  });
 });
