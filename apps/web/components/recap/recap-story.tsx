@@ -109,7 +109,7 @@ export function RecapStory({
       <section className="recap-hero" aria-label="Volume">
         <div className="recap-hero-top">
           <span className="recap-eyebrow">
-            01 / VOLUME · {shortDate(recap.start)} TO {shortDate(recap.end)}
+            01 · {shortDate(recap.start)} to {shortDate(recap.end)}
           </span>
           <span className="recap-local">● ONLY IN YOUR BROWSER</span>
         </div>

@@ -172,7 +172,8 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
       : context.attribution?.byProviderSession.get(
           attributionKey(draft.adapterId, draft.sessionId),
         );
-  const effectiveHarnessId = attributed?.harnessId ?? draft.harnessId;
+  // Model aliases describe the recorder's model registry, even when T3 orchestrates it.
+  const effectiveHarnessId = draft.harnessId ?? attributed?.harnessId;
   const { model, confidence: modelConfidence } = mapper.map(
     draft.rawModel,
     effectiveHarnessId === undefined ? undefined : { harness: effectiveHarnessId },

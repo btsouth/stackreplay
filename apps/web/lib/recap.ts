@@ -104,7 +104,17 @@ export function buildRecap(
 ): Recap {
   const mapper = createModelMapper(catalog);
   events = events.map((e) =>
-    e.model.canonicalId ? e : { ...e, model: mapper.map(e.model.rawName).model },
+    e.model.canonicalId
+      ? e
+      : {
+          ...e,
+          model: mapper.map(e.model.rawName, {
+            harness:
+              e.harness?.id === "t3-code"
+                ? e.source.adapterId
+                : (e.harness?.id ?? e.source.adapterId),
+          }).model,
+        },
   );
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,

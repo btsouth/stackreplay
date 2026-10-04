@@ -283,7 +283,7 @@ export function CostTrend({ recap, period }: { recap: Recap; period: RecapPeriod
               {label(m.date)} · ${Number(m.usd).toLocaleString()}
             </title>
           </rect>
-          {(i === 0 || i === rows.length - 1 || i % Math.ceil(rows.length / 5) === 0) && (
+          {[0, 1, 2, 3].map((tick) => Math.round(((rows.length - 1) * tick) / 3)).includes(i) && (
             <text x={145 + i * width} y="231" textAnchor={i === rows.length - 1 ? "end" : "start"}>
               {label(m.date)}
             </text>
