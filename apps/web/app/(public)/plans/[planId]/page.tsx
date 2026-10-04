@@ -10,9 +10,11 @@ import { PublishedSubscriptionTerms } from "@/components/public/published-subscr
 import { SubscriptionModelAccess } from "@/components/public/subscription-model-access";
 import {
   buildCompareFacts,
+  defaultComparePair,
   PUBLIC_OFFER_REPLAY_UNAVAILABLE,
   publicOfferObservationText,
 } from "@/lib/compare-facts";
+import { compareSearch } from "@/lib/compare-url";
 import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicDirectory } from "@/lib/public-directory";
 import {
@@ -46,6 +48,8 @@ export default async function PlanPage({ params }: Props) {
   const catalog = loadPublicDirectory();
   const plan = catalog.planById(planId);
   if (!plan) notFound();
+  const defaultPair = defaultComparePair(catalog.plans);
+  const compareHref = `/compare${compareSearch([plan.id, defaultPair[1]], defaultPair)}`;
   const facts = buildCompareFacts(plan, catalog.modelById);
   const price = publicPlanPrice(plan);
   const calculatorSource = plan.sources[0];
@@ -104,7 +108,7 @@ export default async function PlanPage({ params }: Props) {
               {plan.publishedTerms.availabilityNote}
             </p>
           )}
-          <Link href={`/compare?left=${plan.id}`} className="market-link">
+          <Link href={compareHref} className="market-link">
             Compare this plan ↗
           </Link>
         </aside>
