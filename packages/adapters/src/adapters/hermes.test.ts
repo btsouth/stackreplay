@@ -247,7 +247,7 @@ describe("hermes adapter: schema validity when the reasoning column is null", ()
 });
 
 describe("Hermes aggregate accounting", () => {
-  it("counts a accumulated row once across repeated roots and never adds the sessions summary", async () => {
+  it("counts an accumulated row once across repeated roots and never adds the sessions summary", async () => {
     const { dedupeEvents } = await import("../dedup.js");
     const result = await withTempDir(async (directory) => {
       const statements = [

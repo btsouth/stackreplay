@@ -502,9 +502,7 @@ export function RecapSurface({
                             ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
                             : "Unpriced"}
                           <small>
-                            {m.priced < m.records && m.priced
-                              ? "known-price work"
-                              : "API equivalent"}
+                            {m.priced < m.records && m.priced ? "priced records" : "API equivalent"}
                           </small>
                         </span>
                       </div>
