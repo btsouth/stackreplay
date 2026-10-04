@@ -1,0 +1,144 @@
+[
+  {
+    "id": "epoch-gpqa-sonnet-5-5-max-2026-10-04",
+    "kind": "model_observations",
+    "title": "Epoch AI Capabilities and benchmarking: GPQA Diamond mean accuracy",
+    "evaluator": "Epoch AI",
+    "publishedAt": "2026-10-04",
+    "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+    "methodologyUrl": "https://epoch.ai/benchmarks/gpqa-diamond",
+    "evidenceClass": "independent_evaluation",
+    "methodologySummary": "Epoch AI ran and reported this selected GPQA Diamond evaluation. Attribution: Epoch AI, 'Capabilities & benchmarking' (https://epoch.ai/benchmarks), original data (https://epoch.ai/data/benchmark_data.zip), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). StackReplay selected three Epoch-run records from the Diamond subset and converted accuracy fractions to percentages; no endorsement is implied. Current public methodology v1.0.6 is contextual only; run-specific suite and setup details are unknown.",
+    "limitations": [
+      "Epoch AI published these numerical run results; StackReplay did not reproduce the evaluations and makes no reproduction claim.",
+      "The GPQA Diamond suite revision used for this run is unreported. Public methodology version 1.0.6 is current context only and is not asserted for this run.",
+      "The 2026-10-04 date records the archive snapshot that was checked. Original run publication and completion dates are unknown.",
+      "The published Diamond subset contains 198 questions, but the actual scored sample count, repetitions, and total attempts for this run are unreported.",
+      "Scaffold revision, system prompt, temperature, reasoning parameter payload, reasoning-token budget, output/time/cost caps, endpoint, tools, seed, and error handling are unreported.",
+      "The Epoch configuration label does not establish equal reasoning effort or a comparable setup across providers.",
+      "The reported stderr is retained as standard error, not converted into or presented as a 95% confidence interval."
+    ],
+    "redistribution": {
+      "basis": "licensed_dataset",
+      "rationale": "Selected Epoch-administered GPQA Diamond result rows and linked metadata from the official archive. Epoch's archive README links CC BY 4.0 for its data and notes that externally sourced data retains its original licensing. This licensed-dataset basis is scoped only to these three selected Epoch-run numerical records and their attribution; it does not license the mixed archive, GPQA tasks, logs, provider prose, artwork, or StackReplay's broader export.",
+      "termsUrl": "https://epoch.ai/benchmarks/use-this-data",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["claude-sonnet-5-5"],
+    "benchmarkIds": ["epoch-gpqa-diamond-revision-unreported"],
+    "observations": [
+      {
+        "benchmarkId": "epoch-gpqa-diamond-revision-unreported",
+        "modelId": "claude-sonnet-5-5",
+        "value": 95.58080808080808,
+        "displayValue": "95.5808080808080800%",
+        "evaluator": "Epoch AI",
+        "evidenceClass": "independent_evaluation",
+        "sourceSetId": "epoch-gpqa-sonnet-5-5-max-2026-10-04",
+        "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "Epoch AI administered the evaluation",
+        "effort": "Max (Epoch source configuration label)",
+        "harness": "Inspect (general methodology context; run version unreported)",
+        "notes": "Source mean_score was the accuracy fraction 0.9558080808080808. Exact conversion from the source decimal string is 95.5808080808080800%. The raw stderr is 0.013710320714521202. Epoch published run ID QPk8jbJvo4986sbWtdte6J and evaluation start timestamp 2026-09-29T15:15:14.000Z. The source configuration label is max. Completion and original publication dates are unknown.",
+        "uncertainty": "Suite revision, scored count, repetitions, total attempts, scaffold revision, prompt, temperature, reasoning budget, output/time/cost caps, endpoint, tools, seed, error handling, and completion date are unreported. The source configuration label does not establish equal effort across providers."
+      }
+    ]
+  },
+  {
+    "id": "epoch-gpqa-opus-5-5-max-2026-10-04",
+    "kind": "model_observations",
+    "title": "Epoch AI Capabilities and benchmarking: GPQA Diamond mean accuracy",
+    "evaluator": "Epoch AI",
+    "publishedAt": "2026-10-04",
+    "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+    "methodologyUrl": "https://epoch.ai/benchmarks/gpqa-diamond",
+    "evidenceClass": "independent_evaluation",
+    "methodologySummary": "Epoch AI ran and reported this selected GPQA Diamond evaluation. Attribution: Epoch AI, 'Capabilities & benchmarking' (https://epoch.ai/benchmarks), original data (https://epoch.ai/data/benchmark_data.zip), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). StackReplay selected three Epoch-run records from the Diamond subset and converted accuracy fractions to percentages; no endorsement is implied. Current public methodology v1.0.6 is contextual only; run-specific suite and setup details are unknown.",
+    "limitations": [
+      "Epoch AI published these numerical run results; StackReplay did not reproduce the evaluations and makes no reproduction claim.",
+      "The GPQA Diamond suite revision used for this run is unreported. Public methodology version 1.0.6 is current context only and is not asserted for this run.",
+      "The 2026-10-04 date records the archive snapshot that was checked. Original run publication and completion dates are unknown.",
+      "The published Diamond subset contains 198 questions, but the actual scored sample count, repetitions, and total attempts for this run are unreported.",
+      "Scaffold revision, system prompt, temperature, reasoning parameter payload, reasoning-token budget, output/time/cost caps, endpoint, tools, seed, and error handling are unreported.",
+      "The Epoch configuration label does not establish equal reasoning effort or a comparable setup across providers.",
+      "The reported stderr is retained as standard error, not converted into or presented as a 95% confidence interval."
+    ],
+    "redistribution": {
+      "basis": "licensed_dataset",
+      "rationale": "Selected Epoch-administered GPQA Diamond result rows and linked metadata from the official archive. Epoch's archive README links CC BY 4.0 for its data and notes that externally sourced data retains its original licensing. This licensed-dataset basis is scoped only to these three selected Epoch-run numerical records and their attribution; it does not license the mixed archive, GPQA tasks, logs, provider prose, artwork, or StackReplay's broader export.",
+      "termsUrl": "https://epoch.ai/benchmarks/use-this-data",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["claude-opus-5-5"],
+    "benchmarkIds": ["epoch-gpqa-diamond-revision-unreported"],
+    "observations": [
+      {
+        "benchmarkId": "epoch-gpqa-diamond-revision-unreported",
+        "modelId": "claude-opus-5-5",
+        "value": 90.59343434343434,
+        "displayValue": "90.5934343434343400%",
+        "evaluator": "Epoch AI",
+        "evidenceClass": "independent_evaluation",
+        "sourceSetId": "epoch-gpqa-opus-5-5-max-2026-10-04",
+        "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "Epoch AI administered the evaluation",
+        "effort": "Max (Epoch source configuration label)",
+        "harness": "Inspect (general methodology context; run version unreported)",
+        "notes": "Source mean_score was the accuracy fraction 0.9059343434343434. Exact conversion from the source decimal string is 90.5934343434343400%. The raw stderr is 0.019434397190192135. Epoch published run ID 6gmbahPSxHf9xVhAYqpnhi and evaluation start timestamp 2026-09-22T18:27:39.000Z. The source configuration label is max. Completion and original publication dates are unknown.",
+        "uncertainty": "Suite revision, scored count, repetitions, total attempts, scaffold revision, prompt, temperature, reasoning budget, output/time/cost caps, endpoint, tools, seed, error handling, and completion date are unreported. The source configuration label does not establish equal effort across providers."
+      }
+    ]
+  },
+  {
+    "id": "epoch-gpqa-qwen-0902-xhigh-2026-10-04",
+    "kind": "model_observations",
+    "title": "Epoch AI Capabilities and benchmarking: GPQA Diamond mean accuracy",
+    "evaluator": "Epoch AI",
+    "publishedAt": "2026-10-04",
+    "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+    "methodologyUrl": "https://epoch.ai/benchmarks/gpqa-diamond",
+    "evidenceClass": "independent_evaluation",
+    "methodologySummary": "Epoch AI ran and reported this selected GPQA Diamond evaluation. Attribution: Epoch AI, 'Capabilities & benchmarking' (https://epoch.ai/benchmarks), original data (https://epoch.ai/data/benchmark_data.zip), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). StackReplay selected three Epoch-run records from the Diamond subset and converted accuracy fractions to percentages; no endorsement is implied. Current public methodology v1.0.6 is contextual only; run-specific suite and setup details are unknown.",
+    "limitations": [
+      "Epoch AI published these numerical run results; StackReplay did not reproduce the evaluations and makes no reproduction claim.",
+      "The GPQA Diamond suite revision used for this run is unreported. Public methodology version 1.0.6 is current context only and is not asserted for this run.",
+      "The 2026-10-04 date records the archive snapshot that was checked. Original run publication and completion dates are unknown.",
+      "The published Diamond subset contains 198 questions, but the actual scored sample count, repetitions, and total attempts for this run are unreported.",
+      "Scaffold revision, system prompt, temperature, reasoning parameter payload, reasoning-token budget, output/time/cost caps, endpoint, tools, seed, and error handling are unreported.",
+      "The Epoch configuration label does not establish equal reasoning effort or a comparable setup across providers.",
+      "The reported stderr is retained as standard error, not converted into or presented as a 95% confidence interval.",
+      "Epoch lists a September 1 release date while the exact 0902 snapshot was released September 2; this source discrepancy is preserved rather than corrected."
+    ],
+    "redistribution": {
+      "basis": "licensed_dataset",
+      "rationale": "Selected Epoch-administered GPQA Diamond result rows and linked metadata from the official archive. Epoch's archive README links CC BY 4.0 for its data and notes that externally sourced data retains its original licensing. This licensed-dataset basis is scoped only to these three selected Epoch-run numerical records and their attribution; it does not license the mixed archive, GPQA tasks, logs, provider prose, artwork, or StackReplay's broader export.",
+      "termsUrl": "https://epoch.ai/benchmarks/use-this-data",
+      "checkedAt": "2026-10-04"
+    },
+    "modelIds": ["qwen-3-8-max-0902"],
+    "benchmarkIds": ["epoch-gpqa-diamond-revision-unreported"],
+    "observations": [
+      {
+        "benchmarkId": "epoch-gpqa-diamond-revision-unreported",
+        "modelId": "qwen-3-8-max-0902",
+        "value": 92.2979797979798,
+        "displayValue": "92.297979797979800%",
+        "evaluator": "Epoch AI",
+        "evidenceClass": "independent_evaluation",
+        "sourceSetId": "epoch-gpqa-qwen-0902-xhigh-2026-10-04",
+        "sourceUrl": "https://epoch.ai/data/benchmark_data.zip",
+        "checkedAt": "2026-10-04",
+        "evaluationOrigin": "reporter_computed",
+        "originLabel": "Epoch AI administered the evaluation",
+        "effort": "Xhigh (Epoch source configuration label)",
+        "harness": "Inspect (general methodology context; run version unreported)",
+        "notes": "Source mean_score was the accuracy fraction 0.922979797979798. Exact conversion from the source decimal string is 92.297979797979800%. The raw stderr is 0.017249976996605708. Epoch published run ID VzeQXKBH9maR2nDcZJ8b7S and evaluation start timestamp 2026-09-02T18:04:58.000Z. The source configuration label is xhigh. Completion and original publication dates are unknown.",
+        "uncertainty": "Suite revision, scored count, repetitions, total attempts, scaffold revision, prompt, temperature, reasoning budget, output/time/cost caps, endpoint, tools, seed, error handling, and completion date are unreported. The source configuration label does not establish equal effort across providers."
+      }
+    ]
+  }
+]

@@ -12,7 +12,7 @@ test("default Frontier shows verified Sol launch scores and shared benchmark cov
   await page.goto("/benchmarks");
   await expect(page.getByRole("heading", { name: "Model Benchmarks", exact: true })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "GPT-6.1 Sol OpenAI" })).toBeVisible();
-  await expect(page.locator('[data-model-id="gpt-6-1-sol"]')).toHaveCount(21);
+  await expect(page.locator('[data-model-id="gpt-6-1-sol"]')).toHaveCount(22);
   await expect(page.locator("tbody tr").first()).toHaveAttribute(
     "data-benchmark-id",
     "deep-swe-v1-1",
@@ -31,7 +31,7 @@ test("default Frontier shows verified Sol launch scores and shared benchmark cov
   await expect(page.locator("tbody")).not.toContainText("Not reported");
   await expect(page.getByRole("button", { name: "Remove GPT-6.1 Sol" })).toBeVisible();
   await page.getByRole("button", { name: "All reported results", exact: true }).click();
-  await expect(page.locator("tbody tr")).toHaveCount(21);
+  await expect(page.locator("tbody tr")).toHaveCount(22);
 });
 test("Sol effort alternatives stay exact, attributed and pinned across reload", async ({
   page,

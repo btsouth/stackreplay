@@ -1,4 +1,6 @@
 import definitions from "./data/definitions.json" with { type: "json" };
+import epochDefinitions from "./data/epoch-gpqa-definitions.json" with { type: "json" };
+import epochPilot from "./data/epoch-gpqa-pilot-2026-10-04.json" with { type: "json" };
 import googleArgon from "./data/google-deepmind-argon-2026-09-30.json" with { type: "json" };
 import openaiSol from "./data/openai-sol-2026-09-29.json" with { type: "json" };
 import openaiDefinitions from "./data/openai-sol-definitions.json" with { type: "json" };
@@ -41,17 +43,25 @@ const firstEdition = benchmarkDataSchema.parse({
   ],
 });
 
-export const benchmarkData = benchmarkDataSchema.parse({
+const secondEdition = benchmarkDataSchema.parse({
   ...firstEdition,
   definitions: [...definitions, ...openaiDefinitions],
   sourceSets: [...firstEdition.sourceSets, ...openaiSol],
   primarySelections: [...firstEdition.primarySelections, ...openaiSelections],
 });
 
+export const benchmarkData = benchmarkDataSchema.parse({
+  ...secondEdition,
+  definitions: [...secondEdition.definitions, ...epochDefinitions],
+  sourceSets: [...secondEdition.sourceSets, ...epochPilot],
+  primarySelections: [...secondEdition.primarySelections],
+});
+
 /** Published editions remain available so shared links retain their exact evidence. */
 export const benchmarkEditions = {
   "2026-09-30-v1": firstEdition,
-  "2026-09-30-v2": benchmarkData,
+  "2026-09-30-v2": secondEdition,
+  "2026-10-04-v3": benchmarkData,
 };
 export function benchmarkDataForEdition(edition: string) {
   return Object.hasOwn(benchmarkEditions, edition)

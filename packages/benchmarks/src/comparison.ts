@@ -1,7 +1,7 @@
 import type { BenchmarkData, BenchmarkDefinition, BenchmarkObservation } from "./schema.js";
 
 /** Immutable reviewed edition. New evidence ships as a new edition; old URL editions stay available. */
-export const benchmarkEdition = "2026-09-30-v2";
+export const benchmarkEdition = "2026-10-04-v3";
 export const frontierModelIds = [
   "gemini-4-argon",
   "gpt-6-astra",

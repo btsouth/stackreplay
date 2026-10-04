@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   benchmarkData,
@@ -13,10 +14,12 @@ const models = Object.fromEntries(
   benchmarkData.sourceSets.flatMap((s) => s.modelIds).map((id) => [id, { id }]),
 );
 const data = validateBenchmarkData(benchmarkData, models);
+const serializedHash = (value: unknown) =>
+  createHash("sha256").update(JSON.stringify(value)).digest("hex");
 describe("model-first comparison evidence", () => {
   it("includes verified Sol launch scores without substituting another release or choosing peak scores", () => {
     const rows = resolveComparison(data, frontierModelIds, { coverage: "all" });
-    expect(rows).toHaveLength(21);
+    expect(rows).toHaveLength(22);
     const sol = rows.flatMap((r) =>
       r.cells.flatMap((c) => (c.modelId === "gpt-6-1-sol" && c.observation ? [c.observation] : [])),
     );
@@ -28,7 +31,7 @@ describe("model-first comparison evidence", () => {
     expect(
       resolveComparison(data, frontierModelIds, { coverage: "shared" }).map((r) => r.definition.id),
     ).toEqual(["deep-swe-v1-1", "terminal-bench-science-0-1"]);
-    expect(benchmarkEdition).toBe("2026-09-30-v2");
+    expect(benchmarkEdition).toBe("2026-10-04-v3");
   });
   it("preserves the published v1 edition and rejects unknown edition keys", () => {
     const first = validateBenchmarkData(benchmarkDataForEdition("2026-09-30-v1"), models);
@@ -38,7 +41,19 @@ describe("model-first comparison evidence", () => {
     expect(rows).toHaveLength(17);
     expect(rows.every((r) => r.cells[2]?.observation === undefined)).toBe(true);
     expect(resolveComparison(first, frontierModelIds, { coverage: "shared" })).toEqual([]);
-    expect(benchmarkDataForEdition("2026-09-30-v2")).toBe(benchmarkData);
+    expect(serializedHash(benchmarkDataForEdition("2026-09-30-v1"))).toBe(
+      "7a50f26d89cd259e19965f593635ec607e00eaebdf644a8cb7ee4eacd28d29b4",
+    );
+    const second = validateBenchmarkData(benchmarkDataForEdition("2026-09-30-v2"), models);
+    expect(second.sourceSets.flatMap((s) => s.observations)).toHaveLength(202);
+    expect(second.definitions).toHaveLength(43);
+    expect(serializedHash(benchmarkDataForEdition("2026-09-30-v2"))).toBe(
+      "eb2da8c32f7b303849da09338c62f0cda6ba07655f3045b8b2b955f0a94aec31",
+    );
+    expect(benchmarkDataForEdition("2026-09-30-v2")).not.toBe(benchmarkData);
+    expect(benchmarkDataForEdition("2026-10-04-v3")).toBe(benchmarkData);
+    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+    expect(benchmarkData.definitions).toHaveLength(44);
     expect(benchmarkDataForEdition("unpublished")).toBeUndefined();
     expect(benchmarkDataForEdition("toString")).toBeUndefined();
   });
