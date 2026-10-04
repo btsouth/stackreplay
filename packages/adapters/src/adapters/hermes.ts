@@ -3,6 +3,7 @@ import { buildEvent, eventContext, HARNESS_IDS } from "../event-builder.js";
 import { inWindow } from "../files.js";
 import { decimalStringFromNumber } from "../identity.js";
 import { joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   MAX_EPOCH_MS,
   openReadOnly,
@@ -312,7 +313,9 @@ export function createHermesAdapter(): LocalSourceAdapter {
                 rawModel,
                 usage,
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
-                ...(projectKey !== undefined ? { projectKey } : {}),
+                ...(projectKey !== undefined
+                  ? { projectKey: await projectKeyFor(env, projectKey) }
+                  : {}),
                 harnessId: HARNESS_IDS.hermes,
                 ...(servingProvider
                   ? { providerId: servingProvider, providerAttribution: "exact" as const }

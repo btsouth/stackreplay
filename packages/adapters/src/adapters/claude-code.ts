@@ -19,6 +19,7 @@ import {
 import { epochMsFromIso, normalizeProjectKey, sourceRootHash } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   type CollectOptions,
   type CollectResult,
@@ -311,7 +312,9 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
               rawModel,
               usage,
               ...(reliable ? { requestStartedAtMs: started, requestEndedAtMs: occurredAtMs } : {}),
-              ...(projectKey !== undefined ? { projectKey } : {}),
+              ...(projectKey !== undefined
+                ? { projectKey: await projectKeyFor(env, projectKey) }
+                : {}),
               harnessId: HARNESS_IDS["claude-code"],
               ...(providerIdForModel(options.mapper, rawModel, {
                 harness: HARNESS_IDS["claude-code"],

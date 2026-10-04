@@ -1,3 +1,4 @@
+import { Decimal } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
 import { totalTokensOf } from "./recap";
 export const harnessNames: Record<string, string> = {
@@ -42,6 +43,8 @@ export const developerNames: Record<string, string> = {
 };
 export function servingRouteId(id: string): string {
   const aliases: Record<string, string> = {
+    "opencode zen": "opencode",
+    "cline-pass": "cline",
     "opencode-go": "opencode",
     "opencode-zen": "opencode",
     commandcode: "command-code",
@@ -56,7 +59,28 @@ export function servingRouteId(id: string): string {
     unknown: "unattributed",
     "": "unattributed",
   };
-  return aliases[id] ?? id;
+  const normalized = id.trim().toLowerCase();
+  return aliases[normalized] ?? normalized;
+}
+const firstParty: Record<string, string> = {
+  "claude-code": "anthropic",
+  codex: "openai",
+  "command-code": "command-code",
+};
+function routeFromModel(raw: string): string | undefined {
+  const route = raw.split("/")[0]!;
+  return raw.includes("/") &&
+    [
+      "cline-pass",
+      "cline",
+      "openrouter",
+      "opencode",
+      "opencode-zen",
+      "opencode-go",
+      "zai",
+    ].includes(route)
+    ? servingRouteId(route)
+    : undefined;
 }
 export interface RecapDeep {
   buckets: { input: number; output: number; read: number; write: number };
@@ -67,7 +91,6 @@ export interface RecapDeep {
   speeds: { id: string; n: number; median: number; p25: number; p75: number; wait: number }[];
   hours: number[][];
   weekendShare: number;
-  longestSessionHours?: number;
   months: { date: string; usd: string; priced: number }[];
   costDays: { date: string; usd: string }[];
   cacheSavings: string;
@@ -92,7 +115,6 @@ export function deepRecap(
   const projects = new Map<string, number>();
   const first = new Map<string, string>();
   const timings = new Map<string, { rates: number[]; waits: number[] }>();
-  const spans = new Map<string, number[]>();
   const hours = Array.from({ length: 7 }, () => Array<number>(24).fill(0));
   let weekend = 0;
   for (const e of allEvents) {
@@ -124,7 +146,7 @@ export function deepRecap(
         ? e.billing.providerId
         : e.provider?.attribution === "exact"
           ? e.provider.id
-          : "unattributed";
+          : (routeFromModel(e.model.rawName) ?? firstParty[e.source.adapterId] ?? "unattributed");
     const provider = servingRouteId(rawProvider);
     for (const [map, id] of [
       [harnesses, harness],
@@ -140,12 +162,6 @@ export function deepRecap(
     const day = new Date(date + "T00:00:00Z").getUTCDay();
     hours[day]![hour]!++;
     if (day === 0 || day === 6) weekend++;
-    if (e.source.nativeSessionHash) {
-      const key = e.source.adapterId + ":" + e.source.nativeSessionHash;
-      const span = spans.get(key) ?? [];
-      span.push(Date.parse(e.occurredAt));
-      spans.set(key, span);
-    }
     if (
       !["claude-code", "codex"].includes(e.source.adapterId) ||
       !e.requestStartedAt ||
@@ -169,9 +185,6 @@ export function deepRecap(
     timings.set(id, sample);
   }
   const selectedIds = new Set(events.map((e) => e.model.canonicalId ?? e.model.rawName));
-  const durations = [...spans.values()]
-    .filter((x) => x.length > 1)
-    .map((x) => (Math.max(...x) - Math.min(...x)) / 3600000);
   return {
     buckets,
     harnesses: [...harnesses.values()].sort((a, b) => b.total - a.total),
@@ -196,10 +209,38 @@ export function deepRecap(
       .sort((a, b) => b.median - a.median),
     hours,
     weekendShare: events.length ? weekend / events.length : 0,
-    ...(durations.length ? { longestSessionHours: Math.max(...durations) } : {}),
     months: [],
     costDays: [],
     cacheSavings: "0",
     cacheSavingsRecords: 0,
   };
+}
+
+export function costTrendBuckets(
+  recap: { start: string; end: string; deep?: RecapDeep },
+  period: "30" | "90" | "all",
+) {
+  if (period === "all") return recap.deep?.months ?? [];
+  const buckets = new Map<string, Decimal>();
+  const key = (date: string) =>
+    period === "30"
+      ? date
+      : new Date(
+          Date.parse(date + "T00:00:00Z") -
+            ((new Date(date + "T00:00:00Z").getUTCDay() + 6) % 7) * 86400000,
+        )
+          .toISOString()
+          .slice(0, 10);
+  for (
+    let at = Date.parse(recap.start + "T00:00:00Z");
+    at <= Date.parse(recap.end + "T00:00:00Z");
+    at += 86400000
+  )
+    buckets.set(key(new Date(at).toISOString().slice(0, 10)), new Decimal(0));
+  for (const day of recap.deep?.costDays ?? [])
+    buckets.set(
+      key(day.date),
+      (buckets.get(key(day.date)) ?? new Decimal(0)).add(new Decimal(day.usd)),
+    );
+  return [...buckets].map(([date, usd]) => ({ date, usd: usd.toString() }));
 }

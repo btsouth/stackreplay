@@ -102,6 +102,48 @@ describe("request timing and recorded billing routes", () => {
     records[2]!.payload = { type: "request_started" };
     expect((await collect(records)).events[0]!.requestStartedAt).toBe("2026-09-21T12:00:00.000Z");
   });
+  it.each(["user_message", "function_call_output"])(
+    "times Codex from %s without reusing duplicate counts",
+    async (input) => {
+      const row = (type: string, payload: unknown, timestamp: string) => ({
+        type,
+        payload,
+        timestamp,
+      });
+      const usage = { input_tokens: 10, output_tokens: 100, total_tokens: 110 };
+      const count = row(
+        "event_msg",
+        { type: "token_count", info: { last_token_usage: usage, total_token_usage: usage } },
+        "2026-09-21T12:00:10Z",
+      );
+      const rows = [
+        row("session_meta", { id: "s" }, "2026-09-21T12:00:00Z"),
+        row("turn_context", { model: "gpt-5" }, "2026-09-21T12:00:00Z"),
+        row(
+          input === "user_message" ? "event_msg" : "response_item",
+          { type: input },
+          "2026-09-21T12:00:01Z",
+        ),
+        row("event_msg", { type: "agent_message" }, "2026-09-21T12:00:09Z"),
+        count,
+        count,
+      ];
+      const result = await createCodexAdapter().collect(
+        createFixtureEnvironment({
+          homeDir: "/home/test",
+          fs: createMemoryFileSystem({
+            "/home/test/.codex/sessions/2026/09/21/s.jsonl": rows.map(line).join("\n"),
+          }),
+        }),
+        opts,
+      );
+      expect(result.events[0]).toMatchObject({
+        requestStartedAt: "2026-09-21T12:00:01.000Z",
+        requestEndedAt: "2026-09-21T12:00:10.000Z",
+      });
+      expect(result.events[1]!.requestStartedAt).toBeUndefined();
+    },
+  );
   it.each([
     ["anthropic", "anthropic"],
     ["openai-codex", "openai"],

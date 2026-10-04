@@ -16,7 +16,7 @@ function Heading({ number, title, note }: { number: string; title: string; note:
   return (
     <div className="recap-section-heading">
       <div>
-        <span className="recap-eyebrow">{number}</span>
+        <span className="recap-eyebrow">{number.split(" / ")[0]}</span>
         <h2>{title}</h2>
       </div>
       <p>{note}</p>
@@ -29,7 +29,14 @@ function Facts({ values }: { values: [string, string][] }) {
       {values.map(([v, l]) => (
         <div key={l}>
           <strong>{v}</strong>
-          <span>{l}</span>
+          <span>
+            {l}
+            {l === "sessions" && (
+              <Info label="What counts as a session">
+                Sessions include recorded child agents; they are not a count of human conversations.
+              </Info>
+            )}
+          </span>
         </div>
       ))}
     </div>
@@ -140,7 +147,7 @@ export function RecapStory({
           </div>
           {d && total > 0 && (
             <div className="recap-token-composition">
-              <span className="recap-eyebrow">THE ANATOMY OF YOUR VOLUME</span>
+              <span className="recap-eyebrow">The anatomy of your volume</span>
               <div className="recap-token-stack" role="img" aria-label="Token category composition">
                 {(
                   [
@@ -187,7 +194,7 @@ export function RecapStory({
         <Facts
           values={[
             ...(recap.sessions
-              ? [[recap.sessions.toLocaleString(), "native sessions"] as [string, string]]
+              ? [[recap.sessions.toLocaleString(), "sessions"] as [string, string]]
               : []),
             [String(recap.days.filter((x) => x.records).length), "active days"],
             [String(recap.streak), "current day streak"],
@@ -251,7 +258,7 @@ export function RecapStory({
                 {Math.round((recap.priced / recap.records) * 100)}% of usage records priced
               </p>
             </div>
-            {d && <CostTrend recap={recap} />}
+            {d && <CostTrend recap={recap} period={period} />}
           </div>
           <div className="recap-cost-facts">
             {topCost && (
@@ -361,8 +368,9 @@ export function RecapStory({
             <Info label="How response speed is measured">
               <p>
                 Final Claude streamed response with the same message ID minus its preceding user or
-                tool-result timestamp. Codex requires an explicit API request start; tool-inclusive
-                task spans are excluded.
+                tool-result timestamp. Codex uses the last user message or function-call output
+                before the model response, ending at its token-count event. Tool execution before
+                the last output is excluded.
               </p>
               <p>
                 Includes time to first token, thinking and local scheduling. Known subagents and
@@ -443,12 +451,6 @@ export function RecapStory({
               [`${Math.round(d.weekendShare * 100)}%`, "weekend activity"],
             ]}
           />
-          {d.longestSessionHours !== undefined && (
-            <p className="recap-method-note">
-              Longest native session: {d.longestSessionHours.toFixed(1)} hours of elapsed span.
-              Includes idle, tools and background work; not focused work time.
-            </p>
-          )}
         </section>
       )}
       {d && total > 0 && (
@@ -488,13 +490,13 @@ export function RecapStory({
           <Heading
             number="08 / SERVING PROVIDERS"
             title="Who served it."
-            note="Recorded serving or billing routes, independent of the model's developer."
+            note="Serving routes from billing metadata, route prefixes and first-party sessions."
           />
           <Routes rows={d.providers} names={providerNames} total={total} />
           <p className="recap-method-note">
-            Unattributed means no established serving route. Model names never establish billing.
-            Hermes usage is placed on its recorded last-seen day; an aggregate spanning a boundary
-            cannot be split reliably.
+            Unattributed means no established serving route. Model developers never establish
+            billing; first-party recorders identify their default route. Hermes usage is placed on
+            its recorded last-seen day; an aggregate spanning a boundary cannot be split reliably.
           </p>
         </section>
       )}
@@ -503,7 +505,7 @@ export function RecapStory({
           <Heading
             number="09 / LOCAL PROJECTS"
             title="Where the tokens went."
-            note="Folder names on this device. Excluded from every share card."
+            note="Repositories and meaningful local folders. Excluded from every share card."
           />
           <ol>
             {projectRows.slice(0, 8).map((p, i) => (

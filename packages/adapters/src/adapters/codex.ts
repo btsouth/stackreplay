@@ -11,6 +11,7 @@ import {
 import { epochMsFromIso } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readNumber, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   type CollectOptions,
   type CollectResult,
@@ -154,10 +155,17 @@ export function createCodexAdapter(): LocalSourceAdapter {
               projectKey = readString(payload, "cwd") ?? projectKey;
               continue;
             }
-            // Only explicit API request boundaries qualify. task_started is a tool-inclusive turn.
+            // Last input before a model response is a latency proxy, including scheduling.
+            // task_started spans tools and is not an input boundary.
             if (
-              type === "event_msg" &&
-              ["request_started", "api_request_started"].includes(readString(payload, "type") ?? "")
+              (type === "event_msg" &&
+                ["user_message", "request_started", "api_request_started"].includes(
+                  readString(payload, "type") ?? "",
+                )) ||
+              (type === "response_item" &&
+                (readString(payload, "type") === "function_call_output" ||
+                  (readString(payload, "type") === "message" &&
+                    readString(payload, "role") === "user")))
             ) {
               const at = readString(record, "timestamp");
               requestStart = at ? epochMsFromIso(at) : undefined;
@@ -296,7 +304,9 @@ export function createCodexAdapter(): LocalSourceAdapter {
                     : {}),
                   rawModel: currentModel,
                   usage,
-                  ...(projectKey !== undefined ? { projectKey } : {}),
+                  ...(projectKey !== undefined
+                    ? { projectKey: await projectKeyFor(env, projectKey) }
+                    : {}),
                   harnessId: HARNESS_IDS.codex,
                   ...(providerIdForModel(options.mapper, currentModel) !== undefined
                     ? { providerId: providerIdForModel(options.mapper, currentModel) as string }

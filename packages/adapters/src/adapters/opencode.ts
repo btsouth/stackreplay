@@ -2,6 +2,7 @@ import type { TextUsageV1 } from "@stackreplay/schema";
 import { buildEvent, eventContext, HARNESS_IDS } from "../event-builder.js";
 import { decimalStringFromNumber } from "../identity.js";
 import { dataHome, joinPath } from "../platform.js";
+import { projectKeyFor } from "../project-root.js";
 import {
   openReadOnly,
   type SqliteRow,
@@ -273,7 +274,9 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
                 rawModel,
                 usage,
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
-                ...(directory !== undefined ? { projectKey: directory } : {}),
+                ...(directory !== undefined
+                  ? { projectKey: await projectKeyFor(env, directory) }
+                  : {}),
                 harnessId: HARNESS_IDS.opencode,
                 ...(rawProvider !== undefined
                   ? { providerId: rawProvider, providerAttribution: "exact" as const }

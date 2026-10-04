@@ -1,7 +1,8 @@
 /* biome-ignore-all lint/a11y/noNoninteractiveTabindex: Scrollable year calendars need focus for WCAG keyboard access. */
+
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber } from "@/lib/recap-card";
-import { developerNames } from "@/lib/recap-deep";
+import { costTrendBuckets, developerNames } from "@/lib/recap-deep";
 
 const color = (family: string) => familyColors[family] ?? familyColors.other;
 export const shortDate = (date: string) =>
@@ -27,7 +28,6 @@ export function Heatmap({ recap, period = "all" }: { recap: Recap; period?: Reca
       {numbered && d && (
         <>
           <span>{Number(d.date.slice(-2))}</span>
-          <small>{d.records ? compactNumber(d.records) : ""}</small>
         </>
       )}
     </div>
@@ -137,7 +137,7 @@ export function Heatmap({ recap, period = "all" }: { recap: Recap; period?: Reca
         })
       )}
       <div className="recap-calendar-footer">
-        <span>Logged activity includes agents.</span>
+        <span>Intensity counts usage records, including agents.</span>
         <span>
           Less{" "}
           {[0, 1, 2, 3, 4].map((n) => (
@@ -234,34 +234,67 @@ export function Mix({ recap }: { recap: Recap }) {
     </>
   );
 }
-export function CostTrend({ recap }: { recap: Recap }) {
-  const months = recap.deep?.months ?? [];
-  const max = Math.max(1, ...months.map((m) => Number(m.usd)));
+export function CostTrend({ recap, period }: { recap: Recap; period: RecapPeriod }) {
+  const rows = costTrendBuckets(recap, period);
+  const max = Math.max(1, ...rows.map((m) => Number(m.usd)));
+  const peak = rows.reduce((a, b) => (Number(b.usd) > Number(a.usd) ? b : a), rows[0]!);
+  const width = 780 / Math.max(1, rows.length);
+  const label = (date: string) =>
+    period === "all"
+      ? new Date(date + "-15T12:00:00Z").toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        })
+      : shortDate(date);
   return (
-    <div
-      className="recap-cost-trend"
+    <svg
+      className="recap-cost-svg"
+      viewBox="0 0 960 250"
       role="img"
-      aria-label="Monthly API-equivalent value with dollar scale"
+      aria-label={`${period === "30" ? "Daily" : period === "90" ? "Weekly" : "Monthly"} API-equivalent value with dollar scale`}
     >
-      <div className="recap-cost-scale">
-        <span>${Math.round(max).toLocaleString()}</span>
-        <span>$0</span>
-      </div>
-      <div className="recap-cost-bars">
-        {months.map((m) => (
-          <div key={m.date}>
-            <span>${Math.round(Number(m.usd)).toLocaleString()}</span>
-            <i style={{ height: `${Math.max(1, (Number(m.usd) / max) * 145)}px` }} />
-            <small>
-              {new Date(m.date + "-15T12:00:00Z").toLocaleDateString("en-US", {
-                month: "short",
-                year: "2-digit",
-                timeZone: "UTC",
-              })}
-            </small>
-          </div>
-        ))}
-      </div>
-    </div>
+      {[0, 0.5, 1].map((p) => (
+        <g key={p}>
+          <line
+            x1="140"
+            x2="930"
+            y1={205 - p * 150}
+            y2={205 - p * 150}
+            stroke="currentColor"
+            opacity=".2"
+          />
+          <text x="130" y={210 - p * 150} textAnchor="end">
+            ${Math.round(max * p).toLocaleString()}
+          </text>
+        </g>
+      ))}
+      {rows.map((m, i) => (
+        <g key={m.date}>
+          <rect
+            x={145 + i * width}
+            y={205 - (Number(m.usd) / max) * 150}
+            width={width * 0.75}
+            height={(Number(m.usd) / max) * 150}
+            fill="currentColor"
+            rx="2"
+          >
+            <title>
+              {label(m.date)} · ${Number(m.usd).toLocaleString()}
+            </title>
+          </rect>
+          {(i === 0 || i === rows.length - 1 || i % Math.ceil(rows.length / 5) === 0) && (
+            <text x={145 + i * width} y="231" textAnchor={i === rows.length - 1 ? "end" : "start"}>
+              {label(m.date)}
+            </text>
+          )}
+        </g>
+      ))}
+      {peak && (
+        <text x="140" y="25">
+          Peak: {label(peak.date)} · ${Math.round(Number(peak.usd)).toLocaleString()}
+        </text>
+      )}
+    </svg>
   );
 }

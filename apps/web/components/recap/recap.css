@@ -34,9 +34,10 @@
   letter-spacing: -0.02em;
 }
 .recap-eyebrow {
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 0.13em;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 .recap-toolbar {
   display: flex;
@@ -1199,4 +1200,24 @@
 }
 .recap-speed-track b {
   box-shadow: 0 0 0 1px var(--recap-card-accent);
+}
+
+.recap-cost-svg {
+  width: 100%;
+  margin-top: 24px;
+  color: #151614;
+}
+.recap-cost-svg text {
+  font-family: inherit;
+  font-size: 14px;
+  fill: currentColor;
+}
+
+@media (max-width: 600px) {
+  .recap-cost-svg {
+    height: 180px;
+  }
+  .recap-cost-svg text {
+    font-size: 25px;
+  }
 }

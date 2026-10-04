@@ -1,6 +1,7 @@
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { buildRecap, totalTokensOf } from "./recap";
+import { costTrendBuckets } from "./recap-deep";
 
 const base = buildDemoExport("billing").events[0]!;
 const now = "2026-10-04T12:00:00Z";
@@ -43,6 +44,49 @@ describe("deep recap provenance", () => {
       expect(Object.values(r.deep!.buckets).reduce((a, b) => a + b, 0)).toBe(r.total);
     },
   );
+  it.each([
+    ["claude-code", "anthropic"],
+    ["codex", "openai"],
+    ["command-code", "command-code"],
+    ["opencode", "unattributed"],
+    ["hermes", "unattributed"],
+  ])("maps %s recorder through T3 to %s", (source, provider) => {
+    const e = {
+      ...event("route", "2026-10-03T12:00:00Z", source),
+      harness: { id: "t3-code", attribution: "exact" as const },
+    };
+    expect(buildRecap([e], "30", now, "UTC").deep!.providers[0]!.id).toBe(provider);
+  });
+  it.each([
+    ["opencode zen", "opencode"],
+    ["zai", "z-ai"],
+    ["openai-codex", "openai"],
+    ["cline-pass", "cline"],
+  ])("maps recorded route %s", (route, expected) => {
+    expect(
+      buildRecap([event("route", "2026-10-03T12:00:00Z", "opencode", route)], "all", now, "UTC")
+        .deep!.providers[0]!.id,
+    ).toBe(expected);
+  });
+  it("resolves route-prefixed models while keeping the serving route", () => {
+    const e = {
+      ...event("route", "2026-10-03T12:00:00Z", "hermes"),
+      model: { rawName: "cline-pass/deepseek-v4.1-flash" },
+    };
+    const r = buildRecap([e], "30", now, "UTC");
+    expect(r.models[0]!.name).toBe("DeepSeek-V4.1-Flash");
+    expect(r.deep!.providers[0]!.id).toBe("cline");
+  });
+  it("uses continuous daily/weekly buckets with exact dollar sums", () => {
+    const recap = buildRecap([], "30", now, "UTC");
+    recap.deep!.costDays = [
+      { date: "2026-10-02", usd: "0.1" },
+      { date: "2026-10-03", usd: "0.2" },
+    ];
+    expect(costTrendBuckets(recap, "30")).toHaveLength(30);
+    expect(costTrendBuckets(recap, "90").find((x) => x.date === "2026-09-28")!.usd).toBe("0.3");
+    expect(costTrendBuckets(recap, "all")).toEqual(recap.deep!.months);
+  });
   it("T3 replaces the recording harness without duplicating its usage", () => {
     const e = {
       ...event("x", "2026-10-03T12:00:00Z", "codex"),

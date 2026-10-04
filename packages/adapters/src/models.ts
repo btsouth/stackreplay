@@ -52,16 +52,31 @@ export function createModelMapper(catalog: CatalogV1): ModelMapper {
       rawName: string,
       options?: { harness?: string },
     ): { model: ModelRefV1; confidence: EventConfidenceV1["model"] } {
-      const resolution = identity.resolve(rawName, options);
+      const route = rawName.split("/")[0]!;
+      const routed =
+        rawName.includes("/") &&
+        [
+          "cline-pass",
+          "cline",
+          "openrouter",
+          "opencode",
+          "opencode-zen",
+          "opencode-go",
+          "zai",
+        ].includes(route);
+      const resolution = identity.resolve(
+        routed ? rawName.slice(route.length + 1) : rawName,
+        options,
+      );
       if (resolution.canonicalId === undefined) {
         return {
-          model: { rawName: resolution.observed.length === 0 ? "unknown" : resolution.observed },
+          model: { rawName: rawName.trim().length === 0 ? "unknown" : rawName },
           confidence: "unknown",
         };
       }
       return {
-        model: { rawName: resolution.observed, canonicalId: resolution.canonicalId },
-        confidence: resolution.basis === "canonical_id" ? "exact" : "mapped",
+        model: { rawName, canonicalId: resolution.canonicalId },
+        confidence: !routed && resolution.basis === "canonical_id" ? "exact" : "mapped",
       };
     },
   };

@@ -1,3 +1,4 @@
+import { createModelMapper } from "@stackreplay/adapters/models";
 import type { CatalogV1 } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal, moneyUnitsForUsage, replayObservingQuotes } from "@stackreplay/replay-engine";
@@ -101,6 +102,10 @@ export function buildRecap(
   timeZone: string,
   catalog: CatalogV1 = loadBundledCatalog(),
 ): Recap {
+  const mapper = createModelMapper(catalog);
+  events = events.map((e) =>
+    e.model.canonicalId ? e : { ...e, model: mapper.map(e.model.rawName).model },
+  );
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",

@@ -163,7 +163,7 @@ export function RecapSurface({
     <div className="recap-page">
       <header className="recap-toolbar">
         <div>
-          <span className="recap-eyebrow">YOUR HISTORY, IN PERSPECTIVE</span>
+          <span className="recap-eyebrow">Your history, in perspective</span>
           <h1>
             Your coding recap<span>.</span>
           </h1>

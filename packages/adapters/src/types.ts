@@ -217,6 +217,7 @@ export function isUsageAdapter(
 /** Filesystem surface used by adapters. Injected so fixtures are testable. */
 export interface FileSystem {
   realPath?(path: string): Promise<string>;
+  projectRoot?(path: string): Promise<string | undefined>;
   exists(path: string): Promise<boolean>;
   stat(path: string): Promise<{ kind: "file" | "directory"; size: number; mtimeMs: number } | null>;
   listDir(path: string): Promise<string[]>;
