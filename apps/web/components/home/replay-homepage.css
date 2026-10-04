@@ -226,9 +226,8 @@
   transform: translate(-50%, -50%) rotateX(55deg) rotateZ(-25deg);
   border: 1px solid color-mix(in srgb, var(--accent) 27.06%, transparent);
   border-radius: 50%;
-  box-shadow:
-    0 0 0 70px color-mix(in srgb, var(--foreground) 0.78%, transparent),
-    0 0 0 71px color-mix(in srgb, var(--accent) 6.27%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
+  outline-offset: 70px;
 }
 
 .replay-scroll-hint {
@@ -657,12 +656,16 @@
   top: 39px;
   transform: rotate(12deg);
   background: var(--surface-2);
+  color: var(--foreground);
 }
 .replay-mini-cards strong {
   display: block;
   font-size: 29px;
   letter-spacing: -1.8px;
   margin-top: 6px;
+}
+.replay-mini-cards > div:first-child span {
+  color: var(--recap-card-muted);
 }
 .replay-mini-cards span {
   display: block;

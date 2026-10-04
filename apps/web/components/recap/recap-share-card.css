@@ -13,7 +13,7 @@
   padding: 30px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 40px 100px color-mix(in srgb, var(--recap-shadow) 46.67%, transparent);
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--recap-shadow) 28%, transparent);
   font-family: var(--font-geist-sans), sans-serif;
 }
 .replay-card-top {
