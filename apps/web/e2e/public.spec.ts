@@ -93,7 +93,7 @@ test.describe("public site", () => {
     await page.goto("/plans/clinepass");
     await expect(page.getByRole("link", { name: "Compare this plan" })).toHaveAttribute(
       "href",
-      "/compare?left=clinepass",
+      "/compare?left=clinepass&right=openai-chatgpt-pro",
     );
     await page.getByRole("link", { name: "Analyze my workload" }).click();
     await expect(page.getByTestId("import-dropzone")).toBeVisible();
