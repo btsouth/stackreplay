@@ -15,14 +15,18 @@ for (const [id, name] of [
     );
     await compareLink.click();
     await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=`));
-    await expect(page.getByLabel("First plan")).toHaveValue(id);
+    // Streamed Suspense content can contain hidden copies of these controls.
+    // Role locators exclude them and still reject duplicate accessible controls.
+    await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(id);
     await expect(page.getByTestId("compare-target").first()).toContainText(name);
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/plans/${id}$`));
     await page.goForward();
     await expect(page).toHaveURL(new RegExp(`/compare\\?left=${id}&right=openai-chatgpt-pro$`));
-    await expect(page.getByLabel("First plan")).toHaveValue(id);
-    await page.getByLabel("Second plan").selectOption("google-code-assist-standard");
+    await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(id);
+    await page
+      .getByRole("combobox", { name: "Second plan", exact: true })
+      .selectOption("google-code-assist-standard");
     await expect(page).toHaveURL(/right=google-code-assist-standard/u);
     await expect(page.getByTestId("compare-target").nth(1)).toContainText(
       "Gemini Code Assist Standard",
@@ -37,8 +41,10 @@ for (const [id, name] of [
     await expect(page).toHaveURL(
       new RegExp(`/compare\\?left=${id}&right=google-code-assist-standard$`),
     );
-    await expect(page.getByLabel("First plan")).toHaveValue(id);
-    await expect(page.getByLabel("Second plan")).toHaveValue("google-code-assist-standard");
+    await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(id);
+    await expect(page.getByRole("combobox", { name: "Second plan", exact: true })).toHaveValue(
+      "google-code-assist-standard",
+    );
     if (id === "devin-teams") {
       await expect(page.getByTestId("compare-target").first()).toContainText(
         "$80/month base + $40/month per full developer seat",
@@ -103,14 +109,22 @@ test("a full sibling comparison preserves the detail history entry", async ({ pa
   await page.goto("/plans/devin-teams");
   await page.locator('a[href="/compare?left=devin-teams&right=devin-pro"]').click();
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro$/u);
-  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
-  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(
+    "devin-teams",
+  );
+  await expect(page.getByRole("combobox", { name: "Second plan", exact: true })).toHaveValue(
+    "devin-pro",
+  );
   await page.goBack();
   await expect(page).toHaveURL(/\/plans\/devin-teams$/u);
   await page.goForward();
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro$/u);
-  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
-  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(
+    "devin-teams",
+  );
+  await expect(page.getByRole("combobox", { name: "Second plan", exact: true })).toHaveValue(
+    "devin-pro",
+  );
 });
 
 test("shared comparison normalization preserves its hash and restored choices", async ({
@@ -118,8 +132,10 @@ test("shared comparison normalization preserves its hash and restored choices", 
 }) => {
   await page.goto("/compare?left=devin-teams#limits");
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=openai-chatgpt-pro#limits$/u);
-  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
-  await page.getByLabel("Second plan").selectOption("devin-pro");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(
+    "devin-teams",
+  );
+  await page.getByRole("combobox", { name: "Second plan", exact: true }).selectOption("devin-pro");
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro#limits$/u);
   await page
     .getByTestId("compare-target")
@@ -129,12 +145,20 @@ test("shared comparison normalization preserves its hash and restored choices", 
   await expect(page).toHaveURL(/\/plans\/devin-teams$/u);
   await page.goBack();
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=devin-pro#limits$/u);
-  await expect(page.getByLabel("First plan")).toHaveValue("devin-teams");
-  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(
+    "devin-teams",
+  );
+  await expect(page.getByRole("combobox", { name: "Second plan", exact: true })).toHaveValue(
+    "devin-pro",
+  );
   await page.goto("/compare?left=unknown&right=devin-pro&third=unknown#limits");
   await expect(page).toHaveURL(/\/compare\?left=anthropic-claude-max-20x&right=devin-pro#limits$/u);
-  await expect(page.getByLabel("First plan")).toHaveValue("anthropic-claude-max-20x");
-  await expect(page.getByLabel("Second plan")).toHaveValue("devin-pro");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toHaveValue(
+    "anthropic-claude-max-20x",
+  );
+  await expect(page.getByRole("combobox", { name: "Second plan", exact: true })).toHaveValue(
+    "devin-pro",
+  );
 });
 
 test("explicit public offer Replay targets cannot run or select another plan", async ({ page }) => {
