@@ -154,6 +154,9 @@ export function featuredApiModels(models: readonly VisualModel[], limit = 14): V
     "grok-4-7",
     "deepseek-v4-1-flash",
     "kimi-k3",
+    "qwen-3-8-max",
+    "glm-5-3",
+    "minimax-m3",
   ];
   const selected = new Set(
     anchors.filter((id) => priced.some((model) => model.id === id)).slice(0, limit),

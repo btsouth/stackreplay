@@ -133,6 +133,9 @@ describe("visual chart selection", () => {
       "gpt-6-astra",
       "grok-4-7",
       "deepseek-v4-1-flash",
+      "qwen-3-8-max",
+      "glm-5-3",
+      "minimax-m3",
     ])
       expect(featured.map((model) => model.id)).toContain(id);
     expect(featured.every((model) => model.lifecycle !== "legacy")).toBe(true);
