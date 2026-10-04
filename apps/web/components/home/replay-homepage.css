@@ -913,7 +913,7 @@
 }
 @keyframes replay-reveal {
   from {
-    opacity: 0.3;
+    opacity: 1;
     translate: 0 20px;
   }
   to {
@@ -940,7 +940,7 @@
 }
 @keyframes replay-beat {
   from {
-    opacity: 0.1;
+    opacity: 1;
     transform: scale(0.85);
   }
   to {
@@ -1427,13 +1427,13 @@
   font-size: 220px;
 }
 .replay-home .replay-value > .replay-chapter {
-  color: #60454a;
+  color: #503740;
 }
 .replay-home .replay-value-copy > p {
   color: #49343b;
 }
 .replay-home .replay-value-copy > .replay-fine {
-  color: #60454a !important;
+  color: #503740 !important;
 }
 @media (max-width: 1000px) {
   .replay-home .replay-value-number {
