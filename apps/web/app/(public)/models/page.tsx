@@ -15,7 +15,7 @@ export const metadata: Metadata = publicPageMetadata({
 export default function ModelsPage() {
   const { catalog, prices } = marketDiscovery();
   return (
-    <div>
+    <div className="models-discovery-page">
       <MarketHeader
         compact
         eyebrow="The model field guide"

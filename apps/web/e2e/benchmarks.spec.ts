@@ -238,6 +238,20 @@ test("model section is grouped, expandable and linked to exact evidence", async 
   await section.getByRole("link", { name: "Open benchmark sheet →" }).click();
   await expect(page).toHaveURL(/\/benchmarks\?models=gemini-4-argon/);
 });
+test("model without exact evidence states the gap and opens valid coverage", async ({ page }) => {
+  await page.goto("/models/nemotron-3-ultra");
+  const section = page.getByRole("region", { name: "Benchmarks", exact: true });
+  await expect(section).toContainText("No benchmark evidence recorded for this exact release.");
+  await expect(section.getByRole("link", { name: "Open benchmark sheet →" })).toHaveAttribute(
+    "href",
+    "/benchmarks?edition=2026-10-04-v5",
+  );
+  await section.getByRole("link", { name: "Open benchmark sheet →" }).click();
+  await expect(page).toHaveURL(/\/benchmarks\?edition=2026-10-04-v5/);
+  await expect(page.getByText("Invalid model selection. Showing the Frontier preset.")).toHaveCount(
+    0,
+  );
+});
 test("Sol model page presents one primary launch section with six useful results", async ({
   page,
 }) => {

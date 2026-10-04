@@ -40,6 +40,25 @@ const RELEASED = 9;
 const amount = (text: string) => Number(text.replace(/[$,]/gu, ""));
 
 for (const theme of ["dark", "light"] as const) {
+  test.describe(`models discovery at 320px in ${theme}`, () => {
+    test("keeps the spotlight facts and brings search into the first viewport", async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+      await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
+      await openModels(page, "/models");
+      const spotlight = page.locator(".market-feature");
+      await expect(spotlight).toContainText("$2 input, $10 output and $0.20 cache reads");
+      await expect(spotlight).toContainText("Inspect pricing and cache-write options.");
+      const search = page.getByLabel("Find a model, family name or exact alias");
+      await expect(search).toBeVisible();
+      expect((await search.boundingBox())?.y ?? Infinity).toBeLessThan(568);
+      await expectNoHorizontalOverflow(page);
+      await expectNoSeriousViolations(page);
+    });
+  });
+
   test.describe(`models table in ${theme}`, () => {
     test.use({ viewport: { width: 1440, height: 900 } });
     test.beforeEach(async ({ page }) => {

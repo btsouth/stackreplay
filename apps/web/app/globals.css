@@ -1148,6 +1148,43 @@ html[data-compare] [data-compare-results] {
     font-size: 1.15rem;
     margin: 0.35rem 0;
   }
+  /* Models keeps every spotlight fact visible while tightening its mobile presentation. */
+  .models-discovery-page .market-header-compact {
+    padding: 0.4rem 0 0.8rem;
+    gap: 0.6rem;
+  }
+  .models-discovery-page .market-header-compact:has(.market-feature) {
+    gap: 0.65rem;
+  }
+  .models-discovery-page .market-header-compact .market-kicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+  }
+  .models-discovery-page .market-header-compact h1 {
+    font-size: 2.05rem;
+    line-height: 1;
+    margin: 0.32rem 0 0.42rem;
+  }
+  .models-discovery-page .market-header-compact .market-description {
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+  .models-discovery-page .market-header-compact .market-feature {
+    padding: 0.45rem 0.7rem;
+  }
+  .models-discovery-page .market-header-compact .market-feature h2 {
+    font-size: 1.05rem;
+    margin: 0.18rem 0;
+  }
+  .models-discovery-page .market-header-compact .market-feature p:not(.market-kicker) {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0.18rem 0;
+  }
+  .models-discovery-page .market-header-compact .market-feature .market-link {
+    min-height: 32px;
+    font-size: 0.78rem;
+  }
   .market-provider-overview {
     grid-template-columns: minmax(0, 1fr);
   }

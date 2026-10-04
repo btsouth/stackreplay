@@ -25,3 +25,27 @@ describe("model benchmark source dates", () => {
     }
   });
 });
+
+describe("model benchmark evidence state", () => {
+  it("states when an exact release has no admitted evidence and links to valid coverage", () => {
+    const html = renderToStaticMarkup(
+      createElement(ModelBenchmarks, { data, modelId: "nemotron-3-ultra" }),
+    );
+    expect(html).toContain("No benchmark evidence recorded for this exact release.");
+    expect(html).toContain(
+      '<a href="/benchmarks?edition=2026-10-04-v5">Open benchmark sheet →</a>',
+    );
+    expect(html).not.toContain("models=nemotron-3-ultra");
+    expect(html).not.toContain("No scores published");
+  });
+
+  it("keeps populated evidence and its exact-release sheet link", () => {
+    const html = renderToStaticMarkup(
+      createElement(ModelBenchmarks, { data, modelId: "gemini-4-argon" }),
+    );
+    expect(html).toContain("Google DeepMind");
+    expect(html).toContain("Open benchmark sheet →");
+    expect(html).toContain("models=gemini-4-argon");
+    expect(html).not.toContain("No benchmark evidence recorded for this exact release.");
+  });
+});
