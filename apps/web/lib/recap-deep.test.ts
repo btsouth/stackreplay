@@ -77,6 +77,16 @@ describe("deep recap provenance", () => {
     expect(r.models[0]!.name).toBe("DeepSeek-V4.1-Flash");
     expect(r.deep!.providers[0]!.id).toBe("cline");
   });
+  it.each(["command-code", "hermes", "codex"])(
+    "resolves a catalog-declared provider route from %s",
+    (source) => {
+      const e = {
+        ...event("fast", "2026-10-03T12:00:00Z", source),
+        model: { rawName: "deepseek/deepseek-v4.1-flash-fast" },
+      };
+      expect(buildRecap([e], "30", now, "UTC").models[0]!.name).toBe("DeepSeek-V4.1-Flash");
+    },
+  );
   it("resolves the underlying Command Code registry alias through T3", () => {
     const e = {
       ...event("fast", "2026-10-03T12:00:00Z", "command-code"),

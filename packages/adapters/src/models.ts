@@ -69,6 +69,16 @@ export function createModelMapper(catalog: CatalogV1): ModelMapper {
         options,
       );
       if (resolution.canonicalId === undefined) {
+        // A catalog-declared provider route establishes model identity even when
+        // another harness records it. It does not establish this event's billing route.
+        const routes = [...byId.values()].filter((model) =>
+          model.aliases?.some(
+            (alias) => alias.kind === "provider_route" && alias.alias === rawName,
+          ),
+        );
+        if (routes.length === 1)
+          return { model: { rawName, canonicalId: routes[0]!.id }, confidence: "mapped" };
+
         return {
           model: { rawName: rawName.trim().length === 0 ? "unknown" : rawName },
           confidence: "unknown",
