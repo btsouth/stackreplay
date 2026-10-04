@@ -31,6 +31,12 @@ export function BenchmarkImageDialog({
     prepared?.payload === payload && prepared.attempt === prepareAttempt ? prepared.pages : [];
   const [pageIndex, setPageIndex] = useState(0);
   const [attempt, setAttempt] = useState(0);
+  function changePage(offset: number) {
+    setPageIndex((index) => index + offset);
+    // Back-navigation reuses page objects, but their previous URLs were revoked.
+    // Invalidate the retained result in the same update as every navigation.
+    setAttempt((value) => value + 1);
+  }
   const [error, setError] = useState("");
   const [image, setImage] = useState<{
     url: string;
@@ -109,7 +115,7 @@ export function BenchmarkImageDialog({
           type="button"
           className="bench-image-control"
           disabled={!pages.length || pageIndex === 0}
-          onClick={() => setPageIndex((index) => index - 1)}
+          onClick={() => changePage(-1)}
         >
           Previous page
         </button>
@@ -124,7 +130,7 @@ export function BenchmarkImageDialog({
           type="button"
           className="bench-image-control"
           disabled={!pages.length || pageIndex === pages.length - 1}
-          onClick={() => setPageIndex((index) => index + 1)}
+          onClick={() => changePage(1)}
         >
           Next page
         </button>

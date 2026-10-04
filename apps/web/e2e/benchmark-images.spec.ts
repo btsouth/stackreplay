@@ -290,6 +290,108 @@ test("PNG async: obsolete pages and selections cannot publish stale downloads or
     .toBe("0");
 });
 
+test("PNG async back-navigation: only a fresh live page URL can become ready", async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript(() => {
+    const state = () => document.documentElement.dataset;
+    const urls = new Set<string>();
+    const create = URL.createObjectURL.bind(URL);
+    const revoke = URL.revokeObjectURL.bind(URL);
+    let created = 0;
+    let encoded = 0;
+    URL.createObjectURL = (blob) => {
+      const url = create(blob);
+      urls.add(url);
+      state().activePngUrls = String(urls.size);
+      state().createdPngUrls = String(++created);
+      return url;
+    };
+    URL.revokeObjectURL = (url) => {
+      urls.delete(url);
+      state().activePngUrls = String(urls.size);
+      revoke(url);
+    };
+    const encode = HTMLCanvasElement.prototype.toDataURL;
+    HTMLCanvasElement.prototype.toDataURL = function (type, quality) {
+      const result = encode.call(this, type, quality);
+      state().encodedPngs = String(++encoded);
+      return result;
+    };
+    // Hold the renderer's existing yield until the test explicitly releases it.
+    const timer = window.setTimeout.bind(window);
+    const pending = new Map<number, () => void>();
+    let requested = 0;
+    window.setTimeout = ((handler: TimerHandler, timeout?: number, ...args: unknown[]) => {
+      if (timeout !== 16 || typeof handler !== "function") return timer(handler, timeout, ...args);
+      pending.set(++requested, () => handler(...args));
+      state().requestedPngs = String(requested);
+      return timer(() => {}, 0);
+    }) as typeof window.setTimeout;
+    document.addEventListener("release-png-render", (event) => {
+      const request = (event as CustomEvent<number>).detail;
+      const resume = pending.get(request);
+      if (!resume) throw new Error(`Missing PNG render request ${request}`);
+      pending.delete(request);
+      resume();
+    });
+  });
+  await page.goto(`/benchmarks?${acceptedDefault}`);
+  const state = page.locator("html");
+  const dialog = page.getByRole("dialog", { name: "Export benchmark images" });
+  const link = dialog.getByRole("link", { name: /Download PNG/ });
+  const release = (request: number) =>
+    page.evaluate((value) => {
+      document.dispatchEvent(new CustomEvent("release-png-render", { detail: value }));
+    }, request);
+  await page.getByRole("button", { name: "Export images", exact: true }).click();
+  await expect(state).toHaveAttribute("data-requested-pngs", "1");
+  await expect(link).toHaveCount(0);
+  await release(1);
+  await expect(link).toHaveAttribute("download", /page-1-of-6/);
+  const originalUrl = await link.getAttribute("href");
+  await expect(state).toHaveAttribute("data-active-png-urls", "1");
+
+  await dialog.getByRole("button", { name: "Next page" }).click();
+  await expect(state).toHaveAttribute("data-requested-pngs", "2");
+  await expect(state).toHaveAttribute("data-active-png-urls", "0");
+  await expect(link).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Previous page" }).click();
+  await expect(dialog.locator(".bench-image-page-count")).toHaveText("Page 1 of 6");
+  await expect(state).toHaveAttribute("data-requested-pngs", "3");
+  // Page 1's old URL is revoked; neither it nor its preview may be republished.
+  await expect(link).toHaveCount(0);
+  await expect(dialog.locator("img")).toHaveCount(0);
+  await expect(state).toHaveAttribute("data-created-png-urls", "1");
+  await expect(state).toHaveAttribute("data-active-png-urls", "0");
+
+  await release(3);
+  await expect(link).toHaveAttribute("download", /page-1-of-6/);
+  const freshUrl = await link.getAttribute("href");
+  expect(freshUrl).not.toBe(originalUrl);
+  await expect(state).toHaveAttribute("data-created-png-urls", "2");
+  await expect(state).toHaveAttribute("data-active-png-urls", "1");
+  await downloadPng(page, testInfo, "back-navigation-fresh-page-1");
+
+  // Complete cancelled page 2 last, then allow its promise/React work to settle.
+  await release(2);
+  await expect(state).toHaveAttribute("data-encoded-pngs", "3");
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await expect(link).toHaveAttribute("href", freshUrl ?? "");
+  await expect(link).toHaveAttribute("download", /page-1-of-6/);
+  await expect(state).toHaveAttribute("data-created-png-urls", "2");
+  await expect(state).toHaveAttribute("data-active-png-urls", "1");
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(state).toHaveAttribute("data-active-png-urls", "0");
+});
+
 test("PNG rendering failure: no stale link, retry succeeds", async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     const native = HTMLCanvasElement.prototype.toDataURL;
