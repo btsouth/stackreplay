@@ -12,7 +12,7 @@ Source of truth for the decisions behind this: `docs/ARCHITECTURE_DECISIONS.md`
 
 | Surface | Routes | Rendering | Data |
 | --- | --- | --- | --- |
-| Public site | `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/benchmarks`, `/compare`, `/methodology`, `/changelog` | Server components, static where possible | The **real** catalog entries of the bundled snapshot; benchmarks use their separate verified evidence package |
+| Public site | `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/benchmarks`, `/compare`, `/methodology`, `/changelog`, `/changelog/[eventId]` | Server components, static where possible | The **real** catalog entries of the bundled snapshot; benchmarks use their separate verified evidence package |
 | Shared results | `/s/[token]` | Server component, decoded per request | The token itself (no lookup, no storage) |
 | Local application | `/app/*` | Client surfaces | The bundled catalog + IndexedDB |
 | Machine-readable | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` | Route handlers | Site config |
@@ -76,6 +76,22 @@ concerns, a summary drawn from the source's own statements, and at least one fir
 The homepage briefing and `/changelog` read the same feed; there is no second news list. The web
 boundary validates every id against the catalog and the benchmark evidence and fails the build on
 an unknown one.
+
+**Shareable updates.** `/changelog?provider=google&type=benchmarks` selects the intersection of an
+exact event owner and the existing category. Provider choices are admitted event owners; a valid
+public provider with no events can still be linked and shows an empty state. Counts reflect the
+provider before category selection, including selectable zero counts. Invalid categories become
+All; repeated owned parameters use their first value. Unknown providers show an explicit error
+and a clear-filter action. Filter choices create history entries; normalization replaces them and
+preserves unrelated query parameters and anchors. Generated URLs put provider before type and omit
+All. Existing `type` links and `/changelog#eventId` anchors continue to work.
+
+Each admitted ID has a permanent `/changelog/[eventId]` page with the original summary, dates,
+recorded status and every source/check date/excerpt. Discovery is secondary provenance. Status is
+not changed by the clock. Related model, plan and benchmark links resolve current pages; event
+pages do not reconstruct historical prices or scores. List facts are labelled Current catalog
+context, not a snapshot at the event date. Permalinks use self-canonical metadata and appear in the
+sitemap without inferred modification dates; filtered combinations do not.
 
 **Dates are market dates.** An event's date is when the provider says it happened, never the day the
 catalog admitted a record. The briefing re-evaluates its window on the reader's own calendar day, so

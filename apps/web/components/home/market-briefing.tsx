@@ -17,6 +17,7 @@ import {
 } from "@/lib/home/personal";
 import { useLocalWorkload } from "@/lib/local-workload";
 import type { MarketEventHighlight, MarketEventView } from "@/lib/market/events";
+import { marketEventHref } from "@/lib/market/update-selection";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -471,7 +472,7 @@ export function MarketRelevanceSummary({
             return (
               <li key={event.id} data-testid="market-relevance-item" data-relation={relation?.kind}>
                 <span className="home-relevance-day">{shortDay(event.day)}</span>
-                <Link href={`/changelog#${event.id}`} className="home-subject-link">
+                <Link href={marketEventHref(event.id)} className="home-subject-link">
                   {event.title}
                 </Link>
                 <span className="home-relevance-why">

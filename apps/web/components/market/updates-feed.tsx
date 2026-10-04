@@ -1,19 +1,25 @@
 "use client";
 
-import {
-  eventsInCategory,
-  groupByDay,
-  MARKET_EVENT_CATEGORY_LABELS,
-  type MarketEventCategory,
-} from "@stackreplay/market-events/feed";
+import { groupByDay, MARKET_EVENT_CATEGORY_LABELS } from "@stackreplay/market-events/feed";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useMarketRelations } from "@/components/home/market-briefing";
 import type { HomeCatalogIndex } from "@/lib/home/personal";
 import type { MarketEventView } from "@/lib/market/events";
 
-type Filter = MarketEventCategory | "all";
-const FILTERS: readonly Filter[] = ["all", "models", "benchmarks", "subscriptions", "pricing"];
+import {
+  marketEventHref,
+  parseUpdateSelection,
+  sameUpdateSelection,
+  selectUpdates,
+  UPDATE_CATEGORIES,
+  type UpdateCategory,
+  type UpdateProvider,
+  type UpdateSelection,
+  updateListHref,
+  updateProviderOptions,
+} from "@/lib/market/update-selection";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -24,57 +30,88 @@ const LONG_DAY = new Intl.DateTimeFormat("en-US", {
 });
 const longDay = (day: string) => LONG_DAY.format(new Date(`${day}T00:00:00Z`));
 
-function readFilter(): Filter {
-  if (typeof window === "undefined") return "all";
-  const value = new URLSearchParams(window.location.search).get("type");
-  return FILTERS.includes(value as Filter) ? (value as Filter) : "all";
-}
-
-/**
- * The full Updates feed: every accepted event, grouped by the day it occurred,
- * newest first, filterable by kind. Filters are real buttons that keep the
- * choice in the URL; the list is a server-rendered whole before hydration.
- */
+/** Router data selects before paint; committed browser URLs reconcile restored trees. */
 export function UpdatesFeed({
   events,
   index,
+  providers,
+  initialSelection,
 }: {
   events: readonly MarketEventView[];
   index: HomeCatalogIndex;
+  providers: readonly UpdateProvider[];
+  initialSelection: UpdateSelection;
 }) {
-  const [filter, setFilter] = useState<Filter>("all");
+  const router = useRouter();
+  const routedSearch = useSearchParams().toString();
+  const [selection, setSelection] = useState(initialSelection);
+  useLayoutEffect(() => {
+    setSelection(parseUpdateSelection(new URLSearchParams(routedSearch), providers));
+  }, [routedSearch, providers]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Router search changes trigger reconciliation against the committed browser URL.
   useEffect(() => {
-    setFilter(readFilter());
-    const pop = () => setFilter(readFilter());
-    window.addEventListener("popstate", pop);
-    return () => window.removeEventListener("popstate", pop);
-  }, []);
+    if (window.location.pathname !== "/changelog") return;
+    const committed = parseUpdateSelection(new URLSearchParams(window.location.search), providers);
+    setSelection((current) => (sameUpdateSelection(current, committed) ? current : committed));
+    const next = updateListHref(committed, window.location.search, window.location.hash);
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
+      router.replace(next, { scroll: false });
+  }, [routedSearch, providers, router]);
   const counts = useMemo(
     () =>
       Object.fromEntries(
-        FILTERS.map((entry) => [entry, eventsInCategory(events, entry).length]),
-      ) as Record<Filter, number>,
-    [events],
+        UPDATE_CATEGORIES.map((category) => [
+          category,
+          selectUpdates(events, { ...selection, category }).length,
+        ]),
+      ) as Record<UpdateCategory, number>,
+    [events, selection],
   );
-  const days = useMemo(() => groupByDay(eventsInCategory(events, filter)), [events, filter]);
+  const days = useMemo(() => groupByDay(selectUpdates(events, selection)), [events, selection]);
+  const options = updateProviderOptions(events, providers, selection);
   const { relations } = useMarketRelations(events, index);
-  const choose = (next: Filter) => {
-    setFilter(next);
-    const url = new URL(window.location.href);
-    if (next === "all") url.searchParams.delete("type");
-    else url.searchParams.set("type", next);
-    window.history.pushState(null, "", url);
+  const choose = (next: UpdateSelection) => {
+    if (sameUpdateSelection(selection, next)) return;
+    setSelection(next);
+    router.push(updateListHref(next, window.location.search, window.location.hash), {
+      scroll: false,
+    });
   };
+  const clear = () => choose({ providerId: null, category: "all", providerRecognized: true });
   return (
     <section className="updates" aria-label="AI updates" data-testid="updates-feed">
+      <label className="mb-4 flex max-w-sm flex-col gap-2 text-sm">
+        Provider
+        <select
+          className="min-h-11 min-w-0 rounded border border-border bg-background px-3"
+          value={selection.providerId ?? "all"}
+          onChange={(event) =>
+            choose({
+              ...selection,
+              providerId: event.target.value === "all" ? null : event.target.value,
+              providerRecognized: true,
+            })
+          }
+        >
+          <option value="all">All providers</option>
+          {!selection.providerRecognized && (
+            <option value={selection.providerId ?? ""}>Provider not recognized</option>
+          )}
+          {options.map((provider) => (
+            <option key={provider.id} value={provider.id}>
+              {provider.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <fieldset className="updates-filters">
         <legend className="sr-only">Filter updates</legend>
-        {FILTERS.map((entry) => (
+        {UPDATE_CATEGORIES.map((entry) => (
           <button
             key={entry}
             type="button"
-            aria-pressed={filter === entry}
-            onClick={() => choose(entry)}
+            aria-pressed={selection.category === entry}
+            onClick={() => choose({ ...selection, category: entry })}
             data-testid={`updates-filter-${entry}`}
           >
             {MARKET_EVENT_CATEGORY_LABELS[entry]}
@@ -83,7 +120,16 @@ export function UpdatesFeed({
         ))}
       </fieldset>
       {days.length === 0 ? (
-        <p className="market-muted py-8">No accepted updates in this category yet.</p>
+        <div className="market-muted py-8" role="status">
+          <p>
+            {selection.providerRecognized
+              ? "No accepted updates match these filters."
+              : "Provider not recognized."}
+          </p>
+          <button type="button" className="market-link mt-3 min-h-11" onClick={clear}>
+            Clear filters
+          </button>
+        </div>
       ) : (
         <ol className="updates-days">
           {days.map((group) => (
@@ -115,7 +161,9 @@ export function UpdatesFeed({
                         ) : null}
                       </p>
                       <h3 className="updates-event-title">
-                        {event.title}
+                        <Link href={marketEventHref(event.id)} className="hover:text-accent">
+                          {event.title}
+                        </Link>
                         {relation ? (
                           <span
                             className="home-mark"
@@ -130,16 +178,26 @@ export function UpdatesFeed({
                       </h3>
                       <p className="updates-event-summary">{event.summary}</p>
                       {event.facts.length > 0 ? (
-                        <ul className="updates-event-facts">
-                          {event.facts.map((fact) => (
-                            <li key={fact}>{fact}</li>
-                          ))}
-                        </ul>
+                        <div>
+                          <p className="market-muted mt-3">Current catalog context</p>
+                          <p className="market-muted">
+                            These facts are resolved from current catalog and benchmark evidence;
+                            they are not a snapshot at the event date.
+                          </p>
+                          <ul className="updates-event-facts">
+                            {event.facts.map((fact) => (
+                              <li key={fact}>{fact}</li>
+                            ))}
+                          </ul>
+                        </div>
                       ) : null}
                       {relation ? (
                         <p className="updates-event-relation">{relation.detail}</p>
                       ) : null}
                       <p className="updates-event-links">
+                        <Link href={marketEventHref(event.id)} className="market-link">
+                          Event details and sources
+                        </Link>
                         {event.links.map((link) => (
                           <Link
                             key={`${link.kind}:${link.id}`}
