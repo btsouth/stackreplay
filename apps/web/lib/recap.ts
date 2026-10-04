@@ -9,6 +9,7 @@ export interface RecapModel {
   name: string;
   family: string;
   output: number;
+  total: number;
   records: number;
   priced: number;
   usd: string;
@@ -22,10 +23,12 @@ export interface Recap {
   days: { date: string; records: number; output: number }[];
   models: RecapModel[];
   weeks: { date: string; families: Record<string, number> }[];
-  tools: { id: string; records: number; output: number }[];
+  tools: { id: string; records: number; output: number; total: number }[];
   records: number;
   output: number;
+  total: number;
   outputKnown: number;
+  totalKnown: number;
   sessions: number;
   sessionKnown: number;
   streak: number;
@@ -40,20 +43,20 @@ export interface Recap {
   rulesAsOf: string;
 }
 export const familyColors: Record<string, string> = {
-  anthropic: "#df8057",
-  openai: "#42a894",
-  google: "#6788e8",
-  deepseek: "#9975d5",
-  other: "#a6a28e",
+  anthropic: "var(--developer-anthropic)",
+  openai: "var(--developer-openai)",
+  google: "var(--developer-google)",
+  deepseek: "var(--developer-deepseek)",
+  xai: "var(--developer-xai)",
+  other: "var(--developer-other)",
 };
-/** Named, resolved models with output in this recap period. Ties use stable model IDs. */
+/** Named, resolved models with logged tokens in this recap period. Ties use stable model IDs. */
 export function topRecapModels(models: readonly RecapModel[], limit = 5): RecapModel[] {
   return models
     .filter(
-      (model) =>
-        model.output > 0 && model.family !== "other" && model.name !== "Other / Unresolved",
+      (model) => model.total > 0 && model.family !== "other" && model.name !== "Other / Unresolved",
     )
-    .sort((a, b) => b.output - a.output || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .sort((a, b) => b.total - a.total || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .slice(0, Math.max(0, limit));
 }
 export function outputOf(event: TextUsageEventV1): number | undefined {
@@ -61,6 +64,23 @@ export function outputOf(event: TextUsageEventV1): number | undefined {
   if (u.outputTokens === undefined) return undefined;
   return (
     u.outputTokens +
+    (u.accounting?.reasoningIncludedInOutput === false ? (u.reasoningTokens ?? 0) : 0)
+  );
+}
+/** Sum reported categories only, honoring the schema's subset declarations. Missing is not zero coverage. */
+export function totalTokensOf(event: TextUsageEventV1): number | undefined {
+  const u = event.usage;
+  if (
+    [u.inputTokens, u.outputTokens, u.cacheReadTokens, u.cacheWriteTokens, u.reasoningTokens].every(
+      (n) => n === undefined,
+    )
+  )
+    return undefined;
+  return (
+    (u.inputTokens ?? 0) +
+    (u.outputTokens ?? 0) +
+    (u.accounting?.cacheReadIncludedInInput === false ? (u.cacheReadTokens ?? 0) : 0) +
+    (u.accounting?.cacheWriteIncludedInInput === false ? (u.cacheWriteTokens ?? 0) : 0) +
     (u.accounting?.reasoningIncludedInOutput === false ? (u.reasoningTokens ?? 0) : 0)
   );
 }
@@ -103,11 +123,13 @@ export function buildRecap(
   const days = new Map<string, { date: string; records: number; output: number }>();
   for (let d = start; d <= end; d = nextDay(d)) days.set(d, { date: d, records: 0, output: 0 });
   const models = new Map<string, RecapModel>();
-  const tools = new Map<string, { id: string; records: number; output: number }>();
+  const tools = new Map<string, { id: string; records: number; output: number; total: number }>();
   const weeks = new Map<string, Record<string, number>>();
   const hours = Array<number>(24).fill(0);
   const sessions = new Set<string>();
   let output = 0;
+  let total = 0;
+  let totalKnown = 0;
   let outputKnown = 0;
   let sessionKnown = 0;
   let priced = 0;
@@ -118,6 +140,10 @@ export function buildRecap(
     const { date, hour } = local(e.occurredAt);
     const tokens = outputOf(e);
     const n = tokens ?? 0;
+    const allTokens = totalTokensOf(e);
+    const t = allTokens ?? 0;
+    total += t;
+    if (allTokens !== undefined) totalKnown++;
     output += n;
     if (tokens !== undefined) outputKnown++;
     hours[hour] = (hours[hour] ?? 0) + 1;
@@ -139,6 +165,7 @@ export function buildRecap(
       name: model?.name ?? e.model.rawName,
       family,
       output: 0,
+      total: 0,
       records: 0,
       priced: 0,
       usd: "0",
@@ -146,15 +173,22 @@ export function buildRecap(
       cacheScenarioRecords: 0,
     };
     row.output += n;
+    row.total += t;
     row.records++;
     models.set(id, row);
-    const tool = tools.get(e.source.adapterId) ?? { id: e.source.adapterId, records: 0, output: 0 };
+    const tool = tools.get(e.source.adapterId) ?? {
+      id: e.source.adapterId,
+      records: 0,
+      output: 0,
+      total: 0,
+    };
     tool.records++;
     tool.output += n;
+    tool.total += t;
     tools.set(tool.id, tool);
     const week = nextDay(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7));
     const mix = weeks.get(week) ?? {};
-    mix[family] = (mix[family] ?? 0) + n;
+    mix[family] = (mix[family] ?? 0) + t;
     weeks.set(week, mix);
   }
   // Price each model at its developer's published direct API route, never a cheapest-provider comparison.
@@ -235,7 +269,7 @@ export function buildRecap(
     end,
     timeZone,
     days: daily,
-    models: [...models.values()].sort((a, b) => b.output - a.output),
+    models: [...models.values()].sort((a, b) => b.total - a.total),
     weeks: [...weeks]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, families]) => ({ date, families })),
@@ -243,6 +277,8 @@ export function buildRecap(
     records: selected.length,
     output,
     outputKnown,
+    total,
+    totalKnown,
     sessions: sessions.size,
     sessionKnown,
     streak,

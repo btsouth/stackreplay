@@ -130,7 +130,7 @@ test("finds histories in a dropped home folder and builds only what is selected"
   await expect(page.getByTestId("detected-sources").first()).not.toContainText("Codex");
 });
 
-test("the happy path runs from discovery through the scan instrument into the workload", async ({
+test("the happy path opens a recap after scanning and can reopen workload details", async ({
   page,
 }, testInfo) => {
   const home = testInfo.outputPath("dev-home");
@@ -140,6 +140,9 @@ test("the happy path runs from discovery through the scan instrument into the wo
   await expect(page.getByTestId("select-codex")).toBeChecked();
   await page.getByTestId("build-workload").click();
   await expect(page.getByTestId("scan-instrument")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
+  await page.getByLabel("Recap period").selectOption("all");
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
   await inspectLatestImport(page);
   const sources = page.getByTestId("detected-sources").first();
   await expect(sources).toContainText("Claude Code");
@@ -150,7 +153,8 @@ test("the happy path runs from discovery through the scan instrument into the wo
     .getByRole("link", { name: "Open workload", exact: true })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
+  await expect(page).toHaveURL(/\/app\/workload\?import=/u);
+  await expect(page.getByTestId("automatic-workload")).toBeVisible();
 });
 
 test("a linked history needs additional access and connects without disturbing the others", async ({

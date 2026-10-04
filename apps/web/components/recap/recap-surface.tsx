@@ -13,12 +13,13 @@ import {
 import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
 import { familyColors, type Recap, type RecapPeriod, topRecapModels } from "@/lib/recap";
-import { activityDays, compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
+import { compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
-import "./recap.css";
+import { Heatmap, Mix } from "./recap-charts";
+import { RecapShareCard } from "./recap-share-card";
 
 const toolNames: Record<string, string> = {
   "claude-code": "Claude Code",
@@ -35,110 +36,6 @@ function Info({ label, children }: { label: string; children: React.ReactNode })
       <summary aria-label={label}>i</summary>
       <div>{children}</div>
     </details>
-  );
-}
-function Heatmap({ recap }: { recap: Recap }) {
-  const days = activityDays(recap.days);
-  const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
-  const count = Math.ceil((days.length + offset) / 7);
-  const gap = Math.min(5, 100 / count);
-  const max = Math.max(1, ...days.map((d) => d.records));
-  return (
-    <div className="recap-calendar-scroll">
-      <div className="recap-calendar-labels">
-        <span>{days[0]?.date ?? recap.start}</span>
-        <span>{recap.end}</span>
-      </div>
-      <div
-        className="recap-calendar-grid"
-        role="img"
-        aria-label={`${days.filter((d) => d.records).length} active days. Activity by local day, from ${days[0]?.date ?? recap.start} to ${recap.end}.`}
-        style={{
-          gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
-          maxWidth: `${count * 26 + (count - 1) * gap}px`,
-          gap: `${gap}px`,
-        }}
-      >
-        {Array.from({ length: count }, (_, col) => (
-          <div
-            className="recap-calendar-week"
-            key={days[Math.max(0, col * 7 - offset)]?.date ?? col}
-          >
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((weekday, row) => {
-              const day = days[col * 7 + row - offset];
-              return (
-                <div
-                  key={weekday}
-                  className={day?.records ? "active" : day ? "empty" : "blank"}
-                  style={{ opacity: day?.records ? 0.3 + 0.7 * Math.sqrt(day.records / max) : 1 }}
-                  title={
-                    day ? `${day.date}: ${day.records.toLocaleString()} usage records` : undefined
-                  }
-                />
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-function Mix({ recap }: { recap: Recap }) {
-  const families = [...new Set(recap.models.map((m) => m.family))];
-  const max = Math.max(
-    1,
-    ...recap.weeks.map((w) => Object.values(w.families).reduce((a, b) => a + b, 0)),
-  );
-  const bw = 600 / Math.max(1, recap.weeks.length);
-  return (
-    <>
-      <svg
-        className="recap-mix"
-        role="img"
-        aria-label="Weekly output token mix by model developer"
-        viewBox="0 0 640 220"
-      >
-        {recap.weeks.map((w, i) => {
-          let base = 180;
-          return (
-            <g key={w.date}>
-              {families.map((f) => {
-                const height = ((w.families[f] ?? 0) / max) * 155;
-                base -= height;
-                return (
-                  <rect
-                    key={f}
-                    x={20 + i * bw}
-                    y={base}
-                    width={Math.max(2, bw - 8)}
-                    height={height}
-                    rx="2"
-                    fill={color(f)}
-                  >
-                    <title>
-                      {w.date}, {f}: {compactNumber(w.families[f] ?? 0)} output tokens
-                    </title>
-                  </rect>
-                );
-              })}
-              {(recap.weeks.length < 10 || i % Math.ceil(recap.weeks.length / 6) === 0) && (
-                <text x={20 + i * bw} y="208">
-                  {w.date.slice(5)}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-      <div className="recap-legend">
-        {families.map((f) => (
-          <span key={f}>
-            <i style={{ background: color(f) }} />
-            {f === "other" ? "Other / unresolved" : f}
-          </span>
-        ))}
-      </div>
-    </>
   );
 }
 export function RecapSurface({
@@ -344,13 +241,13 @@ export function RecapSurface({
               <div className="recap-hero-number">
                 {recap.priced
                   ? recapUsd(recap.usd)
-                  : compactNumber(recap.outputKnown ? recap.output : recap.records)}
+                  : compactNumber(recap.totalKnown ? recap.total : recap.records)}
               </div>
               <div className="recap-hero-caption">
                 {recap.priced
                   ? "of AI coding at API prices"
-                  : recap.outputKnown
-                    ? "logged output tokens"
+                  : recap.totalKnown
+                    ? "logged total tokens"
                     : "logged activity records"}
                 <Info label="How API-equivalent value is calculated">
                   <p>
@@ -397,12 +294,12 @@ export function RecapSurface({
                   "day activity streak",
                   "Days with logged usage, anchored to today or yesterday. Includes agent activity.",
                 ],
-                ...(recap.outputKnown
+                ...(recap.totalKnown
                   ? [
                       [
-                        compactNumber(recap.output),
-                        "output tokens",
-                        `Logged output including separately reported reasoning, without double counting. ${recap.outputKnown.toLocaleString()} of ${recap.records.toLocaleString()} records report output.`,
+                        compactNumber(recap.total),
+                        "total tokens",
+                        `Reported input, output, cache read, cache write and separate reasoning, respecting accounting flags. Missing categories are excluded. ${recap.totalKnown.toLocaleString()} of ${recap.records.toLocaleString()} records report at least one token category.`,
                       ],
                     ]
                   : []),
@@ -461,7 +358,7 @@ export function RecapSurface({
               </div>
             </section>
             <div className="recap-two-column">
-              {recap.outputKnown > 0 && (
+              {recap.totalKnown > 0 && (
                 <section className="recap-panel">
                   <h2>
                     Your model mix.{" "}
@@ -473,7 +370,7 @@ export function RecapSurface({
                       </p>
                     </Info>
                   </h2>
-                  <p className="recap-subtitle">Output tokens, week by week.</p>
+                  <p className="recap-subtitle">Total tokens, week by week.</p>
                   <Mix recap={recap} />
                   <div className="recap-models">
                     {topRecapModels(recap.models, 7).map((m, i) => (
@@ -482,8 +379,8 @@ export function RecapSurface({
                         <i style={{ background: color(m.family) }} />
                         <span className="recap-model-name">{m.name}</span>
                         <span>
-                          {compactNumber(m.output)}
-                          <small>output tokens</small>
+                          {compactNumber(m.total)}
+                          <small>total tokens</small>
                         </span>
                         <span>
                           {m.priced ? recapUsd(m.usd) : "Unpriced"}
@@ -499,26 +396,26 @@ export function RecapSurface({
               <div className="recap-right-column">
                 <section className="recap-panel">
                   <h2>Many tools. One story.</h2>
-                  <p className="recap-subtitle">Share of output tokens.</p>
+                  <p className="recap-subtitle">Share of total tokens.</p>
                   <div className="recap-tools">
                     {[...recap.tools]
-                      .sort((a, b) => b.output - a.output)
+                      .sort((a, b) => b.total - a.total)
                       .map((t) => (
                         <div key={t.id}>
                           <div>
                             <strong>{toolNames[t.id] ?? t.id}</strong>
-                            <span>{Math.round((t.output / Math.max(1, recap.output)) * 100)}%</span>
+                            <span>{Math.round((t.total / Math.max(1, recap.total)) * 100)}%</span>
                           </div>
                           <div className="recap-tool-track">
                             <i
-                              style={{ width: `${(t.output / Math.max(1, recap.output)) * 100}%` }}
+                              style={{ width: `${(t.total / Math.max(1, recap.total)) * 100}%` }}
                             />
                           </div>
                           <small>
                             {t.records.toLocaleString()}{" "}
                             {t.id === "hermes" ? "session/model aggregates" : "records"}
-                            {recap.outputKnown > 0
-                              ? ` · ${compactNumber(t.output)} output tokens`
+                            {recap.totalKnown > 0
+                              ? ` · ${compactNumber(t.total)} total tokens`
                               : ""}
                           </small>
                         </div>
@@ -547,6 +444,9 @@ export function RecapSurface({
                   </p>
                 </section>
               </div>
+            </div>
+            <div style={{ maxWidth: "600px", margin: "32px auto" }}>
+              <RecapShareCard recap={recap} />
             </div>
             <section className="recap-share">
               <div>

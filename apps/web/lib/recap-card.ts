@@ -14,11 +14,12 @@ export function activityDays(days: Recap["days"]): Recap["days"] {
   const weekday = new Date(`${days[first]!.date}T00:00:00Z`).getUTCDay();
   return days.slice(Math.max(0, first - weekday));
 }
-/** Only explicitly displayed aggregate facts enter the canvas. No account, path, prompt or session identity. */
+/** Only visible aggregate facts enter the image. No account, path, prompt or session identity. */
 export async function renderRecapCard(
   recap: Recap,
   portrait: boolean,
   multiplierText?: string,
+  sample = false,
 ): Promise<Blob> {
   await document.fonts.ready;
   const canvas = document.createElement("canvas");
@@ -26,16 +27,24 @@ export async function renderRecapCard(
   canvas.height = portrait ? 1350 : 630;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Image export is unavailable.");
-  const w = canvas.width;
-  const h = canvas.height;
-  const pad = 68;
-  ctx.fillStyle = "#151d25";
+  const w = canvas.width,
+    h = canvas.height,
+    pad = 68;
+  const styles = getComputedStyle(document.documentElement);
+  const token = (name: string) => styles.getPropertyValue(name).trim();
+  const paletteColor = (name: string) => token(`--${name}`);
+  ctx.fillStyle = paletteColor("recap-card-bg");
   ctx.fillRect(0, 0, w, h);
-  const glow = ctx.createRadialGradient(w * 0.9, h * 0.12, 0, w * 0.9, h * 0.12, w * 0.7);
-  glow.addColorStop(0, "#2d514c");
-  glow.addColorStop(1, "#151d25");
+  const glow = ctx.createLinearGradient(0, h, w, 0);
+  glow.addColorStop(0, paletteColor("recap-card-bg"));
+  glow.addColorStop(1, paletteColor("recap-card-material"));
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = `${paletteColor("recap-card-accent")}24`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(w * 0.88, h * 0.2, w * 0.55, h * 0.5, -0.4, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.textBaseline = "top";
   const font = getComputedStyle(document.body).fontFamily;
   const text = (
@@ -43,84 +52,158 @@ export async function renderRecapCard(
     x: number,
     y: number,
     size: number,
-    color = "#f6f2e9",
+    color = paletteColor("recap-card-text"),
     weight = 500,
   ) => {
     ctx.fillStyle = color;
     ctx.font = `${weight} ${size}px ${font}`;
     ctx.fillText(value, x, y);
   };
-  text("STACKREPLAY  /  MY CODING RECAP", pad, 60, 20, "#bbd3c9", 600);
-  text(`${recap.start}  →  ${recap.end}`, pad, portrait ? 116 : 102, 18, "#a7b6bc");
-  const heroY = portrait ? 230 : 164;
-  const hero = recap.priced
-    ? recapUsd(recap.usd)
-    : compactNumber(recap.outputKnown ? recap.output : recap.records);
-  text(hero, pad, heroY, portrait ? 154 : 116, "#f6f2e9", 700);
+  text("↺ StackReplay", pad, 55, portrait ? 32 : 25, paletteColor("recap-card-text"), 650);
   text(
-    recap.priced
-      ? "of AI coding at API prices"
-      : recap.outputKnown
-        ? "logged output tokens"
-        : "logged activity records",
-    pad,
-    heroY + (portrait ? 174 : 128),
-    portrait ? 38 : 28,
-    "#bbd3c9",
+    sample ? "Alex’s sample replay" : "My coding recap",
+    portrait ? 700 : 930,
+    62,
+    portrait ? 23 : 17,
+    paletteColor("recap-card-muted"),
   );
+  text(
+    `${recap.start} → ${recap.end}`,
+    pad,
+    portrait ? 120 : 105,
+    portrait ? 22 : 18,
+    paletteColor("recap-card-muted"),
+  );
+  text(
+    compactNumber(recap.totalKnown ? recap.total : recap.records),
+    pad,
+    portrait ? 208 : 165,
+    portrait ? 164 : 126,
+    paletteColor("recap-card-text"),
+    700,
+  );
+  text(
+    recap.totalKnown ? "total tokens processed" : "logged activity records",
+    pad,
+    portrait ? 389 : 298,
+    portrait ? 38 : 25,
+    paletteColor("recap-card-muted"),
+  );
+  if (recap.priced) {
+    text(
+      recapUsd(recap.usd),
+      pad,
+      portrait ? 466 : 349,
+      portrait ? 77 : 40,
+      paletteColor("recap-card-money"),
+      650,
+    );
+    text(
+      "of AI coding at API prices",
+      pad,
+      portrait ? 554 : 398,
+      portrait ? 31 : 22,
+      paletteColor("recap-card-muted"),
+    );
+  }
   if (multiplierText && recap.priced)
-    text(multiplierText, pad, portrait ? 464 : 344, portrait ? 48 : 34, "#8dbba8", 700);
+    text(
+      multiplierText,
+      pad,
+      portrait ? 611 : 438,
+      portrait ? 32 : 22,
+      paletteColor("recap-card-accent"),
+      600,
+    );
   const stats = [
-    ...(recap.outputKnown ? [[compactNumber(recap.output), "OUTPUT TOKENS"]] : []),
-    ...(recap.sessions ? [[compactNumber(recap.sessions), "SESSIONS"]] : []),
-    [`${String(recap.longestStreak)} days`, "LONGEST STREAK"],
+    [compactNumber(recap.sessions), "sessions"],
+    [String(recap.days.filter((d) => d.records).length), "active days"],
+    [`${recap.longestStreak} days`, "longest streak"],
   ];
-  const statY = portrait ? 576 : 450;
+  const statY = portrait ? 705 : 505;
   stats.forEach(([value, label], i) => {
-    const x = pad + i * ((portrait ? w - pad * 2 : 610) / 3);
-    const y = statY;
-    text(value ?? "", x, y, portrait ? 57 : 38, "#f6f2e9", 700);
-    text(label ?? "", x, y + (portrait ? 76 : 54), portrait ? 16 : 13, "#a7b6bc", 600);
+    const x = pad + i * (portrait ? (w - pad * 2) / 3 : 210);
+    text(value ?? "", x, statY, portrait ? 52 : 32, paletteColor("recap-card-text"), 650);
+    text(
+      label ?? "",
+      x,
+      statY + (portrait ? 63 : 42),
+      portrait ? 20 : 14,
+      paletteColor("recap-card-muted"),
+    );
   });
   const models = topRecapModels(recap.models);
-  const modelX = portrait ? pad : 748;
-  const modelY = portrait ? 760 : 170;
-  const modelWidth = portrait ? w - pad * 2 : w - pad - modelX;
-  text("TOP MODELS", modelX, modelY, portrait ? 28 : 20, "#bbd3c9", 700);
-  text("Output tokens", modelX, modelY + (portrait ? 43 : 32), portrait ? 22 : 16, "#a7b6bc");
-  const rowHeight = portrait ? 82 : 64;
+  const modelX = portrait ? pad : 748,
+    modelY = portrait ? 850 : 173,
+    modelWidth = w - pad - modelX;
+  text(
+    "Your most played",
+    modelX,
+    modelY,
+    portrait ? 28 : 22,
+    paletteColor("recap-card-muted"),
+    600,
+  );
+  text(
+    "Total tokens",
+    modelX,
+    modelY + (portrait ? 39 : 31),
+    portrait ? 20 : 15,
+    paletteColor("recap-card-muted"),
+  );
   models.forEach((model, i) => {
-    const y = modelY + (portrait ? 100 : 76) + i * rowHeight;
-    const size = portrait ? 30 : 20;
-    const tokens = compactNumber(model.output);
+    const y = modelY + (portrait ? 87 : 77) + i * (portrait ? 67 : 58),
+      size = portrait ? 28 : 20,
+      tokens = compactNumber(model.total);
     ctx.font = `600 ${size}px ${font}`;
-    const tokenWidth = ctx.measureText(tokens).width;
-    const nameWidth = modelWidth - tokenWidth - (portrait ? 38 : 24);
+    const tokenWidth = ctx.measureText(tokens).width,
+      nameWidth = modelWidth - tokenWidth - 30;
     let name = model.name;
     if (ctx.measureText(name).width > nameWidth) {
       const chars = Array.from(name);
       while (chars.length && ctx.measureText(`${chars.join("")}…`).width > nameWidth) chars.pop();
       name = `${chars.join("")}…`;
     }
-    text(name, modelX, y, size, "#f6f2e9", 600);
-    text(tokens, modelX + modelWidth - tokenWidth, y, size, "#bbd3c9", 600);
-    const barY = y + (portrait ? 44 : 32);
-    const barHeight = portrait ? 10 : 7;
-    ctx.fillStyle = "#33434a";
-    ctx.fillRect(modelX, barY, modelWidth, barHeight);
-    ctx.fillStyle = familyColors[model.family] ?? familyColors.other ?? "#a6a28e";
-    ctx.fillRect(modelX, barY, modelWidth * (model.output / models[0]!.output), barHeight);
+    text(name, modelX, y, size, paletteColor("recap-card-text"), 600);
+    text(tokens, modelX + modelWidth - tokenWidth, y, size, paletteColor("recap-card-muted"), 600);
+    ctx.fillStyle = paletteColor("recap-card-track");
+    ctx.fillRect(modelX, y + (portrait ? 39 : 30), modelWidth, portrait ? 8 : 6);
+    ctx.fillStyle = token(
+      (familyColors[model.family] ?? "var(--developer-other)")
+        .slice(4, -1)
+        .replace("--developer-", "--recap-developer-"),
+    );
+    ctx.fillRect(
+      modelX,
+      y + (portrait ? 39 : 30),
+      modelWidth * (model.total / Math.max(1, models[0]?.total ?? 1)),
+      portrait ? 8 : 6,
+    );
   });
   if (!models.length)
     text(
-      "No resolved models with output tokens",
+      "No resolved models with logged tokens",
       modelX,
-      modelY + 80,
+      modelY + 85,
       portrait ? 22 : 16,
-      "#a7b6bc",
+      paletteColor("recap-card-muted"),
     );
-  text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");
-  text("stackreplay.com", w - pad - 170, h - 42, 16, "#bbd3c9");
+  text(
+    sample
+      ? "Fictional sample. Illustrative values."
+      : "Reported tokens. API estimate. Local history.",
+    pad,
+    h - 42,
+    portrait ? 19 : 15,
+    paletteColor("recap-card-muted"),
+  );
+  text(
+    "stackreplay.com",
+    w - pad - (portrait ? 193 : 155),
+    h - 42,
+    portrait ? 19 : 15,
+    paletteColor("recap-card-muted"),
+  );
   return new Promise((resolve, reject) =>
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Could not export image."))),
