@@ -345,10 +345,6 @@ test("Max 5x quantity two persists, adds Pro and prices the stack on mobile and 
   await expect(group.getByLabel("Claude Max 5x quantity", { exact: true })).toHaveText("2");
   await group.getByRole("button", { name: "I pay for multiple plans", exact: true }).click();
   await page.getByTestId("discovery-plan-anthropic-claude-pro").check();
-  await panel(page).screenshot({
-    path: `${process.env.PLAN_QTY_CAPTURE}/${test.info().project.name}-max-2.png`,
-    style: "header { visibility: hidden !important; }",
-  });
   await panel(page).getByRole("button", { name: "Confirm stack", exact: true }).click();
   const subscriptions = await page.evaluate(
     () =>
