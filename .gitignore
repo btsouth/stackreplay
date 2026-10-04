@@ -55,3 +55,6 @@ docs/brand/
 
 /apps/web/public/stackreplay-optimizer-worker.js
 /apps/web/public/stackreplay-optimizer-worker.js.map
+
+/apps/web/public/stackreplay-recap-worker.js
+/apps/web/public/stackreplay-recap-worker.js.map

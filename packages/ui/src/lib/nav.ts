@@ -18,6 +18,7 @@ export const appBrand = {
 } as const;
 
 export const appNavItems = [
+  { label: "Recap", href: "/app/recap" },
   { label: "Workload", href: "/app/workload" },
   { label: "My Stack", href: "/app/stack" },
   { label: "Replay", href: "/app/replay" },

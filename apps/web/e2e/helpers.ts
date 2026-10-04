@@ -58,7 +58,11 @@ export async function importDemo(page: Page, preset: DemoPreset): Promise<void> 
 
 /** A successful scan requires no follow-up click. */
 export async function waitForWorkload(page: Page): Promise<void> {
-  await expect(page).toHaveURL(/\/app\/workload\?import=/u, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/app\/(?:recap|workload)\?import=/u, { timeout: 60_000 });
+  if (new URL(page.url()).pathname === "/app/recap") {
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("link", { name: "Explore workload details" }).click();
+  }
   await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
 }
 

@@ -150,7 +150,7 @@ test("the happy path runs from discovery through the scan instrument into the wo
     .getByRole("link", { name: "Open workload", exact: true })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/workload\?import=/u);
+  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
 });
 
 test("a linked history needs additional access and connects without disturbing the others", async ({

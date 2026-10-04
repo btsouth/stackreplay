@@ -47,6 +47,7 @@ const cacheBuild = producerHash.digest("hex");
 for (const [entry, output] of [
   ["replay.worker.ts", "stackreplay-worker.js"],
   ["optimizer.worker.ts", "stackreplay-optimizer-worker.js"],
+  ["recap.worker.ts", "stackreplay-recap-worker.js"],
 ]) {
   await build({
     root,

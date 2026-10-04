@@ -21,6 +21,7 @@ describe("isNavItemActive", () => {
 describe("app navigation", () => {
   it("leads with the workload and the tools that investigate it", () => {
     expect(appNavItems.map((item) => item.label)).toEqual([
+      "Recap",
       "Workload",
       "My Stack",
       "Replay",

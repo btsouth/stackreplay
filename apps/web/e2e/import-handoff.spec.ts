@@ -26,7 +26,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(completion).toContainText("projects");
     await expect(completion).toContainText("Sep");
     await expect(completion).toContainText("Claude Code");
-    await expect(completion).toContainText("Opening your workload");
+    await expect(completion).toContainText("Opening your recap");
     await expect(completion.getByRole("link")).toHaveCount(0);
     await expect(page.getByTestId("stored-imports")).toBeHidden();
     await expect(page.getByTestId("import-dropzone")).toBeHidden();
