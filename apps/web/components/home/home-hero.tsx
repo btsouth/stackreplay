@@ -19,16 +19,16 @@ export function HomeHero() {
             access.
           </p>
           <nav className="home-discovery-actions" aria-label="Explore the AI market">
-            <Link href="/models" className="home-button">
+            <a href="/models" className="home-button">
               Explore models <span aria-hidden="true">→</span>
-            </Link>
+            </a>
             <div className="home-secondary-actions">
-              <Link href="/providers" className="home-cta-link">
+              <a href="/providers" className="home-cta-link">
                 Explore providers <span aria-hidden="true">→</span>
-              </Link>
-              <Link href="/compare" className="home-cta-link">
+              </a>
+              <a href="/compare" className="home-cta-link">
                 Compare plans <span aria-hidden="true">→</span>
-              </Link>
+              </a>
             </div>
           </nav>
           <div className="home-hero-actions">

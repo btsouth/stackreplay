@@ -168,6 +168,61 @@ function rateCell(prices: readonly ModelPrices[], key: "input" | "output" | "cac
   return guideRateCell(rate);
 }
 
+function naturalJoin(parts: readonly string[]): string {
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0] ?? "";
+  const last = parts.at(-1);
+  if (last === undefined) return parts.join(", ");
+  return `${parts.slice(0, -1).join(", ")}${parts.length > 2 ? "," : ""} and ${last}`;
+}
+
+/**
+ * The base rates and a schedule tier's replacement rates, named together so a
+ * peak-window label cannot be read as applying to the displayed base amounts.
+ */
+function conditionalPriceNote(
+  price: Pick<ModelPrices, "tiers">,
+  pricingNote: string | undefined,
+): string {
+  const tiers = price.tiers ?? [];
+  const inputTiers = tiers.filter((tier) => "inputTokensAbove" in tier.when);
+  const scheduleTiers = tiers.filter((tier) => "utcWindows" in tier.when);
+  const parts =
+    inputTiers.length > 0
+      ? [`Conditional pricing: ${inputTiers.map((tier) => tier.label).join(" · ")}.`]
+      : scheduleTiers.length > 0
+        ? ["Conditional pricing."]
+        : [];
+
+  if (scheduleTiers.length > 0) {
+    parts.push("The displayed rates are off-peak/base rates.");
+    for (const tier of scheduleTiers) {
+      const schedule = "utcWindows" in tier.when ? tier.when : undefined;
+      const input = numericRate(tier.rates, "input");
+      const cacheRead = numericRate(tier.rates, "cacheRead");
+      const output = numericRate(tier.rates, "output");
+      const rates = naturalJoin(
+        [
+          input === undefined ? undefined : `input ${formatRate(input)}`,
+          cacheRead === undefined ? undefined : `cached input ${formatRate(cacheRead)}`,
+          output === undefined ? undefined : `output ${formatRate(output)}`,
+        ].filter((value): value is string => value !== undefined),
+      );
+      const condition = tier.label.replace(/^Peak:\s*/iu, "");
+      parts.push(`During the peak window (${condition}), the peak rates are ${rates}.`);
+      if (schedule?.unestablishedUtcDates !== undefined) {
+        parts.push(
+          `The source does not establish whether peak rates apply on ${naturalJoin(
+            schedule.unestablishedUtcDates.map(formatCatalogDate),
+          )}; those dates are not confirmed off-peak.`,
+        );
+      }
+    }
+  }
+  if (pricingNote !== undefined) parts.push(pricingNote);
+  return parts.join(" ");
+}
+
 /**
  * Shared linear scale for marked comparable rates. Fewer than two rows, or no
  * positive rate, means no graphic: text remains the complete presentation.
@@ -304,7 +359,7 @@ export function featuredModelComparison(
         input: guideRateCell(price.rates.input),
         output: guideRateCell(price.rates.output),
         cacheRead: guideRateCell(price.rates.cacheRead),
-        note: `Conditional pricing: ${price.tiers?.map((tier) => tier.label).join(" · ")}.${model.pricingNote === undefined ? "" : ` ${model.pricingNote}`}`,
+        note: conditionalPriceNote(price, model.pricingNote),
       };
     }
     if (

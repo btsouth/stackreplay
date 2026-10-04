@@ -3,11 +3,13 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ModelComparisonSection } from "@/components/home/model-comparison";
+import { formatCatalogDate } from "../catalog-copy";
 import { basePrice, modelPrices } from "../market-discovery";
+import { numericRate } from "../market-prices";
 import { modelSpecifications } from "../model-specifications";
 import { formatRate } from "../price-table";
 import { loadPublicBenchmarks } from "../public-benchmarks";
-import { loadPublicCatalog } from "../public-catalog";
+import { loadCatalog, loadPublicCatalog } from "../public-catalog";
 import { homeCatalogIndex } from "./catalog-index";
 import {
   benchmarkRows,
@@ -154,6 +156,37 @@ describe("featured model field guide", () => {
     expect(guideRateCell(undefined)).toEqual({ absent: true, text: "Not listed" });
   });
 
+  it("qualifies DeepSeek's off-peak figures with its peak tier and open dates", () => {
+    const deepseek = guide.get("deepseek-v4-1-flash");
+    const record = loadCatalog().pricing["deepseek-v4-1-flash-pricing"];
+    const tier = record?.tiers?.find((entry) => entry.id === "peak-hours");
+    if (tier === undefined || !("utcWindows" in tier.when))
+      throw new Error("missing DeepSeek peak schedule");
+    const peakInput = numericRate(tier.rates, "input");
+    const peakCacheRead = numericRate(tier.rates, "cacheRead");
+    const peakOutput = numericRate(tier.rates, "output");
+    if (peakInput === undefined || peakCacheRead === undefined || peakOutput === undefined)
+      throw new Error("missing DeepSeek peak rates");
+
+    expect(deepseek?.price).toMatchObject({
+      state: "qualified",
+      input: { text: "$0.15" },
+      cacheRead: { text: "$0.003" },
+      output: { text: "$0.60" },
+    });
+    expect(deepseek?.price.note).toContain("The displayed rates are off-peak/base rates.");
+    expect(deepseek?.price.note).toContain(
+      `During the peak window (${tier.label.replace(/^Peak:\s*/iu, "")}), the peak rates are ` +
+        `input ${formatRate(peakInput)}, cached input ${formatRate(peakCacheRead)}, and output ${formatRate(peakOutput)}.`,
+    );
+    for (const date of tier.when.unestablishedUtcDates ?? [])
+      expect(deepseek?.price.note).toContain(formatCatalogDate(date));
+    expect(deepseek?.price.note).toContain(
+      "The source does not establish whether peak rates apply on",
+    );
+    expect(deepseek?.price.note).toContain("those dates are not confirmed off-peak");
+  });
+
   it("retains sub-cent precision in text and only plots strictly comparable rows", () => {
     expect(guide.get("deepseek-v4-1-flash")?.price.cacheRead.text).toBe("$0.003");
 
@@ -225,6 +258,25 @@ describe("featured model field guide", () => {
     );
     expect(scaledHtml).toContain('data-testid="price-bar-scale"');
     expect(scaledHtml.match(/class="home-guide-bar"/gu) ?? []).toHaveLength(4);
+  });
+
+  it("renders DeepSeek's off-peak figures beside the peak qualification", () => {
+    const html = renderToStaticMarkup(
+      createElement(ModelComparisonSection, {
+        comparison,
+        index: homeCatalogIndex(catalog),
+        sheetHref: benchmarkSheetHref([...FEATURED_MODEL_IDS]),
+      }),
+    );
+    const start = html.indexOf('data-guide-model="deepseek-v4-1-flash"');
+    const end = html.indexOf("</li>", start);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    const row = html.slice(start, end);
+    expect(row).toContain("$0.15");
+    expect(row).toContain("$0.003");
+    expect(row).toContain("$0.60");
+    expect(row).toContain(guide.get("deepseek-v4-1-flash")?.price.note ?? "missing price note");
   });
 });
 
