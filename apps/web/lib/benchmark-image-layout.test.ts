@@ -75,9 +75,10 @@ describe("readable benchmark image pagination", () => {
           expect(
             page.texts.some(
               (text) =>
-                text.text.includes(source.redistribution.rationale) &&
+                text.text.includes(source.evaluator) &&
                 text.text.includes(source.redistribution.termsUrl) &&
-                text.text.includes(source.methodologySummary),
+                text.text.includes(source.sourceUrl) &&
+                text.text.includes(source.redistribution.checkedAt),
             ),
           ).toBe(true);
         }
@@ -100,7 +101,7 @@ describe("readable benchmark image pagination", () => {
           pages.filter((page) => page.modelStart === modelStart).flatMap((page) => page.rows),
         ).toEqual(payload.rows);
       }
-      expect(pages.some((page) => page.rowStart > 0)).toBe(true);
+      if (count > 1) expect(pages.some((page) => page.rowStart > 0)).toBe(true);
       if (count > 3) expect(pages.some((page) => page.modelStart === 3)).toBe(true);
     },
   );
@@ -124,6 +125,31 @@ describe("readable benchmark image pagination", () => {
     ).toBe(true);
   });
 
+  it("keeps the accepted v3 default fixture comfortably within six pages", () => {
+    // Freeze the accepted 22-row comparison; this is not a cap on future catalogs.
+    const { payload } = exportFor(
+      "edition=2026-10-04-v3&models=gemini-4-argon,gpt-6-astra,gpt-6-1-sol,claude-opus-5-5,claude-fable-5-1",
+    );
+    expect(payload.models).toHaveLength(5);
+    expect(payload.rows).toHaveLength(22);
+    const pages = paginateBenchmarkImages(payload, measure);
+    expect(pages.length).toBeLessThanOrEqual(6);
+    expect(pages.every((page) => page.height <= 2400)).toBe(true);
+    expect(imageTextSizes.score).toBeGreaterThanOrEqual(26);
+    expect(imageTextSizes.note).toBeGreaterThanOrEqual(18);
+    for (const page of pages) {
+      expect(page.texts.some((block) => block.text.includes("uncertainty and provenance"))).toBe(
+        true,
+      );
+      expect(page.texts.some((block) => block.text.includes("Redistribution basis:"))).toBe(false);
+      for (const row of page.rows) {
+        expect(page.texts.some((block) => block.text.includes(row.definition.description))).toBe(
+          false,
+        );
+      }
+    }
+  });
+
   it("keeps exact Epoch precision, null gaps and highlights across model slices", () => {
     const { payload } = exportFor(`models=${ids.join(",")}&category=science`);
     const pages = paginateBenchmarkImages(payload, measure);
@@ -131,6 +157,14 @@ describe("readable benchmark image pagination", () => {
     exact.forEach((score) => {
       expect(pages.flatMap((page) => page.texts).some((text) => text.text === score)).toBe(true);
     });
+    const epochPage = pages.find((page) => page.texts.some((block) => block.text === exact[0]));
+    const text = epochPage?.texts.map((block) => block.text).join("\n") ?? "";
+    expect(text).toContain("CC BY 4.0: https://creativecommons.org/licenses/by/4.0/");
+    expect(text).toContain("accuracy fractions converted to percentages");
+    expect(text).toContain("no endorsement implied");
+    expect(text).toContain("Original run publication and completion dates are unknown");
+    expect(text).toContain("Configuration labels do not establish equal effort");
+    expect(text).toContain("S1");
     const row = payload.rows.find(
       (row) => row.definition.id === "epoch-gpqa-diamond-revision-unreported",
     );

@@ -11,11 +11,24 @@ export function BenchmarkImageDialog({
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  function close() {
-    dialog.current?.close();
+  const closed = useRef(false);
+  function finishClose() {
+    if (closed.current || dialog.current?.open) return;
+    closed.current = true;
     onClose();
   }
-  const [pages, setPages] = useState<BenchmarkImagePage[]>([]);
+  function close() {
+    dialog.current?.close();
+    finishClose();
+  }
+  const [prepared, setPrepared] = useState<{
+    payload: BenchmarkExport;
+    pages: BenchmarkImagePage[];
+    attempt: number;
+  } | null>(null);
+  const [prepareAttempt, setPrepareAttempt] = useState(0);
+  const pages =
+    prepared?.payload === payload && prepared.attempt === prepareAttempt ? prepared.pages : [];
   const [pageIndex, setPageIndex] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState("");
@@ -26,18 +39,18 @@ export function BenchmarkImageDialog({
   } | null>(null);
   useEffect(() => {
     const element = dialog.current;
-    element?.showModal();
+    if (element && !element.open) element.showModal();
     return () => element?.close();
   }, []);
   useEffect(() => {
     let cancelled = false;
-    setPages([]);
+    setPrepared(null);
     setPageIndex(0);
     setError("");
     import("@/lib/benchmark-image-renderer")
       .then((renderer) => renderer.prepareBenchmarkImages(payload))
       .then((result) => {
-        if (!cancelled) setPages(result);
+        if (!cancelled) setPrepared({ payload, pages: result, attempt: prepareAttempt });
       })
       .catch((reason) => {
         if (!cancelled)
@@ -46,7 +59,7 @@ export function BenchmarkImageDialog({
     return () => {
       cancelled = true;
     };
-  }, [payload]);
+  }, [payload, prepareAttempt]);
   const page = pages[pageIndex];
   useEffect(() => {
     if (!page) return;
@@ -72,7 +85,9 @@ export function BenchmarkImageDialog({
   const ready = image?.page === page && image?.attempt === attempt && !error;
   const scope = page
     ? `Models ${page.modelStart + 1}–${page.modelStart + page.models.length} of ${payload.models.length} · Rows ${page.rows.length ? `${page.rowStart + 1}–${page.rowStart + page.rows.length}` : "0"} of ${payload.rows.length}`
-    : "Preparing pages…";
+    : error
+      ? "Image preparation failed"
+      : "Preparing pages…";
   return (
     <dialog
       ref={dialog}
@@ -82,7 +97,7 @@ export function BenchmarkImageDialog({
         event.preventDefault();
         close();
       }}
-      onClose={onClose}
+      onClose={finishClose}
     >
       <button type="button" className="bench-dialog-close" onClick={close}>
         Close
@@ -99,7 +114,11 @@ export function BenchmarkImageDialog({
           Previous page
         </button>
         <p className="bench-image-page-count" role="status" aria-live="polite">
-          {pages.length ? `Page ${pageIndex + 1} of ${pages.length}` : "Preparing pages…"}
+          {pages.length
+            ? `Page ${pageIndex + 1} of ${pages.length}`
+            : error
+              ? "Preparation failed"
+              : "Preparing pages…"}
         </p>
         <button
           type="button"
@@ -127,15 +146,15 @@ export function BenchmarkImageDialog({
       {error ? (
         <div role="alert">
           <p>{error}</p>
-          {page && (
-            <button
-              type="button"
-              className="bench-text-button"
-              onClick={() => setAttempt((value) => value + 1)}
-            >
-              Try again
-            </button>
-          )}
+          <button
+            type="button"
+            className="bench-text-button"
+            onClick={() =>
+              page ? setAttempt((value) => value + 1) : setPrepareAttempt((value) => value + 1)
+            }
+          >
+            Try again
+          </button>
         </div>
       ) : (
         !ready && <p role="status">Rendering page…</p>

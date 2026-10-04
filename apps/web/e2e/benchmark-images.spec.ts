@@ -69,19 +69,24 @@ async function downloadPng(page: Page, testInfo: TestInfo, label: string) {
   return dimensions;
 }
 
+// The accepted default fixture proves density without capping future catalog views.
+const acceptedDefault =
+  "edition=2026-10-04-v3&models=gemini-4-argon,gpt-6-astra,gpt-6-1-sol,claude-opus-5-5,claude-fable-5-1";
+
 for (const theme of ["light", "dark"] as const) {
   test(`PNG default ${theme}: long view, explicit downloads, keyboard, wrapping and accessible dialog`, async ({
     page,
   }, testInfo) => {
     await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-    await page.goto("/benchmarks");
+    await page.goto(`/benchmarks?${acceptedDefault}`);
     const dialog = await openImages(page);
     await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
     const count = Number(
       (await dialog.locator(".bench-image-page-count").innerText()).match(/of (\d+)/)?.[1],
     );
     expect(count).toBeGreaterThan(1);
+    expect(count).toBeLessThanOrEqual(6);
     await expect(dialog.locator(".bench-image-text")).toContainText(
       "This page shows only this slice",
     );
@@ -232,6 +237,20 @@ test("PNG async: obsolete pages and selections cannot publish stale downloads or
   page,
 }, testInfo) => {
   await page.addInitScript(() => {
+    const urls = new Set<string>();
+    const create = URL.createObjectURL.bind(URL);
+    const revoke = URL.revokeObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      const url = create(blob);
+      urls.add(url);
+      document.documentElement.dataset.activePngUrls = String(urls.size);
+      return url;
+    };
+    URL.revokeObjectURL = (url) => {
+      urls.delete(url);
+      document.documentElement.dataset.activePngUrls = String(urls.size);
+      revoke(url);
+    };
     const native = window.setTimeout.bind(window);
     window.setTimeout = ((handler: TimerHandler, timeout?: number, ...args: unknown[]) =>
       native(handler, timeout === 16 ? 300 : timeout, ...args)) as typeof window.setTimeout;
@@ -246,12 +265,18 @@ test("PNG async: obsolete pages and selections cannot publish stale downloads or
     /page-3-of-/,
   );
   await downloadPng(page, testInfo, "async-current-page-3");
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset.activePngUrls))
+    .toBe("1");
   await dialog.getByRole("button", { name: "Next page" }).click();
   await page.evaluate(() => {
     history.pushState(null, "", "/benchmarks?models=gpt-6-1-sol&category=security");
     dispatchEvent(new PopStateEvent("popstate"));
   });
   await expect(dialog).not.toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset.activePngUrls))
+    .toBe("0");
   const fresh = await openImages(page);
   await expect(fresh.locator(".bench-image-text")).toContainText(
     "No reported evidence in this view.",
@@ -259,6 +284,10 @@ test("PNG async: obsolete pages and selections cannot publish stale downloads or
   await expect(fresh.locator(".bench-image-text")).toContainText("Models 1–1 of 1");
   await downloadPng(page, testInfo, "async-fresh-empty-selection");
   await expect(fresh.getByRole("alert")).toHaveCount(0);
+  await fresh.getByRole("button", { name: "Close", exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset.activePngUrls))
+    .toBe("0");
 });
 
 test("PNG rendering failure: no stale link, retry succeeds", async ({ page }, testInfo) => {
@@ -315,4 +344,33 @@ test("PNG async rejection: an obsolete page error cannot invalidate the current 
     .toBe("done");
   await expect(dialog.getByRole("alert")).toHaveCount(0);
   await downloadPng(page, testInfo, "async-obsolete-rejection-current-page-2");
+});
+
+test("PNG preparation failure: useful retry prepares a fresh download", async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript(() => {
+    const native = document.fonts.load.bind(document.fonts);
+    let fail = true;
+    document.fonts.load = (...args) => {
+      if (fail) {
+        fail = false;
+        return Promise.reject(new Error("Simulated font preparation failure"));
+      }
+      return native(...args);
+    };
+  });
+  await page.goto("/benchmarks?models=gpt-6-1-sol&category=security");
+  await page.getByRole("button", { name: "Export images", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Export benchmark images" });
+  await expect(dialog.getByRole("alert")).toContainText("Could not load app fonts");
+  await expect(dialog.getByRole("link", { name: /Download PNG/ })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Try again" }).click();
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+  await downloadPng(page, testInfo, "preparation-retry");
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole("button", { name: "Export images", exact: true })).toBeFocused();
+  const fresh = await openImages(page);
+  await expect(fresh.getByRole("alert")).toHaveCount(0);
 });

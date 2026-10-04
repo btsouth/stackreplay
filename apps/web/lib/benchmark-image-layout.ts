@@ -9,7 +9,7 @@ const targetHeight = 2400;
 export type ImageTextStyle = "brand" | "title" | "heading" | "score" | "body" | "note";
 export const imageTextSizes: Record<ImageTextStyle, number> = {
   brand: 20,
-  title: 36,
+  title: 44,
   heading: 24,
   score: 26,
   body: 22,
@@ -86,16 +86,55 @@ function pageSources(payload: BenchmarkExport, rows: ExportRow[], modelIds: Set<
   return payload.fullProvenance.data.sourceSets.filter((source) => ids.has(source.id));
 }
 
+function isEpochSource(source: Source) {
+  return (
+    source.evaluator === "Epoch AI" &&
+    source.benchmarkIds.includes("epoch-gpqa-diamond-revision-unreported") &&
+    source.redistribution.basis === "licensed_dataset"
+  );
+}
+
 function sourceText(source: Source) {
+  const epoch = isEpochSource(source);
   return [
     `${source.evaluator} · ${source.title} · ${evidenceLabel(source.evidenceClass)}`,
-    `Source date ${source.publishedAt}. Rights checked ${source.redistribution.checkedAt}.`,
+    `${epoch ? "Archive checked" : "Source publication"} ${source.publishedAt} · Rights checked ${source.redistribution.checkedAt}`,
     `Original source: ${source.sourceUrl}`,
-    source.methodologySummary,
-    ...source.limitations,
-    `Redistribution basis: ${source.redistribution.basis}. ${source.redistribution.rationale}`,
     `Terms: ${source.redistribution.termsUrl}`,
+    ...(epoch
+      ? [
+          "Epoch AI, Capabilities & benchmarking: https://epoch.ai/benchmarks · CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+          "Selected Epoch-run Diamond records: accuracy fractions converted to percentages; no endorsement implied. License applies to these selected records only.",
+          "Archive date is not a run publication date. Original run publication and completion dates are unknown. Configuration labels do not establish equal effort; run-specific setup is unreported.",
+        ]
+      : []),
   ].join("\n");
+}
+
+function compactObservation(observation: NonNullable<ExportRow["cells"][number]["observation"]>) {
+  const origin = {
+    reporter_computed: "Reporter-run",
+    external_result_reported: "External result",
+    not_reported: "Origin unreported",
+  }[observation.evaluationOrigin];
+  const effortLabels: Record<string, string> = {
+    "Highest Gemini thinking setting unless otherwise noted": "Highest thinking (unless noted)",
+    "Maximum available reasoning; best available reported result when maximum-setting results are unavailable":
+      "Max if available; otherwise best reported",
+  };
+  const effort =
+    !observation.effort || observation.effort.startsWith("Not ")
+      ? "Effort unreported"
+      : `Effort: ${(effortLabels[observation.effort] ?? observation.effort).replace(" (Epoch source configuration label)", " (source label)")}`;
+  // Preserve known tools/fallback differences. Full setup and uncertainty stay linked.
+  return [
+    origin,
+    effort,
+    observation.tools ? `Tools: ${observation.tools}` : "",
+    observation.fallback ? `Fallback: ${observation.fallback}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 function composePage(
@@ -132,42 +171,28 @@ function composePage(
     page.texts.push({ text: value, lines, x, y, style, highlighted });
     return y + lines.length * (imageTextSizes[style] + 8);
   }
-  let y = text("STACKREPLAY / BENCHMARK EVIDENCE", margin, margin, contentWidth, "brand");
-  y = text("Selected model comparison", margin, y + 12, contentWidth, "title");
+  let y = text("STACKREPLAY / BENCHMARKS", margin, margin, contentWidth, "brand");
+  y = text("Selected model comparison", margin, y + 16, contentWidth, "title");
   y = text(
-    `Edition ${payload.edition} · Category ${payload.requested.category} · Coverage ${payload.requested.coverage} · ${payload.requested.sourceSetId ? `Source sheet ${payload.requested.sourceSetId}` : "Model comparison"} · ${payload.requested.observationIds.length} explicit observation pins`,
+    `Edition ${payload.edition} · ${payload.requested.category === "all" ? "All categories" : payload.requested.category} · ${payload.requested.coverage === "shared" ? "Shared coverage" : "All reported coverage"}${payload.requested.sourceSetId ? ` · Source sheet: ${payload.requested.sourceSetId}` : ""}`,
     margin,
-    y + 8,
+    y + 12,
     contentWidth,
     "note",
   );
-  // Space reserved for final page count, which cannot change pagination.
-  page.pageLabelY = y + 4;
-  y += 32;
+  // Space reserved for the final count, independent of pagination.
+  page.pageLabelY = y + 8;
+  y += 42;
   y = text(
-    `Models ${modelStart + 1}–${modelStart + models.length} of ${payload.models.length}; rows ${rows.length ? `${rowStart + 1}–${rowStart + rows.length}` : "0"} of ${payload.rows.length}. This page shows only this slice of the selection.`,
+    `Models ${modelStart + 1}–${modelStart + models.length} of ${payload.models.length} · Rows ${rows.length ? `${rowStart + 1}–${rowStart + rows.length}` : "0"} of ${payload.rows.length}. This page shows only this slice of the selection.`,
     margin,
     y,
     contentWidth,
     "note",
   );
-  y = text(
-    `Exact comparison and full evidence (JSON): ${payload.comparisonUrl}`,
-    margin,
-    y + 8,
-    contentWidth,
-    "note",
-  );
-  y = text(
-    "Reported scores checked against original publications; not reproduced by StackReplay. Highlighted = highest reported value (lowest where lower is better), including ties across the full selection. Setups may differ; no overall ranking. Not reported means missing evidence, never zero.",
-    margin,
-    y + 10,
-    contentWidth,
-    "note",
-  );
   const modelWidth = (contentWidth - definitionWidth) / models.length;
   y += 24;
-  let headerEnd = text("Exact benchmark / setup", margin + 12, y, definitionWidth - 24, "heading");
+  let headerEnd = text("Benchmark / setup", margin + 12, y, definitionWidth - 24, "heading");
   models.forEach((model, i) => {
     headerEnd = Math.max(
       headerEnd,
@@ -195,11 +220,18 @@ function composePage(
     const top = y;
     const d = row.definition;
     let end = text(
-      `${d.name}${d.variant ? ` · ${d.variant}` : ""}\n${d.description}\nVersion: ${d.version ?? "Not reported"}\nSubset: ${d.taskSubset ?? "Not reported"}\nMetric: ${d.metric}\nUnit: ${d.unit} · ${d.higherIsBetter ? "Higher" : "Lower"} is better\nCategory: ${d.category}\n${row.setupLabel}`,
+      `${d.name}${d.variant ? ` · ${d.variant}` : ""}`,
       margin + 12,
-      top + 12,
+      top + 16,
       definitionWidth - 24,
       "body",
+    );
+    end = text(
+      `Version ${d.version ?? "unreported"} · Subset ${d.taskSubset ?? "unreported"}\n${d.metric} · ${d.unit} · ${d.higherIsBetter ? "Higher" : "Lower"} is better\n${row.setupLabel}`,
+      margin + 12,
+      end + 4,
+      definitionWidth - 24,
+      "note",
     );
     models.forEach((model, i) => {
       const cell = row.cells.find((cell) => cell.modelId === model.id);
@@ -220,7 +252,7 @@ function composePage(
         const sourceIndex = sources.findIndex((source) => source.id === o.sourceSetId);
         if (sourceIndex < 0) throw new Error("The resolved export is missing source attribution.");
         cellEnd = text(
-          `S${sourceIndex + 1} · ${o.evaluator} · ${evidenceLabel(o.evidenceClass)}\nChecked ${o.checkedAt}\nOrigin: ${o.originLabel} (${o.evaluationOrigin.replaceAll("_", " ")})\nEffort: ${o.effort ?? "Not reported"}\nHarness: ${o.harness ?? "Not reported"}\nTools: ${o.tools ?? "Not reported"}\nFallback: ${o.fallback ?? "Not reported"}\nProvider: ${o.provider ?? "Not reported"}${o.uncertainty ? `\n${o.uncertainty}` : ""}`,
+          `S${sourceIndex + 1} · Checked ${o.checkedAt}\n${compactObservation(o)}`,
           x,
           cellEnd + 8,
           width,
@@ -229,9 +261,16 @@ function composePage(
       }
       end = Math.max(end, cellEnd);
     });
-    y = end + 20;
+    y = end + 18;
     page.bands.push({ y: top, height: y - top });
   });
+  y = text(
+    "Reported evidence; not reproduced by StackReplay. Setups may differ. Highlighted = best numeric value across the full selection, including ties; no overall ranking. Not reported means missing evidence, never zero.",
+    margin,
+    y + 24,
+    contentWidth,
+    "note",
+  );
   if (sources.length) {
     y = text("Sources used on this page", margin, y + 24, contentWidth, "heading") + 12;
     // Identical disclosures can share attribution without repeating long license text.
@@ -251,6 +290,14 @@ function composePage(
         ) + 18;
     }
   }
+  y = text(
+    "Exact comparison / full setup, uncertainty and provenance (JSON)",
+    margin,
+    y + 12,
+    contentWidth,
+    "heading",
+  );
+  y = text(payload.comparisonUrl, margin, y + 8, contentWidth, "note");
   page.height = Math.ceil(y + margin);
   return page;
 }

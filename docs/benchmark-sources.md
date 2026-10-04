@@ -173,9 +173,10 @@ claim StackReplay reproduced any evaluation.
 
 
 PNG pages carry only the sources of the observations shown in their row/model
-slice. Each source retains its reporting identity, evidence class, source date,
-original source URL, methodology/attribution summary, limitations, redistribution
-rationale, rights-check date and terms link. Identical disclosures can share a
+slice. Compact attribution retains reporting identity and title, evidence class,
+source publication or archive-check date, original source URL, rights-check date
+and terms link. Full methodology, limitations and redistribution rationale remain
+in the unchanged JSON and linked comparison. Identical compact disclosures can share a
 source-reference line. Epoch's attribution retains CC BY 4.0, the conversion
 statement, no-endorsement language and the archive-date/original-publication
 caveat. Its terms do not become a blanket license for a page or full export.

@@ -205,17 +205,21 @@ conservative 16384-pixel height limit fails explicitly and directs readers to
 JSON instead of silently dropping evidence.
 
 Every page labels its page count, row indices and model slice within the full
-selection. Definitions, setup labels, source identities/classes/dates, missing
+selection. Compact definitions, setup labels, effort/origin and known tools or
+fallback differences, source identities/classes/check dates, missing
 cells and exact original score strings remain visible. Highlights still refer
 to raw numerical values across the full selection, including ties and
 lower-is-better rows, rather than just the current column slice. The precise
-comparison link and JSON retain complete evidence, explicit pins and provenance.
+comparison link and JSON retain complete definitions, configuration, uncertainty,
+license rationale, explicit pins and provenance. Page-scoped source footnotes
+retain original source and terms URLs; long descriptive prose stays linked.
 
 The browser lazily loads a local canvas renderer and draws StackReplay's own
-sheet using native fonts and a consistent light palette in either app theme.
+sheet using the full same-origin Geist app fonts and a consistent cream, ink and
+blue palette in either app theme. Font loading completes before measuring, and
+drawing uses the same loaded faces and metrics.
 It yields briefly before drawing, then encodes each bounded sheet with native
-canvas.toDataURL and creates a local PNG Blob. This avoids asynchronous encoder
-stalls observed after browser downloads. It does not capture the table DOM, request
+canvas.toDataURL and creates a local PNG Blob. It does not capture the table DOM, request
 publisher images, transmit a selection,
 store an export on a server or alter theme persistence. Each page has an explicit
 PNG download, with navigation and readable text in the native modal. Obsolete
