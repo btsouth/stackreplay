@@ -397,16 +397,8 @@ test.describe("homepage without a saved workload", () => {
     await page.goto("/");
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: /skip to content/iu })).toBeFocused();
-    const order: string[] = [];
-    for (let step = 0; step < 13; step += 1) {
-      await page.keyboard.press("Tab");
-      order.push(
-        await page.evaluate(
-          () => (document.activeElement as HTMLElement | null)?.innerText.trim() ?? "",
-        ),
-      );
-    }
-    expect(order.slice(1, 10)).toEqual([
+    const nav = page.getByTestId("public-nav");
+    const headerLinks = [
       "Models",
       "Providers",
       "Benchmarks",
@@ -416,8 +408,33 @@ test.describe("homepage without a saved workload", () => {
       "Workload",
       "My Stack",
       "Scan my history",
-    ]);
-    expect(order).toContain("Explore models");
+    ];
+    await expect(nav.getByRole("link")).toHaveText(headerLinks, { useInnerText: true });
+    const hero = page.getByTestId("home-hero");
+    await expect(page.getByTestId("local-action-hero")).toHaveAttribute("data-local", "none");
+    // Accessible names omit decorative arrows; innerText includes them. Walk
+    // every expected control in DOM order instead of sampling a fixed tab count.
+    const focusSequence = [
+      page.getByRole("link", { name: "StackReplay home", exact: true }),
+      ...headerLinks.map((name) => nav.getByRole("link", { name, exact: true })),
+      ...[
+        "Explore models",
+        "Explore providers",
+        "Compare plans",
+        "Compare leading models",
+        "Scan my AI history",
+        "Privacy model",
+      ].map((name) => hero.getByRole("link", { name, exact: true })),
+      page.getByTestId("benchmark-sheet-link"),
+      page
+        .getByRole("navigation", { name: "More on models" })
+        .getByRole("link", { name: "All models", exact: true }),
+      page.getByTestId("model-table-region"),
+    ];
+    for (const control of focusSequence) {
+      await page.keyboard.press("Tab");
+      await expect(control).toBeFocused();
+    }
     await expect(
       page.getByRole("link", { name: "Compare leading models", exact: true }),
     ).toHaveAttribute("href", "#frontier");
