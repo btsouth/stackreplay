@@ -93,3 +93,19 @@ describe("deep recap provenance", () => {
     expect(r.weeks[0]!.families).toEqual({});
   });
 });
+
+it("groups serving aliases and prefers exact recorded billing context", () => {
+  const rows = [
+    { ...event("x", "2026-10-03T12:00:00Z", "hermes", "opencode-go") },
+    {
+      ...event("y", "2026-10-03T12:00:00Z", "opencode", "opencode"),
+      billing: {
+        kind: "subscription" as const,
+        providerId: "openai",
+        attribution: "exact" as const,
+      },
+    },
+  ];
+  const r = buildRecap(rows, "30", now, "UTC");
+  expect(r.deep!.providers.map((p) => p.id).sort()).toEqual(["openai", "opencode"]);
+});

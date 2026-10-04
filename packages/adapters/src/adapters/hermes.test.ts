@@ -274,3 +274,33 @@ describe("Hermes aggregate accounting", () => {
     expect(deduped.events.filter((e) => e.usage.outputTokens === 75000)).toHaveLength(1);
   });
 });
+
+describe("Hermes recorded serving routes", () => {
+  it.each([
+    ["anthropic", "anthropic"],
+    ["openai-codex", "openai"],
+    ["commandcode", "command-code"],
+    ["opencode-go", "opencode"],
+    ["deepseek", "deepseek"],
+    ["custom", undefined],
+  ])("uses row billing_provider=%s before model inference", async (raw, provider) => {
+    await withTempDir(async (root) => {
+      await createSqliteFixture(`${root}/.hermes/state.db`, [
+        ...HERMES_FIXTURE_SQL,
+        `UPDATE session_model_usage SET billing_provider='${raw}', billing_base_url='', billing_mode='subscription_included'`,
+      ]);
+      const r = await adapter.collect(createFixtureEnvironment({ homeDir: root }), {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+      });
+      expect(r.events).toHaveLength(2);
+      for (const e of r.events) {
+        expect(e.provider?.id).toBe(provider);
+        expect(e.harness?.id).toBe("hermes");
+        expect(e.billing).toMatchObject({ kind: "subscription", attribution: "exact" });
+        expect(e.billing?.providerId).toBe(provider);
+      }
+    });
+  });
+});

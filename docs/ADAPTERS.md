@@ -336,3 +336,28 @@ that output as machine-readable local detail rather than something to paste into
 5. Test: detection, event extraction, unknown-versus-zero, malformed input, partial sessions,
    windowing, idempotency, and that no raw path appears in the output.
 6. Document it here, including the limitations you could not remove.
+
+### Recap dimensions and timing
+
+The recap keeps recording source, driving harness, serving provider and model developer separate.
+T3 metadata changes harness attribution on matching provider sessions and adds no usage. Browser
+intake can pair an explicitly selected T3 `state.sqlite` with selected provider histories, in either
+selection order. A detected installation is not evidence of token usage. Known session overlaps
+continue to use the existing deduplication pipeline; unrelated identities cannot prove an overlap.
+
+Hermes browser intake reads `state.db` and its matching WAL through the same read-only adapter as
+native collection. Recorded billing provider and recognized billing endpoint take precedence over
+model inference. Only explicit `subscription_included` mode establishes subscription billing;
+transport names such as `chat_completions` do not. Unknown serving routes stay unattributed. The
+aggregate is dated at `last_seen`, not spread across its interval. Browser SQLite keeps the existing
+128 MB per-file safety bound; larger stores need a local normalized export. Raw database content
+is never uploaded. Project labels remain browser-local metadata, absent from portable exports and
+cards.
+
+Claude response timing pairs the final streamed assistant chunk by message ID with the preceding
+user or tool-result timestamp. Known sidechains and subagent files are excluded. Codex admits only
+explicit API request-start events, never `task_started` turn spans. Current Codex histories commonly
+lack those boundaries, so no comparable speed is reported. The recap shows a model only after 50
+positive-output samples with 0.25 to 600 seconds and at most 500 output tokens/s. Median and
+interpolated p25/p75 include time to first token, thinking and local scheduling. These are personal
+latency proxies, not cross-provider benchmarks. Aggregate Hermes intervals are never speed samples.

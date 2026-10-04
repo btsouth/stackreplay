@@ -1,3 +1,4 @@
+/* biome-ignore-all lint/a11y/noNoninteractiveTabindex: The scrolling model timeline needs keyboard focus. */
 import type { CSSProperties, ReactNode } from "react";
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
@@ -334,7 +335,7 @@ export function RecapStory({
                 First seen in this local history, across all periods. Not an inferred launch or a
                 switch count.
               </p>
-              <ol>
+              <ol tabIndex={0} aria-label="First-seen model timeline, scroll for more models">
                 {d.firstSeen.map((m) => (
                   <li key={m.id}>
                     <time>

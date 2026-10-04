@@ -1,3 +1,4 @@
+/* biome-ignore-all lint/a11y/noNoninteractiveTabindex: Scrollable year calendars need focus for WCAG keyboard access. */
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber } from "@/lib/recap-card";
 import { developerNames } from "@/lib/recap-deep";
@@ -80,10 +81,9 @@ export function Heatmap({ recap, period = "all" }: { recap: Recap; period?: Reca
           return (
             <div className="recap-year" key={year}>
               <span>{year}</span>
-              <div
+              <section
                 className="recap-year-scroll"
                 tabIndex={0}
-                role="region"
                 aria-label={`${year} activity calendar, scroll for later months`}
               >
                 <div className="recap-year-months">
@@ -131,7 +131,7 @@ export function Heatmap({ recap, period = "all" }: { recap: Recap; period?: Reca
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
             </div>
           );
         })
