@@ -62,7 +62,7 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
   );
   if (recap.priced)
     text(
-      `${Math.round((recap.priced / recap.records) * 100)}% of usage records priced · list-price estimate`,
+      `${recap.priced.toLocaleString()} / ${recap.records.toLocaleString()} usage records priced · list-price estimate`,
       pad,
       heroY + (portrait ? 238 : 168),
       portrait ? 21 : 17,

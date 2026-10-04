@@ -165,7 +165,7 @@ sandbox/permission fields.
 `cache_write_input_tokens` are **subsets of `input_tokens`**, and `reasoning_output_tokens` is a
 **subset of `output_tokens`** (all three declarations `true`, with quantities reported). One
 canonical event is emitted per `last_token_usage` delta, so a turn is never counted twice and the
-cumulative series is not double counted.
+cumulative series is not double counted. Repeated snapshots with the same cumulative total and reported delta share an event identity even when their log ordinal or timestamp changes; the normal deduplication pass collapses them. When a cumulative total is absent, the adapter keeps its ordinal identity because repetition cannot be established.
 
 **Limitations.** Records that violate the stated subset relationships have the affected categories
 reported as unknown, with a warning. A `token_count` record that appears before any `turn_context`

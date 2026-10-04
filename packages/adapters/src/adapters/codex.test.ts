@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { dedupeEvents } from "../dedup.js";
 import { CODEX_ROLLOUT, CODEX_ROLLOUT_PATH } from "../fixtures/content.js";
 import {
   createFixtureEnvironment,
@@ -160,4 +161,28 @@ describe("codex adapter: schema validity when fields are absent", () => {
     expect(first?.cacheReadTokens).toBe(1500);
     expect(first?.accounting?.cacheReadIncludedInInput).toBe(true);
   });
+});
+
+it("collapses repeated cumulative snapshots even when their ordinal and timestamp change", async () => {
+  const rows = CODEX_ROLLOUT.trim().split("\n");
+  const index = rows.findIndex((row) => row.includes("token_count"));
+  const row = JSON.parse(rows[index] ?? "{}");
+  const repeated = { ...row, ordinal: 999, timestamp: "2026-09-19T11:00:11Z" };
+  rows.splice(index + 1, 0, JSON.stringify(repeated));
+  const result = await collectFrom(rows.join("\n"));
+  const distinct = dedupeEvents(result.events);
+  expect(distinct.events).toHaveLength(2);
+  expect(distinct.exactDuplicates).toBe(1);
+});
+it("keeps equal deltas when the cumulative counter advances", async () => {
+  const rows = CODEX_ROLLOUT.trim().split("\n");
+  const index = rows.findIndex((row) => row.includes("token_count"));
+  const row = JSON.parse(rows[index] ?? "{}");
+  const added = structuredClone(row);
+  added.timestamp = "2026-09-19T11:00:11Z";
+  added.payload.info.total_token_usage.total_tokens +=
+    added.payload.info.last_token_usage.total_tokens;
+  rows.splice(index + 1, 0, JSON.stringify(added));
+  const result = await collectFrom(rows.join("\n"));
+  expect(dedupeEvents(result.events).events).toHaveLength(3);
 });
