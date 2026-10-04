@@ -193,6 +193,10 @@ describe("OpenCode browser collection parity", () => {
     expect(result.outcomes[0]?.reason).toContain("1 GB");
     expect(read).not.toHaveBeenCalled();
     await withDatabase(async (_path, bytes) => {
+      // Exercise the size-dispatch branch without allocating a 600 MB test database.
+      const large = { ...candidate("opencode.db", bytes), size: 600 * 1024 * 1024 };
+      const imported = await intakeBrowserCandidates([large], syntheticCatalog(), options);
+      expect(imported.exported?.events).toHaveLength(2);
       const other = candidate("other/opencode.db-wal", new Uint8Array(1));
       const result = await intakeBrowserCandidates(
         [candidate("first/opencode.db", bytes), other],

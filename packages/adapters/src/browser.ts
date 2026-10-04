@@ -862,8 +862,14 @@ export async function intakeBrowserCandidates(
     /\.jsonl$/iu.test(candidate.path) &&
     candidate.stream !== undefined &&
     candidate.peekText !== undefined;
+  const databaseFile = (candidate: BrowserCandidate): boolean =>
+    /(?:^|[/\\])(?:opencode\.db|state\.db|state\.sqlite)(?:-wal)?$/iu.test(candidate.path);
   const fileLimit = (candidate: BrowserCandidate): number =>
-    streams(candidate) ? MAX_STREAMED_SOURCE_FILE_BYTES : MAX_SOURCE_FILE_BYTES;
+    databaseFile(candidate)
+      ? MAX_BROWSER_DATABASE_BYTES
+      : streams(candidate)
+        ? MAX_STREAMED_SOURCE_FILE_BYTES
+        : MAX_SOURCE_FILE_BYTES;
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
   /** Exact-file matches already include this history scope in their key. */
@@ -952,9 +958,11 @@ export async function intakeBrowserCandidates(
       outcomes.push({
         path: display,
         status: "unsupported",
-        reason: streams(candidate)
-          ? "File exceeds the 2 GB session file limit"
-          : "File exceeds the 512 MB source parser limit",
+        reason: databaseFile(candidate)
+          ? "Session database files exceed the 1 GB browser limit; use a CLI export."
+          : streams(candidate)
+            ? "File exceeds the 2 GB session file limit"
+            : "File exceeds the 512 MB source parser limit",
         events: 0,
       });
       report(index + 1, true);
