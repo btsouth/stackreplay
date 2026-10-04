@@ -1,0 +1,44 @@
+{
+  "id": "kimi-k3-terminal-checked-2026-10-04",
+  "kind": "model_observations",
+  "title": "Kimi K3 Tech Blog: Terminal-Bench 2.1",
+  "evaluator": "Moonshot AI",
+  "publishedAt": null,
+  "sourceUrl": "https://www.kimi.com/blog/kimi-k3",
+  "methodologyUrl": "https://www.kimi.com/blog/kimi-k3",
+  "evidenceClass": "developer_reported",
+  "methodologySummary": "Moonshot AI reports Kimi K3 evaluated with Kimi Code at max reasoning effort, temperature = 1.0 and top-p = 1.0.",
+  "limitations": [
+    "This selected numerical fact is developer reported. StackReplay did not reproduce the evaluation. Different or unreported setups do not establish a matched comparison.",
+    "The original article publication date is unreported. Image asset dates, the weights-release statement, model release and October 4 check dates do not establish article publication.",
+    "Kimi Code version, trial count, scored task count and subset, suite revision beyond 2.1, evaluation start and completion dates, timeout, maximum output tokens, tools, exact endpoint/version, prompts, seeds and error handling are unreported.",
+    "The provider table omits the unit marker. Percent display is StackReplay's metric interpretation using the official Terminal-Bench 2.1 accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1), not a claim of leaderboard admission or exact task counts."
+  ],
+  "redistribution": {
+    "basis": "official_provider_facts",
+    "rationale": "Selected first-party numerical fact with source attribution and our own short methodology description under the existing provider-facts policy. No explicit benchmark dataset redistribution grant was observed. This basis does not cover publisher charts, prose, questions, answers, logs or underlying datasets.",
+    "termsUrl": "https://www.kimi.com/blog/kimi-k3",
+    "checkedAt": "2026-10-04"
+  },
+  "modelIds": ["kimi-k3"],
+  "benchmarkIds": ["terminal-bench-2-1"],
+  "observations": [
+    {
+      "benchmarkId": "terminal-bench-2-1",
+      "modelId": "kimi-k3",
+      "value": 88.3,
+      "displayValue": "88.3%",
+      "evaluator": "Moonshot AI",
+      "evidenceClass": "developer_reported",
+      "sourceSetId": "kimi-k3-terminal-checked-2026-10-04",
+      "sourceUrl": "https://www.kimi.com/blog/kimi-k3",
+      "checkedAt": "2026-10-04",
+      "evaluationOrigin": "reporter_computed",
+      "originLabel": "Moonshot AI administered and reported the evaluation",
+      "effort": "max",
+      "harness": "Kimi Code (version unreported)",
+      "notes": "The raw table score is 88.3 in the Kimi K3 (max) column. The provider source omits the unit marker. StackReplay interprets the raw notation 88.3 on Terminal-Bench 2.1's published percent accuracy scale (https://www.tbench.ai/news/terminal-bench-2-1); numeric value is unchanged, with no arithmetic rescaling. The display % is this documented metric interpretation, not provider-explicit notation or leaderboard admission. Temperature = 1.0; top-p = 1.0. The original article publication date is unreported. Image asset dates, the weights-release statement, model release and October 4 check dates do not establish article publication.",
+      "uncertainty": "Kimi Code version, trial count, scored task count and subset, suite revision beyond 2.1, evaluation start and completion dates, timeout, maximum output tokens, tools, exact endpoint/version, prompts, seeds and error handling are unreported."
+    }
+  ]
+}

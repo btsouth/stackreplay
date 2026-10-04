@@ -1,8 +1,8 @@
-# Benchmark evidence, edition 2026-10-04-v4
+# Benchmark evidence, edition 2026-10-04-v5
 
 These are verified reported facts, not independently reproduced evaluations.
 Scores were checked against the live first-party publications on September 30,
-2026, and the Epoch AI archive snapshot and three additional provider publications
+2026, and the Epoch AI archive snapshot and four additional provider publications
 on October 4, 2026. The checked-in
 tests preserve every stored numerical value.
 
@@ -17,6 +17,7 @@ tests preserve every stored numerical value.
 | QwenCloud, Qwen3.8-Max release, Aug 3 | 1 | [Official table and evaluation notes](https://www.qwencloud.com/news/qwen-3-8-max) |
 | Z.ai, GLM-5.3 release, Aug 14 | 1 | [Official table and Terminal-Bench 2.1 methodology](https://z.ai/blog/glm-5.3) |
 | MiniMax, M3 release, Jun 1 | 1 | [Official score and evaluation setup](https://www.minimax.io/blog/minimax-m3) |
+| Moonshot AI, Kimi K3 article, publication unreported, checked Oct 4 | 1 | [Official own-model score and evaluation notes](https://www.kimi.com/blog/kimi-k3) |
 
 Google's complete source sheet has four exact canonical model IDs:
 `gemini-4-argon`, `gpt-6-astra`, `claude-fable-5-1`, `claude-opus-5-5`.
@@ -153,12 +154,43 @@ the related documentation's September 18 modification date is not publication.
 MiniMax uses the visible June 1 date and retains JSON-LD
 2026-05-31T17:31:18.000Z. Run dates, scored task counts, task subsets, suite
 revisions beyond 2.1 and other unreported settings remain unknown. Kimi K3 is
-outside this edition's new evidence because its exact publication date is unknown.
+outside v4's new evidence because its exact publication date is unknown.
 
-The current edition contains 44 definitions, 15 source sets and 208 observations.
+The v4 edition retains 44 definitions, 15 source sets and 208 observations.
 The v3 edition retains 44 definitions, 12 source sets and 205 observations,
 including all three exact Epoch records. Old edition links, complete source
 sheets, primary selections, presets and catalog identities are preserved.
+
+## Unknown publication: Kimi K3
+
+Edition `2026-10-04-v5` adds one first-party Kimi K3 Terminal-Bench 2.1
+observation from [Moonshot AI's article](https://www.kimi.com/blog/kimi-k3).
+The provider's Kimi K3 (max) column gives raw notation `88.3` without a unit
+marker. As with Qwen and GLM, StackReplay interprets this unchanged number on
+the [official Terminal-Bench 2.1 percent accuracy scale](https://www.tbench.ai/news/terminal-bench-2-1).
+The displayed `88.3%` is StackReplay's metric interpretation, not provider-explicit
+notation, arithmetic rescaling or leaderboard admission. Only the developer's
+own model result is admitted, under `official_provider_facts`, with attribution;
+no dataset grant or license for publisher prose, artwork or foreign scores is claimed.
+
+The reported setup is Kimi Code, max reasoning effort, temperature = 1.0 and
+top-p = 1.0. Harness version, trials, scored task counts/subset, run dates,
+timeout, maximum output tokens, tools, endpoint/version and other unstated
+settings remain unreported. No comparison group or complete source sheet is declared.
+
+The original article publication is unreported: required `publishedAt: null`
+in schema 2 records that fact. October 4 observation and redistribution checks
+remain required ISO dates. Image asset dates, weights/model release dates and
+check dates are never substituted for publication. Source IDs identify checked
+snapshots without asserting original publication. All date surfaces display
+"Publication date unreported" with check dates separate. Only the three exact
+legacy Epoch pilot source IDs display "Archive checked" for their unchanged
+stored archive-check dates, with original run publication still unknown.
+
+The current edition has 44 definitions, 16 source sets and 209 observations.
+Schema-1 v1–v4 data, bytes, pins, primary selections and exact Epoch precision
+remain unchanged. The common validator discriminates strict schemas 1 and 2;
+it does not normalize archived objects or inject new fields.
 
 ## Redistribution decision
 
@@ -198,9 +230,15 @@ checked-in data. Automatic ingestion and score-based Replay remain out of scope.
 ## Selected-view exports
 
 Download JSON preserves stored attribution through each source's evaluator,
-title, original URLs, methodology and redistribution record. Publication dates
-remain publication dates; observation and redistribution checked dates retain
-their separate meanings. Source disclosures link the stored redistribution terms.
+title, original URLs, methodology and redistribution record. Known provider
+publication dates remain publication dates; explicit null means unreported, and
+the three legacy Epoch dates retain their archive-check meaning. Observation and
+redistribution checked dates retain their separate meanings. Source disclosures link the stored redistribution terms.
+
+Schema-1 editions retain byte-compatible `exportVersion: 1` JSON. Schema-2
+editions use `exportVersion: 2`, based on the full provenance edition even
+when Kimi is outside the selected view. Export and schema versions must pair
+as 1/1 or 2/2. URL state, catalog and Replay versions are unchanged.
 
 The selected rows include their exact observations, configuration notes and
 selection reasons. The explicitly labelled fullProvenance appendix retains the

@@ -6,6 +6,7 @@ import { parseBenchmarkState } from "@/lib/benchmark-state";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 import {
+  BenchmarkEvidence,
   BenchmarkExplorer,
   benchmarkComparisonDisplayValue,
   reportedModelIds,
@@ -22,7 +23,7 @@ const models = loadPublicCatalog().models.map((model) => ({
 describe("benchmark empty selection", () => {
   it("names unscored models and offers an explicit selection change", () => {
     const initial = parseBenchmarkState(
-      new URLSearchParams("models=qwen-3-8-flash,kimi-k3&coverage=all"),
+      new URLSearchParams("models=qwen-3-8-flash,deepseek-v4-pro&coverage=all"),
       models.map((m) => m.id),
     );
     const html = renderToStaticMarkup(
@@ -33,8 +34,10 @@ describe("benchmark empty selection", () => {
         initial,
       }),
     );
-    expect(initial.modelIds).toEqual(["qwen-3-8-flash", "kimi-k3"]);
-    expect(html).toContain("Qwen 3.8 Flash, Kimi K3: no reported scores in this edition.");
+    expect(initial.modelIds).toEqual(["qwen-3-8-flash", "deepseek-v4-pro"]);
+    expect(html).toContain(
+      "Qwen 3.8 Flash, DeepSeek-V4-Pro-0813: no reported scores in this edition.",
+    );
     expect(html).toContain("Your models stay selected until you choose another selection.");
     expect(html).toContain("Show models with reported scores");
     expect(html).toContain("No verified scores yet");
@@ -51,7 +54,7 @@ describe("benchmark empty selection", () => {
     });
     expect(patch.modelIds?.length).toBeGreaterThan(0);
     expect(patch.modelIds?.length).toBeLessThanOrEqual(6);
-    expect(patch.modelIds).not.toContain("kimi-k3");
+    expect(patch.modelIds).not.toContain("deepseek-v4-pro");
     expect(patch.modelIds).not.toContain("qwen-3-8-flash");
     expect(patch.modelIds?.every((id) => reportedModelIds(data, models).includes(id))).toBe(true);
   });
@@ -191,5 +194,59 @@ describe("benchmark evidence presentation", () => {
     expect(header).not.toContain("Developer reported");
     expect(header).not.toContain("Latest check");
     expect(html).not.toContain('aria-describedby="benchmark-selection-error"');
+  });
+});
+
+describe("publication and check date presentation", () => {
+  it("shows Kimi's unknown publication separately in the header, list and evidence", () => {
+    const initial = parseBenchmarkState(
+      new URLSearchParams("models=kimi-k3"),
+      models.map((m) => m.id),
+    );
+    const html = renderToStaticMarkup(
+      createElement(BenchmarkExplorer, { data, editions: benchmarkEditions, models, initial }),
+    );
+    const header = html.slice(0, html.indexOf('<div class="bench-toolbar">'));
+    expect(header).toContain("Publication date unreported");
+    expect(header).toContain("Latest check Oct 4, 2026");
+    expect(header).not.toContain("Published Oct 4");
+    expect(html).toContain("Kimi K3 Tech Blog: Terminal-Bench 2.1 · Publication date unreported");
+    const source = data.sourceSets.find((s) => s.modelIds.includes("kimi-k3"));
+    const o = source?.observations[0];
+    if (!o) throw new Error("Missing Kimi fact");
+    const evidence = renderToStaticMarkup(
+      createElement(BenchmarkEvidence, { data, observation: o }),
+    );
+    expect(evidence).toContain("Moonshot AI · Publication date unreported · Developer reported");
+    expect(evidence).toContain("<dt>Checked</dt><dd>Oct 4, 2026</dd>");
+    expect(evidence).toContain('href="https://www.kimi.com/blog/kimi-k3"');
+    expect(evidence).toContain("do not establish article publication");
+  });
+
+  it("shows the exact three legacy Epoch dates as archive checks in summaries and evidence", () => {
+    for (const source of data.sourceSets.filter((s) => s.id.startsWith("epoch-gpqa-"))) {
+      const o = source.observations[0];
+      if (!o) throw new Error("Missing Epoch fact");
+      const initial = parseBenchmarkState(
+        new URLSearchParams(
+          `models=${o.modelId}&category=science&observation=${o.sourceSetId}.${o.benchmarkId}.${o.modelId}`,
+        ),
+        models.map((m) => m.id),
+      );
+      const html = renderToStaticMarkup(
+        createElement(BenchmarkExplorer, { data, editions: benchmarkEditions, models, initial }),
+      );
+      const header = html.slice(0, html.indexOf('<div class="bench-toolbar">'));
+      if (o.modelId === "qwen-3-8-max-0902")
+        expect(header).toContain("Archive checked Oct 4, 2026");
+      expect(html).toContain("Archive checked Oct 4, 2026");
+      expect(header).toContain("Latest check Oct 4, 2026");
+      expect(header).not.toContain("Published Oct 4");
+      const evidence = renderToStaticMarkup(
+        createElement(BenchmarkEvidence, { data, observation: o }),
+      );
+      expect(evidence).toContain("Archive checked Oct 4, 2026");
+      expect(evidence).toContain("Completion and original publication dates are unknown");
+    }
   });
 });

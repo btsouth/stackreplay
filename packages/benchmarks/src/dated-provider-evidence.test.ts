@@ -34,7 +34,9 @@ const expected = [
     "https://www.minimax.io/blog/minimax-m3",
   ],
 ] as const;
-const sets = benchmarkData.sourceSets.slice(12);
+const datedData = benchmarkDataForEdition("2026-10-04-v4");
+if (!datedData) throw new Error("Missing immutable v4 edition");
+const sets = datedData.sourceSets.slice(12);
 const benchmarkId = "terminal-bench-2-1";
 
 describe("dated first-party Terminal-Bench 2.1 facts", () => {
@@ -129,7 +131,7 @@ describe("dated first-party Terminal-Bench 2.1 facts", () => {
 
   it("compares the three facts without a matched setup and leaves Kimi missing", () => {
     const models = expected.map((r) => r[1]);
-    const row = resolveComparison(benchmarkData, [...models, "kimi-k3"], { coverage: "all" })[0];
+    const row = resolveComparison(datedData, [...models, "kimi-k3"], { coverage: "all" })[0];
     expect(row?.definition.id).toBe(benchmarkId);
     expect(row?.setup).toBe("different_or_unreported");
     expect(row?.cells.map((c) => c.observation?.displayValue)).toEqual([
@@ -138,19 +140,19 @@ describe("dated first-party Terminal-Bench 2.1 facts", () => {
       "66.0%",
       undefined,
     ]);
-    expect(
-      resolveComparison(benchmarkData, [...models, "kimi-k3"], { coverage: "shared" }),
-    ).toEqual([]);
-    expect(resolveComparison(benchmarkData, models, { coverage: "shared" })).toHaveLength(1);
-    expect(comparisonSets(benchmarkData).some((s) => sets.includes(s))).toBe(false);
+    expect(resolveComparison(datedData, [...models, "kimi-k3"], { coverage: "shared" })).toEqual(
+      [],
+    );
+    expect(resolveComparison(datedData, models, { coverage: "shared" })).toHaveLength(1);
+    expect(comparisonSets(datedData).some((s) => sets.includes(s))).toBe(false);
     for (const set of sets) {
       const o = set.observations[0];
       if (!o) throw new Error("Missing admitted fact");
       expect(
-        resolveComparison(benchmarkData, [o.modelId], { observationIds: [observationId(o)] })[0]
+        resolveComparison(datedData, [o.modelId], { observationIds: [observationId(o)] })[0]
           ?.cells[0]?.selectionReason,
       ).toContain("Explicit");
-      expect(() => resolveComparison(benchmarkData, [o.modelId], { sourceSetId: set.id })).toThrow(
+      expect(() => resolveComparison(datedData, [o.modelId], { sourceSetId: set.id })).toThrow(
         /complete source sheet/,
       );
     }

@@ -480,7 +480,9 @@ test("PNG preparation failure: useful retry prepares a fresh download", async ({
 test("PNG dated providers: v4 facts, publication attribution and Kimi missing source scope", async ({
   page,
 }, testInfo) => {
-  await page.goto("/benchmarks?models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3&category=coding");
+  await page.goto(
+    "/benchmarks?edition=2026-10-04-v4&models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3&category=coding",
+  );
   const dialog = await openImages(page);
   const text = dialog.locator(".bench-image-text");
   await expect(text).toContainText("2026-10-04-v4");
@@ -509,4 +511,22 @@ test("PNG dated providers: v4 facts, publication attribution and Kimi missing so
   await expect(text).not.toContainText("minimax.io");
   await expect(text).not.toContainText("z.ai/blog");
   await downloadPng(page, testInfo, "dated-provider-kimi-missing");
+});
+
+test("PNG Kimi unknown publication: exact score, separate checks and source attribution", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/benchmarks?models=kimi-k3");
+  const dialog = await openImages(page);
+  const text = dialog.locator(".bench-image-text");
+  await expect(text).toContainText("88.3%");
+  await expect(text).toContainText("Publication date unreported · Rights checked 2026-10-04");
+  await expect(text).toContainText("Checked 2026-10-04");
+  await expect(text).toContainText("Reporter-run · Effort: max");
+  await expect(text).toContainText("Terms: https://www.kimi.com/blog/kimi-k3");
+  await expect(text).toContainText("Original source: https://www.kimi.com/blog/kimi-k3");
+  await expect(text).not.toContainText("null");
+  await expect(text).not.toContainText("Source publication 2026-10-04");
+  await expect(text).not.toContainText("CC BY");
+  await downloadPng(page, testInfo, "kimi-unknown-publication");
 });

@@ -62,147 +62,170 @@ export const benchmarkObservationSchema = z.strictObject({
 });
 export type BenchmarkObservation = z.infer<typeof benchmarkObservationSchema>;
 
-export const benchmarkSourceSetSchema = z
-  .strictObject({
-    id,
-    /** Source sheets are complete; the model-first builder can also use individual observations. */
-    kind: z.enum(["complete_comparison", "model_observations"]),
-    title: text,
-    evaluator: text,
-    publishedAt: z.iso.date(),
-    sourceUrl: url,
-    announcementUrl: url.optional(),
-    methodologyUrl: url,
-    evidenceClass: evidenceClassSchema,
-    methodologySummary: text,
-    limitations: z.array(text).min(1),
-    redistribution: z.strictObject({
-      basis: z.enum(["official_provider_facts", "licensed_dataset", "permission"]),
-      rationale: text,
-      termsUrl: url,
-      checkedAt: z.iso.date(),
-    }),
-    modelIds: ids,
-    benchmarkIds: ids,
-    observations: z.array(benchmarkObservationSchema).min(1),
-  })
-  .superRefine((set, ctx) => {
+const sourceShape = {
+  id,
+  /** Source sheets are complete; the model-first builder can also use individual observations. */
+  kind: z.enum(["complete_comparison", "model_observations"]),
+  title: text,
+  evaluator: text,
+  publishedAt: z.iso.date(),
+  sourceUrl: url,
+  announcementUrl: url.optional(),
+  methodologyUrl: url,
+  evidenceClass: evidenceClassSchema,
+  methodologySummary: text,
+  limitations: z.array(text).min(1),
+  redistribution: z.strictObject({
+    basis: z.enum(["official_provider_facts", "licensed_dataset", "permission"]),
+    rationale: text,
+    termsUrl: url,
+    checkedAt: z.iso.date(),
+  }),
+  modelIds: ids,
+  benchmarkIds: ids,
+  observations: z.array(benchmarkObservationSchema).min(1),
+};
+const sourceV2Object = z.strictObject({ ...sourceShape, publishedAt: z.iso.date().nullable() });
+const refineSource = (set: z.infer<typeof sourceV2Object>, ctx: z.RefinementCtx) => {
+  if (
+    set.evidenceClass === "independent_evaluation" &&
+    set.redistribution.basis === "official_provider_facts"
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["redistribution", "basis"],
+      message: "Independent datasets require a documented license or permission",
+    });
+  }
+  const cells = new Set<string>();
+  for (const [i, observation] of set.observations.entries()) {
+    const key = `${observation.benchmarkId}/${observation.modelId}`;
+    const issue = (message: string) =>
+      ctx.addIssue({ code: "custom", path: ["observations", i], message });
+    if (cells.has(key)) issue(`Duplicate observation in source set: ${key}`);
+    cells.add(key);
+    if (observation.sourceSetId !== set.id) issue("Observation source set does not exist here");
+    if (!set.modelIds.includes(observation.modelId)) issue("Undeclared source-set model");
+    if (!set.benchmarkIds.includes(observation.benchmarkId))
+      issue("Undeclared source-set benchmark");
     if (
-      set.evidenceClass === "independent_evaluation" &&
-      set.redistribution.basis === "official_provider_facts"
+      observation.evaluator !== set.evaluator ||
+      observation.evidenceClass !== set.evidenceClass
+    ) {
+      issue("Observation reporter and evidence must match the source set");
+    }
+    if (set.publishedAt !== null && observation.checkedAt < set.publishedAt)
+      issue("Checked date precedes publication");
+  }
+  if (set.kind === "complete_comparison") {
+    for (const benchmarkId of set.benchmarkIds) {
+      for (const modelId of set.modelIds) {
+        if (!cells.has(`${benchmarkId}/${modelId}`)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["observations"],
+            message: `Missing comparison cell: ${benchmarkId}/${modelId}`,
+          });
+        }
+      }
+    }
+    if (set.observations.length !== set.modelIds.length * set.benchmarkIds.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["observations"],
+        message: "Complete matrix must contain exactly models × benchmarks observations",
+      });
+    }
+  }
+};
+/** Schema 1 remains strict: publication is a required ISO date. */
+export const benchmarkSourceSetSchema = z.strictObject(sourceShape).superRefine(refineSource);
+/** Schema 2 requires explicit null when original publication is unreported. */
+export const benchmarkSourceSetV2Schema = sourceV2Object.superRefine(refineSource);
+export type BenchmarkSourceSet = z.infer<typeof benchmarkSourceSetV2Schema>;
+
+const dataShape = {
+  primarySelections: z
+    .array(z.strictObject({ benchmarkId: id, modelId: id, observationId: text, reason: text }))
+    .default([]),
+  definitions: z.array(benchmarkDefinitionSchema).min(1),
+};
+const dataV2Object = z.strictObject({
+  schemaVersion: z.literal(2),
+  ...dataShape,
+  sourceSets: z.array(benchmarkSourceSetV2Schema).min(1),
+});
+const refineData = (
+  data: Omit<z.infer<typeof dataV2Object>, "schemaVersion">,
+  ctx: z.RefinementCtx,
+) => {
+  for (const field of ["definitions", "sourceSets"] as const) {
+    const seen = new Set<string>();
+    for (const [i, entry] of data[field].entries()) {
+      if (seen.has(entry.id))
+        ctx.addIssue({ code: "custom", path: [field, i, "id"], message: "Duplicate ID" });
+      seen.add(entry.id);
+    }
+  }
+  const definitions = new Map(data.definitions.map((definition) => [definition.id, definition]));
+  const selectedCells = new Set<string>();
+  for (const [i, selection] of data.primarySelections.entries()) {
+    const cell = `${selection.benchmarkId}.${selection.modelId}`;
+    const observation = data.sourceSets
+      .flatMap((set) => set.observations)
+      .find((o) => `${o.sourceSetId}.${o.benchmarkId}.${o.modelId}` === selection.observationId);
+    if (
+      selectedCells.has(cell) ||
+      !observation ||
+      observation.benchmarkId !== selection.benchmarkId ||
+      observation.modelId !== selection.modelId
     ) {
       ctx.addIssue({
         code: "custom",
-        path: ["redistribution", "basis"],
-        message: "Independent datasets require a documented license or permission",
+        path: ["primarySelections", i],
+        message: "Primary selection must reference one exact known observation per cell",
       });
     }
-    const cells = new Set<string>();
-    for (const [i, observation] of set.observations.entries()) {
-      const key = `${observation.benchmarkId}/${observation.modelId}`;
-      const issue = (message: string) =>
-        ctx.addIssue({ code: "custom", path: ["observations", i], message });
-      if (cells.has(key)) issue(`Duplicate observation in source set: ${key}`);
-      cells.add(key);
-      if (observation.sourceSetId !== set.id) issue("Observation source set does not exist here");
-      if (!set.modelIds.includes(observation.modelId)) issue("Undeclared source-set model");
-      if (!set.benchmarkIds.includes(observation.benchmarkId))
-        issue("Undeclared source-set benchmark");
-      if (
-        observation.evaluator !== set.evaluator ||
-        observation.evidenceClass !== set.evidenceClass
-      ) {
-        issue("Observation reporter and evidence must match the source set");
-      }
-      if (observation.checkedAt < set.publishedAt) issue("Checked date precedes publication");
-    }
-    if (set.kind === "complete_comparison") {
-      for (const benchmarkId of set.benchmarkIds) {
-        for (const modelId of set.modelIds) {
-          if (!cells.has(`${benchmarkId}/${modelId}`)) {
-            ctx.addIssue({
-              code: "custom",
-              path: ["observations"],
-              message: `Missing comparison cell: ${benchmarkId}/${modelId}`,
-            });
-          }
-        }
-      }
-      if (set.observations.length !== set.modelIds.length * set.benchmarkIds.length) {
+    selectedCells.add(cell);
+  }
+  for (const [s, set] of data.sourceSets.entries()) {
+    for (const benchmarkId of set.benchmarkIds) {
+      if (!definitions.has(benchmarkId))
         ctx.addIssue({
           code: "custom",
-          path: ["observations"],
-          message: "Complete matrix must contain exactly models × benchmarks observations",
+          path: ["sourceSets", s, "benchmarkIds"],
+          message: `Unknown benchmark: ${benchmarkId}`,
         });
-      }
     }
-  });
-export type BenchmarkSourceSet = z.infer<typeof benchmarkSourceSetSchema>;
-
-export const benchmarkDataSchema = z
+    for (const [i, observation] of set.observations.entries()) {
+      const definition = definitions.get(observation.benchmarkId);
+      if (!definition) continue;
+      const issue = (message: string) =>
+        ctx.addIssue({ code: "custom", path: ["sourceSets", s, "observations", i], message });
+      if (definition.unit === "percent" && (observation.value < 0 || observation.value > 100)) {
+        issue("Percent scores must be within 0–100");
+      }
+      const pattern = definition.unit === "percent" ? /^(\d+(?:\.\d+)?)%$/ : /^(-?\d+(?:\.\d+)?)$/;
+      const match = pattern.exec(observation.displayValue);
+      if (!match || Number(match[1]) !== observation.value)
+        issue("Display score must match value and unit");
+    }
+  }
+};
+export const benchmarkDataV1Schema = z
   .strictObject({
     schemaVersion: z.literal(1),
-    primarySelections: z
-      .array(z.strictObject({ benchmarkId: id, modelId: id, observationId: text, reason: text }))
-      .default([]),
-    definitions: z.array(benchmarkDefinitionSchema).min(1),
+    ...dataShape,
     sourceSets: z.array(benchmarkSourceSetSchema).min(1),
   })
-  .superRefine((data, ctx) => {
-    for (const field of ["definitions", "sourceSets"] as const) {
-      const seen = new Set<string>();
-      for (const [i, entry] of data[field].entries()) {
-        if (seen.has(entry.id))
-          ctx.addIssue({ code: "custom", path: [field, i, "id"], message: "Duplicate ID" });
-        seen.add(entry.id);
-      }
-    }
-    const definitions = new Map(data.definitions.map((definition) => [definition.id, definition]));
-    const selectedCells = new Set<string>();
-    for (const [i, selection] of data.primarySelections.entries()) {
-      const cell = `${selection.benchmarkId}.${selection.modelId}`;
-      const observation = data.sourceSets
-        .flatMap((set) => set.observations)
-        .find((o) => `${o.sourceSetId}.${o.benchmarkId}.${o.modelId}` === selection.observationId);
-      if (
-        selectedCells.has(cell) ||
-        !observation ||
-        observation.benchmarkId !== selection.benchmarkId ||
-        observation.modelId !== selection.modelId
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["primarySelections", i],
-          message: "Primary selection must reference one exact known observation per cell",
-        });
-      }
-      selectedCells.add(cell);
-    }
-    for (const [s, set] of data.sourceSets.entries()) {
-      for (const benchmarkId of set.benchmarkIds) {
-        if (!definitions.has(benchmarkId))
-          ctx.addIssue({
-            code: "custom",
-            path: ["sourceSets", s, "benchmarkIds"],
-            message: `Unknown benchmark: ${benchmarkId}`,
-          });
-      }
-      for (const [i, observation] of set.observations.entries()) {
-        const definition = definitions.get(observation.benchmarkId);
-        if (!definition) continue;
-        const issue = (message: string) =>
-          ctx.addIssue({ code: "custom", path: ["sourceSets", s, "observations", i], message });
-        if (definition.unit === "percent" && (observation.value < 0 || observation.value > 100)) {
-          issue("Percent scores must be within 0–100");
-        }
-        const pattern =
-          definition.unit === "percent" ? /^(\d+(?:\.\d+)?)%$/ : /^(-?\d+(?:\.\d+)?)$/;
-        const match = pattern.exec(observation.displayValue);
-        if (!match || Number(match[1]) !== observation.value)
-          issue("Display score must match value and unit");
-      }
-    }
-  });
+  .superRefine(refineData);
+export const benchmarkDataV2Schema = dataV2Object.superRefine(refineData);
+export const benchmarkDataSchema = z.discriminatedUnion("schemaVersion", [
+  benchmarkDataV1Schema,
+  benchmarkDataV2Schema,
+]);
+export type BenchmarkDataV1 = z.infer<typeof benchmarkDataV1Schema>;
+export type BenchmarkDataV2 = z.infer<typeof benchmarkDataV2Schema>;
 export type BenchmarkData = z.infer<typeof benchmarkDataSchema>;
 
 /** Catalog identity is injected at the public boundary. This package never loads or changes it. */

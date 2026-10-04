@@ -1,5 +1,6 @@
 import { evidenceLabel } from "@stackreplay/benchmarks";
 import type { BenchmarkExport } from "./benchmark-export";
+import { benchmarkSourceDate, isLegacyEpochArchiveSource } from "./benchmark-source-date";
 
 export const imageWidth = 1600;
 const margin = 48;
@@ -86,19 +87,11 @@ function pageSources(payload: BenchmarkExport, rows: ExportRow[], modelIds: Set<
   return payload.fullProvenance.data.sourceSets.filter((source) => ids.has(source.id));
 }
 
-function isEpochSource(source: Source) {
-  return (
-    source.evaluator === "Epoch AI" &&
-    source.benchmarkIds.includes("epoch-gpqa-diamond-revision-unreported") &&
-    source.redistribution.basis === "licensed_dataset"
-  );
-}
-
 function sourceText(source: Source) {
-  const epoch = isEpochSource(source);
+  const epoch = isLegacyEpochArchiveSource(source);
   return [
     `${source.evaluator} · ${source.title} · ${evidenceLabel(source.evidenceClass)}`,
-    `${epoch ? "Archive checked" : "Source publication"} ${source.publishedAt} · Rights checked ${source.redistribution.checkedAt}`,
+    `${benchmarkSourceDate(source, "iso")} · Rights checked ${source.redistribution.checkedAt}`,
     `Original source: ${source.sourceUrl}`,
     `Terms: ${source.redistribution.termsUrl}`,
     ...(epoch
