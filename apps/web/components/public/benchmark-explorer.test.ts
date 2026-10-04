@@ -32,6 +32,8 @@ describe("benchmark empty selection", () => {
     expect(html).toContain("Qwen 3.8 Max, Kimi K3: no reported scores in this edition.");
     expect(html).toContain("Your models stay selected until you choose another selection.");
     expect(html).toContain("Show models with reported scores");
+    expect(html).toContain("No verified scores yet");
+    expect(html).not.toContain('aria-describedby="benchmark-selection-error"');
   });
 
   it("explicit recovery loads scored models and clears source and observation pins", () => {
@@ -98,10 +100,19 @@ describe("benchmark evidence presentation", () => {
       /<button[^>]+disabled=""[^>]+aria-describedby="benchmark-selection-error"[^>]*>Download JSON/,
     );
     expect(html).not.toContain("<tbody>");
+    expect(html).toContain("Comparison unavailable");
+    expect(html).toContain("No benchmark coverage is asserted for this selection.");
+    expect(html).toContain("Show current edition with reported scores");
+    expect(html).not.toContain("No reported benchmarks for this selection.");
+    expect(html).not.toContain("no reported scores in this edition");
+    expect(html).not.toContain("No verified scores yet");
     if (query === "edition=unavailable") {
       expect(html).toContain("Requested edition unavailable");
+      expect(html).toContain("Coverage unknown for this edition");
       expect(html).not.toContain("Redistribution terms ↗");
       expect(html).not.toContain("Developer reported");
+    } else {
+      expect(html).toContain("Coverage unavailable for this selection");
     }
   });
 

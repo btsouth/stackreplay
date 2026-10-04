@@ -231,6 +231,8 @@ test("unscored selections change only after explicit recovery and retain browser
     "Qwen 3.8 Max, Kimi K3: no reported scores in this edition.",
   );
   await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Max" })).toBeVisible();
+  await expect(page.locator(".bench-picker")).toContainText("No verified scores yet");
+  await expect(page.getByRole("button", { name: "Download JSON", exact: true })).toBeEnabled();
   await expect(page).toHaveURL(/models=qwen-3-8-max%2Ckimi-k3/);
   await page.getByRole("button", { name: "Show models with reported scores", exact: true }).click();
   await expect(page.locator(".bench-empty")).toHaveCount(0);
@@ -335,7 +337,7 @@ test("Download JSON retains old source sheets, full provenance and redistributio
   );
 });
 
-test("Download JSON allows empty views and disables invalid edition, source and pins", async ({
+test("Download JSON allows valid empty views, rejects unresolved coverage and recovers current evidence", async ({
   page,
 }, testInfo) => {
   await page.goto("/benchmarks?models=gpt-6-1-sol&category=security");
@@ -351,22 +353,40 @@ test("Download JSON allows empty views and disables invalid edition, source and 
   expect(payload.rows).toEqual([]);
   expect(payload.requested.modelIds).toEqual(["gpt-6-1-sol"]);
   expect(payload.requested.category).toBe("security");
-  for (const query of [
-    "edition=unavailable",
-    "source=unavailable",
-    "observation=unavailable",
-    "models=unknown",
+  for (const { query, coverageCopy } of [
+    {
+      query: "edition=unavailable&models=qwen-3-8-max",
+      coverageCopy: "Coverage unknown for this edition",
+    },
+    { query: "source=unavailable", coverageCopy: "Coverage unavailable for this selection" },
+    { query: "observation=unavailable", coverageCopy: "Coverage unavailable for this selection" },
+    { query: "models=unknown", coverageCopy: "Coverage unavailable for this selection" },
   ]) {
     await page.goto(`/benchmarks?${query}`);
     await expect(button).toBeDisabled();
     await expect(button).toHaveAttribute("aria-describedby", "benchmark-selection-error");
-    await expect(page.locator(".bench-page").getByRole("alert")).toBeVisible();
+    const errorPanel = page.locator(".bench-empty");
+    await expect(errorPanel.getByRole("alert")).toBeVisible();
+    await expect(errorPanel).toContainText("No benchmark coverage is asserted for this selection.");
+    await expect(errorPanel).not.toContainText("No reported benchmarks for this selection.");
+    await expect(errorPanel).not.toContainText("no reported scores in this edition");
+    await expect(page.locator(".bench-coverage-note")).toHaveCount(0);
+    await expect(page.locator(".bench-picker")).toContainText(coverageCopy);
+    await expect(page.locator(".bench-picker")).not.toContainText("No verified scores yet");
     await expect(page.locator(".bench-header")).toContainText(
       "Evidence unavailable for this selection.",
     );
     await expect(page.locator(".bench-header")).not.toContainText("Developer reported");
     await expect(page.locator(".bench-header")).not.toContainText("Latest check");
     await expect(page.locator("tbody tr")).toHaveCount(0);
+    await page.getByRole("button", { name: "Show current edition with reported scores" }).click();
+    await expect(errorPanel.getByRole("alert")).toHaveCount(0);
+    await expect(button).toBeEnabled();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
+    await expect(page).not.toHaveURL(
+      /edition=unavailable|source=unavailable|observation=unavailable|models=unknown/,
+    );
   }
 });
 

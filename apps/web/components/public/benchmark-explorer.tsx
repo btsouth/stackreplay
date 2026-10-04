@@ -165,8 +165,10 @@ export function BenchmarkExplorer({
   const selectedModels = state.modelIds
     .map((id) => models.find((m) => m.id === id))
     .filter((m): m is BenchmarkModel => Boolean(m));
-  const scoredModels = reportedModelIds(data, models);
-  const unscoredModels = selectedModels.filter((model) => !scoredModels.includes(model.id));
+  const scoredModels = editionData ? reportedModelIds(editionData, models) : [];
+  const unscoredModels = editionData
+    ? selectedModels.filter((model) => !scoredModels.includes(model.id))
+    : [];
   const evidence = benchmarkEvidenceSummary(data, visible);
   const presentSources = evidence.sources;
   const visibleSource = presentSources.length === 1 ? presentSources[0] : undefined;
@@ -332,11 +334,13 @@ export function BenchmarkExplorer({
                     {m.name}
                     <small>
                       {m.developer} ·{" "}
-                      {data.sourceSets
-                        .flatMap((s) => s.observations)
-                        .filter((o) => o.modelId === m.id).length
-                        ? "Evidence available"
-                        : "No verified scores yet"}
+                      {!editionData
+                        ? "Coverage unknown for this edition"
+                        : error
+                          ? "Coverage unavailable for this selection"
+                          : scoredModels.includes(m.id)
+                            ? "Evidence available"
+                            : "No verified scores yet"}
                     </small>
                   </span>
                 </label>
@@ -405,18 +409,39 @@ export function BenchmarkExplorer({
           </button>
         ))}
       </fieldset>
-      <p className="bench-table-guide">
-        Scores verified against original reports, not independently reproduced. Select a score for
-        its setup and evidence.
-        {!source && " Shared benchmarks appear first."} Highlighted: highest reported score, or
-        lowest where lower is better. Setups may differ.
-      </p>
-      {error && (
-        <p id="benchmark-selection-error" role="alert" className="bench-empty">
-          {error}
+      {!error && (
+        <p className="bench-table-guide">
+          Scores verified against original reports, not independently reproduced. Select a score for
+          its setup and evidence.
+          {!source && " Shared benchmarks appear first."} Highlighted: highest reported score, or
+          lowest where lower is better. Setups may differ.
         </p>
       )}
-      {visible.length > 0 ? (
+      {error ? (
+        <section className="bench-empty" aria-labelledby="benchmark-empty-title">
+          <h2 id="benchmark-empty-title">Comparison unavailable</h2>
+          <p id="benchmark-selection-error" role="alert">
+            {error}
+          </p>
+          <p>
+            No benchmark coverage is asserted for this selection. Your selected models remain
+            unchanged.
+          </p>
+          <button
+            type="button"
+            className="market-link"
+            disabled={!ready}
+            onClick={() =>
+              change({
+                edition: benchmarkEdition,
+                ...reportedScoresSelection(currentData, models),
+              })
+            }
+          >
+            Show current edition with reported scores
+          </button>
+        </section>
+      ) : visible.length > 0 ? (
         <section
           className="bench-table-scroll"
           tabIndex={0}
@@ -525,7 +550,7 @@ export function BenchmarkExplorer({
           </button>
         </div>
       )}
-      {!source && unscoredModels.length > 0 && (
+      {!error && !source && unscoredModels.length > 0 && (
         <p className="bench-coverage-note">
           {unscoredModels.map((m) => m.name).join(", ")}: no reported scores in this edition. These
           models remain selected until you choose another selection.
