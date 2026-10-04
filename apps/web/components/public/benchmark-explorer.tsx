@@ -10,10 +10,14 @@ import {
   evidenceLabel,
   frontierModelIds,
   observationId,
-  resolveComparison,
 } from "@stackreplay/benchmarks";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  benchmarkEvidenceSummary,
+  buildBenchmarkExport,
+  resolveBenchmarkView,
+} from "@/lib/benchmark-export";
 import { type BenchmarkState, benchmarkUrl, parseBenchmarkState } from "@/lib/benchmark-state";
 
 export interface BenchmarkModel {
@@ -156,41 +160,17 @@ export function BenchmarkExplorer({
     setCopied(false);
     window.history.pushState(null, "", benchmarkUrl(next));
   }
-  let error = state.error;
-  let rows: ReturnType<typeof resolveComparison> = [];
-  try {
-    if (!editionData)
-      throw new Error(
-        "This benchmark edition is unavailable. Choose Frontier to return to the current edition.",
-      );
-    rows = resolveComparison(data, state.modelIds, state);
-  } catch (e) {
-    error = e instanceof Error ? e.message : "Invalid comparison";
-  }
-  const visible = rows.filter(
-    (r) => state.category === "all" || r.definition.category === state.category,
-  );
-  if (!state.sourceSetId)
-    visible.sort(
-      (a, b) =>
-        Number(b.cells.every((c) => c.observation)) - Number(a.cells.every((c) => c.observation)),
-    );
+  const { rows, visible, error } = resolveBenchmarkView(editionData, state);
   const source = data.sourceSets.find((s) => s.id === state.sourceSetId);
   const selectedModels = state.modelIds
     .map((id) => models.find((m) => m.id === id))
     .filter((m): m is BenchmarkModel => Boolean(m));
   const scoredModels = reportedModelIds(data, models);
   const unscoredModels = selectedModels.filter((model) => !scoredModels.includes(model.id));
-  const presentSources = data.sourceSets.filter((s) =>
-    rows.some((r) => r.cells.some((c) => c.observation?.sourceSetId === s.id)),
-  );
-  const evidenceLabels = [
-    ...new Set((source ? [source] : presentSources).map((s) => evidenceLabel(s.evidenceClass))),
-  ];
-  const checkedAt = rows
-    .flatMap((r) => r.cells.flatMap((c) => (c.observation ? [c.observation.checkedAt] : [])))
-    .sort()
-    .at(-1);
+  const evidence = benchmarkEvidenceSummary(data, visible);
+  const presentSources = evidence.sources;
+  const visibleSource = presentSources.length === 1 ? presentSources[0] : undefined;
+  const checkedAt = evidence.checkedDates.at(-1);
   const activeRow = detail ? rows.find((r) => r.definition.id === detail.definition.id) : undefined;
   async function copy() {
     try {
@@ -199,6 +179,21 @@ export function BenchmarkExplorer({
     } catch {
       window.history.replaceState(null, "", benchmarkUrl(state));
     }
+  }
+  function download() {
+    if (error) return;
+    const payload = buildBenchmarkExport({ editions, models, state, origin: location.origin });
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `stackreplay-benchmarks-${state.edition}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    // Leave the URL alive until the browser has started consuming the download.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
     <div className="bench-page">
@@ -210,31 +205,37 @@ export function BenchmarkExplorer({
             Exact benchmark versions. Verified reported scores. Each evaluation keeps its source and
             setup.
           </p>
+          <p className="bench-source-label">
+            {error ? "Evidence unavailable for this selection." : evidence.line}
+          </p>
         </div>
         <aside className="bench-source-card">
           <p className="market-kicker">{source ? "Source sheet" : "Reviewed evidence"}</p>
           <h2>
-            {source?.evaluator ??
-              (presentSources.length > 1
+            {error
+              ? "Evidence unavailable"
+              : presentSources.length > 1
                 ? "Multiple sources"
-                : (presentSources[0]?.evaluator ?? "Choose your models"))}
+                : (visibleSource?.evaluator ?? "No evidence in this view")}
           </h2>
-          <p>{source?.title ?? "Compare the models you choose"}</p>
           <p>
-            {source
-              ? date(source.publishedAt)
-              : checkedAt
-                ? `Checked ${date(checkedAt)}`
-                : "Reviewed evidence edition"}
-            {evidenceLabels.length > 0 && ` · ${evidenceLabels.join(" · ")}`}
+            {error
+              ? "Choose a valid comparison"
+              : (visibleSource?.title ?? "Compare the models you choose")}
+          </p>
+          <p>
+            {!error && visibleSource && `Published ${date(visibleSource.publishedAt)} · `}
+            {!error && checkedAt
+              ? `Latest check ${date(checkedAt)}`
+              : "No visible evidence to summarize"}
           </p>
           <div className="bench-card-counts">
             <span>
               <strong>{selectedModels.length}</strong> models
             </span>
             <span>
-              <strong>{rows.length}</strong> {state.coverage === "shared" ? "shared" : "reported"}{" "}
-              benchmarks
+              <strong>{visible.length}</strong>{" "}
+              {state.coverage === "shared" ? "shared" : "reported"} benchmarks
             </span>
           </div>
           <a href="#benchmark-methodology">Methodology & sources ↓</a>
@@ -276,6 +277,15 @@ export function BenchmarkExplorer({
         </button>
         <button type="button" className="bench-text-button" onClick={copy}>
           {copied ? "Link copied" : "Copy comparison link"}
+        </button>
+        <button
+          type="button"
+          className="bench-text-button"
+          onClick={download}
+          disabled={!ready || Boolean(error)}
+          aria-describedby={error ? "benchmark-selection-error" : undefined}
+        >
+          Download JSON
         </button>
       </div>
       {!source && (
@@ -402,7 +412,7 @@ export function BenchmarkExplorer({
         lowest where lower is better. Setups may differ.
       </p>
       {error && (
-        <p role="alert" className="bench-empty">
+        <p id="benchmark-selection-error" role="alert" className="bench-empty">
           {error}
         </p>
       )}
@@ -528,7 +538,7 @@ export function BenchmarkExplorer({
       >
         <div className="market-section-title">
           <h2 id="benchmark-methodology-title">Methodology & sources</h2>
-          <span>{state.edition}</span>
+          <span>{editionData ? state.edition : "Requested edition unavailable"}</span>
         </div>
         <p>
           Benchmark versions, metrics and task subsets remain distinct. Different efforts, tools,
@@ -555,7 +565,7 @@ export function BenchmarkExplorer({
             plan capacity or model identity.
           </p>
         </details>
-        {data.sourceSets.map((s, i) => (
+        {(editionData?.sourceSets ?? []).map((s, i) => (
           <details key={s.id}>
             <summary>
               <span className="bench-source-number">{i + 1}</span> {s.evaluator} · {s.title} ·{" "}
@@ -581,7 +591,11 @@ export function BenchmarkExplorer({
               </a>
             </p>
             <p>
-              {s.redistribution.rationale} Checked {date(s.redistribution.checkedAt)}.
+              {s.evaluator} · {s.title}. {s.redistribution.rationale} Checked{" "}
+              {date(s.redistribution.checkedAt)}.{" "}
+              <a href={s.redistribution.termsUrl} target="_blank" rel="noreferrer">
+                Redistribution terms ↗
+              </a>
             </p>
           </details>
         ))}

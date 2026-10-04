@@ -99,3 +99,17 @@ to definitions. New harness/effort alternatives need distinct source-set IDs.
 Never overwrite an existing edition to refresh scores; add a reviewed edition
 and retain old edition data for pinned links. The current edition uses manual review and
 checked-in data. Automatic ingestion and score-based Replay remain out of scope.
+
+## Selected-view exports
+
+Download JSON preserves stored attribution through each source's evaluator,
+title, original URLs, methodology and redistribution record. Publication dates
+remain publication dates; observation and redistribution checked dates retain
+their separate meanings. Source disclosures link the stored redistribution terms.
+
+The selected rows include their exact observations, configuration notes and
+selection reasons. The explicitly labelled fullProvenance appendix retains the
+complete selected edition, including alternatives and sources outside the view.
+No rounding, missing-score estimates, newly inferred configuration, blanket
+independent-data license or publisher artwork is added. A download does not admit
+new evidence or claim StackReplay reproduced any evaluation.
