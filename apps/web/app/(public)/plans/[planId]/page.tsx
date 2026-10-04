@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PlanHistory, PlanTermsNotice } from "@/components/plan-history";
 import { MarketFooter } from "@/components/public/market-header";
 import { LimitTable, ModelRuleList } from "@/components/public/plan-facts";
+import { PlanPriceCalculator } from "@/components/public/plan-price-calculator";
 import { SourceList } from "@/components/public/provenance";
 import { PublishedSubscriptionTerms } from "@/components/public/published-subscription-terms";
 import { SubscriptionModelAccess } from "@/components/public/subscription-model-access";
@@ -16,6 +17,7 @@ import { planTools, planUsage } from "@/lib/market-discovery";
 import { loadPublicDirectory } from "@/lib/public-directory";
 import {
   comparePublicPlanPrices,
+  publicPlanPrice,
   publicPlanPricePresentation,
   publicPlanPriceText,
 } from "@/lib/public-plan-price";
@@ -45,6 +47,8 @@ export default async function PlanPage({ params }: Props) {
   const plan = catalog.planById(planId);
   if (!plan) notFound();
   const facts = buildCompareFacts(plan, catalog.modelById);
+  const price = publicPlanPrice(plan);
+  const calculatorSource = plan.sources[0];
   const tools = planTools(plan);
   const practicalTerms =
     plan.kind === "catalog_plan"
@@ -105,6 +109,17 @@ export default async function PlanPage({ params }: Props) {
           </Link>
         </aside>
       </header>
+      {plan.kind === "public_offer" &&
+        plan.id === "devin-teams" &&
+        price.kind === "base_seat" &&
+        calculatorSource !== undefined && (
+          <PlanPriceCalculator
+            baseAmount={price.baseAmount}
+            seatAmount={price.seatAmount}
+            observedAt={plan.checkedAt}
+            source={calculatorSource}
+          />
+        )}
       <section className="market-detail-stats">
         <div>
           <p className="market-kicker mb-3">Works with</p>
