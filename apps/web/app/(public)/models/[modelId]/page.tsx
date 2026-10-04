@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ApiTokenEstimateSection } from "@/components/public/api-token-estimate-section";
 import { CopyApiId } from "@/components/public/copy-api-id";
 import { MarketFooter } from "@/components/public/market-header";
 import { ModelBenchmarks } from "@/components/public/model-benchmarks";
@@ -11,6 +12,7 @@ import {
 import { ModelServiceTiers } from "@/components/public/model-service-tiers";
 import { PromoTag } from "@/components/public/promo-tag";
 import { SourceList } from "@/components/public/provenance";
+import { apiTokenEstimateForModel } from "@/lib/api-token-estimate-source";
 import { basePrice, modelPrices, priceNumber } from "@/lib/market-discovery";
 import { MODEL_DECISION_DETAILS } from "@/lib/model-decision-details";
 import { modelPlanCount } from "@/lib/model-library";
@@ -189,6 +191,7 @@ export default async function ModelPage({ params }: Props) {
               and sources below.
             </p>
           ) : null}
+          <ApiTokenEstimateSection estimate={apiTokenEstimateForModel(model.id, catalog.asOf)} />
         </>
       )}
       {specifications && (
