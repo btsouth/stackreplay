@@ -272,7 +272,7 @@ export function evaluateStackCandidate(input: StackCandidateInput): StackCandida
               : "estimated",
         evidence,
       };
-      routeFixed = parseAmount(version.price.amount);
+      routeFixed = parseAmount(version.price.amount).mul(route.target.quantity ?? 1);
     }
     fixed = fixed.plus(routeFixed);
     variable = variable.plus(routeVariable);
@@ -335,7 +335,14 @@ export function evaluateStackCandidate(input: StackCandidateInput): StackCandida
     assignments,
     routes,
     assumptions: [
-      "One full monthly charge per selected subscription; no proration, renewal replay or monthly extrapolation.",
+      "One full monthly charge per purchased account; no proration, renewal replay or monthly extrapolation.",
+      ...(ordered.some(
+        (route) => route.target.type === "subscription" && (route.target.quantity ?? 1) > 1,
+      )
+        ? [
+            "Account quantities scale aggregate numeric capacity with the original reset schedule, not independent account pools.",
+          ]
+        : []),
       "Each event represents one request. Aggregate logs must not be used as request-level demand.",
       "Recorded demand only; missing histories and other account usage are not reconstructed. No allowance is consumed before the observation period.",
       "Priority routing is a configured strategy, not a proof of minimum cost. Each call is assigned atomically.",

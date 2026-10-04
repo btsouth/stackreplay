@@ -2,6 +2,7 @@
 
 import { bundledPlansAt } from "@stackreplay/catalog/bundled";
 import {
+  addAmounts,
   composeValueScope,
   formatCents,
   formatUsd,
@@ -12,7 +13,13 @@ import {
 import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { PriceReceipt } from "@/components/replay/price-receipt";
-import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import {
+  readCurrentStack,
+  readStackSubscriptions,
+  stackCounts,
+  subscribeCurrentStack,
+  writeCurrentStack,
+} from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
 import type { SourceSummary } from "@/lib/worker-protocol";
 import type { Insight, WorkloadProfile } from "@/lib/workload-profile";
@@ -306,8 +313,12 @@ export function CurrentSpend({
   rulesAsOf: string;
 }) {
   const [stack, setStack] = useState<TargetKey[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   useEffect(() => {
-    const refresh = () => setStack(readCurrentStack());
+    const refresh = () => {
+      setStack(readCurrentStack());
+      setCounts(stackCounts(readStackSubscriptions()));
+    };
     refresh();
     return subscribeCurrentStack(refresh);
   }, []);
@@ -318,7 +329,11 @@ export function CurrentSpend({
   const chosen = plans.filter((plan) => stack.includes(`plan:${plan.id}`));
   const rows = chosen.map((plan) => ({
     plan,
-    cents: prorateCents(plan.price.amount, plan.price.interval, periodDays),
+    cents: prorateCents(
+      addAmounts(Array.from({ length: counts[`plan:${plan.id}`] ?? 1 }, () => plan.price.amount)),
+      plan.price.interval,
+      periodDays,
+    ),
   }));
   const complete = rows.every((row) => row.cents !== undefined);
   const totalCents = rows.reduce((sum, row) => sum + (row.cents ?? 0n), 0n);
@@ -352,7 +367,7 @@ export function CurrentSpend({
               {rows
                 .map(
                   (row) =>
-                    `${row.plan.name}: ${formatUsd(row.plan.price.amount)} per ${row.plan.price.interval} × ${count(periodDays)} days × ${row.plan.price.interval === "month" ? "12 ÷ 365" : "1 ÷ 365"} = ${formatCents(row.cents ?? 0n)}`,
+                    `${row.plan.name}${(counts[`plan:${row.plan.id}`] ?? 1) > 1 ? ` × ${counts[`plan:${row.plan.id}`]}` : ""}: ${formatUsd(row.plan.price.amount)} per ${row.plan.price.interval} × ${count(periodDays)} days × ${row.plan.price.interval === "month" ? "12 ÷ 365" : "1 ÷ 365"} = ${formatCents(row.cents ?? 0n)}`,
                 )
                 .join("; ")}
               .

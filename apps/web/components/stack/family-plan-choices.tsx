@@ -16,21 +16,65 @@ export const NON_PLAN_CHOICES = [
   { value: "not-sure", label: "Not sure" },
 ] as const;
 
-/** One-click radio confirmation by default; multiple plans is an explicit edit. */
+export function QuantityStepper({
+  name,
+  quantity,
+  onChange,
+}: {
+  name: string;
+  quantity: number;
+  onChange: (quantity: number) => void;
+}) {
+  return (
+    <fieldset className="plan-quantity" aria-label={`${name} account quantity`}>
+      <span>Accounts</span>
+      <button
+        type="button"
+        aria-label={`Decrease ${name} quantity`}
+        disabled={quantity <= 1}
+        onClick={() => onChange(quantity - 1)}
+      >
+        −
+      </button>
+      <output aria-label={`${name} quantity`}>{quantity}</output>
+      <button
+        type="button"
+        aria-label={`Increase ${name} quantity`}
+        disabled={quantity >= 10}
+        onClick={() => onChange(quantity + 1)}
+      >
+        +
+      </button>
+    </fieldset>
+  );
+}
+
+/** One-click confirmation, with quantities and an explicit multi-plan edit. */
 export function FamilyPlanChoices({
   group,
   plans,
   answer,
   onChange,
+  counts = {},
   prefix = "discovery",
 }: {
   group: DiscoveryGroup;
   plans: readonly DiscoveryPlan[];
   answer: DiscoveryAnswer | undefined;
   onChange: (answer: DiscoveryAnswer | undefined) => void;
+  counts?: Readonly<Record<string, number>>;
   prefix?: string;
 }) {
-  const multiple = typeof answer === "object";
+  const object = typeof answer === "object" ? answer : undefined;
+  const multiple = !!object && object.multiple !== false;
+  const selectedKeys =
+    object?.planTargets ??
+    (typeof answer === "string" && answer.startsWith("plan:")
+      ? [answer as TargetKey]
+      : answer === "keep-current"
+        ? group.currentTargets
+        : []);
+  const quantities = { ...counts, ...object?.quantities };
   const choices = [
     ...group.candidates.map((candidate) => ({
       key: `plan:${candidate.planId}` as TargetKey,
@@ -42,7 +86,7 @@ export function FamilyPlanChoices({
           : "No reviewed access summary",
       coverage:
         candidate.access.checkedAt && candidate.access.observedModelCount > 0
-          ? `Lists ${candidate.access.listedModelIds.length} of ${candidate.access.observedModelCount} observed models`
+          ? `Includes ${candidate.access.listedModelIds.length} of your ${candidate.access.observedModelCount} models`
           : undefined,
     })),
     ...(multiple
@@ -63,48 +107,65 @@ export function FamilyPlanChoices({
       : []),
   ];
   return (
-    <div className="space-y-3">
-      <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="family-plan-choices">
+      <div className="plan-choice-grid">
         {choices.map((choice) => {
-          const selected = multiple
-            ? answer.planTargets.includes(choice.key)
-            : answer === choice.key;
+          const selected = selectedKeys.includes(choice.key) && answer !== "keep-current";
+          const quantity = quantities[choice.key] ?? 1;
           return (
-            <label
-              key={choice.key}
-              className={`flex min-h-20 min-w-0 cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors hover:bg-surface-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${selected ? "border-accent bg-surface-2" : "border-control-border"}`}
-            >
-              <input
-                type={multiple ? "checkbox" : "radio"}
-                name={`${prefix}-${group.groupId}`}
-                checked={selected}
-                onChange={() =>
-                  onChange(
-                    multiple
-                      ? {
-                          planTargets: selected
-                            ? answer.planTargets.filter((key) => key !== choice.key)
-                            : [...answer.planTargets, choice.key],
-                        }
-                      : choice.key,
-                  )
-                }
-                className="mt-0.5 h-6 w-6 shrink-0 accent-accent"
-                data-testid={`${prefix}-plan-${choice.key.slice(5)}`}
-              />
-              <span className="min-w-0 space-y-1 break-words">
-                <span className="block text-base font-medium tracking-tight">{choice.name}</span>
-                <span className="block font-mono text-sm text-foreground">
-                  {choice.price
-                    ? `Published price: ${publishedPriceText(choice.price)}`
-                    : "Current published price unavailable"}
+            <div key={choice.key} className={`plan-choice ${selected ? "is-selected" : ""}`}>
+              <label className="plan-choice-label">
+                <input
+                  type={multiple ? "checkbox" : "radio"}
+                  name={`${prefix}-${group.groupId}`}
+                  checked={selected}
+                  onChange={() =>
+                    onChange(
+                      multiple
+                        ? {
+                            planTargets: selected
+                              ? selectedKeys.filter((key) => key !== choice.key)
+                              : [...selectedKeys, choice.key],
+                            quantities,
+                          }
+                        : { planTargets: [choice.key], quantities, multiple: false },
+                    )
+                  }
+                  data-testid={`${prefix}-plan-${choice.key.slice(5)}`}
+                />
+                <span>
+                  <span className="plan-choice-name">{choice.name}</span>
+                  <span className="plan-choice-price">
+                    {choice.price
+                      ? `Published price: ${publishedPriceText(choice.price)}`
+                      : "Current published price unavailable"}
+                  </span>
+                  {choice.coverage ? (
+                    <span className="plan-choice-coverage">{choice.coverage}</span>
+                  ) : null}
                 </span>
-                <span className="block text-xs text-muted-foreground">{choice.evidence}</span>
-                {choice.coverage ? (
-                  <span className="block text-xs text-muted-foreground">{choice.coverage}</span>
-                ) : null}
-              </span>
-            </label>
+              </label>
+              {selected ? (
+                <QuantityStepper
+                  name={choice.name}
+                  quantity={quantity}
+                  onChange={(value) =>
+                    onChange({
+                      planTargets: selectedKeys,
+                      quantities: { ...quantities, [choice.key]: value },
+                      multiple,
+                    })
+                  }
+                />
+              ) : null}
+              <details className="plan-info">
+                <summary aria-label={`About ${choice.name}`}>i</summary>
+                <div>
+                  {choice.evidence}. Prices are published prices, not your actual bill. Quantities
+                  count purchased accounts; they do not assign recorded calls to an account.
+                </div>
+              </details>
+            </div>
           );
         })}
         {!multiple &&
@@ -113,13 +174,12 @@ export function FamilyPlanChoices({
           group.currentTargets.some(
             (key) => !group.candidates.some((candidate) => `plan:${candidate.planId}` === key),
           )) ? (
-          <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-control-border p-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring">
+          <label className="plan-keep-current">
             <input
               type="radio"
               name={`${prefix}-${group.groupId}`}
               checked={answer === "keep-current"}
               onChange={() => onChange("keep-current")}
-              className="h-6 w-6 shrink-0 accent-accent"
             />
             Keep my current selections
           </label>
@@ -127,48 +187,33 @@ export function FamilyPlanChoices({
       </div>
       <button
         type="button"
-        className="min-h-11 rounded-sm text-sm text-accent"
+        className="plan-multiple"
         aria-pressed={multiple}
         onClick={() =>
           onChange(
             multiple
-              ? initialDiscoveryAnswer(group)
-              : {
-                  planTargets:
-                    answer === "keep-current"
-                      ? group.currentTargets
-                      : typeof answer === "string" && answer.startsWith("plan:")
-                        ? [answer as TargetKey]
-                        : [],
-                },
+              ? selectedKeys.length === 1
+                ? { planTargets: selectedKeys, quantities, multiple: false }
+                : initialDiscoveryAnswer(group)
+              : { planTargets: selectedKeys, quantities },
           )
         }
       >
         {multiple ? "Choose one plan" : "I pay for multiple plans"}
       </button>
-      {multiple ? (
-        <p className="text-xs text-muted-foreground">
-          Select each distinct plan you currently pay for. Multiple accounts on the same plan and
-          seat quantities are not included.
-        </p>
-      ) : null}
-      <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <fieldset className="plan-segments" aria-label="Other billing arrangements">
         {NON_PLAN_CHOICES.map((choice) => (
-          <label
-            key={choice.value}
-            className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-md border px-3 py-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${answer === choice.value ? "border-accent bg-surface-2" : "border-control-border"}`}
-          >
+          <label key={choice.value} className={answer === choice.value ? "is-selected" : ""}>
             <input
               type="radio"
               name={`${prefix}-${group.groupId}`}
               checked={answer === choice.value}
               onChange={() => onChange(choice.value)}
-              className="h-6 w-6 shrink-0 accent-accent"
             />
             <span>{choice.label}</span>
           </label>
         ))}
-      </div>
+      </fieldset>
     </div>
   );
 }

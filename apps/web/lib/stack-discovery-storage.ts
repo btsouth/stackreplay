@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { readCurrentStack, writeCurrentStack } from "./current-stack";
+import {
+  applyPlanList,
+  readStackSubscriptions,
+  stackKeys,
+  subscriptionQuantity,
+  writeStackSubscriptions,
+} from "./current-stack";
 import {
   applyDiscoveryAnswers,
   DISCOVERY_FAMILIES,
@@ -104,8 +110,28 @@ export function confirmDiscovery(
   now: number,
 ): { stackSaved: boolean; preferencesSaved: boolean } {
   const namespace = record ? discoveryNamespace(record) : "";
-  const next = applyDiscoveryAnswers(readCurrentStack(namespace), groups, answers);
-  const stackSaved = writeCurrentStack(next, namespace);
+  const current = readStackSubscriptions(namespace);
+  const next = applyPlanList(current, applyDiscoveryAnswers(stackKeys(current), groups, answers));
+  // Preserve linked rows and identities. Only an explicit quantity edit changes counts.
+  for (const answer of Object.values(answers)) {
+    if (typeof answer !== "object") continue;
+    for (const plan of answer.planTargets) {
+      const requested = answer.quantities?.[plan];
+      if (requested === undefined) continue;
+      let remaining = subscriptionQuantity({ quantity: requested });
+      const rows = next.filter((entry) => entry.plan === plan);
+      for (const row of rows) {
+        const quantity = Math.min(remaining, subscriptionQuantity(row));
+        row.quantity = quantity;
+        remaining -= quantity;
+      }
+      if (remaining > 0 && rows[0]) rows[0].quantity = (rows[0].quantity ?? 0) + remaining;
+    }
+  }
+  const stackSaved = writeStackSubscriptions(
+    next.filter((entry) => entry.quantity !== 0),
+    namespace,
+  );
   const preferences = dismissDiscovery(groups, readDiscoveryPreferences(namespace), now);
   for (const group of groups) {
     const answer = answers[group.groupId];

@@ -330,3 +330,39 @@ for (const theme of ["dark", "light"] as const) {
     await expect(panel(page)).toBeVisible();
   });
 }
+
+test("Max 5x quantity two persists, adds Pro and prices the stack on mobile and desktop", async ({
+  page,
+}) => {
+  await page.setViewportSize({
+    width: test.info().project.name === "mobile" ? 390 : 1440,
+    height: 1000,
+  });
+  await scan(page);
+  await page.getByTestId("discovery-plan-anthropic-claude-max-5x").check();
+  const group = page.getByTestId("discovery-group-claude");
+  await group.getByRole("button", { name: "Increase Claude Max 5x quantity", exact: true }).click();
+  await expect(group.getByLabel("Claude Max 5x quantity", { exact: true })).toHaveText("2");
+  await group.getByRole("button", { name: "I pay for multiple plans", exact: true }).click();
+  await page.getByTestId("discovery-plan-anthropic-claude-pro").check();
+  await panel(page).getByRole("button", { name: "Confirm stack", exact: true }).click();
+  const subscriptions = await page.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem("stackreplay.stack-subscriptions.v2") ?? "null")
+        .subscriptions,
+  );
+  expect(
+    subscriptions.find((s: { plan: string }) => s.plan === "plan:anthropic-claude-max-5x").quantity,
+  ).toBe(2);
+  await page.reload();
+  await page.getByRole("button", { name: "Review discovered stack →" }).click();
+  await group.getByRole("button", { name: "I pay for multiple plans", exact: true }).click();
+  await expect(group.getByLabel("Claude Max 5x quantity", { exact: true })).toHaveText("2");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await panel(page).getByRole("button", { name: "Confirm stack", exact: true }).click();
+  await page.getByRole("link", { name: "Manage My Stack →", exact: true }).click();
+  await expect(page.getByTestId("stack-published-total")).toContainText("$220");
+  const importId = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/compare?import=${encodeURIComponent(importId ?? "")}&decision=stack`);
+  await expect(page.getByTestId("compare-price")).toContainText("$220.00/month");
+});

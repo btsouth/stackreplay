@@ -33,10 +33,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--muted-foreground);
 }
 .stack-header-actions {
@@ -146,7 +146,7 @@
   overflow-wrap: anywhere;
 }
 .stack-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 .stack-notice {
@@ -194,7 +194,7 @@
   margin-top: 0.4rem;
 }
 .stack-figure {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: clamp(1.9rem, 3vw, 2.7rem);
   font-weight: 400;
   letter-spacing: -0.055em;
@@ -222,7 +222,7 @@
   color: var(--foreground);
 }
 .stack-summary-value {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   color: var(--foreground);
 }
@@ -311,7 +311,7 @@
   min-width: 0;
 }
 .stack-period-line strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
@@ -387,10 +387,10 @@
   color: var(--muted-foreground);
 }
 .stack-evidence-word {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
   white-space: nowrap;
 }
 .stack-evidence-measured {
@@ -431,9 +431,9 @@
   border-bottom: 1px solid var(--border);
 }
 .stack-investigation-index {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  letter-spacing: normal;
   color: var(--accent);
   padding-top: 0.2rem;
 }
@@ -456,7 +456,7 @@
   text-align: right;
 }
 .stack-investigation-delta strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 1.6rem;
   letter-spacing: -0.05em;
@@ -489,7 +489,7 @@
   min-width: 0;
 }
 .stack-investigation-value {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
@@ -565,7 +565,7 @@
   color: var(--muted-foreground);
 }
 .stack-opportunity-figures dd {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
 }
@@ -584,7 +584,7 @@
   gap: 0.2rem;
 }
 .stack-opportunity-delta strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 1.9rem;
   letter-spacing: -0.05em;
@@ -610,10 +610,10 @@
   align-items: baseline;
 }
 .stack-report-head {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--muted-foreground);
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border);
@@ -655,7 +655,7 @@
   white-space: nowrap;
 }
 .stack-report-figures dd {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.05rem;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -728,10 +728,10 @@
 }
 .stack-model-table caption {
   text-align: left;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--muted-foreground);
   padding-bottom: 0.5rem;
 }
@@ -746,7 +746,7 @@
   font-size: 0.7rem;
 }
 .stack-model-table td {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 .stack-outside {
@@ -778,10 +778,10 @@
   align-items: center;
 }
 .stack-accounts-head {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--muted-foreground);
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border);
@@ -818,7 +818,7 @@
   font-weight: 500;
 }
 .stack-account-figure {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   font-size: 0.9rem;
 }
@@ -994,7 +994,7 @@
   gap: 0.3rem;
 }
 .stack-scenario-totals strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 1.4rem;
   letter-spacing: -0.04em;
@@ -1106,7 +1106,7 @@
   flex-shrink: 0;
 }
 .stack-family .stack-caption {
-  font-size: 0.65rem;
+  font-size: 0.85rem;
 }
 .stack-methodology {
   border-top: 1px solid var(--border);

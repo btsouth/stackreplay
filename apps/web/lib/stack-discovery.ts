@@ -68,12 +68,16 @@ export const DISCOVERY_FAMILIES = [
 export type DiscoveryGroupId = (typeof DISCOVERY_FAMILIES)[number]["groupId"];
 export type DiscoveryState = "observed" | "narrowed" | "confirmed" | "unknown";
 export type NonPlanResponse = "work" | "api-other" | "none" | "not-sure";
-/** Explicit multiple distinct plans; never account quantities or duplicate seats. */
+/** Explicit plan selections and purchased account quantities. */
 export type DiscoveryAnswer =
   | TargetKey
   | NonPlanResponse
   | "keep-current"
-  | { planTargets: readonly TargetKey[] };
+  | {
+      planTargets: readonly TargetKey[];
+      quantities?: Readonly<Record<string, number>>;
+      multiple?: boolean;
+    };
 
 export function isNonPlanResponse(answer: DiscoveryAnswer): answer is NonPlanResponse {
   return typeof answer === "string" && ["work", "api-other", "none", "not-sure"].includes(answer);

@@ -26,6 +26,8 @@ export interface StackSubscription {
   /** Local identity of this subscription, stable across edits; never a plan or account id. */
   id: string;
   plan: TargetKey;
+  /** Accounts purchased on this plan. Legacy entries default to one. */
+  quantity?: number | undefined;
   /** The local account whose work this subscription is read against, when the person has said so. */
   account?: string | undefined;
 }
@@ -36,6 +38,21 @@ function isTargetKey(value: unknown): value is TargetKey {
     value.length <= 160 &&
     (value.startsWith("plan:") || value.startsWith("api:"))
   );
+}
+
+export function subscriptionQuantity(entry: Pick<StackSubscription, "quantity">): number {
+  return Number.isInteger(entry.quantity) &&
+    (entry.quantity ?? 0) >= 1 &&
+    (entry.quantity ?? 0) <= 10
+    ? (entry.quantity as number)
+    : 1;
+}
+
+export function stackCounts(entries: readonly StackSubscription[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const entry of entries)
+    counts[entry.plan] = (counts[entry.plan] ?? 0) + subscriptionQuantity(entry);
+  return counts;
 }
 
 const ID_PATTERN = /^[a-z0-9]{4,24}$/u;
@@ -69,13 +86,17 @@ function readStoredSubscriptions(namespace: string): StackSubscription[] | undef
   const valid: StackSubscription[] = [];
   for (const entry of subscriptions.slice(0, MAX_SUBSCRIPTIONS)) {
     if (typeof entry !== "object" || entry === null) continue;
-    const { id, plan, account } = entry as Record<string, unknown>;
+    const { id, plan, account, quantity } = entry as Record<string, unknown>;
     if (typeof id !== "string" || !ID_PATTERN.test(id) || seen.has(id) || !isTargetKey(plan))
       continue;
     seen.add(id);
     valid.push({
       id,
       plan,
+      ...(subscriptionQuantity({ quantity: typeof quantity === "number" ? quantity : undefined }) >
+      1
+        ? { quantity: quantity as number }
+        : {}),
       ...(plan.startsWith("plan:") && isAccountKey(account) ? { account } : {}),
     });
   }
@@ -161,6 +182,7 @@ export function writeStackSubscriptions(
     .map((entry) => ({
       id: entry.id,
       plan: entry.plan,
+      ...(subscriptionQuantity(entry) > 1 ? { quantity: subscriptionQuantity(entry) } : {}),
       ...(entry.plan.startsWith("plan:") && entry.account && isAccountKey(entry.account)
         ? { account: entry.account }
         : {}),
@@ -239,7 +261,7 @@ export function linkAccount(
   const linked = current.find((entry) => entry.account === account);
   if (plan === undefined)
     return current.map((entry) =>
-      entry.account === account ? { id: entry.id, plan: entry.plan } : entry,
+      entry.account === account ? { ...entry, account: undefined } : entry,
     );
   if (linked) return current.map((entry) => (entry === linked ? { ...entry, plan } : entry));
   const unlinked = current.find((entry) => entry.plan === plan && entry.account === undefined);

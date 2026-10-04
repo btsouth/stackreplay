@@ -9,7 +9,13 @@ import { PartialScanNotice } from "@/components/workload/evidence";
 import { count, plainRange } from "@/components/workload/format";
 import { MarketDecisionSurface } from "@/components/workload/market-decision";
 import type { CompareDecision } from "@/lib/compare-decision";
-import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
+import {
+  readCurrentStack,
+  readStackSubscriptions,
+  stackCounts,
+  subscribeCurrentStack,
+  writeCurrentStack,
+} from "@/lib/current-stack";
 import type { TargetKey } from "@/lib/routes";
 import { defaultRulesDate } from "@/lib/rules-date";
 import { browserTimeZone } from "@/lib/time-zone";
@@ -37,6 +43,7 @@ export function WorkloadCompare({
   }>();
   const [importId, setImportId] = useState<string | undefined>(initialImportId);
   const [current, setCurrent] = useState<TargetKey[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [stackLoaded, setStackLoaded] = useState(false);
   const [decision, setDecision] = useState<CompareDecision | undefined>(initialDecision);
   // The decision is kept in the address (replaced, not pushed), so returning
@@ -51,10 +58,18 @@ export function WorkloadCompare({
     if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
   }, [decision, importId, pathname, router]);
   const [rulesAsOf] = useState(defaultRulesDate);
-  useEffect(() => subscribeCurrentStack(() => setCurrent(readCurrentStack())), []);
+  useEffect(
+    () =>
+      subscribeCurrentStack(() => {
+        setCurrent(readCurrentStack());
+        setCounts(stackCounts(readStackSubscriptions()));
+      }),
+    [],
+  );
 
   useEffect(() => {
     setCurrent(readCurrentStack());
+    setCounts(stackCounts(readStackSubscriptions()));
     setStackLoaded(true);
     let cancelled = false;
     void client
@@ -237,6 +252,7 @@ export function WorkloadCompare({
             record={record}
             profile={profile}
             current={current}
+            counts={counts}
             rulesAsOf={rulesAsOf}
           />
         ) : null}
@@ -245,6 +261,7 @@ export function WorkloadCompare({
             record={record}
             profile={profile}
             current={current}
+            counts={counts}
             rulesAsOf={rulesAsOf}
             onCurrentChange={setStack}
           />

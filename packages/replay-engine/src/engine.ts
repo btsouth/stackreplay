@@ -51,6 +51,7 @@ import {
   validateInitialCapacity,
 } from "./initial-capacity.js";
 import { Decimal, ONE, parseAmount, toUnitString, ZERO } from "./money.js";
+import { planWithQuantity } from "./plan-quantity.js";
 import { PriceReceiptBuilder, type PriceReceiptV1 } from "./receipt.js";
 import {
   buildWarnings,
@@ -279,7 +280,10 @@ function replayWith(
       [`targetType=${target.type}`],
     );
 
-  const planVersion = resolveTargetPlan(target, catalog, context.rulesAsOf);
+  const planVersion = planWithQuantity(
+    resolveTargetPlan(target, catalog, context.rulesAsOf),
+    isSubscriptionTargetV1(target) ? target.quantity : 1,
+  );
   const events = validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
 
@@ -383,7 +387,17 @@ function replayWith(
     violations: evaluation.violations,
     unsupportedModels: collectUnsupportedModels(timed, resolution),
     ...(economics !== undefined ? { economics } : {}),
-    assumptions: buildAssumptions(planVersion, tracker, evaluation.constraints, reset, translation),
+    assumptions: [
+      ...buildAssumptions(planVersion, tracker, evaluation.constraints, reset, translation),
+      ...(isSubscriptionTargetV1(target) && (target.quantity ?? 1) > 1
+        ? [
+            {
+              id: "aggregate-account-capacity",
+              description: `${target.quantity} accounts use aggregate numeric capacity with the original reset schedule. Independent account pools and windows are not simulated.`,
+            },
+          ]
+        : []),
+    ],
     confidence,
     warnings: buildWarnings(tracker),
     versions: {

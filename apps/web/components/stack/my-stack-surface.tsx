@@ -10,6 +10,7 @@ import {
   readStackSubscriptions,
   restoreSubscription,
   type StackSubscription,
+  stackCounts,
   stackKeys,
   subscribeCurrentStack,
   writeStackSubscriptions,
@@ -181,6 +182,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     () =>
       buildMyStack({
         currentStack: stackKeys(stack ?? []),
+        counts: stackCounts(stack ?? []),
         rulesAsOf: DECISION_MARKET.rulesAt,
         workload:
           record && workload
@@ -1042,6 +1044,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
             ) : null}
             <fieldset aria-label="Your current plan">
               <FamilyPlanChoices
+                counts={stackCounts(stack ?? [])}
                 group={activeGroup}
                 plans={plans}
                 answer={answer}
