@@ -238,7 +238,7 @@ export function ReplayHomepage() {
                 tokens, cache included.
               </p>
             </div>
-            <div className="replay-mix-chart">
+            <div className="replay-mix-visual">
               <div className="replay-model-podium">
                 {sampleRecap.models.map((m, i) => (
                   <div
@@ -262,8 +262,10 @@ export function ReplayHomepage() {
                   </div>
                 ))}
               </div>
-              <Mix recap={sampleRecap} />
-              <p>Total tokens processed, week by week.</p>
+              <div className="replay-mix-chart">
+                <Mix recap={sampleRecap} />
+                <p>Total tokens processed, week by week.</p>
+              </div>
             </div>
           </div>
           <div className="replay-value replay-reveal">

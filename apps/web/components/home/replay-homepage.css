@@ -1602,53 +1602,53 @@
   .replay-home .replay-card {
     padding: 20px;
   }
-  .replay-card-top {
+  .replay-home .replay-card-top {
     font-size: 11px;
   }
-  .replay-card-top > span:first-child {
+  .replay-home .replay-card-top > span:first-child {
     font-size: 16px;
   }
-  .replay-card-period {
+  .replay-home .replay-card-period {
     margin-top: 15px;
     font-size: 10px;
   }
-  .replay-card-total {
+  .replay-home .replay-card-total {
     margin-bottom: 10px;
     gap: 2px;
   }
-  .replay-card-total strong {
+  .replay-home .replay-card-total strong {
     font-size: 62px;
   }
-  .replay-card-total span {
+  .replay-home .replay-card-total span {
     font-size: 12px;
   }
-  .replay-card-value {
+  .replay-home .replay-card-value {
     padding-bottom: 14px;
   }
-  .replay-card-value strong {
+  .replay-home .replay-card-value strong {
     font-size: 28px;
   }
-  .replay-card-value span {
+  .replay-home .replay-card-value span {
     font-size: 12px;
   }
-  .replay-card-models {
+  .replay-home .replay-card-models {
     margin-top: 16px;
   }
-  .replay-card-model-heading {
+  .replay-home .replay-card-model-heading {
     font-size: 10px;
     margin-bottom: 10px;
   }
-  .replay-card-model {
+  .replay-home .replay-card-model {
     font-size: 11px;
     gap: 8px;
     grid-template-columns: minmax(0, 1fr) 4.5ch 46px;
     margin-top: 12px;
   }
-  .replay-card-bottom {
+  .replay-home .replay-card-bottom {
     font-size: 8px;
     margin-top: 18px;
   }
-  .replay-card-formats {
+  .replay-home .replay-card-formats {
     margin-top: 20px;
   }
   .replay-story {
@@ -1703,5 +1703,87 @@
   .replay-closing {
     padding-top: 75px;
     padding-bottom: 75px;
+  }
+}
+
+/* A shared heading, then two views of the same token mix. */
+.replay-mix-section {
+  display: block;
+}
+.replay-mix-copy {
+  position: static;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 80px;
+  padding: 0;
+}
+.replay-mix-copy .replay-chapter {
+  grid-column: 1 / -1;
+}
+.replay-mix-copy h3 {
+  margin: 0;
+}
+.replay-mix-copy > p {
+  align-self: center;
+  max-width: 450px;
+}
+.replay-mix-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 80px;
+  margin-top: 35px;
+}
+.replay-mix-chart .recap-mix {
+  margin-top: 0;
+}
+@media (max-width: 1000px) {
+  .replay-mix-copy,
+  .replay-mix-visual {
+    gap: 30px;
+  }
+}
+@media (max-width: 700px) {
+  .replay-mix-copy,
+  .replay-mix-visual {
+    display: block;
+  }
+  .replay-mix-copy h3 {
+    margin: 18px 0;
+  }
+  .replay-mix-visual {
+    margin-top: 25px;
+  }
+  .replay-model-podium {
+    margin-top: 0;
+  }
+  .replay-mix-chart {
+    margin-top: 30px;
+  }
+  .replay-home .replay-actions {
+    flex-direction: row;
+    gap: 14px !important;
+    flex-wrap: wrap;
+  }
+  .replay-hero .replay-button {
+    gap: 12px;
+    padding: 14px 16px;
+    font-size: 12px;
+  }
+  .replay-hero .replay-text-button {
+    gap: 7px;
+    font-size: 11px;
+  }
+  .replay-home .replay-card-total {
+    display: block;
+  }
+  .replay-home .replay-card-total strong {
+    display: block;
+  }
+  .replay-home .replay-card-model {
+    font-size: 12px;
+  }
+  .replay-home .replay-card-bottom {
+    font-size: 9px;
   }
 }
