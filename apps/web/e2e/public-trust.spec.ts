@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  ["/", "StackReplay: explore AI models, providers and plans"],
+  ["/", "StackReplay: your AI coding, replayed."],
   ["/models", "Models"],
   ["/models/gpt-6-1-sol", "GPT-6.1 Sol"],
   ["/plans", "Subscriptions"],
@@ -41,15 +41,8 @@ for (const [path, title] of routes)
 
 test("home states scoped checks and methodology starts with catalog evidence", async ({ page }) => {
   await page.goto("/");
-  const coverage = page.getByTestId("home-coverage");
-  for (const label of [
-    "Prices reviewed",
-    "Plan terms checked",
-    "Benchmarks checked",
-    "Updates checked",
-  ])
-    await expect(coverage).toContainText(label);
-  await expect(coverage).not.toContainText("checked through");
+  await expect(page.locator("main")).toContainText("Your logs never leave your browser");
+  await expect(page.locator("main")).toContainText("Illustrative comparison");
   await page.goto("/methodology");
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
     "What the catalog covers",

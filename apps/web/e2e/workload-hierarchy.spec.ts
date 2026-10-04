@@ -78,8 +78,8 @@ test("saved complete billing augments the overview without taking over its scope
 }) => {
   await gotoImport(page);
   await page.getByTestId("demo-billing").click();
-  await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39");
   await waitForWorkload(page);
+  await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39");
   await expect(page.getByTestId("billing-summary-bar")).toContainText("$120.00 confirmed");
   await expect(page.getByTestId("billing-panel")).not.toBeVisible();
   await expect(page.getByTestId("overview-api-total")).toHaveText("$23.73 – $24.39");

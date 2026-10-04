@@ -249,7 +249,7 @@ export function ImportSurface({
   useEffect(() => {
     if (record === undefined || phase !== "ready") return;
     const request = generation.current;
-    const href = `/app/workload?import=${encodeURIComponent(record.id)}${initialTarget === undefined ? "" : `&target=${encodeURIComponent(initialTarget)}`}`;
+    const href = `/app/recap?import=${encodeURIComponent(record.id)}${initialTarget === undefined ? "" : `&target=${encodeURIComponent(initialTarget)}`}`;
     router.prefetch(href);
     const timer = window.setTimeout(() => {
       if (generation.current === request) router.replace(href);
@@ -530,7 +530,7 @@ export function ImportSurface({
               record={scanStage === "ready" ? record : undefined}
               ready={
                 <p className="mt-6 text-sm text-accent" role="status">
-                  Opening your workload…
+                  Opening your recap…
                 </p>
               }
               scan={scan}

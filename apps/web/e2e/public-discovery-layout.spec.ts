@@ -163,50 +163,19 @@ test("public discovery and hubs stay within 320px in both themes", async ({ page
   }
 });
 
-test("homepage leads with discovery, preserves keyboard routes and puts sourced updates below", async ({
-  page,
-  isMobile,
-}) => {
+test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMobile }) => {
   await page.goto("/");
-  await before(page, '[data-testid="home-model-comparison"]', '[data-testid="market-pulse"]');
-  await before(page, 'tbody[data-group="price"]', 'tbody[data-group="benchmarks"]');
-  await before(page, 'tbody[data-group="limits"]', 'tbody[data-group="benchmarks"]');
-  await before(page, 'tbody[data-group="access"]', 'tbody[data-group="benchmarks"]');
-  await expect(page.getByTestId("home-model-comparison")).toContainText("Editorial selection");
-  await expect(page.getByTestId("home-trust")).toContainText("never uploaded");
-  const rail = page.getByRole("navigation", { name: "Explore the AI market" });
-  await expect(rail.getByRole("link")).toHaveCount(3);
-  await expect(rail).toBeInViewport();
+  await expect(page.getByRole("link", { name: "Models & plans" })).toBeInViewport();
   await capture(page, `${isMobile ? "mobile-dark" : "desktop-light"}-home`);
   await accessible(page);
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /skip to content/iu })).toBeFocused();
+  await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
-  for (const name of ["Explore models", "Explore providers", "Compare plans"]) {
-    await page.keyboard.press("Tab");
-    await expect(rail.getByRole("link", { name, exact: true })).toBeFocused();
-  }
-  for (const [name, path] of [
-    ["Explore models", "/models"],
-    ["Explore providers", "/providers"],
-    ["Compare plans", "/compare"],
-  ] as const) {
-    const link = rail.getByRole("link", { name, exact: true });
-    await link.focus();
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new URL(path, page.url()).href);
-    await expect(page.getByTestId("home-hero")).toHaveCount(0);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await page.goBack();
-    await expect(page).toHaveURL(/\/#main-content$/u);
-    await expect(page.getByTestId("home-hero")).toBeVisible();
-    await page.goForward();
-    await expect(page).toHaveURL(new URL(path, page.url()).href);
-    await expect(page.getByTestId("home-hero")).toHaveCount(0);
-    await page.goBack();
-    await expect(page.getByTestId("home-hero")).toBeVisible();
-  }
+  await page.getByRole("link", { name: "Models & plans" }).click();
+  await expect(page).toHaveURL(/\/models$/u);
+  await page.goBack();
+  await expect(page.getByTestId("home")).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

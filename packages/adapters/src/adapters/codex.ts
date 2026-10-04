@@ -263,7 +263,14 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (!inWindow(occurredAtMs, options)) continue;
             const ordinal = readNumber(record, "ordinal");
             const cumulative = readCount(totalUsage ?? {}, "total_tokens");
-            const identity = `${ordinal ?? lineIndex}#${cumulative ?? totalTokens}`;
+            // A token_count snapshot can be repeated after a status/rate-limit update.
+            // Its ordinal is a log position, not evidence of new consumption.
+            // A known cumulative total plus the same reported delta identifies
+            // that snapshot across repeated rows and copied history files.
+            const identity =
+              cumulative === undefined
+                ? `${ordinal ?? lineIndex}#${totalTokens}`
+                : `cumulative:${cumulative}#${JSON.stringify([inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, reasoningTokens, totalTokens])}`;
             events.push(
               buildEvent(
                 {

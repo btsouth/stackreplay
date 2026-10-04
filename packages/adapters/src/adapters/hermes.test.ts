@@ -245,3 +245,32 @@ describe("hermes adapter: schema validity when the reasoning column is null", ()
     expect(result.events[0]?.usage.accounting?.reasoningIncludedInOutput).toBeUndefined();
   });
 });
+
+describe("Hermes aggregate accounting", () => {
+  it("counts an accumulated row once across repeated roots and never adds the sessions summary", async () => {
+    const { dedupeEvents } = await import("../dedup.js");
+    const result = await withTempDir(async (directory) => {
+      const statements = [
+        ...HERMES_FIXTURE_SQL,
+        "update session_model_usage set api_call_count = 100, output_tokens = 75000 where model = 'example-large'",
+        "alter table sessions add column output_tokens integer",
+        "update sessions set output_tokens = 75000",
+      ];
+      await createSqliteFixture(`${directory}/.hermes/state.db`, statements);
+      return adapter.collect(createFixtureEnvironment({ homeDir: directory }), {
+        now: fixtureNow(),
+        salt: FIXTURE_SALT,
+        mapper: createModelMapper(syntheticCatalog()),
+        roots: [`${directory}/.hermes`, `${directory}/.hermes`],
+      });
+    });
+    const single = result.events.slice(0, result.events.length / 2);
+    const deduped = dedupeEvents(result.events);
+    expect(deduped.events).toHaveLength(single.length);
+    expect(deduped.exactDuplicates).toBe(single.length);
+    expect(deduped.events.reduce((n, e) => n + (e.usage.outputTokens ?? 0), 0)).toBe(
+      single.reduce((n, e) => n + (e.usage.outputTokens ?? 0), 0),
+    );
+    expect(deduped.events.filter((e) => e.usage.outputTokens === 75000)).toHaveLength(1);
+  });
+});

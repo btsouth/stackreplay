@@ -6,7 +6,6 @@ import { metadata as compare } from "../app/(public)/compare/page";
 import { metadata as methodology } from "../app/(public)/methodology/page";
 import { generateMetadata as modelMetadata } from "../app/(public)/models/[modelId]/page";
 import { metadata as models } from "../app/(public)/models/page";
-import { metadata as home } from "../app/(public)/page";
 import { generateMetadata as planMetadata } from "../app/(public)/plans/[planId]/page";
 import { metadata as plans } from "../app/(public)/plans/page";
 import {
@@ -14,6 +13,7 @@ import {
   generateStaticParams as providerParams,
 } from "../app/(public)/providers/[providerId]/page";
 import { metadata as providers } from "../app/(public)/providers/page";
+import { metadata as home } from "../app/(replay-home)/page";
 import { absoluteUrl, brandAssets } from "./site";
 
 function check(metadata: Metadata, title: string, path: string) {
@@ -30,7 +30,7 @@ function check(metadata: Metadata, title: string, path: string) {
 
 describe("public route metadata", () => {
   it.each([
-    [home, "StackReplay: explore AI models, providers and plans", "/"],
+    [home, "StackReplay: your AI coding, replayed.", "/"],
     [models, "Models", "/models"],
     [plans, "Subscriptions", "/plans"],
     [providers, "Providers", "/providers"],

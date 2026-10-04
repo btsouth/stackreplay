@@ -180,6 +180,12 @@ test("a target change during a replay never displays the earlier result", async 
       // Every answer the page receives is recorded, so the test can wait for the
       // stale run's own reply to land instead of waiting on a clock.
       return new Proxy(worker, {
+        // Native Worker methods require the real receiver, including terminate
+        // when the recap worker is disposed during client navigation.
+        get(target, property) {
+          const value = Reflect.get(target, property);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
         set(target, property, value) {
           if (property === "onmessage" && typeof value === "function") {
             target.onmessage = (event: MessageEvent<unknown>) => {
