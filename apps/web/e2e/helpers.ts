@@ -61,8 +61,10 @@ export async function waitForWorkload(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/app\/(?:recap|workload)\?import=/u, { timeout: 60_000 });
   if (new URL(page.url()).pathname === "/app/recap") {
     // Historical billing fixtures can fall outside the recap default period.
-    await page.getByLabel("Recap period").selectOption("all");
-    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("radio", { name: "All time", exact: true }).check();
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all", {
+      timeout: 60_000,
+    });
     await page.getByRole("link", { name: "Explore workload details" }).click();
   }
   await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
