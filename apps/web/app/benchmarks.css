@@ -521,3 +521,52 @@
 .bench-table tbody th small {
   line-height: 1.25;
 }
+
+.bench-image-dialog {
+  width: min(96vw, 72rem);
+}
+.bench-image-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-block: 1rem;
+}
+.bench-image-control {
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--control-border);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+.bench-image-control:disabled {
+  color: var(--muted-foreground);
+}
+.bench-image-page-count {
+  font-size: 0.8rem;
+}
+.bench-image-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-strong);
+}
+.bench-image-text {
+  margin-block: 1rem;
+  font-size: 0.8rem;
+}
+.bench-image-text summary {
+  cursor: pointer;
+  min-height: 44px;
+}
+.bench-image-paragraph {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-block: 1rem;
+}
+.bench-image-link {
+  color: var(--accent);
+}
+.bench-image-footer {
+  overflow-wrap: anywhere;
+}

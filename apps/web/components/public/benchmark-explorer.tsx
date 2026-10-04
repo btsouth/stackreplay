@@ -12,13 +12,18 @@ import {
   observationId,
 } from "@stackreplay/benchmarks";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
+  type BenchmarkExport,
   benchmarkEvidenceSummary,
   buildBenchmarkExport,
   resolveBenchmarkView,
 } from "@/lib/benchmark-export";
 import { type BenchmarkState, benchmarkUrl, parseBenchmarkState } from "@/lib/benchmark-state";
+
+const BenchmarkImageDialog = lazy(() =>
+  import("./benchmark-image-dialog").then((module) => ({ default: module.BenchmarkImageDialog })),
+);
 
 export interface BenchmarkModel {
   id: string;
@@ -149,7 +154,12 @@ export function BenchmarkExplorer({
   initial: BenchmarkState;
 }) {
   const [state, setState] = useState(initial);
+  const imageExportButton = useRef<HTMLButtonElement>(null);
   const [ready, setReady] = useState(false);
+  const [imageExport, setImageExport] = useState<{
+    payload: BenchmarkExport;
+    state: BenchmarkState;
+  } | null>(null);
   const editionData = Object.hasOwn(editions, state.edition) ? editions[state.edition] : undefined;
   const data = editionData ?? currentData;
   const [search, setSearch] = useState("");
@@ -221,6 +231,17 @@ export function BenchmarkExplorer({
   }
   return (
     <div className="bench-page">
+      {imageExport?.state === state && (
+        <Suspense fallback={<p role="status">Preparing image preview…</p>}>
+          <BenchmarkImageDialog
+            payload={imageExport.payload}
+            onClose={() => {
+              setImageExport(null);
+              imageExportButton.current?.focus();
+            }}
+          />
+        </Suspense>
+      )}
       <header className="market-header bench-header">
         <div>
           <p className="market-kicker">Benchmark sheet</p>
@@ -310,6 +331,23 @@ export function BenchmarkExplorer({
           aria-describedby={error ? "benchmark-selection-error" : undefined}
         >
           Download JSON
+        </button>
+        <button
+          type="button"
+          className="bench-text-button"
+          ref={imageExportButton}
+          aria-haspopup="dialog"
+          onClick={() => {
+            if (!error)
+              setImageExport({
+                payload: buildBenchmarkExport({ editions, models, state, origin: location.origin }),
+                state,
+              });
+          }}
+          disabled={!ready || Boolean(error)}
+          aria-describedby={error ? "benchmark-selection-error" : undefined}
+        >
+          Export images
         </button>
       </div>
       {!source && (
