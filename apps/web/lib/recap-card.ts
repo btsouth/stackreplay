@@ -1,4 +1,4 @@
-import type { Recap } from "./recap";
+import { familyColors, type Recap, topRecapModels } from "./recap";
 export const compactNumber = (value: number) =>
   new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 export const recapUsd = (value: string) =>
@@ -69,55 +69,56 @@ export async function renderRecapCard(
     "#bbd3c9",
   );
   if (multiplierText && recap.priced)
-    text(multiplierText, pad, portrait ? 480 : 342, portrait ? 28 : 23, "#bbd3c9");
+    text(multiplierText, pad, portrait ? 464 : 344, portrait ? 48 : 34, "#8dbba8", 700);
   const stats = [
     ...(recap.outputKnown ? [[compactNumber(recap.output), "OUTPUT TOKENS"]] : []),
     ...(recap.sessions ? [[compactNumber(recap.sessions), "SESSIONS"]] : []),
     [`${String(recap.longestStreak)} days`, "LONGEST STREAK"],
   ];
-  const statY = portrait ? 640 : 423;
+  const statY = portrait ? 576 : 450;
   stats.forEach(([value, label], i) => {
-    const x = pad + i * ((w - pad * 2) / 3);
+    const x = pad + i * ((portrait ? w - pad * 2 : 610) / 3);
     const y = statY;
-    text(value ?? "", x, y, portrait ? 57 : 48, "#f6f2e9", 700);
-    text(label ?? "", x, y + (portrait ? 76 : 62), 16, "#a7b6bc", 600);
+    text(value ?? "", x, y, portrait ? 57 : 38, "#f6f2e9", 700);
+    text(label ?? "", x, y + (portrait ? 76 : 54), portrait ? 16 : 13, "#a7b6bc", 600);
   });
-  const days = activityDays(recap.days);
-  if (portrait) {
-    text("YOUR CODING RHYTHM", pad, 858, 25, "#bbd3c9", 600);
-    text("Output tokens by week", pad, 899, 20, "#a7b6bc");
-    const first = recap.weeks.findIndex((week) => Object.values(week.families).some((n) => n > 0));
-    const weeks = recap.weeks.slice(Math.max(0, first));
-    const totals = weeks.map((week) => Object.values(week.families).reduce((a, b) => a + b, 0));
-    const max = Math.max(1, ...totals);
-    const bw = (w - pad * 2) / Math.max(1, weeks.length);
-    totals.forEach((total, i) => {
-      ctx.fillStyle = "#8dbba8";
-      const height = (total / max) * 265;
-      ctx.fillRect(pad + i * bw, 1223 - height, Math.max(1, bw - 8), height);
-    });
-    text(`${weeks[0]?.date ?? recap.start}  →  ${recap.end}`, pad, 1244, 18, "#a7b6bc");
-  } else {
-    text("DAILY ACTIVITY", 800, 173, 13, "#a7b6bc", 600);
-    const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
-    const weeks = Math.ceil((days.length + offset) / 7);
-    const available = w - pad - 800;
-    const gap = Math.min(3, available / Math.max(1, weeks) / 4);
-    const cell = Math.min(16, (available - (weeks - 1) * gap) / weeks);
-    const max = Math.max(1, ...days.map((d) => d.records));
-    days.forEach((day, i) => {
-      const position = i + offset;
-      ctx.fillStyle = day.records ? "#8dbba8" : "#33434a";
-      ctx.globalAlpha = day.records ? 0.3 + 0.7 * Math.sqrt(day.records / max) : 1;
-      ctx.fillRect(
-        800 + Math.floor(position / 7) * (cell + gap),
-        201 + (position % 7) * (cell + gap),
-        cell,
-        cell,
-      );
-    });
-    ctx.globalAlpha = 1;
-  }
+  const models = topRecapModels(recap.models);
+  const modelX = portrait ? pad : 748;
+  const modelY = portrait ? 760 : 170;
+  const modelWidth = portrait ? w - pad * 2 : w - pad - modelX;
+  text("TOP MODELS", modelX, modelY, portrait ? 28 : 20, "#bbd3c9", 700);
+  text("Output tokens", modelX, modelY + (portrait ? 43 : 32), portrait ? 22 : 16, "#a7b6bc");
+  const rowHeight = portrait ? 82 : 64;
+  models.forEach((model, i) => {
+    const y = modelY + (portrait ? 100 : 76) + i * rowHeight;
+    const size = portrait ? 30 : 20;
+    const tokens = compactNumber(model.output);
+    ctx.font = `600 ${size}px ${font}`;
+    const tokenWidth = ctx.measureText(tokens).width;
+    const nameWidth = modelWidth - tokenWidth - (portrait ? 38 : 24);
+    let name = model.name;
+    if (ctx.measureText(name).width > nameWidth) {
+      const chars = Array.from(name);
+      while (chars.length && ctx.measureText(`${chars.join("")}…`).width > nameWidth) chars.pop();
+      name = `${chars.join("")}…`;
+    }
+    text(name, modelX, y, size, "#f6f2e9", 600);
+    text(tokens, modelX + modelWidth - tokenWidth, y, size, "#bbd3c9", 600);
+    const barY = y + (portrait ? 44 : 32);
+    const barHeight = portrait ? 10 : 7;
+    ctx.fillStyle = "#33434a";
+    ctx.fillRect(modelX, barY, modelWidth, barHeight);
+    ctx.fillStyle = familyColors[model.family] ?? familyColors.other ?? "#a6a28e";
+    ctx.fillRect(modelX, barY, modelWidth * (model.output / models[0]!.output), barHeight);
+  });
+  if (!models.length)
+    text(
+      "No resolved models with output tokens",
+      modelX,
+      modelY + 80,
+      portrait ? 22 : 16,
+      "#a7b6bc",
+    );
   text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");
   text("stackreplay.com", w - pad - 170, h - 42, 16, "#bbd3c9");
   return new Promise((resolve, reject) =>

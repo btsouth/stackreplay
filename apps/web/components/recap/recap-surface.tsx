@@ -12,7 +12,7 @@ import {
 } from "@/lib/current-stack";
 import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
-import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
+import { familyColors, type Recap, type RecapPeriod, topRecapModels } from "@/lib/recap";
 import { activityDays, compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
@@ -476,7 +476,7 @@ export function RecapSurface({
                   <p className="recap-subtitle">Output tokens, week by week.</p>
                   <Mix recap={recap} />
                   <div className="recap-models">
-                    {recap.models.slice(0, 7).map((m, i) => (
+                    {topRecapModels(recap.models, 7).map((m, i) => (
                       <div key={m.id}>
                         <span className="recap-model-rank">{String(i + 1).padStart(2, "0")}</span>
                         <i style={{ background: color(m.family) }} />

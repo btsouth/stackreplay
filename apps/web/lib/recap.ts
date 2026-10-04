@@ -46,6 +46,16 @@ export const familyColors: Record<string, string> = {
   deepseek: "#9975d5",
   other: "#a6a28e",
 };
+/** Named, resolved models with output in this recap period. Ties use stable model IDs. */
+export function topRecapModels(models: readonly RecapModel[], limit = 5): RecapModel[] {
+  return models
+    .filter(
+      (model) =>
+        model.output > 0 && model.family !== "other" && model.name !== "Other / Unresolved",
+    )
+    .sort((a, b) => b.output - a.output || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .slice(0, Math.max(0, limit));
+}
 export function outputOf(event: TextUsageEventV1): number | undefined {
   const u = event.usage;
   if (u.outputTokens === undefined) return undefined;
