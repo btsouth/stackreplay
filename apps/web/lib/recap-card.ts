@@ -105,7 +105,7 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
     ctx.fillRect(chartX + i * bw, chartY + chartH - bh, Math.max(1, bw - 2), bh);
   });
   text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");
-  text("stackreplay.app", w - pad - 170, h - 42, 16, "#bbd3c9");
+  text("stackreplay.com", w - pad - 170, h - 42, 16, "#bbd3c9");
   return new Promise((resolve, reject) =>
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Could not export image."))),
