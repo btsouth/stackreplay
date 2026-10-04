@@ -134,7 +134,7 @@ describe("homepage links", () => {
     const sources = [
       ...readdirSync(join(componentsDir, "home")).map((file) => join(componentsDir, "home", file)),
       join(componentsDir, "local-workload-action.tsx"),
-      join(appDir, "(public)", "page.tsx"),
+      join(appDir, "(replay-home)", "page.tsx"),
     ].filter((file) => file.endsWith(".tsx"));
     const hrefs = new Set<string>([
       ...[...publicNavItems, ...personalNavItems, primaryCta, returningCta].map(

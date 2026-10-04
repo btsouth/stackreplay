@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  ["/", "StackReplay: explore AI models, providers and plans"],
+  ["/", "StackReplay: your AI coding, replayed."],
   ["/models", "Models"],
   ["/models/gpt-6-1-sol", "GPT-6.1 Sol"],
   ["/plans", "Subscriptions"],

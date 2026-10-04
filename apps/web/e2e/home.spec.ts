@@ -27,9 +27,7 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   await expect(page.locator(".replay-card-total").first()).toContainText("41.2B");
   await page.getByRole("link", { name: "See a sample recap" }).click();
   await expect(page).toHaveURL(/#sample$/);
-  await expect(
-    page.getByRole("heading", { name: "The late nights.The breakthroughs.The whole picture." }),
-  ).toBeInViewport();
+  await expect(page.locator("#sample-heading")).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   expect(uploads).toEqual([]);
@@ -39,9 +37,11 @@ test("reduced motion shows completed stats with no animations or tilt", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await expect(page.locator(".replay-card-total").first()).toContainText("41.2B");
-  expect(
-    await page.locator(".replay-card-position").evaluate((el) => getComputedStyle(el).transform),
-  ).toBe("none");
+  await expect
+    .poll(async () =>
+      page.locator(".replay-card-position").evaluate((el) => getComputedStyle(el).transform),
+    )
+    .toBe("none");
   expect(
     await page.evaluate(
       () => document.getAnimations().filter((a) => a.playState === "running").length,

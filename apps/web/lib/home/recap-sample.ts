@@ -75,3 +75,33 @@ export const sampleRecap: Recap = {
     },
   })),
 };
+
+const distribute = (total: number, weights: number[]) => {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  let used = 0;
+  return weights.map((w, i) => {
+    const n = i === weights.length - 1 ? total - used : Math.floor((total * w) / sum);
+    used += n;
+    return n;
+  });
+};
+const counts = distribute(
+  sampleRecap.records,
+  sampleRecap.days.map((_, i) => (i % 48 === 0 ? 0 : 120 + ((i * 731) % 1600))),
+);
+const outputs = distribute(sampleRecap.output, counts);
+sampleRecap.days = sampleRecap.days.map((d, i) => ({
+  ...d,
+  records: counts[i] ?? 0,
+  output: outputs[i] ?? 0,
+}));
+sampleRecap.streak = 32;
+for (const model of sampleRecap.models) {
+  const totals = distribute(
+    model.total,
+    sampleRecap.weeks.map((w) => w.families[model.family] ?? 0),
+  );
+  sampleRecap.weeks.forEach((w, i) => {
+    w.families[model.family] = totals[i] ?? 0;
+  });
+}

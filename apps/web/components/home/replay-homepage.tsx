@@ -8,7 +8,6 @@ import {
   Play,
   ShieldCheck,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Heatmap, Mix } from "@/components/recap/recap-charts";
 import { RecapShareCard } from "@/components/recap/recap-share-card";
@@ -83,20 +82,20 @@ export function ReplayHomepage() {
         Skip to content
       </a>
       <header className="replay-nav">
-        <Link href="/" className="replay-brand" aria-label="StackReplay home">
+        <a href="/" className="replay-brand" aria-label="StackReplay home">
           <span className="replay-mark" aria-hidden="true">
             ↺
           </span>
           StackReplay
-        </Link>
+        </a>
         <nav aria-label="Main navigation">
-          <Link href="/models">Models & plans</Link>
+          <a href="/models">Models & plans</a>
           <a href="https://github.com/btsouth/stackreplay">
             GitHub <span aria-hidden="true">↗</span>
           </a>
-          <Link className="replay-nav-cta" href="/app/import">
+          <a className="replay-nav-cta" href="/app/import">
             Get my recap <ArrowRight size={15} />
-          </Link>
+          </a>
         </nav>
       </header>
       <main id="main-content" tabIndex={-1}>
@@ -110,15 +109,11 @@ export function ReplayHomepage() {
               <br />
               <em>replayed.</em>
             </h1>
-            <p className="replay-lede">
-              You built more than you think.
-              <br />
-              Turn your coding history into a recap worth sharing.
-            </p>
+            <p className="replay-lede">Turn your coding history into a recap worth sharing.</p>
             <div className="replay-actions">
-              <Link className="replay-button" href="/app/import">
+              <a className="replay-button" href="/app/import">
                 Replay my history <ArrowRight size={20} />
-              </Link>
+              </a>
               <a className="replay-text-button" href="#sample">
                 <Play size={14} fill="currentColor" /> See a sample recap
               </a>
@@ -376,12 +371,12 @@ export function ReplayHomepage() {
         </section>
         <div className="replay-catalog">
           <span>Also curious about the market?</span>
-          <Link href="/models">
+          <a href="/models">
             Compare models <ArrowRight size={16} />
-          </Link>
-          <Link href="/plans">
+          </a>
+          <a href="/plans">
             Explore coding plans <ArrowRight size={16} />
-          </Link>
+          </a>
         </div>
         <section className="replay-closing replay-reveal">
           <div className="replay-closing-orbit" aria-hidden="true" />
@@ -389,21 +384,21 @@ export function ReplayHomepage() {
           <h2>
             Now hit <em>replay.</em>
           </h2>
-          <Link className="replay-button" href="/app/import">
+          <a className="replay-button" href="/app/import">
             Replay my history <ArrowRight size={20} />
-          </Link>
+          </a>
           <span className="replay-trust">
             <LockKeyhole size={14} /> Your logs never leave your browser.
           </span>
         </section>
       </main>
       <footer className="replay-footer">
-        <Link className="replay-brand" href="/">
+        <a className="replay-brand" href="/">
           ↺ StackReplay
-        </Link>
+        </a>
         <span>Your AI coding, replayed.</span>
         <div>
-          <Link href="/methodology">How we calculate</Link>
+          <a href="/methodology">How we calculate</a>
           <a href="https://github.com/btsouth/stackreplay">Source code ↗</a>
         </div>
       </footer>

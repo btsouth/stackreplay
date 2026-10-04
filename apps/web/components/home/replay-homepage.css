@@ -1395,3 +1395,88 @@
     transform: none !important;
   }
 }
+
+/* Round two: the value beat changes material, rather than repeating another dark panel. */
+.replay-home .replay-value {
+  background: #eaa487;
+  color: #251b24;
+  border: 0;
+  border-radius: 16px;
+  padding: 40px 48px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  gap: 20px 45px;
+}
+.replay-value:after {
+  content: "";
+  position: absolute;
+  width: 530px;
+  height: 530px;
+  border: 1px solid #251b2420;
+  border-radius: 50%;
+  left: -40px;
+  top: -70px;
+  z-index: -1;
+  box-shadow:
+    0 0 0 40px #251b2404,
+    0 0 0 41px #251b2410;
+}
+.replay-home .replay-value-number {
+  color: #251b24;
+  font-size: 220px;
+}
+.replay-home .replay-value > .replay-chapter {
+  color: #60454a;
+}
+.replay-home .replay-value-copy > p {
+  color: #49343b;
+}
+.replay-home .replay-value-copy > .replay-fine {
+  color: #60454a !important;
+}
+@media (max-width: 1000px) {
+  .replay-home .replay-value-number {
+    font-size: 180px;
+  }
+}
+@media (max-width: 700px) {
+  .replay-home .replay-hero {
+    padding-top: 30px;
+  }
+  .replay-home .replay-lede {
+    margin-top: 20px !important;
+    max-width: 320px;
+  }
+  .replay-home .replay-actions {
+    margin-top: 24px;
+    gap: 16px;
+  }
+  .replay-home .replay-stage {
+    margin-top: 36px;
+  }
+  .replay-home .replay-value {
+    padding: 27px 24px;
+    border-radius: 12px;
+  }
+  .replay-home .replay-value-number {
+    font-size: 155px;
+    letter-spacing: -13px;
+    margin: 16px 0 22px;
+  }
+  .replay-home .replay-value-number > span {
+    font-size: 75px;
+  }
+  .replay-value:after {
+    width: 370px;
+    height: 370px;
+    left: -75px;
+    top: -60px;
+  }
+  .replay-home .replay-value-copy h3 {
+    font-size: 25px;
+  }
+  .replay-home .replay-value-copy > .replay-fine {
+    font-size: 10px !important;
+  }
+}
