@@ -12,6 +12,25 @@ const ids = (provider: string | null, category: string) =>
     )
     .map((event) => event.id);
 async function assertSelection(page: Page, provider: string | null, category: string) {
+  const query = new URLSearchParams();
+  if (provider) query.set("provider", provider);
+  if (category !== "all") query.set("type", category);
+  const suffix = query.size ? `?${query}` : "";
+  for (const [format, name, mime] of [
+    ["xml", "RSS", "application/rss+xml"],
+    ["json", "JSON", "application/json"],
+  ] as const) {
+    const href = `/changelog/feed.${format}${suffix}`;
+    await expect(
+      page.getByTestId("update-subscriptions").getByRole("link", { name, exact: true }),
+    ).toHaveAttribute("href", href);
+    await expect(page.locator(`head link[rel="alternate"][type="${mime}"]`)).toHaveCount(1);
+    await expect(page.locator(`head link[rel="alternate"][type="${mime}"]`)).toHaveAttribute(
+      "href",
+      `https://stackreplay.com${href}`,
+    );
+  }
+
   await expect(page.getByRole("combobox", { name: "Provider", exact: true })).toHaveValue(
     provider ?? "all",
   );
@@ -102,6 +121,19 @@ test("first values normalize by replacement; unknown and valid empty providers r
   await page.goto(`/changelog?provider=not-a-provider&type=all&utm=kept${anchor}`);
   await expect(page).toHaveURL(`/changelog?provider=not-a-provider&utm=kept${anchor}`);
   await expect(page.getByRole("status")).toContainText("Provider not recognized.");
+  await expect(page.getByTestId("update-subscriptions")).toHaveCount(0);
+  await expect(
+    page.locator(
+      'head link[rel="alternate"][type="application/rss+xml"], head link[rel="alternate"][type="application/json"]',
+    ),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId("update-subscriptions")).toHaveCount(0);
+  await expect(
+    page.locator(
+      'head link[rel="alternate"][type="application/rss+xml"], head link[rel="alternate"][type="application/json"]',
+    ),
+  ).toHaveCount(0);
   await expect(page.getByTestId("updates-event")).toHaveCount(0);
   await page.getByRole("button", { name: "Clear filters" }).click();
   await expect(page).toHaveURL(`/changelog?utm=kept${anchor}`);
@@ -185,15 +217,29 @@ test("updates controls and details support keyboard, both themes and 320px witho
 }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/changelog?provider=google&type=models");
+  await assertSelection(page, "google", "models");
+  // Visible SSR controls do not imply that client event handlers have mounted.
+  await expect(page.getByTestId("updates-feed")).toHaveAttribute("data-client-ready", "true");
   const select = page.getByRole("combobox", { name: "Provider", exact: true });
   await select.focus();
   await expect(select).toBeFocused();
   await select.press("Tab");
   await expect(page.getByTestId("updates-filter-all")).toBeFocused();
   await page.getByTestId("updates-filter-benchmarks").focus();
+  await expect(page.getByTestId("updates-filter-benchmarks")).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/changelog?provider=google&type=benchmarks");
   await assertSelection(page, "google", "benchmarks");
+  const rss = page
+    .getByTestId("update-subscriptions")
+    .getByRole("link", { name: "RSS", exact: true });
+  await page.getByTestId("updates-filter-pricing").focus();
+  await page.keyboard.press("Tab");
+  await expect(rss).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByTestId("update-subscriptions").getByRole("link", { name: "JSON", exact: true }),
+  ).toBeFocused();
   for (const theme of ["light", "dark"]) {
     await page.evaluate((value) => {
       document.documentElement.dataset.theme = value;

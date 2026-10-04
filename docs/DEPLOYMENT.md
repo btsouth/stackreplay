@@ -23,8 +23,9 @@ as the maintenance path for existing OpenNext deployments. StackReplay does not
 use OpenNext.
 
 The app uses App Router pages, metadata routes, React Server Components, and
-client components. It has no route handlers, Server Actions, middleware,
-cookies, server sessions, backend storage, or native runtime packages. Node
+client components, the share-link API route handler and public update feed route
+handlers. It has no Server Actions, middleware, cookies, server sessions or
+native runtime packages. Node
 built-ins in build scripts and Playwright fixtures run during build/test, not in
 the Workers runtime. ZIP extraction uses `fflate` inside the browser Worker.
 

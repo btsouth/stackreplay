@@ -15,7 +15,7 @@ Source of truth for the decisions behind this: `docs/ARCHITECTURE_DECISIONS.md`
 | Public site | `/`, `/plans`, `/plans/[planId]`, `/models`, `/models/[modelId]`, `/benchmarks`, `/compare`, `/methodology`, `/changelog`, `/changelog/[eventId]` | Server components, static where possible | The **real** catalog entries of the bundled snapshot; benchmarks use their separate verified evidence package |
 | Shared results | `/s/[token]` | Server component, decoded per request | The token itself (no lookup, no storage) |
 | Local application | `/app/*` | Client surfaces | The bundled catalog + IndexedDB |
-| Machine-readable | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest` | Route handlers | Site config |
+| Machine-readable | `/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`, `/changelog/feed.json`, `/changelog/feed.xml` | Route handlers | Site config and validated raw market events |
 
 The public site and the local application are deliberately different products of
 the same codebase. The public site **explains and publishes**; the application
@@ -92,6 +92,41 @@ not changed by the clock. Related model, plan and benchmark links resolve curren
 pages do not reconstruct historical prices or scores. List facts are labelled Current catalog
 context, not a snapshot at the event date. Permalinks use self-canonical metadata and appear in the
 sitemap without inferred modification dates; filtered combinations do not.
+
+**Public update subscriptions.** The RSS and JSON links beside Updates controls, and the page's
+metadata alternate links, carry the active valid provider/category selection. Feed URLs include
+only normalized owned filters, provider before type, omitting All. Unknown providers have no
+subscription links and return HTTP 400 with no-store; valid empty selections return HTTP 200 with
+zero items. Both feeds select the full validated raw feed with the same taxonomy and occurrence
+ordering as Updates, including old/minor events and dual category membership. They contain no
+private relevance, technical catalog rows, current derived prices or scores. Feed routes are
+excluded from the sitemap; the list canonical remains /changelog.
+
+JSON is **StackReplay JSON v1**, not JSON Feed 1.1. Its envelope is
+`{exportVersion: 1, sourceSchemaVersion: 1, feedAsOf, selection: {providerId, category}, feedUrl, items}`.
+Each item is `{url, categories, event}`: the absolute stable permalink, existing taxonomy and full
+validated raw event, retaining all original IDs, benchmark references, sources, excerpts, date
+basis, occurrence/effective/discovery/check dates and recorded status. `feedAsOf` is the accepted
+whole-feed review day, including on empty exports, not a publication or per-item check timestamp.
+Additive fields can retain v1; removals or changed meanings require a new export version.
+
+RSS 2.0 uses accepted titles, stable absolute permalink links/GUIDs and categories. Descriptions
+are escaped plain text with accepted summaries, occurrence/date basis, optional effective dates,
+recorded status, discovery/check dates and every original source URL, check date and excerpt.
+Only a provider-supplied occurrence instant gets an RFC-822 `pubDate`, preserving that instant.
+Calendar-day occurrences remain readable in descriptions and omit `pubDate`; no timezone or
+midnight is invented. Neither feed substitutes discovery/check dates for occurrence.
+There is no real whole-feed publication timestamp, so RSS omits `lastBuildDate` and responses omit
+`Last-Modified`.
+
+GET and HEAD share status, MIME/security headers, cache policy and representation ETag; HEAD has
+no body. Successful feeds use `Cache-Control: public, max-age=0, must-revalidate`. SHA-256 ETags
+cover the actual selected serialized UTF-8 representation. `If-None-Match` supports weak/list
+comparison and wildcard with bodyless 304 responses. Changed content changes the ETag without
+changing event identities. No speculative CDN TTL or ISR is configured. A deployment is the
+freshness boundary; review dates change only with an accepted feed review. Focused HTTP contracts
+run against built Next and actual Wrangler Workers, including filtered query isolation and
+revalidation. Hosted cache behavior still requires the exact deployment smoke.
 
 **Dates are market dates.** An event's date is when the provider says it happened, never the day the
 catalog admitted a record. The briefing re-evaluates its window on the reader's own calendar day, so

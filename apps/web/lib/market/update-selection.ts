@@ -94,3 +94,10 @@ export function sameUpdateSelection(a: UpdateSelection, b: UpdateSelection): boo
     a.providerRecognized === b.providerRecognized
   );
 }
+
+/** Subscription URLs contain only owned, normalized filters; unknown owners have no feed. */
+export function updateFeedHref(selection: UpdateSelection, format: "json" | "xml"): string | null {
+  return selection.providerRecognized
+    ? `/changelog/feed.${format}${updateSearch(selection)}`
+    : null;
+}
