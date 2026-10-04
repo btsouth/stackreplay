@@ -124,6 +124,15 @@ textual accessible label explains the highlight. A row disclosure supplies its
 short description, exact version or unreported version, metric, unit, direction
 and per-model configuration.
 
+Comparison labels normally retain the source's reported display string. The
+admitted Epoch GPQA Diamond row is one display-only exception: its three
+comparison cells use one decimal because the preserved 18-decimal percentage
+strings cannot fit beside the sticky benchmark label on narrow screens. The
+stored exact display strings, numeric values, evidence dialogs, observation
+alternatives, model pages and JSON exports remain unchanged. A visible note
+appears only when that Epoch row is present, and its accessible score labels use
+the same rounded text. No other benchmark label is rounded by this exception.
+
 Phone uses a sticky benchmark column and internal horizontal scrolling, keeping
 model headers visible. The page itself must not overflow. Category controls wrap,
 and the scroll region is keyboard focusable with clear instructions.

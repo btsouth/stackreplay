@@ -95,6 +95,13 @@ retain the checked ZIP and complete CSV member SHA256 fingerprints. The three
 partial source sets do not create complete source-sheet links and have no
 comparison group.
 
+The comparison table shows these Epoch GPQA cells to one decimal (`95.6%`,
+`90.6%`, `92.3%`) so the complete label remains visible beside the sticky
+benchmark column on narrow screens. This is a presentation projection only:
+stored display strings, exact numeric values, evidence dialogs, observation
+alternatives, model-page values and selected-view exports retain their original
+source precision. Other benchmark comparison labels are not rounded.
+
 These sets use Epoch AI's licensed dataset terms, not the provider-facts basis.
 The narrow basis covers only the selected Epoch-produced numerical records and
 linked metadata. The archive README links CC BY 4.0; Epoch's use-this-data
@@ -159,6 +166,7 @@ their separate meanings. Source disclosures link the stored redistribution terms
 The selected rows include their exact observations, configuration notes and
 selection reasons. The explicitly labelled fullProvenance appendix retains the
 complete selected edition, including alternatives and sources outside the view.
-No rounding, missing-score estimates, newly inferred configuration, blanket
-independent-data license or publisher artwork is added. A download does not admit
-new evidence or claim StackReplay reproduced any evaluation.
+No display rounding is applied to exported values or source metadata, and no
+missing-score estimates, newly inferred configuration, blanket independent-data
+license or publisher artwork is added. A download does not admit new evidence or
+claim StackReplay reproduced any evaluation.

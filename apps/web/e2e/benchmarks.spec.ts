@@ -522,9 +522,112 @@ for (const theme of ["dark", "light"] as const)
 
 const epochBenchmark = "epoch-gpqa-diamond-revision-unreported";
 const epochModels = ["claude-sonnet-5-5", "claude-opus-5-5", "qwen-3-8-max-0902"];
-const epochDisplays = ["95.5808080808080800%", "90.5934343434343400%", "92.297979797979800%"];
+const epochExactDisplays = ["95.5808080808080800%", "90.5934343434343400%", "92.297979797979800%"];
+const epochComparisonDisplays = ["95.6%", "90.6%", "92.3%"];
 const epochPin = `epoch-gpqa-sonnet-5-5-max-2026-10-04.${epochBenchmark}.claude-sonnet-5-5`;
 const sixModelLayoutIds = [...epochModels, "gpt-6-1-sol", "gemini-4-argon", "gpt-6-astra"];
+const epochRoundingNote =
+  "Epoch scores are rounded to one decimal here. Open a score or download JSON for exact values.";
+
+async function expectEpochScoreVisibility(page: Page, width: 320 | 390) {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto(
+    `/benchmarks?models=${epochModels.join(",")}&coverage=shared&category=science&observation=${epochPin}`,
+  );
+  const region = page.getByRole("region", { name: /Benchmark comparison table/ });
+  const row = page.locator(`[data-benchmark-id="${epochBenchmark}"]`);
+  await expect(region).toBeVisible();
+  await expect(row).toBeVisible();
+  await expect(page.getByText(epochRoundingNote, { exact: true })).toBeVisible();
+
+  const scores = row.locator(".bench-score");
+  await expect(scores).toHaveCount(epochModels.length);
+  const metrics = await scores.evaluateAll(async (buttons, exactDisplays) => {
+    const first = buttons[0];
+    const container = first?.closest<HTMLElement>(".bench-table-scroll");
+    const tableRow = first?.closest("tr");
+    const sticky = tableRow?.querySelector<HTMLElement>("th:first-child");
+    if (!container || !sticky) throw new Error("Epoch score visibility structure is incomplete");
+
+    const nextPaint = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const results = [];
+    for (const [index, button] of buttons.entries()) {
+      if (!(button instanceof HTMLButtonElement))
+        throw new Error("Epoch comparison score is not a button");
+
+      await nextPaint();
+      let regionRect = container.getBoundingClientRect();
+      let stickyRect = sticky.getBoundingClientRect();
+      let scoreRect = button.getBoundingClientRect();
+      const usableLeft = stickyRect.right;
+      const usableRight = regionRect.right;
+      const targetCenter = usableLeft + (usableRight - usableLeft) / 2;
+      container.scrollLeft += scoreRect.left + scoreRect.width / 2 - targetCenter;
+      await nextPaint();
+      await nextPaint();
+
+      regionRect = container.getBoundingClientRect();
+      stickyRect = sticky.getBoundingClientRect();
+      scoreRect = button.getBoundingClientRect();
+      const usableWidth = regionRect.right - stickyRect.right;
+      const legacy = button.cloneNode(true) as HTMLButtonElement;
+      const exactText = exactDisplays[index];
+      if (!exactText) throw new Error("Missing exact Epoch display");
+      if (legacy.firstChild?.nodeType === Node.TEXT_NODE) legacy.firstChild.textContent = exactText;
+      legacy.style.position = "fixed";
+      legacy.style.left = "0";
+      legacy.style.top = "0";
+      legacy.style.visibility = "hidden";
+      legacy.style.pointerEvents = "none";
+      legacy.setAttribute("aria-hidden", "true");
+      document.body.append(legacy);
+      const exactWidth = legacy.getBoundingClientRect().width;
+      legacy.remove();
+
+      results.push({
+        index,
+        text: button.textContent ?? "",
+        left: scoreRect.left,
+        right: scoreRect.right,
+        width: scoreRect.width,
+        stickyRight: stickyRect.right,
+        regionRight: regionRect.right,
+        usableWidth,
+        exactWidth,
+        stickyPosition: getComputedStyle(sticky).position,
+        scrollLeft: container.scrollLeft,
+        clipped: button.scrollWidth > button.clientWidth,
+      });
+    }
+    return results;
+  }, epochExactDisplays);
+
+  for (const [index, metric] of metrics.entries()) {
+    expect(metric.text, `Epoch comparison label ${index}`).toContain(
+      epochComparisonDisplays[index] ?? "missing expected display",
+    );
+    expect(metric.left, `Epoch score ${index} left edge`).toBeGreaterThanOrEqual(
+      metric.stickyRight - 0.5,
+    );
+    expect(metric.right, `Epoch score ${index} right edge`).toBeLessThanOrEqual(
+      metric.regionRight + 0.5,
+    );
+    expect(metric.width, `Epoch score ${index} fits usable width`).toBeLessThanOrEqual(
+      metric.usableWidth + 0.5,
+    );
+    expect(metric.exactWidth, `Legacy exact score ${index} exceeds usable width`).toBeGreaterThan(
+      metric.usableWidth + 0.5,
+    );
+    expect(metric.stickyPosition, "Benchmark label remains sticky").toBe("sticky");
+    expect(metric.clipped, `Epoch score ${index} is not clipped`).toBe(false);
+  }
+  expect(
+    metrics.some((metric) => metric.scrollLeft > 0),
+    "Scores were reached through native horizontal scroll",
+  ).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  return metrics;
+}
 
 for (const theme of ["dark", "light"] as const)
   test(`Epoch mixed evidence ${theme}: exact download, partial Science and readable precision`, async ({
@@ -539,17 +642,24 @@ for (const theme of ["dark", "light"] as const)
       "Mixed evidence: Developer reported · Independent evaluation",
     );
     await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+    await expect(page.getByText(epochRoundingNote, { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Coding", exact: true }).click();
     await expect(page.locator(".bench-header")).not.toContainText("Independent evaluation");
     await expect(page.locator(".bench-header")).toContainText("Latest check Sep 30, 2026");
+    await expect(page.getByText(epochRoundingNote, { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "Science", exact: true }).click();
     const row = page.locator(`[data-benchmark-id="${epochBenchmark}"]`);
     await expect(row).toContainText("Different or unreported setups");
     await expect(row.locator('[data-model-id="gpt-6-1-sol"]')).toHaveText("Not reported");
     for (const [index, model] of epochModels.entries())
       await expect(row.locator(`[data-model-id="${model}"]`)).toContainText(
-        epochDisplays[index] ?? "missing expected score",
+        epochComparisonDisplays[index] ?? "missing expected score",
       );
+    const sonnetScore = row.locator('[data-model-id="claude-sonnet-5-5"] button');
+    await expect(sonnetScore).toHaveAttribute(
+      "aria-label",
+      "GPQA Diamond Epoch runs; suite revision unreported, Claude Sonnet 5.5, 95.6%, highest reported score in this view. View evidence.",
+    );
 
     const downloadJson = async (name: string) => {
       const downloading = page.waitForEvent("download");
@@ -573,7 +683,7 @@ for (const theme of ["dark", "light"] as const)
     if (!exported) throw new Error("Missing admitted Epoch row");
     expect(exported.definition).toMatchObject({ version: null, taskSubset: "Diamond" });
     expect(exported.setup).toBe("different_or_unreported");
-    expect(exported.cells.map((cell) => cell.displayValue)).toEqual([...epochDisplays, null]);
+    expect(exported.cells.map((cell) => cell.displayValue)).toEqual([...epochExactDisplays, null]);
     expect(exported.cells.map((cell) => cell.value)).toEqual([
       95.58080808080808,
       90.59343434343434,
@@ -618,16 +728,21 @@ for (const theme of ["dark", "light"] as const)
     expect(payload.fullProvenance.data.sourceSets[0]?.redistribution.basis).toBe(
       "official_provider_facts",
     );
-    await row.locator('[data-model-id="claude-sonnet-5-5"] button').click();
+    await sonnetScore.click();
     const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText(epochExactDisplays[0] ?? "missing exact score");
     await expect(dialog).toContainText("Independent evaluation");
     await expect(dialog).toContainText("Suite revision, scored count");
     await expect(dialog).toContainText("QPk8jbJvo4986sbWtdte6J");
     await expect(dialog).toContainText("0.013710320714521202");
     await expect(dialog).toContainText("Completion and original publication dates are unknown");
+    await testInfo.attach("epoch-sonnet-dialog", {
+      body: await dialog.innerText(),
+      contentType: "text/plain",
+    });
     await page.keyboard.press("Escape");
     await page.reload();
-    await expect(row).toContainText(epochDisplays[0] ?? "missing expected score");
+    await expect(row).toContainText(epochComparisonDisplays[0] ?? "missing expected score");
     await expect(page).toHaveURL(/observation=epoch-gpqa-sonnet/);
 
     const metrics = await row.locator(".bench-score").evaluateAll((buttons) =>
@@ -697,6 +812,14 @@ for (const theme of ["dark", "light"] as const)
       expect(Math.abs(metric.center - metric.contentCenter)).toBeLessThanOrEqual(1);
     }
 
+    for (const width of [320, 390] as const) {
+      const visibility = await expectEpochScoreVisibility(page, width);
+      await testInfo.attach(`epoch-visibility-${theme}-${width}`, {
+        body: JSON.stringify(visibility, null, 2),
+        contentType: "application/json",
+      });
+    }
+
     await page.goto(`/benchmarks?models=${sixModelLayoutIds.join(",")}&observation=${epochPin}`);
     await expectBenchmarkTableLayout(page, { modelCount: 6, requireScroll: true });
   });
@@ -709,7 +832,7 @@ for (const [index, modelId] of epochModels.entries())
       .locator(".bench-model-source")
       .filter({ has: page.getByRole("heading", { name: "Epoch AI · Oct 4, 2026", exact: true }) });
     await expect(source).toContainText("Independent evaluation");
-    await expect(source).toContainText(epochDisplays[index] ?? "missing expected score");
+    await expect(source).toContainText(epochExactDisplays[index] ?? "missing expected score");
     await source.getByText("Methodology & sources", { exact: true }).click();
     await expect(source).toContainText("CC BY 4.0");
     await expect(source).toContainText("run-specific suite and setup details are unknown");
@@ -735,6 +858,6 @@ for (const [index, modelId] of epochModels.entries())
     await link.click();
     await expect(page).toHaveURL(new RegExp(`models=${modelId}.*observation=epoch-gpqa-`));
     await expect(page.locator(`[data-benchmark-id="${epochBenchmark}"]`)).toContainText(
-      epochDisplays[index] ?? "missing expected score",
+      epochComparisonDisplays[index] ?? "missing expected score",
     );
   });
