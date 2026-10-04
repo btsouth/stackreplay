@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { loadMarketFeed } from "@/lib/market/events";
+import { marketEventHref } from "@/lib/market/update-selection";
 import { loadPublicDirectory } from "@/lib/public-directory";
 import { loadPublicProviderDirectory } from "@/lib/public-providers";
 import { absoluteUrl } from "@/lib/site";
@@ -79,5 +81,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }));
 
-  return [...staticEntries, ...planEntries, ...modelEntries, ...providerEntries];
+  const eventEntries: MetadataRoute.Sitemap = loadMarketFeed().events.map((event) => ({
+    url: absoluteUrl(marketEventHref(event.id)),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+  return [...staticEntries, ...planEntries, ...modelEntries, ...providerEntries, ...eventEntries];
 }

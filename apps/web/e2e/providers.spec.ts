@@ -130,7 +130,7 @@ test("model-only and empty coverage stays accessible with unknowns and no API su
   ).toBeVisible();
 });
 
-test("provider updates link the owned changelog anchors and public navigation", async ({
+test("provider updates link the owned permanent events and public navigation", async ({
   page,
   isMobile,
 }) => {
@@ -141,9 +141,12 @@ test("provider updates link the owned changelog anchors and public navigation", 
   await expect(update).toBeVisible();
   await expect(update.locator('a[target="_blank"]')).toHaveAttribute("href", /^https:\/\//u);
   await update.getByRole("link").first().click();
-  await expect(page).toHaveURL(/\/changelog#/u);
-  const anchor = new URL(page.url()).hash;
-  await expect(page.locator(anchor)).toBeVisible();
+  await expect(page).toHaveURL(/\/changelog\/[a-z0-9-]+$/u);
+  await expect(page.getByTestId("event-detail")).toBeVisible();
+  await expect(page.getByRole("link", { name: "All updates from Anthropic" })).toHaveAttribute(
+    "href",
+    "/changelog?provider=anthropic",
+  );
   await page.goto("/providers");
   if (isMobile) {
     const menu = page.getByRole("button", { name: /menu/iu });

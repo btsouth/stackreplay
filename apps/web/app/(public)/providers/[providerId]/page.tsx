@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { SourceList, VerificationBadge } from "@/components/public/provenance";
 import { formatCatalogDate } from "@/lib/catalog-copy";
+import { marketEventHref, updateListHref } from "@/lib/market/update-selection";
 import { planTools, planUsage } from "@/lib/market-discovery";
 import { modelCapabilities, modelContext, tokenSize } from "@/lib/model-specifications";
 import type { PublicModelSummary } from "@/lib/public-catalog";
@@ -211,6 +212,18 @@ export default async function ProviderPage({ params }: Props) {
           ))}
         </section>
       )}
+      <p className="mt-8">
+        <Link
+          className="market-link"
+          href={updateListHref({
+            providerId: provider.id,
+            category: "all",
+            providerRecognized: true,
+          })}
+        >
+          All updates from {provider.name}
+        </Link>
+      </p>
       {events.length > 0 && (
         <section aria-labelledby="provider-updates" className="mt-10">
           <h2 id="provider-updates" className="market-section-title">
@@ -229,7 +242,7 @@ export default async function ProviderPage({ params }: Props) {
                 {formatCatalogDate(event.day)} · {event.typeLabel} · {event.status}
               </p>
               <h3 className="mt-2 text-lg">
-                <Link className="hover:text-accent" href={`/changelog#${event.id}`}>
+                <Link className="hover:text-accent" href={marketEventHref(event.id)}>
                   {event.title} ↗
                 </Link>
               </h3>

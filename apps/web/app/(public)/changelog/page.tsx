@@ -4,7 +4,9 @@ import { MarketFooter, MarketHeader } from "@/components/public/market-header";
 import { SourceList } from "@/components/public/provenance";
 import { homeCatalogIndex } from "@/lib/home/catalog-index";
 import { marketEventViews } from "@/lib/market/events";
+import { parseUpdateSelection, type UpdateSearch } from "@/lib/market/update-selection";
 import { deriveCatalogChanges, loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
+import { loadPublicProviderDirectory } from "@/lib/public-providers";
 import { publicPageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = publicPageMetadata({
@@ -19,7 +21,14 @@ export const metadata: Metadata = publicPageMetadata({
  * reads. The internal catalog changelog stays as a secondary technical
  * disclosure at the end; it records catalog rule versions, not market news.
  */
-export default function UpdatesPage() {
+export default async function UpdatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<UpdateSearch>;
+}) {
+  const search = await searchParams;
+  const providers = loadPublicProviderDirectory().providers.map(({ id, name }) => ({ id, name }));
+  const initialSelection = parseUpdateSelection(search, providers);
   const catalog = loadPublicCatalog();
   const events = marketEventViews(catalog);
   const changes = deriveCatalogChanges();
@@ -30,7 +39,12 @@ export default function UpdatesPage() {
         title="What changed in the AI market."
         description="Model releases, benchmark results, API prices and subscription changes from the major labs, dated by when they happened and linked to the provider's own source."
       />
-      <UpdatesFeed events={events} index={homeCatalogIndex(catalog)} />
+      <UpdatesFeed
+        events={events}
+        index={homeCatalogIndex(catalog)}
+        providers={providers}
+        initialSelection={initialSelection}
+      />
       <details className="mt-12 border-y border-border-strong py-4" data-testid="catalog-changelog">
         <summary className="min-h-11 cursor-pointer text-lg">
           Technical: catalog rule versions
