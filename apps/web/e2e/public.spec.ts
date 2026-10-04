@@ -206,9 +206,19 @@ test.describe("public site", () => {
       "Compare against my workload →",
     );
     await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/compare");
-    await page.getByText("Inspect constraints and sources").first().click();
+    const compactSummary = page.getByTestId("compare-compact-summary").filter({ visible: true });
+    const mobile = (await compactSummary.count()) > 0;
+    const inspectSummary = mobile
+      ? compactSummary.first().getByText("Inspect constraints and sources", { exact: true })
+      : page
+          .getByTestId("compare-row-sources")
+          .getByText("Inspect constraints and sources", { exact: true })
+          .first();
+    const inspectTestId = mobile ? "compare-compact-inspect" : "compare-inspect";
+    await expect(inspectSummary).toBeVisible();
+    await inspectSummary.click();
     await expect(
-      page.getByTestId("compare-inspect").first().getByTestId("source-list"),
+      inspectSummary.locator("xpath=..").getByTestId(inspectTestId).getByTestId("source-list"),
     ).toBeVisible();
   });
 
