@@ -485,12 +485,15 @@ function CompactPlanFacts({
   plan,
   facts,
   className,
+  showPrivacy,
 }: {
   plan: PublicDirectoryPlan;
   facts: CompareFacts;
   className: string;
+  showPrivacy: boolean;
 }) {
   const terms = facts.publishedTerms;
+  const showPolicy = terms !== undefined || showPrivacy;
   return (
     <div
       className={`mt-5 space-y-4 border-t border-border pt-4 ${className}`}
@@ -518,13 +521,14 @@ function CompactPlanFacts({
           <ModelsCell facts={facts} />
         </div>
       </details>
-      {terms && (
+      {showPolicy && (
         <details className="border-t border-border pt-2">
           <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
             Published terms & policy
           </summary>
-          <div className="pt-2">
-            <PublishedSubscriptionTerms terms={terms} />
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-foreground">{terms?.privacySummary ?? PRIVACY_FALLBACK}</p>
+            {terms && <PublishedSubscriptionTerms terms={terms} />}
           </div>
         </details>
       )}
@@ -546,12 +550,14 @@ function TargetHeader({
   asOf,
   onRemove,
   compactClass,
+  showPrivacy,
 }: {
   plan: PublicDirectoryPlan;
   facts: CompareFacts;
   asOf: string;
   onRemove?: (() => void) | undefined;
   compactClass: string;
+  showPrivacy: boolean;
 }) {
   const price = publicPlanPricePresentation(plan);
   return (
@@ -582,7 +588,6 @@ function TargetHeader({
         </span>
         <span className="market-muted ml-2">{price.unit}</span>
       </p>
-      <CompactPlanFacts plan={plan} facts={facts} className={compactClass} />
       {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanTermsNotice
           asOf={asOf}
@@ -609,6 +614,12 @@ function TargetHeader({
           Replay your workload here ↗
         </Link>
       )}
+      <CompactPlanFacts
+        plan={plan}
+        facts={facts}
+        className={compactClass}
+        showPrivacy={showPrivacy}
+      />
     </section>
   );
 }
@@ -745,6 +756,9 @@ export function CompareExplorer({
                 facts={entry.facts}
                 key={entry.plan.id}
                 plan={entry.plan}
+                showPrivacy={chosen.some(
+                  (candidate) => candidate.facts.publishedTerms !== undefined,
+                )}
                 onRemove={
                   chosen.length === 3
                     ? () => selectPlans(ids.filter((_, at) => at !== index))

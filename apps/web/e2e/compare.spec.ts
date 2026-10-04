@@ -129,17 +129,133 @@ test.describe("compare page on a phone", () => {
     await page.goto("/compare?left=kiro-pro&right=devin-teams&third=google-code-assist-enterprise");
     const targets = page.getByTestId("compare-target");
     const summaries = page.getByTestId("compare-compact-summary");
-    await expect(targets.nth(1)).toContainText(
+    const kiro = targets.nth(0);
+    const devin = targets.nth(1);
+    const google = targets.nth(2);
+
+    await expect(
+      summaries
+        .nth(0)
+        .locator("li")
+        .filter({ hasText: "1,000 credits per month; add-ons at $0.04 per credit" })
+        .getByText("1,000 credits per month; add-ons at $0.04 per credit", { exact: true }),
+    ).toBeVisible();
+    await kiro.getByText("Published terms & policy", { exact: true }).click();
+    await expect(
+      kiro.getByTestId("published-subscription-terms").locator("dd").filter({
+        hasText:
+          "1,000 provider credits reset at the start of the billing month. Credits measure work with model multipliers and task complexity; the base task-credit debit formula is not published.",
+      }),
+    ).toBeVisible();
+    await expect(
+      kiro.getByText(
+        "Individual content sharing can be disabled; enterprise identity accounts are excluded from improvement.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      kiro
+        .getByTestId("published-model-multipliers")
+        .getByText(
+          "Display-only task-cost multipliers relative to Auto. They do not establish credits per prompt, token quotas or the base task-credit debit. Regional eligibility applies; Enterprise-only Fable preview is excluded.",
+          { exact: true },
+        ),
+    ).toBeVisible();
+
+    await expect(devin.getByTestId("compare-price")).toHaveText(
       "$80/month base + $40/month per full developer seat",
     );
-    await expect(summaries.nth(1)).toContainText(
-      "Up to 200 users is the published team-size statement, not 200 included full developer seats.",
-    );
-    await expect(summaries.nth(1)).toContainText("numeric capacity is not published");
-    await expect(summaries.nth(1)).toContainText(
-      "earlier terms and introduction date are not established",
-    );
-    await expect(targets.nth(2)).toContainText("must contact sales");
+    await expect(
+      summaries
+        .nth(1)
+        .getByText(
+          "$80/month base + $40/month per full developer seat. Up to 200 users is the published team-size statement, not 200 included full developer seats.",
+          { exact: true },
+        ),
+    ).toBeVisible();
+    await expect(
+      summaries
+        .nth(1)
+        .locator("li")
+        .filter({
+          hasText:
+            "Paid usage allowance renews daily and weekly; numeric capacity is not published.",
+        })
+        .getByText(
+          "Paid usage allowance renews daily and weekly; numeric capacity is not published.",
+          { exact: true },
+        ),
+    ).toBeVisible();
+    await expect(
+      summaries
+        .nth(1)
+        .getByText(
+          "Public offer checked Oct 3, 2026; earlier terms and introduction date are not established.",
+          { exact: true },
+        )
+        .first(),
+    ).toBeVisible();
+    await devin.getByText("Published terms & policy", { exact: true }).click();
+    await expect(
+      devin.getByText(
+        "Privacy terms are not recorded here. Check the provider before sending sensitive work.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+
+    const googleAvailability =
+      "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.";
+    const googleReplayStatus = "Published offer only; workload replay is unavailable.";
+    await expect(
+      google.getByTestId("compare-price").getByText("$54", { exact: true }),
+    ).toBeVisible();
+    await expect(google.getByText(googleAvailability, { exact: true })).toBeVisible();
+    await expect(google.getByText(googleReplayStatus, { exact: true }).first()).toBeVisible();
+    await expect(
+      summaries
+        .nth(2)
+        .getByText(
+          "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+          { exact: true },
+        ),
+    ).toBeVisible();
+
+    expect(
+      await google.evaluate(
+        (target, text) => {
+          const price = target.querySelector('[data-testid="compare-price"]');
+          const availability = [...target.querySelectorAll("p")].find(
+            (node) => node.textContent === text.availability,
+          );
+          const status = [...target.querySelectorAll("p")].find(
+            (node) => node.textContent === text.status,
+          );
+          const summary = target.querySelector('[data-testid="compare-compact-summary"]');
+          if (!price || !availability || !status || !summary) return null;
+          const followedBy = (left: Node, right: Node) =>
+            (left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+          return {
+            priceBeforeAvailability: followedBy(price, availability),
+            availabilityBeforeStatus: followedBy(availability, status),
+            statusBeforeSummary: followedBy(status, summary),
+          };
+        },
+        { availability: googleAvailability, status: googleReplayStatus },
+      ),
+    ).toEqual({
+      priceBeforeAvailability: true,
+      availabilityBeforeStatus: true,
+      statusBeforeSummary: true,
+    });
+
+    await google.getByText("Published terms & policy", { exact: true }).click();
+    await expect(
+      google.getByTestId("published-subscription-terms").locator("dd").filter({
+        hasText:
+          "$54 per licensed user/month with a monthly commitment. Alternative: $45 per licensed user/month with a 12-month commitment, billed monthly.",
+      }),
+    ).toBeVisible();
+
     await page.setViewportSize({ width: 320, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
