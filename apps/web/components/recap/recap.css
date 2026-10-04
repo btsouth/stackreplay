@@ -559,3 +559,30 @@
     font-size: 32px;
   }
 }
+
+.recap-calendar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 12px;
+}
+.recap-calendar-grid {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+}
+.recap-calendar-week {
+  display: grid;
+  grid-template-rows: repeat(7, 26px);
+  gap: 5px;
+}
+.recap-calendar-week > div {
+  border-radius: 4px;
+}
+.recap-calendar-week .active {
+  background: var(--accent);
+}
+.recap-calendar-week .empty {
+  background: var(--surface-2);
+}

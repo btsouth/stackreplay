@@ -1,17 +1,20 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { readAccountIdentities } from "@/lib/account-identity";
 import {
+  newSubscriptionId,
   readStackSubscriptions,
   type StackSubscription,
   stackKeys,
   subscribeCurrentStack,
-  writeCurrentStack,
+  writeStackSubscriptions,
 } from "@/lib/current-stack";
 import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
-import { compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
+import { activityDays, compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
+import { recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
@@ -35,57 +38,43 @@ function Info({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 function Heatmap({ recap }: { recap: Recap }) {
-  const offset = new Date(`${recap.start}T00:00:00Z`).getUTCDay();
-  const count = Math.ceil((recap.days.length + offset) / 7);
-  const max = Math.max(1, ...recap.days.map((d) => d.records));
+  const days = activityDays(recap.days);
+  const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
+  const count = Math.ceil((days.length + offset) / 7);
+  const max = Math.max(1, ...days.map((d) => d.records));
   return (
     <div className="recap-calendar-scroll">
-      <svg
+      <div className="recap-calendar-labels">
+        <span>{days[0]?.date ?? recap.start}</span>
+        <span>{recap.end}</span>
+      </div>
+      <div
+        className="recap-calendar-grid"
         role="img"
-        aria-label={`${recap.days.filter((d) => d.records).length} active days. Activity by local day.`}
-        viewBox={`0 0 ${count * 19 + 34} 154`}
-        className="recap-calendar"
-        style={{ minWidth: Math.min(count * 19 + 34, 700) }}
+        aria-label={`${days.filter((d) => d.records).length} active days. Activity by local day, from ${days[0]?.date ?? recap.start} to ${recap.end}.`}
+        style={{ gridTemplateColumns: `repeat(${count}, minmax(24px, 1fr))` }}
       >
-        <text x="0" y="54">
-          M
-        </text>
-        <text x="0" y="92">
-          W
-        </text>
-        <text x="0" y="130">
-          F
-        </text>
-        {recap.days.map((d, i) => {
-          const col = Math.floor((i + offset) / 7);
-          const row = (i + offset) % 7;
-          return (
-            <g key={d.date}>
-              {(i === 0 || d.date.endsWith("-01")) && (
-                <text x={col * 19 + 32} y="14">
-                  {new Date(`${d.date}T12:00:00Z`).toLocaleDateString("en-US", {
-                    month: "short",
-                    timeZone: "UTC",
-                  })}
-                </text>
-              )}
-              <rect
-                x={col * 19 + 32}
-                y={row * 19 + 24}
-                width="14"
-                height="14"
-                rx="3"
-                className={d.records ? "active" : "empty"}
-                opacity={d.records ? 0.3 + 0.7 * Math.sqrt(d.records / max) : 1}
-              >
-                <title>
-                  {d.date}: {d.records.toLocaleString()} usage records
-                </title>
-              </rect>
-            </g>
-          );
-        })}
-      </svg>
+        {Array.from({ length: count }, (_, col) => (
+          <div
+            className="recap-calendar-week"
+            key={days[Math.max(0, col * 7 - offset)]?.date ?? col}
+          >
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((weekday, row) => {
+              const day = days[col * 7 + row - offset];
+              return (
+                <div
+                  key={weekday}
+                  className={day?.records ? "active" : day ? "empty" : "blank"}
+                  style={{ opacity: day?.records ? 0.3 + 0.7 * Math.sqrt(day.records / max) : 1 }}
+                  title={
+                    day ? `${day.date}: ${day.records.toLocaleString()} usage records` : undefined
+                  }
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -161,13 +150,29 @@ export function RecapSurface({
   const [error, setError] = useState<string>();
   const [loaded, setLoaded] = useState(false);
   const [stack, setStack] = useState<StackSubscription[]>([]);
+  const [detected, setDetected] = useState(false);
   const [exporting, setExporting] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   useEffect(() => {
-    const refresh = () => setStack(readStackSubscriptions());
+    const refresh = () => {
+      const saved = readStackSubscriptions();
+      const effective =
+        window.localStorage.getItem("stackreplay.recap-plans-manual") === "true"
+          ? saved
+          : recapPlans(saved, readAccountIdentities());
+      setStack(effective);
+      setDetected(
+        !saved.some((s) => s.plan.startsWith("plan:")) && effective.length > saved.length,
+      );
+    };
     refresh();
-    return subscribeCurrentStack(refresh);
+    const unsubscribe = subscribeCurrentStack(refresh);
+    window.addEventListener("stackreplay-account-labels", refresh);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("stackreplay-account-labels", refresh);
+    };
   }, []);
   useEffect(() => {
     let active = true;
@@ -234,13 +239,13 @@ export function RecapSurface({
   const monthly = planSummary.totals.find((t) => t.currency === "USD" && t.interval === "month");
   const planText =
     selectedPlanCount && !planSummary.unpricedPlans && planSummary.totals.length === 1 && monthly
-      ? `${recapUsd(monthly.amount)}/month of selected plans`
+      ? `${recapUsd(monthly.amount)}/month of ${detected ? "detected" : "selected"} plans`
       : undefined;
   async function download(portrait: boolean) {
     if (!recap) return;
     setExporting(true);
     try {
-      const blob = await renderRecapCard(recap, portrait);
+      const blob = await renderRecapCard(recap, portrait, planText);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -320,27 +325,26 @@ export function RecapSurface({
                 {recap.priced
                   ? recapUsd(recap.usd)
                   : compactNumber(recap.outputKnown ? recap.output : recap.records)}
-                {recap.usdHigh !== recap.usd && (
-                  <span className="recap-hero-range">to {recapUsd(recap.usdHigh)}</span>
-                )}
               </div>
               <div className="recap-hero-caption">
-                {recap.priced ? (
-                  <>
-                    of API-priced work
-                    {recap.priced < recap.records ? <small> · priced subset</small> : null}
-                  </>
-                ) : recap.outputKnown ? (
-                  "logged output tokens"
-                ) : (
-                  "logged activity records"
-                )}
+                {recap.priced
+                  ? "of API-priced work"
+                  : recap.outputKnown
+                    ? "logged output tokens"
+                    : "logged activity records"}
                 <Info label="How API-equivalent value is calculated">
                   <p>
                     What the priced records would cost at their model developer's catalog API list
                     prices, pinned to {recap.rulesAsOf}. The replay engine accounts for input,
                     output, cache, reasoning and supported rate conditions.
                   </p>
+                  {recap.usdHigh !== recap.usd && (
+                    <p>
+                      {recapUsd(recap.usd)} to {recapUsd(recap.usdHigh)}: cache-write lifetimes are
+                      unreported for {recap.cacheScenarioRecords.toLocaleString()} records. The main
+                      number uses the 5-minute rate; the upper bound uses the 1-hour rate.
+                    </p>
+                  )}
                   <p>
                     {recap.priced.toLocaleString()} of {recap.records.toLocaleString()} usage
                     records priced ({Math.round((recap.priced / recap.records) * 100)}%). Unknown
@@ -354,10 +358,11 @@ export function RecapSurface({
                   on <strong>{planText}</strong>
                   <Info label="About subscription prices">
                     <p>
-                      Current published USD monthly prices for the subscriptions you selected,
-                      including multiple subscriptions to the same plan. This monthly reference is
-                      not prorated to the recap period and is not your actual payment. Taxes,
-                      discounts and API charges are excluded.
+                      Current published USD monthly prices for selected subscriptions or plans
+                      identified by local Claude profiles, including multiple accounts on the same
+                      plan. Detected plans reflect a profile snapshot, not a complete plan
+                      inventory. This monthly reference is not prorated to the recap period and is
+                      not your actual payment. Taxes, discounts and API charges are excluded.
                     </p>
                   </Info>
                 </p>
@@ -377,13 +382,17 @@ export function RecapSurface({
                           <input
                             type="checkbox"
                             checked={stack.some((s) => s.plan === key)}
-                            onChange={(e) =>
-                              writeCurrentStack(
+                            onChange={(e) => {
+                              window.localStorage.setItem("stackreplay.recap-plans-manual", "true");
+                              writeStackSubscriptions(
                                 e.target.checked
-                                  ? [...stackKeys(stack), key]
-                                  : stackKeys(stack).filter((k) => k !== key),
-                              )
-                            }
+                                  ? [
+                                      ...stack,
+                                      { id: newSubscriptionId(stack.map((s) => s.id)), plan: key },
+                                    ]
+                                  : stack.filter((s) => s.plan !== key),
+                              );
+                            }}
                           />
                           <span>
                             {p.name}
@@ -422,8 +431,8 @@ export function RecapSurface({
                   ? [
                       [
                         recap.sessions.toLocaleString(),
-                        "native sessions",
-                        `${recap.sessionKnown.toLocaleString()} records have native session identity. Distinct tool and session pairs, including child sessions; not user visits.`,
+                        "sessions",
+                        `${recap.sessionKnown.toLocaleString()} records have native session identity. Distinct tool and session pairs, including sessions started by child agents; not user visits.`,
                       ],
                     ]
                   : []),
@@ -450,7 +459,6 @@ export function RecapSurface({
             <section className="recap-panel">
               <div className="recap-section-heading">
                 <div>
-                  <span className="recap-eyebrow">SHOWING UP</span>
                   <h2>A little, then a lot.</h2>
                 </div>
                 <span>
@@ -467,7 +475,7 @@ export function RecapSurface({
               </div>
               <Heatmap recap={recap} />
               <div className="recap-calendar-footer">
-                <span>Every square is part of the story.</span>
+                <span>From the first active week. Each cell is a day.</span>
                 <span>
                   Less <i /> <i /> <i /> More
                 </span>
@@ -476,7 +484,6 @@ export function RecapSurface({
             <div className="recap-two-column">
               {recap.outputKnown > 0 && (
                 <section className="recap-panel">
-                  <span className="recap-eyebrow">THE CAST</span>
                   <h2>Your model mix.</h2>
                   <p className="recap-subtitle">Output tokens, week by week.</p>
                   <Mix recap={recap} />
@@ -495,7 +502,9 @@ export function RecapSurface({
                             ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
                             : "Unpriced"}
                           <small>
-                            {m.priced < m.records && m.priced ? "priced subset" : "API equivalent"}
+                            {m.priced < m.records && m.priced
+                              ? "known-price work"
+                              : "API equivalent"}
                           </small>
                         </span>
                       </div>
@@ -505,9 +514,8 @@ export function RecapSurface({
               )}
               <div className="recap-right-column">
                 <section className="recap-panel">
-                  <span className="recap-eyebrow">YOUR TOOLBOX</span>
                   <h2>Many tools. One story.</h2>
-                  <p className="recap-subtitle">Share of logged usage records.</p>
+                  <p className="recap-subtitle">Share of logged records.</p>
                   <div className="recap-tools">
                     {recap.tools.map((t) => (
                       <div key={t.id}>
@@ -519,7 +527,8 @@ export function RecapSurface({
                           <i style={{ width: `${(t.records / recap.records) * 100}%` }} />
                         </div>
                         <small>
-                          {t.records.toLocaleString()} records
+                          {t.records.toLocaleString()}{" "}
+                          {t.id === "hermes" ? "session/model aggregates" : "records"}
                           {recap.outputKnown > 0
                             ? ` · ${compactNumber(t.output)} output tokens`
                             : ""}
@@ -529,7 +538,6 @@ export function RecapSurface({
                   </div>
                 </section>
                 <section className="recap-panel recap-facts">
-                  <span className="recap-eyebrow">A FEW THINGS ABOUT YOU</span>
                   <h2>Patterns worth keeping.</h2>
                   <p>
                     <strong>{recap.longestStreak} days</strong>
@@ -554,7 +562,6 @@ export function RecapSurface({
             </div>
             <section className="recap-share">
               <div>
-                <span className="recap-eyebrow">MAKE IT YOURS</span>
                 <h2>A chapter worth sharing.</h2>
                 <p>A card of your numbers. No logs, no account details.</p>
               </div>

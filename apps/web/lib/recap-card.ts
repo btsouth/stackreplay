@@ -7,8 +7,19 @@ export const recapUsd = (value: string) =>
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(Number(value));
+/** Preserve chronology, omitting only full inactive weeks before the first activity. */
+export function activityDays(days: Recap["days"]): Recap["days"] {
+  const first = days.findIndex((day) => day.records > 0);
+  if (first <= 0) return days;
+  const weekday = new Date(`${days[first]!.date}T00:00:00Z`).getUTCDay();
+  return days.slice(Math.max(0, first - weekday));
+}
 /** Only explicitly displayed aggregate facts enter the canvas. No account, path, prompt or session identity. */
-export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<Blob> {
+export async function renderRecapCard(
+  recap: Recap,
+  portrait: boolean,
+  planText?: string,
+): Promise<Blob> {
   await document.fonts.ready;
   const canvas = document.createElement("canvas");
   canvas.width = portrait ? 1080 : 1200;
@@ -42,16 +53,13 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
   text("STACKREPLAY  /  MY CODING RECAP", pad, 60, 20, "#bbd3c9", 600);
   text(`${recap.start}  →  ${recap.end}`, pad, portrait ? 116 : 102, 18, "#a7b6bc");
   const heroY = portrait ? 230 : 164;
-  const range = recap.usdHigh !== recap.usd;
   const hero = recap.priced
     ? recapUsd(recap.usd)
     : compactNumber(recap.outputKnown ? recap.output : recap.records);
   text(hero, pad, heroY, portrait ? 154 : 116, "#f6f2e9", 700);
   text(
     recap.priced
-      ? range
-        ? `to ${recapUsd(recap.usdHigh)} of API-priced work`
-        : "of API-priced work"
+      ? "at API list prices"
       : recap.outputKnown
         ? "logged output tokens"
         : "logged activity records",
@@ -60,50 +68,45 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
     portrait ? 38 : 28,
     "#bbd3c9",
   );
-  if (recap.priced)
-    text(
-      `${recap.priced.toLocaleString()} / ${recap.records.toLocaleString()} usage records priced · list-price estimate`,
-      pad,
-      heroY + (portrait ? 238 : 168),
-      portrait ? 21 : 17,
-      "#a7b6bc",
-    );
+  if (planText && recap.priced)
+    text(`on ${planText}`, pad, portrait ? 480 : 342, portrait ? 28 : 23, "#bbd3c9");
   const stats = [
-    ...(recap.outputKnown
-      ? [
-          [
-            compactNumber(recap.output),
-            recap.outputKnown < recap.records ? "REPORTED OUTPUT TOKENS" : "OUTPUT TOKENS",
-          ],
-        ]
-      : []),
-    ...(recap.sessions ? [[compactNumber(recap.sessions), "NATIVE SESSIONS"]] : []),
+    ...(recap.outputKnown ? [[compactNumber(recap.output), "OUTPUT TOKENS"]] : []),
+    ...(recap.sessions ? [[compactNumber(recap.sessions), "SESSIONS"]] : []),
     [`${String(recap.longestStreak)} days`, "LONGEST STREAK"],
   ];
-  const statY = portrait ? 625 : 433;
+  const statY = portrait ? 640 : 423;
   stats.forEach(([value, label], i) => {
-    const x = pad + (portrait ? 0 : i * 350);
-    const y = statY + (portrait ? i * 156 : 0);
-    text(value ?? "", x, y, portrait ? 66 : 48, "#f6f2e9", 700);
-    text(label ?? "", x, y + (portrait ? 80 : 62), 16, "#a7b6bc", 600);
+    const x = pad + i * ((w - pad * 2) / 3);
+    const y = statY;
+    text(value ?? "", x, y, portrait ? 57 : 48, "#f6f2e9", 700);
+    text(label ?? "", x, y + (portrait ? 76 : 62), 16, "#a7b6bc", 600);
   });
-  // Each line is a day of activity, a visual signature derived from this period.
-  const chartX = portrait ? 700 : pad;
-  const chartY = portrait ? 650 : 555;
-  const chartW = portrait ? 270 : w - pad * 2;
-  const chartH = portrait ? 395 : 28;
-  const activity = portrait
-    ? Array.from({ length: Math.ceil(recap.days.length / 7) }, (_, i) => ({
-        records: recap.days.slice(i * 7, i * 7 + 7).reduce((sum, day) => sum + day.records, 0),
-      }))
-    : recap.days;
-  const activityMax = Math.max(1, ...activity.map((day) => day.records));
-  activity.forEach((d, i) => {
-    const bw = chartW / activity.length;
-    ctx.fillStyle = d.records ? "#8dbba8" : "#33434a";
-    const bh = d.records ? Math.max(3, chartH * Math.sqrt(d.records / activityMax)) : 2;
-    ctx.fillRect(chartX + i * bw, chartY + chartH - bh, Math.max(1, bw - 2), bh);
-  });
+  const days = activityDays(recap.days);
+  if (portrait) {
+    text("YOUR CODING RHYTHM", pad, 858, 25, "#bbd3c9", 600);
+    text("Output tokens by week", pad, 899, 20, "#a7b6bc");
+    const first = recap.weeks.findIndex((week) => Object.values(week.families).some((n) => n > 0));
+    const weeks = recap.weeks.slice(Math.max(0, first));
+    const totals = weeks.map((week) => Object.values(week.families).reduce((a, b) => a + b, 0));
+    const max = Math.max(1, ...totals);
+    const bw = (w - pad * 2) / Math.max(1, weeks.length);
+    totals.forEach((total, i) => {
+      ctx.fillStyle = "#8dbba8";
+      const height = (total / max) * 265;
+      ctx.fillRect(pad + i * bw, 1223 - height, Math.max(1, bw - 8), height);
+    });
+    text(`${weeks[0]?.date ?? recap.start}  →  ${recap.end}`, pad, 1244, 18, "#a7b6bc");
+  } else {
+    text("DAILY ACTIVITY", pad, 528, 13, "#a7b6bc", 600);
+    const max = Math.max(1, ...days.map((d) => d.records));
+    days.forEach((d, i) => {
+      const bw = (w - pad * 2) / days.length;
+      ctx.fillStyle = d.records ? "#8dbba8" : "#33434a";
+      const bh = d.records ? Math.max(3, 28 * Math.sqrt(d.records / max)) : 2;
+      ctx.fillRect(pad + i * bw, 581 - bh, Math.max(1, bw - 2), bh);
+    });
+  }
   text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");
   text("stackreplay.com", w - pad - 170, h - 42, 16, "#bbd3c9");
   return new Promise((resolve, reject) =>

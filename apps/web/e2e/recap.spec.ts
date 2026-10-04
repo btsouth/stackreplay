@@ -55,3 +55,49 @@ test("empty state has a direct scan action", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Find my AI histories" })).toBeVisible();
   await expect(page.getByTestId("recap-ready")).toHaveCount(0);
 });
+
+test("shows explicit detected plans and keeps pricing detail off the hero face", async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
+  await gotoImport(page);
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "stackreplay.account-identity.v1",
+      JSON.stringify({
+        version: 1,
+        accounts: {
+          ["claude-code:sr_" + "a".repeat(32)]: {
+            account: "ca_" + "b".repeat(32),
+            organizationType: "claude_max",
+            rateLimitTier: "default_claude_max_5x",
+          },
+        },
+      }),
+    ),
+  );
+  await page.getByTestId("import-file-input").setInputFiles(fixture);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
+  await expect(page.locator(".recap-plan-comparison")).toContainText(
+    "$100/month of detected plans",
+  );
+  await expect(page.locator(".recap-hero-number")).not.toContainText("to ");
+  await expect(page.locator(".recap-hero-caption")).not.toContainText("priced subset");
+  await expect(page.locator(".recap-stats")).not.toContainText("native sessions");
+  await page.getByText("Edit your plans", { exact: true }).click();
+  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).check();
+  await expect(page.locator(".recap-plan-comparison")).toContainText(
+    "$120/month of selected plans",
+  );
+  await page.reload();
+  await expect(page.locator(".recap-plan-comparison")).toContainText(
+    "$120/month of selected plans",
+  );
+  await page.getByText("Edit your plans", { exact: true }).click();
+  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).uncheck();
+  await page.getByRole("checkbox", { name: /Max 5/u }).uncheck();
+  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+});
