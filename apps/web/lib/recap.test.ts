@@ -22,7 +22,7 @@ describe("private recap metrics", () => {
     expect(r.longestStreak).toBe(4);
     expect(r.streak).toBe(0);
   });
-  it("requires activity today for the current streak and native tool/session identities", () => {
+  it("keeps yesterday's streak open today and counts native tool/session identities", () => {
     const events = [
       "2026-10-01T10:00:00Z",
       "2026-10-02T23:00:00Z",
@@ -39,7 +39,7 @@ describe("private recap metrics", () => {
       },
     }));
     const r = buildRecap(events, "30", "2026-10-04T12:00:00Z", "UTC");
-    expect(r.streak).toBe(0);
+    expect(r.streak).toBe(3);
     expect(r.longestStreak).toBe(3);
     expect(r.sessions).toBe(2);
     expect(r.busiestHour).toBe(23);
