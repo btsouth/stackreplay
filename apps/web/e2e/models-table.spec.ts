@@ -23,6 +23,13 @@ async function openModels(page: Page, path: string) {
   await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
 }
 
+// Headless Chromium overlays scrollbars, while the native 320px check used a
+// classic 15px scrollbar. Constrain the root to the resulting 305px content
+// width so the regression reproduces the layout that ships in desktop Chrome.
+const MOBILE_MODEL_VIEWPORT = { width: 320, height: 568 } as const;
+const CLASSIC_SCROLLBAR_WIDTH = 15;
+const MOBILE_MODEL_CONTENT_WIDTH = MOBILE_MODEL_VIEWPORT.width - CLASSIC_SCROLLBAR_WIDTH;
+
 const rows = (page: Page) => page.getByTestId("model-table-row");
 const cellTexts = (page: Page, column: number) =>
   rows(page).evaluateAll(
@@ -44,17 +51,42 @@ for (const theme of ["dark", "light"] as const) {
     test("keeps the spotlight facts and brings search into the first viewport", async ({
       page,
     }) => {
-      await page.setViewportSize({ width: 320, height: 568 });
+      await page.setViewportSize(MOBILE_MODEL_VIEWPORT);
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
       await openModels(page, "/models");
+      await page.addStyleTag({
+        content: `html { width: ${MOBILE_MODEL_CONTENT_WIDTH}px; }`,
+      });
+      const layout = await page.evaluate(() => ({
+        innerWidth,
+        rootWidth: document.documentElement.getBoundingClientRect().width,
+      }));
+      expect(layout.innerWidth).toBe(MOBILE_MODEL_VIEWPORT.width);
+      expect(layout.rootWidth).toBe(MOBILE_MODEL_CONTENT_WIDTH);
       const spotlight = page.locator(".market-feature");
-      await expect(spotlight).toContainText("$2 input, $10 output and $0.20 cache reads");
-      await expect(spotlight).toContainText("Inspect pricing and cache-write options.");
+      const pricing = spotlight.locator("p").filter({ hasText: "Published API rates:" });
+      await expect(pricing).toContainText("$2 input, $10 output and $0.20 cache reads");
+      await expect(pricing).toContainText("Inspect pricing and cache-write options.");
+      const pricingBox = await pricing.boundingBox();
+      const pricingMetrics = await pricing.evaluate((element) => ({
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+      }));
+      expect(pricingMetrics.fontSize).toBeGreaterThanOrEqual(12.8);
+      expect((pricingBox?.y ?? Infinity) + (pricingBox?.height ?? Infinity)).toBeLessThanOrEqual(
+        MOBILE_MODEL_VIEWPORT.height,
+      );
       const search = page.getByLabel("Find a model, family name or exact alias");
+      const searchControl = page.locator('label:has(> input[type="search"])');
       await expect(search).toBeVisible();
-      const searchBox = await search.boundingBox();
-      expect((searchBox?.y ?? 0) + (searchBox?.height ?? Infinity)).toBeLessThanOrEqual(568);
+      await expect(searchControl).toBeVisible();
+      const searchControlBox = await searchControl.boundingBox();
+      expect(
+        (searchControlBox?.x ?? Infinity) + (searchControlBox?.width ?? Infinity),
+      ).toBeLessThanOrEqual(MOBILE_MODEL_CONTENT_WIDTH);
+      expect(
+        (searchControlBox?.y ?? Infinity) + (searchControlBox?.height ?? Infinity),
+      ).toBeLessThanOrEqual(MOBILE_MODEL_VIEWPORT.height);
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
     });

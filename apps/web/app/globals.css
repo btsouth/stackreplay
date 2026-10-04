@@ -1149,12 +1149,18 @@ html[data-compare] [data-compare-results] {
     margin: 0.35rem 0;
   }
   /* Models keeps every spotlight fact visible while tightening its mobile presentation. */
+  .models-discovery-page .market-section-title {
+    padding: 0.5rem 0;
+  }
+  .models-discovery-page .market-filters {
+    padding-top: 0.5rem;
+  }
   .models-discovery-page .market-header-compact {
-    padding: 0.15rem 0 0.6rem;
-    gap: 0.45rem;
+    padding: 0.15rem 0 0.25rem;
+    gap: 0.3rem;
   }
   .models-discovery-page .market-header-compact:has(.market-feature) {
-    gap: 0.55rem;
+    gap: 0.3rem;
   }
   .models-discovery-page .market-header-compact .market-kicker {
     font-size: 0.6rem;

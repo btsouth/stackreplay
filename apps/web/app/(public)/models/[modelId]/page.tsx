@@ -312,7 +312,9 @@ export default async function ModelPage({ params }: Props) {
           </div>
         </section>
       )}
-      <ModelBenchmarks data={loadPublicBenchmarks()} modelId={model.id} />
+      {model.kind === "release" && (
+        <ModelBenchmarks data={loadPublicBenchmarks()} modelId={model.id} />
+      )}
       <div className="market-section-title" id="where-to-use">
         <span>
           {model.kind === "family" ? "01" : specifications ? "03" : "02"} / Where you can use it
@@ -378,9 +380,9 @@ export default async function ModelPage({ params }: Props) {
         </p>
       )}
       {related.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10" aria-labelledby="related-releases-title">
           <div className="market-section-title">
-            <span>Related releases</span>
+            <span id="related-releases-title">Related releases</span>
             <span>{model.familyName ?? model.name}</span>
           </div>
           {related.map((m) => (
