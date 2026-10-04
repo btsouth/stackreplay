@@ -317,6 +317,15 @@ export function createHermesAdapter(): LocalSourceAdapter {
                 ...(servingProvider
                   ? { providerId: servingProvider, providerAttribution: "exact" as const }
                   : {}),
+                ...(billingMode === "subscription_included"
+                  ? {
+                      billing: {
+                        kind: "subscription" as const,
+                        attribution: "exact" as const,
+                        ...(servingProvider ? { providerId: servingProvider } : {}),
+                      },
+                    }
+                  : {}),
                 workloadCategory: "agent",
                 // A row that covers several API calls is not an exact per-call
                 // counter, and neither is a row that reports no count: the

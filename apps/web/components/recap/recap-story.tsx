@@ -458,6 +458,24 @@ export function RecapStory({
             note="Apps and agents driving your sessions. Share of all reported tokens."
           />
           <Routes rows={d.harnesses} names={harnessNames} total={total} />
+          {recap.sourceCoverage && (
+            <details className="recap-coverage">
+              <summary>What this history covers</summary>
+              <ul>
+                {recap.sourceCoverage.map((s) => (
+                  <li key={s.name}>
+                    <span>{s.name}</span>
+                    <span>{s.status}</span>
+                  </li>
+                ))}
+              </ul>
+              <p>
+                Finding an installation is not usage evidence. A failed or excluded source cannot
+                contribute tokens; rescan missing histories. Provider-session stores and harness
+                attribution are separate.
+              </p>
+            </details>
+          )}
           <p className="recap-method-note">
             T3 attribution replaces the underlying harness on matched sessions; it adds no usage.
             Hermes aggregates remain Hermes activity. Rounded shares may not sum to exactly 100%.

@@ -20,6 +20,7 @@ export interface RecapModel {
 }
 export interface Recap {
   deep?: RecapDeep;
+  sourceCoverage?: { name: string; role: string; status: string }[];
   start: string;
   end: string;
   timeZone: string;

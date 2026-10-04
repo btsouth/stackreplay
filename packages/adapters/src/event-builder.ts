@@ -51,6 +51,7 @@ export interface EventDraft {
   usage: TextUsageEventV1["usage"];
   /** Source-reported cost, already formatted as a decimal string. */
   nativeCost?: string;
+  billing?: TextUsageEventV1["billing"];
   /** Raw project path. Hashed with the local salt; never exported raw. */
   projectKey?: string;
   /** Default harness for this source; attribution may override it. */
@@ -210,6 +211,7 @@ export function buildEvent(draft: EventDraft, context: EventContext): TextUsageE
   if (draft.providerId !== undefined) {
     event.provider = { id: draft.providerId, attribution: draft.providerAttribution ?? "inferred" };
   }
+  if (draft.billing) event.billing = draft.billing;
   if (draft.nativeCost !== undefined) {
     event.nativeCost = { amount: draft.nativeCost, currency: "USD" };
   }

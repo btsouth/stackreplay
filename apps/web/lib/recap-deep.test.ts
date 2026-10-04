@@ -60,9 +60,9 @@ describe("deep recap provenance", () => {
   });
   it("filters Hermes on last_seen and never allocates its aggregate across a boundary", () => {
     const e = {
-      ...event("x", "2026-09-05T00:00:00Z", "hermes", "openai"),
+      ...event("x", "2026-09-04T00:00:00Z", "hermes", "openai"),
       requestStartedAt: "2026-09-01T00:00:00Z",
-      requestEndedAt: "2026-09-05T00:00:00Z",
+      requestEndedAt: "2026-09-04T00:00:00Z",
     };
     expect(buildRecap([e], "30", now, "UTC").deep!.harnesses).toHaveLength(0);
     expect(buildRecap([e], "90", now, "UTC").deep!.harnesses[0]!.total).toBe(180);

@@ -11,6 +11,8 @@ export const harnessNames: Record<string, string> = {
   unattributed: "Unattributed",
 };
 export const providerNames: Record<string, string> = {
+  openrouter: "OpenRouter",
+  meta: "Meta",
   anthropic: "Anthropic",
   openai: "OpenAI",
   deepseek: "DeepSeek",
@@ -38,6 +40,24 @@ export const developerNames: Record<string, string> = {
   xiaomi: "Xiaomi",
   other: "Unresolved",
 };
+export function servingRouteId(id: string): string {
+  const aliases: Record<string, string> = {
+    "opencode-go": "opencode",
+    "opencode-zen": "opencode",
+    commandcode: "command-code",
+    "openai-codex": "openai",
+    "openai-api": "openai",
+    zai: "z-ai",
+    "zai-coding-plan": "z-ai",
+    "z.ai": "z-ai",
+    clinepass: "cline",
+    "ollama-cloud": "ollama",
+    custom: "unattributed",
+    unknown: "unattributed",
+    "": "unattributed",
+  };
+  return aliases[id] ?? id;
+}
 export interface RecapDeep {
   buckets: { input: number; output: number; read: number; write: number };
   harnesses: { id: string; total: number; records: number }[];
@@ -99,7 +119,13 @@ export function deepRecap(
     const harness =
       e.harness?.id ?? (e.source.adapterId === "ccusage" ? "ccusage" : "unattributed");
     // An inferred model-provider is developer evidence, not a recorded serving route.
-    const provider = e.provider?.attribution === "exact" ? e.provider.id : "unattributed";
+    const rawProvider =
+      e.billing?.attribution === "exact" && e.billing.providerId
+        ? e.billing.providerId
+        : e.provider?.attribution === "exact"
+          ? e.provider.id
+          : "unattributed";
+    const provider = servingRouteId(rawProvider);
     for (const [map, id] of [
       [harnesses, harness],
       [providers, provider],

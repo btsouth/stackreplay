@@ -1131,3 +1131,37 @@
       color 0.15s;
   }
 }
+.recap-coverage {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.recap-coverage summary {
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 12px 0;
+}
+.recap-coverage ul {
+  list-style: none;
+  padding: 0;
+  max-width: 700px;
+}
+.recap-coverage li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.recap-coverage p {
+  max-width: 80ch;
+  line-height: 1.6;
+}
+@media (max-width: 700px) {
+  .recap-mix {
+    min-height: 220px;
+  }
+  .recap-mix text {
+    font-size: 20px;
+  }
+}
