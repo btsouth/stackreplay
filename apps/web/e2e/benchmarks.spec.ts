@@ -1,10 +1,91 @@
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import type { BenchmarkExport } from "../lib/benchmark-export";
 
 const google = "google-deepmind-argon-2026-09-30";
 const sheet = `/benchmarks?source=${google}&models=gemini-4-argon,gpt-6-astra,claude-fable-5-1,claude-opus-5-5&coverage=shared&edition=2026-09-30-v1`;
+
+async function expectBenchmarkTableLayout(
+  page: Page,
+  { modelCount, requireScroll = false }: { modelCount: number; requireScroll?: boolean },
+) {
+  const region = page.getByRole("region", { name: /Benchmark comparison table/ });
+  await expect(region).toBeVisible();
+  await expect(region.getByRole("columnheader")).toHaveCount(modelCount + 1);
+
+  const readLayout = () =>
+    region.evaluate((container) => {
+      const table = container.querySelector("table");
+      const firstHeader = table?.querySelector("thead th:first-child");
+      const firstRowHeader = table?.querySelector("tbody th:first-child");
+      const lastHeader = table?.querySelector("thead th:last-child");
+      if (!table || !firstHeader || !firstRowHeader || !lastHeader)
+        throw new Error("Benchmark table structure is incomplete");
+      const containerRect = container.getBoundingClientRect();
+      return {
+        clientWidth: container.clientWidth,
+        scrollWidth: container.scrollWidth,
+        scrollLeft: container.scrollLeft,
+        containerLeft: containerRect.left,
+        containerRight: containerRect.right,
+        firstHeaderLeft: firstHeader.getBoundingClientRect().left,
+        firstRowHeaderLeft: firstRowHeader.getBoundingClientRect().left,
+        lastHeaderRight: lastHeader.getBoundingClientRect().right,
+        scores: [...table.querySelectorAll<HTMLButtonElement>(".bench-score")].map((score) => {
+          const cell = score.closest("td");
+          if (!cell) throw new Error("Benchmark score is outside a table cell");
+          const scoreRect = score.getBoundingClientRect();
+          const cellRect = cell.getBoundingClientRect();
+          const cellStyle = getComputedStyle(cell);
+          const contentLeft =
+            cellRect.left +
+            Number.parseFloat(cellStyle.paddingLeft) +
+            Number.parseFloat(cellStyle.borderLeftWidth);
+          const contentRight =
+            cellRect.right -
+            Number.parseFloat(cellStyle.paddingRight) -
+            Number.parseFloat(cellStyle.borderRightWidth);
+          return {
+            text: score.textContent ?? "",
+            left: scoreRect.left,
+            right: scoreRect.right,
+            center: scoreRect.left + scoreRect.width / 2,
+            contentLeft,
+            contentRight,
+            contentCenter: contentLeft + (contentRight - contentLeft) / 2,
+            clipped: score.scrollWidth > score.clientWidth,
+          };
+        }),
+      };
+    });
+
+  const assertScoresFit = (layout: Awaited<ReturnType<typeof readLayout>>) => {
+    expect(layout.scores.length).toBeGreaterThan(0);
+    for (const score of layout.scores) {
+      expect(score.left, score.text).toBeGreaterThanOrEqual(score.contentLeft - 0.5);
+      expect(score.right, score.text).toBeLessThanOrEqual(score.contentRight + 0.5);
+      expect(Math.abs(score.center - score.contentCenter), score.text).toBeLessThanOrEqual(1);
+      expect(score.clipped, score.text).toBe(false);
+    }
+  };
+
+  let layout = await readLayout();
+  assertScoresFit(layout);
+  if (requireScroll) {
+    expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
+    await region.evaluate((container) => {
+      container.scrollLeft = container.scrollWidth;
+    });
+    layout = await readLayout();
+    expect(layout.scrollLeft).toBeGreaterThan(0);
+    expect(Math.abs(layout.firstHeaderLeft - layout.containerLeft)).toBeLessThanOrEqual(2);
+    expect(Math.abs(layout.firstRowHeaderLeft - layout.containerLeft)).toBeLessThanOrEqual(2);
+    expect(layout.lastHeaderRight).toBeLessThanOrEqual(layout.containerRight + 1);
+    expect(layout.lastHeaderRight).toBeGreaterThan(layout.containerLeft);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+}
 
 test("default Frontier shows verified Sol launch scores and shared benchmark coverage", async ({
   page,
@@ -37,6 +118,7 @@ test("Sol effort alternatives stay exact, attributed and pinned across reload", 
   page,
 }) => {
   await page.goto("/benchmarks?models=gpt-6-1-sol");
+  await expectBenchmarkTableLayout(page, { modelCount: 1 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("OpenAI");
@@ -253,6 +335,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
 }, testInfo) => {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/benchmarks?models=gpt-6-1-sol,gemini-4-argon");
+  await expectBenchmarkTableLayout(page, { modelCount: 2 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
   await page.getByLabel("Reported result for GPT-6.1 Sol").selectOption(pin);
@@ -441,6 +524,7 @@ const epochBenchmark = "epoch-gpqa-diamond-revision-unreported";
 const epochModels = ["claude-sonnet-5-5", "claude-opus-5-5", "qwen-3-8-max-0902"];
 const epochDisplays = ["95.5808080808080800%", "90.5934343434343400%", "92.297979797979800%"];
 const epochPin = `epoch-gpqa-sonnet-5-5-max-2026-10-04.${epochBenchmark}.claude-sonnet-5-5`;
+const sixModelLayoutIds = [...epochModels, "gpt-6-1-sol", "gemini-4-argon", "gpt-6-astra"];
 
 for (const theme of ["dark", "light"] as const)
   test(`Epoch mixed evidence ${theme}: exact download, partial Science and readable precision`, async ({
@@ -552,10 +636,25 @@ for (const theme of ["dark", "light"] as const)
         const cell = button.closest("td");
         if (!cell) throw new Error("Score outside table cell");
         const cellRect = cell.getBoundingClientRect();
+        const cellStyle = getComputedStyle(cell);
+        const contentLeft =
+          cellRect.left +
+          Number.parseFloat(cellStyle.paddingLeft) +
+          Number.parseFloat(cellStyle.borderLeftWidth);
+        const contentRight =
+          cellRect.right -
+          Number.parseFloat(cellStyle.paddingRight) -
+          Number.parseFloat(cellStyle.borderRightWidth);
         return {
           text: button.textContent,
+          left: rect.left,
+          right: rect.right,
           width: rect.width,
           cellWidth: cellRect.width,
+          contentLeft,
+          contentRight,
+          contentCenter: contentLeft + (contentRight - contentLeft) / 2,
+          center: rect.left + rect.width / 2,
           clipped: button.scrollWidth > button.clientWidth,
           fontSize: getComputedStyle(button).fontSize,
         };
@@ -593,8 +692,13 @@ for (const theme of ["dark", "light"] as const)
     // Keep layout acceptance explicit after recording the functional export paths.
     for (const metric of metrics) {
       expect(metric.clipped).toBe(false);
-      expect(metric.width).toBeLessThanOrEqual(metric.cellWidth);
+      expect(metric.left).toBeGreaterThanOrEqual(metric.contentLeft - 0.5);
+      expect(metric.right).toBeLessThanOrEqual(metric.contentRight + 0.5);
+      expect(Math.abs(metric.center - metric.contentCenter)).toBeLessThanOrEqual(1);
     }
+
+    await page.goto(`/benchmarks?models=${sixModelLayoutIds.join(",")}&observation=${epochPin}`);
+    await expectBenchmarkTableLayout(page, { modelCount: 6, requireScroll: true });
   });
 
 for (const [index, modelId] of epochModels.entries())
