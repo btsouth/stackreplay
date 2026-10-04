@@ -313,18 +313,18 @@ test("custom picker, browser history and tablet navigation preserve selection wi
 test("unscored selections change only after explicit recovery and retain browser history", async ({
   page,
 }) => {
-  await page.goto("/benchmarks?models=qwen-3-8-max%2Ckimi-k3&coverage=all");
+  await page.goto("/benchmarks?models=qwen-3-8-flash%2Ckimi-k3&coverage=all");
   await expect(page.locator(".bench-empty")).toContainText(
-    "Qwen 3.8 Max, Kimi K3: no reported scores in this edition.",
+    "Qwen 3.8 Flash, Kimi K3: no reported scores in this edition.",
   );
-  await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Max" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Flash" })).toBeVisible();
   await expect(page.locator(".bench-picker")).toContainText("No verified scores yet");
   await expect(page.getByRole("button", { name: "Download JSON", exact: true })).toBeEnabled();
-  await expect(page).toHaveURL(/models=qwen-3-8-max%2Ckimi-k3/);
+  await expect(page).toHaveURL(/models=qwen-3-8-flash%2Ckimi-k3/);
   await page.getByRole("button", { name: "Show models with reported scores", exact: true }).click();
   await expect(page.locator(".bench-empty")).toHaveCount(0);
   expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
-  await expect(page).not.toHaveURL(/models=qwen-3-8-max/);
+  await expect(page).not.toHaveURL(/models=qwen-3-8-flash/);
   await page.goBack();
   await expect(page.locator(".bench-empty")).toBeVisible();
   await expect(page.getByRole("button", { name: "Remove Kimi K3" })).toBeVisible();
@@ -351,12 +351,12 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   const downloading = page.waitForEvent("download");
   await page.keyboard.press("Enter");
   const download = await downloading;
-  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v3.json");
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v4.json");
   const file = testInfo.outputPath("selected-benchmark-evidence.json");
   await download.saveAs(file);
   const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
   expect(payload.exportVersion).toBe(1);
-  expect(payload.edition).toBe("2026-10-04-v3");
+  expect(payload.edition).toBe("2026-10-04-v4");
   expect(payload.comparisonUrl).toBe(shareUrl);
   expect(payload.requested.observationIds).toEqual([pin]);
   expect(payload.requested.category).toBe("coding");
@@ -386,7 +386,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   });
   expect(
     payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-  ).toHaveLength(205);
+  ).toHaveLength(208);
   await page.reload();
   await expect(page.locator('[data-benchmark-id="deep-swe-v1-1"]')).toContainText("75.22%");
 });
@@ -474,7 +474,7 @@ test("Download JSON allows valid empty views, rejects unresolved coverage and re
     if (query.startsWith("edition=")) {
       await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
       await expect(page.locator("tbody tr")).toHaveCount(22);
-      await expect(page).toHaveURL(/edition=2026-10-04-v3/);
+      await expect(page).toHaveURL(/edition=2026-10-04-v4/);
     }
     expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
     await expect(page).not.toHaveURL(
@@ -670,7 +670,7 @@ for (const theme of ["dark", "light"] as const)
       return JSON.parse(await readFile(file, "utf8")) as BenchmarkExport;
     };
     const payload = await downloadJson("epoch-science-all.json");
-    expect(payload.edition).toBe("2026-10-04-v3");
+    expect(payload.edition).toBe("2026-10-04-v4");
     expect(payload.requested).toMatchObject({
       modelIds: [...epochModels, "gpt-6-1-sol"],
       category: "science",
@@ -706,10 +706,10 @@ for (const theme of ["dark", "light"] as const)
     });
     expect(payload.fullProvenance.scope).toContain("Full immutable evidence edition");
     expect(payload.fullProvenance.data.definitions).toHaveLength(44);
-    expect(payload.fullProvenance.data.sourceSets).toHaveLength(12);
+    expect(payload.fullProvenance.data.sourceSets).toHaveLength(15);
     expect(
       payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-    ).toHaveLength(205);
+    ).toHaveLength(208);
     const epochSources = payload.fullProvenance.data.sourceSets.filter(
       (source) => source.evaluator === "Epoch AI",
     );
@@ -846,7 +846,7 @@ for (const [index, modelId] of epochModels.entries())
     const link = source.locator(".bench-model-grid dt a");
     await expect(link).toHaveAttribute(
       "href",
-      new RegExp(`edition=2026-10-04-v3&observation=epoch-gpqa-.*${modelId}`),
+      new RegExp(`edition=2026-10-04-v4&observation=epoch-gpqa-.*${modelId}`),
     );
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -861,3 +861,112 @@ for (const [index, modelId] of epochModels.entries())
       epochComparisonDisplays[index] ?? "missing expected score",
     );
   });
+
+test("dated provider facts: exact releases, qualified JSON, missing Kimi and immutable v3", async ({
+  page,
+}, testInfo) => {
+  const modelIds = ["qwen-3-8-max", "glm-5-3", "minimax-m3", "kimi-k3"];
+  const sourceIds = [
+    "qwen-max-terminal-2026-08-03",
+    "zai-glm-5-3-terminal-2026-08-14",
+    "minimax-m3-terminal-2026-06-01",
+  ];
+  await page.goto(`/benchmarks?models=${modelIds.join(",")}`);
+  const row = page.locator('[data-benchmark-id="terminal-bench-2-1"]');
+  await expect(row).toContainText("Different or unreported setups");
+  for (const [index, score] of ["86.6%", "88.2%", "66.0%"].entries())
+    await expect(row.locator(`[data-model-id="${modelIds[index]}"]`)).toContainText(score);
+  await expect(row.locator('[data-model-id="kimi-k3"]')).toHaveText("Not reported");
+  await expect(page.locator(".bench-header")).toContainText("Developer reported");
+  await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+  await row.locator('[data-model-id="qwen-3-8-max"] button').click();
+  await expect(page.getByRole("dialog")).toContainText("2026-07-20 15:56:48");
+  await expect(page.getByRole("dialog")).toContainText("provider source omits the unit marker");
+  await expect(page.getByRole("dialog")).toContainText(
+    "https://www.tbench.ai/news/terminal-bench-2-1",
+  );
+  await page.keyboard.press("Escape");
+  await row.locator('[data-model-id="glm-5-3"] button').click();
+  await expect(page.getByRole("dialog")).toContainText("Claude Code 2.1.207");
+  await expect(page.getByRole("dialog")).toContainText("max_new_tokens=65,536");
+  await page.keyboard.press("Escape");
+  await row.locator('[data-model-id="minimax-m3"] button').click();
+  await expect(page.getByRole("dialog")).toContainText("2026-05-31T17:31:18.000Z");
+  await expect(page.getByRole("dialog")).toContainText(
+    "MiniMax official API (exact endpoint/version unreported)",
+  );
+  await page.keyboard.press("Escape");
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download JSON", exact: true }).click();
+  const download = await downloading;
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v4.json");
+  const file = testInfo.outputPath("dated-provider-evidence.json");
+  await download.saveAs(file);
+  const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
+  expect(payload.edition).toBe("2026-10-04-v4");
+  expect(payload.rows).toHaveLength(1);
+  expect(payload.rows[0]?.definition).toMatchObject({
+    version: "2.1",
+    taskSubset: null,
+    unit: "percent",
+  });
+  expect(payload.rows[0]?.setup).toBe("different_or_unreported");
+  expect(payload.rows[0]?.cells.map((c) => c.displayValue)).toEqual([
+    "86.6%",
+    "88.2%",
+    "66.0%",
+    null,
+  ]);
+  expect(payload.rows[0]?.cells.map((c) => c.value)).toEqual([86.6, 88.2, 66, null]);
+  expect(payload.rows[0]?.cells[3]?.status).toBe("unreported");
+  for (const id of sourceIds) {
+    const source = payload.fullProvenance.data.sourceSets.find((s) => s.id === id);
+    expect(source?.kind).toBe("model_observations");
+    expect(source?.redistribution.basis).toBe("official_provider_facts");
+    expect(source?.observations[0]?.comparisonGroup).toBeUndefined();
+  }
+  await page.getByRole("button", { name: "Shared benchmarks", exact: true }).click();
+  await expect(page.locator('[data-benchmark-id="terminal-bench-2-1"]')).toHaveCount(0);
+  await page.goto(
+    "/benchmarks?edition=2026-10-04-v3&models=claude-sonnet-5-5,claude-opus-5-5,qwen-3-8-max-0902&category=science&coverage=shared",
+  );
+  await expect(
+    page.locator('[data-benchmark-id="epoch-gpqa-diamond-revision-unreported"]'),
+  ).toContainText("92.3%");
+  const oldDownloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download JSON", exact: true }).click();
+  const oldFile = testInfo.outputPath("unchanged-v3.json");
+  await (await oldDownloading).saveAs(oldFile);
+  const old: BenchmarkExport = JSON.parse(await readFile(oldFile, "utf8"));
+  expect(old.edition).toBe("2026-10-04-v3");
+  expect(old.fullProvenance.data.sourceSets).toHaveLength(12);
+  expect(old.fullProvenance.data.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
+  expect(old.rows[0]?.cells.map((c) => c.displayValue)).toEqual([
+    "95.5808080808080800%",
+    "90.5934343434343400%",
+    "92.297979797979800%",
+  ]);
+  for (const [index, modelId] of modelIds.slice(0, 3).entries()) {
+    await page.goto(`/models/${modelId}`);
+    const source = page
+      .getByRole("region", { name: "Benchmarks", exact: true })
+      .locator(".bench-model-source");
+    await expect(source).toHaveCount(1);
+    await expect(source).toContainText(["86.6%", "88.2%", "66.0%"][index] ?? "missing score");
+    await expect(source).toContainText("Developer reported");
+    const link = source.locator(".bench-model-grid dt a");
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`edition=2026-10-04-v4&observation=${sourceIds[index]}`),
+    );
+    await source.getByText("Methodology & sources", { exact: true }).click();
+    await source.locator("details details > summary").click();
+    await expect(source).toContainText(
+      "Evaluation start, completion and original run publication dates",
+    );
+    await expect(source).toContainText(
+      ["2026-07-20 15:56:48", "dateModified 2026-09-18", "2026-05-31T17:31:18.000Z"][index] ??
+        "missing date qualification",
+    );
+  }
+});

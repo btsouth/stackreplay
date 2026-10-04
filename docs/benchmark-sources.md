@@ -1,8 +1,9 @@
-# Benchmark evidence, edition 2026-10-04-v3
+# Benchmark evidence, edition 2026-10-04-v4
 
 These are verified reported facts, not independently reproduced evaluations.
 Scores were checked against the live first-party publications on September 30,
-2026, and the Epoch AI archive snapshot on October 4, 2026. The checked-in
+2026, and the Epoch AI archive snapshot and three additional provider publications
+on October 4, 2026. The checked-in
 tests preserve every stored numerical value.
 
 | Reporting publication | Stored observations | Verification and methodology |
@@ -13,6 +14,9 @@ tests preserve every stored numerical value.
 | OpenAI, GPT-6.1 Sol launch, Sep 29 | 102 | [Official launch charts and configuration notes](https://openai.com/index/introducing-gpt-6-1-sol/), Low / Medium / High / Xhigh / Max kept separately |
 | Anthropic, Sonnet 5.5 launch, Sep 28 | 7 | [Official performance table and footnotes](https://www.anthropic.com/claude-sonnet-5-5), [system card link](https://www.anthropic.com/claude-sonnet-5-5-system-card) |
 | Epoch AI, GPQA Diamond archive snapshot, checked Oct 4 | 3 | [Epoch GPQA Diamond methodology](https://epoch.ai/benchmarks/gpqa-diamond), [official benchmark data](https://epoch.ai/data/benchmark_data.zip), [use-this-data terms](https://epoch.ai/benchmarks/use-this-data) |
+| QwenCloud, Qwen3.8-Max release, Aug 3 | 1 | [Official table and evaluation notes](https://www.qwencloud.com/news/qwen-3-8-max) |
+| Z.ai, GLM-5.3 release, Aug 14 | 1 | [Official table and Terminal-Bench 2.1 methodology](https://z.ai/blog/glm-5.3) |
+| MiniMax, M3 release, Jun 1 | 1 | [Official score and evaluation setup](https://www.minimax.io/blog/minimax-m3) |
 
 Google's complete source sheet has four exact canonical model IDs:
 `gemini-4-argon`, `gpt-6-astra`, `claude-fable-5-1`, `claude-opus-5-5`.
@@ -120,6 +124,41 @@ editions.
 Numeric row highlights include ties and lower-is-better metrics. They identify
 reported values in the current view and do not establish matching setups. Shared
 rows appear first in model comparisons; source sheets retain their original order.
+
+## Dated provider Terminal-Bench 2.1 evidence
+
+Edition `2026-10-04-v4` adds exactly three partial source sets using the existing
+Terminal-Bench 2.1 definition: `qwen-3-8-max` 86.6%, `glm-5-3` 88.2%, and
+`minimax-m3` 66.0%. These are developer-reported, reporter-computed facts under
+the existing `official_provider_facts` basis. Only each developer's own model
+result is retained. Qwen's unsuffixed release is separate from the 0902 snapshot.
+Qwen and GLM give raw strings `86.6` and `88.2` without a unit marker. StackReplay
+interprets them on the [official Terminal-Bench 2.1 percent accuracy scale](https://www.tbench.ai/news/terminal-bench-2-1),
+retaining their numeric values without arithmetic rescaling. Their display `%`
+is this documented metric interpretation; MiniMax explicitly reports `66.0%`.
+This does not establish leaderboard admission, exact task counts or matched setups.
+
+Qwen reports Claude Code avg@10, a 5-hour timeout and max_tokens=131,072. GLM
+reports Claude Code 2.1.207, temperature=1.0, top_p=1, max_new_tokens=65,536 and a
+6-hour timeout. Its Terminal-Bench 3.0 effort, trials and context settings do not
+apply to 2.1. MiniMax reports Terminus 2, internal infrastructure, an 8C16G
+sandbox, a 2-hour timeout, 128K output and evaluation through its official API;
+the exact endpoint/version is unknown. No comparison group or complete source
+sheet is declared, and the setups are different or unreported.
+
+Source publication dates remain separate from checks and evaluation dates.
+Qwen uses the visible article/news-list date August 3, retaining the conflicting
+HTML meta date July 20, 2026 15:56:48. GLM uses the blog root date August 14;
+the related documentation's September 18 modification date is not publication.
+MiniMax uses the visible June 1 date and retains JSON-LD
+2026-05-31T17:31:18.000Z. Run dates, scored task counts, task subsets, suite
+revisions beyond 2.1 and other unreported settings remain unknown. Kimi K3 is
+outside this edition's new evidence because its exact publication date is unknown.
+
+The current edition contains 44 definitions, 15 source sets and 208 observations.
+The v3 edition retains 44 definitions, 12 source sets and 205 observations,
+including all three exact Epoch records. Old edition links, complete source
+sheets, primary selections, presets and catalog identities are preserved.
 
 ## Redistribution decision
 

@@ -8,6 +8,9 @@ import openaiSelections from "./data/openai-sol-primary-selections.json" with { 
 import providerObservations from "./data/provider-observations-2026-09-30.json" with {
   type: "json",
 };
+import providerTerminalPilot from "./data/provider-terminal-pilot-2026-10-04.json" with {
+  type: "json",
+};
 import type {
   BenchmarkCategory,
   BenchmarkData,
@@ -50,18 +53,24 @@ const secondEdition = benchmarkDataSchema.parse({
   primarySelections: [...firstEdition.primarySelections, ...openaiSelections],
 });
 
-export const benchmarkData = benchmarkDataSchema.parse({
+const thirdEdition = benchmarkDataSchema.parse({
   ...secondEdition,
   definitions: [...secondEdition.definitions, ...epochDefinitions],
   sourceSets: [...secondEdition.sourceSets, ...epochPilot],
   primarySelections: [...secondEdition.primarySelections],
 });
 
+export const benchmarkData = benchmarkDataSchema.parse({
+  ...thirdEdition,
+  sourceSets: [...thirdEdition.sourceSets, ...providerTerminalPilot],
+});
+
 /** Published editions remain available so shared links retain their exact evidence. */
 export const benchmarkEditions = {
   "2026-09-30-v1": firstEdition,
   "2026-09-30-v2": secondEdition,
-  "2026-10-04-v3": benchmarkData,
+  "2026-10-04-v3": thirdEdition,
+  "2026-10-04-v4": benchmarkData,
 };
 export function benchmarkDataForEdition(edition: string) {
   return Object.hasOwn(benchmarkEditions, edition)

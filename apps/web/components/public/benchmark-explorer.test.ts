@@ -22,7 +22,7 @@ const models = loadPublicCatalog().models.map((model) => ({
 describe("benchmark empty selection", () => {
   it("names unscored models and offers an explicit selection change", () => {
     const initial = parseBenchmarkState(
-      new URLSearchParams("models=qwen-3-8-max,kimi-k3&coverage=all"),
+      new URLSearchParams("models=qwen-3-8-flash,kimi-k3&coverage=all"),
       models.map((m) => m.id),
     );
     const html = renderToStaticMarkup(
@@ -33,8 +33,8 @@ describe("benchmark empty selection", () => {
         initial,
       }),
     );
-    expect(initial.modelIds).toEqual(["qwen-3-8-max", "kimi-k3"]);
-    expect(html).toContain("Qwen 3.8 Max, Kimi K3: no reported scores in this edition.");
+    expect(initial.modelIds).toEqual(["qwen-3-8-flash", "kimi-k3"]);
+    expect(html).toContain("Qwen 3.8 Flash, Kimi K3: no reported scores in this edition.");
     expect(html).toContain("Your models stay selected until you choose another selection.");
     expect(html).toContain("Show models with reported scores");
     expect(html).toContain("No verified scores yet");
@@ -52,7 +52,7 @@ describe("benchmark empty selection", () => {
     expect(patch.modelIds?.length).toBeGreaterThan(0);
     expect(patch.modelIds?.length).toBeLessThanOrEqual(6);
     expect(patch.modelIds).not.toContain("kimi-k3");
-    expect(patch.modelIds).not.toContain("qwen-3-8-max");
+    expect(patch.modelIds).not.toContain("qwen-3-8-flash");
     expect(patch.modelIds?.every((id) => reportedModelIds(data, models).includes(id))).toBe(true);
   });
 });

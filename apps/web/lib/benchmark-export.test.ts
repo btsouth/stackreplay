@@ -96,7 +96,7 @@ describe("selected benchmark JSON", () => {
     expect(current.fullProvenance.data).toEqual(data);
     expect(
       current.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-    ).toHaveLength(205);
+    ).toHaveLength(208);
   });
 
   it("preserves displayed row order, explicit null gaps and exact definitions", () => {
@@ -355,5 +355,28 @@ describe("admitted Epoch evidence in the selected export", () => {
     expect(exportFor(`models=${trio},gpt-6-1-sol&category=science&coverage=shared`).rows).toEqual(
       [],
     );
+  });
+});
+
+describe("dated provider selected evidence export", () => {
+  it("retains raw notation, metric interpretation and missing Kimi without changing v3", () => {
+    const payload = exportFor("models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3");
+    expect(payload.edition).toBe("2026-10-04-v4");
+    expect(payload.rows).toHaveLength(1);
+    const row = payload.rows[0];
+    expect(row?.setup).toBe("different_or_unreported");
+    expect(row?.cells.map((c) => c.displayValue)).toEqual(["86.6%", "88.2%", "66.0%", null]);
+    expect(row?.cells.map((c) => c.value)).toEqual([86.6, 88.2, 66, null]);
+    for (const [index, raw] of ["86.6", "88.2"].entries()) {
+      expect(row?.cells[index]?.observation?.notes).toContain(`raw notation ${raw}`);
+      expect(row?.cells[index]?.observation?.notes).toContain(
+        "https://www.tbench.ai/news/terminal-bench-2-1",
+      );
+      expect(row?.cells[index]?.observation?.notes).toContain("no arithmetic rescaling");
+    }
+    expect(row?.cells[3]).toMatchObject({ status: "unreported", value: null, observation: null });
+    const old = exportFor("edition=2026-10-04-v3&models=qwen-3-8-max,glm-5-3,minimax-m3,kimi-k3");
+    expect(old.rows).toEqual([]);
+    expect(old.fullProvenance.data.sourceSets).toHaveLength(12);
   });
 });
