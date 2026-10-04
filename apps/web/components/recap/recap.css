@@ -53,8 +53,8 @@
 }
 .recap-hero {
   position: relative;
-  background: radial-gradient(ellipse at 90% 0%, #34574e 0, transparent 65%), #151d25;
-  color: #f6f2e9;
+  background: linear-gradient(115deg, var(--recap-card-bg), var(--recap-card-material));
+  color: var(--recap-card-text);
   border-radius: 18px;
   padding: 32px 40px 28px;
   overflow: visible;
@@ -63,7 +63,7 @@
   display: flex;
   justify-content: space-between;
   gap: 15px;
-  color: #bbd3c9;
+  color: var(--recap-card-muted);
 }
 .recap-local {
   font-size: 9px;
@@ -84,7 +84,7 @@
   align-items: center;
   gap: 10px;
   margin-top: 9px;
-  color: #bbd3c9;
+  color: var(--recap-card-muted);
 }
 .recap-hero-caption small {
   font-size: 13px;
@@ -96,16 +96,16 @@
   gap: 7px;
   font-size: 18px;
   margin-top: 18px;
-  color: #bbd3c9;
+  color: var(--recap-card-muted);
 }
 .recap-plan-comparison strong {
   font-weight: 500;
-  color: #f6f2e9;
+  color: var(--recap-card-text);
 }
 .recap-plans {
   margin-top: 26px;
   font-size: 12px;
-  color: #bbd3c9;
+  color: var(--recap-card-muted);
 }
 .recap-plans summary {
   cursor: pointer;
@@ -129,13 +129,13 @@
   display: flex;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #536860;
+  border: 1px solid var(--recap-card-border);
   border-radius: 8px;
   cursor: pointer;
 }
 .recap-plans small {
   display: block;
-  color: #a7b6bc;
+  color: var(--recap-card-muted);
   margin-top: 4px;
 }
 .recap-info {
@@ -175,7 +175,7 @@
   background: var(--surface);
   color: var(--foreground);
   border-radius: 10px;
-  box-shadow: 0 8px 32px #0002;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--recap-shadow) 13.33%, transparent);
   line-height: 1.6;
   font-size: 12px;
 }
@@ -550,7 +550,7 @@
   font-size: 0.34em;
   letter-spacing: -0.04em;
   margin-left: 22px;
-  color: #bbd3c9;
+  color: var(--recap-card-muted);
 }
 @media (max-width: 700px) {
   .recap-hero-range {

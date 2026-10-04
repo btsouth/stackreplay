@@ -13,22 +13,22 @@
   color-scheme: light;
 
   /* Surfaces: neutral, low-contrast separation. */
-  --background: oklch(0.978 0.008 83);
-  --surface: oklch(0.995 0.004 83);
-  --surface-2: oklch(0.955 0.011 83);
-  --border: oklch(0.87 0.012 83);
-  --border-strong: oklch(0.76 0.015 83);
-  --control-border: oklch(0.54 0.014 83);
+  --background: oklch(0.97003 0.00823 91.48);
+  --surface: oklch(0.99393 0.00818 91.48);
+  --surface-2: oklch(0.94484 0.01344 115.84);
+  --border: oklch(0.87427 0.01636 114.41);
+  --border-strong: oklch(0.72109 0.02033 119.89);
+  --control-border: oklch(0.59116 0.02305 122.13);
 
   /* Text */
-  --foreground: oklch(0.22 0.012 67);
-  --muted-foreground: oklch(0.44 0.014 67);
+  --foreground: oklch(0.27345 0.01878 125.36);
+  --muted-foreground: oklch(0.47742 0.02938 124.8);
 
-  /* Accent: interaction only, never decoration. */
-  --accent: oklch(0.5 0.16 258);
-  --accent-solid: oklch(0.5 0.16 258);
-  --accent-solid-hover: oklch(0.45 0.16 258);
-  --accent-foreground: oklch(0.99 0.002 258);
+  /* Accent: warm ember interaction signal. */
+  --accent: oklch(0.5005 0.13997 37.62);
+  --accent-solid: oklch(0.5005 0.13997 37.62);
+  --accent-solid-hover: oklch(0.43509 0.12529 37.12);
+  --accent-foreground: oklch(0.98209 0.01407 74.43);
 
   /* Semantic outcomes */
   --positive: oklch(0.5 0.12 158);
@@ -36,31 +36,39 @@
   --negative: oklch(0.51 0.18 28);
   --negative-solid: oklch(0.51 0.18 28);
   --negative-solid-hover: oklch(0.46 0.18 28);
-  --negative-foreground: oklch(0.99 0.002 258);
+  --negative-foreground: oklch(0.99 0.002 83);
 
-  --ring: oklch(0.5 0.16 258);
+  --ring: oklch(0.5005 0.13997 37.62);
+  --recap-money: oklch(0.91188 0.11049 119.43);
+  --recap-money-foreground: #52651c;
+  --developer-anthropic: oklch(0.54643 0.07883 55.57);
+  --developer-openai: oklch(0.50218 0.08221 174.88);
+  --developer-google: oklch(0.54558 0.10488 238.15);
+  --developer-deepseek: oklch(0.53298 0.10156 91.76);
+  --developer-xai: oklch(0.50957 0.02751 125.61);
+  --developer-other: oklch(0.50957 0.02751 125.61);
 }
 
 .dark {
   color-scheme: dark;
 
   /* Surfaces: near-black charcoal with subtly elevated graphite. */
-  --background: oklch(0.16 0.006 264);
-  --surface: oklch(0.2 0.006 264);
-  --surface-2: oklch(0.24 0.007 264);
-  --border: oklch(0.29 0.008 264);
-  --border-strong: oklch(0.38 0.01 264);
-  --control-border: oklch(0.55 0.01 264);
+  --background: oklch(0.19827 0.00422 128.7);
+  --surface: oklch(0.23565 0.00807 128.85);
+  --surface-2: oklch(0.28356 0.0132 126.18);
+  --border: oklch(0.35367 0.02483 126.52);
+  --border-strong: oklch(0.48372 0.0405 125.59);
+  --control-border: oklch(0.64113 0.03938 124.62);
 
-  /* Text: warm/neutral off-white, cool gray muted. */
-  --foreground: oklch(0.95 0.008 92);
-  --muted-foreground: oklch(0.72 0.012 258);
+  /* Text: warm/neutral off-white, warm gray muted. */
+  --foreground: oklch(0.95628 0.01433 84.58);
+  --muted-foreground: oklch(0.78127 0.01808 110.38);
 
-  /* Accent: crisp signal blue. */
-  --accent: oklch(0.76 0.13 252);
-  --accent-solid: oklch(0.72 0.13 252);
-  --accent-solid-hover: oklch(0.78 0.13 252);
-  --accent-foreground: oklch(0.17 0.012 264);
+  /* Accent: warm ember signal. */
+  --accent: oklch(0.75193 0.15505 40.76);
+  --accent-solid: oklch(0.75193 0.15505 40.76);
+  --accent-solid-hover: oklch(0.79802 0.12103 41.32);
+  --accent-foreground: oklch(0.23178 0.0216 60.1);
 
   /* Semantic outcomes */
   --positive: oklch(0.8 0.12 158);
@@ -68,7 +76,39 @@
   --negative: oklch(0.74 0.14 28);
   --negative-solid: oklch(0.56 0.18 28);
   --negative-solid-hover: oklch(0.51 0.18 28);
-  --negative-foreground: oklch(0.99 0.002 258);
+  --negative-foreground: oklch(0.99 0.002 83);
 
-  --ring: oklch(0.76 0.13 252);
+  --ring: oklch(0.75193 0.15505 40.76);
+  --recap-money: oklch(0.91188 0.11049 119.43);
+  --recap-money-foreground: #d9ed98;
+  --developer-anthropic: oklch(0.7867 0.08103 54.42);
+  --developer-openai: oklch(0.74908 0.08217 174.37);
+  --developer-google: oklch(0.75092 0.08854 240.18);
+  --developer-deepseek: oklch(0.82091 0.11874 91.95);
+  --developer-xai: oklch(0.78127 0.01808 110.38);
+  --developer-other: oklch(0.78127 0.01808 110.38);
+}
+
+/* Recap export material is fixed across themes; pages use the semantic surface tokens. */
+:root {
+  --recap-value-ink: #263019;
+  --recap-card-bg: #20231d;
+  --recap-card-material: #343a2a;
+  --recap-card-border: #68705b;
+  --recap-card-text: #f5f0e6;
+  --recap-card-muted: #c0c3b3;
+  --recap-card-accent: #ff895d;
+  --recap-card-money: #d9ed98;
+  --recap-card-track: #68705b;
+  --recap-material: #343a2a;
+  --recap-shadow: #000000;
+}
+
+:root {
+  --recap-developer-anthropic: #e3ac88;
+  --recap-developer-openai: #73bfaa;
+  --recap-developer-google: #79b6e1;
+  --recap-developer-deepseek: #e0c264;
+  --recap-developer-xai: #b8b9ac;
+  --recap-developer-other: #b8b9ac;
 }

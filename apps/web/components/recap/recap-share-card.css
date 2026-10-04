@@ -1,12 +1,19 @@
 .replay-card {
-  color: #f6f0ff;
-  background: radial-gradient(ellipse at 100% 0%, #503863 0%, transparent 65%), #181222;
-  border: 1px solid #655174;
+  --developer-anthropic: var(--recap-developer-anthropic);
+  --developer-openai: var(--recap-developer-openai);
+  --developer-google: var(--recap-developer-google);
+  --developer-deepseek: var(--recap-developer-deepseek);
+  --developer-xai: var(--recap-developer-xai);
+  --developer-other: var(--recap-developer-other);
+
+  color: var(--recap-card-text);
+  background: linear-gradient(115deg, var(--recap-card-bg), var(--recap-card-material));
+  border: 1px solid var(--recap-card-border);
   border-radius: 20px;
   padding: 30px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 40px 100px #0007;
+  box-shadow: 0 40px 100px color-mix(in srgb, var(--recap-shadow) 46.67%, transparent);
   font-family: var(--font-geist-sans), sans-serif;
 }
 .replay-card-top {
@@ -14,7 +21,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #ccc0df;
+  color: var(--recap-card-muted);
 }
 .replay-card-top > span:first-child {
   font-size: 19px;
@@ -22,7 +29,7 @@
 }
 .replay-card-period {
   font-size: 11px;
-  color: #b5a8c8;
+  color: var(--recap-card-muted);
   margin-top: 24px;
 }
 .replay-card-total {
@@ -41,23 +48,23 @@
 }
 .replay-card-total span {
   font-size: 14px;
-  color: #c9bfdc;
+  color: var(--recap-card-muted);
 }
 .replay-card-value {
   display: flex;
   flex-direction: column;
   padding-bottom: 24px;
-  border-bottom: 1px solid #ffffff1a;
+  border-bottom: 1px solid color-mix(in srgb, var(--recap-card-text) 10.20%, transparent);
 }
 .replay-card-value strong {
   font-size: 32px;
   letter-spacing: -0.04em;
-  color: #d3f99b;
+  color: var(--recap-card-money);
   font-variant-numeric: tabular-nums;
 }
 .replay-card-value span {
   font-size: 14px;
-  color: #c9bfdc;
+  color: var(--recap-card-muted);
 }
 .replay-card-models {
   margin-top: 24px;
@@ -66,7 +73,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #c9bfdc;
+  color: var(--recap-card-muted);
   margin-bottom: 17px;
 }
 .replay-card-model {
@@ -84,7 +91,7 @@
 .replay-card-track {
   height: 5px;
   border-radius: 5px;
-  background: #ffffff0d;
+  background: color-mix(in srgb, var(--recap-card-text) 5.10%, transparent);
   overflow: hidden;
 }
 .replay-card-track i {
@@ -101,7 +108,7 @@
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  color: #b7adca;
+  color: var(--recap-card-muted);
   font-size: 11px;
   margin-top: 28px;
 }

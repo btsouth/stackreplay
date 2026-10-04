@@ -43,11 +43,12 @@ export interface Recap {
   rulesAsOf: string;
 }
 export const familyColors: Record<string, string> = {
-  anthropic: "#df8057",
-  openai: "#42a894",
-  google: "#6788e8",
-  deepseek: "#9975d5",
-  other: "#a6a28e",
+  anthropic: "var(--developer-anthropic)",
+  openai: "var(--developer-openai)",
+  google: "var(--developer-google)",
+  deepseek: "var(--developer-deepseek)",
+  xai: "var(--developer-xai)",
+  other: "var(--developer-other)",
 };
 /** Named, resolved models with logged tokens in this recap period. Ties use stable model IDs. */
 export function topRecapModels(models: readonly RecapModel[], limit = 5): RecapModel[] {

@@ -19,7 +19,7 @@ describe("recap card rendering", () => {
         stroke: vi.fn(),
         fillText: (s: string) => written.push(s),
         measureText: (s: string) => ({ width: s.length * 10 }),
-        createRadialGradient: () => ({ addColorStop: vi.fn() }),
+        createLinearGradient: () => ({ addColorStop: vi.fn() }),
       };
       const canvas = {
         width: 0,
@@ -30,9 +30,13 @@ describe("recap card rendering", () => {
       vi.stubGlobal("document", {
         fonts: { ready: Promise.resolve() },
         body: {},
+        documentElement: {},
         createElement: () => canvas,
       });
-      vi.stubGlobal("getComputedStyle", () => ({ fontFamily: "Geist" }));
+      vi.stubGlobal("getComputedStyle", () => ({
+        fontFamily: "Geist",
+        getPropertyValue: () => "#20231d",
+      }));
       await renderRecapCard(sampleRecap, portrait, undefined, true);
       expect([canvas.width, canvas.height]).toEqual(portrait ? [1080, 1350] : [1200, 630]);
       expect(written).toContain("41.2B");
