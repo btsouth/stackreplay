@@ -14,6 +14,8 @@ export interface VisualModel {
   name: string;
   developer: string;
   lab: string;
+  lifecycle?: "current" | "legacy" | undefined;
+  released?: string | undefined;
   input?: string | undefined;
   output?: string | undefined;
   cached?: string | undefined;
@@ -121,6 +123,62 @@ export function apiPriceModels(models: readonly VisualModel[], lab = ""): Visual
     );
 }
 
+/** Homepage only: keep unrecorded lifecycles honest, exclude catalogued historical releases. */
+export function homepageModels(models: readonly VisualModel[]): VisualModel[] {
+  return models.filter((model) => model.lifecycle !== "legacy");
+}
+
+/** Editorial anchors for familiar flagship comparisons, resolved against live catalog facts.
+ * Current releases, plan inclusion and sourced dates fill the remaining developer slots.
+ * Two passes across developers keep one large lineup from taking every slot.
+ * The final display keeps the same ascending input-price order as the full chart.
+ */
+export function featuredApiModels(models: readonly VisualModel[], limit = 14): VisualModel[] {
+  const priced = apiPriceModels(homepageModels(models));
+  const planCount = (model: VisualModel) => new Set(model.plans.map((plan) => plan.id)).size;
+  const ranked = [...priced].sort(
+    (a, b) =>
+      Number(b.lifecycle === "current") - Number(a.lifecycle === "current") ||
+      (b.released ?? "").localeCompare(a.released ?? "") ||
+      planCount(b) - planCount(a) ||
+      Number(b.output) - Number(a.output) ||
+      a.id.localeCompare(b.id),
+  );
+  const anchors = [
+    "gpt-6-1-sol",
+    "gpt-6-astra",
+    "claude-opus-5-5",
+    "claude-sonnet-5-5",
+    "gemini-3-1-pro",
+    "gemini-3-8-flash",
+    "grok-4-7",
+    "deepseek-v4-1-flash",
+    "kimi-k3",
+  ];
+  const selected = new Set(
+    anchors.filter((id) => priced.some((model) => model.id === id)).slice(0, limit),
+  );
+  for (const perDeveloper of [1, 2]) {
+    const counts = new Map<string, number>();
+    for (const model of ranked.filter((item) => selected.has(item.id)))
+      counts.set(model.lab, (counts.get(model.lab) ?? 0) + 1);
+    for (const model of ranked) {
+      if (selected.size >= limit) break;
+      if (selected.has(model.id)) continue;
+      const count = counts.get(model.lab) ?? 0;
+      if (count < perDeveloper) {
+        selected.add(model.id);
+        counts.set(model.lab, count + 1);
+      }
+    }
+  }
+  for (const model of ranked) {
+    if (selected.size >= limit) break;
+    selected.add(model.id);
+  }
+  return priced.filter((model) => selected.has(model.id));
+}
+
 export function planLeaders(models: readonly VisualModel[]): VisualModel[] {
   return models
     .filter((model) => model.plans.length > 0)
@@ -143,6 +201,8 @@ export function visualModelData(catalog: PublicCatalog, evidence: BenchmarkData)
         name: model.name,
         developer: model.developerName ?? "",
         lab: model.developerId ?? "other",
+        lifecycle: model.lifecycle,
+        released: model.releaseDate?.date,
         input: price?.rates.input,
         output: price?.rates.output,
         cached: price?.rates.cacheRead,

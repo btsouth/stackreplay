@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import {
   apiPriceModels,
   chartModels,
+  featuredApiModels,
+  homepageModels,
   planLeaders,
   type VisualBenchmark,
   type VisualData,
@@ -203,13 +205,19 @@ function Scatter({ models, benchmark }: { models: VisualModel[]; benchmark: Visu
 
 function ApiPrices({ models }: { models: VisualModel[] }) {
   const [lab, setLab] = useState("");
+  const [expanded, setExpanded] = useState(false);
   const all = apiPriceModels(models);
-  const rows = apiPriceModels(models, lab);
-  const positive = all
+  const filtered = apiPriceModels(models, lab);
+  const rows = (expanded || lab ? filtered : featuredApiModels(models)).reverse();
+  const positive = rows
     .flatMap((model) => [Number(model.input), Number(model.output)])
     .filter((value) => value > 0);
-  const min = Math.floor(Math.log10(Math.min(...positive, 0.1)));
-  const max = Math.max(min + 1, Math.ceil(Math.log10(Math.max(...positive, 1))));
+  const min = Math.floor(Math.log10(positive.length ? Math.min(...positive) : 0.1));
+  const max = Math.max(min + 1, Math.log10(positive.length ? Math.max(...positive) : 1));
+  const ticks = Array.from({ length: Math.floor(max) - min + 1 }, (_, i) => 10 ** (min + i));
+  const upper = 10 ** max;
+  // Keep the endpoint labeled without crowding the nearest decade tick.
+  if (max % 1 > 0.25) ticks.push(upper);
   const position = (value: string | undefined) =>
     Number(value) === 0 ? 0 : 4 + ((Math.log10(Number(value)) - min) / (max - min)) * 92;
   return (
@@ -227,24 +235,23 @@ function ApiPrices({ models }: { models: VisualModel[] }) {
             </option>
           ))}
         </select>
-        <span>{rows.length} priced models</span>
+        <span>{!expanded && !lab ? "Popular & flagship" : `${rows.length} priced models`}</span>
       </div>
       <div className="v-price-axis" aria-hidden="true">
         <span>Model</span>
         <div>
-          {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((tick) => (
-            <span key={tick} style={{ left: `${position(String(10 ** tick))}%` }}>
-              {money(String(10 ** tick))}
+          {ticks.map((tick) => (
+            <span key={tick} style={{ left: `${position(String(tick))}%` }}>
+              {money(String(tick))}
             </span>
           ))}
         </div>
         <span>In / Out</span>
       </div>
       <section
-        className="v-price-scroll"
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: Focus enables keyboard scrolling through the complete price chart.
-        tabIndex={0}
-        aria-label="API prices, ranked by input price"
+        className="v-price-list"
+        id="homepage-api-prices"
+        aria-label="API prices, highest input price first"
       >
         {rows.map((model) => (
           <Link
@@ -276,8 +283,14 @@ function ApiPrices({ models }: { models: VisualModel[] }) {
               />
             </span>
             <span className="v-price-values">
-              <span>{money(model.input)}</span>
-              <span>{money(model.output)}</span>
+              <span>
+                <small>Input </small>
+                {money(model.input)}
+              </span>
+              <span>
+                <small>Output </small>
+                {money(model.output)}
+              </span>
             </span>
           </Link>
         ))}
@@ -285,8 +298,18 @@ function ApiPrices({ models }: { models: VisualModel[] }) {
       <div className="v-price-foot">
         <span>● Input &nbsp; ○ Output</span>
         <span>USD / 1M tokens · log scale</span>
-        <span>Scroll to explore ↓</span>
       </div>
+      {!lab && all.length > featuredApiModels(models).length && (
+        <button
+          type="button"
+          className="v-more"
+          aria-expanded={expanded}
+          aria-controls="homepage-api-prices"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "Show popular models ↑" : `Show all ${all.length} priced models ↓`}
+        </button>
+      )}
     </>
   );
 }
@@ -299,6 +322,7 @@ export function VisualHome({
   data: VisualData;
   events: { id: string; title: string; day: string; href: string }[];
 }) {
+  data = { ...data, models: homepageModels(data.models) };
   const [chartTab, setChartTab] = useState("prices");
   const [benchmarkId, setBenchmarkId] = useState(data.benchmarks[0]?.id ?? "");
   const [sort, setSort] = useState<Sort>("coverage");
@@ -436,10 +460,12 @@ export function VisualHome({
             <Info label="Chart pricing and methodology">
               <strong>API prices and benchmark scores</strong>
               <p>
-                API price ranks every model with published input and output base rates. Filled dots
-                are input; hollow dots are output. Zero rates sit at the left edge. Blended price =
-                (3 × input + output) / 4, for a 3:1 input to output token mix. Standard API base
-                rates; conditional rates may vary.
+                API price opens with selected flagship comparisons. Current releases, plan inclusion
+                and developer coverage fill the remaining places. Expand to see every eligible model
+                with published input and output base rates. Historical releases are excluded from
+                the homepage. Filled dots are input; hollow dots are output. Zero rates sit at the
+                left edge. Blended price = (3 × input + output) / 4, for a 3:1 input to output token
+                mix. Standard API base rates; conditional rates may vary.
               </p>
               <p>
                 The horizontal price axis is logarithmic. Scores retain their original benchmark
@@ -483,7 +509,8 @@ export function VisualHome({
             <Info label="Cheapest models selection">
               <p>
                 Lowest blended published API base price, using three input tokens per output token.
-                This ranks price across all priced catalog models.
+                This ranks price across homepage models with published rates. Historical releases
+                are excluded.
               </p>
             </Info>
           </div>

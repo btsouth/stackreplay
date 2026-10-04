@@ -6,6 +6,8 @@ import {
   benchmarkCoverage,
   blendedPrice,
   chartModels,
+  featuredApiModels,
+  homepageModels,
   planLeaders,
   visualModelData,
 } from "./visual-model-data";
@@ -98,6 +100,46 @@ describe("visual chart selection", () => {
     ).toEqual([{ ...valid, input: "0", output: "0" }]);
     for (let i = 1; i < priced.length; i++)
       expect(Number(priced[i]?.input)).toBeGreaterThanOrEqual(Number(priced[i - 1]?.input));
+  });
+  it("excludes catalogued legacy and retired aliases only from homepage views", () => {
+    const home = homepageModels(data.models);
+    const legacy = catalog.models.filter(
+      (model) => model.kind === "release" && model.lifecycle === "legacy",
+    );
+    expect(legacy.length).toBeGreaterThan(0);
+    for (const model of legacy) {
+      expect(data.models.some((item) => item.id === model.id)).toBe(true);
+      expect(home.some((item) => item.id === model.id)).toBe(false);
+    }
+    for (const model of catalog.models.filter(
+      (item) => item.kind === "release" && item.lifecycle !== "legacy",
+    ))
+      expect(home.some((item) => item.id === model.id)).toBe(true);
+    expect(apiPriceModels(home).length).toBeLessThan(60);
+    expect(planLeaders(home).every((model) => model.lifecycle !== "legacy")).toBe(true);
+    for (const benchmark of data.benchmarks)
+      expect(chartModels(home, benchmark).every((model) => model.lifecycle !== "legacy")).toBe(
+        true,
+      );
+  });
+  it("features current flagships with developer coverage in stable price order", () => {
+    const featured = featuredApiModels(data.models);
+    expect(featured).toHaveLength(14);
+    expect(new Set(featured.map((model) => model.id)).size).toBe(14);
+    for (const id of [
+      "gpt-6-1-sol",
+      "claude-opus-5-5",
+      "gemini-3-1-pro",
+      "gpt-6-astra",
+      "grok-4-7",
+      "deepseek-v4-1-flash",
+    ])
+      expect(featured.map((model) => model.id)).toContain(id);
+    expect(featured.every((model) => model.lifecycle !== "legacy")).toBe(true);
+    expect(featuredApiModels([...data.models].reverse())).toEqual(featured);
+    expect(featured).toEqual(apiPriceModels(featured));
+    expect(featuredApiModels(data.models, 3)).toHaveLength(3);
+    expect(featuredApiModels([])).toEqual([]);
   });
   it("ranks distinct coding plan inclusion, without counting duplicate plan records", () => {
     const model = data.models[0];

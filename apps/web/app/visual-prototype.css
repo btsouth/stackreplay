@@ -1077,11 +1077,8 @@
 .visual .v-price-axis > span:last-child {
   text-align: right;
 }
-.v-price-scroll {
-  height: 360px;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
+.v-price-list {
+  padding-right: 14px;
 }
 .v-price-row {
   min-height: 45px;
@@ -1130,6 +1127,9 @@
   min-width: 50px;
   text-align: right;
 }
+.visual .v-price-values small {
+  display: none;
+}
 .v-price-values > span:first-child {
   color: var(--muted-foreground);
 }
@@ -1143,33 +1143,39 @@
   color: var(--muted-foreground);
 }
 @media (max-width: 760px) {
-  .v-price-axis,
-  .v-price-row {
-    grid-template-columns: 112px 1fr 86px;
-    gap: 10px;
-  }
   .v-price-axis {
-    padding-right: 0;
-  }
-  .v-price-axis > div > span:nth-child(even) {
     display: none;
   }
-  .v-price-scroll {
-    height: 294px;
+  .v-price-list {
+    padding: 0;
   }
   .v-price-row {
-    min-height: 49px;
-    font-size: 12px;
-  }
-  .v-price-values {
-    gap: 6px;
-    font-size: 11px;
-  }
-  .visual .v-price-values > span {
-    min-width: 40px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 10px 0;
+    font-size: 14px;
   }
   .v-price-name {
-    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0;
+  }
+  .v-price-plot {
+    width: 100%;
+    height: 28px;
+  }
+  .v-price-values {
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .visual .v-price-values > span {
+    min-width: 0;
+  }
+  .visual .v-price-values small {
+    display: inline;
+    font-size: inherit;
+    color: var(--muted-foreground);
   }
   .v-price-foot > span:last-child {
     width: 100%;

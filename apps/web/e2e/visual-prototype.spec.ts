@@ -13,7 +13,13 @@ test("homepage chart, complete rows and mobile metrics stay usable", async ({ pa
     "true",
   );
   const priceCount = await page.locator(".v-price-row").count();
-  expect(priceCount).toBe(60);
+  expect(priceCount).toBe(14);
+  await expect(page.locator(".v-price-list")).not.toContainText("legacy");
+  const expand = page.getByRole("button", { name: /Show all \d+ priced models/u });
+  await expand.click();
+  expect(await page.locator(".v-price-row").count()).toBeGreaterThan(priceCount);
+  await page.getByRole("button", { name: "Show popular models ↑" }).click();
+  await expect(page.locator(".v-price-row")).toHaveCount(priceCount);
   await page.getByLabel("Chart developer").selectOption("openai");
   expect(await page.locator(".v-price-row").count()).toBeLessThan(priceCount);
   await page.getByRole("button", { name: "Price vs score", exact: true }).click();
