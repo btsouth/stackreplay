@@ -48,10 +48,8 @@ export function RecapShareCard({
               } as CSSProperties
             }
           >
-            <div>
-              <span>{model.name}</span>
-              <span>{compactNumber(model.total)}</span>
-            </div>
+            <span>{model.name}</span>
+            <span>{compactNumber(model.total)}</span>
             <div className="replay-card-track">
               <i />
             </div>

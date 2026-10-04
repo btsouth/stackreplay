@@ -8,10 +8,11 @@ import {
   Play,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Heatmap, Mix } from "@/components/recap/recap-charts";
 import { RecapShareCard } from "@/components/recap/recap-share-card";
 import { sampleRecap } from "@/lib/home/recap-sample";
+import { familyColors } from "@/lib/recap";
 import { renderRecapCard } from "@/lib/recap-card";
 
 const tools = ["Claude Code", "Codex", "OpenCode", "Command Code", "Hermes", "T3 Code"];
@@ -145,7 +146,7 @@ export function ReplayHomepage() {
               )
                 return;
               const b = e.currentTarget.getBoundingClientRect();
-              stage.current.style.transform = `rotateX(${(e.clientY - b.top - b.height / 2) * -0.012}deg) rotateY(${(e.clientX - b.left - b.width / 2) * 0.012}deg)`;
+              stage.current.style.transform = `rotateX(${(e.clientY - b.top - b.height / 2) * -0.004}deg) rotateY(${(e.clientX - b.left - b.width / 2) * 0.004}deg)`;
             }}
             onPointerLeave={() => {
               if (stage.current) stage.current.style.transform = "";
@@ -156,10 +157,18 @@ export function ReplayHomepage() {
             <div className="replay-card-position" ref={stage}>
               <AnimatedRecapCard />
             </div>
-            <div className="replay-sticker">
-              <span>Local logs.</span>
-              <strong>Main character energy.</strong>
-              <span aria-hidden="true">✳</span>
+            <div className="replay-card-formats">
+              <p>A fictional replay. Ready to share.</p>
+              <div className="replay-downloads">
+                <button type="button" onClick={() => void download(false)}>
+                  <Download size={16} /> Try landscape
+                </button>
+                <button type="button" onClick={() => void download(true)}>
+                  <Download size={16} /> Try portrait
+                </button>
+              </div>
+              {downloadError && <p role="alert">{downloadError}</p>}
+              <p className="replay-fine">Downloads use this fictional sample.</p>
             </div>
           </div>
           <a className="replay-scroll-hint" href="#sample">
@@ -198,7 +207,7 @@ export function ReplayHomepage() {
           <div className="replay-activity replay-reveal">
             <div className="replay-chapter">
               <span>01 / The rhythm</span>
-              <span>Jan – Sep 2026 · Illustrative sample</span>
+              <span>Jan to Sep 2026 · Illustrative sample</span>
             </div>
             <div className="replay-activity-top">
               <h3>You kept showing up.</h3>
@@ -228,17 +237,31 @@ export function ReplayHomepage() {
                 The models you reached for, and the ones that did the heavy lifting. Ranked by total
                 tokens, cache included.
               </p>
+            </div>
+            <div className="replay-mix-chart">
               <div className="replay-model-podium">
-                {sampleRecap.models.slice(0, 3).map((m, i) => (
-                  <div key={m.id}>
-                    <span>0{i + 1}</span>
+                {sampleRecap.models.map((m, i) => (
+                  <div
+                    key={m.id}
+                    style={
+                      {
+                        "--model-color": familyColors[m.family],
+                        "--model-width": `${(m.total / sampleRecap.models[0]!.total) * 100}%`,
+                      } as CSSProperties
+                    }
+                  >
+                    <span className="replay-model-rank">0{i + 1}</span>
                     <strong>{m.name}</strong>
-                    <span>{(m.total / 1e9).toFixed(1)}B</span>
+                    <span className="replay-model-billions">
+                      {(m.total / 1e9).toFixed(1)}
+                      <small>B</small>
+                    </span>
+                    <div className="replay-model-bar">
+                      <i />
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="replay-mix-chart">
               <Mix recap={sampleRecap} />
               <p>Total tokens processed, week by week.</p>
             </div>
@@ -336,30 +359,6 @@ export function ReplayHomepage() {
                 choose.
               </p>
             </article>
-          </div>
-        </section>
-        <section className="replay-takeaway replay-reveal" aria-labelledby="takeaway-heading">
-          <div>
-            <p className="replay-section-note">A little proof of a lot of work.</p>
-            <h2 id="takeaway-heading">
-              Built by you.
-              <br />
-              <span>Ready for the feed.</span>
-            </h2>
-            <p>Your recap becomes a card. The logs don’t come with it.</p>
-            <div className="replay-downloads">
-              <button type="button" onClick={() => void download(false)}>
-                <Download size={16} /> Try landscape
-              </button>
-              <button type="button" onClick={() => void download(true)}>
-                <Download size={16} /> Try portrait
-              </button>
-            </div>
-            {downloadError && <p role="alert">{downloadError}</p>}
-            <p className="replay-fine">Downloads use the fictional sample shown above.</p>
-          </div>
-          <div className="replay-takeaway-card">
-            <RecapShareCard recap={sampleRecap} sample />
           </div>
         </section>
         <section className="replay-privacy replay-reveal">

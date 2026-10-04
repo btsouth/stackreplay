@@ -70,14 +70,16 @@
   margin-bottom: 17px;
 }
 .replay-card-model {
-  margin-top: 15px;
-}
-.replay-card-model > div:first-child {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5ch minmax(45px, 24%);
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
   font-size: 13px;
-  margin-bottom: 8px;
+}
+.replay-card-model > span:nth-child(2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .replay-card-track {
   height: 5px;
