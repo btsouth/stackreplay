@@ -103,7 +103,7 @@ test.describe("homepage without a saved workload", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: "Know the AI market. Know what fits your workload.",
+        name: "Compare AI models. See published prices, inputs and access.",
       }),
     ).toBeVisible();
     await expect(page.getByTestId("home-trust")).toContainText("never uploaded");
@@ -165,9 +165,34 @@ test.describe("homepage without a saved workload", () => {
 
     // Models that matter right now: five releases with at most three verified benchmark rows.
     const frontier = page.getByTestId("home-model-comparison");
-    await expect(frontier.getByRole("heading", { level: 2 })).toHaveText(
-      "Models that matter right now",
+    await expect(frontier.getByRole("heading", { level: 2 })).toHaveText("Five current releases");
+    const guide = page.getByTestId("featured-model-guide");
+    await expect(guide.locator("[data-guide-model]")).toHaveCount(5);
+    await expect(guide.locator("[data-guide-model]").first()).toHaveAttribute(
+      "data-guide-model",
+      "gpt-6-1-sol",
     );
+    await expect(page.getByTestId("featured-model-gpt-6-1-sol")).toContainText("API list price");
+    await expect(page.getByTestId("featured-model-gpt-6-1-sol")).toContainText(
+      "Conditional pricing",
+    );
+    await expect(page.getByTestId("featured-model-gemini-4-argon")).toContainText("Not yet in API");
+    await expect(page.getByTestId("featured-model-deepseek-v4-1-flash")).toContainText("$0.003");
+    await expect(
+      page.getByTestId("featured-model-gpt-6-1-sol").getByRole("link", {
+        name: /GPT-6\.1 Sol model details/u,
+      }),
+    ).toHaveAttribute("href", "/models/gpt-6-1-sol");
+    await expect(page.getByTestId("price-bar-scale")).toHaveCount(0);
+
+    const fullComparison = page.getByTestId("home-full-comparison");
+    await expect(fullComparison).not.toHaveAttribute("open");
+    await expect(fullComparison.locator("summary")).toHaveAccessibleName(
+      /Full comparison.*Prices, limits, access and reported benchmarks/u,
+    );
+    await fullComparison.locator("summary").click();
+    await expect(fullComparison).toHaveAttribute("open", "");
+
     await expect(frontier.locator("th[scope=col]")).toHaveCount(5);
     const benchmarkRows = page.getByTestId("home-benchmark-rows").locator("tr[data-row]");
     expect(await benchmarkRows.count()).toBeGreaterThan(0);
@@ -308,6 +333,9 @@ test.describe("homepage without a saved workload", () => {
         (await box("[data-lead]")).top,
       );
       const region = page.getByTestId("model-table-region");
+      const details = page.getByTestId("home-full-comparison");
+      await details.locator("summary").click();
+      await expect(details).toHaveAttribute("open", "");
       expect(await region.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
       await region.focus();
       await page.keyboard.press("ArrowRight");
@@ -339,6 +367,102 @@ test.describe("homepage without a saved workload", () => {
         .locator(".home-watch-title")
         .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
       expect(new Set(tops).size).toBe(1);
+    }
+  });
+
+  test("featured guide fits 320x568 with a real 305px content width", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "desktop Chromium provides the 15px scrollbar");
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto("/");
+    await page.addStyleTag({
+      content: "html { overflow-y: scroll; } html::-webkit-scrollbar { width: 15px; }",
+    });
+    // Headless Chromium uses overlay scrollbars, so reserve the classic
+    // scrollbar's 15px lane explicitly and test the resulting 305px canvas.
+    await page.evaluate(() => {
+      document.documentElement.style.width = "305px";
+      document.body.style.width = "305px";
+    });
+
+    const widths = await page.evaluate(() => ({
+      viewport: innerWidth,
+      content: document.documentElement.getBoundingClientRect().width,
+      scroll: document.documentElement.scrollWidth,
+      main: document.querySelector("main")?.getBoundingClientRect().width,
+    }));
+    expect(widths.viewport).toBe(320);
+    expect(widths.content).toBe(305);
+    expect(widths.main).toBe(305);
+    expect(widths.scroll).toBeLessThanOrEqual(widths.viewport);
+
+    const explore = await page
+      .getByRole("link", { name: "Explore models", exact: true })
+      .boundingBox();
+    const first = page.getByTestId("featured-model-gpt-6-1-sol");
+    const firstIdentity = await first.locator(".home-guide-name a").boundingBox();
+    const firstFactLabel = await first.locator('[data-fact="price"] dt').boundingBox();
+    const firstRate = await first.locator(".home-guide-rate").first().boundingBox();
+    expect(explore?.y).toBeLessThan(568);
+    expect(firstIdentity?.y).toBeLessThan(568);
+    expect(firstFactLabel?.y).toBeLessThan(568);
+    expect(firstRate?.y).toBeLessThan(568);
+
+    const rows = await page.locator("[data-guide-model]").all();
+    expect(rows).toHaveLength(5);
+    for (const row of rows) {
+      await expect(row.locator(".home-guide-name a")).toBeVisible();
+      expect(await row.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+    }
+  });
+
+  test("featured guide aligns at 1440 and wraps at a 200 percent CSS viewport", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "desktop layout coverage");
+    for (const theme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: theme });
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto("/");
+      const facts = await page.locator("[data-guide-model]").evaluateAll((rows) =>
+        rows.map((row) =>
+          [...row.querySelectorAll<HTMLElement>(".home-guide-fact")].map((fact) => ({
+            kind: fact.dataset.fact,
+            left: Math.round(fact.getBoundingClientRect().left),
+          })),
+        ),
+      );
+      expect(facts).toHaveLength(5);
+      for (const kind of ["price", "modalities", "limits", "access"]) {
+        expect(
+          new Set(facts.map((row) => row.find((fact) => fact.kind === kind)?.left)).size,
+          `${theme}/${kind}`,
+        ).toBe(1);
+      }
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        ),
+      ).toBe(true);
+    }
+
+    // 720 CSS pixels is the layout viewport at 200% zoom on a 1440px screen.
+    await page.setViewportSize({ width: 720, height: 450 });
+    await page.goto("/");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+    for (const row of await page.locator("[data-guide-model]").all()) {
+      const fits = await row.evaluate((node) => {
+        const rowRect = node.getBoundingClientRect();
+        return [...node.querySelectorAll<HTMLElement>(".home-guide-fact")].every(
+          (fact) => fact.getBoundingClientRect().right <= rowRect.right + 0.5,
+        );
+      });
+      expect(fits).toBe(true);
     }
   });
 
@@ -429,7 +553,20 @@ test.describe("homepage without a saved workload", () => {
       page
         .getByRole("navigation", { name: "More on models" })
         .getByRole("link", { name: "All models", exact: true }),
-      page.getByTestId("model-table-region"),
+      ...[
+        ["gpt-6-1-sol", "GPT-6.1 Sol"],
+        ["claude-opus-5-5", "Claude Opus 5.5"],
+        ["gemini-4-argon", "Gemini 4 Argon"],
+        ["grok-4-7", "Grok 4.7"],
+        ["deepseek-v4-1-flash", "DeepSeek-V4.1-Flash"],
+      ].flatMap(([id, name]) => {
+        const row = page.getByTestId(`featured-model-${id}`);
+        return [
+          row.getByRole("link", { name: `${name} model details`, exact: true }),
+          row.getByRole("link", { name: `Sources for ${name}`, exact: true }),
+        ];
+      }),
+      page.getByTestId("home-full-comparison").locator("summary"),
     ];
     for (const control of focusSequence) {
       await page.keyboard.press("Tab");
@@ -438,6 +575,12 @@ test.describe("homepage without a saved workload", () => {
     await expect(
       page.getByRole("link", { name: "Compare leading models", exact: true }),
     ).toHaveAttribute("href", "#frontier");
+    const details = page.getByTestId("home-full-comparison");
+    await details.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(details).toHaveAttribute("open", "");
+    await page.keyboard.press("Tab");
+    await expect(page.getByTestId("model-table-region")).toBeFocused();
     await expect(page.getByTestId("model-table-region")).toHaveAttribute("tabindex", "0");
   });
 });
@@ -593,6 +736,8 @@ test.describe("homepage with a saved workload", () => {
         "ready",
         { timeout: 30_000 },
       );
+      const details = page.getByTestId("home-full-comparison");
+      if ((await details.getAttribute("open")) === null) await details.locator("summary").click();
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
         .analyze();

@@ -15,7 +15,7 @@ import { captureRequests, createShareToken, importDemo, runReplay } from "./help
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Know the AI market. Know what fits your workload." },
+  { path: "/", heading: "Compare AI models. See published prices, inputs and access." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Compare plans" },

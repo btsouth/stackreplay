@@ -161,14 +161,14 @@
 
   .home-hero {
     display: grid;
-    gap: 1.25rem;
+    gap: 0.75rem;
     min-width: 0;
   }
 
   .home-intro {
     display: grid;
-    gap: 1rem 3rem;
-    align-items: end;
+    gap: 0.75rem 3rem;
+    align-items: start;
     padding-bottom: 0.25rem;
   }
   @media (min-width: 1024px) {
@@ -177,10 +177,10 @@
     }
   }
   .home-h1 {
-    margin-top: 0.7rem;
-    font-size: clamp(2rem, 3vw, 2.85rem);
+    margin-top: 0.5rem;
+    font-size: clamp(1.9rem, 3vw, 2.7rem);
     font-weight: 500;
-    line-height: 1.02;
+    line-height: 1.03;
     letter-spacing: -0.045em;
     text-wrap: balance;
   }
@@ -188,38 +188,104 @@
     color: var(--muted-foreground);
   }
   .home-intro-lede {
-    max-width: 46ch;
-    font-size: 1.05rem;
-    line-height: 1.55;
+    max-width: 44ch;
+    font-size: 1rem;
+    line-height: 1.5;
     color: var(--foreground);
   }
   .home-hero-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 1.25rem;
-    margin-top: 1rem;
+    gap: 0.35rem 1rem;
+    margin-top: 0.4rem;
   }
   @media (max-width: 479px) {
-    .home-hero-actions > * {
-      flex: 1 1 100%;
+    .home-hero .home-kicker,
+    .home-h1-second,
+    .home-intro-lede {
+      display: none;
+    }
+    .home-discovery-actions .home-secondary-actions {
+      display: none;
+    }
+    .home-intro {
+      gap: 0.5rem;
+    }
+    .home-h1 {
+      margin-top: 0;
+      font-size: 1.35rem;
+    }
+    .home-discovery-actions {
+      margin-top: 0.35rem;
+    }
+    .home-hero-actions {
+      gap: 0;
+      margin-top: 0.25rem;
+    }
+    .home-hero-actions > .home-cta-link[href="#frontier"] {
+      display: none;
+    }
+    .home-hero-actions > .home-cta-link {
+      flex: 0 1 auto;
+      min-height: 24px;
+      font-size: 0.82rem;
+    }
+    .home-trust {
+      margin-top: 0.25rem;
+    }
+    .home-frontier {
+      margin-top: 1.25rem;
+    }
+    .home-frontier .home-section-head {
+      margin-bottom: 0.55rem;
+      padding-top: 0.75rem;
+    }
+    .home-frontier .home-section-head .home-kicker,
+    .home-frontier .home-section-head .home-lede {
+      display: none;
+    }
+    .home-frontier .home-h2 {
+      margin: 0.2rem 0;
+      font-size: 1.25rem;
+    }
+    .home-frontier .home-cta-group {
+      width: 100%;
+      flex-wrap: nowrap;
+      column-gap: 1rem;
+    }
+    .home-frontier .home-cta-link {
+      min-height: 32px;
+      font-size: 0.84rem;
+      white-space: normal;
     }
   }
   .home-trust {
-    margin-top: 0.75rem;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
     color: var(--muted-foreground);
   }
 
   .home-discovery-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1rem;
+    align-items: center;
+    gap: 0.25rem 1rem;
+    margin-top: 0.65rem;
   }
   .home-discovery-actions .home-button {
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+  .home-secondary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1rem;
+  }
+  .home-secondary-actions .home-cta-link {
+    min-height: 36px;
+    font-size: 0.9rem;
   }
   .home-hero-actions > .home-cta-link {
     flex: 0 1 auto;
@@ -696,6 +762,245 @@
     font-size: 0.85rem;
     line-height: 1.5;
     color: var(--muted-foreground);
+  }
+
+  /* ---------- featured model field guide ---------- */
+
+  .home-frontier {
+    margin-top: 2.75rem;
+  }
+  .home-frontier .home-section-head {
+    margin-bottom: 1rem;
+  }
+  .home-guide-scale-note {
+    max-width: 70ch;
+    margin: -0.25rem 0 0.8rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+  .home-guide-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-strong);
+  }
+  .home-guide-row {
+    display: grid;
+    gap: 0.8rem;
+    min-width: 0;
+    padding: 1.05rem 0 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .home-guide-identity,
+  .home-guide-fact,
+  .home-guide-rates,
+  .home-guide-limits {
+    min-width: 0;
+  }
+  .home-guide-index {
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .home-guide-name {
+    margin: 0.25rem 0 0;
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+  .home-guide-meta,
+  .home-guide-checked {
+    margin-top: 0.28rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+  .home-guide-checked {
+    margin-top: 0.15rem;
+  }
+  .home-guide-facts {
+    display: grid;
+    gap: 0.8rem;
+    min-width: 0;
+    margin: 0;
+  }
+  .home-guide-fact dt {
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .home-guide-fact dd {
+    min-width: 0;
+    margin: 0.28rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .home-guide-limit-value,
+  .home-guide-access-value {
+    font-variant-numeric: tabular-nums;
+  }
+  .home-guide-fact dd[data-absent],
+  .home-guide-limit[data-absent] .home-guide-limit-value {
+    font-size: 0.82rem;
+    color: var(--muted-foreground);
+  }
+  .home-guide-rates {
+    display: grid;
+    gap: 0.34rem;
+  }
+  .home-guide-rate {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 0.12rem 0.45rem;
+    align-items: baseline;
+    min-width: 0;
+  }
+  .home-guide-rate-label {
+    font-size: 0.82rem;
+    color: var(--muted-foreground);
+  }
+  .home-guide-rate-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .home-guide-rate-unit {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+  .home-guide-rate[data-absent] .home-guide-rate-value {
+    font-weight: 400;
+    color: var(--muted-foreground);
+  }
+  .home-guide-bar {
+    grid-column: 1 / -1;
+    display: block;
+    width: 100%;
+    max-width: 14rem;
+    height: 4px;
+    margin-top: 0.12rem;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .home-guide-bar > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .home-guide-price-note {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+  .home-guide-limits {
+    display: grid;
+    gap: 0.38rem;
+  }
+  .home-guide-limit {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.15rem 0.6rem;
+  }
+  .home-guide-limit-label {
+    font-size: 0.82rem;
+    color: var(--muted-foreground);
+  }
+  .home-guide-access-value {
+    display: block;
+    font-weight: 600;
+  }
+  .home-guide-access-detail {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+  @media (min-width: 640px) and (max-width: 1099px) {
+    .home-guide-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 1.5rem;
+    }
+    .home-guide-fact[data-fact="price"] {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 1100px) {
+    .home-guide-row {
+      grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 3.6fr);
+      gap: 1.5rem 2.25rem;
+      align-items: start;
+    }
+    .home-guide-facts {
+      grid-template-columns:
+        minmax(15rem, 1.45fr) minmax(8rem, 0.75fr) minmax(10rem, 0.95fr)
+        minmax(9rem, 0.8fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .home-comparison-details {
+    margin-top: 1.25rem;
+    border-top: 2px solid var(--foreground);
+  }
+  .home-comparison-details summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.75rem;
+    padding: 0.9rem 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .home-comparison-details summary::-webkit-details-marker {
+    display: none;
+  }
+  .home-comparison-details summary::after {
+    content: "+";
+    margin-left: auto;
+    font-family: var(--home-mono);
+    font-size: 1rem;
+    color: var(--accent);
+  }
+  .home-comparison-details[open] summary::after {
+    content: "-";
+  }
+  .home-comparison-summary-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .home-comparison-summary-note {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+  .home-comparison-panel {
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 479px) {
+    /* Keep these after the base guide rules so the narrow first viewport stays compact. */
+    .home-frontier {
+      margin-top: 1rem;
+    }
+    .home-frontier .home-section-head {
+      margin-bottom: 0.4rem;
+      padding-top: 0.6rem;
+    }
   }
 
   /* ---------- leading models: a comparison surface ---------- */

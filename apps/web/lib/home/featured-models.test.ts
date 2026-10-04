@@ -1,15 +1,23 @@
 import { benchmarkData, resolveComparison } from "@stackreplay/benchmarks";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { ModelComparisonSection } from "@/components/home/model-comparison";
 import { basePrice, modelPrices } from "../market-discovery";
+import { modelSpecifications } from "../model-specifications";
 import { formatRate } from "../price-table";
 import { loadPublicBenchmarks } from "../public-benchmarks";
 import { loadPublicCatalog } from "../public-catalog";
+import { homeCatalogIndex } from "./catalog-index";
 import {
   benchmarkRows,
   benchmarkSheetHref,
   FEATURED_MODEL_IDS,
   featuredModelComparison,
   featuredModels,
+  guidePriceScale,
+  guideRateCell,
+  inputModalitiesCell,
   MIN_BENCHMARK_COVERAGE,
 } from "./featured-models";
 
@@ -72,6 +80,151 @@ describe("featured model comparison", () => {
     const comparison = featuredModelComparison(catalog);
     const opus = comparison?.columns.find((column) => column.id === "claude-opus-5-5");
     expect(opus?.familyId).toBe(catalog.modelById("claude-opus-5-5")?.familyId);
+  });
+});
+
+describe("featured model field guide", () => {
+  const comparison = featuredModelComparison(catalog, { benchmarkData: evidence });
+  if (comparison === undefined) throw new Error("featured comparison did not render");
+  const guide = new Map(comparison.guide.map((row) => [row.id, row]));
+
+  it("keeps the five editorial releases in canonical order", () => {
+    expect(comparison.guide.map((row) => row.id)).toEqual([...FEATURED_MODEL_IDS]);
+    expect(comparison.guide.map((row) => row.href)).toEqual(
+      FEATURED_MODEL_IDS.map((id) => `/models/${id}`),
+    );
+  });
+
+  it("projects documented input modalities, leaving an absent specification explicit", () => {
+    for (const row of comparison.guide) {
+      const model = catalog.modelById(row.id);
+      if (model === undefined) throw new Error(`missing model ${row.id}`);
+      const modalities = modelSpecifications(model)?.inputModalities;
+      if (modalities === undefined || modalities.length === 0) {
+        expect(row.modalities).toMatchObject({
+          absent: true,
+          text: "Input modalities not recorded",
+        });
+      } else {
+        expect(row.modalities.text).toBe(
+          modalities
+            .map(
+              (modality) =>
+                ({
+                  text: "Text input",
+                  image: "Image input",
+                  audio: "Audio input",
+                  video: "Video input",
+                  pdf: "PDF input",
+                })[modality],
+            )
+            .join(", "),
+        );
+      }
+    }
+
+    const model = catalog.modelById("gpt-6-1-sol");
+    if (model?.specifications === undefined) throw new Error("missing GPT-6.1 Sol specifications");
+    expect(
+      inputModalitiesCell({
+        ...model,
+        specifications: { ...model.specifications, inputModalities: undefined },
+      }),
+    ).toEqual({ absent: true, text: "Input modalities not recorded" });
+  });
+
+  it("keeps announced/no API, conditional rates and missing rates distinct", () => {
+    const gemini = guide.get("gemini-4-argon");
+    expect(gemini?.status).toBe("announced");
+    expect(gemini?.price).toMatchObject({
+      state: "unavailable",
+      input: { absent: true, text: "Not yet in API" },
+      output: { absent: true, text: "Not yet in API" },
+      cacheRead: { absent: true, text: "Not yet in API" },
+    });
+    expect(gemini?.price.note).toContain("not established");
+
+    for (const id of ["gpt-6-1-sol", "grok-4-7", "deepseek-v4-1-flash"]) {
+      expect(guide.get(id)?.price.state, id).toBe("qualified");
+      expect(guide.get(id)?.price.note, id).toContain("Conditional pricing");
+    }
+    expect(guide.get("claude-opus-5-5")?.price.state).toBe("qualified");
+    expect(guide.get("claude-opus-5-5")?.price.note).toContain("route records conflict");
+    expect(comparison.priceScale).toBeUndefined();
+    expect(guideRateCell(undefined)).toEqual({ absent: true, text: "Not listed" });
+  });
+
+  it("retains sub-cent precision in text and only plots strictly comparable rows", () => {
+    expect(guide.get("deepseek-v4-1-flash")?.price.cacheRead.text).toBe("$0.003");
+
+    const fixture = comparison.guide.map((row, index) =>
+      index < 2
+        ? {
+            ...row,
+            price: {
+              ...row.price,
+              state: "comparable" as const,
+              input: { text: index === 0 ? "$0.003" : "$0.40" },
+              output: { text: index === 0 ? "$0.02" : "$2.00" },
+              cacheRead: { text: "$0.0015" },
+              inputPerMillion: index === 0 ? "0.003" : "0.4",
+              outputPerMillion: index === 0 ? "0.02" : "2",
+              note: undefined,
+            },
+          }
+        : row,
+    );
+    const scale = guidePriceScale(fixture);
+    expect(scale?.max).toBe(2);
+    expect(scale?.rows["gpt-6-1-sol"]?.input).toBeCloseTo(0.0015);
+    expect(scale?.rows["claude-opus-5-5"]?.output).toBeCloseTo(1);
+  });
+
+  it("renders five guides and keeps the full table in a native disclosure", () => {
+    const html = renderToStaticMarkup(
+      createElement(ModelComparisonSection, {
+        comparison,
+        index: homeCatalogIndex(catalog),
+        sheetHref: benchmarkSheetHref([...FEATURED_MODEL_IDS]),
+      }),
+    );
+    expect(html.match(/data-guide-model=/gu) ?? []).toHaveLength(5);
+    expect(html).toContain('data-testid="featured-model-guide"');
+    expect(html).toContain('data-testid="home-full-comparison"');
+    expect(html).toContain("Prices, limits, access and reported benchmarks");
+    expect(html).not.toContain('data-testid="price-bar-scale"');
+
+    const fixture = comparison.guide.map((row, index) =>
+      index < 2
+        ? {
+            ...row,
+            price: {
+              ...row.price,
+              state: "comparable" as const,
+              input: { text: index === 0 ? "$0.003" : "$0.40" },
+              output: { text: index === 0 ? "$0.02" : "$2.00" },
+              cacheRead: { text: "$0.0015" },
+              inputPerMillion: index === 0 ? "0.003" : "0.4",
+              outputPerMillion: index === 0 ? "0.02" : "2",
+              note: undefined,
+            },
+          }
+        : row,
+    );
+    const withScale = {
+      ...comparison,
+      guide: fixture,
+      priceScale: guidePriceScale(fixture),
+    };
+    const scaledHtml = renderToStaticMarkup(
+      createElement(ModelComparisonSection, {
+        comparison: withScale,
+        index: homeCatalogIndex(catalog),
+        sheetHref: benchmarkSheetHref([...FEATURED_MODEL_IDS]),
+      }),
+    );
+    expect(scaledHtml).toContain('data-testid="price-bar-scale"');
+    expect(scaledHtml.match(/class="home-guide-bar"/gu) ?? []).toHaveLength(4);
   });
 });
 
