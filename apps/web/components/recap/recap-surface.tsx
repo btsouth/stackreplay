@@ -14,7 +14,7 @@ import { buildMyStack, publishedPriceText } from "@/lib/my-stack";
 import { catalogPlansAt } from "@/lib/public-catalog";
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { activityDays, compactNumber, recapUsd, renderRecapCard } from "@/lib/recap-card";
-import { recapPlans } from "@/lib/recap-plans";
+import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
@@ -41,6 +41,7 @@ function Heatmap({ recap }: { recap: Recap }) {
   const days = activityDays(recap.days);
   const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
   const count = Math.ceil((days.length + offset) / 7);
+  const gap = Math.min(5, 100 / count);
   const max = Math.max(1, ...days.map((d) => d.records));
   return (
     <div className="recap-calendar-scroll">
@@ -52,7 +53,11 @@ function Heatmap({ recap }: { recap: Recap }) {
         className="recap-calendar-grid"
         role="img"
         aria-label={`${days.filter((d) => d.records).length} active days. Activity by local day, from ${days[0]?.date ?? recap.start} to ${recap.end}.`}
-        style={{ gridTemplateColumns: `repeat(${count}, minmax(24px, 1fr))` }}
+        style={{
+          gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
+          maxWidth: `${count * 26 + (count - 1) * gap}px`,
+          gap: `${gap}px`,
+        }}
       >
         {Array.from({ length: count }, (_, col) => (
           <div
@@ -150,7 +155,8 @@ export function RecapSurface({
   const [error, setError] = useState<string>();
   const [loaded, setLoaded] = useState(false);
   const [stack, setStack] = useState<StackSubscription[]>([]);
-  const [detected, setDetected] = useState(false);
+  const [showPaid, setShowPaid] = useState(false);
+  const [confirmedPlans, setConfirmedPlans] = useState<string>();
   const [exporting, setExporting] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -162,10 +168,11 @@ export function RecapSurface({
           ? saved
           : recapPlans(saved, readAccountIdentities());
       setStack(effective);
-      setDetected(
-        !saved.some((s) => s.plan.startsWith("plan:")) && effective.length > saved.length,
-      );
     };
+    setShowPaid(window.localStorage.getItem("stackreplay.recap-show-paid") === "true");
+    setConfirmedPlans(
+      window.localStorage.getItem("stackreplay.recap-paid-confirmation") ?? undefined,
+    );
     refresh();
     const unsubscribe = subscribeCurrentStack(refresh);
     window.addEventListener("stackreplay-account-labels", refresh);
@@ -237,15 +244,28 @@ export function RecapSurface({
   );
   const selectedPlanCount = stack.filter((s) => s.plan.startsWith("plan:")).length;
   const monthly = planSummary.totals.find((t) => t.currency === "USD" && t.interval === "month");
-  const planText =
+  const monthlyCost =
     selectedPlanCount && !planSummary.unpricedPlans && planSummary.totals.length === 1 && monthly
-      ? `${recapUsd(monthly.amount)}/month of ${detected ? "detected" : "selected"} plans`
+      ? monthly.amount
       : undefined;
+  const planSignature = JSON.stringify({
+    plans: stack
+      .filter((s) => s.plan.startsWith("plan:"))
+      .map((s) => s.plan)
+      .sort(),
+    monthlyCost,
+  });
+  const confirmed = confirmedPlans === planSignature;
+  const multiplier =
+    showPaid && confirmed && recap && monthlyCost
+      ? paidMultiplier(recap.usd, monthlyCost, recap.days.length)
+      : undefined;
+  const multiplierText = multiplier ? `${multiplier}× what I paid` : undefined;
   async function download(portrait: boolean) {
     if (!recap) return;
     setExporting(true);
     try {
-      const blob = await renderRecapCard(recap, portrait, planText);
+      const blob = await renderRecapCard(recap, portrait, multiplierText);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -328,7 +348,7 @@ export function RecapSurface({
               </div>
               <div className="recap-hero-caption">
                 {recap.priced
-                  ? "of API-priced work"
+                  ? "of AI coding at API prices"
                   : recap.outputKnown
                     ? "logged output tokens"
                     : "logged activity records"}
@@ -353,63 +373,22 @@ export function RecapSurface({
                   </p>
                 </Info>
               </div>
-              {planText && (
+              {multiplierText && recap.priced > 0 && (
                 <p className="recap-plan-comparison">
-                  on <strong>{planText}</strong>
-                  <Info label="About subscription prices">
+                  <strong>{multiplierText}</strong>
+                  <Info label="How the payment multiplier is calculated">
                     <p>
-                      Current published USD monthly prices for selected subscriptions or plans
-                      identified by local Claude profiles, including multiple accounts on the same
-                      plan. Detected plans reflect a profile snapshot, not a complete plan
-                      inventory. This monthly reference is not prorated to the recap period and is
-                      not your actual payment. Taxes, discounts and API charges are excluded.
+                      API-equivalent value divided by (your confirmed monthly plan cost ×{" "}
+                      {recap.days.length} days / 30.4). Rounded to a whole number and shown only at
+                      2× or above. The same lower cache-rate scenario is used throughout.
+                    </p>
+                    <p>
+                      Current published plan prices are the reference you confirmed. Taxes,
+                      discounts, plan changes and separate API charges are excluded.
                     </p>
                   </Info>
                 </p>
               )}
-              <details className="recap-plans">
-                <summary>
-                  {selectedPlanCount ? "Edit your plans" : "Add your plans for perspective"}
-                </summary>
-                <p>Choose the subscriptions you pay for. Current published prices, kept locally.</p>
-                <div>
-                  {plans
-                    .filter((p) => p.price && !p.id.startsWith("example-"))
-                    .map((p) => {
-                      const key = `plan:${p.id}` as TargetKey;
-                      return (
-                        <label key={key}>
-                          <input
-                            type="checkbox"
-                            checked={stack.some((s) => s.plan === key)}
-                            onChange={(e) => {
-                              window.localStorage.setItem("stackreplay.recap-plans-manual", "true");
-                              writeStackSubscriptions(
-                                e.target.checked
-                                  ? [
-                                      ...stack,
-                                      { id: newSubscriptionId(stack.map((s) => s.id)), plan: key },
-                                    ]
-                                  : stack.filter((s) => s.plan !== key),
-                              );
-                            }}
-                          />
-                          <span>
-                            {p.name}
-                            <small>{publishedPriceText(p.price)}</small>
-                          </span>
-                        </label>
-                      );
-                    })}
-                </div>
-                {selectedPlanCount > 0 && !planText && (
-                  <p>
-                    Selected plans use different currencies or billing intervals, or have an
-                    unreported price. See <a href="/app/stack">My Stack</a> for their individual
-                    prices.
-                  </p>
-                )}
-              </details>
             </section>
             <section className="recap-stats" aria-label="Your key numbers">
               {[
@@ -484,7 +463,16 @@ export function RecapSurface({
             <div className="recap-two-column">
               {recap.outputKnown > 0 && (
                 <section className="recap-panel">
-                  <h2>Your model mix.</h2>
+                  <h2>
+                    Your model mix.{" "}
+                    <Info label="About model API values">
+                      <p>
+                        Each model uses the same lower cache-rate scenario as the hero. Unreported
+                        cache-write lifetimes use the 5-minute rate; the 1-hour rate can yield a
+                        higher value. Unknown or incomplete prices are excluded.
+                      </p>
+                    </Info>
+                  </h2>
                   <p className="recap-subtitle">Output tokens, week by week.</p>
                   <Mix recap={recap} />
                   <div className="recap-models">
@@ -498,9 +486,7 @@ export function RecapSurface({
                           <small>output tokens</small>
                         </span>
                         <span>
-                          {m.priced
-                            ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
-                            : "Unpriced"}
+                          {m.priced ? recapUsd(m.usd) : "Unpriced"}
                           <small>
                             {m.priced < m.records && m.priced ? "priced records" : "API equivalent"}
                           </small>
@@ -513,26 +499,30 @@ export function RecapSurface({
               <div className="recap-right-column">
                 <section className="recap-panel">
                   <h2>Many tools. One story.</h2>
-                  <p className="recap-subtitle">Share of logged records.</p>
+                  <p className="recap-subtitle">Share of output tokens.</p>
                   <div className="recap-tools">
-                    {recap.tools.map((t) => (
-                      <div key={t.id}>
-                        <div>
-                          <strong>{toolNames[t.id] ?? t.id}</strong>
-                          <span>{Math.round((t.records / recap.records) * 100)}%</span>
+                    {[...recap.tools]
+                      .sort((a, b) => b.output - a.output)
+                      .map((t) => (
+                        <div key={t.id}>
+                          <div>
+                            <strong>{toolNames[t.id] ?? t.id}</strong>
+                            <span>{Math.round((t.output / Math.max(1, recap.output)) * 100)}%</span>
+                          </div>
+                          <div className="recap-tool-track">
+                            <i
+                              style={{ width: `${(t.output / Math.max(1, recap.output)) * 100}%` }}
+                            />
+                          </div>
+                          <small>
+                            {t.records.toLocaleString()}{" "}
+                            {t.id === "hermes" ? "session/model aggregates" : "records"}
+                            {recap.outputKnown > 0
+                              ? ` · ${compactNumber(t.output)} output tokens`
+                              : ""}
+                          </small>
                         </div>
-                        <div className="recap-tool-track">
-                          <i style={{ width: `${(t.records / recap.records) * 100}%` }} />
-                        </div>
-                        <small>
-                          {t.records.toLocaleString()}{" "}
-                          {t.id === "hermes" ? "session/model aggregates" : "records"}
-                          {recap.outputKnown > 0
-                            ? ` · ${compactNumber(t.output)} output tokens`
-                            : ""}
-                        </small>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </section>
                 <section className="recap-panel recap-facts">
@@ -581,6 +571,104 @@ export function RecapSurface({
                   Download portrait <span>1080 × 1350</span>
                 </button>
               </div>
+            </section>
+            <section className="recap-payment" aria-label="Card payment comparison">
+              <label className="recap-paid-toggle">
+                <input
+                  type="checkbox"
+                  checked={showPaid}
+                  onChange={(e) => {
+                    setShowPaid(e.target.checked);
+                    window.localStorage.setItem(
+                      "stackreplay.recap-show-paid",
+                      String(e.target.checked),
+                    );
+                  }}
+                />
+                Show what I paid
+              </label>
+              {showPaid && (
+                <>
+                  <details className="recap-plans" open={!confirmed}>
+                    <summary>{selectedPlanCount ? "Confirm your plans" : "Add your plans"}</summary>
+                    <p>
+                      Choose the subscriptions you pay for. Confirm the monthly total before
+                      including it in your recap.
+                    </p>
+                    <div>
+                      {plans
+                        .filter((p) => p.price && !p.id.startsWith("example-"))
+                        .map((p) => {
+                          const key = `plan:${p.id}` as TargetKey;
+                          return (
+                            <label key={key}>
+                              <input
+                                type="checkbox"
+                                checked={stack.some((s) => s.plan === key)}
+                                onChange={(e) => {
+                                  window.localStorage.setItem(
+                                    "stackreplay.recap-plans-manual",
+                                    "true",
+                                  );
+                                  writeStackSubscriptions(
+                                    e.target.checked
+                                      ? [
+                                          ...stack,
+                                          {
+                                            id: newSubscriptionId(stack.map((s) => s.id)),
+                                            plan: key,
+                                          },
+                                        ]
+                                      : stack.filter((s) => s.plan !== key),
+                                  );
+                                }}
+                              />
+                              <span>
+                                {p.name}
+                                {stack.filter((s) => s.plan === key).length > 1
+                                  ? ` × ${stack.filter((s) => s.plan === key).length}`
+                                  : ""}
+                                <small>{publishedPriceText(p.price)}</small>
+                              </span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                    {selectedPlanCount > 0 && !monthlyCost && (
+                      <p>
+                        Selected plans use different currencies or billing intervals, or have an
+                        unreported price. See <a href="/app/stack">My Stack</a> for their individual
+                        prices.
+                      </p>
+                    )}
+                  </details>
+                  {monthlyCost && (
+                    <p className="recap-payment-total">
+                      {recapUsd(monthlyCost)}/month across {selectedPlanCount}{" "}
+                      {selectedPlanCount === 1 ? "subscription" : "subscriptions"}.
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="recap-button secondary"
+                    disabled={!monthlyCost || confirmed}
+                    onClick={() => {
+                      setConfirmedPlans(planSignature);
+                      window.localStorage.setItem(
+                        "stackreplay.recap-paid-confirmation",
+                        planSignature,
+                      );
+                    }}
+                  >
+                    {confirmed && monthlyCost ? "Plans confirmed" : "Confirm what I paid"}
+                  </button>
+                  {confirmed && monthlyCost && !multiplier && (
+                    <p className="recap-payment-total">
+                      Your comparison is below 2×, so the multiplier stays off your recap.
+                    </p>
+                  )}
+                </>
+              )}
             </section>
             <footer className="recap-footer">
               Calculated on this device. Your logs stay here.{" "}

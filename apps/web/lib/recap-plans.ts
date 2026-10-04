@@ -18,3 +18,26 @@ export function recapPlans(
   });
   return [...saved, ...detected];
 }
+
+/** Same calendar window, with exact decimal arithmetic and 30.4 days per month. */
+export function paidMultiplier(
+  apiUsd: string,
+  monthlyUsd: string,
+  days: number,
+): number | undefined {
+  const parse = (value: string) => {
+    if (!/^\d+(?:\.\d+)?$/.test(value)) return undefined;
+    const [whole, fraction = ""] = value.split(".");
+    return { units: BigInt(`${whole}${fraction}`), scale: 10n ** BigInt(fraction.length) };
+  };
+  const value = parse(apiUsd);
+  const monthly = parse(monthlyUsd);
+  if (!value || !monthly || monthly.units === 0n || !Number.isSafeInteger(days) || days <= 0)
+    return undefined;
+  const numerator = value.units * monthly.scale * 304n;
+  const denominator = value.scale * monthly.units * BigInt(days) * 10n;
+  if (numerator < 2n * denominator) return undefined;
+  const rounded = (2n * numerator + denominator) / (2n * denominator);
+  const result = Number(rounded);
+  return Number.isSafeInteger(result) ? result : undefined;
+}

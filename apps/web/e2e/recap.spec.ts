@@ -34,6 +34,10 @@ for (const temporary of [false, true])
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    const cell = await page.locator(".recap-calendar-week > div").first().boundingBox();
+    expect(cell).toBeTruthy();
+    expect(Math.abs(cell!.width - cell!.height)).toBeLessThan(1);
+    expect(cell!.width).toBeLessThanOrEqual(26);
     for (const [label, size] of [
       ["Download landscape", [1200, 630]],
       ["Download portrait", [1080, 1350]],
@@ -56,9 +60,7 @@ test("empty state has a direct scan action", async ({ page }) => {
   await expect(page.getByTestId("recap-ready")).toHaveCount(0);
 });
 
-test("shows explicit detected plans and keeps pricing detail off the hero face", async ({
-  page,
-}) => {
+test("payment comparison requires confirmation and persists local choices", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
   await gotoImport(page);
   await page.evaluate(() =>
@@ -78,26 +80,35 @@ test("shows explicit detected plans and keeps pricing detail off the hero face",
   );
   await page.getByTestId("import-file-input").setInputFiles(fixture);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
-  await expect(page.locator(".recap-plan-comparison")).toContainText(
-    "$100/month of detected plans",
-  );
-  await expect(page.locator(".recap-hero-number")).not.toContainText("to ");
-  await expect(page.locator(".recap-hero-caption")).not.toContainText("priced subset");
-  await expect(page.locator(".recap-stats")).not.toContainText("native sessions");
-  await page.getByText("Edit your plans", { exact: true }).click();
-  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).check();
-  await expect(page.locator(".recap-plan-comparison")).toContainText(
-    "$120/month of selected plans",
-  );
-  await page.reload();
-  await expect(page.locator(".recap-plan-comparison")).toContainText(
-    "$120/month of selected plans",
-  );
-  await page.getByText("Edit your plans", { exact: true }).click();
-  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).uncheck();
-  await page.getByRole("checkbox", { name: /Max 5/u }).uncheck();
+  await expect(page.locator(".recap-hero-caption")).toContainText("of AI coding at API prices");
   await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await expect(page.getByLabel("Show what I paid")).not.toBeChecked();
+  await page.getByLabel("Show what I paid").check();
+  await expect(page.getByRole("checkbox", { name: /Max 5/u })).toBeChecked();
+  await expect(page.locator(".recap-payment-total").first()).toContainText("$100/month");
+  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await page.getByRole("button", { name: "Confirm what I paid" }).click();
+  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
   await page.reload();
   await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.getByLabel("Show what I paid")).toBeChecked();
+  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
+  await page.getByText("Confirm your plans", { exact: true }).click();
+  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).check();
+  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await expect(page.locator(".recap-payment-total").first()).toContainText("$120/month");
+  await page.getByRole("button", { name: "Confirm what I paid" }).click();
+  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
+  await page.getByLabel("Show what I paid").uncheck();
+  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel("Show what I paid")).not.toBeChecked();
+  await page.getByLabel("Show what I paid").check();
+  await page.getByText("Confirm your plans", { exact: true }).click();
+  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).uncheck();
+  await page.getByRole("checkbox", { name: /Max 5/u }).uncheck();
+  await page.reload();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Max 5/u })).not.toBeChecked();
   await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
 });

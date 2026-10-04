@@ -18,7 +18,7 @@ export function activityDays(days: Recap["days"]): Recap["days"] {
 export async function renderRecapCard(
   recap: Recap,
   portrait: boolean,
-  planText?: string,
+  multiplierText?: string,
 ): Promise<Blob> {
   await document.fonts.ready;
   const canvas = document.createElement("canvas");
@@ -59,7 +59,7 @@ export async function renderRecapCard(
   text(hero, pad, heroY, portrait ? 154 : 116, "#f6f2e9", 700);
   text(
     recap.priced
-      ? "at API list prices"
+      ? "of AI coding at API prices"
       : recap.outputKnown
         ? "logged output tokens"
         : "logged activity records",
@@ -68,8 +68,8 @@ export async function renderRecapCard(
     portrait ? 38 : 28,
     "#bbd3c9",
   );
-  if (planText && recap.priced)
-    text(`on ${planText}`, pad, portrait ? 480 : 342, portrait ? 28 : 23, "#bbd3c9");
+  if (multiplierText && recap.priced)
+    text(multiplierText, pad, portrait ? 480 : 342, portrait ? 28 : 23, "#bbd3c9");
   const stats = [
     ...(recap.outputKnown ? [[compactNumber(recap.output), "OUTPUT TOKENS"]] : []),
     ...(recap.sessions ? [[compactNumber(recap.sessions), "SESSIONS"]] : []),
@@ -98,14 +98,24 @@ export async function renderRecapCard(
     });
     text(`${weeks[0]?.date ?? recap.start}  →  ${recap.end}`, pad, 1244, 18, "#a7b6bc");
   } else {
-    text("DAILY ACTIVITY", pad, 528, 13, "#a7b6bc", 600);
+    text("DAILY ACTIVITY", pad, 515, 13, "#a7b6bc", 600);
+    const offset = new Date(`${days[0]?.date ?? recap.start}T00:00:00Z`).getUTCDay();
+    const weeks = Math.ceil((days.length + offset) / 7);
+    const gap = Math.min(2, (w - pad * 2) / Math.max(1, weeks) / 4);
+    const cell = Math.min(5, (w - pad * 2 - (weeks - 1) * gap) / weeks);
     const max = Math.max(1, ...days.map((d) => d.records));
-    days.forEach((d, i) => {
-      const bw = (w - pad * 2) / days.length;
-      ctx.fillStyle = d.records ? "#8dbba8" : "#33434a";
-      const bh = d.records ? Math.max(3, 28 * Math.sqrt(d.records / max)) : 2;
-      ctx.fillRect(pad + i * bw, 581 - bh, Math.max(1, bw - 2), bh);
+    days.forEach((day, i) => {
+      const position = i + offset;
+      ctx.fillStyle = day.records ? "#8dbba8" : "#33434a";
+      ctx.globalAlpha = day.records ? 0.3 + 0.7 * Math.sqrt(day.records / max) : 1;
+      ctx.fillRect(
+        pad + Math.floor(position / 7) * (cell + gap),
+        535 + (position % 7) * (cell + gap),
+        cell,
+        cell,
+      );
     });
+    ctx.globalAlpha = 1;
   }
   text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");
   text("stackreplay.com", w - pad - 170, h - 42, 16, "#bbd3c9");
