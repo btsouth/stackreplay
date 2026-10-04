@@ -7,7 +7,6 @@ import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useMarketRelations } from "@/components/home/market-briefing";
 import type { HomeCatalogIndex } from "@/lib/home/personal";
 import type { MarketEventView } from "@/lib/market/events";
-
 import {
   marketEventHref,
   parseUpdateSelection,
@@ -17,9 +16,11 @@ import {
   type UpdateCategory,
   type UpdateProvider,
   type UpdateSelection,
+  updateFeedHref,
   updateListHref,
   updateProviderOptions,
 } from "@/lib/market/update-selection";
+import { absoluteUrl } from "@/lib/site";
 
 const LONG_DAY = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -45,6 +46,8 @@ export function UpdatesFeed({
   const router = useRouter();
   const routedSearch = useSearchParams().toString();
   const [selection, setSelection] = useState(initialSelection);
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => setClientReady(true), []);
   useLayoutEffect(() => {
     setSelection(parseUpdateSelection(new URLSearchParams(routedSearch), providers));
   }, [routedSearch, providers]);
@@ -77,9 +80,22 @@ export function UpdatesFeed({
       scroll: false,
     });
   };
+  const rssHref = updateFeedHref(selection, "xml");
+  const jsonHref = updateFeedHref(selection, "json");
   const clear = () => choose({ providerId: null, category: "all", providerRecognized: true });
   return (
-    <section className="updates" aria-label="AI updates" data-testid="updates-feed">
+    <section
+      className="updates"
+      aria-label="AI updates"
+      data-testid="updates-feed"
+      data-client-ready={clientReady}
+    >
+      {rssHref && jsonHref ? (
+        <>
+          <link rel="alternate" type="application/rss+xml" href={absoluteUrl(rssHref)} />
+          <link rel="alternate" type="application/json" href={absoluteUrl(jsonHref)} />
+        </>
+      ) : null}
       <label className="mb-4 flex max-w-sm flex-col gap-2 text-sm">
         Provider
         <select
@@ -119,6 +135,20 @@ export function UpdatesFeed({
           </button>
         ))}
       </fieldset>
+      {rssHref && jsonHref ? (
+        <p
+          className="market-muted mb-5 flex flex-wrap items-center gap-x-3"
+          data-testid="update-subscriptions"
+        >
+          <span>Subscribe to these updates:</span>
+          <a className="market-link inline-flex min-h-11 items-center" href={rssHref}>
+            RSS
+          </a>
+          <a className="market-link inline-flex min-h-11 items-center" href={jsonHref}>
+            JSON
+          </a>
+        </p>
+      ) : null}
       {days.length === 0 ? (
         <div className="market-muted py-8" role="status">
           <p>

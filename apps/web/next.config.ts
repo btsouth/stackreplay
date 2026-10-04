@@ -43,7 +43,7 @@ const contentSecurityPolicy = [
   "media-src 'none'",
 ].join("; ");
 
-const securityHeaders = [
+export const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
