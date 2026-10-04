@@ -186,3 +186,37 @@ publication and checked dates, limitations and redistribution records. It is
 explicitly labelled as full provenance, including evidence outside the selected
 view. A valid empty view exports an empty rows array. The browser creates the
 JSON download locally; no endpoint, saved selection or external fetch is needed.
+
+
+## Paginated image download
+
+Export images opens a modal preview beside Download JSON, without changing the
+selection, comparison history or theme. It uses the same resolved export payload;
+invalid editions, source sheets and observation pins disable both actions. Valid
+empty views produce explicitly empty sheets, with no scores or source claims.
+
+A pure measured layout preserves row order and ordered model slices of up to
+three columns. Each row/model combination appears exactly once. Sheets are
+1600 pixels wide, with 22-pixel definition text, 26-pixel exact scores and
+18-pixel evidence/attribution text. Rows paginate toward a 2400-pixel height;
+one unusually long row can grow rather than truncate. Text wraps using the same
+font metrics as the renderer, including long URLs. A sheet beyond the browser's
+conservative 16384-pixel height limit fails explicitly and directs readers to
+JSON instead of silently dropping evidence.
+
+Every page labels its page count, row indices and model slice within the full
+selection. Definitions, setup labels, source identities/classes/dates, missing
+cells and exact original score strings remain visible. Highlights still refer
+to raw numerical values across the full selection, including ties and
+lower-is-better rows, rather than just the current column slice. The precise
+comparison link and JSON retain complete evidence, explicit pins and provenance.
+
+The browser lazily loads a local canvas renderer and draws StackReplay's own
+sheet using native fonts and a consistent light palette in either app theme.
+It yields briefly before drawing, then encodes each bounded sheet with native
+canvas.toDataURL and creates a local PNG Blob. This avoids asynchronous encoder
+stalls observed after browser downloads. It does not capture the table DOM, request
+publisher images, transmit a selection,
+store an export on a server or alter theme persistence. Each page has an explicit
+PNG download, with navigation and readable text in the native modal. Obsolete
+render work cannot replace the current page; changing selection closes its preview.

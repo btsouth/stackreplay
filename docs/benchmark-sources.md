@@ -170,3 +170,17 @@ No display rounding is applied to exported values or source metadata, and no
 missing-score estimates, newly inferred configuration, blanket independent-data
 license or publisher artwork is added. A download does not admit new evidence or
 claim StackReplay reproduced any evaluation.
+
+
+PNG pages carry only the sources of the observations shown in their row/model
+slice. Each source retains its reporting identity, evidence class, source date,
+original source URL, methodology/attribution summary, limitations, redistribution
+rationale, rights-check date and terms link. Identical disclosures can share a
+source-reference line. Epoch's attribution retains CC BY 4.0, the conversion
+statement, no-endorsement language and the archive-date/original-publication
+caveat. Its terms do not become a blanket license for a page or full export.
+
+Image definitions, exact reported score strings, setup labels and missing cells
+come from the unchanged JSON export contract. Full observation notes, selection
+reasons and immutable-edition provenance remain available through the exact
+comparison link and Download JSON. Publisher artwork is never embedded.
