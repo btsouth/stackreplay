@@ -219,7 +219,7 @@
       gap: 0.25rem;
       margin-top: 0.35rem;
     }
-    .home-secondary-actions {
+    .home-discovery-actions .home-secondary-actions {
       display: contents;
     }
     .home-discovery-actions .home-button,
@@ -831,6 +831,10 @@
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.025em;
+  }
+  .home-guide-name a {
+    padding-block: 4px;
+    margin-block: -4px;
   }
   .home-guide-meta,
   .home-guide-checked {
