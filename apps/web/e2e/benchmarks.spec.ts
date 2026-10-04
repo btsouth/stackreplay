@@ -1,5 +1,7 @@
+import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import type { BenchmarkExport } from "../lib/benchmark-export";
 
 const google = "google-deepmind-argon-2026-09-30";
 const sheet = `/benchmarks?source=${google}&models=gemini-4-argon,gpt-6-astra,claude-fable-5-1,claude-opus-5-5&coverage=shared&edition=2026-09-30-v1`;
@@ -229,6 +231,8 @@ test("unscored selections change only after explicit recovery and retain browser
     "Qwen 3.8 Max, Kimi K3: no reported scores in this edition.",
   );
   await expect(page.getByRole("button", { name: "Remove Qwen 3.8 Max" })).toBeVisible();
+  await expect(page.locator(".bench-picker")).toContainText("No verified scores yet");
+  await expect(page.getByRole("button", { name: "Download JSON", exact: true })).toBeEnabled();
   await expect(page).toHaveURL(/models=qwen-3-8-max%2Ckimi-k3/);
   await page.getByRole("button", { name: "Show models with reported scores", exact: true }).click();
   await expect(page.locator(".bench-empty")).toHaveCount(0);
@@ -238,3 +242,187 @@ test("unscored selections change only after explicit recovery and retain browser
   await expect(page.locator(".bench-empty")).toBeVisible();
   await expect(page.getByRole("button", { name: "Remove Kimi K3" })).toBeVisible();
 });
+
+test("Download JSON matches pinned visible evidence, share URL and native keyboard action", async ({
+  page,
+}, testInfo) => {
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/benchmarks?models=gpt-6-1-sol,gemini-4-argon");
+  await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
+  const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
+  await page.getByLabel("Reported result for GPT-6.1 Sol").selectOption(pin);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Coding", exact: true }).click();
+  const copy = page.getByRole("button", { name: "Copy comparison link" });
+  await copy.click();
+  await expect(page.getByRole("button", { name: "Link copied" })).toBeVisible();
+  const shareUrl = await page.evaluate(() => navigator.clipboard.readText());
+  await page.keyboard.press("Tab");
+  const button = page.getByRole("button", { name: "Download JSON", exact: true });
+  await expect(button).toBeFocused();
+  const downloading = page.waitForEvent("download");
+  await page.keyboard.press("Enter");
+  const download = await downloading;
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-09-30-v2.json");
+  const file = testInfo.outputPath("selected-benchmark-evidence.json");
+  await download.saveAs(file);
+  const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
+  expect(payload.exportVersion).toBe(1);
+  expect(payload.edition).toBe("2026-09-30-v2");
+  expect(payload.comparisonUrl).toBe(shareUrl);
+  expect(payload.requested.observationIds).toEqual([pin]);
+  expect(payload.requested.category).toBe("coding");
+  expect(payload.models.map((model) => model.id)).toEqual(["gpt-6-1-sol", "gemini-4-argon"]);
+  expect(payload.rows.map((row) => row.definition.id)).toEqual(
+    await page
+      .locator("tbody tr")
+      .evaluateAll((rows) => rows.map((row) => row.getAttribute("data-benchmark-id"))),
+  );
+  for (const row of payload.rows) {
+    const displayed = page.locator(`[data-benchmark-id="${row.definition.id}"]`);
+    await expect(displayed).toContainText(row.setupLabel);
+    for (const cell of row.cells) {
+      const shown = displayed.locator(`[data-model-id="${cell.modelId}"]`);
+      await expect(shown).toContainText(cell.displayValue ?? "Not reported");
+      if (row.highlightedModelIds.includes(cell.modelId))
+        await expect(shown).toHaveAttribute("data-highlighted", "true");
+      else await expect(shown).not.toHaveAttribute("data-highlighted", "true");
+    }
+  }
+  const pinned = payload.rows.find((row) => row.definition.id === "deep-swe-v1-1")?.cells[0];
+  expect(pinned).toMatchObject({
+    observationId: pin,
+    value: 75.22,
+    displayValue: "75.22%",
+    observation: { effort: "High" },
+  });
+  expect(
+    payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
+  ).toHaveLength(202);
+  await page.reload();
+  await expect(page.locator('[data-benchmark-id="deep-swe-v1-1"]')).toContainText("75.22%");
+});
+
+test("Download JSON retains old source sheets, full provenance and redistribution links", async ({
+  page,
+}, testInfo) => {
+  await page.goto(sheet);
+  await page.getByRole("button", { name: "Security", exact: true }).click();
+  const button = page.getByRole("button", { name: "Download JSON", exact: true });
+  await expect(button).toBeEnabled();
+  const downloading = page.waitForEvent("download");
+  await button.click();
+  const download = await downloading;
+  const file = testInfo.outputPath("v1-source-evidence.json");
+  await download.saveAs(file);
+  const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
+  expect(payload.edition).toBe("2026-09-30-v1");
+  expect(payload.requested.sourceSetId).toBe(google);
+  expect(payload.rows.map((row) => row.definition.id)).toEqual(["cwe-bench-v1"]);
+  expect(payload.rows[0]?.highlightedModelIds).toEqual(["gemini-4-argon", "gpt-6-astra"]);
+  const source = payload.fullProvenance.data.sourceSets.find((source) => source.id === google);
+  expect(source?.observations).toHaveLength(68);
+  expect(payload.fullProvenance.data.sourceSets).toHaveLength(4);
+  expect(payload.fullProvenance.scope).toContain("Full immutable evidence edition");
+  await expect(page.locator(".bench-card-counts")).toContainText("1 shared benchmarks");
+  await expect(page.locator(".bench-source-card")).toContainText("Published Sep 30, 2026");
+  const disclosure = page
+    .locator("#benchmark-methodology details")
+    .filter({ has: page.locator("summary", { hasText: "Google DeepMind" }) });
+  await disclosure.locator("summary").click();
+  await expect(disclosure).toContainText(source?.redistribution.rationale ?? "missing source");
+  await expect(disclosure.getByRole("link", { name: "Redistribution terms ↗" })).toHaveAttribute(
+    "href",
+    source?.redistribution.termsUrl ?? "missing source",
+  );
+});
+
+test("Download JSON allows valid empty views, rejects unresolved coverage and recovers current evidence", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/benchmarks?models=gpt-6-1-sol&category=security");
+  await expect(page.locator(".bench-header")).toContainText("No reported evidence in this view.");
+  const button = page.getByRole("button", { name: "Download JSON", exact: true });
+  await expect(button).toBeEnabled();
+  const downloading = page.waitForEvent("download");
+  await button.click();
+  const download = await downloading;
+  const file = testInfo.outputPath("empty-evidence.json");
+  await download.saveAs(file);
+  const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
+  expect(payload.rows).toEqual([]);
+  expect(payload.requested.modelIds).toEqual(["gpt-6-1-sol"]);
+  expect(payload.requested.category).toBe("security");
+  for (const { query, coverageCopy } of [
+    {
+      query: "edition=unavailable&models=qwen-3-8-max",
+      coverageCopy: "Coverage unknown for this edition",
+    },
+    { query: "source=unavailable", coverageCopy: "Coverage unavailable for this selection" },
+    { query: "observation=unavailable", coverageCopy: "Coverage unavailable for this selection" },
+    { query: "models=unknown", coverageCopy: "Coverage unavailable for this selection" },
+  ]) {
+    await page.goto(`/benchmarks?${query}`);
+    await expect(button).toBeDisabled();
+    await expect(button).toHaveAttribute("aria-describedby", "benchmark-selection-error");
+    const errorPanel = page.locator(".bench-empty");
+    await expect(errorPanel.getByRole("alert")).toBeVisible();
+    await expect(errorPanel).toContainText("No benchmark coverage is asserted for this selection.");
+    await expect(errorPanel).not.toContainText("No reported benchmarks for this selection.");
+    await expect(errorPanel).not.toContainText("no reported scores in this edition");
+    await expect(page.locator(".bench-coverage-note")).toHaveCount(0);
+    await expect(page.locator(".bench-picker")).toContainText(coverageCopy);
+    await expect(page.locator(".bench-picker")).not.toContainText("No verified scores yet");
+    await expect(page.locator(".bench-header")).toContainText(
+      "Evidence unavailable for this selection.",
+    );
+    await expect(page.locator(".bench-header")).not.toContainText("Developer reported");
+    await expect(page.locator(".bench-header")).not.toContainText("Latest check");
+    await expect(page.locator("tbody tr")).toHaveCount(0);
+    await page.getByRole("button", { name: "Show current edition with reported scores" }).click();
+    await expect(errorPanel.getByRole("alert")).toHaveCount(0);
+    await expect(button).toBeEnabled();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
+    await expect(page).not.toHaveURL(
+      /edition=unavailable|source=unavailable|observation=unavailable|models=unknown/,
+    );
+  }
+});
+
+for (const theme of ["dark", "light"] as const)
+  test(`Download JSON controls ${theme}: category summary, keyboard, mobile wrapping and axe`, async ({
+    page,
+  }) => {
+    await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+    await page.goto("/benchmarks?models=gemini-4-argon,gpt-6-1-sol");
+    await page.evaluate(
+      (value) => document.documentElement.classList.toggle("dark", value === "dark"),
+      theme,
+    );
+    await page.getByRole("button", { name: "Security", exact: true }).click();
+    await expect(page.locator(".bench-source-card h2")).toHaveText("Google DeepMind");
+    await expect(page.locator(".bench-card-counts")).toContainText("1 reported benchmarks");
+    await expect(page.locator(".bench-header > div .bench-source-label")).toHaveText(
+      "Developer reported · Checked against original publications; not reproduced by StackReplay.",
+    );
+    const button = page.getByRole("button", { name: "Download JSON", exact: true });
+    await expect(button).toBeEnabled();
+    await page.getByRole("button", { name: "Copy comparison link" }).focus();
+    await page.keyboard.press("Tab");
+    await expect(button).toBeFocused();
+    for (const name of ["Copy comparison link", "Download JSON"]) {
+      const bounds = await page.getByRole("button", { name, exact: true }).boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds?.x).toBeGreaterThanOrEqual(0);
+      expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBeLessThanOrEqual(
+        await page.evaluate(() => innerWidth),
+      );
+      expect(bounds?.height).toBeGreaterThanOrEqual(44);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });

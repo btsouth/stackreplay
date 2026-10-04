@@ -154,3 +154,26 @@ Use targeted devbox checks and one hosted CI cycle for the benchmark PR.
    phone in both themes, accessibility, contrast and page overflow on devbox.
 6. Open one benchmark architecture/UI PR after targeted validation, run one
    hosted CI cycle and leave it for review without merging or deploying it.
+
+## Evidence summary and JSON download
+
+The evidence line and source/date/count summary describe only resolved rows in
+the selected category and coverage view. Developer-reported results are checked
+against original publications, not reproduced by StackReplay. Independent or
+mixed labels appear only when those observation classes are actually visible.
+Empty views have no claimed class or checked date; invalid selections explain the
+error and disable Download JSON rather than presenting fallback evidence.
+
+Download JSON uses the same resolution, category filter and row order as the table.
+Version 1 includes the exact edition, absolute comparison link, ordered model IDs
+and display names, requested controls and explicit observation pins. Rows retain
+exact definitions, numeric and original display values, selected observation IDs,
+selection reasons, setup labels and all numeric highlights, including ties and
+lower-is-better metrics. Unreported cells have explicit null values.
+
+The fullProvenance appendix contains the complete immutable evidence edition,
+including source matrices, alternatives, primary selections, original URLs,
+publication and checked dates, limitations and redistribution records. It is
+explicitly labelled as full provenance, including evidence outside the selected
+view. A valid empty view exports an empty rows array. The browser creates the
+JSON download locally; no endpoint, saved selection or external fetch is needed.
