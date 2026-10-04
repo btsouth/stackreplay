@@ -14,8 +14,8 @@ import {
 async function completeDemo(page: import("@playwright/test").Page) {
   await gotoImport(page);
   await page.getByTestId("demo-billing").click();
-  await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
   await waitForWorkload(page);
+  await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/workload/u);
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");

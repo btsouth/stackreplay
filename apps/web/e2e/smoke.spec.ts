@@ -12,7 +12,7 @@ test("the app entry opens Import on a first visit, with working navigation", asy
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(6);
+    await expect(nav.getByRole("link")).toHaveCount(7);
     await expect(nav.getByRole("link", { name: "Import" })).toHaveAttribute("aria-current", "page");
   }
 });
