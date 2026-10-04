@@ -83,6 +83,29 @@ describe("benchmark evidence presentation", () => {
     expect(html).toContain("Download JSON");
   });
 
+  it("summarizes real mixed evidence and removes hidden Epoch dates and sources", () => {
+    const trio = "claude-sonnet-5-5,claude-opus-5-5,qwen-3-8-max-0902";
+    const headerFor = (query: string) => {
+      const html = render(query);
+      return html.slice(0, html.indexOf('<div class="bench-toolbar">'));
+    };
+    const mixed = headerFor(`models=${trio}`);
+    expect(mixed).toContain("Mixed evidence:");
+    expect(mixed).toContain("Developer reported");
+    expect(mixed).toContain("Independent evaluation");
+    expect(mixed).toContain("Latest check Oct 4, 2026");
+    const coding = headerFor(`models=${trio}&category=coding`);
+    expect(coding).not.toContain("Independent evaluation");
+    expect(coding).not.toContain("Epoch AI");
+    expect(coding).toContain("Latest check Sep 30, 2026");
+    const science = render(`models=${trio}&category=science&coverage=shared`);
+    expect(science).toContain("Different or unreported setups");
+    expect(science).toContain("95.5808080808080800%");
+    const empty = headerFor(`models=${trio},gpt-6-1-sol&category=science&coverage=shared`);
+    expect(empty).toContain("No reported evidence in this view.");
+    expect(empty).not.toContain("Latest check");
+  });
+
   it.each([
     "edition=unavailable",
     "source=unavailable",

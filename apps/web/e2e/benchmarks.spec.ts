@@ -63,6 +63,11 @@ test("published v1 links retain the original coverage instead of adopting new sc
   await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
   await expect(page.locator("tbody tr")).toHaveCount(22);
   await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(6);
+  await page.goto("/benchmarks?edition=2026-09-30-v2");
+  await expect(page.locator("tbody tr")).toHaveCount(21);
+  await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(6);
+  await page.reload();
+  await expect(page.locator("tbody tr")).toHaveCount(21);
 });
 test("Google sheet has four headers, 17 complete rows and exact representative scores", async ({
   page,
@@ -263,12 +268,12 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   const downloading = page.waitForEvent("download");
   await page.keyboard.press("Enter");
   const download = await downloading;
-  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-09-30-v2.json");
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v3.json");
   const file = testInfo.outputPath("selected-benchmark-evidence.json");
   await download.saveAs(file);
   const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
   expect(payload.exportVersion).toBe(1);
-  expect(payload.edition).toBe("2026-09-30-v2");
+  expect(payload.edition).toBe("2026-10-04-v3");
   expect(payload.comparisonUrl).toBe(shareUrl);
   expect(payload.requested.observationIds).toEqual([pin]);
   expect(payload.requested.category).toBe("coding");
@@ -298,7 +303,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   });
   expect(
     payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-  ).toHaveLength(202);
+  ).toHaveLength(205);
   await page.reload();
   await expect(page.locator('[data-benchmark-id="deep-swe-v1-1"]')).toContainText("75.22%");
 });
@@ -383,6 +388,11 @@ test("Download JSON allows valid empty views, rejects unresolved coverage and re
     await expect(errorPanel.getByRole("alert")).toHaveCount(0);
     await expect(button).toBeEnabled();
     await expect(page.locator("tbody tr").first()).toBeVisible();
+    if (query.startsWith("edition=")) {
+      await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
+      await expect(page.locator("tbody tr")).toHaveCount(22);
+      await expect(page).toHaveURL(/edition=2026-10-04-v3/);
+    }
     expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
     await expect(page).not.toHaveURL(
       /edition=unavailable|source=unavailable|observation=unavailable|models=unknown/,
@@ -425,4 +435,202 @@ for (const theme of ["dark", "light"] as const)
       true,
     );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+
+const epochBenchmark = "epoch-gpqa-diamond-revision-unreported";
+const epochModels = ["claude-sonnet-5-5", "claude-opus-5-5", "qwen-3-8-max-0902"];
+const epochDisplays = ["95.5808080808080800%", "90.5934343434343400%", "92.297979797979800%"];
+const epochPin = `epoch-gpqa-sonnet-5-5-max-2026-10-04.${epochBenchmark}.claude-sonnet-5-5`;
+
+for (const theme of ["dark", "light"] as const)
+  test(`Epoch mixed evidence ${theme}: exact download, partial Science and readable precision`, async ({
+    page,
+  }, testInfo) => {
+    await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+    await page.goto(
+      `/benchmarks?models=${epochModels.join(",")},gpt-6-1-sol&observation=${epochPin}`,
+    );
+    await expect(page.locator(".bench-header")).toContainText(
+      "Mixed evidence: Developer reported · Independent evaluation",
+    );
+    await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+    await page.getByRole("button", { name: "Coding", exact: true }).click();
+    await expect(page.locator(".bench-header")).not.toContainText("Independent evaluation");
+    await expect(page.locator(".bench-header")).toContainText("Latest check Sep 30, 2026");
+    await page.getByRole("button", { name: "Science", exact: true }).click();
+    const row = page.locator(`[data-benchmark-id="${epochBenchmark}"]`);
+    await expect(row).toContainText("Different or unreported setups");
+    await expect(row.locator('[data-model-id="gpt-6-1-sol"]')).toHaveText("Not reported");
+    for (const [index, model] of epochModels.entries())
+      await expect(row.locator(`[data-model-id="${model}"]`)).toContainText(
+        epochDisplays[index] ?? "missing expected score",
+      );
+
+    const downloadJson = async (name: string) => {
+      const downloading = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Download JSON", exact: true }).click();
+      const download = await downloading;
+      const file = testInfo.outputPath(name);
+      await download.saveAs(file);
+      return JSON.parse(await readFile(file, "utf8")) as BenchmarkExport;
+    };
+    const payload = await downloadJson("epoch-science-all.json");
+    expect(payload.edition).toBe("2026-10-04-v3");
+    expect(payload.requested).toMatchObject({
+      modelIds: [...epochModels, "gpt-6-1-sol"],
+      category: "science",
+      coverage: "all",
+      observationIds: [epochPin],
+      sourceSetId: null,
+    });
+    expect(payload.comparisonUrl).toBe(page.url());
+    const exported = payload.rows.find((row) => row.definition.id === epochBenchmark);
+    if (!exported) throw new Error("Missing admitted Epoch row");
+    expect(exported.definition).toMatchObject({ version: null, taskSubset: "Diamond" });
+    expect(exported.setup).toBe("different_or_unreported");
+    expect(exported.cells.map((cell) => cell.displayValue)).toEqual([...epochDisplays, null]);
+    expect(exported.cells.map((cell) => cell.value)).toEqual([
+      95.58080808080808,
+      90.59343434343434,
+      92.2979797979798,
+      null,
+    ]);
+    expect(exported.cells[0]?.observationId).toBe(epochPin);
+    expect(exported.cells[0]?.selectionReason).toBe(
+      "Explicit observation selected in this comparison URL.",
+    );
+    expect(exported.cells[3]).toEqual({
+      modelId: "gpt-6-1-sol",
+      status: "unreported",
+      observationId: null,
+      value: null,
+      displayValue: null,
+      selectionReason: null,
+      observation: null,
+      alternativeObservationIds: [],
+    });
+    expect(payload.fullProvenance.scope).toContain("Full immutable evidence edition");
+    expect(payload.fullProvenance.data.definitions).toHaveLength(44);
+    expect(payload.fullProvenance.data.sourceSets).toHaveLength(12);
+    expect(
+      payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
+    ).toHaveLength(205);
+    const epochSources = payload.fullProvenance.data.sourceSets.filter(
+      (source) => source.evaluator === "Epoch AI",
+    );
+    expect(epochSources).toHaveLength(3);
+    for (const source of epochSources) {
+      expect(source.kind).toBe("model_observations");
+      expect(source.redistribution).toMatchObject({
+        basis: "licensed_dataset",
+        termsUrl: "https://epoch.ai/benchmarks/use-this-data",
+        checkedAt: "2026-10-04",
+      });
+      expect(source.redistribution.rationale).toContain("does not license the mixed archive");
+      expect(source.observations[0]?.notes).toContain("complete archive-member SHA256 c5fed6f");
+      expect(source.observations[0]?.comparisonGroup).toBeUndefined();
+    }
+    expect(payload.fullProvenance.data.sourceSets[0]?.redistribution.basis).toBe(
+      "official_provider_facts",
+    );
+    await row.locator('[data-model-id="claude-sonnet-5-5"] button').click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("Independent evaluation");
+    await expect(dialog).toContainText("Suite revision, scored count");
+    await expect(dialog).toContainText("QPk8jbJvo4986sbWtdte6J");
+    await expect(dialog).toContainText("0.013710320714521202");
+    await expect(dialog).toContainText("Completion and original publication dates are unknown");
+    await page.keyboard.press("Escape");
+    await page.reload();
+    await expect(row).toContainText(epochDisplays[0] ?? "missing expected score");
+    await expect(page).toHaveURL(/observation=epoch-gpqa-sonnet/);
+
+    const metrics = await row.locator(".bench-score").evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const rect = button.getBoundingClientRect();
+        const cell = button.closest("td");
+        if (!cell) throw new Error("Score outside table cell");
+        const cellRect = cell.getBoundingClientRect();
+        return {
+          text: button.textContent,
+          width: rect.width,
+          cellWidth: cellRect.width,
+          clipped: button.scrollWidth > button.clientWidth,
+          fontSize: getComputedStyle(button).fontSize,
+        };
+      }),
+    );
+    await testInfo.attach("epoch-precision-metrics", {
+      body: JSON.stringify(metrics, null, 2),
+      contentType: "application/json",
+    });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath(`epoch-${theme}.png`), fullPage: true });
+
+    await page.getByRole("button", { name: "Shared benchmarks", exact: true }).click();
+    await expect(page.locator("tbody tr")).toHaveCount(0);
+    await expect(page.locator(".bench-header")).toContainText("No reported evidence in this view.");
+    expect((await downloadJson("epoch-science-shared-four.json")).rows).toEqual([]);
+    await page.getByRole("button", { name: "Remove GPT-6.1 Sol", exact: true }).click();
+    await expect(page.locator("tbody tr")).toHaveCount(1);
+    await expect(row).toContainText("Different or unreported setups");
+    await expect(page.locator(".bench-header > div .bench-source-label")).toHaveText(
+      "Independent evaluation · Checked against original publications; not reproduced by StackReplay.",
+    );
+    await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+    const shared = await downloadJson("epoch-science-shared-trio.json");
+    expect(shared.rows.map((row) => row.definition.id)).toEqual([epochBenchmark]);
+    expect(shared.rows[0]?.setup).toBe("different_or_unreported");
+    expect(shared.rows[0]?.cells.every((cell) => cell.status === "reported")).toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`epoch-shared-${theme}.png`),
+      fullPage: true,
+    });
+    // Keep layout acceptance explicit after recording the functional export paths.
+    for (const metric of metrics) {
+      expect(metric.clipped).toBe(false);
+      expect(metric.width).toBeLessThanOrEqual(metric.cellWidth);
+    }
+  });
+
+for (const [index, modelId] of epochModels.entries())
+  test(`Epoch model provenance: ${modelId}`, async ({ page }, testInfo) => {
+    await page.goto(`/models/${modelId}`);
+    const section = page.getByRole("region", { name: "Benchmarks", exact: true });
+    const source = section
+      .locator(".bench-model-source")
+      .filter({ has: page.getByRole("heading", { name: "Epoch AI · Oct 4, 2026", exact: true }) });
+    await expect(source).toContainText("Independent evaluation");
+    await expect(source).toContainText(epochDisplays[index] ?? "missing expected score");
+    await source.getByText("Methodology & sources", { exact: true }).click();
+    await expect(source).toContainText("CC BY 4.0");
+    await expect(source).toContainText("run-specific suite and setup details are unknown");
+    await source.locator("details details > summary").click();
+    await expect(source).toContainText("Version: Not reported");
+    await expect(source).toContainText("Completion and original publication dates are unknown");
+    await expect(source.getByRole("link", { name: "Original evidence ↗" })).toHaveAttribute(
+      "href",
+      "https://epoch.ai/data/benchmark_data.zip",
+    );
+    const link = source.locator(".bench-model-grid dt a");
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`edition=2026-10-04-v3&observation=epoch-gpqa-.*${modelId}`),
+    );
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({
+      path: testInfo.outputPath(`epoch-model-${modelId}.png`),
+      fullPage: true,
+    });
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`models=${modelId}.*observation=epoch-gpqa-`));
+    await expect(page.locator(`[data-benchmark-id="${epochBenchmark}"]`)).toContainText(
+      epochDisplays[index] ?? "missing expected score",
+    );
   });
