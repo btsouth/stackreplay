@@ -87,11 +87,16 @@ describe("selected benchmark JSON", () => {
     expect(appendix.data.primarySelections).toEqual(
       benchmarkEditions["2026-09-30-v1"].primarySelections,
     );
+    const historical = exportFor("edition=2026-09-30-v2&models=gpt-6-1-sol&category=coding");
+    expect(historical.fullProvenance.data).toEqual(benchmarkEditions["2026-09-30-v2"]);
+    expect(
+      historical.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
+    ).toHaveLength(202);
     const current = exportFor("models=gpt-6-1-sol&category=coding");
     expect(current.fullProvenance.data).toEqual(data);
     expect(
       current.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-    ).toHaveLength(202);
+    ).toHaveLength(205);
   });
 
   it("preserves displayed row order, explicit null gaps and exact definitions", () => {
@@ -262,5 +267,93 @@ describe("visible evidence summary", () => {
     expect(independent.line).toContain("Independent evaluation ·");
     expect(independent.line).not.toContain("Mixed");
     expect(benchmarkEvidenceSummary(fixture, []).line).toBe("No reported evidence in this view.");
+  });
+});
+
+describe("admitted Epoch evidence in the selected export", () => {
+  const trio = "claude-sonnet-5-5,claude-opus-5-5,qwen-3-8-max-0902";
+  const benchmarkId = "epoch-gpqa-diamond-revision-unreported";
+  const pin = `epoch-gpqa-sonnet-5-5-max-2026-10-04.${benchmarkId}.claude-sonnet-5-5`;
+
+  it("changes the real evidence summary with the visible category and coverage", () => {
+    const summary = (query: string) =>
+      benchmarkEvidenceSummary(data, resolveBenchmarkView(data, stateFor(query)).visible);
+    const mixed = summary(`models=${trio}`);
+    expect(mixed.line).toContain("Mixed evidence:");
+    expect(mixed.classes).toEqual(
+      expect.arrayContaining(["developer_reported", "independent_evaluation"]),
+    );
+    expect(mixed.checkedDates).toEqual(["2026-09-30", "2026-10-04"]);
+    const coding = summary(`models=${trio}&category=coding`);
+    expect(coding.classes).toEqual(["developer_reported"]);
+    expect(coding.checkedDates).toEqual(["2026-09-30"]);
+    expect(coding.sources.some((source) => source.evaluator === "Epoch AI")).toBe(false);
+    const science = summary(`models=${trio}&category=science&coverage=shared`);
+    expect(science.classes).toEqual(["independent_evaluation"]);
+    expect(science.sources.map((source) => source.evaluator)).toEqual([
+      "Epoch AI",
+      "Epoch AI",
+      "Epoch AI",
+    ]);
+    expect(science.checkedDates).toEqual(["2026-10-04"]);
+  });
+
+  it("keeps exact real values, pins and scoped source permissions in full-edition provenance", () => {
+    const payload = exportFor(`models=${trio},gpt-6-1-sol&category=science&observation=${pin}`);
+    const row = payload.rows.find((row) => row.definition.id === benchmarkId);
+    expect(row?.definition).toMatchObject({
+      version: null,
+      category: "science",
+      taskSubset: "Diamond",
+    });
+    expect(row?.setup).toBe("different_or_unreported");
+    expect(row?.cells.map((cell) => [cell.value, cell.displayValue])).toEqual([
+      [95.58080808080808, "95.5808080808080800%"],
+      [90.59343434343434, "90.5934343434343400%"],
+      [92.2979797979798, "92.297979797979800%"],
+      [null, null],
+    ]);
+    expect(row?.cells[0]?.observationId).toBe(pin);
+    expect(row?.cells[0]?.selectionReason).toBe(
+      "Explicit observation selected in this comparison URL.",
+    );
+    expect(row?.cells[3]).toEqual({
+      modelId: "gpt-6-1-sol",
+      status: "unreported",
+      observationId: null,
+      value: null,
+      displayValue: null,
+      selectionReason: null,
+      observation: null,
+      alternativeObservationIds: [],
+    });
+    expect(payload.requested.observationIds).toEqual([pin]);
+    expect(payload.fullProvenance.data).toEqual(data);
+    const sources = payload.fullProvenance.data.sourceSets.filter(
+      (source) => source.evaluator === "Epoch AI",
+    );
+    expect(sources).toHaveLength(3);
+    for (const source of sources) {
+      expect(source.kind).toBe("model_observations");
+      expect(source.redistribution).toMatchObject({
+        basis: "licensed_dataset",
+        termsUrl: "https://epoch.ai/benchmarks/use-this-data",
+        checkedAt: "2026-10-04",
+      });
+      expect(source.redistribution.rationale).toContain("does not license the mixed archive");
+      expect(source.observations[0]?.evaluationOrigin).toBe("reporter_computed");
+      expect(source.observations[0]?.comparisonGroup).toBeUndefined();
+    }
+    expect(payload.fullProvenance.data.sourceSets[0]?.redistribution.basis).toBe(
+      "official_provider_facts",
+    );
+    expect(
+      exportFor(`models=${trio}&category=science&coverage=shared`).rows.map(
+        (row) => row.definition.id,
+      ),
+    ).toEqual([benchmarkId]);
+    expect(exportFor(`models=${trio},gpt-6-1-sol&category=science&coverage=shared`).rows).toEqual(
+      [],
+    );
   });
 });

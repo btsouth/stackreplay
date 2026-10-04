@@ -5,7 +5,12 @@ import { describe, expect, it } from "vitest";
 import { parseBenchmarkState } from "@/lib/benchmark-state";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
-import { BenchmarkExplorer, reportedModelIds, reportedScoresSelection } from "./benchmark-explorer";
+import {
+  BenchmarkExplorer,
+  benchmarkComparisonDisplayValue,
+  reportedModelIds,
+  reportedScoresSelection,
+} from "./benchmark-explorer";
 
 const data = loadPublicBenchmarks();
 const models = loadPublicCatalog().models.map((model) => ({
@@ -81,6 +86,69 @@ describe("benchmark evidence presentation", () => {
     expect(html).toContain(`href="${data.sourceSets[0]?.redistribution.termsUrl}"`);
     expect(html).toContain("Redistribution terms ↗");
     expect(html).toContain("Download JSON");
+  });
+
+  it("rounds only admitted Epoch comparison labels and leaves other reports exact", () => {
+    const epochDefinition = data.definitions.find(
+      (definition) => definition.id === "epoch-gpqa-diamond-revision-unreported",
+    );
+    const observations = data.sourceSets.flatMap((source) => source.observations);
+    const epochObservation = observations.find(
+      (observation) => observation.displayValue === "95.5808080808080800%",
+    );
+    const solHigh = observations.find((observation) => observation.displayValue === "75.22%");
+    const solScience = observations.find((observation) => observation.displayValue === "57.02%");
+    const solHighDefinition = data.definitions.find(
+      (definition) => definition.id === solHigh?.benchmarkId,
+    );
+    const solScienceDefinition = data.definitions.find(
+      (definition) => definition.id === solScience?.benchmarkId,
+    );
+    if (
+      !epochDefinition ||
+      !epochObservation ||
+      !solHigh ||
+      !solScience ||
+      !solHighDefinition ||
+      !solScienceDefinition
+    )
+      throw new Error("Expected comparison observations are missing");
+
+    expect(benchmarkComparisonDisplayValue(epochDefinition, epochObservation)).toBe("95.6%");
+    expect(benchmarkComparisonDisplayValue(solHighDefinition, solHigh)).toBe("75.22%");
+    expect(benchmarkComparisonDisplayValue(solScienceDefinition, solScience)).toBe("57.02%");
+  });
+
+  it("summarizes real mixed evidence and removes hidden Epoch dates and sources", () => {
+    const trio = "claude-sonnet-5-5,claude-opus-5-5,qwen-3-8-max-0902";
+    const roundingNote =
+      "Epoch scores are rounded to one decimal here. Open a score or download JSON for exact values.";
+    const headerFor = (query: string) => {
+      const html = render(query);
+      return html.slice(0, html.indexOf('<div class="bench-toolbar">'));
+    };
+    const mixed = headerFor(`models=${trio}`);
+    expect(mixed).toContain("Mixed evidence:");
+    expect(mixed).toContain("Developer reported");
+    expect(mixed).toContain("Independent evaluation");
+    expect(mixed).toContain("Latest check Oct 4, 2026");
+    const codingHtml = render(`models=${trio}&category=coding`);
+    const coding = codingHtml.slice(0, codingHtml.indexOf('<div class="bench-toolbar">'));
+    expect(coding).not.toContain("Independent evaluation");
+    expect(coding).not.toContain("Epoch AI");
+    expect(coding).toContain("Latest check Sep 30, 2026");
+    expect(codingHtml).not.toContain(roundingNote);
+    const science = render(`models=${trio}&category=science&coverage=shared`);
+    expect(science).toContain("Different or unreported setups");
+    expect(science).toContain(roundingNote);
+    for (const display of ["95.6%", "90.6%", "92.3%"]) expect(science).toContain(display);
+    expect(science).toContain(
+      'aria-label="GPQA Diamond Epoch runs; suite revision unreported, Claude Sonnet 5.5, 95.6%, highest reported score in this view. View evidence."',
+    );
+    expect(science).not.toContain("95.5808080808080800%");
+    const empty = headerFor(`models=${trio},gpt-6-1-sol&category=science&coverage=shared`);
+    expect(empty).toContain("No reported evidence in this view.");
+    expect(empty).not.toContain("Latest check");
   });
 
   it.each([

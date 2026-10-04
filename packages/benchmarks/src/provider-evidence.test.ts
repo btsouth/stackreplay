@@ -62,10 +62,15 @@ describe("official provider source transcriptions", () => {
       expect(source?.redistribution.basis).toBe("official_provider_facts");
     });
   it("does not import independent restricted datasets or mistake Sol 6 for Sol 6.1", () => {
-    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(202);
+    expect(benchmarkData.sourceSets.flatMap((s) => s.observations)).toHaveLength(205);
     expect(
-      benchmarkData.sourceSets.every((s) => s.redistribution.basis === "official_provider_facts"),
+      benchmarkData.sourceSets
+        .filter((s) => s.redistribution.basis === "official_provider_facts")
+        .every((s) => !s.id.startsWith("epoch-gpqa-")),
     ).toBe(true);
+    expect(
+      benchmarkData.sourceSets.filter((s) => s.redistribution.basis === "licensed_dataset"),
+    ).toHaveLength(3);
     const science = benchmarkData.definitions.filter((d) => d.name === "Humanity’s Last Exam");
     expect(science.map((d) => d.taskSubset)).toEqual([
       "Without tools",

@@ -1,10 +1,91 @@
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import type { BenchmarkExport } from "../lib/benchmark-export";
 
 const google = "google-deepmind-argon-2026-09-30";
 const sheet = `/benchmarks?source=${google}&models=gemini-4-argon,gpt-6-astra,claude-fable-5-1,claude-opus-5-5&coverage=shared&edition=2026-09-30-v1`;
+
+async function expectBenchmarkTableLayout(
+  page: Page,
+  { modelCount, requireScroll = false }: { modelCount: number; requireScroll?: boolean },
+) {
+  const region = page.getByRole("region", { name: /Benchmark comparison table/ });
+  await expect(region).toBeVisible();
+  await expect(region.getByRole("columnheader")).toHaveCount(modelCount + 1);
+
+  const readLayout = () =>
+    region.evaluate((container) => {
+      const table = container.querySelector("table");
+      const firstHeader = table?.querySelector("thead th:first-child");
+      const firstRowHeader = table?.querySelector("tbody th:first-child");
+      const lastHeader = table?.querySelector("thead th:last-child");
+      if (!table || !firstHeader || !firstRowHeader || !lastHeader)
+        throw new Error("Benchmark table structure is incomplete");
+      const containerRect = container.getBoundingClientRect();
+      return {
+        clientWidth: container.clientWidth,
+        scrollWidth: container.scrollWidth,
+        scrollLeft: container.scrollLeft,
+        containerLeft: containerRect.left,
+        containerRight: containerRect.right,
+        firstHeaderLeft: firstHeader.getBoundingClientRect().left,
+        firstRowHeaderLeft: firstRowHeader.getBoundingClientRect().left,
+        lastHeaderRight: lastHeader.getBoundingClientRect().right,
+        scores: [...table.querySelectorAll<HTMLButtonElement>(".bench-score")].map((score) => {
+          const cell = score.closest("td");
+          if (!cell) throw new Error("Benchmark score is outside a table cell");
+          const scoreRect = score.getBoundingClientRect();
+          const cellRect = cell.getBoundingClientRect();
+          const cellStyle = getComputedStyle(cell);
+          const contentLeft =
+            cellRect.left +
+            Number.parseFloat(cellStyle.paddingLeft) +
+            Number.parseFloat(cellStyle.borderLeftWidth);
+          const contentRight =
+            cellRect.right -
+            Number.parseFloat(cellStyle.paddingRight) -
+            Number.parseFloat(cellStyle.borderRightWidth);
+          return {
+            text: score.textContent ?? "",
+            left: scoreRect.left,
+            right: scoreRect.right,
+            center: scoreRect.left + scoreRect.width / 2,
+            contentLeft,
+            contentRight,
+            contentCenter: contentLeft + (contentRight - contentLeft) / 2,
+            clipped: score.scrollWidth > score.clientWidth,
+          };
+        }),
+      };
+    });
+
+  const assertScoresFit = (layout: Awaited<ReturnType<typeof readLayout>>) => {
+    expect(layout.scores.length).toBeGreaterThan(0);
+    for (const score of layout.scores) {
+      expect(score.left, score.text).toBeGreaterThanOrEqual(score.contentLeft - 0.5);
+      expect(score.right, score.text).toBeLessThanOrEqual(score.contentRight + 0.5);
+      expect(Math.abs(score.center - score.contentCenter), score.text).toBeLessThanOrEqual(1);
+      expect(score.clipped, score.text).toBe(false);
+    }
+  };
+
+  let layout = await readLayout();
+  assertScoresFit(layout);
+  if (requireScroll) {
+    expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
+    await region.evaluate((container) => {
+      container.scrollLeft = container.scrollWidth;
+    });
+    layout = await readLayout();
+    expect(layout.scrollLeft).toBeGreaterThan(0);
+    expect(Math.abs(layout.firstHeaderLeft - layout.containerLeft)).toBeLessThanOrEqual(2);
+    expect(Math.abs(layout.firstRowHeaderLeft - layout.containerLeft)).toBeLessThanOrEqual(2);
+    expect(layout.lastHeaderRight).toBeLessThanOrEqual(layout.containerRight + 1);
+    expect(layout.lastHeaderRight).toBeGreaterThan(layout.containerLeft);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+}
 
 test("default Frontier shows verified Sol launch scores and shared benchmark coverage", async ({
   page,
@@ -12,7 +93,7 @@ test("default Frontier shows verified Sol launch scores and shared benchmark cov
   await page.goto("/benchmarks");
   await expect(page.getByRole("heading", { name: "Model Benchmarks", exact: true })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "GPT-6.1 Sol OpenAI" })).toBeVisible();
-  await expect(page.locator('[data-model-id="gpt-6-1-sol"]')).toHaveCount(21);
+  await expect(page.locator('[data-model-id="gpt-6-1-sol"]')).toHaveCount(22);
   await expect(page.locator("tbody tr").first()).toHaveAttribute(
     "data-benchmark-id",
     "deep-swe-v1-1",
@@ -31,12 +112,13 @@ test("default Frontier shows verified Sol launch scores and shared benchmark cov
   await expect(page.locator("tbody")).not.toContainText("Not reported");
   await expect(page.getByRole("button", { name: "Remove GPT-6.1 Sol" })).toBeVisible();
   await page.getByRole("button", { name: "All reported results", exact: true }).click();
-  await expect(page.locator("tbody tr")).toHaveCount(21);
+  await expect(page.locator("tbody tr")).toHaveCount(22);
 });
 test("Sol effort alternatives stay exact, attributed and pinned across reload", async ({
   page,
 }) => {
   await page.goto("/benchmarks?models=gpt-6-1-sol");
+  await expectBenchmarkTableLayout(page, { modelCount: 1 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("OpenAI");
@@ -61,8 +143,13 @@ test("published v1 links retain the original coverage instead of adopting new sc
   await expect(page.locator("tbody tr")).toHaveCount(17);
   await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(0);
   await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
+  await expect(page.locator("tbody tr")).toHaveCount(22);
+  await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(6);
+  await page.goto("/benchmarks?edition=2026-09-30-v2");
   await expect(page.locator("tbody tr")).toHaveCount(21);
   await expect(page.locator('[data-model-id="gpt-6-1-sol"] .bench-score')).toHaveCount(6);
+  await page.reload();
+  await expect(page.locator("tbody tr")).toHaveCount(21);
 });
 test("Google sheet has four headers, 17 complete rows and exact representative scores", async ({
   page,
@@ -248,6 +335,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
 }, testInfo) => {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/benchmarks?models=gpt-6-1-sol,gemini-4-argon");
+  await expectBenchmarkTableLayout(page, { modelCount: 2 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
   await page.getByLabel("Reported result for GPT-6.1 Sol").selectOption(pin);
@@ -263,12 +351,12 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   const downloading = page.waitForEvent("download");
   await page.keyboard.press("Enter");
   const download = await downloading;
-  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-09-30-v2.json");
+  expect(download.suggestedFilename()).toBe("stackreplay-benchmarks-2026-10-04-v3.json");
   const file = testInfo.outputPath("selected-benchmark-evidence.json");
   await download.saveAs(file);
   const payload: BenchmarkExport = JSON.parse(await readFile(file, "utf8"));
   expect(payload.exportVersion).toBe(1);
-  expect(payload.edition).toBe("2026-09-30-v2");
+  expect(payload.edition).toBe("2026-10-04-v3");
   expect(payload.comparisonUrl).toBe(shareUrl);
   expect(payload.requested.observationIds).toEqual([pin]);
   expect(payload.requested.category).toBe("coding");
@@ -298,7 +386,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   });
   expect(
     payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
-  ).toHaveLength(202);
+  ).toHaveLength(205);
   await page.reload();
   await expect(page.locator('[data-benchmark-id="deep-swe-v1-1"]')).toContainText("75.22%");
 });
@@ -383,6 +471,11 @@ test("Download JSON allows valid empty views, rejects unresolved coverage and re
     await expect(errorPanel.getByRole("alert")).toHaveCount(0);
     await expect(button).toBeEnabled();
     await expect(page.locator("tbody tr").first()).toBeVisible();
+    if (query.startsWith("edition=")) {
+      await page.getByRole("button", { name: "Frontier preset", exact: true }).click();
+      await expect(page.locator("tbody tr")).toHaveCount(22);
+      await expect(page).toHaveURL(/edition=2026-10-04-v3/);
+    }
     expect(await page.locator(".bench-score").count()).toBeGreaterThan(0);
     await expect(page).not.toHaveURL(
       /edition=unavailable|source=unavailable|observation=unavailable|models=unknown/,
@@ -425,4 +518,346 @@ for (const theme of ["dark", "light"] as const)
       true,
     );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+
+const epochBenchmark = "epoch-gpqa-diamond-revision-unreported";
+const epochModels = ["claude-sonnet-5-5", "claude-opus-5-5", "qwen-3-8-max-0902"];
+const epochExactDisplays = ["95.5808080808080800%", "90.5934343434343400%", "92.297979797979800%"];
+const epochComparisonDisplays = ["95.6%", "90.6%", "92.3%"];
+const epochPin = `epoch-gpqa-sonnet-5-5-max-2026-10-04.${epochBenchmark}.claude-sonnet-5-5`;
+const sixModelLayoutIds = [...epochModels, "gpt-6-1-sol", "gemini-4-argon", "gpt-6-astra"];
+const epochRoundingNote =
+  "Epoch scores are rounded to one decimal here. Open a score or download JSON for exact values.";
+
+async function expectEpochScoreVisibility(page: Page, width: 320 | 390) {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto(
+    `/benchmarks?models=${epochModels.join(",")}&coverage=shared&category=science&observation=${epochPin}`,
+  );
+  const region = page.getByRole("region", { name: /Benchmark comparison table/ });
+  const row = page.locator(`[data-benchmark-id="${epochBenchmark}"]`);
+  await expect(region).toBeVisible();
+  await expect(row).toBeVisible();
+  await expect(page.getByText(epochRoundingNote, { exact: true })).toBeVisible();
+
+  const scores = row.locator(".bench-score");
+  await expect(scores).toHaveCount(epochModels.length);
+  const metrics = await scores.evaluateAll(async (buttons, exactDisplays) => {
+    const first = buttons[0];
+    const container = first?.closest<HTMLElement>(".bench-table-scroll");
+    const tableRow = first?.closest("tr");
+    const sticky = tableRow?.querySelector<HTMLElement>("th:first-child");
+    if (!container || !sticky) throw new Error("Epoch score visibility structure is incomplete");
+
+    const nextPaint = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const results = [];
+    for (const [index, button] of buttons.entries()) {
+      if (!(button instanceof HTMLButtonElement))
+        throw new Error("Epoch comparison score is not a button");
+
+      await nextPaint();
+      let regionRect = container.getBoundingClientRect();
+      let stickyRect = sticky.getBoundingClientRect();
+      let scoreRect = button.getBoundingClientRect();
+      const usableLeft = stickyRect.right;
+      const usableRight = regionRect.right;
+      const targetCenter = usableLeft + (usableRight - usableLeft) / 2;
+      container.scrollLeft += scoreRect.left + scoreRect.width / 2 - targetCenter;
+      await nextPaint();
+      await nextPaint();
+
+      regionRect = container.getBoundingClientRect();
+      stickyRect = sticky.getBoundingClientRect();
+      scoreRect = button.getBoundingClientRect();
+      const usableWidth = regionRect.right - stickyRect.right;
+      const legacy = button.cloneNode(true) as HTMLButtonElement;
+      const exactText = exactDisplays[index];
+      if (!exactText) throw new Error("Missing exact Epoch display");
+      if (legacy.firstChild?.nodeType === Node.TEXT_NODE) legacy.firstChild.textContent = exactText;
+      legacy.style.position = "fixed";
+      legacy.style.left = "0";
+      legacy.style.top = "0";
+      legacy.style.visibility = "hidden";
+      legacy.style.pointerEvents = "none";
+      legacy.setAttribute("aria-hidden", "true");
+      document.body.append(legacy);
+      const exactWidth = legacy.getBoundingClientRect().width;
+      legacy.remove();
+
+      results.push({
+        index,
+        text: button.textContent ?? "",
+        left: scoreRect.left,
+        right: scoreRect.right,
+        width: scoreRect.width,
+        stickyRight: stickyRect.right,
+        regionRight: regionRect.right,
+        usableWidth,
+        exactWidth,
+        stickyPosition: getComputedStyle(sticky).position,
+        scrollLeft: container.scrollLeft,
+        clipped: button.scrollWidth > button.clientWidth,
+      });
+    }
+    return results;
+  }, epochExactDisplays);
+
+  for (const [index, metric] of metrics.entries()) {
+    expect(metric.text, `Epoch comparison label ${index}`).toContain(
+      epochComparisonDisplays[index] ?? "missing expected display",
+    );
+    expect(metric.left, `Epoch score ${index} left edge`).toBeGreaterThanOrEqual(
+      metric.stickyRight - 0.5,
+    );
+    expect(metric.right, `Epoch score ${index} right edge`).toBeLessThanOrEqual(
+      metric.regionRight + 0.5,
+    );
+    expect(metric.width, `Epoch score ${index} fits usable width`).toBeLessThanOrEqual(
+      metric.usableWidth + 0.5,
+    );
+    expect(metric.exactWidth, `Legacy exact score ${index} exceeds usable width`).toBeGreaterThan(
+      metric.usableWidth + 0.5,
+    );
+    expect(metric.stickyPosition, "Benchmark label remains sticky").toBe("sticky");
+    expect(metric.clipped, `Epoch score ${index} is not clipped`).toBe(false);
+  }
+  expect(
+    metrics.some((metric) => metric.scrollLeft > 0),
+    "Scores were reached through native horizontal scroll",
+  ).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  return metrics;
+}
+
+for (const theme of ["dark", "light"] as const)
+  test(`Epoch mixed evidence ${theme}: exact download, partial Science and readable precision`, async ({
+    page,
+  }, testInfo) => {
+    await page.addInitScript((value) => localStorage.setItem("stackreplay-theme", value), theme);
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+    await page.goto(
+      `/benchmarks?models=${epochModels.join(",")},gpt-6-1-sol&observation=${epochPin}`,
+    );
+    await expect(page.locator(".bench-header")).toContainText(
+      "Mixed evidence: Developer reported · Independent evaluation",
+    );
+    await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+    await expect(page.getByText(epochRoundingNote, { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Coding", exact: true }).click();
+    await expect(page.locator(".bench-header")).not.toContainText("Independent evaluation");
+    await expect(page.locator(".bench-header")).toContainText("Latest check Sep 30, 2026");
+    await expect(page.getByText(epochRoundingNote, { exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "Science", exact: true }).click();
+    const row = page.locator(`[data-benchmark-id="${epochBenchmark}"]`);
+    await expect(row).toContainText("Different or unreported setups");
+    await expect(row.locator('[data-model-id="gpt-6-1-sol"]')).toHaveText("Not reported");
+    for (const [index, model] of epochModels.entries())
+      await expect(row.locator(`[data-model-id="${model}"]`)).toContainText(
+        epochComparisonDisplays[index] ?? "missing expected score",
+      );
+    const sonnetScore = row.locator('[data-model-id="claude-sonnet-5-5"] button');
+    await expect(sonnetScore).toHaveAttribute(
+      "aria-label",
+      "GPQA Diamond Epoch runs; suite revision unreported, Claude Sonnet 5.5, 95.6%, highest reported score in this view. View evidence.",
+    );
+
+    const downloadJson = async (name: string) => {
+      const downloading = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Download JSON", exact: true }).click();
+      const download = await downloading;
+      const file = testInfo.outputPath(name);
+      await download.saveAs(file);
+      return JSON.parse(await readFile(file, "utf8")) as BenchmarkExport;
+    };
+    const payload = await downloadJson("epoch-science-all.json");
+    expect(payload.edition).toBe("2026-10-04-v3");
+    expect(payload.requested).toMatchObject({
+      modelIds: [...epochModels, "gpt-6-1-sol"],
+      category: "science",
+      coverage: "all",
+      observationIds: [epochPin],
+      sourceSetId: null,
+    });
+    expect(payload.comparisonUrl).toBe(page.url());
+    const exported = payload.rows.find((row) => row.definition.id === epochBenchmark);
+    if (!exported) throw new Error("Missing admitted Epoch row");
+    expect(exported.definition).toMatchObject({ version: null, taskSubset: "Diamond" });
+    expect(exported.setup).toBe("different_or_unreported");
+    expect(exported.cells.map((cell) => cell.displayValue)).toEqual([...epochExactDisplays, null]);
+    expect(exported.cells.map((cell) => cell.value)).toEqual([
+      95.58080808080808,
+      90.59343434343434,
+      92.2979797979798,
+      null,
+    ]);
+    expect(exported.cells[0]?.observationId).toBe(epochPin);
+    expect(exported.cells[0]?.selectionReason).toBe(
+      "Explicit observation selected in this comparison URL.",
+    );
+    expect(exported.cells[3]).toEqual({
+      modelId: "gpt-6-1-sol",
+      status: "unreported",
+      observationId: null,
+      value: null,
+      displayValue: null,
+      selectionReason: null,
+      observation: null,
+      alternativeObservationIds: [],
+    });
+    expect(payload.fullProvenance.scope).toContain("Full immutable evidence edition");
+    expect(payload.fullProvenance.data.definitions).toHaveLength(44);
+    expect(payload.fullProvenance.data.sourceSets).toHaveLength(12);
+    expect(
+      payload.fullProvenance.data.sourceSets.flatMap((source) => source.observations),
+    ).toHaveLength(205);
+    const epochSources = payload.fullProvenance.data.sourceSets.filter(
+      (source) => source.evaluator === "Epoch AI",
+    );
+    expect(epochSources).toHaveLength(3);
+    for (const source of epochSources) {
+      expect(source.kind).toBe("model_observations");
+      expect(source.redistribution).toMatchObject({
+        basis: "licensed_dataset",
+        termsUrl: "https://epoch.ai/benchmarks/use-this-data",
+        checkedAt: "2026-10-04",
+      });
+      expect(source.redistribution.rationale).toContain("does not license the mixed archive");
+      expect(source.observations[0]?.notes).toContain("complete archive-member SHA256 c5fed6f");
+      expect(source.observations[0]?.comparisonGroup).toBeUndefined();
+    }
+    expect(payload.fullProvenance.data.sourceSets[0]?.redistribution.basis).toBe(
+      "official_provider_facts",
+    );
+    await sonnetScore.click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText(epochExactDisplays[0] ?? "missing exact score");
+    await expect(dialog).toContainText("Independent evaluation");
+    await expect(dialog).toContainText("Suite revision, scored count");
+    await expect(dialog).toContainText("QPk8jbJvo4986sbWtdte6J");
+    await expect(dialog).toContainText("0.013710320714521202");
+    await expect(dialog).toContainText("Completion and original publication dates are unknown");
+    await testInfo.attach("epoch-sonnet-dialog", {
+      body: await dialog.innerText(),
+      contentType: "text/plain",
+    });
+    await page.keyboard.press("Escape");
+    await page.reload();
+    await expect(row).toContainText(epochComparisonDisplays[0] ?? "missing expected score");
+    await expect(page).toHaveURL(/observation=epoch-gpqa-sonnet/);
+
+    const metrics = await row.locator(".bench-score").evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const rect = button.getBoundingClientRect();
+        const cell = button.closest("td");
+        if (!cell) throw new Error("Score outside table cell");
+        const cellRect = cell.getBoundingClientRect();
+        const cellStyle = getComputedStyle(cell);
+        const contentLeft =
+          cellRect.left +
+          Number.parseFloat(cellStyle.paddingLeft) +
+          Number.parseFloat(cellStyle.borderLeftWidth);
+        const contentRight =
+          cellRect.right -
+          Number.parseFloat(cellStyle.paddingRight) -
+          Number.parseFloat(cellStyle.borderRightWidth);
+        return {
+          text: button.textContent,
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+          cellWidth: cellRect.width,
+          contentLeft,
+          contentRight,
+          contentCenter: contentLeft + (contentRight - contentLeft) / 2,
+          center: rect.left + rect.width / 2,
+          clipped: button.scrollWidth > button.clientWidth,
+          fontSize: getComputedStyle(button).fontSize,
+        };
+      }),
+    );
+    await testInfo.attach("epoch-precision-metrics", {
+      body: JSON.stringify(metrics, null, 2),
+      contentType: "application/json",
+    });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath(`epoch-${theme}.png`), fullPage: true });
+
+    await page.getByRole("button", { name: "Shared benchmarks", exact: true }).click();
+    await expect(page.locator("tbody tr")).toHaveCount(0);
+    await expect(page.locator(".bench-header")).toContainText("No reported evidence in this view.");
+    expect((await downloadJson("epoch-science-shared-four.json")).rows).toEqual([]);
+    await page.getByRole("button", { name: "Remove GPT-6.1 Sol", exact: true }).click();
+    await expect(page.locator("tbody tr")).toHaveCount(1);
+    await expect(row).toContainText("Different or unreported setups");
+    await expect(page.locator(".bench-header > div .bench-source-label")).toHaveText(
+      "Independent evaluation · Checked against original publications; not reproduced by StackReplay.",
+    );
+    await expect(page.locator(".bench-header")).toContainText("Latest check Oct 4, 2026");
+    const shared = await downloadJson("epoch-science-shared-trio.json");
+    expect(shared.rows.map((row) => row.definition.id)).toEqual([epochBenchmark]);
+    expect(shared.rows[0]?.setup).toBe("different_or_unreported");
+    expect(shared.rows[0]?.cells.every((cell) => cell.status === "reported")).toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`epoch-shared-${theme}.png`),
+      fullPage: true,
+    });
+    // Keep layout acceptance explicit after recording the functional export paths.
+    for (const metric of metrics) {
+      expect(metric.clipped).toBe(false);
+      expect(metric.left).toBeGreaterThanOrEqual(metric.contentLeft - 0.5);
+      expect(metric.right).toBeLessThanOrEqual(metric.contentRight + 0.5);
+      expect(Math.abs(metric.center - metric.contentCenter)).toBeLessThanOrEqual(1);
+    }
+
+    for (const width of [320, 390] as const) {
+      const visibility = await expectEpochScoreVisibility(page, width);
+      await testInfo.attach(`epoch-visibility-${theme}-${width}`, {
+        body: JSON.stringify(visibility, null, 2),
+        contentType: "application/json",
+      });
+    }
+
+    await page.goto(`/benchmarks?models=${sixModelLayoutIds.join(",")}&observation=${epochPin}`);
+    await expectBenchmarkTableLayout(page, { modelCount: 6, requireScroll: true });
+  });
+
+for (const [index, modelId] of epochModels.entries())
+  test(`Epoch model provenance: ${modelId}`, async ({ page }, testInfo) => {
+    await page.goto(`/models/${modelId}`);
+    const section = page.getByRole("region", { name: "Benchmarks", exact: true });
+    const source = section
+      .locator(".bench-model-source")
+      .filter({ has: page.getByRole("heading", { name: "Epoch AI · Oct 4, 2026", exact: true }) });
+    await expect(source).toContainText("Independent evaluation");
+    await expect(source).toContainText(epochExactDisplays[index] ?? "missing expected score");
+    await source.getByText("Methodology & sources", { exact: true }).click();
+    await expect(source).toContainText("CC BY 4.0");
+    await expect(source).toContainText("run-specific suite and setup details are unknown");
+    await source.locator("details details > summary").click();
+    await expect(source).toContainText("Version: Not reported");
+    await expect(source).toContainText("Completion and original publication dates are unknown");
+    await expect(source.getByRole("link", { name: "Original evidence ↗" })).toHaveAttribute(
+      "href",
+      "https://epoch.ai/data/benchmark_data.zip",
+    );
+    const link = source.locator(".bench-model-grid dt a");
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`edition=2026-10-04-v3&observation=epoch-gpqa-.*${modelId}`),
+    );
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({
+      path: testInfo.outputPath(`epoch-model-${modelId}.png`),
+      fullPage: true,
+    });
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`models=${modelId}.*observation=epoch-gpqa-`));
+    await expect(page.locator(`[data-benchmark-id="${epochBenchmark}"]`)).toContainText(
+      epochComparisonDisplays[index] ?? "missing expected score",
+    );
   });

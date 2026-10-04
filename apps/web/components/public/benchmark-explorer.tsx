@@ -47,6 +47,28 @@ export function reportedScoresSelection(
   };
 }
 
+const epochGpqaDefinitionId = "epoch-gpqa-diamond-revision-unreported";
+
+/**
+ * Epoch's exact labels stay stored, exported and disclosed unchanged.
+ * This compact projection applies only to its admitted GPQA comparison cells.
+ */
+export function benchmarkComparisonDisplayValue(
+  definition: BenchmarkDefinition,
+  observation: BenchmarkObservation,
+) {
+  if (
+    definition.id !== epochGpqaDefinitionId ||
+    definition.unit !== "percent" ||
+    definition.decimalPlaces !== 1 ||
+    observation.evaluator !== "Epoch AI" ||
+    observation.evidenceClass !== "independent_evaluation"
+  )
+    return observation.displayValue;
+
+  return `${observation.value.toFixed(definition.decimalPlaces)}%`;
+}
+
 const date = (s: string) =>
   new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(
     new Date(`${s}T12:00:00Z`),
@@ -417,6 +439,12 @@ export function BenchmarkExplorer({
           lowest where lower is better. Setups may differ.
         </p>
       )}
+      {!error && visible.some((row) => row.definition.id === epochGpqaDefinitionId) && (
+        <p className="bench-table-guide bench-epoch-rounding-note">
+          Epoch scores are rounded to one decimal here. Open a score or download JSON for exact
+          values.
+        </p>
+      )}
       {error ? (
         <section className="bench-empty" aria-labelledby="benchmark-empty-title">
           <h2 id="benchmark-empty-title">Comparison unavailable</h2>
@@ -483,34 +511,39 @@ export function BenchmarkExplorer({
                         : "Different or unreported setups"}
                     </small>
                   </th>
-                  {row.cells.map((cell) => (
-                    <td
-                      key={cell.modelId}
-                      data-model-id={cell.modelId}
-                      data-highlighted={row.highestModelIds.includes(cell.modelId) || undefined}
-                    >
-                      {cell.observation ? (
-                        <button
-                          type="button"
-                          className="bench-score"
-                          aria-haspopup="dialog"
-                          aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${cell.observation.displayValue}${row.highestModelIds.includes(cell.modelId) ? `, ${row.definition.higherIsBetter ? "highest" : "lowest"} reported score in this view` : ""}. View evidence.`}
-                          onClick={() =>
-                            setDetail({ definition: row.definition, modelId: cell.modelId })
-                          }
-                        >
-                          {cell.observation.displayValue}
-                          <sup aria-hidden="true">
-                            {data.sourceSets.findIndex(
-                              (s) => s.id === cell.observation?.sourceSetId,
-                            ) + 1}
-                          </sup>
-                        </button>
-                      ) : (
-                        <span className="bench-not-reported">Not reported</span>
-                      )}
-                    </td>
-                  ))}
+                  {row.cells.map((cell) => {
+                    const displayValue = cell.observation
+                      ? benchmarkComparisonDisplayValue(row.definition, cell.observation)
+                      : null;
+                    return (
+                      <td
+                        key={cell.modelId}
+                        data-model-id={cell.modelId}
+                        data-highlighted={row.highestModelIds.includes(cell.modelId) || undefined}
+                      >
+                        {cell.observation ? (
+                          <button
+                            type="button"
+                            className="bench-score"
+                            aria-haspopup="dialog"
+                            aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${displayValue}${row.highestModelIds.includes(cell.modelId) ? `, ${row.definition.higherIsBetter ? "highest" : "lowest"} reported score in this view` : ""}. View evidence.`}
+                            onClick={() =>
+                              setDetail({ definition: row.definition, modelId: cell.modelId })
+                            }
+                          >
+                            {displayValue}
+                            <sup aria-hidden="true">
+                              {data.sourceSets.findIndex(
+                                (s) => s.id === cell.observation?.sourceSetId,
+                              ) + 1}
+                            </sup>
+                          </button>
+                        ) : (
+                          <span className="bench-not-reported">Not reported</span>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>

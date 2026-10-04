@@ -1,0 +1,16 @@
+[
+  {
+    "id": "epoch-gpqa-diamond-revision-unreported",
+    "name": "GPQA Diamond",
+    "version": null,
+    "variant": "Epoch runs; suite revision unreported",
+    "category": "science",
+    "description": "Graduate-level scientific question answering administered by Epoch AI. The published Diamond subset contains 198 questions; actual scored counts and run-specific suite revisions are unreported.",
+    "metric": "Epoch-published mean accuracy",
+    "taskSubset": "Diamond",
+    "unit": "percent",
+    "decimalPlaces": 1,
+    "higherIsBetter": true,
+    "methodologyUrl": "https://epoch.ai/benchmarks/gpqa-diamond"
+  }
+]
