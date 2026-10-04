@@ -167,7 +167,7 @@ test.describe("public site accessibility", () => {
         testInfo.project.name === "mobile" ? "Source code" : "GitHub",
         "https://github.com/btsouth/stackreplay",
       ],
-    ]) {
+    ] as const) {
       const link = page.getByRole("link", { name: label }).first();
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute("href", href);
