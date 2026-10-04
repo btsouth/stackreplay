@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   readStackSubscriptions,
@@ -146,7 +147,13 @@ function Mix({ recap }: { recap: Recap }) {
     </>
   );
 }
-export function RecapSurface({ initialImportId }: { initialImportId?: string | undefined }) {
+export function RecapSurface({
+  initialImportId,
+  initialTarget,
+}: {
+  initialImportId?: string | undefined;
+  initialTarget?: string | undefined;
+}) {
   const [imports, setImports] = useState<ImportRecord[]>([]);
   const [id, setId] = useState(initialImportId);
   const [period, setPeriod] = useState<RecapPeriod>("30");
@@ -247,7 +254,7 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
     }
   }
   return (
-    <main className="recap-page">
+    <div className="recap-page">
       <header className="recap-toolbar">
         <div>
           <span className="recap-eyebrow">YOUR HISTORY, IN PERSPECTIVE</span>
@@ -311,6 +318,9 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
               </div>
               <div className="recap-hero-number">
                 {recap.priced ? recapUsd(recap.usd) : compactNumber(recap.output)}
+                {recap.usdHigh !== recap.usd && (
+                  <span className="recap-hero-range">to {recapUsd(recap.usdHigh)}</span>
+                )}
               </div>
               <div className="recap-hero-caption">
                 {recap.priced ? (
@@ -476,7 +486,9 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
                         <small>output tokens</small>
                       </span>
                       <span>
-                        {m.priced ? recapUsd(m.usd) : "Unpriced"}
+                        {m.priced
+                          ? `${recapUsd(m.usd)}${m.usdHigh !== m.usd ? `–${recapUsd(m.usdHigh)}` : ""}`
+                          : "Unpriced"}
                         <small>
                           {m.priced < m.records && m.priced ? "priced subset" : "API equivalent"}
                         </small>
@@ -535,7 +547,7 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
             <section className="recap-share">
               <div>
                 <span className="recap-eyebrow">MAKE IT YOURS</span>
-                <h2>A month worth sharing.</h2>
+                <h2>A chapter worth sharing.</h2>
                 <p>A card of your numbers. No logs, no account details.</p>
               </div>
               <div>
@@ -559,9 +571,11 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
             </section>
             <footer className="recap-footer">
               Calculated on this device. Your logs stay here.{" "}
-              <a href={`/app/workload?import=${encodeURIComponent(id ?? "")}`}>
+              <Link
+                href={`/app/workload?import=${encodeURIComponent(id ?? "")}${initialTarget ? `&target=${encodeURIComponent(initialTarget)}` : ""}`}
+              >
                 Explore workload details →
-              </a>
+              </Link>
             </footer>
           </div>
         ) : (
@@ -570,6 +584,6 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
             <p>Try all time or scan a more recent history.</p>
           </div>
         ))}
-    </main>
+    </div>
   );
 }

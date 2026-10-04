@@ -26,6 +26,7 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, w, h);
   ctx.textBaseline = "top";
+  const font = getComputedStyle(document.body).fontFamily;
   const text = (
     value: string,
     x: number,
@@ -35,16 +36,21 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
     weight = 500,
   ) => {
     ctx.fillStyle = color;
-    ctx.font = `${weight} ${size}px Arial, sans-serif`;
+    ctx.font = `${weight} ${size}px ${font}`;
     ctx.fillText(value, x, y);
   };
   text("STACKREPLAY  /  MY CODING RECAP", pad, 60, 20, "#bbd3c9", 600);
   text(`${recap.start}  →  ${recap.end}`, pad, portrait ? 116 : 102, 18, "#a7b6bc");
   const heroY = portrait ? 230 : 164;
+  const range = recap.usdHigh !== recap.usd;
   const hero = recap.priced ? recapUsd(recap.usd) : compactNumber(recap.output);
   text(hero, pad, heroY, portrait ? 154 : 116, "#f6f2e9", 700);
   text(
-    recap.priced ? "of API-priced work" : "logged output tokens",
+    recap.priced
+      ? range
+        ? `to ${recapUsd(recap.usdHigh)} of API-priced work`
+        : "of API-priced work"
+      : "logged output tokens",
     pad,
     heroY + (portrait ? 174 : 128),
     portrait ? 38 : 28,
@@ -59,7 +65,14 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
       "#a7b6bc",
     );
   const stats = [
-    ...(recap.outputKnown ? [[compactNumber(recap.output), "OUTPUT TOKENS"]] : []),
+    ...(recap.outputKnown
+      ? [
+          [
+            compactNumber(recap.output),
+            recap.outputKnown < recap.records ? "REPORTED OUTPUT TOKENS" : "OUTPUT TOKENS",
+          ],
+        ]
+      : []),
     ...(recap.sessions ? [[compactNumber(recap.sessions), "NATIVE SESSIONS"]] : []),
     [`${String(recap.longestStreak)} days`, "LONGEST STREAK"],
   ];
@@ -71,15 +84,20 @@ export async function renderRecapCard(recap: Recap, portrait: boolean): Promise<
     text(label ?? "", x, y + (portrait ? 80 : 62), 16, "#a7b6bc", 600);
   });
   // Each line is a day of activity, a visual signature derived from this period.
-  const max = Math.max(1, ...recap.days.map((d) => d.records));
   const chartX = portrait ? 700 : pad;
   const chartY = portrait ? 650 : 555;
   const chartW = portrait ? 270 : w - pad * 2;
   const chartH = portrait ? 395 : 28;
-  recap.days.forEach((d, i) => {
-    const bw = chartW / recap.days.length;
+  const activity = portrait
+    ? Array.from({ length: Math.ceil(recap.days.length / 7) }, (_, i) => ({
+        records: recap.days.slice(i * 7, i * 7 + 7).reduce((sum, day) => sum + day.records, 0),
+      }))
+    : recap.days;
+  const activityMax = Math.max(1, ...activity.map((day) => day.records));
+  activity.forEach((d, i) => {
+    const bw = chartW / activity.length;
     ctx.fillStyle = d.records ? "#8dbba8" : "#33434a";
-    const bh = d.records ? Math.max(3, chartH * Math.sqrt(d.records / max)) : 2;
+    const bh = d.records ? Math.max(3, chartH * Math.sqrt(d.records / activityMax)) : 2;
     ctx.fillRect(chartX + i * bw, chartY + chartH - bh, Math.max(1, bw - 2), bh);
   });
   text("Local history. A personal snapshot.", pad, h - 42, 16, "#a7b6bc");

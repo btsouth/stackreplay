@@ -1,6 +1,6 @@
 import type { CatalogV1 } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
-import { Decimal, replayObservingQuotes } from "@stackreplay/replay-engine";
+import { Decimal, moneyUnitsForUsage, replayObservingQuotes } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
 
 export type RecapPeriod = "30" | "90" | "all";
@@ -12,6 +12,8 @@ export interface RecapModel {
   records: number;
   priced: number;
   usd: string;
+  usdHigh: string;
+  cacheScenarioRecords: number;
 }
 export interface Recap {
   start: string;
@@ -33,6 +35,8 @@ export interface Recap {
   lateNightShare: number;
   priced: number;
   usd: string;
+  usdHigh: string;
+  cacheScenarioRecords: number;
   rulesAsOf: string;
 }
 export const familyColors: Record<string, string> = {
@@ -98,6 +102,8 @@ export function buildRecap(
   let sessionKnown = 0;
   let priced = 0;
   let usd = new Decimal(0);
+  let usdHigh = new Decimal(0);
+  let cacheScenarioRecords = 0;
   for (const e of selected) {
     const { date, hour } = local(e.occurredAt);
     const tokens = outputOf(e);
@@ -126,6 +132,8 @@ export function buildRecap(
       records: 0,
       priced: 0,
       usd: "0",
+      usdHigh: "0",
+      cacheScenarioRecords: 0,
     };
     row.output += n;
     row.records++;
@@ -151,12 +159,53 @@ export function buildRecap(
         target: { type: "api", providerId: provider },
         context: { rulesAsOf: now.slice(0, 10) },
       },
-      (_e, outcome, quote) => {
-        if (outcome !== "priced" || quote.amount === undefined) return;
+      (event, outcome, quote) => {
+        let low = quote.amount;
+        let high = quote.amount;
+        let scenario = false;
+        // Claude logs do not retain cache TTL. Both documented TTL rates form a range,
+        // rather than treating an unreported TTL as a known 5-minute write.
+        if (
+          outcome === "price_category_undocumented" &&
+          provider === "anthropic" &&
+          (event.usage.cacheWriteTokens ?? 0) > 0 &&
+          quote.pricingId
+        ) {
+          const base = catalog.pricing[quote.pricingId];
+          const variants = ["cache-write-5m", "cache-write-1h"].map((variant) =>
+            Object.values(catalog.pricing).find(
+              (price) =>
+                price.modelId === id &&
+                price.variantId === variant &&
+                price.basis === "api_list_price" &&
+                price.effectiveFrom === base?.effectiveFrom &&
+                Date.parse(price.effectiveFrom) <= Date.parse(now) &&
+                (!price.effectiveTo || now.slice(0, 10) < price.effectiveTo),
+            ),
+          );
+          if (variants.every((price) => price !== undefined)) {
+            const amounts = variants.map((price) =>
+              moneyUnitsForUsage(event.usage, price!, { atMs: Date.parse(event.occurredAt) }),
+            );
+            if (amounts.every((amount) => amount.known)) {
+              const sorted = amounts.map((amount) => amount.units).sort((a, b) => a.comparedTo(b));
+              low = sorted[0]?.toString();
+              high = sorted[1]?.toString();
+              scenario = true;
+            }
+          }
+        }
+        if (low === undefined || high === undefined || (outcome !== "priced" && !scenario)) return;
         priced++;
         row.priced++;
-        usd = usd.add(new Decimal(quote.amount));
-        row.usd = new Decimal(row.usd).add(new Decimal(quote.amount)).toString();
+        if (scenario) {
+          cacheScenarioRecords++;
+          row.cacheScenarioRecords++;
+        }
+        usd = usd.add(new Decimal(low));
+        usdHigh = usdHigh.add(new Decimal(high));
+        row.usd = new Decimal(row.usd).add(new Decimal(low)).toString();
+        row.usdHigh = new Decimal(row.usdHigh).add(new Decimal(high)).toString();
       },
     );
   }
@@ -197,6 +246,8 @@ export function buildRecap(
       : 0,
     priced,
     usd: usd.toString(),
+    usdHigh: usdHigh.toString(),
+    cacheScenarioRecords,
     rulesAsOf: now.slice(0, 10),
   };
 }

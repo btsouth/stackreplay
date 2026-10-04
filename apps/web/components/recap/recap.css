@@ -426,7 +426,7 @@
 .recap-button span {
   font-size: 9px;
   font-weight: 400;
-  opacity: 0.8;
+  opacity: 1;
 }
 .recap-button:disabled {
   opacity: 0.6;
@@ -542,5 +542,20 @@
   }
   .recap-calendar-footer {
     font-size: 9px;
+  }
+}
+
+.recap-hero-range {
+  display: inline-block;
+  font-size: 0.34em;
+  letter-spacing: -0.04em;
+  margin-left: 22px;
+  color: #bbd3c9;
+}
+@media (max-width: 700px) {
+  .recap-hero-range {
+    display: block;
+    margin: 10px 0 0;
+    font-size: 32px;
   }
 }

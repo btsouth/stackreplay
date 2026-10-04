@@ -116,3 +116,28 @@ describe("private recap metrics", () => {
     expect(r.streak).toBe(0);
   });
 });
+
+it("uses both documented cache-write TTL prices as a scenario range", () => {
+  const e = {
+    ...event,
+    occurredAt: "2026-10-03T12:00:00Z",
+    model: { rawName: "claude-opus-5-5", canonicalId: "claude-opus-5-5" },
+    usage: {
+      inputTokens: 0,
+      outputTokens: 0,
+      reasoningTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 1000000,
+      accounting: {
+        cacheReadIncludedInInput: false,
+        cacheWriteIncludedInInput: false,
+        reasoningIncludedInOutput: false,
+      },
+    },
+  };
+  const r = buildRecap([e], "30", "2026-10-04T12:00:00Z", "UTC");
+  expect(r.usd).toBe("5");
+  expect(r.usdHigh).toBe("8");
+  expect(r.cacheScenarioRecords).toBe(1);
+  expect(r.priced).toBe(1);
+});
