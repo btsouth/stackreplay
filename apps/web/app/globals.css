@@ -11,6 +11,7 @@
 @import "./benchmarks.css";
 @import "./home.css";
 @import "./updates.css";
+@import "./visual-prototype.css";
 
 /* Class-based dark mode: the theme script and toggle set .dark on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));
