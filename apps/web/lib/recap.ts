@@ -19,6 +19,7 @@ export interface RecapModel {
   cacheScenarioRecords: number;
 }
 export interface Recap {
+  period: RecapPeriod;
   deep?: RecapDeep;
   sourceCoverage?: { name: string; role: string; status: string }[];
   start: string;
@@ -309,6 +310,7 @@ export function buildRecap(
   if (!daily[i]?.records) i--;
   for (; i >= 0 && daily[i]?.records; i--) streak++;
   return {
+    period,
     deep,
     start,
     end,

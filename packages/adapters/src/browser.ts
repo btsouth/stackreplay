@@ -925,7 +925,11 @@ export async function intakeBrowserCandidates(
       outcomes.push({
         path: display,
         status: paired ? "companion" : "unsupported",
-        source: /state\.db/iu.test(candidate.path) ? "Hermes" : "OpenCode",
+        source: /state\.sqlite/iu.test(candidate.path)
+          ? "T3 Code"
+          : /state\.db/iu.test(candidate.path)
+            ? "Hermes"
+            : "OpenCode",
         events: 0,
         reason: paired
           ? "Companion log is read with its OpenCode database"
@@ -1016,7 +1020,7 @@ export async function intakeBrowserCandidates(
           warnings.push({
             code: "SESSION_PARTIAL",
             message:
-              "Session database was selected without its write-ahead log; recent sessions may be missing. Close OpenCode or include opencode.db-wal if present.",
+              "Session database was selected without its write-ahead log; recent sessions may be missing. Close the harness or include the matching database-wal file if present.",
           });
       } else if (streaming) {
         const peek = peekOf(index);
@@ -1044,11 +1048,11 @@ export async function intakeBrowserCandidates(
         sqlite
           ? {
               path: display,
-              source: /state\.db/iu.test(candidate.path) ? "Hermes" : "OpenCode",
+              source: t3 ? "T3 Code" : hermes ? "Hermes" : "OpenCode",
               status: "unreadable",
               events: 0,
               reason: safeIntakeMessage(
-                error instanceof Error ? error.message : "Could not read OpenCode database",
+                error instanceof Error ? error.message : "Could not read session database",
               ),
             }
           : unreadableOutcome(display, error),

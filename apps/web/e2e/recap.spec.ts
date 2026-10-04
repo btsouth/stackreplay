@@ -21,10 +21,15 @@ for (const temporary of [false, true])
     await expect(page).toHaveURL(/\/app\/recap\?import=/u);
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
     await expect(page.getByRole("heading", { name: "Your coding recap." })).toBeVisible();
-    await page.getByRole("radio", { name: "90 days" }).check();
-    await expect(page.getByTestId("recap-ready")).toBeVisible();
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "30");
+    await expect(page.locator(".recap-month")).toBeVisible();
+    await page.getByRole("radio", { name: "30 days" }).focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByRole("radio", { name: "90 days" })).toBeChecked();
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+    await expect(page.locator(".recap-weeks")).toBeVisible();
     await page.getByRole("radio", { name: "All time" }).check();
-    await expect(page.getByTestId("recap-ready")).toBeVisible();
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
     const id = new URL(page.url()).searchParams.get("import");
     if (!temporary) {
       await page.reload();

@@ -118,5 +118,8 @@ describe("request timing and recorded billing routes", () => {
   it("maps recognized endpoint hosts while leaving custom endpoints unattributed", () => {
     expect(hermesServingProvider("custom", "https://api.z.ai/api/paas/v4")).toBe("z-ai");
     expect(hermesServingProvider("custom", "https://private.example/v1")).toBeUndefined();
+    expect(hermesServingProvider("custom", "https://api.cline.bot/v1")).toBe("cline");
+    expect(hermesServingProvider("openai", "https://opencode.ai/zen/v1")).toBe("opencode");
+    expect(hermesServingProvider("custom", "https://ollama.com/v1")).toBe("ollama");
   });
 });

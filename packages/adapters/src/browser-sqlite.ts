@@ -59,7 +59,7 @@ export async function openBrowserOpenCode(
       );
       if (fields.some((column) => !columns.has(column)))
         throw new Error(
-          `Selected SQLite database is not a supported ${source === "hermes" ? "Hermes" : "OpenCode"} session history.`,
+          `Selected SQLite database is not a supported ${source === "t3-code" ? "T3 Code" : source === "hermes" ? "Hermes" : "OpenCode"} session history.`,
         );
     }
   } catch (error) {

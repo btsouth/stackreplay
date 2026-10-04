@@ -381,7 +381,6 @@ export function hermesServingProvider(value: unknown, baseUrl?: unknown): string
     clinepass: "cline",
     "ollama-cloud": "ollama",
   };
-  if (names[name]) return names[name];
   if (typeof baseUrl === "string") {
     try {
       const host = new URL(baseUrl).hostname;
@@ -391,11 +390,15 @@ export function hermesServingProvider(value: unknown, baseUrl?: unknown): string
         "api.deepseek.com": "deepseek",
         "api.z.ai": "z-ai",
         "api.commandcode.ai": "command-code",
+        "api.cline.bot": "cline",
+        "opencode.ai": "opencode",
+        "ollama.com": "ollama",
+        "chatgpt.com": "openai",
       };
       if (hosts[host]) return hosts[host];
     } catch {
       /* Unknown routes remain unattributed. */
     }
   }
-  return undefined;
+  return names[name];
 }

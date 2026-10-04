@@ -203,7 +203,7 @@ export function RecapSurface({
       )}
       {recap &&
         (recap.records ? (
-          <div data-testid="recap-ready">
+          <div data-testid="recap-ready" data-period={recap.period}>
             <RecapStory
               recap={recap}
               period={period}
