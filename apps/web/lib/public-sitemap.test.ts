@@ -139,11 +139,15 @@ describe("public sitemap content dates", () => {
     ).toEqual(new Date("2025-05-10"));
   });
 
-  it("uses the newest reviewed plan fact and the model review date", () => {
+  it("uses the newest reviewed plan fact and omits the model review date", () => {
     vi.setSystemTime(new Date("2035-01-01T12:00:00Z"));
-    const entries = new Map(sitemap().map((entry) => [entry.url, entry.lastModified]));
+    const entries = new Map(sitemap().map((entry) => [entry.url, entry]));
 
-    expect(entries.get(absoluteUrl("/plans/plan-a"))).toEqual(new Date("2025-03-10"));
-    expect(entries.get(absoluteUrl("/models/model-a"))).toEqual(new Date("2025-04-10"));
+    expect(entries.get(absoluteUrl("/plans/plan-a"))?.lastModified).toEqual(new Date("2025-03-10"));
+    expect(entries.get(absoluteUrl("/models/model-a"))).toEqual({
+      url: absoluteUrl("/models/model-a"),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    });
   });
 });

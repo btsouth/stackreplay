@@ -74,9 +74,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  // Identity checks do not date joined pricing, access or benchmark changes.
   const modelEntries: MetadataRoute.Sitemap = catalog.models.map((model) => ({
     url: absoluteUrl(`/models/${model.id}`),
-    lastModified: new Date(model.lastVerifiedAt),
     changeFrequency: "monthly",
     priority: 0.5,
   }));

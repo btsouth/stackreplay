@@ -376,6 +376,7 @@ export function ModelExplorer({
                 key={model.id}
                 className="market-model-row"
                 data-testid="model-row"
+                data-model-id={model.id}
                 data-model-kind={model.kind}
               >
                 <div>
@@ -422,14 +423,19 @@ export function ModelExplorer({
                   )}
                 </div>
                 {rate ? (
-                  (["input", "output", "cacheRead"] as const).map((key, i) => (
-                    <div key={key}>
-                      <p className="market-muted">{["Input", "Output", "Cache read"][i]}</p>
-                      <p className={rate ? "market-rate" : "market-muted"}>
-                        {rate ? priceNumber(rate.rates[key]) : "See details"}
-                      </p>
+                  <div className="market-model-card-rates">
+                    <p className="market-kicker mb-2">Base API rate · USD / 1M tokens</p>
+                    <div>
+                      {(["input", "output", "cacheRead"] as const).map((key, i) => (
+                        <div key={key}>
+                          <p className="market-muted">
+                            {[`Input $/1M`, `Output $/1M`, `Cache read $/1M`][i]}
+                          </p>
+                          <p className="market-rate">{priceNumber(rate.rates[key])}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))
+                  </div>
                 ) : (
                   <div className="market-model-price-context">
                     <p className="market-kicker mb-2">Pricing context</p>
