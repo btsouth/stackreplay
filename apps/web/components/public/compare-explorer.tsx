@@ -18,7 +18,7 @@ import type { PublicDirectoryPlan } from "@/lib/public-directory";
 import { publicPlanPricePresentation } from "@/lib/public-plan-price";
 import { limitUnitText, limitWindowText } from "./plan-facts";
 import { SourceList, VerificationBadge } from "./provenance";
-import { PublishedUsageTable } from "./published-subscription-terms";
+import { PublishedSubscriptionTerms, PublishedUsageTable } from "./published-subscription-terms";
 
 /**
  * Public plan comparison (launch).
@@ -63,8 +63,10 @@ const MATRIX_ROWS = 16;
 /** Which models each plan includes, shared ones first. Names link to model pages. */
 function ModelMatrix({
   plans,
+  testIdPrefix = "compare",
 }: {
   plans: readonly { plan: PublicDirectoryPlan; facts: CompareFacts }[];
+  testIdPrefix?: "compare" | "compare-mobile";
 }) {
   const [expanded, setExpanded] = useState(false);
   const rows = compareModelMatrix(plans.map((entry) => entry.facts));
@@ -84,7 +86,7 @@ function ModelMatrix({
   const shown = expanded || !collapsible ? rows : rows.slice(0, MATRIX_ROWS);
   return (
     <div className="min-w-0">
-      <p className="text-foreground" data-testid="compare-model-summary">
+      <p className="text-foreground" data-testid={`${testIdPrefix}-model-summary`}>
         {shared} in {plans.length === 2 ? "both" : "all three"}
         {plans.map((entry, index) => (
           <span key={entry.plan.id}>
@@ -93,7 +95,7 @@ function ModelMatrix({
           </span>
         ))}
       </p>
-      <table className="market-matrix mt-3" data-testid="compare-model-matrix">
+      <table className="market-matrix mt-3" data-testid={`${testIdPrefix}-model-matrix`}>
         <caption className="sr-only">Models each compared plan includes</caption>
         <thead>
           <tr>
@@ -156,22 +158,28 @@ function AppsCell({ facts }: { facts: CompareFacts }) {
   );
 }
 
-function UsageCell({ facts }: { facts: CompareFacts }) {
+function UsageFacts({ facts }: { facts: CompareFacts }) {
   if (!facts.usage.lines.length) {
     return <p className="text-foreground">No numeric allowance is recorded in this snapshot.</p>;
   }
   return (
+    <ul className="space-y-2">
+      {facts.usage.lines.map((line) => (
+        <li key={`${line.text}-${line.detail}`}>
+          <span className="text-foreground">{line.text}</span>
+          {line.detail && (
+            <span className="block text-xs text-muted-foreground">{line.detail}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function UsageCell({ facts }: { facts: CompareFacts }) {
+  return (
     <div>
-      <ul className="space-y-2">
-        {facts.usage.lines.map((line) => (
-          <li key={`${line.text}-${line.detail}`}>
-            <span className="text-foreground">{line.text}</span>
-            {line.detail && (
-              <span className="block text-xs text-muted-foreground">{line.detail}</span>
-            )}
-          </li>
-        ))}
-      </ul>
+      <UsageFacts facts={facts} />
       {facts.publishedTerms && (
         <>
           {facts.publishedTerms.tables?.[0] && (
@@ -220,118 +228,126 @@ function AfterLimitCell({ facts }: { facts: CompareFacts }) {
   );
 }
 
-function InspectCell({ plan, facts }: { plan: PublicDirectoryPlan; facts: CompareFacts }) {
+function InspectContent({
+  plan,
+  facts,
+  testId,
+}: {
+  plan: PublicDirectoryPlan;
+  facts: CompareFacts;
+  testId: string;
+}) {
   if (plan.kind === "public_offer")
     return (
-      <details>
-        <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4">
-          Inspect public offer and sources
-        </summary>
-        <div className="space-y-3 pb-4 pt-2 text-sm" data-testid="compare-inspect">
-          <p>{facts.effective}</p>
-          <p>{facts.simulation}</p>
-          <SourceList sources={plan.sources} />
-        </div>
-      </details>
+      <div className="space-y-3 pb-4 pt-2 text-sm" data-testid={testId}>
+        <p>{facts.effective}</p>
+        <p>{facts.simulation}</p>
+        <SourceList sources={plan.sources} />
+      </div>
     );
   return (
-    <details>
-      <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
-        Inspect constraints and sources
-      </summary>
-      <div className="space-y-5 pb-4 pt-2 text-sm" data-testid="compare-inspect">
+    <div className="space-y-5 pb-4 pt-2 text-sm" data-testid={testId}>
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Numeric limits
+        </p>
+        {plan.limits.length === 0 ? (
+          <p className="mt-1 text-muted-foreground">
+            {plan.publishedTerms
+              ? "Published allowances are shown in the usage row. They are not yet executable replay constraints."
+              : "No numeric limit is recorded here."}
+          </p>
+        ) : (
+          <ul className="mt-1 space-y-3">
+            {plan.limits.map((limit) => (
+              <li key={limit.id} className="border-l border-border-strong pl-3">
+                <span className="font-medium text-foreground">{limit.label}</span>
+                <span className="block text-muted-foreground">
+                  {limit.amount} {limitUnitText(limit)} · {limitWindowText(limit)} ·{" "}
+                  {limit.exceed.replaceAll("_", " ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {plan.qualitativeLimits.length > 0 ? (
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Numeric limits
+            Provider statements
           </p>
-          {plan.limits.length === 0 ? (
-            <p className="mt-1 text-muted-foreground">
-              {plan.publishedTerms
-                ? "Published allowances are shown in the usage row. They are not yet executable replay constraints."
-                : "No numeric limit is recorded here."}
-            </p>
-          ) : (
-            <ul className="mt-1 space-y-3">
-              {plan.limits.map((limit) => (
-                <li key={limit.id} className="border-l border-border-strong pl-3">
-                  <span className="font-medium text-foreground">{limit.label}</span>
-                  <span className="block text-muted-foreground">
-                    {limit.amount} {limitUnitText(limit)} · {limitWindowText(limit)} ·{" "}
-                    {limit.exceed.replaceAll("_", " ")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {plan.qualitativeLimits.length > 0 ? (
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              Provider statements
-            </p>
-            <ul className="mt-1 space-y-2 text-xs text-muted-foreground">
-              {plan.qualitativeLimits.map((limit) => (
-                <li key={limit.id}>
-                  <span className="font-medium text-foreground">{limit.label}.</span>{" "}
-                  {limit.statement}
-                  {limit.sourceUrl === undefined ? null : (
-                    <>
-                      {" "}
-                      <a
-                        className="text-accent underline underline-offset-2"
-                        href={limit.sourceUrl}
-                        rel="noreferrer noopener"
-                        target="_blank"
-                      >
-                        Source
-                      </a>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Model rules
-          </p>
-          <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
-            {facts.rules.map((rule) => (
-              <li key={rule.id}>
-                <span className="text-foreground">{rule.name}</span>{" "}
-                <span className="font-mono">({rule.id})</span> · {rule.kindLabel}
-                {rule.excluded
-                  ? rule.usageCredits
-                    ? " · usage credits only"
-                    : " · not included"
-                  : ""}
-                {rule.multiplier === undefined ? "" : ` · ×${rule.multiplier}`}
+          <ul className="mt-1 space-y-2 text-xs text-muted-foreground">
+            {plan.qualitativeLimits.map((limit) => (
+              <li key={limit.id}>
+                <span className="font-medium text-foreground">{limit.label}.</span>{" "}
+                {limit.statement}
+                {limit.sourceUrl === undefined ? null : (
+                  <>
+                    {" "}
+                    <a
+                      className="text-accent underline underline-offset-2"
+                      href={limit.sourceUrl}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      Source
+                    </a>
+                  </>
+                )}
               </li>
             ))}
           </ul>
         </div>
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Version
-          </p>
-          <p className="mt-1 break-all font-mono text-xs text-foreground">{plan.versionId}</p>
-          <p className="text-xs text-muted-foreground">
-            {facts.effective} · {plan.versionCount}{" "}
-            {plan.versionCount === 1 ? "version" : "versions"} on record
-          </p>
-        </div>
-        <div className="space-y-2">
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Sources
-          </p>
-          <SourceList sources={plan.sources} />
-          <VerificationBadge
-            status={plan.verificationStatus}
-            lastVerifiedAt={plan.lastVerifiedAt}
-          />
-        </div>
+      ) : null}
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Model rules
+        </p>
+        <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+          {facts.rules.map((rule) => (
+            <li key={rule.id}>
+              <span className="text-foreground">{rule.name}</span>{" "}
+              <span className="font-mono">({rule.id})</span> · {rule.kindLabel}
+              {rule.excluded
+                ? rule.usageCredits
+                  ? " · usage credits only"
+                  : " · not included"
+                : ""}
+              {rule.multiplier === undefined ? "" : ` · ×${rule.multiplier}`}
+            </li>
+          ))}
+        </ul>
       </div>
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Version
+        </p>
+        <p className="mt-1 break-all font-mono text-xs text-foreground">{plan.versionId}</p>
+        <p className="text-xs text-muted-foreground">
+          {facts.effective} · {plan.versionCount} {plan.versionCount === 1 ? "version" : "versions"}{" "}
+          on record
+        </p>
+      </div>
+      <div className="space-y-2">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Sources
+        </p>
+        <SourceList sources={plan.sources} />
+        <VerificationBadge status={plan.verificationStatus} lastVerifiedAt={plan.lastVerifiedAt} />
+      </div>
+    </div>
+  );
+}
+
+function InspectCell({ plan, facts }: { plan: PublicDirectoryPlan; facts: CompareFacts }) {
+  return (
+    <details>
+      <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm text-accent underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+        {plan.kind === "public_offer"
+          ? "Inspect public offer and sources"
+          : "Inspect constraints and sources"}
+      </summary>
+      <InspectContent plan={plan} facts={facts} testId="compare-inspect" />
     </details>
   );
 }
@@ -427,15 +443,117 @@ function TextRow({
   );
 }
 
-function TargetHeader({
+const COMPACT_FACT_LABEL =
+  "font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground";
+
+function CompactFact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className={COMPACT_FACT_LABEL}>{label}</p>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function CompactModelMatrix({
+  plans,
+  className,
+}: {
+  plans: readonly { plan: PublicDirectoryPlan; facts: CompareFacts }[];
+  className: string;
+}) {
+  const unavailable = plans.some((entry) => entry.plan.kind === "public_offer");
+  if (!unavailable && compareModelMatrix(plans.map((entry) => entry.facts)).length === 0) {
+    return null;
+  }
+  return (
+    <details
+      className={`border-y border-border py-4 ${className}`}
+      data-testid="compare-mobile-model-matrix-details"
+    >
+      <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-accent">
+        Compare model access
+      </summary>
+      <div className="pt-3">
+        <ModelMatrix plans={plans} testIdPrefix="compare-mobile" />
+      </div>
+    </details>
+  );
+}
+
+function CompactPlanFacts({
   plan,
-  asOf,
-  onRemove,
+  facts,
+  className,
 }: {
   plan: PublicDirectoryPlan;
+  facts: CompareFacts;
+  className: string;
+}) {
+  const terms = facts.publishedTerms;
+  return (
+    <div
+      className={`mt-5 space-y-4 border-t border-border pt-4 ${className}`}
+      data-testid="compare-compact-summary"
+    >
+      <CompactFact label="Apps & tools">
+        <AppsCell facts={facts} />
+      </CompactFact>
+      <CompactFact label="Included allowance">
+        <UsageFacts facts={facts} />
+      </CompactFact>
+      <CompactFact label="After the limit">
+        <AfterLimitCell facts={facts} />
+      </CompactFact>
+      <CompactFact label="Billing & qualifications">
+        {terms?.billingSummary && <p className="text-foreground">{terms.billingSummary}</p>}
+        <p className="mt-1 text-xs text-muted-foreground">{facts.evidence}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{facts.effective}</p>
+      </CompactFact>
+      <details className="border-t border-border pt-2">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          Models & access
+        </summary>
+        <div className="pt-2">
+          <ModelsCell facts={facts} />
+        </div>
+      </details>
+      {terms && (
+        <details className="border-t border-border pt-2">
+          <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+            Published terms & policy
+          </summary>
+          <div className="pt-2">
+            <PublishedSubscriptionTerms terms={terms} />
+          </div>
+        </details>
+      )}
+      <details className="border-t border-border pt-2">
+        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
+          {plan.kind === "public_offer"
+            ? "Inspect public offer and sources"
+            : "Inspect constraints and sources"}
+        </summary>
+        <InspectContent plan={plan} facts={facts} testId="compare-compact-inspect" />
+      </details>
+    </div>
+  );
+}
+
+function TargetHeader({
+  plan,
+  facts,
+  asOf,
+  onRemove,
+  compactClass,
+}: {
+  plan: PublicDirectoryPlan;
+  facts: CompareFacts;
   asOf: string;
   onRemove?: (() => void) | undefined;
+  compactClass: string;
 }) {
+  const price = publicPlanPricePresentation(plan);
   return (
     <section className="min-w-0 border-t border-border-strong pt-4" data-testid="compare-target">
       <div className="flex items-start justify-between gap-3">
@@ -459,15 +577,12 @@ function TargetHeader({
         </Link>
       </h2>
       <p className="mt-3" data-testid="compare-price">
-        <span
-          className={
-            publicPlanPricePresentation(plan).formula ? "text-xl leading-relaxed" : "market-stat"
-          }
-        >
-          {publicPlanPricePresentation(plan).amount}
+        <span className={price.formula ? "text-xl leading-relaxed" : "market-stat"}>
+          {price.amount}
         </span>
-        <span className="market-muted ml-2">{publicPlanPricePresentation(plan).unit}</span>
+        <span className="market-muted ml-2">{price.unit}</span>
       </p>
+      <CompactPlanFacts plan={plan} facts={facts} className={compactClass} />
       {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanTermsNotice
           asOf={asOf}
@@ -626,6 +741,8 @@ export function CompareExplorer({
             {chosen.map((entry, index) => (
               <TargetHeader
                 asOf={asOf}
+                compactClass={layout.stackedOnly}
+                facts={entry.facts}
                 key={entry.plan.id}
                 plan={entry.plan}
                 onRemove={
@@ -636,7 +753,8 @@ export function CompareExplorer({
               />
             ))}
           </div>
-          <div className="mt-4 border-t border-border">
+          <CompactModelMatrix plans={chosen} className={layout.stackedOnly} />
+          <div className={`mt-4 border-t border-border ${layout.wideOnly}`}>
             <Row
               label="Models"
               testId="models"

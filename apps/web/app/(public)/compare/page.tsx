@@ -46,8 +46,8 @@ export default function ComparePage() {
         description="How plans differ on paper: price, models, coding tools, usage limits and what happens when you run out. To see how they handle your own work, compare them against your workload."
       >
         {quick.length > 0 && (
-          <aside className="market-feature" aria-label="Popular comparisons">
-            <p className="market-kicker">Popular comparisons</p>
+          <aside className="market-feature" aria-label="Featured comparisons">
+            <p className="market-kicker">Featured comparisons</p>
             <ul className="mt-3 space-y-1">
               {quick.map((item) => (
                 <li key={item.href}>

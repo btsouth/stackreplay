@@ -46,18 +46,34 @@ for (const theme of ["dark", "light"] as const) {
     test("shows matching statements once and links models to their pages", async ({ page }) => {
       await page.goto("/compare");
       await expect(page.getByTestId("compare-row-simulation")).toContainText("Same for both plans");
-      const matrix = page.getByTestId("compare-model-matrix");
+      const mobileDisclosure = page.getByTestId("compare-mobile-model-matrix-details");
+      const matrix = (await mobileDisclosure.isVisible())
+        ? page.getByTestId("compare-mobile-model-matrix")
+        : page.getByTestId("compare-model-matrix");
+      if (await mobileDisclosure.isVisible()) {
+        await mobileDisclosure.getByText("Compare model access", { exact: true }).click();
+      }
       await matrix.getByRole("link", { name: "Claude Opus 5.5", exact: true }).click();
       await expect(page).toHaveURL(/\/models\/claude-opus-5-5$/u);
+    });
+
+    test("duplicate selections stay explicit and recoverable", async ({ page }) => {
+      await page.goto("/compare?left=kiro-pro&right=devin-teams");
+      await page.getByLabel("Second plan").selectOption("kiro-pro");
+      await expect(page.getByText("Choose different plans to see a comparison.")).toBeVisible();
+      await expect(page.getByTestId("compare-table")).toHaveCount(0);
+      await expect(page).toHaveURL(/left=kiro-pro&right=kiro-pro/u);
+      await page.getByLabel("Second plan").selectOption("devin-teams");
+      await expect(page.getByTestId("compare-table")).toBeVisible();
     });
   });
 }
 
-test("a popular comparison opens its plans from the compare page itself", async ({ page }) => {
+test("a featured comparison opens its plans from the compare page itself", async ({ page }) => {
   await page.goto("/compare?left=clinepass&right=opencode-go");
   await expect(targets(page).nth(0)).toContainText("ClinePass");
   const link = page
-    .getByRole("complementary", { name: "Popular comparisons" })
+    .getByRole("complementary", { name: "Featured comparisons" })
     .getByRole("link")
     .first();
   const [left = "", right = ""] = (await link.innerText()).replace("↗", "").trim().split(" vs ");
@@ -85,10 +101,46 @@ test("a shared comparison never flashes the default pair before it applies", asy
 
 test.describe("compare page on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 } });
-  test("three plans stack without widening the page", async ({ page }) => {
+  test("three plans stack as named summaries with model access in native disclosure", async ({
+    page,
+  }) => {
     await page.goto("/compare?left=anthropic-claude-pro&right=openai-chatgpt-plus&third=clinepass");
     await expect(targets(page)).toHaveCount(3);
-    await expect(page.getByTestId("compare-model-matrix")).toBeVisible();
+    const summaries = page.getByTestId("compare-compact-summary");
+    await expect(summaries).toHaveCount(3);
+    await expect(summaries.nth(0)).toBeVisible();
+    await expect(summaries.nth(0)).toContainText("Apps & tools");
+    await expect(summaries.nth(0)).toContainText("Included allowance");
+    await expect(summaries.nth(0)).toContainText("After the limit");
+    await expect(summaries.nth(0)).toContainText("Billing & qualifications");
+    await expect(page.getByTestId("compare-model-matrix")).toBeHidden();
+    await expect(page.getByTestId("compare-mobile-model-matrix")).toBeHidden();
+    const modelAccess = page.getByText("Compare model access", { exact: true });
+    await modelAccess.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("compare-mobile-model-matrix")).toBeVisible();
+    await expectNoSeriousViolations(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  });
+
+  test("public offer qualifications stay visible in compact summaries", async ({ page }) => {
+    await page.goto("/compare?left=kiro-pro&right=devin-teams&third=google-code-assist-enterprise");
+    const targets = page.getByTestId("compare-target");
+    const summaries = page.getByTestId("compare-compact-summary");
+    await expect(targets.nth(1)).toContainText(
+      "$80/month base + $40/month per full developer seat",
+    );
+    await expect(summaries.nth(1)).toContainText(
+      "Up to 200 users is the published team-size statement, not 200 included full developer seats.",
+    );
+    await expect(summaries.nth(1)).toContainText("numeric capacity is not published");
+    await expect(summaries.nth(1)).toContainText(
+      "earlier terms and introduction date are not established",
+    );
+    await expect(targets.nth(2)).toContainText("must contact sales");
+    await page.setViewportSize({ width: 320, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
