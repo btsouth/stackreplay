@@ -53,7 +53,8 @@ for (const theme of ["dark", "light"] as const) {
       await expect(spotlight).toContainText("Inspect pricing and cache-write options.");
       const search = page.getByLabel("Find a model, family name or exact alias");
       await expect(search).toBeVisible();
-      expect((await search.boundingBox())?.y ?? Infinity).toBeLessThan(568);
+      const searchBox = await search.boundingBox();
+      expect((searchBox?.y ?? 0) + (searchBox?.height ?? Infinity)).toBeLessThanOrEqual(568);
       await expectNoHorizontalOverflow(page);
       await expectNoSeriousViolations(page);
     });

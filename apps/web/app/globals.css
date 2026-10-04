@@ -1150,11 +1150,11 @@ html[data-compare] [data-compare-results] {
   }
   /* Models keeps every spotlight fact visible while tightening its mobile presentation. */
   .models-discovery-page .market-header-compact {
-    padding: 0.4rem 0 0.8rem;
-    gap: 0.6rem;
+    padding: 0.15rem 0 0.6rem;
+    gap: 0.45rem;
   }
   .models-discovery-page .market-header-compact:has(.market-feature) {
-    gap: 0.65rem;
+    gap: 0.55rem;
   }
   .models-discovery-page .market-header-compact .market-kicker {
     font-size: 0.6rem;
