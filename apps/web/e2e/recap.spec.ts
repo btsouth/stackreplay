@@ -149,7 +149,7 @@ test("streaks use full local history while the period scopes totals", async ({ p
     );
   }
   await page.getByLabel("What counts as an active day").click();
-  await expect(page.locator(".recap-info[open]")).toContainText("first seen to last seen");
+  await expect(page.locator(".recap-info[open]")).toContainText("first and last seen");
   await expect(page.locator(".recap-info[open]")).toContainText(
     "Current streak counts back from today",
   );

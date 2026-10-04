@@ -34,10 +34,11 @@ function Facts({ values }: { values: [string, string][] }) {
             {l === "active days" && (
               <Info label="What counts as an active day">
                 An active day has at least one usage record from any scanned source, in your local
-                timezone. Hermes aggregates without per-call timestamps cover every calendar day
-                from first seen to last seen. Tokens and costs stay on the recorded end date.
-                Current streak counts back from today; an inactive today means zero. Longest streak
-                uses all supplied history. The period filter only scopes volume, costs and charts.
+                timezone. Hermes aggregates without per-call timestamps mark the days they were
+                first and last seen. Tokens and costs stay on the recorded end date. Current streak
+                counts back from today, or from yesterday until today's first activity. Longest
+                streak uses all supplied history. The period filter only scopes volume, costs and
+                charts.
               </Info>
             )}
             {l === "sessions" && (
