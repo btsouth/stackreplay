@@ -1,7 +1,10 @@
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { RecapStory } from "../components/recap/recap-story";
 import { buildRecap, totalTokensOf } from "./recap";
-import { costTrendBuckets } from "./recap-deep";
+import { costTrendBuckets, developerNames } from "./recap-deep";
 
 const base = buildDemoExport("billing").events[0]!;
 const now = "2026-10-04T12:00:00Z";
@@ -170,4 +173,43 @@ it("groups serving aliases and prefers exact recorded billing context", () => {
   ];
   const r = buildRecap(rows, "30", now, "UTC");
   expect(r.deep!.providers.map((p) => p.id).sort()).toEqual(["openai", "opencode"]);
+});
+
+it("omits internal and unknown timeline IDs and names resolved models from the catalog", () => {
+  const events = ["gpt-6-1-sol", "codex-auto-review", "gpt-daybreak-blue-latest"].map((id) => ({
+    ...event(id, "2026-10-03T12:00:00Z", "codex"),
+    model: { rawName: id, canonicalId: id },
+  }));
+  const recap = buildRecap(events, "30", now, "UTC");
+  expect(recap.deep!.firstSeen).toEqual([
+    { id: "gpt-6-1-sol", name: "GPT-6.1 Sol", date: "2026-10-03" },
+  ]);
+  expect(recap.deep!.omittedFirstSeen).toBe(2);
+  expect(recap.records).toBe(3);
+});
+it("uses catalog developer display names in the legend", () => {
+  expect(developerNames.meta).toBe("Meta");
+  expect(developerNames.alibaba).toBe("Alibaba Cloud (Qwen)");
+});
+
+it("keeps unpriced rows muted and partial pricing in popovers", () => {
+  const recap = buildRecap([event("priced", "2026-10-03T12:00:00Z", "codex")], "30", now, "UTC");
+  const priced = {
+    ...recap.models[0]!,
+    id: "partial",
+    name: "Partial model",
+    records: 2,
+    priced: 1,
+    usd: "1",
+  };
+  recap.models = [priced, { ...priced, id: "unknown", name: "Unknown model", priced: 0, usd: "0" }];
+  recap.priced = 1;
+  const html = renderToStaticMarkup(
+    createElement(RecapStory, { recap, period: "30", projects: [] }),
+  );
+  expect(html).toContain('class="recap-unpriced">not priced');
+  expect(html).toContain('aria-label="About pricing for Partial model"');
+  expect(html).toContain('aria-label="About the model API equivalent"');
+  expect(html).not.toContain("subset");
+  expect(html).not.toContain("$0 API equivalent");
 });

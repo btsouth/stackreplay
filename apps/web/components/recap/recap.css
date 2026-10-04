@@ -1221,3 +1221,7 @@
     font-size: 36px;
   }
 }
+
+.recap-unpriced {
+  color: var(--muted-foreground);
+}

@@ -265,14 +265,27 @@ export function RecapStory({
               <div>
                 <span>Most expensive model</span>
                 <strong>{topCost.name}</strong>
-                <small>{recapUsd(topCost.usd)} · priced subset</small>
+                <small>
+                  {recapUsd(topCost.usd)}
+                  <Info label="About the model API equivalent">
+                    {topCost.priced.toLocaleString()} of {topCost.records.toLocaleString()} records
+                    priced. Unknown prices and incomplete usage are excluded. A scenario, not an
+                    invoice.
+                  </Info>
+                </small>
               </div>
             )}
             {peakCost && (
               <div>
                 <span>Most expensive day</span>
                 <strong>{shortDate(peakCost.date)}</strong>
-                <small>{recapUsd(peakCost.usd)} · priced subset</small>
+                <small>
+                  {recapUsd(peakCost.usd)}
+                  <Info label="About the day API equivalent">
+                    Only records with established prices and complete usage contribute to this
+                    value. A scenario, not an invoice.
+                  </Info>
+                </small>
               </div>
             )}
             {d && d.cacheSavingsRecords > 0 && (
@@ -327,20 +340,36 @@ export function RecapStory({
                   <p>
                     <span>{compactNumber(m.total)} tokens</span>
                     <span>
-                      {m.priced
-                        ? `${recapUsd(m.usd)} API equivalent${m.priced < m.records ? " · subset" : ""}`
-                        : "API value unpriced"}
+                      {m.priced > 0 ? (
+                        <>
+                          {recapUsd(m.usd)} API equivalent
+                          {m.priced < m.records && (
+                            <Info label={`About pricing for ${m.name}`}>
+                              {m.priced.toLocaleString()} of {m.records.toLocaleString()} records
+                              priced. Unknown prices and incomplete usage are excluded.
+                            </Info>
+                          )}
+                        </>
+                      ) : (
+                        <span className="recap-unpriced">not priced</span>
+                      )}
                     </span>
                   </p>
                 </div>
               ))}
           </div>
-          {d && d.firstSeen.length > 1 && (
+          {d && (d.firstSeen.length > 0 || (d.omittedFirstSeen ?? 0) > 0) && (
             <div className="recap-adoption">
               <h3>When your models entered the story.</h3>
               <p>
                 First seen in this local history, across all periods. Not an inferred launch or a
                 switch count.
+                <Info label="About the model timeline">
+                  Only catalog-resolved models appear, using their catalog display names.
+                  {!!d.omittedFirstSeen && (
+                    <p>{d.omittedFirstSeen} internal or unresolved model IDs omitted.</p>
+                  )}
+                </Info>
               </p>
               <ol tabIndex={0} aria-label="First-seen model timeline, scroll for more models">
                 {d.firstSeen.map((m) => (
@@ -348,7 +377,7 @@ export function RecapStory({
                     <time>
                       {shortDate(m.date)} {m.date.slice(0, 4)}
                     </time>
-                    <span>{names.get(m.id) ?? m.id}</span>
+                    <span>{m.name}</span>
                   </li>
                 ))}
               </ol>

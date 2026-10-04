@@ -216,6 +216,12 @@ export function buildRecap(
     weeks.set(week, mix);
   }
   const deep = deepRecap(selected, events, local, now);
+  const firstSeenCount = deep.firstSeen.length;
+  deep.firstSeen = deep.firstSeen.flatMap((entry) => {
+    const model = catalog.models[entry.id];
+    return model ? [{ ...entry, name: model.name }] : [];
+  });
+  deep.omittedFirstSeen = firstSeenCount - deep.firstSeen.length;
   const costDays = new Map<string, Decimal>();
   const months = new Map<string, { date: string; usd: string; priced: number }>();
   let cacheSavings = new Decimal(0);

@@ -13,8 +13,9 @@ export const harnessNames: Record<string, string> = {
 };
 export const providerNames: Record<string, string> = {
   openrouter: "OpenRouter",
-  meta: "Meta",
   anthropic: "Anthropic",
+  meta: "Meta",
+  alibaba: "Alibaba Cloud (Qwen)",
   openai: "OpenAI",
   deepseek: "DeepSeek",
   "z-ai": "Z.ai",
@@ -33,6 +34,8 @@ export const providerNames: Record<string, string> = {
 };
 export const developerNames: Record<string, string> = {
   anthropic: "Anthropic",
+  meta: "Meta",
+  alibaba: "Alibaba Cloud (Qwen)",
   openai: "OpenAI",
   deepseek: "DeepSeek",
   "z-ai": "Z.ai",
@@ -87,7 +90,8 @@ export interface RecapDeep {
   harnesses: { id: string; total: number; records: number }[];
   providers: { id: string; total: number; records: number }[];
   projects: { hash: string; total: number }[];
-  firstSeen: { id: string; date: string }[];
+  firstSeen: { id: string; date: string; name?: string }[];
+  omittedFirstSeen?: number;
   speeds: { id: string; n: number; median: number; p25: number; p75: number; wait: number }[];
   hours: number[][];
   weekendShare: number;
