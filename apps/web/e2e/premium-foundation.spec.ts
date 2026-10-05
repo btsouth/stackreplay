@@ -67,7 +67,7 @@ test("Plans subviews keep the selected history and browser navigation", async ({
 test("saved and temporary scans keep a path through recap, Stats and Plans", async ({ page }) => {
   await page.goto("/app/scan");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "sample.stackreplay.json",
     mimeType: "application/json",
@@ -75,7 +75,7 @@ test("saved and temporary scans keep a path through recap, Stats and Plans", asy
   });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
   const id = new URL(page.url()).searchParams.get("import");
-  await page.getByRole("link", { name: "Explore workload details" }).click();
+  await page.getByRole("link", { name: "Explore your stats" }).click();
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await expect(page.getByTestId("automatic-workload")).toBeVisible();
   // Client links retain the in-memory import. A full page navigation would intentionally discard it.

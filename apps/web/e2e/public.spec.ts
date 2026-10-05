@@ -515,9 +515,15 @@ test.describe("share links", () => {
     const [version, checksum, payload] = token.split(".") as [string, string, string];
     const tampered = `${version}.${checksum}.${payload.slice(0, -4)}AAAA`;
 
-    await page.goto(`/s/${tampered}`);
-    await expect(page.getByTestId("share-invalid")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("cannot be read");
+    const response = await page.goto(`/s/${tampered}`);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Let’s get you somewhere useful.",
+    );
+    await expect(page.getByRole("link", { name: "Make my recap", exact: true })).toHaveAttribute(
+      "href",
+      "/app/scan",
+    );
     await expect(page.getByTestId("share-card")).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/u);
   });

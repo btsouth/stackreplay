@@ -251,13 +251,13 @@ test("input labels, error description, keyboard focus and reduced motion work", 
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/design");
-  const input = page.getByRole("textbox", { name: "Plan slug" });
+  const input = page.getByRole("textbox", { name: "Plan ID", exact: true });
   await input.fill("example-plan");
   await expect(input).toHaveValue("example-plan");
   await page.keyboard.press("Tab");
   const invalid = page.getByRole("textbox", { name: "Invalid", exact: true });
   await expect(invalid).toBeFocused();
-  await expect(invalid).toHaveAccessibleDescription("No plan matches this slug.");
+  await expect(invalid).toHaveAccessibleDescription("No plan matches this ID.");
   expect(await invalid.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe("none");
   expect(
     await input.evaluate((el) => parseFloat(getComputedStyle(el).transitionDuration)),
