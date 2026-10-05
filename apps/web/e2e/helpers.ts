@@ -93,6 +93,11 @@ export async function visitPlanSuggestions(page: Page): Promise<void> {
     .locator(`a[href="/app/plans${scan ? `?import=${scan}` : ""}"]`)
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(
+    page
+      .getByRole("navigation", { name: "Your plan tools" })
+      .getByRole("link", { name: "Your plans", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await page
     .getByRole("navigation", { name: "Your plan tools" })
     .getByRole("link", { name: "Try a change", exact: true })
