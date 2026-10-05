@@ -1,6 +1,8 @@
 "use client";
+import { SegmentedControl } from "@stackreplay/ui";
 import Link from "next/link";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import { ModelPriceComparison } from "@/components/public/model-price-comparison";
 import { ModelTable } from "@/components/public/model-table";
 import { PromoTag } from "@/components/public/promo-tag";
@@ -57,7 +59,9 @@ export function ModelExplorer({
   models,
   prices = {},
   planCounts = {},
+  spotlight,
 }: {
+  spotlight?: ReactNode;
   models: readonly PublicModelSummary[];
   prices?: Record<string, ModelPrices[]>;
   planCounts?: Record<string, number>;
@@ -76,6 +80,31 @@ export function ModelExplorer({
   const [withApiPrice, setWithApiPrice] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [selectionRestored, setSelectionRestored] = useState(false);
+  useEffect(() => {
+    try {
+      const saved: unknown = JSON.parse(
+        sessionStorage.getItem("stackreplay:public-model-selection") ?? "[]",
+      );
+      if (Array.isArray(saved))
+        setSelected(
+          saved
+            .filter((id): id is string => typeof id === "string" && models.some((m) => m.id === id))
+            .slice(0, 4),
+        );
+    } catch {
+      /* Optional public selection memory. */
+    }
+    setSelectionRestored(true);
+  }, [models]);
+  useEffect(() => {
+    if (!selectionRestored) return;
+    try {
+      sessionStorage.setItem("stackreplay:public-model-selection", JSON.stringify(selected));
+    } catch {
+      /* Storage can be disabled. */
+    }
+  }, [selected, selectionRestored]);
   const developers = useMemo(
     () => developerOptions(models.filter((m) => m.kind === "release")),
     [models],
@@ -157,7 +186,7 @@ export function ModelExplorer({
   return (
     <div data-model-results>
       <div className="market-section-title">
-        <span>01 / Explore models</span>
+        <span>Explore models</span>
         <span>
           {modelsInView(models, "models").length} models · {modelsInView(models, "legacy").length}{" "}
           legacy
@@ -177,9 +206,10 @@ export function ModelExplorer({
             placeholder="Search models…"
           />
         </label>
-        <label>
+        <div className="catalog-control">
           Developer
-          <select
+          <CatalogSelect
+            label="Developer"
             disabled={!ready}
             value={developer}
             onChange={(e) => setDeveloper(e.target.value)}
@@ -190,11 +220,12 @@ export function ModelExplorer({
                 {d.name}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Capability
-          <select
+          <CatalogSelect
+            label="Capability"
             disabled={!ready}
             value={capability}
             onChange={(e) => setCapability(e.target.value)}
@@ -204,11 +235,12 @@ export function ModelExplorer({
               <option key={item}>{item}</option>
             ))}
             <option value="long-context">1M+ input / context</option>
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Order by
-          <select
+          <CatalogSelect
+            label="Order by"
             disabled={!ready}
             value={sort}
             onChange={(e) => changeSort(e.target.value as ModelSortKey)}
@@ -218,11 +250,12 @@ export function ModelExplorer({
                 {label}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Direction
-          <select
+          <CatalogSelect
+            label="Direction"
             value={directionLabels ? direction : "fixed"}
             disabled={!ready || !directionLabels}
             onChange={(e) => setDirection(e.target.value as SortDirection)}
@@ -237,8 +270,8 @@ export function ModelExplorer({
             ) : (
               <option value="fixed">Fixed order</option>
             )}
-          </select>
-        </label>
+          </CatalogSelect>
+        </div>
         <fieldset className="market-filter-checks">
           <legend>Access</legend>
           <label>
@@ -292,34 +325,18 @@ export function ModelExplorer({
               <span data-layout-pending={pending("cards")}> · Select up to 4 to compare rates</span>
             )}
           </p>
-          <fieldset
-            className="market-layout-toggle shrink-0"
-            data-layout-pending={layout === undefined || undefined}
-          >
-            <legend className="sr-only">Layout</legend>
-            <div>
-              {(
-                [
-                  ["cards", "Cards"],
-                  ["table", "Table"],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  type="button"
-                  key={id}
-                  aria-pressed={layout === id}
-                  disabled={!ready}
-                  data-layout={id}
-                  data-testid={`model-layout-${id}`}
-                  onClick={() => setLayout(id)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <SegmentedControl
+            label="Layout"
+            options={[
+              { value: "cards", label: "Cards", disabled: !ready },
+              { value: "table", label: "Table", disabled: !ready },
+            ]}
+            value={layout ?? "cards"}
+            onValueChange={(value) => setLayout(value as ModelLayout)}
+          />
         </div>
       </div>
+      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
           <p className="market-muted">

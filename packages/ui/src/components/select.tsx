@@ -21,6 +21,8 @@ export interface SelectProps {
   required?: boolean;
   placeholder?: string;
   className?: string;
+  /** Keep listbox options inside a native modal dialog’s top layer. */
+  portalContainer?: HTMLElement | null;
 }
 /** Base UI owns typeahead, arrows, Home/End, Escape, focus return and form submission. */
 export function Select({
@@ -35,6 +37,7 @@ export function Select({
   required,
   placeholder = "Choose an option",
   className,
+  portalContainer,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   return (
@@ -72,7 +75,7 @@ export function Select({
           <ChevronDown size={16} aria-hidden="true" />
         </BaseSelect.Icon>
       </BaseSelect.Trigger>
-      <BaseSelect.Portal>
+      <BaseSelect.Portal container={portalContainer}>
         <BaseSelect.Positioner sideOffset={8} className="sr-select-positioner">
           <BaseSelect.Popup className="sr-select-popup">
             <BaseSelect.List>

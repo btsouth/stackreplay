@@ -20,21 +20,22 @@ export default function ModelsPage() {
         compact
         eyebrow="The model field guide"
         title="Know your models."
-        description="Compare the cost. Find the access. Put the alternatives to work on your own history."
-      >
-        <aside className="market-feature">
-          <p className="market-kicker">New / September 28</p>
-          <h2>Claude Sonnet 5.5</h2>
-          <p>
-            Published API rates: $2 input, $10 output and $0.20 cache reads per million tokens.
-            Inspect pricing and cache-write options.
-          </p>
-          <Link className="market-link" href="/models/claude-sonnet-5-5">
-            Explore the release ↗
-          </Link>
-        </aside>
-      </MarketHeader>
+        description="Find a model by developer, capability or exact identity. Compare published API prices and see which coding plans include it."
+      />
       <ModelExplorer
+        spotlight={
+          <aside className="market-feature">
+            <p className="market-kicker">Release spotlight · September 28, 2026</p>
+            <h2>Claude Sonnet 5.5</h2>
+            <p>
+              Published API rates: $2 input, $10 output and $0.20 cache reads per million tokens.
+              Inspect pricing and cache-write options.
+            </p>
+            <Link className="market-link" href="/models/claude-sonnet-5-5">
+              Explore the release ↗
+            </Link>
+          </aside>
+        }
         models={catalog.models}
         prices={prices}
         planCounts={modelPlanCounts(catalog.models)}

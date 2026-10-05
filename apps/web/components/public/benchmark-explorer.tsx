@@ -11,8 +11,10 @@ import {
   frontierModelIds,
   observationId,
 } from "@stackreplay/benchmarks";
+import { PageHeader, Select } from "@stackreplay/ui";
 import Link from "next/link";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import {
   type BenchmarkExport,
   benchmarkEvidenceSummary,
@@ -245,12 +247,11 @@ export function BenchmarkExplorer({
       )}
       <header className="market-header bench-header">
         <div>
-          <p className="market-kicker">Benchmark sheet</p>
-          <h1>Model Benchmarks</h1>
-          <p className="market-description">
-            Exact benchmark versions. Verified reported scores. Each evaluation keeps its source and
-            setup.
-          </p>
+          <PageHeader
+            eyebrow="The evidence, in context"
+            title="Model benchmarks"
+            description="Choose models to explore their reported results. Every score keeps its exact test version, source and evaluation setup."
+          />
           <p className="bench-source-label">
             {error ? "Evidence unavailable for this selection." : evidence.line}
           </p>
@@ -288,6 +289,17 @@ export function BenchmarkExplorer({
         </aside>
       </header>
       <div className="bench-toolbar">
+        <div className="bench-edition">
+          <span className="market-muted">Evidence edition</span>
+          <Select
+            label="Evidence edition"
+            value={state.edition}
+            options={Object.keys(editions).map((id) => ({ value: id, label: id }))}
+            onValueChange={(edition) =>
+              change({ edition, sourceSetId: undefined, observationIds: [] })
+            }
+          />
+        </div>
         <fieldset className="bench-selection" aria-label="Selected benchmark models">
           {selectedModels.map((m) => (
             <button
@@ -732,10 +744,11 @@ export function BenchmarkExplorer({
                       <p className="market-muted">{cell.selectionReason}</p>
                       <BenchmarkEvidence data={data} observation={cell.observation} />
                       {cell.alternatives.length > 1 && (
-                        <label className="bench-alternatives">
+                        <div className="catalog-control bench-alternatives">
                           Reported results
-                          <select
-                            aria-label={`Reported result for ${models.find((m) => m.id === cell.modelId)?.name}`}
+                          <CatalogSelect
+                            label={`Reported result for ${models.find((m) => m.id === cell.modelId)?.name}`}
+                            portalContainer={dialog.current}
                             value={observationId(cell.observation)}
                             onChange={(e) =>
                               change({
@@ -756,8 +769,8 @@ export function BenchmarkExplorer({
                                 {o.effort && ` · ${o.effort}`}
                               </option>
                             ))}
-                          </select>
-                        </label>
+                          </CatalogSelect>
+                        </div>
                       )}
                     </>
                   ) : (

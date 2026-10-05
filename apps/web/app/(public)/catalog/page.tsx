@@ -1,75 +1,161 @@
-import { CatalogSubNav, PageHeader, Panel } from "@stackreplay/ui";
-import { ArrowUpRight } from "lucide-react";
+import { buttonVariants, CatalogSubNav, PageHeader, Panel, SectionHeader } from "@stackreplay/ui";
+import { ArrowUpRight, BookOpen, Layers3, ScanLine } from "lucide-react";
 import Link from "next/link";
+import { MarketFooter } from "@/components/public/market-header";
+import { marketEventViews } from "@/lib/market/events";
+import { loadPublicCatalog } from "@/lib/public-catalog";
+import { loadPublicDirectory } from "@/lib/public-directory";
+import { publicPlanPriceText } from "@/lib/public-plan-price";
 import { publicPageMetadata } from "@/lib/site";
 export const metadata = publicPageMetadata({
   title: "Models & plans",
   description: "Explore AI models, coding plans, benchmark evidence and sourced updates.",
   path: "/catalog",
 });
-const destinations = [
-  {
-    href: "/models",
-    title: "Find your next model",
-    detail: "Explore models, published API prices and where you can use them.",
-    label: "Models",
-  },
-  {
-    href: "/plans",
-    title: "A plan that fits your work",
-    detail: "Compare coding subscriptions, model access and published allowances.",
-    label: "Plans",
-  },
+const guides = [
   {
     href: "/providers",
-    title: "Meet the providers",
-    detail: "See who builds the models and how their tools and plans connect.",
     label: "Providers",
+    title: "Follow the source",
+    detail: "Who builds each model, who offers access and which plans connect them.",
   },
   {
     href: "/benchmarks",
-    title: "Look behind the scores",
-    detail: "Read dated benchmark results with the evidence that supports them.",
     label: "Benchmarks",
+    title: "Read beyond the score",
+    detail: "Reported results, exact test versions and the evaluation setups behind them.",
   },
   {
     href: "/compare",
-    title: "Put your options side by side",
-    detail: "Compare documented plan facts before making your own choice.",
     label: "Compare",
-  },
-  {
-    href: "/changelog",
-    title: "Keep up with what changes",
-    detail: "Follow sourced model, price, plan and benchmark updates.",
-    label: "Updates",
+    title: "Find the fit",
+    detail: "Put two or three plans side by side. Published facts, with the gaps left visible.",
   },
 ];
 export default function CatalogPage() {
+  const catalog = loadPublicCatalog();
+  const directory = loadPublicDirectory();
+  const latest = marketEventViews(catalog).slice(0, 3);
+  const models = ["claude-sonnet-5-5", "gpt-5-4", "deepseek-v4-1-flash"].flatMap((id) => {
+    const model = catalog.models.find((m) => m.id === id);
+    return model ? [model] : [];
+  });
+  const plans = ["anthropic-claude-pro", "openai-chatgpt-plus", "opencode-go"].flatMap((id) => {
+    const plan = directory.planById(id);
+    return plan ? [plan] : [];
+  });
   return (
-    <>
+    <div className="catalog-editorial">
       <CatalogSubNav />
       <PageHeader
-        eyebrow="A little market perspective"
-        title="Models. Plans. Possibilities."
-        description="Your recap tells your story. The catalog helps you explore what could come next, with published facts and sources you can check."
+        eyebrow="The field guide"
+        title={
+          <>
+            A wider view.
+            <br />
+            <span className="text-accent">Your next possibility.</span>
+          </>
+        }
+        description="Your recap tells your story. Explore the models and plans around it, with published facts and sources you can check."
+        actions={
+          <Link href="/app/scan" className={buttonVariants({ variant: "outline" })}>
+            <ScanLine size={18} aria-hidden="true" /> Make my recap
+          </Link>
+        }
       />
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {destinations.map((item) => (
-          <Panel key={item.href} className="flex flex-col">
-            <p className="sr-eyebrow">{item.label}</p>
-            <h2 className="mt-4 text-2xl font-medium tracking-tight">{item.title}</h2>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{item.detail}</p>
-            <Link
-              href={item.href}
-              className="mt-auto inline-flex min-h-11 items-center gap-3 pt-6 text-sm font-medium text-accent"
-            >
-              Explore {item.label.toLowerCase()}
-              <ArrowUpRight size={18} aria-hidden="true" />
+      <div className="catalog-leads">
+        <Panel className="catalog-lead">
+          <BookOpen size={28} aria-hidden="true" />
+          <p className="sr-eyebrow">Models</p>
+          <h2>
+            Find the right
+            <br />
+            kind of intelligence.
+          </h2>
+          <p>
+            Search by capability, developer or exact model identity. Explore API prices and the
+            subscriptions that include them.
+          </p>
+          <Link className="catalog-cta" href="/models">
+            Explore models <ArrowUpRight size={20} aria-hidden="true" />
+          </Link>
+          <div className="catalog-shortlist">
+            <span>Editorial starting points</span>
+            {models.map((m) => (
+              <Link key={m.id} href={`/models/${m.id}`}>
+                {m.name} <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </Panel>
+        <Panel className="catalog-lead catalog-lead-plans">
+          <Layers3 size={28} aria-hidden="true" />
+          <p className="sr-eyebrow">Plans</p>
+          <h2>
+            Know what
+            <br />
+            you’re signing up for.
+          </h2>
+          <p>
+            Published prices, included models and meaningful limits. Find the details that matter
+            before choosing a subscription.
+          </p>
+          <Link className="catalog-cta" href="/plans">
+            Explore plans <ArrowUpRight size={20} aria-hidden="true" />
+          </Link>
+          <div className="catalog-shortlist">
+            <span>A few places to begin</span>
+            {plans.map((p) => (
+              <Link key={p.id} href={`/plans/${p.id}`}>
+                <span>{p.name}</span>
+                <span>{publicPlanPriceText(p)}</span>
+              </Link>
+            ))}
+          </div>
+        </Panel>
+      </div>
+      <SectionHeader
+        eyebrow="On the record"
+        title="What’s changed"
+        description="Recent recorded changes, dated by when they happened. This is a sourced selection, not a complete news feed."
+        actions={
+          <Link href="/changelog" className="market-link">
+            All updates <ArrowUpRight size={18} aria-hidden="true" />
+          </Link>
+        }
+      />
+      <div className="catalog-news">
+        {latest.map((event) => (
+          <article key={event.id}>
+            <p className="market-muted">
+              <time dateTime={event.occurredAt}>{event.day}</time> · {event.providerName}
+            </p>
+            <h3>
+              <Link href={`/changelog/${event.id}`}>
+                {event.title} <ArrowUpRight size={18} aria-hidden="true" />
+              </Link>
+            </h3>
+            <p>{event.summary}</p>
+          </article>
+        ))}
+      </div>
+      <SectionHeader
+        title="Make an informed choice"
+        description="The evidence and context behind the catalog."
+      />
+      <div className="catalog-guides">
+        {guides.map((g) => (
+          <Panel key={g.href}>
+            <p className="sr-eyebrow">{g.label}</p>
+            <h3>{g.title}</h3>
+            <p>{g.detail}</p>
+            <Link href={g.href} className="market-link">
+              Explore {g.label.toLowerCase()} <ArrowUpRight size={18} aria-hidden="true" />
             </Link>
           </Panel>
         ))}
       </div>
-    </>
+      <MarketFooter />
+    </div>
   );
 }

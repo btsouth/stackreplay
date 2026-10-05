@@ -1,5 +1,6 @@
 import { PublicShell } from "@stackreplay/ui";
 import { NotFoundContent } from "@/components/public/not-found-content";
+import { NotFoundTheme } from "@/components/public/not-found-theme";
 import { brandAssets } from "@/lib/site";
 
 export default function NotFound() {
@@ -12,6 +13,7 @@ export default function NotFound() {
       footerLogoWidth={brandAssets.footer.width}
       footerLogoHeight={brandAssets.footer.height}
     >
+      <NotFoundTheme />
       <NotFoundContent />
     </PublicShell>
   );

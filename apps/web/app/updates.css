@@ -41,7 +41,7 @@
     outline-offset: 2px;
   }
   .updates-filter-count {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 0.72rem;
     font-variant-numeric: tabular-nums;
     opacity: 0.75;
@@ -61,11 +61,11 @@
     }
   }
   .updates-day-label {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 0.72rem;
     font-weight: 400;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--muted-foreground);
   }
   @media (min-width: 900px) {
@@ -97,10 +97,10 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem 0.9rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 0.66rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
     color: var(--muted-foreground);
   }
   .updates-major {
@@ -126,7 +126,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem 1.25rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: 0.78rem;
     font-variant-numeric: tabular-nums;
   }

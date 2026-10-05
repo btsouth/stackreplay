@@ -18,8 +18,8 @@ const PUBLIC_ROUTES = [
   { path: "/", heading: "Your AI coding, replayed." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
-  { path: "/compare", heading: "Compare plans" },
-  { path: "/methodology", heading: "Methodology" },
+  { path: "/compare", heading: "Find the fit." },
+  { path: "/methodology", heading: "Your history. Your browser." },
   { path: "/changelog", heading: "What changed in the AI market." },
 ] as const;
 
@@ -101,7 +101,7 @@ test.describe("public site", () => {
       "href",
       "/compare?left=clinepass&right=openai-chatgpt-pro",
     );
-    await page.getByRole("link", { name: "Analyze my workload" }).click();
+    await page.getByRole("link", { name: "Make my recap", exact: true }).click();
     await expect(page.getByTestId("import-dropzone")).toBeVisible();
   });
 

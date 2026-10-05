@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { selectCatalogOption } from "./public-controls";
 
 test("model decision pages expose pricing conditions without opening evidence", async ({
   page,
@@ -51,10 +52,10 @@ test("model comparison uses the published input label and corrected capability f
   const selected = page.getByRole("region", { name: "Selected model specifications" });
   await expect(selected.getByRole("row", { name: /^Context/u })).toContainText("1.05M max input");
   await page.getByLabel("Find a model, family name or exact alias").fill("Kimi K3");
-  await page.getByLabel("Capability").selectOption("Video input");
+  await selectCatalogOption(page.getByLabel("Capability"), "Video input");
   await expect(page.getByTestId("model-row")).toContainText("Kimi K3");
   await page.getByLabel("Find a model, family name or exact alias").fill("Nano Banana Pro");
-  await page.getByLabel("Capability").selectOption("Tool calling");
+  await selectCatalogOption(page.getByLabel("Capability"), "Tool calling");
   await expect(page.getByTestId("model-row")).toHaveCount(0);
 });
 

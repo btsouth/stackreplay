@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import type { CompareFacts } from "@/lib/compare-facts";
 import type { PublicProviderSummary } from "@/lib/public-catalog";
 import type { PublicDirectoryPlan } from "@/lib/public-directory";
@@ -17,7 +18,9 @@ export function PlanExplorer({
   tools = {},
   usage = {},
   asOf,
+  spotlight,
 }: {
+  spotlight?: ReactNode;
   plans: readonly PublicDirectoryPlan[];
   providers: readonly PublicProviderSummary[];
   facts: Readonly<Record<string, CompareFacts>>;
@@ -31,6 +34,33 @@ export function PlanExplorer({
   const [tool, setTool] = useState("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("provider");
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("stackreplay:public-plans") ?? "null");
+      if (saved) {
+        setProvider(providers.some((p) => p.id === saved.provider) ? saved.provider : "all");
+        setTool(Object.values(tools).flat().includes(saved.tool) ? saved.tool : "all");
+        setQuery(typeof saved.query === "string" ? saved.query : "");
+        setSort(saved.sort === "price" ? "price" : "provider");
+        setExpanded(saved.expanded === true);
+      }
+    } catch {
+      /* Storage can be disabled. Discovery remains usable. */
+    }
+    setRestored(true);
+  }, [providers, tools]);
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      sessionStorage.setItem(
+        "stackreplay:public-plans",
+        JSON.stringify({ provider, tool, query, sort, expanded }),
+      );
+    } catch {
+      /* Optional view memory. */
+    }
+  }, [restored, provider, tool, query, sort, expanded]);
   const options = [...new Set(Object.values(tools).flat())].sort();
   const visible = plans
     .filter(
@@ -49,7 +79,7 @@ export function PlanExplorer({
   return (
     <div>
       <div className="market-section-title">
-        <span>01 / Find your subscription</span>
+        <span>Find your subscription</span>
         <span>
           {providers.length} providers · {plans.length} plans
         </span>
@@ -64,37 +94,42 @@ export function PlanExplorer({
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <label>
+        <div className="catalog-control">
           Provider
-          <select value={provider} onChange={(e) => setProvider(e.target.value)}>
+          <CatalogSelect
+            label="Provider"
+            value={provider}
+            onChange={(e) => setProvider(e.target.value)}
+          >
             <option value="all">All providers</option>
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Works with
-          <select value={tool} onChange={(e) => setTool(e.target.value)}>
+          <CatalogSelect label="Works with" value={tool} onChange={(e) => setTool(e.target.value)}>
             <option value="all">All tools</option>
             {options.map((t) => (
               <option key={t}>{t}</option>
             ))}
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Order by
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          <CatalogSelect label="Order by" value={sort} onChange={(e) => setSort(e.target.value)}>
             <option value="provider">Provider</option>
             <option value="price">Published price</option>
-          </select>
-        </label>
+          </CatalogSelect>
+        </div>
       </div>
       <p role="status" className="market-muted border-b border-border pb-4">
         {visible.length} plans · {PUBLIC_PRICE_SORT_NOTE}
       </p>
+      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       <div data-testid="plan-results">
         {visible.slice(0, expanded ? undefined : 12).map((plan) => (
           <article className="market-plan-row" data-testid="plan-card" key={plan.id}>
@@ -199,6 +234,17 @@ export function PlanExplorer({
       {!visible.length && (
         <p className="py-8 text-muted-foreground">
           No plans match these filters. Try another tool or provider.
+          <button
+            className="market-link block"
+            type="button"
+            onClick={() => {
+              setProvider("all");
+              setTool("all");
+              setQuery("");
+            }}
+          >
+            Clear filters
+          </button>
         </p>
       )}
     </div>

@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { expectCatalogSelection } from "./public-controls";
 
 async function accessible(page: Page) {
   await expect(page).toHaveTitle(/StackReplay/u);
@@ -125,8 +126,8 @@ test("shared models preserve filters, results and hash through reload and naviga
 }) => {
   await page.goto("/models?view=table&developer=anthropic&sort=input&dir=desc#published-api-rates");
   const path = new URL(page.url()).pathname + new URL(page.url()).search + new URL(page.url()).hash;
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
-  await expect(page.getByLabel("Order by")).toHaveValue("input");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
+  await expectCatalogSelection(page.getByLabel("Order by"), "input");
   const rows = page.getByTestId("model-table-row");
   await expect(rows.first()).toBeVisible();
   const names = await rows.locator("th a").allTextContents();
@@ -141,7 +142,7 @@ test("shared models preserve filters, results and hash through reload and naviga
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${path.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}$`, "u"));
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
   await expect(rows.first()).toBeVisible();
   expect(await rows.locator("th a").allTextContents()).toEqual(names);
   await page.goForward();
@@ -178,7 +179,7 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await catalog.click();
   await expect(page).toHaveURL(/\/catalog$/u);
   await expect(
-    page.getByRole("heading", { name: "Models. Plans. Possibilities.", exact: true }),
+    page.getByRole("heading", { name: "A wider view. Your next possibility.", exact: true }),
   ).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/(?:#main-content)?$/u);
