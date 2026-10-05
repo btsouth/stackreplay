@@ -516,7 +516,7 @@ export function AutomaticWorkload({
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-medium">Compare against what I paid</h2>
           <button type="button" className="min-h-11 text-sm text-accent" onClick={closeBilling}>
-            Back to workload overview
+            Back to stats
           </button>
         </div>
         <p className="text-sm text-muted-foreground">
