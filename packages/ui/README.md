@@ -6,7 +6,7 @@ Import `styles/tokens.css`, `styles/theme.css` and `styles/premium.css` after Ta
 
 - `PageHeader`, `SectionHeader`: sentence case eyebrow, expressive heading, description, optional actions.
 - `Card`, `Panel`: themed containers. `StatTile`: large figure, label, hint and default/ember/citron tone. `Metric`: compact figure.
-- `Select`: required `label`, `options` (`value`, `label`, optional `disabled`), controlled `value`/`onValueChange` or `defaultValue`, optional `name`/`required`. Base UI handles arrows, typeahead, Escape, focus return and form input. Use instead of native selects.
+- `Select`: required `label`, `options` (`value`, `label`, optional `disabled`), controlled `value`/`onValueChange` or `defaultValue`, optional `name`/`required`. Base UI handles arrows, typeahead, Escape, focus return and form input. Use instead of native selects. Pass `portalContainer` when a select is inside a native modal dialog, so its options remain in the dialog’s top layer.
 - `SegmentedControl`: labeled radio group; `options`, `value`, `onValueChange`. Arrows select, Tab moves on.
 - `Tabs`: labeled in-page group; `items` with `value`, `label`, `content`. Base UI handles arrows and panel semantics. Route navigation uses links with `aria-current`.
 - `DataTable`: `label`, `rows`, stable `rowKey`, `columns` with `key`, `label`, `render`, optional `compare` and `numeric`. Sort buttons announce `aria-sort`; scroll region is keyboard focusable. Compare raw numbers/BigInts, never formatted prices.
