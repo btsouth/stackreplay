@@ -4,6 +4,7 @@ import {
   CatalogSubNav,
   DataTable,
   EmptyState,
+  Input,
   LoadingSkeleton,
   Notice,
   PageHeader,
@@ -118,6 +119,27 @@ export function DesignGallery() {
           ]}
         />
       </section>
+      <Panel>
+        <SectionHeader title="Clear labels and helpful errors" />
+        <div className="grid max-w-xl gap-4">
+          <label htmlFor="example-slug">
+            Plan slug
+            <Input id="example-slug" placeholder="A catalog plan ID" />
+          </label>
+          <label htmlFor="invalid-slug">
+            Invalid
+            <Input
+              id="invalid-slug"
+              aria-invalid="true"
+              aria-describedby="invalid-slug-error"
+              defaultValue="unknown-plan"
+            />
+          </label>
+          <p id="invalid-slug-error" className="text-sm text-negative">
+            No plan matches this slug.
+          </p>
+        </div>
+      </Panel>
       <EmptyState
         title="Your story starts with a scan"
         description="Bring in your coding history to see your recap. Your logs stay in your browser."

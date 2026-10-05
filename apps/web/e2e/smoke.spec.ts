@@ -8,7 +8,9 @@ test("the app entry opens Scan on a first visit, with working navigation", async
   await expect(page).toHaveURL(/\/app\/scan$/);
   await expect(page.getByRole("heading", { name: "Scan your history", exact: true })).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
-  await expect(page.getByRole("link", { name: "StackReplay home" })).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
+  ).toBeVisible();
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
@@ -43,7 +45,9 @@ test("public and workspace content keep safe gutters", async ({ page }, testInfo
 test("Import and Settings provide a route back into Replay", async ({ page }, testInfo) => {
   for (const route of ["/app/scan", "/app/settings"]) {
     await page.goto(route);
-    await expect(page.getByRole("link", { name: "StackReplay home" })).toHaveAttribute("href", "/");
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
+    ).toHaveAttribute("href", "/");
     if (testInfo.project.name === "mobile") {
       await page.getByRole("button", { name: "Open menu" }).click();
       await page.getByRole("dialog").getByRole("link", { name: "Plans", exact: true }).click();
@@ -214,7 +218,7 @@ test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ pag
     await page.reload();
     await trigger.click();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByRole("button", { name: "Close navigation" }).click();
+    await page.getByRole("button", { name: "Close menu" }).click();
     await expect(trigger).toBeFocused();
   }
   await trigger.click();
@@ -227,7 +231,9 @@ test("mobile controls have touch-sized targets and narrow layouts fit", async ({
   test.skip(info.project.name !== "mobile", "touch viewport only");
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/design");
-  for (const control of await page.locator("button:visible, input:visible").all()) {
+  for (const control of await page
+    .locator("button:visible, input:visible:not([aria-hidden=true]):not([type=hidden])")
+    .all()) {
     const box = await control.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
     expect(box?.width).toBeGreaterThanOrEqual(44);

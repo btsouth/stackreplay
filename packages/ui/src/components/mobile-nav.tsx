@@ -13,6 +13,7 @@ import {
 } from "../lib/public-nav";
 import { Brand } from "./brand";
 import { buttonVariants } from "./button";
+import { NavLink } from "./nav-link";
 
 export function MobileNav({
   context = "app",
@@ -66,14 +67,22 @@ export function MobileNav({
             <ul className="sr-menu-links">
               {items.map((item) => (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}
-                    onClick={() => setOpen(false)}
-                  >
-                    {item.label}
-                    <ArrowUpRight size={20} aria-hidden="true" />
-                  </Link>
+                  {context === "app" ? (
+                    <NavLink
+                      href={item.href}
+                      label={item.label}
+                      onNavigate={() => setOpen(false)}
+                    />
+                  ) : (
+                    <Link
+                      href={item.href}
+                      aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                      <ArrowUpRight size={20} aria-hidden="true" />
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

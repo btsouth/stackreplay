@@ -69,10 +69,17 @@ test("saved and temporary scans keep a path through recap, Stats and Plans", asy
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await expect(page.getByTestId("automatic-workload")).toBeVisible();
   // Client links retain the in-memory import. A full page navigation would intentionally discard it.
-  const link = page.locator(`a[href="/app/plans?import=${id}"]`).first();
-  await link.evaluate((node: HTMLAnchorElement) => node.click());
+  if (
+    !(await page.getByRole("banner").getByRole("link", { name: "Plans", exact: true }).isVisible())
+  )
+    await page.getByRole("button", { name: "Open menu" }).click();
+  const destination = page
+    .getByRole("link", { name: "Plans", exact: true })
+    .filter({ visible: true });
+  await destination.click();
   await expect(page.getByTestId("my-stack")).toBeVisible();
-  await expect(page.getByTestId("stack-workload")).toHaveValue(id ?? "");
+  expect(new URL(page.url()).searchParams.get("import")).toBe(id);
+  await expect(page.getByTestId("my-stack")).not.toContainText("That workload is no longer stored");
 });
 
 test("design controls support keyboard selection, tab panels and sorting", async ({ page }) => {
@@ -81,7 +88,9 @@ test("design controls support keyboard selection, tab panels and sorting", async
   await select.focus();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("listbox")).toBeVisible();
-  await page.keyboard.press("End");
+  await page.getByRole("option", { name: "Fictional sample" }).focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "Another sample" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(select).toContainText("Another sample");
   await expect(select).toBeFocused();

@@ -212,8 +212,8 @@ test("default decisions carry the same scope and targets into the custom engine"
     "api",
     "import",
     "mode",
-    "section",
     "scope",
+    "section",
   ]);
   // Reload holds scope/target, then changing to all work removes only scope.
   await page.reload();

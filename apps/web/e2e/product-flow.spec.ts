@@ -34,7 +34,9 @@ test("Back and Forward return to the same Replay target and Compare decision", a
   await expect(page.getByTestId("stack-comparison")).toBeVisible({ timeout: 30_000 });
   if (info.project.name === "desktop")
     await expect(
-      page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Compare" }),
+      page
+        .getByRole("navigation", { name: "Primary" })
+        .getByRole("link", { name: "Plans", exact: true }),
     ).toHaveAttribute("aria-current", "page");
 });
 

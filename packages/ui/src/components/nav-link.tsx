@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { cn } from "../lib/cn";
 import { isNavItemActive } from "../lib/nav";
 
@@ -17,9 +18,16 @@ export interface NavLinkProps {
 }
 
 /** Quiet sidebar navigation link with aria-current for the active route. */
-export function NavLink({ href, label, size = "sm", onNavigate, quiet = false }: NavLinkProps) {
+function NavLinkBase({
+  href,
+  label,
+  size = "sm",
+  onNavigate,
+  quiet = false,
+  activeHref = href,
+}: NavLinkProps & { activeHref?: string }) {
   const pathname = usePathname();
-  const active = isNavItemActive(pathname, href);
+  const active = isNavItemActive(pathname, activeHref);
   return (
     <Link
       href={href}
@@ -38,5 +46,22 @@ export function NavLink({ href, label, size = "sm", onNavigate, quiet = false }:
     >
       {label}
     </Link>
+  );
+}
+
+function LocalNavLink(props: NavLinkProps) {
+  const query = useSearchParams();
+  const importId = query.get("import");
+  const href =
+    importId && props.href.startsWith("/app/")
+      ? `${props.href}?${new URLSearchParams({ import: importId })}`
+      : props.href;
+  return <NavLinkBase {...props} href={href} activeHref={props.href} />;
+}
+export function NavLink(props: NavLinkProps) {
+  return (
+    <Suspense fallback={<NavLinkBase {...props} />}>
+      <LocalNavLink {...props} />
+    </Suspense>
   );
 }
