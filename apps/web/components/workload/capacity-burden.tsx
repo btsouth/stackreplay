@@ -1,5 +1,7 @@
 "use client";
+
 import { type ReactNode, useEffect, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import type {
   CapacityBurden,
   Distribution,
@@ -277,15 +279,20 @@ function Episode({
           );
         }}
       >
-        <label className="text-xs">
+        <div className="text-xs">
           Your impact (optional)
-          <select className={field} name="impact" defaultValue={impact?.impact ?? ""}>
+          <AppSelect
+            label="Your impact (optional)"
+            className={field}
+            name="impact"
+            defaultValue={impact?.impact ?? ""}
+          >
             <option value="">Not classified</option>
             {IMPACTS.map((v) => (
               <option key={v}>{v}</option>
             ))}
-          </select>
-        </label>
+          </AppSelect>
+        </div>
         <label className="text-xs">
           Episode note (local only)
           <textarea

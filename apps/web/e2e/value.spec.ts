@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
-import { gotoImport, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./helpers";
+import { gotoImport, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./premium-app-helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 async function importArchetype(page: Page, archetype: WorkloadArchetypeId): Promise<void> {
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: `${archetype}.json`,
     mimeType: "application/json",

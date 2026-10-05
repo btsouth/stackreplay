@@ -4,6 +4,7 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Decimal } from "@stackreplay/replay-engine";
 import { isSyntheticCatalogId } from "@stackreplay/share";
 import { useMemo, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import { newSubscriptionId, type StackSubscription } from "@/lib/current-stack";
 import { catalogPlansAt, loadPublicCatalog } from "@/lib/public-catalog";
 import type { TargetKey } from "@/lib/routes";
@@ -142,9 +143,10 @@ export function ScenarioEditor({
                 key={entry.id}
                 data-state={value === "remove" ? "removed" : changed ? "changed" : "kept"}
               >
-                <label className="stack-scenario-choice">
+                <div className="stack-scenario-choice">
                   <span className="sr-only">Proposed plan in place of {label(entry)}</span>
-                  <select
+                  <AppSelect
+                    label="Change this plan"
                     value={value}
                     data-testid={`${idPrefix}-plan-${ref}`}
                     onChange={(event) => setRow(entry, event.target.value as TargetKey | "remove")}
@@ -155,11 +157,11 @@ export function ScenarioEditor({
                       </option>
                     ))}
                     <option value="remove">Remove {name(entry.plan)}</option>
-                  </select>
+                  </AppSelect>
                   {accountOf(entry) ? (
                     <span className="stack-caption stack-scenario-account">{accountOf(entry)}</span>
                   ) : null}
-                </label>
+                </div>
                 {changed ? (
                   <button
                     type="button"
@@ -205,7 +207,8 @@ export function ScenarioEditor({
         <div className="stack-scenario-add">
           <label htmlFor={`${idPrefix}-add`}>Add a subscription</label>
           <div>
-            <select
+            <AppSelect
+              label="Add a plan"
               id={`${idPrefix}-add`}
               value={addChoice}
               data-testid={`${idPrefix}-add`}
@@ -226,7 +229,7 @@ export function ScenarioEditor({
                     ))}
                 </optgroup>
               ))}
-            </select>
+            </AppSelect>
             <button
               type="button"
               className="stack-secondary"

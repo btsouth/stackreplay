@@ -1,6 +1,6 @@
 import { type AnyShareSnapshot, decodeAnyShareToken } from "@stackreplay/share";
 import { ImageResponse } from "next/og";
-import { shareImageFonts } from "@/lib/og-fonts";
+import { premiumShareImageFonts } from "@/components/share/share-image-font";
 import { WORDMARK_DARK } from "@/lib/og-wordmark";
 import { resolveShareParam } from "@/lib/share-link-store";
 import { presentShare, type SharePresentation } from "@/lib/share-presentation";
@@ -16,11 +16,11 @@ import { presentShare, type SharePresentation } from "@/lib/share-presentation";
  * for a given URL.
  */
 
-const INK = "#eef1f6";
-const MUTED = "#8d96a8";
-const RULE = "rgba(238, 241, 246, 0.14)";
-const SIGNAL = "#4c8dff";
-const FIELD = "#0a0c11";
+const INK = "#f5f0e6";
+const MUTED = "#b5b8aa";
+const RULE = "rgba(245, 240, 230, 0.18)";
+const SIGNAL = "#d9ed98";
+const FIELD = "#151614";
 
 function firstSentence(text: string): string {
   const boundary = text.search(/(?<=[.;])\s(?=[A-Z])/u);
@@ -69,7 +69,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
         background: FIELD,
         color: INK,
         padding: "56px 72px",
-        fontFamily: "Geist",
+        fontFamily: "Instrument Sans",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -87,7 +87,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
               border: `1px solid ${presentation.label === "Translated replay" ? SIGNAL : RULE}`,
               color: presentation.label === "Translated replay" ? SIGNAL : MUTED,
               padding: "6px 14px",
-              fontFamily: "Geist Mono",
+              fontFamily: "Instrument Sans",
               fontSize: 18,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
@@ -124,7 +124,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
               style={{
                 display: "flex",
                 marginTop: 16,
-                fontFamily: "Geist Mono",
+                fontFamily: "Instrument Sans",
                 fontSize: 19,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
@@ -143,7 +143,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
               display: "flex",
               flexDirection: "column",
               marginTop: 20,
-              fontFamily: "Geist Mono",
+              fontFamily: "Instrument Sans",
               fontSize: 21,
               lineHeight: 1.35,
               color: valueScope.complete ? MUTED : INK,
@@ -174,7 +174,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
             style={{
               display: "flex",
               marginTop: 22,
-              fontFamily: "Geist Mono",
+              fontFamily: "Instrument Sans",
               fontSize: 19,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
@@ -208,7 +208,7 @@ function Card({ presentation }: { presentation: SharePresentation | undefined })
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
-          fontFamily: "Geist Mono",
+          fontFamily: "Instrument Sans",
           fontSize: 17,
           letterSpacing: "0.08em",
           color: MUTED,
@@ -239,7 +239,7 @@ export async function GET(
   return new ImageResponse(<Card presentation={presentation} />, {
     width: 1200,
     height: 630,
-    fonts: shareImageFonts(),
+    fonts: premiumShareImageFonts(),
     headers: {
       "cache-control": decoded.ok ? "public, max-age=31536000, immutable" : "public, max-age=60",
     },

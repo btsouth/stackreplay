@@ -3,7 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
 import type { CompletedReplay } from "../lib/completed-replays";
-import { gotoImport, setRulesAsOf, visitPlanSuggestions, waitForWorkload } from "./helpers";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
+import { gotoImport, setRulesAsOf, visitPlanSuggestions, waitForWorkload } from "./premium-app-helpers";
 
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
@@ -97,7 +98,7 @@ for (const theme of ["dark", "light"] as const)
     await page.getByTestId("suggest-openai-frontier").click();
     await expect(page.getByTestId("strategy-confirmation")).toContainText("5 model rules");
     await page.getByRole("button", { name: "Edit mapping" }).click();
-    await expect(page.getByLabel("Replay model for Claude Opus 5.5")).toHaveValue("gpt-6-1-sol");
+    await expectSelectValue(page.getByLabel("Replay model for Claude Opus 5.5"), "gpt-6-1-sol");
     await page.getByTestId("run-strategy").click();
     await expect(page.getByTestId("strategy-result")).toBeVisible();
     await expect(page.getByTestId("strategy-coverage")).toContainText(
@@ -148,7 +149,7 @@ test("edited unmapped calls remain in scope without a whole-workload difference"
   await setup(page);
   await page.getByTestId("suggest-openai-frontier").click();
   await page.getByRole("button", { name: "Edit mapping" }).click();
-  await page.getByLabel("Replay model for Claude Opus 5.5").selectOption("");
+  await chooseOption(page.getByLabel("Replay model for Claude Opus 5.5"), "");
   await page.getByTestId("run-strategy").click();
   await expect(page.getByTestId("strategy-coverage")).toContainText("5 / 5 calls retained");
   await expect(page.getByTestId("strategy-coverage")).toContainText("4 priced");
@@ -164,9 +165,10 @@ test("a stack scenario stays honest about capacity and manual capabilities remai
   await expect(page.getByTestId("replay-stack-period")).toContainText(
     "Recorded history · Sep 1, 2026 – Sep 5, 2026",
   );
-  await page
-    .getByTestId("replay-scenario-plan-anthropic-claude-max-5x")
-    .selectOption("plan:anthropic-claude-pro");
+  await chooseOption(
+    page.getByTestId("replay-scenario-plan-anthropic-claude-max-5x"),
+    "plan:anthropic-claude-pro",
+  );
   const outcome = page.getByTestId("replay-scenario-outcome");
   await expect(page.getByTestId("replay-scenario-outcome-delta")).toContainText("−$80/mo");
   await expect(outcome).toContainText(
@@ -255,7 +257,7 @@ test("Sep 30 viewer gets pinned suggested comparisons and independently dated cu
     "API rules as of 2026-09-29",
   );
   await page.getByRole("button", { name: "Edit mapping" }).click();
-  await expect(page.getByLabel("Replay model for Claude Opus 5.5")).toHaveValue("gpt-6-1-sol");
+  await expectSelectValue(page.getByLabel("Replay model for Claude Opus 5.5"), "gpt-6-1-sol");
   await page.getByTestId("run-strategy").click();
   await expect(page.getByTestId("strategy-difference")).toContainText("$");
   await expect(page.getByTestId("strategy-result")).not.toContainText(

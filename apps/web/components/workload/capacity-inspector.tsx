@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import {
   dateSchema,
   nextDate,
@@ -61,9 +62,10 @@ export function CapacityInspector({
         </button>
       </div>
       <div className="flex flex-wrap items-end justify-between gap-4 border-y border-border py-4">
-        <label className="min-w-0 grow text-sm sm:max-w-sm">
+        <div className="min-w-0 grow text-sm sm:max-w-sm">
           Account
-          <select
+          <AppSelect
+            label="Capacity evidence"
             aria-label="Capacity account"
             className={field}
             value={account}
@@ -78,8 +80,8 @@ export function CapacityInspector({
                 · {a.calls.toLocaleString()} responses
               </option>
             ))}
-          </select>
-        </label>
+          </AppSelect>
+        </div>
         <details className="max-w-full text-sm" data-testid="capacity-date-filter">
           <summary className="min-h-11 cursor-pointer content-center text-accent">
             {periodLabel(period)} · Change dates

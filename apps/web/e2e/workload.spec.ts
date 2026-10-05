@@ -5,6 +5,7 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import {
   captureRequests,
   createShareToken,
@@ -17,7 +18,7 @@ import {
   setRulesAsOf,
   visitReplay,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 /**
  * SCAN → UNDERSTAND → REPLAY → COMPARE, end to end in a real browser.
@@ -53,7 +54,7 @@ function claude(options: { model: string; project: string }): string {
 async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
   await gotoImport(page);
   // Saved, so a test may reload a page and still find the workload.
-  await page.getByLabel("Save normalized workload on this browser").check();
+  await page.getByLabel("Save this scan in this browser").check();
   const files = [
     {
       name: "rollout-a.jsonl",
@@ -198,10 +199,10 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
   await expect(editor).toContainText("Recorded usage magnitude is preserved");
   // Aliases are grouped: one row per canonical model, never pre-mapped.
   await expect(page.getByTestId("translation-row")).toHaveCount(2);
-  await expect(page.getByTestId("translation-select-gpt-5-6-sol")).toHaveValue("");
+  await expectSelectValue(page.getByTestId("translation-select-gpt-5-6-sol"), "");
 
-  await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
-  await page.getByTestId("translation-select-gpt-6-sol").selectOption("claude-opus-5-5");
+  await chooseOption(page.getByTestId("translation-select-gpt-5-6-sol"), "claude-opus-5-5");
+  await chooseOption(page.getByTestId("translation-select-gpt-6-sol"), "claude-opus-5-5");
   await expect(page.getByTestId("run-replay")).toHaveText("Run replay with your substitutions");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
@@ -223,7 +224,7 @@ test("Codex to Claude: an exact dead end becomes a translated scenario the user 
 
 test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
   await gotoImport(page);
-  await page.getByLabel("Save normalized workload on this browser").check();
+  await page.getByLabel("Save this scan in this browser").check();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "session.jsonl",
     mimeType: "application/jsonl",
@@ -236,7 +237,7 @@ test("Claude to Codex runs the same scenario in reverse", async ({ page }) => {
   await expect(page.getByTestId("translation-required")).toBeVisible();
   await page.getByTestId("configure-translation").click();
   // One observed model, so the row itself carries the choice.
-  await page.getByTestId("translation-select-claude-opus-5-5").selectOption("gpt-6-sol");
+  await chooseOption(page.getByTestId("translation-select-claude-opus-5-5"), "gpt-6-sol");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Translated replay", {
     timeout: 60_000,
@@ -402,7 +403,7 @@ for (const theme of ["dark", "light"] as const) {
     await openWorkloadTools(page);
     await page.getByTestId("next-cross-provider").click();
     await page.getByTestId("configure-translation").click();
-    await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-5-5");
+    await chooseOption(page.getByTestId("translation-select-gpt-5-6-sol"), "claude-opus-5-5");
     await expectNoSeriousViolations(page);
     await page.getByTestId("run-replay").click();
     await expect(page.getByTestId("replay-reading")).toBeVisible({ timeout: 60_000 });
@@ -423,7 +424,7 @@ for (const theme of ["dark", "light"] as const) {
 test("a finished scan is saved by default and survives a reload", async ({ page }) => {
   await gotoImport(page);
   await expect(
-    page.getByRole("checkbox", { name: "Save normalized workload on this browser" }),
+    page.getByRole("checkbox", { name: "Save this scan in this browser" }),
   ).toBeChecked();
   await expect(page.getByTestId("save-local-note")).toContainText(
     "Raw session files are never copied",
@@ -450,7 +451,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   // The app entry opens the saved recap; detailed values remain reachable.
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/recap$/);
-  await page.getByRole("link", { name: "Explore workload details" }).click();
+  await page.getByRole("link", { name: "Explore your stats" }).click();
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {

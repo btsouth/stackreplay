@@ -6,7 +6,7 @@ import {
   CODEX_ROLLOUT,
   COMMAND_CODE_SESSION,
 } from "../../../packages/adapters/src/fixtures/content";
-import { gotoImport, importDemo, visitPlanSuggestions, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo, visitPlanSuggestions, waitForWorkload } from "./premium-app-helpers";
 
 const STACK = "stackreplay.current-stack";
 const PREFERENCES = "stackreplay.stack-discovery.v1";

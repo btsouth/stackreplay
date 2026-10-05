@@ -1,12 +1,20 @@
 "use client";
 
-import { buttonVariants } from "@stackreplay/ui";
+import { buttonVariants, StatTile } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
 import { MissingWorkload } from "@/components/missing-workload";
+import { PageHeader } from "@/components/page-header";
+import {
+  AppPageSkeleton,
+  LocalReadError,
+  ScanEmptyState,
+  TemporaryScanNotice,
+} from "@/components/plans/app-page-state";
+import { AppSelect } from "@/components/plans/app-select";
 import { SharePanelV2 } from "@/components/share/share-panel-v2";
 import type { MarketDecision } from "@/lib/market-decision";
 import { replayLink, routeCopy, routeLink } from "@/lib/replay-navigation";
@@ -122,8 +130,11 @@ export function WorkloadSurface({
   useEffect(() => {
     if (record === undefined) return;
     const current = new URLSearchParams(window.location.search).get("import");
-    if (current !== null && current !== record.id)
-      router.replace(`/app/stats?import=${record.id}`, { scroll: false });
+    if (current !== record.id) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("import", record.id);
+      router.replace(`/app/stats?${params}${window.location.hash}`, { scroll: false });
+    }
   }, [record, router]);
 
   const analyze = useCallback(async (importId: string, zone: string, cancelled: () => boolean) => {
@@ -146,43 +157,17 @@ export function WorkloadSurface({
     };
   }, [analyze, record, timeZone]);
 
-  if (importsError)
-    return (
-      <div role="alert" className="border-l-2 border-warning pl-4 text-sm">
-        Local workloads could not be read from this browser. Reload to try again.
-      </div>
-    );
-
+  if (importsError) return <LocalReadError retry={() => window.location.reload()} />;
   if (imports === undefined)
-    return (
-      <div
-        className="flex max-w-2xl flex-col gap-3 border-t border-border pt-6"
-        role="status"
-        data-testid="workload-restoring"
-      >
-        <p className="font-mono text-xs uppercase tracking-widest text-accent">
-          Opening your workload
-        </p>
-        <h1 className="text-2xl font-medium">Restoring your recorded work</h1>
-        <p className="text-sm text-muted-foreground">
-          Looking up the workload saved in this browser…
-        </p>
-      </div>
-    );
-
+    return <AppPageSkeleton label="Opening your stats" testId="workload-restoring" />;
   if (imports.length === 0 || (record === undefined && selectedId === undefined))
     return (
-      <div className="flex max-w-2xl flex-col gap-4" data-testid="workload-empty">
-        <h1 className="text-2xl font-medium tracking-tight">Your stats</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          No workload in this browser yet. Scan the history your AI coding tools already keep
-          (Claude Code, Codex, Command Code, OpenCode), or load a demo, to see what that work is
-          worth at published API prices, what drives it, and when it gets heavy. Everything is read
-          in this browser; nothing in your history leaves it.
-        </p>
-        <Link href="/app/scan" className={`${buttonVariants({ size: "sm" })} self-start`}>
-          Scan your AI history
-        </Link>
+      <div className="premium-app">
+        <PageHeader
+          title="Your stats"
+          description="See where your AI coding work goes, from your biggest projects to your busiest days."
+        />
+        <ScanEmptyState testId="workload-empty" />
       </div>
     );
 
@@ -190,14 +175,14 @@ export function WorkloadSurface({
     return <MissingWorkload latest={imports[0]} onOpenLatest={setSelectedId} />;
 
   return (
-    <div className="flex min-w-0 flex-col gap-8" data-testid="workload-surface">
+    <div className="premium-app flex min-w-0 flex-col gap-8" data-testid="workload-surface">
       <WorkloadOpening
         onMarket={onMarket}
         record={record}
         profile={profile}
         profileFailed={error !== undefined}
         imports={imports}
-        onSelect={setSelectedId}
+        onSelect={(next) => { setSelectedId(next); const params = new URLSearchParams(window.location.search); params.set("import", next); router.push(`/app/stats?${params}${window.location.hash}`, { scroll: false }); }}
         analysisContent={(decision) =>
           profile ? (
             <WorkloadAnalysis
@@ -292,9 +277,10 @@ function WorkloadPicker({
 }) {
   if (imports.length < 2 && selectedId !== undefined && imports[0]?.id === selectedId) return null;
   return (
-    <label className="flex w-full min-w-0 max-w-xs flex-col gap-1 text-xs text-muted-foreground">
+    <div className="flex w-full min-w-0 max-w-xs flex-col gap-1 text-xs text-muted-foreground">
       Stored workload
-      <select
+      <AppSelect
+        label="History"
         value={selectedId ?? ""}
         data-testid="workload-picker"
         onChange={(event) => onSelect(event.target.value)}
@@ -308,8 +294,8 @@ function WorkloadPicker({
             {workloadName(entry)}
           </option>
         ))}
-      </select>
-    </label>
+      </AppSelect>
+    </div>
   );
 }
 
@@ -334,15 +320,33 @@ function WorkloadOpening({
 }) {
   return (
     <div className="min-w-0 space-y-4" data-testid="workload-opening">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-medium">Your stats</h1>
+      <div className="app-stats-header">
+        <PageHeader
+          eyebrow="Your work, up close"
+          title="Your stats"
+          description="See what drives your usage, where your work goes, and how it adds up at published API prices."
+        />
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
-      {record.savedLocally === false ? (
-        <p className="text-xs text-warning">
-          Not saved in this browser. This workload is available only until reload.
-        </p>
-      ) : null}
+      {record.savedLocally === false ? <TemporaryScanNotice /> : null}
+      <div className="app-stat-strip">
+        <StatTile
+          label="Known tokens processed"
+          value={formatTokens(record.summary.tokens.known) ?? "0"}
+          hint="Input, output and recorded cache usage across this scan"
+          tone="citron"
+        />
+        <StatTile
+          label="Sessions"
+          value={record.summary.sessionCount ? count(record.summary.sessionCount) : "Unknown"}
+          hint={`${count(record.eventCount)} recorded calls`}
+        />
+        <StatTile
+          label="Active days"
+          value={profile ? count(profile.overview.activeDays) : "…"}
+          hint={recordedRange(record)}
+        />
+      </div>
       <PartialScanNotice
         record={record}
         briefing

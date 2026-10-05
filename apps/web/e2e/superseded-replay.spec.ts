@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, setRulesAsOf } from "./helpers";
+import { importDemo, setRulesAsOf } from "./premium-app-helpers";
 
 /**
  * Superseded requests (M3 brief, independent audit).

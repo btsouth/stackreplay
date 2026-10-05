@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { AppPageSkeleton, LocalReadError } from "@/components/plans/app-page-state";
+import { AppSelect } from "@/components/plans/app-select";
 import { StackScenarioPanel } from "@/components/stack/stack-scenario-panel";
 import {
   type CompletedReplay,
@@ -86,7 +88,7 @@ export function SuggestedReplays({
       active = false;
     };
   }, [initialImportId]);
-  if (state.error) return <p role="alert">Local workloads could not be read. Reload to retry.</p>;
+  if (state.error) return <LocalReadError retry={() => window.location.reload()} />;
   if (!state.loaded) return <ReplayPreparation />;
   if (!state.record)
     return (
@@ -111,19 +113,10 @@ export function SuggestedReplays({
 }
 function ReplayPreparation() {
   return (
-    <div
-      role="status"
-      data-testid="replay-restoring"
-      className="flex max-w-2xl flex-col gap-3 border-t border-border pt-6"
-    >
-      <MicroLabel className="text-accent">Opening your workload</MicroLabel>
-      <h1 className="text-2xl font-medium">Finding useful replays</h1>
-      <p className="text-sm text-muted-foreground">
-        Reading recorded models and finding useful replay strategies in this browser…
-      </p>
-    </div>
+    <AppPageSkeleton label="Finding useful changes for your history" testId="replay-preparing" />
   );
 }
+
 function StrategyWorkspace({
   record,
   initialStack,
@@ -443,10 +436,14 @@ function StrategyWorkspace({
           {record.summary.usageSources.map((s) => s.name).join(" + ") || "Recorded workload"}
         </MicroLabel>
         {!choice ? (
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
-            Suggested replays for this workload
-          </h1>
+          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">Try a change</h1>
         ) : null}
+        {!choice && (
+          <p className="max-w-2xl text-base text-muted-foreground">
+            See how the same work would fare with different plans or models. Choose a scenario
+            below, or build your own. Your choices stay in this browser.
+          </p>
+        )}
         <p className="text-sm text-muted-foreground">
           {record.eventCount.toLocaleString()} calls · {formatTokens(record.summary.tokens.known)}{" "}
           known tokens · {workload.sources.length} canonical models ·{" "}
@@ -627,14 +624,15 @@ function StrategyWorkspace({
               {editing ? (
                 <div className="divide-y divide-border" data-testid="suggested-mapping-editor">
                   {workload.sources.map((m) => (
-                    <label key={m.modelId} className="grid gap-2 py-3 text-sm sm:grid-cols-2">
+                    <div key={m.modelId} className="grid gap-2 py-3 text-sm sm:grid-cols-2">
                       <span>
                         {m.name}
                         <span className="ml-2 text-xs text-muted-foreground">
                           {m.events.toLocaleString()} calls
                         </span>
                       </span>
-                      <select
+                      <AppSelect
+                        label="Translate this recorded model"
                         aria-label={`Replay model for ${m.name}`}
                         className="min-h-11 min-w-0 border border-control-border bg-background px-3"
                         value={mapping[m.modelId] ?? ""}
@@ -648,8 +646,8 @@ function StrategyWorkspace({
                               {m.name}
                             </option>
                           ))}
-                      </select>
-                    </label>
+                      </AppSelect>
+                    </div>
                   ))}
                 </div>
               ) : (

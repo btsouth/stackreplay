@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { BUNDLED_CATALOG_VERSION, bundledModelIdentity } from "@stackreplay/catalog/bundled";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { summarizeExport } from "../lib/workload-summary";
-import { importDemo } from "./helpers";
+import { importDemo } from "./premium-app-helpers";
 
 const pricingDone = async (page: import("@playwright/test").Page) => {
   await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");

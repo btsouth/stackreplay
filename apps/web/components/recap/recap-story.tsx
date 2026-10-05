@@ -1,17 +1,47 @@
 /* biome-ignore-all lint/a11y/noNoninteractiveTabindex: The scrolling model timeline needs keyboard focus. */
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useId, useRef, useState } from "react";
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { harnessNames, providerNames } from "@/lib/recap-deep";
 import { CostTrend, Heatmap, Mix, shortDate } from "./recap-charts";
 export function Info({ label, children }: { label: string; children: ReactNode }) {
+  const id = useId();
+  const popup = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ left: 16, top: 16 });
   return (
-    <details className="recap-info">
-      <summary aria-label={label}>i</summary>
-      <div>{children}</div>
-    </details>
+    <span className="recap-info">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={(event) => {
+          const box = event.currentTarget.getBoundingClientRect();
+          const width = Math.min(320, window.innerWidth - 32);
+          setPosition({
+            left: Math.max(16, Math.min(window.innerWidth - width - 16, box.right - width)),
+            top: Math.max(16, Math.min(box.bottom + 8, window.innerHeight - 280)),
+          });
+          popup.current?.togglePopover();
+        }}
+      >
+        i
+      </button>
+      <span
+        id={id}
+        ref={popup}
+        popover="auto"
+        role="note"
+        style={position}
+        onToggle={(event) => setOpen((event.nativeEvent as ToggleEvent).newState === "open")}
+      >
+        {children}
+      </span>
+    </span>
   );
 }
+
 function Heading({ number, title, note }: { number: string; title: string; note: string }) {
   return (
     <div className="recap-section-heading">
@@ -142,16 +172,16 @@ export function RecapStory({
             <p className="recap-volume-note">
               Your AI coding, replayed.
               <Info label="About token volume">
-                <p>
+                <span className="recap-info-paragraph">
                   Reported categories only. Input, output and cache are made disjoint using each
                   source's accounting declarations. Output includes separately reported reasoning.
                   Missing categories are excluded.
-                </p>
-                <p>
+                </span>
+                <span className="recap-info-paragraph">
                   {recap.totalKnown.toLocaleString()} of {recap.records.toLocaleString()} records
                   report tokens. This is local logged activity, including agents, not human work
                   time.
-                </p>
+                </span>
               </Info>
             </p>
           </div>
@@ -232,35 +262,37 @@ export function RecapStory({
               <div className="recap-hero-caption">
                 of AI coding at API prices
                 <Info label="How API-equivalent value is calculated">
-                  <p>
+                  <span className="recap-info-paragraph">
                     Repriced at each model developer's direct API catalog list rates as of{" "}
                     {recap.rulesAsOf}. This is independent of the serving provider and
                     subscriptions.
-                  </p>
-                  <p>
+                  </span>
+                  <span className="recap-info-paragraph">
                     {recap.priced.toLocaleString()} of {recap.records.toLocaleString()} records
                     priced ({Math.round((recap.priced / recap.records) * 100)}%). Unknown prices and
                     incomplete usage are excluded.
-                  </p>
+                  </span>
                   {recap.usdHigh !== recap.usd && (
-                    <p>
+                    <span className="recap-info-paragraph">
                       Unreported cache-write lifetimes yield {recapUsd(recap.usd)} to{" "}
                       {recapUsd(recap.usdHigh)}. The headline uses the lower documented cache-write
                       scenario.
-                    </p>
+                    </span>
                   )}
-                  <p>Not historical spending or money saved.</p>
+                  <span className="recap-info-paragraph">
+                    Not historical spending or money saved.
+                  </span>
                 </Info>
               </div>
               {multiplierText && (
                 <p className="recap-plan-comparison">
                   <strong>{multiplierText}</strong>
                   <Info label="How the payment multiplier is calculated">
-                    <p>
+                    <span className="recap-info-paragraph">
                       API value divided by confirmed monthly list-price subscriptions ×{" "}
                       {recap.days.length} / 30.4. A scenario excluding taxes, discounts, plan
                       changes and separate API charges.
-                    </p>
+                    </span>
                   </Info>
                 </p>
               )}
@@ -303,12 +335,12 @@ export function RecapStory({
                 <span>
                   Cache read advantage{" "}
                   <Info label="About cache savings">
-                    <p>
+                    <span className="recap-info-paragraph">
                       List-price difference between recorded cache reads and the same input
                       uncached, using the same engine rate conditions. Only{" "}
                       {d.cacheSavingsRecords.toLocaleString()} records with both prices established.
                       Not subscription savings.
-                    </p>
+                    </span>
                   </Info>
                 </span>
                 <strong>{recapUsd(d.cacheSavings)}</strong>
@@ -377,7 +409,9 @@ export function RecapStory({
                 <Info label="About the model timeline">
                   Only catalog-resolved models appear, using their catalog display names.
                   {!!d.omittedFirstSeen && (
-                    <p>{d.omittedFirstSeen} internal or unresolved model IDs omitted.</p>
+                    <span className="recap-info-paragraph">
+                      {d.omittedFirstSeen} internal or unresolved model IDs omitted.
+                    </span>
                   )}
                 </Info>
               </p>
@@ -405,17 +439,17 @@ export function RecapStory({
           <p className="recap-speed-method">
             Median output tokens/s. Lines show p25 to p75.
             <Info label="How response speed is measured">
-              <p>
+              <span className="recap-info-paragraph">
                 Final Claude streamed response with the same message ID minus its preceding user or
                 tool-result timestamp. Codex uses the last user message or function-call output
                 before the model response, ending at its token-count event. Tool execution before
                 the last output is excluded.
-              </p>
-              <p>
+              </span>
+              <span className="recap-info-paragraph">
                 Includes time to first token, thinking and local scheduling. Known subagents and
                 sidechains excluded. Positive output; 0.25 to 600 seconds; at most 500 tokens/s; at
                 least 50 samples per model. A personal latency proxy, not a provider benchmark.
-              </p>
+              </span>
             </Info>
           </p>
           <div className="recap-speed-scale">

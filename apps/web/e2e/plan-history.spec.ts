@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, setRulesAsOf, visitReplay } from "./helpers";
+import { importDemo, setRulesAsOf, visitReplay } from "./premium-app-helpers";
 
 /**
  * Plan terms and history (OpenAI DevDay, Sep 29, 2026).

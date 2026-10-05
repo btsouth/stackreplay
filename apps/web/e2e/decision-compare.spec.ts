@@ -4,7 +4,8 @@ import {
   CODEX_ROLLOUT,
   COMMAND_CODE_SESSION,
 } from "../../../packages/adapters/src/fixtures/content";
-import { gotoImport, importDemo, openBillingReview, waitForWorkload } from "./helpers";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
+import { gotoImport, importDemo, openBillingReview, waitForWorkload } from "./premium-app-helpers";
 
 test("a missing saved workload is identified instead of shown as an empty browser", async ({
   page,
@@ -65,7 +66,7 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   await page.getByTestId("compare-decision-claude").click();
   await expect(page.getByTestId("comparison-object")).toContainText("Claude Code work");
   await expect(page.getByTestId("comparison-object")).toContainText("2 calls");
-  await expect(page.getByTestId("compare-plan")).toHaveValue("anthropic-claude-max-20x");
+  await expectSelectValue(page.getByTestId("compare-plan"), "anthropic-claude-max-20x");
   await expect(page.getByTestId("compare-demand")).toContainText("No subscription allowance", {
     timeout: 60_000,
   });
@@ -79,7 +80,7 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   });
   await page.getByTestId("compare-decision-codex").click();
   await expect(page.getByTestId("comparison-object")).toContainText("Codex work");
-  await expect(page.getByTestId("compare-plan")).toHaveValue("openai-chatgpt-pro");
+  await expectSelectValue(page.getByTestId("compare-plan"), "openai-chatgpt-pro");
   await expect(page.getByTestId("compare-price")).toContainText("published API rates", {
     timeout: 60_000,
   });
@@ -118,7 +119,7 @@ test("a mixed workload compares one purchase decision and moves work through Rep
   // The exact result offers the move directly and opens the substitution editor.
   await page.getByTestId("result-move").click();
   await expect(page.getByTestId("translation-editor")).toBeVisible();
-  await page.getByTestId("translation-select-gpt-5-6-sol").selectOption("claude-opus-4-8");
+  await chooseOption(page.getByTestId("translation-select-gpt-5-6-sol"), "claude-opus-4-8");
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("replay-result-object")).toContainText("Translated replay", {
     timeout: 60_000,

@@ -745,7 +745,7 @@
   font-size: 12px;
   letter-spacing: 0;
 }
-.recap-info > summary {
+.recap-info > button {
   list-style: none;
   width: 24px;
   height: 24px;
@@ -756,15 +756,17 @@
   cursor: pointer;
   font-weight: 600;
 }
-.recap-info > summary::-webkit-details-marker {
+.recap-info > button::-webkit-details-marker {
   display: none;
 }
-.recap-info > div {
-  position: absolute;
+.recap-info > span {
+  position: fixed;
   z-index: 10;
-  right: 0;
-  top: 32px;
-  width: min(320px, 70vw);
+  inset: auto;
+  margin: 0;
+  width: min(320px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   padding: 18px;
   background: var(--surface);
   color: var(--foreground);
@@ -775,10 +777,10 @@
   line-height: 1.65;
   text-align: left;
 }
-.recap-info > div p + p {
+.recap-info > span p + p {
   margin-top: 12px;
 }
-.recap-info[open] {
+.recap-info:has(:popover-open) {
   z-index: 20;
 }
 .recap-share {
@@ -1224,4 +1226,15 @@
 
 .recap-unpriced {
   color: var(--muted-foreground);
+}
+
+.recap-info-paragraph {
+  display: block;
+}
+.recap-info-paragraph + .recap-info-paragraph {
+  margin-top: 12px;
+}
+.recap-info > button {
+  min-width: 32px;
+  min-height: 32px;
 }

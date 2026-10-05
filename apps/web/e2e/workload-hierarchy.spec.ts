@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { gotoImport, importDemo, openReviewEditor, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo, openReviewEditor, waitForWorkload } from "./premium-app-helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`automatic overview delivers economics before any setup in ${theme}`, async ({

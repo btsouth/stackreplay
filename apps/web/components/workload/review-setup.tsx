@@ -1,5 +1,7 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import {
   type BillingFact,
   daysInPeriod,
@@ -65,9 +67,10 @@ export function ReviewSetup({
         Dates use UTC. Start is included; end is the next renewal date and is excluded. No usage is
         extrapolated.
       </p>
-      <label className="flex max-w-xl flex-col gap-1 text-sm">
+      <div className="flex max-w-xl flex-col gap-1 text-sm">
         Review period source
-        <select
+        <AppSelect
+          label="History period"
           aria-label="Review period source"
           className="min-h-11 w-full border border-border bg-background px-3"
           value={
@@ -102,8 +105,8 @@ export function ReviewSetup({
               Use {names[key] ?? "subscription"} billing cycle
             </option>
           ))}
-        </select>
-      </label>
+        </AppSelect>
+      </div>
       {cycles.length ? (
         <div className="flex flex-wrap gap-2">
           {cycles.map((key) => (

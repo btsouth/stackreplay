@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay, setRulesAsOf, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo, runReplay, setRulesAsOf, waitForWorkload } from "./premium-app-helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -375,7 +375,7 @@ test("an identifier no source justifies is reported as unmapped, never guessed",
     ),
   };
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "unmapped-model.json",
     mimeType: "application/json",
@@ -406,7 +406,7 @@ test("never reads as served while part of the demand is unavailable or undecided
     ),
   };
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "partly-undecided.json",
     mimeType: "application/json",
@@ -445,7 +445,7 @@ test("known unsupported demand rules out full coverage despite undecided events"
     ),
   };
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "mixed-evidence.json",
     mimeType: "application/json",
@@ -476,7 +476,7 @@ test("Max plan confirms model match while leaving unpublished capacity unknown",
     })),
   };
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "max-model-match.json",
     mimeType: "application/json",

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { ensureLargeExport } from "./fixtures/large-export";
-import { gotoImport, importDemo, visitImportManager, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo, visitImportManager, waitForWorkload } from "./premium-app-helpers";
 
 /**
  * Import route states (M3 brief): empty, drag-over, importing, invalid file,

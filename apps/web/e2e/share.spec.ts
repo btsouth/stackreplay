@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { encodeShareTokenV2, type ShareReplayV2 } from "@stackreplay/share";
-import { createShareToken, importDemo, runReplay } from "./helpers";
+import { createShareToken, importDemo, runReplay } from "./premium-app-helpers";
 
 /**
  * Phase 5: every link has its own image drawn from its own aggregate data, the

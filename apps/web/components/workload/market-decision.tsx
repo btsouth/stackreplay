@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { formatTokens } from "@/components/instrument/format";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { AppSelect } from "@/components/plans/app-select";
 import type { CapacityBurden } from "@/lib/capacity-episodes";
 import { marketRange } from "@/lib/decision-presentation";
 import type { MarketDecision } from "@/lib/market-decision";
@@ -181,9 +182,10 @@ export function MarketDecisionSurface({
   const controls = (
     <>
       <div className="flex flex-wrap items-end gap-3 border-b border-border pb-3">
-        <label className="min-w-0 max-w-full text-sm">
+        <div className="min-w-0 max-w-full text-sm">
           Local source account
-          <select
+          <AppSelect
+            label="History period"
             aria-label="Local source account"
             className="mt-2 block min-h-11 w-full min-w-0 max-w-full border border-border bg-background px-3"
             value={choice.resourceInstanceId ?? ""}
@@ -207,8 +209,8 @@ export function MarketDecisionSurface({
                 {a.source} account {index + 1} · {a.calls.toLocaleString()} responses
               </option>
             ))}
-          </select>
-        </label>
+          </AppSelect>
+        </div>
         {choice.resourceInstanceId ? (
           <label className="min-w-0 max-w-full text-sm">
             Local account label

@@ -1,8 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { stackWorkloadFile } from "./fixtures/stack-workload";
-import { captureRequests, gotoImport, WORKLOAD_MARKERS, waitForWorkload } from "./helpers";
+import { captureRequests, gotoImport, WORKLOAD_MARKERS, waitForWorkload } from "./premium-app-helpers";
 
 const STACK_KEY = "stackreplay.current-stack";
 const FULL_STACK = [
@@ -130,7 +131,7 @@ test("the billing period drives what is measured, shared with Workload's review"
   await expect(page.getByTestId("investigation-unused")).toHaveCount(0);
 
   await page.getByTestId("stack-period-edit").click();
-  await page.getByLabel("Review period source").selectOption("custom");
+  await chooseOption(page.getByLabel("Review period source"), "custom");
   await page.getByLabel("Review start date").fill("2026-09-01");
   await page.getByLabel("Review end date").fill("2026-10-01");
   await page.getByRole("button", { name: "Apply review period" }).click();
@@ -195,7 +196,7 @@ test("Test a change: exact spend, workload effects, reset, apply with Undo, and 
   await page.getByRole("button", { name: "Remove OpenCode Go from the proposed stack" }).click();
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$110/mo");
   await expect(outcome).toContainText("Remove OpenCode Go");
-  await page.getByTestId("scenario-add").selectOption("plan:cursor-pro");
+  await chooseOption(page.getByTestId("scenario-add"), "plan:cursor-pro");
   // Choosing is not adding: nothing changes until the person adds it.
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$110/mo");
   await page.getByTestId("scenario-add-button").click();
@@ -206,10 +207,11 @@ test("Test a change: exact spend, workload effects, reset, apply with Undo, and 
   await page.getByTestId("scenario-reset").click();
   await expect(outcome).toContainText("Change a tier, remove a subscription or add one");
   // A same-family plan added beside a kept plan is an addition, shown as its own row.
-  await page.getByTestId("scenario-add").selectOption("plan:anthropic-claude-pro");
+  await chooseOption(page.getByTestId("scenario-add"), "plan:anthropic-claude-pro");
   await page.getByTestId("scenario-add-button").click();
   await expect(page.getByTestId("scenario-editor")).toContainText("Claude Pro added");
-  await expect(page.getByTestId("scenario-plan-anthropic-claude-max-20x")).toHaveValue(
+  await expectSelectValue(
+    page.getByTestId("scenario-plan-anthropic-claude-max-20x"),
     "plan:anthropic-claude-max-20x",
   );
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("+$20/mo");
@@ -300,7 +302,7 @@ test("recorded limit events: surfaced as capacity pressure, a likely interruptio
   await expect(outcome.locator('[data-evidence="likely"]')).toHaveCount(1);
 
   await page.getByTestId("stack-period-edit").click();
-  await page.getByLabel("Review period source").selectOption("custom");
+  await chooseOption(page.getByLabel("Review period source"), "custom");
   await page.getByLabel("Review start date").fill("2026-09-01");
   await page.getByLabel("Review end date").fill("2026-10-01");
   await page.getByRole("button", { name: "Apply review period" }).click();
@@ -311,9 +313,10 @@ test("recorded limit events: surfaced as capacity pressure, a likely interruptio
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled({
     timeout: 60_000,
   });
-  await page
-    .getByLabel("Local source account for history confirmation")
-    .selectOption("claude-root-fixture");
+  await chooseOption(
+    page.getByLabel("Local source account for history confirmation"),
+    "claude-root-fixture",
+  );
   const confirm = page.getByLabel("Confirm history covers this review period");
   await expect(confirm).toBeEnabled({ timeout: 60_000 });
   await confirm.check();
@@ -366,9 +369,9 @@ test("several Claude accounts: each subscription reads its own account", async (
   // Link account 1 to Max 5x and the other two to Claude Pro: three subscriptions, $140/mo.
   const select = (key: string) =>
     page.getByTestId(`stack-account-plan-${key.replace(/[^a-z0-9-]/giu, "")}`);
-  await select(MAX).selectOption("plan:anthropic-claude-max-5x");
-  await select(PRO).selectOption("plan:anthropic-claude-pro");
-  await select(PRO2).selectOption("plan:anthropic-claude-pro");
+  await chooseOption(select(MAX), "plan:anthropic-claude-max-5x");
+  await chooseOption(select(PRO), "plan:anthropic-claude-pro");
+  await chooseOption(select(PRO2), "plan:anthropic-claude-pro");
   await expect(page.getByTestId("stack-published-total")).toContainText("$140/mo");
   await expect(page.getByTestId("stack-published-total")).toContainText("3 subscriptions");
   const max = page.getByTestId("stack-target-anthropic-claude-max-5x");
@@ -405,9 +408,10 @@ test("several Claude accounts: each subscription reads its own account", async (
   expect(JSON.stringify(stored)).not.toMatch(/\/|\\\\/u);
 
   // A tier change on Max 5x leaves both Pro subscriptions alone.
-  await page
-    .getByTestId("scenario-plan-anthropic-claude-max-5x")
-    .selectOption("plan:anthropic-claude-pro");
+  await chooseOption(
+    page.getByTestId("scenario-plan-anthropic-claude-max-5x"),
+    "plan:anthropic-claude-pro",
+  );
   await expect(page.getByTestId("scenario-outcome-delta")).toContainText("−$80/mo");
   await expect(page.getByTestId("scenario-outcome")).toContainText("Claude Max 5x → Claude Pro");
   await expect(page.getByTestId("scenario-outcome")).toContainText("Claude Code account 1");

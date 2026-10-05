@@ -1,3 +1,4 @@
+import "@/components/plans/premium-app.css";
 import type { Metadata } from "next";
 import CompareView from "@/components/plans/compare-view";
 import { PlansNavigation } from "@/components/plans/plans-navigation";
@@ -16,7 +17,7 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
   const section =
     params.section === "replay" || params.section === "compare" ? params.section : "plans";
   return (
-    <>
+    <div className="premium-app app-plan-page">
       <PlansNavigation section={section} />
       {section === "replay" ? (
         <ReplayView searchParams={Promise.resolve(params)} />
@@ -25,6 +26,6 @@ export default async function PlansPage({ searchParams }: { searchParams: Promis
       ) : (
         <MyStackSurface initialImportId={params.import} />
       )}
-    </>
+    </div>
   );
 }

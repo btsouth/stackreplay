@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ensureLargeExport } from "./fixtures/large-export";
-import { setRulesAsOf, visitReplay } from "./helpers";
+import { setRulesAsOf, visitReplay } from "./premium-app-helpers";
 
 /**
  * Large import measurement (M3 brief).

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MissingWorkload } from "@/components/missing-workload";
+import { AppPageSkeleton, LocalReadError } from "@/components/plans/app-page-state";
 import { PartialScanNotice } from "@/components/workload/evidence";
 import { count, plainRange } from "@/components/workload/format";
 import { MarketDecisionSurface } from "@/components/workload/market-decision";
@@ -115,18 +116,9 @@ export function WorkloadCompare({
     writeCurrentStack(next);
   };
 
-  if (storageError)
-    return (
-      <p role="alert" className="text-sm text-negative">
-        Local workloads could not be read. Reload and try again.
-      </p>
-    );
+  if (storageError) return <LocalReadError retry={() => window.location.reload()} />;
   if (imports === undefined || !stackLoaded)
-    return (
-      <p role="status" className="text-sm text-muted-foreground">
-        Opening your saved workload list…
-      </p>
-    );
+    return <AppPageSkeleton label="Opening your history and plans" />;
   if (record === undefined && imports.length > 0)
     return (
       <div data-testid="compare-missing">

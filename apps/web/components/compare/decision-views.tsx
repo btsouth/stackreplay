@@ -3,6 +3,7 @@
 import { formatUsd } from "@stackreplay/share";
 import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import { count, instantWithZone, plainRange } from "@/components/workload/format";
 import {
   configurablePlans,
@@ -401,7 +402,8 @@ export function PurchaseComparison({
         htmlFor="compare-plan"
       >
         {decision === "claude" ? "Claude plan" : "ChatGPT plan"}
-        <select
+        <AppSelect
+          label="Compare with a plan"
           id="compare-plan"
           className="min-h-11 min-w-56 border border-border bg-background px-3 text-sm text-foreground"
           value={planId ?? ""}
@@ -413,7 +415,7 @@ export function PurchaseComparison({
               {item.name}
             </option>
           ))}
-        </select>
+        </AppSelect>
         {current.includes(`plan:${planId}` as TargetKey) ? (
           <span className="text-accent">In your configured stack</span>
         ) : null}

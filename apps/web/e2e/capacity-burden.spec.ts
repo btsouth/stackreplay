@@ -1,7 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, waitForWorkload } from "./helpers";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
+import { gotoImport, waitForWorkload } from "./premium-app-helpers";
 
 async function upload(page: Page, file: ReturnType<typeof buildDemoExport>, name: string) {
   await gotoImport(page);
@@ -119,7 +120,7 @@ for (const theme of ["dark", "light"] as const)
       inspector.getByTestId("capacity-episode").first().getByTestId("episode-projects"),
     ).toContainText("Project at block not recorded");
     await expect(page.getByTestId("billing-panel")).not.toBeVisible();
-    await expect(inspector.getByLabel("Capacity account")).toHaveValue("main");
+    await expectSelectValue(inspector.getByLabel("Capacity account"), "main");
     const counts = () =>
       page.evaluate(() => ({
         market: (window as unknown as { market: number }).market,
@@ -148,7 +149,7 @@ for (const theme of ["dark", "light"] as const)
     ).toContainText("Session first");
     await expect(episode).toContainText("no matching workload response is available");
     const beforeImpact = await counts();
-    await episode.getByLabel("Your impact (optional)").selectOption("Worked around it");
+    await chooseOption(episode.getByLabel("Your impact (optional)"), "Worked around it");
     await episode.getByLabel("Episode note (local only)").fill("Private synthetic episode note");
     await episode.getByRole("button", { name: "Save episode impact locally" }).click();
     await expect(burden.getByTestId("impact-summary")).toContainText("Worked around it: 1");
@@ -167,9 +168,9 @@ for (const theme of ["dark", "light"] as const)
     await page.reload();
     await page.getByRole("button", { name: "Review interruptions →" }).click();
     await expect(burden.getByTestId("impact-summary")).toContainText("Worked around it: 1");
-    await inspector.getByLabel("Capacity account").selectOption("secondary");
+    await chooseOption(inspector.getByLabel("Capacity account"), "secondary");
     await expect(burden).toContainText("No directly observable capacity-limit episodes");
-    await inspector.getByLabel("Capacity account").selectOption("main");
+    await chooseOption(inspector.getByLabel("Capacity account"), "main");
     await expect(burden.getByTestId("capacity-episode")).toHaveCount(2);
     await inspector.getByTestId("capacity-date-filter").locator(":scope > summary").click();
     await inspector.getByLabel("Capacity start date").fill("2026-09-17");

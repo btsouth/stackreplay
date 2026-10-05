@@ -3,6 +3,7 @@
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Eye, EyeOff, Pencil } from "lucide-react";
 import { type ReactNode, useEffect, useId, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import {
   type AccountIdentity,
   hasIdentityName,
@@ -248,9 +249,10 @@ function AccountRow({
       </p>
       <div className="stack-account-link">
         {plans.length > 0 ? (
-          <label>
+          <div>
             <span className="sr-only">Subscription {account.name} is read against</span>
-            <select
+            <AppSelect
+              label="Link this account to a plan"
               value={linked?.plan ?? ""}
               disabled={disabled}
               data-testid={`stack-account-plan-${testKey}`}
@@ -264,8 +266,8 @@ function AccountRow({
                   {plan.name}
                 </option>
               ))}
-            </select>
-          </label>
+            </AppSelect>
+          </div>
         ) : (
           <span className="stack-caption">No subscription family</span>
         )}
