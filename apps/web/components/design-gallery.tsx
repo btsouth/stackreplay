@@ -123,7 +123,7 @@ export function DesignGallery() {
         <SectionHeader title="Clear labels and helpful errors" />
         <div className="grid max-w-xl gap-4">
           <label htmlFor="example-slug">
-            Plan slug
+            Plan ID
             <Input id="example-slug" placeholder="A catalog plan ID" />
           </label>
           <label htmlFor="invalid-slug">
@@ -136,7 +136,7 @@ export function DesignGallery() {
             />
           </label>
           <p id="invalid-slug-error" className="text-sm text-negative">
-            No plan matches this slug.
+            No plan matches this ID.
           </p>
         </div>
       </Panel>
