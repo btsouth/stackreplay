@@ -3,6 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 async function expectNoSeriousViolations(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
     .analyze();
@@ -21,7 +22,9 @@ async function expectNoHorizontalOverflow(page: Page) {
 /** Both layouts are server-rendered; the explorer drops the unused one once it hydrates. */
 async function openModels(page: Page, path: string) {
   await page.goto(path);
+  await expect(page.getByRole("radio", { name: "Table", exact: true })).toBeEnabled();
   await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
+  await page.evaluate(() => document.fonts.ready);
 }
 
 // Headless Chromium overlays scrollbars, while the native 320px check used a

@@ -179,6 +179,7 @@ export function RecapSurface({
   const multiplierText = multiplier ? `${multiplier}× what I paid` : undefined;
   async function download(portrait: boolean) {
     if (!recap) return;
+    const trigger = document.activeElement;
     setExporting(true);
     try {
       const blob = await renderRecapCard(recap, portrait, multiplierText);
@@ -192,6 +193,16 @@ export function RecapSurface({
       setError("Image download failed. Please try again.");
     } finally {
       setExporting(false);
+      // Disabling a focused button during export moves focus to the body.
+      // Restore it after React enables the button, unless the user moved on.
+      window.requestAnimationFrame(() => {
+        if (
+          trigger instanceof HTMLButtonElement &&
+          trigger.isConnected &&
+          document.activeElement === document.body
+        )
+          trigger.focus({ preventScroll: true });
+      });
     }
   }
   return (

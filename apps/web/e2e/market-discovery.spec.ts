@@ -156,6 +156,10 @@ for (const theme of ["dark", "light"] as const) {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(path);
       await expect(page).toHaveTitle(/StackReplay/u);
+      await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
+      if (path === "/models")
+        await expect(page.getByRole("radio", { name: "Cards", exact: true })).toBeEnabled();
+      await page.evaluate(() => document.fonts.ready);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
         path,

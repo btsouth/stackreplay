@@ -48,13 +48,17 @@ for (const temporary of [false, true])
       ["Download portrait", [1080, 1350]],
     ] as const) {
       const dl = page.waitForEvent("download");
-      await page.getByRole("button", { name: new RegExp(label) }).click();
+      const button = page.getByRole("button", { name: new RegExp(label) });
+      await button.focus();
+      await button.press("Enter");
       const downloaded = await dl;
       const path = await downloaded.path();
       expect(path).toBeTruthy();
       const { readFile } = await import("node:fs/promises");
       const bytes = await readFile(path!);
       expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual(size);
+      await expect(button).toBeEnabled();
+      await expect(button).toBeFocused();
     }
     expect(requests.filter((r) => r.body)).toEqual([]);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
