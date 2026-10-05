@@ -33,12 +33,10 @@ for (const [source, destination, section] of [
     if (section) {
       expect(url.searchParams.get("section")).toBe(section);
       await expect(
-        page
-          .getByRole("navigation", { name: "Your plan tools" })
-          .getByRole("link", {
-            name: section === "replay" ? "Try a change" : "Compare",
-            exact: true,
-          }),
+        page.getByRole("navigation", { name: "Your plan tools" }).getByRole("link", {
+          name: section === "replay" ? "Try a change" : "Compare",
+          exact: true,
+        }),
       ).toHaveAttribute("aria-current", "page");
     }
     expect(await page.getByRole("main").count()).toBe(1);
