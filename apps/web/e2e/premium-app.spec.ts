@@ -121,6 +121,7 @@ for (const theme of ["dark", "light"] as const) {
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
           true,
         );
+        await expect(page).toHaveTitle(/StackReplay/u);
         const violations = (await new AxeBuilder({ page }).analyze()).violations.filter(
           (v) => v.impact === "serious" || v.impact === "critical",
         );
