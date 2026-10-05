@@ -93,11 +93,11 @@
   grid-template-columns: 1.35fr 1fr 1fr;
   gap: 16px;
 }
-.app-stat-strip .sr-stat-tile {
+.app-stat-strip .sr-stat {
   min-width: 0;
   padding: 18px 20px;
 }
-.app-stat-strip .sr-stat-value {
+.app-stat-strip .sr-stat strong {
   font-size: clamp(1.6rem, 3vw, 2.75rem);
 }
 .premium-app [data-testid="workload-hero"] {
@@ -312,10 +312,10 @@
     gap: 8px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .app-stat-strip .sr-stat-tile {
+  .app-stat-strip .sr-stat {
     padding: 14px 10px;
   }
-  .app-stat-strip .sr-stat-label {
+  .app-stat-strip .sr-stat p {
     font-size: 11px;
   }
   .app-setting {
