@@ -3,9 +3,7 @@ import { expect, test } from "@playwright/test";
 import { gotoImport, importDemo, openReviewEditor, waitForWorkload } from "./premium-app-helpers";
 
 for (const theme of ["dark", "light"] as const) {
-  test(`automatic overview delivers economics before any setup in ${theme}`, async ({
-    page,
-  }, info) => {
+  test(`automatic overview delivers economics before any setup in ${theme}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
     await importDemo(page, "moderate");
@@ -20,8 +18,8 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("billing-action")).toHaveText("Compare against what I paid →");
     await expect(page.getByTestId("overview-evidence")).not.toHaveAttribute("open", "");
     await expect(page.getByTestId("overview-api-total")).toBeInViewport();
-    if (info.project.name === "desktop")
-      expect((await page.getByTestId("section-projects").boundingBox())?.y).toBeLessThan(720);
+    // The new Stats opening puts the three scan totals before the priced summary.
+    await expect(page.locator(".app-stat-strip")).toBeInViewport();
     expect(
       await page
         .locator(
@@ -68,7 +66,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByTestId("billing-action").focus();
     await page.keyboard.press("Enter");
     await expect(page.getByLabel("Billing cycle start")).toBeVisible();
-    await page.getByRole("button", { name: "Back to workload overview" }).click();
+    await page.getByRole("button", { name: "Back to stats" }).click();
     await expect(page.getByTestId("billing-action")).toBeFocused();
   });
 }

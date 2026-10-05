@@ -371,6 +371,7 @@ export function RecapSurface({
               Calculated on this device. Your logs stay here.{" "}
               <Link
                 href={`/app/stats?import=${encodeURIComponent(id ?? "")}${initialTarget ? `&target=${encodeURIComponent(initialTarget)}` : ""}`}
+                onNavigate={() => window.scrollTo(0, 0)}
               >
                 Explore your stats →
               </Link>
