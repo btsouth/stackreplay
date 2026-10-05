@@ -20,11 +20,15 @@ async function expectNoHorizontalOverflow(page: Page) {
 }
 
 /** Both layouts are server-rendered; the explorer drops the unused one once it hydrates. */
-async function openModels(page: Page, path: string) {
-  await page.goto(path);
+async function waitForModels(page: Page) {
   await expect(page.getByRole("radio", { name: "Table", exact: true })).toBeEnabled();
   await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
+}
+
+async function openModels(page: Page, path: string) {
+  await page.goto(path);
+  await waitForModels(page);
 }
 
 // Headless Chromium overlays scrollbars, while the native 320px check used a
@@ -127,6 +131,7 @@ for (const theme of ["dark", "light"] as const) {
         "/models/minimax-m3",
       );
       await page.reload();
+      await waitForModels(page);
       await expect(page.getByTestId("model-data-table")).toBeVisible();
       await expect(page.getByRole("radio", { name: "Table", exact: true })).toBeChecked();
       await expectNoHorizontalOverflow(page);
@@ -187,6 +192,7 @@ for (const theme of ["dark", "light"] as const) {
       await expect(released).toHaveAttribute("aria-sort", "ascending");
       await expect(page).toHaveURL(/[?&]dir=asc(&|$)/u);
       await page.reload();
+      await waitForModels(page);
       await expect(released).toHaveAttribute("aria-sort", "ascending");
       const older = (await cellTexts(page, RELEASED)).filter(
         (value) => !value.includes("Not recorded"),
