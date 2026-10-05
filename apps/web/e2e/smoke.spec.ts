@@ -172,8 +172,8 @@ test("all workspace routes have a matching heading and navigation state", async 
     ["/app/stats", "Stats", "Your stats"],
     ["/app/plans", "Plans", "Your plans"],
     ["/app/settings", "Settings", "Settings"],
-  ]) {
-    await page.goto(path!);
+  ] as const) {
+    await page.goto(path);
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     if (info.project.name === "mobile")
       await page.getByRole("button", { name: "Open menu" }).click();

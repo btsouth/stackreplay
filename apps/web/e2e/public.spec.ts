@@ -211,7 +211,10 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-with-workload")).toHaveText(
       "Compare against my workload →",
     );
-    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/plans?section=compare");
+    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute(
+      "href",
+      "/app/plans?section=compare",
+    );
     const compactSummary = page.getByTestId("compare-compact-summary").filter({ visible: true });
     const mobile = (await compactSummary.count()) > 0;
     const inspectSummary = mobile
@@ -263,11 +266,11 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(desktopNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -278,11 +281,11 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(mobileNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -290,11 +293,13 @@ test.describe("public site", () => {
 
   test("public footer destinations resolve to real sections or routes", async ({ page }) => {
     await page.goto("/plans");
-    const privacy = page.getByRole("link", { name: "Privacy model" });
+    const privacy = page
+      .getByRole("contentinfo")
+      .getByRole("link", { name: "Privacy", exact: true });
     await expect(privacy).toHaveAttribute("href", "/methodology#privacy");
     await privacy.click();
     await expect(page.locator("#privacy")).toBeVisible();
-    const catalog = page.getByRole("link", { name: "Catalog sources" });
+    const catalog = page.getByRole("contentinfo").getByRole("link", { name: "Plans", exact: true });
     await expect(catalog).toHaveAttribute("href", "/plans");
     await catalog.click();
     await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();

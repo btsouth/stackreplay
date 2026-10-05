@@ -93,7 +93,8 @@ describe("personal questions", () => {
       "downgrade-claude"
     ];
     const url = new URL(state.href, "https://x");
-    expect(url.pathname).toBe("/app/plans?section=replay");
+    expect(url.pathname).toBe("/app/plans");
+    expect(url.searchParams.get("section")).toBe("replay");
     expect(
       parseStackParam(url.searchParams.get("stack") ?? undefined)?.map((entry) => entry.plan),
     ).toEqual(["plan:anthropic-claude-max-5x", "plan:openai-chatgpt-pro"]);

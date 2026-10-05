@@ -55,7 +55,7 @@ export function CompletedReplayComparison({
     selected !== undefined
       ? group.filter((r) => selected.includes(r.id)).slice(0, 3)
       : group.slice(0, 3);
-  const link = `/app/plans?section=replay${initialImportId ? `?import=${encodeURIComponent(initialImportId)}` : ""}`;
+  const link = `/app/plans?section=replay${initialImportId ? `&import=${encodeURIComponent(initialImportId)}` : ""}`;
   return (
     <div className="space-y-8" data-testid="completed-compare">
       <header className="space-y-3">

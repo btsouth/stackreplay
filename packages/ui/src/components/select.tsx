@@ -48,7 +48,11 @@ export function Select({
       required={required ?? false}
     >
       <BaseSelect.Trigger id={id} aria-label={label} className={cn("sr-select", className)}>
-        <BaseSelect.Value placeholder={placeholder} />
+        <BaseSelect.Value>
+          {(selected: string | null) =>
+            options.find((option) => option.value === selected)?.label ?? placeholder
+          }
+        </BaseSelect.Value>
         <BaseSelect.Icon>
           <ChevronDown size={16} aria-hidden="true" />
         </BaseSelect.Icon>

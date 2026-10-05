@@ -97,7 +97,7 @@ function query(importId: string, extra: Record<string, string> = {}): string {
 
 /** Replay's stack scenario for a proposed set of plans (catalog ids only). */
 function proposal(importId: string, plans: readonly string[]): string {
-  return `/app/plans?section=replay${query(importId, { stack: plans.join(",") })}`;
+  return `/app/plans${query(importId, { section: "replay", stack: plans.join(",") })}`;
 }
 
 const percent = (share: number) =>
@@ -125,7 +125,10 @@ export function questionStates(input: {
   const top = [...usage.byModel].sort((a, b) => b[1] - a[1])[0];
 
   return {
-    "api-cheaper": { href: `/app/plans?section=compare${query(importId, { view: "billing" })}`, ready: true },
+    "api-cheaper": {
+      href: `/app/plans${query(importId, { section: "compare", view: "billing" })}`,
+      ready: true,
+    },
     "rely-on": {
       href: `/app/stats${query(importId)}`,
       ready: true,
@@ -187,6 +190,6 @@ export function questionStates(input: {
       plans.length === 0
         ? { ...confirmFirst, personal: "Confirm the plans you pay for first." }
         : { href: stackPage, ready: true },
-    "other-model": { href: `/app/plans?section=replay${query(importId)}`, ready: true },
+    "other-model": { href: `/app/plans${query(importId, { section: "replay" })}`, ready: true },
   };
 }
