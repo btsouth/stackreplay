@@ -477,7 +477,7 @@ export function ReplaySurface({
   useEffect(() => {
     if (workload === undefined) return;
     const params = new URLSearchParams(window.location.search);
-    params.set("section", "replay");
+    if (params.get("section") !== "replay") params.set("section", "replay");
     params.set("import", workload.id);
     params.set("mode", "custom");
     params.delete("target");

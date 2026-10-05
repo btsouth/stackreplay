@@ -23,6 +23,14 @@ describe("legacy app routes", () => {
       ["future", "yes"],
     ]);
   });
+  it("retains query values that collide with the new section selector", () => {
+    const result = new URL(
+      legacyAppDestination("/app/plans", { section: ["old", "future"], import: "scan" }, "replay"),
+      "https://stackreplay.com",
+    );
+    expect(result.searchParams.getAll("section")).toEqual(["replay", "old", "future"]);
+    expect(result.searchParams.get("import")).toBe("scan");
+  });
   it("keeps quantities and billing view", () => {
     const stack = "anthropic-claude-max:2,openai-chatgpt-pro:1";
     const replay = new URL(

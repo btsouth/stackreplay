@@ -53,7 +53,7 @@ export function WorkloadCompare({
   useEffect(() => {
     if (importId === undefined) return;
     const params = new URLSearchParams(window.location.search);
-    params.set("section", "compare");
+    if (params.get("section") !== "compare") params.set("section", "compare");
     params.set("import", importId);
     params.set("view", "billing");
     params.delete("decision");

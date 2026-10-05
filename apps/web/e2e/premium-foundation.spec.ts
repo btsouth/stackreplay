@@ -23,12 +23,24 @@ for (const [source, destination, section] of [
     });
     query.append("tag", "one");
     query.append("tag", "two");
+    query.append("section", "old-value");
+    query.append("section", "future-value");
     await page.goto(`/app/${source}?${query}#premium-anchor`);
     await expect(page).toHaveURL(new RegExp(`/app/${destination}\\?`));
     const url = new URL(page.url());
     for (const [key, value] of query) expect(url.searchParams.getAll(key)).toContain(value);
     expect(url.hash).toBe("#premium-anchor");
-    if (section) expect(url.searchParams.get("section")).toBe(section);
+    if (section) {
+      expect(url.searchParams.get("section")).toBe(section);
+      await expect(
+        page
+          .getByRole("navigation", { name: "Your plan tools" })
+          .getByRole("link", {
+            name: section === "replay" ? "Try a change" : "Compare",
+            exact: true,
+          }),
+      ).toHaveAttribute("aria-current", "page");
+    }
     expect(await page.getByRole("main").count()).toBe(1);
   });
 }

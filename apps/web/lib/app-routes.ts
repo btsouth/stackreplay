@@ -7,7 +7,7 @@ export function legacyAppDestination(
   const params = new URLSearchParams();
   if (section) params.set("section", section);
   for (const [key, values] of Object.entries(query)) {
-    if (values === undefined || (section && key === "section")) continue;
+    if (values === undefined) continue;
     for (const value of Array.isArray(values) ? values : [values]) params.append(key, value);
   }
   return `${path}${params.size ? `?${params.toString()}` : ""}`;

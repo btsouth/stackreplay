@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 export default async function PlansPage({ searchParams }: { searchParams: Promise<RouteQuery> }) {
   const query = await searchParams;
-  const section =
-    query.section === "replay" || query.section === "compare" ? query.section : "plans";
   const params = Object.fromEntries(
     Object.entries(query).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]),
   );
+  const section =
+    params.section === "replay" || params.section === "compare" ? params.section : "plans";
   return (
     <>
       <PlansNavigation section={section} />
