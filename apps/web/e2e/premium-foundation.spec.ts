@@ -96,6 +96,7 @@ test("design controls support keyboard selection, tab panels and sorting", async
   await expect(page.getByRole("listbox")).toBeHidden();
   await expect(select).toBeFocused();
   await select.click();
+  await expect(select).toHaveAttribute("aria-expanded", "true");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("listbox")).toBeHidden();
   await expect(select).toBeFocused();

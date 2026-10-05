@@ -1,6 +1,7 @@
 "use client";
 import { Select as BaseSelect } from "@base-ui-components/react/select";
 import { Check, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../lib/cn";
 
 export interface SelectOption {
@@ -35,9 +36,12 @@ export function Select({
   placeholder = "Choose an option",
   className,
 }: SelectProps) {
+  const [open, setOpen] = useState(false);
   return (
     <BaseSelect.Root
       items={options}
+      open={open}
+      onOpenChange={setOpen}
       {...(value !== undefined ? { value } : {})}
       {...(defaultValue !== undefined ? { defaultValue } : {})}
       onValueChange={(next) => {
@@ -47,7 +51,18 @@ export function Select({
       disabled={disabled ?? false}
       required={required ?? false}
     >
-      <BaseSelect.Trigger id={id} aria-label={label} className={cn("sr-select", className)}>
+      <BaseSelect.Trigger
+        id={id}
+        aria-label={label}
+        className={cn("sr-select", className)}
+        onKeyDown={(event) => {
+          // Escape must also work before the popup's focus transfer completes.
+          if (event.key === "Escape" && open) {
+            event.preventDefault();
+            setOpen(false);
+          }
+        }}
+      >
         <BaseSelect.Value>
           {(selected: string | null) =>
             options.find((option) => option.value === selected)?.label ?? placeholder
