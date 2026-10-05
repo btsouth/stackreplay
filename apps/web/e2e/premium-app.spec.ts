@@ -22,6 +22,16 @@ async function navigate(page: Page, name: string) {
     await page.getByRole("button", { name: "Open menu" }).click();
     await page.getByRole("dialog").getByRole("link", { name, exact: true }).click();
   } else await page.getByRole("banner").getByRole("link", { name, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/app/${name.toLowerCase()}(?:\\?|$)`));
+  const title =
+    name === "Recap"
+      ? "Your coding recap"
+      : name === "Stats"
+        ? "Your stats"
+        : name === "Plans"
+          ? "Your plans"
+          : name;
+  await expect(page).toHaveTitle(new RegExp(title));
 }
 
 test("a temporary scan remains usable through recap, Stats and Plans", async ({ page }) => {
