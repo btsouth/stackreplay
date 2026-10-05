@@ -177,7 +177,11 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await expect(catalog).toBeInViewport();
   await catalog.click();
   await expect(page).toHaveURL(/\/catalog$/u);
+  await expect(
+    page.getByRole("heading", { name: "Models. Plans. Possibilities.", exact: true }),
+  ).toBeVisible();
   await page.goBack();
+  await expect(page).toHaveURL(/\/(?:#main-content)?$/u);
   await expect(page.getByTestId("home")).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
