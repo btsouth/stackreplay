@@ -1,4 +1,5 @@
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-engine";
+import { PageHeader, Panel } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPublicCatalog, shortCatalogVersion } from "@/lib/public-catalog";
@@ -8,7 +9,7 @@ import { publicPageMetadata, repositoryUrl } from "@/lib/site";
 export const metadata: Metadata = publicPageMetadata({
   title: "Methodology",
   description:
-    "How StackReplay sources models, prices, subscription terms, benchmarks and AI updates, plus how private workload replays are calculated.",
+    "What stays in your browser, how your recap is calculated and how to read sourced models, prices and benchmarks.",
   path: "/methodology",
 });
 
@@ -62,8 +63,8 @@ const sections = [
   {
     heading: "Local scan and workload analysis",
     body: [
-      "StackReplay reads the Claude Code or Codex files you select in a browser worker. It builds a normalized workload and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files stay on the device. Saving the normalized workload in this browser is optional.",
-      "Project folder names label projects in this browser only. A portable workload export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
+      "StackReplay reads the supported coding-tool files you select in a browser worker. It builds a scan and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files stay on the device. Saving the scan in this browser is optional.",
+      "Project folder names label projects in this browser only. A portable scan export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
       "When you save a workload built from a Claude Code history, StackReplay reads the account section of the Claude Code profile beside it (.claude.json) on this device. It keeps the account's name, email, plan type and rate-limit tier, and the account ID only as a salted hash; nothing else from the file is kept. These stay in this browser, hidden until you show them, are never part of a workload export or share link, are never sent anywhere, and Clear local data removes them. Codex sign-in files are never opened.",
     ],
   },
@@ -145,21 +146,74 @@ export default function MethodologyPage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold text-foreground">Methodology</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          What is covered, where the evidence comes from, and what the numbers can tell you.
+    <div className="methodology-page flex flex-col gap-8 pb-8">
+      <PageHeader
+        eyebrow="Privacy & methodology"
+        title="Your history. Your browser."
+        description="A recap should help you understand your work without asking you to hand it over. Here is what StackReplay reads, what stays local and what the numbers mean."
+        actions={
+          <Link href="/app/scan" className="market-primary">
+            Make my recap ↗
+          </Link>
+        }
+      />
+      <div className="methodology-promises">
+        <Panel>
+          <p className="sr-eyebrow">Read on this device</p>
+          <h2>The files you choose.</h2>
+          <p>
+            Your selected coding-tool history is read in a browser worker. Tokens, model IDs and
+            timing evidence become the figures in your recap. Project labels stay local.
+          </p>
+        </Panel>
+        <Panel>
+          <p className="sr-eyebrow">Kept in your browser</p>
+          <h2>Raw history stays here.</h2>
+          <p>
+            History files, prompts, responses and local scan records are not uploaded for a recap or
+            replay. Saving a scan in this browser is optional. Temporary scans are usable until
+            reload.
+          </p>
+        </Panel>
+        <Panel>
+          <p className="sr-eyebrow">Shared only by choice</p>
+          <h2>You choose the preview.</h2>
+          <p>
+            A public share link sends the aggregate figures shown in its preview to the share
+            service. It never includes raw logs, project names or account details. A downloaded card
+            can be shared by you.
+          </p>
+        </Panel>
+      </div>
+      <section id="recap-numbers" className="methodology-numbers">
+        <h2>What your recap counts</h2>
+        <p>
+          Sessions, requests and tokens come from the selected history and period. Active days use
+          the selected timezone. A missing token category or unresolved model stays unknown; an
+          absent record is not proof of zero usage.
         </p>
-        <p className="max-w-3xl text-sm text-muted-foreground">{publicFreshness(catalog)}.</p>
-        <Link
-          className="text-sm text-accent underline underline-offset-2"
-          href="#replay-methodology"
-        >
-          Workload replay and accounting details
-        </Link>
-      </header>
-
+        <h3>Cost at API prices</h3>
+        <p>
+          API equivalent prices recorded token categories at published API rates. It is a scenario,
+          not actual spend, an invoice or savings. Confirmed subscription payments are separate and
+          only appear after you confirm them.
+        </p>
+        <h3>Cache and speed</h3>
+        <p>
+          Cache reads and writes keep their source’s accounting rules so tokens are not counted
+          twice. Speed appears only where the history provides usable output and timing evidence.
+          Estimated timing is labeled; missing timing does not become a measured speed.
+        </p>
+        <nav aria-label="Methodology sections">
+          <a href="#privacy">Privacy details ↓</a>
+          <a href="#catalog-sourcing">Catalog sources ↓</a>
+          <a href="#replay-methodology">Replay assumptions ↓</a>
+        </nav>
+      </section>
+      <section id="catalog-sourcing">
+        <h2 className="text-3xl font-medium mb-4">A catalog you can check</h2>
+        <p className="market-muted">{publicFreshness(catalog)}.</p>
+      </section>
       <div className="flex flex-col gap-6">
         {catalogSections.map((section) => (
           <section key={section.heading} className="flex flex-col gap-2">
@@ -208,8 +262,8 @@ export default function MethodologyPage() {
       <section className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5">
         <h2 className="text-base font-medium text-foreground">Read the source of truth</h2>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          The architecture decisions, the adapter evidence rules and the implementation status are
-          versioned in the repository alongside the code.
+          Read the source code and the documented rules for reading history. Public prices and terms
+          link to their original sources on each detail page.
         </p>
         <div className="flex flex-wrap gap-3 text-sm">
           <a
@@ -218,7 +272,7 @@ export default function MethodologyPage() {
             rel="noreferrer noopener"
             target="_blank"
           >
-            Architecture decisions
+            Calculation rules
           </a>
           <a
             className="text-accent underline underline-offset-2"
@@ -226,13 +280,19 @@ export default function MethodologyPage() {
             rel="noreferrer noopener"
             target="_blank"
           >
-            Adapter evidence
+            How history is read
           </a>
           <Link className="text-accent underline underline-offset-2" href="/changelog">
             Catalog changelog
           </Link>
         </div>
       </section>
+      <p className="market-muted">
+        StackReplay is open source under the GNU AGPL v3 or later.{" "}
+        <a className="market-link" href={`${repositoryUrl}/blob/main/LICENSE`}>
+          Read the license ↗
+        </a>
+      </p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { selectCatalogOption, expectCatalogSelection } from "./public-controls";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { marketEventCategories, marketFeed, sortByOccurrence } from "@stackreplay/market-events";
@@ -31,9 +32,7 @@ async function assertSelection(page: Page, provider: string | null, category: st
     );
   }
 
-  await expect(page.getByRole("combobox", { name: "Provider", exact: true })).toHaveValue(
-    provider ?? "all",
-  );
+  await expectCatalogSelection(page.getByRole("combobox", { name: "Provider", exact: true }), provider ?? "all");
   await expect(page.getByTestId(`updates-filter-${category}`)).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -62,7 +61,7 @@ test("filtered SSR, reload, successive choices and detail history retain committ
   await assertSelection(page, "google", "benchmarks");
   await page.reload();
   await assertSelection(page, "google", "benchmarks");
-  await page.getByRole("combobox", { name: "Provider", exact: true }).selectOption("anthropic");
+  await selectCatalogOption(page.getByRole("combobox", { name: "Provider", exact: true }), "anthropic");
   await expect(page).toHaveURL(`/changelog?provider=anthropic&type=benchmarks&utm=kept${anchor}`);
   await assertSelection(page, "anthropic", "benchmarks");
   await page.getByTestId("updates-filter-models").click();
@@ -71,7 +70,7 @@ test("filtered SSR, reload, successive choices and detail history retain committ
   const length = await page.evaluate(() => history.length);
   await page.getByTestId("updates-filter-models").click();
   await expect(page.getByTestId("updates-filter-models")).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("combobox", { name: "Provider", exact: true }).selectOption("anthropic");
+  await selectCatalogOption(page.getByRole("combobox", { name: "Provider", exact: true }), "anthropic");
   expect(await page.evaluate(() => history.length)).toBe(length);
   await page.goBack();
   await expect(page).toHaveURL(`/changelog?provider=anthropic&type=benchmarks&utm=kept${anchor}`);
@@ -93,7 +92,7 @@ test("filtered SSR, reload, successive choices and detail history retain committ
   await expect(page).toHaveURL(`/changelog/${event.id}`);
   await page.goBack();
   await assertSelection(page, "anthropic", "models");
-  await page.getByRole("combobox", { name: "Provider", exact: true }).selectOption("google");
+  await selectCatalogOption(page.getByRole("combobox", { name: "Provider", exact: true }), "google");
   await expect(page).toHaveURL(`/changelog?provider=google&type=models&utm=kept${anchor}`);
   await assertSelection(page, "google", "models");
   await page.goto(`/changelog${anchor}`);

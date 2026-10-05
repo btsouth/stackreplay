@@ -1,3 +1,4 @@
+import { selectCatalogOption } from "./public-controls";
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
@@ -127,9 +128,8 @@ test("Sol effort alternatives stay exact, attributed and pinned across reload", 
     "href",
     "https://openai.com/index/introducing-gpt-6-1-sol/",
   );
-  await page
-    .getByLabel("Reported result for GPT-6.1 Sol")
-    .selectOption("openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol");
+  await selectCatalogOption(page
+    .getByLabel("Reported result for GPT-6.1 Sol"), "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol");
   await expect(dialog).toContainText("75.22%");
   await expect(dialog).toContainText("High");
   await page.keyboard.press("Escape");
@@ -219,7 +219,7 @@ test("cross-source comparison works and observation alternatives remain pinned",
   await page.goto("/benchmarks?models=claude-opus-5-5");
   await page.getByRole("button", { name: /Chartography, Claude Opus 5.5, 66.3%/ }).click();
   const result = page.getByLabel("Reported result for Claude Opus 5.5");
-  await result.selectOption("anthropic-sonnet-2026-09-28.chartography.claude-opus-5-5");
+  await selectCatalogOption(result, "anthropic-sonnet-2026-09-28.chartography.claude-opus-5-5");
   await expect(page).toHaveURL(/observation=anthropic-sonnet/);
   await expect(page.getByRole("dialog")).toContainText("64.4%");
   await page.keyboard.press("Escape");
@@ -352,7 +352,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   await expectBenchmarkTableLayout(page, { modelCount: 2 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
-  await page.getByLabel("Reported result for GPT-6.1 Sol").selectOption(pin);
+  await selectCatalogOption(page.getByLabel("Reported result for GPT-6.1 Sol"), pin);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Coding", exact: true }).click();
   const copy = page.getByRole("button", { name: "Copy comparison link" });

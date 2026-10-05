@@ -41,9 +41,9 @@ export default function ComparePage() {
   return (
     <div className="pb-8">
       <MarketHeader
-        eyebrow="Compare / Plans side by side"
-        title="Compare plans."
-        description="How plans differ on paper: price, models, coding tools, usage limits and what happens when you run out. To see how they handle your own work, compare them against your workload."
+        eyebrow="Published plans, side by side"
+        title="Find the fit."
+        description="Choose two or three plans to compare their published prices, models and limits. To understand your own usage, start with a recap."
       >
         {quick.length > 0 && (
           <aside className="market-feature" aria-label="Featured comparisons">

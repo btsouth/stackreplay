@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { PlanTermsNotice } from "@/components/plan-history";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import { type CompareFacts, compareModelMatrix } from "@/lib/compare-facts";
 import { compareSearch, readComparePlans } from "@/lib/compare-url";
 import type { PublicProviderSummary } from "@/lib/public-catalog";
@@ -248,9 +249,7 @@ function InspectContent({
   return (
     <div className="space-y-5 pb-4 pt-2 text-sm" data-testid={testId}>
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Numeric limits
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">Numeric limits</p>
         {plan.limits.length === 0 ? (
           <p className="mt-1 text-muted-foreground">
             {plan.publishedTerms
@@ -273,9 +272,7 @@ function InspectContent({
       </div>
       {plan.qualitativeLimits.length > 0 ? (
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Provider statements
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">Provider statements</p>
           <ul className="mt-1 space-y-2 text-xs text-muted-foreground">
             {plan.qualitativeLimits.map((limit) => (
               <li key={limit.id}>
@@ -300,9 +297,7 @@ function InspectContent({
         </div>
       ) : null}
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Model rules
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">Model rules</p>
         <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
           {facts.rules.map((rule) => (
             <li key={rule.id}>
@@ -319,9 +314,7 @@ function InspectContent({
         </ul>
       </div>
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Version
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">Version</p>
         <p className="mt-1 break-all font-mono text-xs text-foreground">{plan.versionId}</p>
         <p className="text-xs text-muted-foreground">
           {facts.effective} · {plan.versionCount} {plan.versionCount === 1 ? "version" : "versions"}{" "}
@@ -329,9 +322,7 @@ function InspectContent({
         </p>
       </div>
       <div className="space-y-2">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Sources
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">Sources</p>
         <SourceList sources={plan.sources} />
         <VerificationBadge status={plan.verificationStatus} lastVerifiedAt={plan.lastVerifiedAt} />
       </div>
@@ -389,9 +380,7 @@ function Row({
       className={`grid gap-x-6 gap-y-3 border-b border-border py-4 text-sm ${layout.grid}`}
       data-testid={`compare-row-${testId}`}
     >
-      <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:pt-0.5">
-        {label}
-      </h3>
+      <h3 className="text-sm font-medium text-muted-foreground sm:pt-0.5">{label}</h3>
       {same !== undefined ? (
         <div className={`min-w-0 ${layout.span}`}>
           {same}
@@ -443,8 +432,7 @@ function TextRow({
   );
 }
 
-const COMPACT_FACT_LABEL =
-  "font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground";
+const COMPACT_FACT_LABEL = "text-sm font-medium text-muted-foreground";
 
 function CompactFact({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -563,9 +551,7 @@ function TargetHeader({
   return (
     <section className="min-w-0 border-t border-border-strong pt-4" data-testid="compare-target">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-          {plan.providerName}
-        </p>
+        <p className="text-sm font-medium text-muted-foreground">{plan.providerName}</p>
         {onRemove && (
           <button
             type="button"
@@ -699,9 +685,13 @@ export function CompareExplorer({
   const addThird = () =>
     selectPlans([...ids, planIds.find((id) => !ids.includes(id)) ?? ids[0] ?? ""]);
   const selector = (label: string, index: number) => (
-    <label key={label} className="flex min-w-0 flex-col gap-2 text-xs text-muted-foreground">
+    <div
+      key={label}
+      className="catalog-control flex min-w-0 flex-col gap-2 text-xs text-muted-foreground"
+    >
       {label}
-      <select
+      <CatalogSelect
+        label={label}
         value={ids[index]}
         onChange={(event) => setAt(index, event.target.value)}
         className="min-h-11 w-full border border-control-border bg-surface px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring"
@@ -717,8 +707,8 @@ export function CompareExplorer({
               ))}
           </optgroup>
         ))}
-      </select>
-    </label>
+      </CatalogSelect>
+    </div>
   );
   const duplicate = new Set(ids).size !== ids.length;
   const ready = !duplicate && chosen.length === ids.length && chosen.length >= 2;
@@ -779,7 +769,7 @@ export function CompareExplorer({
               className={`grid gap-x-6 gap-y-3 border-b border-border py-4 text-sm ${layout.grid}`}
               data-testid="compare-row-model-matrix"
             >
-              <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:pt-0.5">
+              <h3 className="text-sm font-medium text-muted-foreground sm:pt-0.5">
                 Model by model
               </h3>
               <div className={`min-w-0 ${layout.span}`}>

@@ -162,7 +162,7 @@ export default async function PlanPage({ params }: Props) {
       )}
       <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">
-          <span>01 / What you get</span>
+          <span>What you get</span>
         </div>
         {plan.publishedTerms ? (
           <PublishedSubscriptionTerms terms={plan.publishedTerms} />
@@ -197,7 +197,7 @@ export default async function PlanPage({ params }: Props) {
       </section>
       <section id="model-access" className="mt-10 scroll-mt-24">
         <div className="market-section-title">
-          <span>02 / Included models & access</span>
+          <span>Included models & access</span>
         </div>
         {plan.modelAccess ? (
           <SubscriptionModelAccess access={plan.modelAccess} />
@@ -223,7 +223,7 @@ export default async function PlanPage({ params }: Props) {
       </section>
       <section className="mt-10">
         <div className="market-section-title">
-          <span>03 / When you reach the limit</span>
+          <span>When you reach the limit</span>
         </div>
         <div className="max-w-3xl space-y-3 text-sm leading-relaxed">
           {facts.afterLimit.lines.length || facts.afterLimit.quotes.length ? (
@@ -250,7 +250,7 @@ export default async function PlanPage({ params }: Props) {
               className="flex flex-wrap justify-between gap-3 border-b border-border py-4 hover:text-accent"
             >
               <span>{p.name}</span>
-              <span className="font-mono text-sm">
+              <span className="text-sm tabular-nums">
                 {publicPlanPriceText(p)} <span className="ml-4 text-accent">Compare ↗</span>
               </span>
             </Link>

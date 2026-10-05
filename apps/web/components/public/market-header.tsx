@@ -1,3 +1,4 @@
+import { buttonVariants, PageHeader } from "@stackreplay/ui";
 import Link from "next/link";
 import type { ReactNode } from "react";
 export function MarketHeader({
@@ -14,29 +15,25 @@ export function MarketHeader({
   compact?: boolean;
 }) {
   return (
-    <header className={compact ? "market-header market-header-compact" : "market-header"}>
-      <div>
-        <p className="market-kicker">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p className="market-description">{description}</p>
-      </div>
+    <div className={`public-opening${compact ? " public-opening-compact" : ""}`}>
+      <PageHeader eyebrow={eyebrow} title={title} description={description} />
       {children}
-    </header>
+    </div>
   );
 }
 export function MarketFooter() {
   return (
     <aside className="market-invitation">
       <div>
-        <p className="market-kicker">Make it personal</p>
-        <h2>The useful comparison is your own work.</h2>
+        <p className="market-kicker">Your story comes first</p>
+        <h2>See what your own work looks like.</h2>
         <p>
-          Import your history to see exact model usage, current API economics and relevant replay
-          strategies. Everything stays in your browser.
+          Make a recap from your coding history. Your files are read on this device and stay in your
+          browser.
         </p>
       </div>
-      <Link href="/app/scan" className="market-primary">
-        Analyze my workload <span aria-hidden="true">↗</span>
+      <Link href="/app/scan" className={buttonVariants({ variant: "primary" })}>
+        Make my recap <span aria-hidden="true">↗</span>
       </Link>
     </aside>
   );

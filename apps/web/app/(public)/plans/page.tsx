@@ -19,11 +19,12 @@ export default function PlansPage() {
   return (
     <div>
       <MarketHeader
-        eyebrow="Subscriptions / Know what you buy"
+        eyebrow="Coding subscriptions"
         title="Find your next stack."
         description="Model access, monthly prices and the limits that matter. Side by side, with the sources to check them."
-      >
-        <aside className="market-feature">
+
+      />
+      <PlanExplorer spotlight={<aside className="market-feature">
           <p className="market-kicker">Open-model subscriptions</p>
           <h2>More ways to run your agents.</h2>
           <p>
@@ -33,9 +34,7 @@ export default function PlansPage() {
           <Link href="/compare?left=clinepass&right=opencode-go" className="market-link">
             ClinePass vs OpenCode Go ↗
           </Link>
-        </aside>
-      </MarketHeader>
-      <PlanExplorer
+        </aside>}
         plans={catalog.plans}
         providers={catalog.providers}
         facts={facts}

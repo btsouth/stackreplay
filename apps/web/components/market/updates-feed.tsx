@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useMarketRelations } from "@/components/home/market-briefing";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import type { HomeCatalogIndex } from "@/lib/home/personal";
 import type { MarketEventView } from "@/lib/market/events";
 import {
@@ -96,9 +97,10 @@ export function UpdatesFeed({
           <link rel="alternate" type="application/json" href={absoluteUrl(jsonHref)} />
         </>
       ) : null}
-      <label className="mb-4 flex max-w-sm flex-col gap-2 text-sm">
+      <div className="catalog-control mb-4 flex max-w-sm flex-col gap-2 text-sm">
         Provider
-        <select
+        <CatalogSelect
+          label="Provider"
           className="min-h-11 min-w-0 rounded border border-border bg-background px-3"
           value={selection.providerId ?? "all"}
           onChange={(event) =>
@@ -118,8 +120,8 @@ export function UpdatesFeed({
               {provider.name}
             </option>
           ))}
-        </select>
-      </label>
+        </CatalogSelect>
+      </div>
       <fieldset className="updates-filters">
         <legend className="sr-only">Filter updates</legend>
         {UPDATE_CATEGORIES.map((entry) => (

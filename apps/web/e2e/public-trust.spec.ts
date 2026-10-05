@@ -39,15 +39,15 @@ for (const [path, title] of routes)
     );
   });
 
-test("home states scoped checks and methodology starts with catalog evidence", async ({ page }) => {
+test("home states scoped checks and methodology starts with the local privacy promise", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(page.locator("main")).toContainText("Your logs never leave your browser");
   await expect(page.locator("main")).toContainText("Illustrative comparison");
   await page.goto("/methodology");
-  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText(
-    "What the catalog covers",
-  );
-  await page.getByRole("link", { name: "Workload replay and accounting details" }).click();
+  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("The files you choose.");
+  await page.getByRole("link", { name: "Replay assumptions ↓" }).click();
   await expect(page).toHaveURL(/#replay-methodology$/);
   await expect(
     page.getByRole("heading", { name: "Workload replay and accounting", exact: true }),

@@ -1,3 +1,4 @@
+import { expectCatalogSelection } from "./public-controls";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 
@@ -125,8 +126,8 @@ test("shared models preserve filters, results and hash through reload and naviga
 }) => {
   await page.goto("/models?view=table&developer=anthropic&sort=input&dir=desc#published-api-rates");
   const path = new URL(page.url()).pathname + new URL(page.url()).search + new URL(page.url()).hash;
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
-  await expect(page.getByLabel("Order by")).toHaveValue("input");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
+  await expectCatalogSelection(page.getByLabel("Order by"), "input");
   const rows = page.getByTestId("model-table-row");
   await expect(rows.first()).toBeVisible();
   const names = await rows.locator("th a").allTextContents();
@@ -141,7 +142,7 @@ test("shared models preserve filters, results and hash through reload and naviga
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${path.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}$`, "u"));
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
   await expect(rows.first()).toBeVisible();
   expect(await rows.locator("th a").allTextContents()).toEqual(names);
   await page.goForward();
