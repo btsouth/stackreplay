@@ -17,9 +17,7 @@ export function MicroLabel({
   className?: string | undefined;
 }) {
   return (
-    <span
-      className={`font-mono text-xs leading-snug uppercase tracking-[0.12em] text-muted-foreground ${className ?? ""}`}
-    >
+    <span className={`text-xs leading-snug text-muted-foreground ${className ?? ""}`}>
       {children}
     </span>
   );

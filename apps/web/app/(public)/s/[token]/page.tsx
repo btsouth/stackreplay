@@ -1,5 +1,7 @@
 import { decodeAnyShareToken, type ShareSnapshotV2, shareHeadline } from "@stackreplay/share";
 import { buttonVariants } from "@stackreplay/ui";
+import { notFound } from "next/navigation";
+import "@/components/plans/premium-app.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatUnit } from "@/components/instrument/format";
@@ -87,38 +89,14 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
 export default async function SharePage({ params }: SharePageProps) {
   const { token: param } = await params;
   const resolved = await resolveShareParam(param);
-  if (resolved.kind !== "token")
-    return <ShareLinkMissing unavailable={resolved.kind === "unavailable"} />;
+  if (resolved.kind === "missing") notFound();
+  if (resolved.kind !== "token") return <ShareLinkMissing unavailable />;
   const decoded = await decodeAnyShareToken(resolved.token);
 
-  if (!decoded.ok) {
-    return (
-      <div className="flex flex-col gap-4 pb-8" data-testid="share-invalid">
-        <h1 className="text-2xl font-semibold text-foreground">This share link cannot be read</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          {decoded.code === "SHARE_TOKEN_CHECKSUM_MISMATCH"
-            ? "The link looks altered: its integrity check failed, so the result is not shown rather than shown incorrectly."
-            : decoded.code === "SHARE_TOKEN_UNSUPPORTED_VERSION"
-              ? "This link was made by a newer version of StackReplay than this site understands."
-              : "The link is incomplete or not a StackReplay share link."}
-        </p>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          A truncated or edited link cannot be repaired by reloading. Ask for a fresh link, or{" "}
-          <Link className="text-accent underline underline-offset-2" href="/app/import">
-            run your own replay
-          </Link>
-          .
-        </p>
-        <div>
-          <Link className={buttonVariants({ variant: "secondary" })} href="/">
-            Back to {siteName}
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  if (!decoded.ok) notFound();
 
-  if (decoded.snapshot.version === 2) return <ShareV2Page snapshot={decoded.snapshot} />;
+  if (decoded.snapshot.version === 2)
+    return <ShareV2Page snapshot={decoded.snapshot} path={resolved.path} />;
   const snapshot = decoded.snapshot;
   const exceeded = snapshot.constraints.filter((constraint) => constraint.status === "exceeded");
   const unknown = snapshot.constraints.filter((constraint) => constraint.status === "unknown");
@@ -128,9 +106,9 @@ export default async function SharePage({ params }: SharePageProps) {
   const truncationNotes = describeShareTruncation(snapshot.truncation);
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="premium-share flex flex-col gap-8 pb-8">
       <header className="flex flex-col gap-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Shared replay</p>
+        <p className="text-sm text-muted-foreground">Shared by its creator · a plan scenario</p>
         <h1 className="text-2xl font-semibold text-foreground">
           {snapshot.workload.eventCount.toLocaleString("en-US")} events replayed against{" "}
           {snapshot.target.planName}
@@ -153,6 +131,13 @@ export default async function SharePage({ params }: SharePageProps) {
         </p>
       ) : null}
 
+      <a
+        className={buttonVariants({ variant: "secondary" })}
+        href={`${resolved.path}/image`}
+        download="stackreplay-card.png"
+      >
+        Download this card
+      </a>
       <ShareCard
         snapshot={snapshot}
         logoSrc={brandAssets.navbar.dark}
@@ -328,14 +313,14 @@ export default async function SharePage({ params }: SharePageProps) {
       </section>
 
       <section className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5">
-        <h2 className="text-base font-medium text-foreground">Replay your own workload</h2>
+        <h2 className="text-base font-medium text-foreground">Make your own recap</h2>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Import a sanitized usage export from the coding agents on your machine and replay it
-          against {snapshot.target.planName} or any other catalogued plan. It runs in your browser.
+          Scan the history your AI coding tools keep on your computer, then try it against{" "}
+          {snapshot.target.planName} or any other catalogued plan. It runs in your browser.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link className={buttonVariants()} href="/app/import">
-            Scan your AI history
+          <Link className={buttonVariants()} href="/app/scan">
+            Make my recap
           </Link>
           {catalogued === undefined ? null : (
             <Link
@@ -362,18 +347,32 @@ export default async function SharePage({ params }: SharePageProps) {
  * A V2 link: the result leads, in the words the application leads it with,
  * then where the numbers come from and what the link does and does not carry.
  */
-function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
+function ShareV2Page({ snapshot, path }: { snapshot: ShareSnapshotV2; path: string }) {
   const presentation = presentShare(snapshot);
   const catalogued =
     snapshot.kind === "replay" && snapshot.target.type === "subscription"
       ? loadPublicCatalog().planById(snapshot.target.id)
       : undefined;
   return (
-    <div className="flex flex-col gap-10 pb-8" data-testid="share-v2">
-      <p className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-        Shared {snapshot.kind === "replay" ? "replay" : "workload"} · computed on the sharer&apos;s
-        device
-      </p>
+    <div className="premium-share" data-testid="share-v2">
+      <header className="share-invitation">
+        <p className="text-sm text-muted-foreground">
+          Shared by its creator ·{" "}
+          {snapshot.kind === "replay" ? "a plan scenario" : "a coding recap"}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <a
+            className={buttonVariants({ variant: "outline" })}
+            href={`${path}/image`}
+            download="stackreplay-card.png"
+          >
+            Download this card
+          </a>
+          <Link className={buttonVariants({ variant: "secondary" })} href="/app/scan">
+            Make my recap
+          </Link>
+        </div>
+      </header>
       {presentation.synthetic ? (
         <p
           className="max-w-3xl border-l-2 border-warning pl-4 text-sm text-warning"
@@ -463,14 +462,14 @@ function ShareV2Page({ snapshot }: { snapshot: ShareSnapshotV2 }) {
       </section>
 
       <section className="flex max-w-3xl flex-col gap-3 border-t border-border pt-5">
-        <h2 className="text-base font-medium text-foreground">Replay your own workload</h2>
+        <h2 className="text-base font-medium text-foreground">Make your own recap</h2>
         <p className="text-sm text-muted-foreground">
-          StackReplay reads your AI coding history in your browser and replays it against plans,
-          providers and APIs. Your history never leaves your device.
+          StackReplay turns your AI coding history into a recap, useful stats, and plan comparisons.
+          Your logs are read on this device and never uploaded.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link className={buttonVariants()} href="/app/import" data-testid="share-cta">
-            Scan your AI history
+          <Link className={buttonVariants()} href="/app/scan" data-testid="share-cta">
+            Make my recap
           </Link>
           <Link className={buttonVariants({ variant: "secondary" })} href="/methodology">
             How it works
@@ -521,7 +520,7 @@ function ShareLinkMissing({ unavailable }: { unavailable: boolean }) {
       </p>
       <p className="max-w-3xl text-sm text-muted-foreground">
         You can also{" "}
-        <Link className="text-accent underline underline-offset-2" href="/app/import">
+        <Link className="text-accent underline underline-offset-2" href="/app/scan">
           run your own replay
         </Link>
         .

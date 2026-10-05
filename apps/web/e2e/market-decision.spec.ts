@@ -6,7 +6,7 @@ import {
   openReviewEditor,
   openReviewEvidence,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`D1 same-scope API decision, receipts and subscriptions in ${theme}`, async ({ page }) => {

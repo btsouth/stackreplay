@@ -2,7 +2,12 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { CLAUDE_CODE_SESSION } from "../../../packages/adapters/src/fixtures/content";
-import { captureRequests, gotoImport, visitImportManager, waitForWorkload } from "./helpers";
+import {
+  captureRequests,
+  gotoImport,
+  visitImportManager,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 const portable = {
   name: "synthetic.stackreplay.json",
@@ -95,12 +100,10 @@ test("temporary workloads survive client-side handoff without being persisted", 
   page,
 }) => {
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("import-file-input").setInputFiles(portable);
   await waitForWorkload(page);
-  await expect(
-    page.getByText("Not saved in this browser. This workload is available only until reload."),
-  ).toBeVisible();
+  await expect(page.getByText("Ready for this visit")).toBeVisible();
   await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
   await page.reload();
   await expect(page.getByTestId("automatic-workload")).toHaveCount(0);

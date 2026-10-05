@@ -435,7 +435,7 @@ export function HistoryDiscovery({
       <div className="sr-find-head">
         <h2 id={headingId} ref={headingRef} tabIndex={-1} className="sr-find-title">
           {intro
-            ? "Find my AI histories"
+            ? "Start with your history folder"
             : phase === "armed"
               ? "Choose your user folder"
               : settled
@@ -446,7 +446,8 @@ export function HistoryDiscovery({
         </h2>
         {intro ? (
           <p className="sr-find-rule" data-testid="discovery-promise">
-            One folder permission · known AI locations only · raw history stays here
+            Drop your user folder to find your AI histories, or choose a tool’s history folder
+            below.
           </p>
         ) : phase === "armed" ? (
           <p className="sr-find-lede" data-testid="permission-preview">
@@ -584,7 +585,16 @@ export function HistoryDiscovery({
             onClick={arm}
             data-testid="find-histories"
           >
-            Find my AI histories
+            Where is my history?
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            disabled={disabled}
+            onClick={() => openChooser()}
+            data-testid="choose-history-folder"
+          >
+            Choose a history folder
           </Button>
           {connectToggle("Connect individually →")}
         </div>

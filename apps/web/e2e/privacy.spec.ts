@@ -6,7 +6,7 @@ import {
   runReplay,
   WORKLOAD_MARKERS,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 /**
  * Network privacy (M3 brief).

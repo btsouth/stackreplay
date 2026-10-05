@@ -6,7 +6,12 @@ import {
   CODEX_ROLLOUT,
   COMMAND_CODE_SESSION,
 } from "../../../packages/adapters/src/fixtures/content";
-import { gotoImport, importDemo, visitPlanSuggestions, waitForWorkload } from "./helpers";
+import {
+  gotoImport,
+  importDemo,
+  visitPlanSuggestions,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 const STACK = "stackreplay.current-stack";
 const PREFERENCES = "stackreplay.stack-discovery.v1";
@@ -120,7 +125,7 @@ test("one click per family confirms, survives reload and can edit one family wit
   await expect(page.getByTestId("settings-plans-summary")).toContainText("Claude Pro");
   await expect(page.getByTestId("settings-plans-summary")).toContainText("ChatGPT Pro 200");
   await expect(page.getByTestId("settings-manual-plans")).not.toHaveAttribute("open", "");
-  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await page.getByRole("link", { name: "Manage your plans →" }).click();
   await expect(page.getByRole("heading", { name: "Your plans", exact: true })).toBeVisible();
   await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toBeVisible();
 });
@@ -358,7 +363,7 @@ test("Max 5x quantity two persists, adds Pro and prices the stack on mobile and 
   await expect(group.getByLabel("Claude Max 5x quantity", { exact: true })).toHaveText("2");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await panel(page).getByRole("button", { name: "Confirm stack", exact: true }).click();
-  await page.getByRole("link", { name: "Manage My Stack →", exact: true }).click();
+  await page.getByRole("link", { name: "Manage your plans →", exact: true }).click();
   await expect(page.getByTestId("stack-published-total")).toContainText("$220");
   const importId = new URL(page.url()).searchParams.get("import");
   await page.goto(

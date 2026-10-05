@@ -1,3 +1,4 @@
+import "@/components/plans/premium-app.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/page-header";
@@ -15,29 +16,43 @@ function Setting({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[14rem_minmax(0,1fr)] sm:gap-8">
+    <section className="app-setting">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-base font-medium">{title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <h2 className="font-medium">{title}</h2>
+        <p className="app-setting-description">{description}</p>
       </div>
       {children}
     </section>
   );
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const values = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) {
+    if (typeof value === "string") query.set(key, value);
+    else if (Array.isArray(value)) for (const item of value) query.append(key, item);
+  }
+  const plansHref = `/app/plans${query.size ? `?${query}` : ""}`;
   return (
-    <>
+    <div className="premium-app">
       <PageHeader
         title="Settings"
-        description="Your settings stay in this browser. They are not uploaded."
+        description="Make this space yours. Choose how it looks, confirm your plans, and keep your saved scans in order."
       />
-      <div className="flex max-w-4xl flex-col gap-8">
+      <div className="app-settings">
+        <Setting title="Appearance" description="Dark, or a warm paper theme for reading.">
+          <ThemeChoiceControl />
+        </Setting>
         <Setting
           title="Plans you pay for"
           description="Choose the plans you pay for. Your recap, stats and plan comparisons use the same choices."
         >
-          <PlansYouPayFor />
+          <PlansYouPayFor plansHref={plansHref} />
         </Setting>
         <Setting
           title="Saved scans"
@@ -45,10 +60,7 @@ export default function SettingsPage() {
         >
           <SavedWorkloads />
         </Setting>
-        <Setting title="Appearance" description="Dark, or a warm paper theme for reading.">
-          <ThemeChoiceControl />
-        </Setting>
       </div>
-    </>
+    </div>
   );
 }

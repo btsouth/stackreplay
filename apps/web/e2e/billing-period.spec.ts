@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
+import { chooseOption } from "./app-select-helpers";
 import {
   gotoImport,
   importDemo,
@@ -9,7 +10,7 @@ import {
   openReviewEvidence,
   openWorkloadTools,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 async function completeDemo(page: import("@playwright/test").Page) {
   await gotoImport(page);
@@ -103,7 +104,7 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/stats/u);
   await openReviewEditor(page);
-  await page.getByLabel("Review period source").selectOption("custom");
+  await chooseOption(page.getByLabel("Review period source"), "custom");
   await openReviewEditor(page);
   await page.getByLabel("Review start date").fill("2026-09-01");
   await openReviewEditor(page);
@@ -208,7 +209,7 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   await openBillingReview(page);
   await expect(page).toHaveURL(/\/app\/stats/u);
   await openReviewEditor(page);
-  await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
+  await chooseOption(page.getByLabel("Review period source"), "plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-period")).toHaveText("Aug 1 → Sep 1 · end excluded");
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await page.getByLabel("Confirm history covers this review period").check();
@@ -241,7 +242,7 @@ test("D2 can choose a single offset cycle and preserves calls outside it", async
   await form.getByLabel(/cycle end/).fill("2026-10-04");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
   await openReviewEditor(page);
-  await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
+  await chooseOption(page.getByLabel("Review period source"), "plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-period")).toHaveText("Sep 4 → Oct 4 · end excluded");
   await expect(page.getByTestId("review-history")).toContainText("3,240 recorded calls");
   await expect(page.getByTestId("review-history")).toContainText("360 imported calls fall outside");
@@ -383,7 +384,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await expect(page.getByLabel("Local source account")).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
   await openReviewEditor(page);
-  await page.getByLabel("Local source account").selectOption("primary");
+  await chooseOption(page.getByLabel("Local source account"), "primary");
   await expect(page.getByTestId("review-history")).toContainText(
     `${original.length} distinct responses`,
   );
@@ -396,7 +397,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await form.getByLabel(/amount paid/).fill("87");
   await form.getByRole("button", { name: "Save local billing facts" }).click();
   await openReviewEditor(page);
-  await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
+  await chooseOption(page.getByLabel("Review period source"), "plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$87.00");
   await page.getByLabel("Confirm history covers this review period").check();
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
@@ -426,13 +427,13 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await expect(page.getByTestId("market-total")).toHaveText(total);
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
   await openReviewEditor(page);
-  await page.getByLabel("Local source account").selectOption("secondary");
+  await chooseOption(page.getByLabel("Local source account"), "secondary");
   await expect(
     page.getByRole("heading", { name: "Choose a review period", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Confirm history covers this review period")).toHaveCount(0);
   await openReviewEditor(page);
-  await page.getByLabel("Local source account").selectOption("primary");
+  await chooseOption(page.getByLabel("Local source account"), "primary");
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
   await expect(page.getByLabel("Confirm history covers this review period")).not.toBeChecked();
   await page.getByLabel("Confirm history covers this review period").check();
@@ -496,7 +497,7 @@ for (const theme of ["dark", "light"] as const) {
     await waitForWorkload(page);
     await openBillingReview(page);
     await openReviewEditor(page);
-    await page.getByLabel("Local source account").selectOption("main");
+    await chooseOption(page.getByLabel("Local source account"), "main");
     const capacity = page.getByTestId("capacity-evidence");
     await expect(capacity).toContainText("1 direct capacity-limit event");
     await openReviewEvidence(page);

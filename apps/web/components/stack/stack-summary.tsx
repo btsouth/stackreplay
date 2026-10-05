@@ -40,6 +40,7 @@ export function StackSummary({
   workloadState,
   period,
   onSetup,
+  canSetup = true,
 }: {
   analysis: StackAnalysis;
   workload: StackWorkload | undefined;
@@ -48,6 +49,7 @@ export function StackSummary({
   workloadState: ReactNode;
   period: ReactNode;
   onSetup: () => void;
+  canSetup?: boolean;
 }) {
   const { model } = analysis;
   const monthly = model.totals.find(
@@ -67,6 +69,7 @@ export function StackSummary({
       <h2 id="stack-summary-heading" className="sr-only">
         Your stack, your recorded workload and what can be analyzed
       </h2>
+      {analysis.leverage?.priceBasis === "paid" && workload ? <div className="stack-confirmed-spend"><p>Confirmed payments for the plans analyzed</p><strong>{money(analysis.leverage.price)}</strong><span>{workloadPeriodText(workload)}. Amounts you entered, not published prices.</span></div> : null}
       <div className="stack-summary-figures">
         <div className="stack-summary-figure" data-testid="stack-published-total">
           <p className="stack-eyebrow">Your stack</p>
@@ -77,7 +80,12 @@ export function StackSummary({
                 Tell StackReplay what you currently pay for so it can analyze this workload against
                 your stack.
               </p>
-              <button type="button" className="stack-primary" onClick={onSetup}>
+              <button
+                type="button"
+                className="stack-primary"
+                disabled={!canSetup}
+                onClick={onSetup}
+              >
                 Choose your subscriptions
               </button>
             </>

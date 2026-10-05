@@ -1,6 +1,9 @@
 "use client";
+import { Select } from "@stackreplay/ui";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { AppPageSkeleton } from "@/components/plans/app-page-state";
 import { readAccountIdentities } from "@/lib/account-identity";
 import {
   newSubscriptionId,
@@ -30,6 +33,8 @@ export function RecapSurface({
   initialImportId?: string | undefined;
   initialTarget?: string | undefined;
 }) {
+  const router = useRouter();
+  const query = useSearchParams();
   const [imports, setImports] = useState<ImportRecord[]>([]);
   const [id, setId] = useState(initialImportId);
   const [period, setPeriod] = useState<RecapPeriod>("30");
@@ -42,6 +47,33 @@ export function RecapSurface({
   const [exporting, setExporting] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
+  useEffect(() => {
+    setId(initialImportId);
+  }, [initialImportId]);
+  useEffect(() => {
+    let selected = query.get("period");
+    if (selected === null) {
+      try {
+        selected = window.localStorage.getItem("stackreplay.recap-period");
+      } catch {}
+    }
+    setPeriod(selected === "90" || selected === "all" ? selected : "30");
+  }, [query]);
+  function selectPeriod(next: RecapPeriod) {
+    setPeriod(next);
+    try {
+      window.localStorage.setItem("stackreplay.recap-period", next);
+    } catch {}
+    const query = new URLSearchParams(window.location.search);
+    query.set("period", next);
+    router.replace(`/app/recap?${query}${window.location.hash}`, { scroll: false });
+  }
+  function selectHistory(next: string) {
+    setId(next);
+    const query = new URLSearchParams(window.location.search);
+    query.set("import", next);
+    router.push(`/app/recap?${query}${window.location.hash}`, { scroll: false });
+  }
   useEffect(() => {
     const refresh = () => {
       const saved = readStackSubscriptions();
@@ -172,15 +204,14 @@ export function RecapSurface({
           </h1>
         </div>
         <div className="recap-controls">
-          <PeriodControl value={period} onChange={setPeriod} />
+          <PeriodControl value={period} onChange={selectPeriod} />
           {imports.length > 1 && (
-            <select aria-label="History" value={id} onChange={(e) => setId(e.target.value)}>
-              {imports.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            <Select
+              label="History"
+              value={id ?? ""}
+              onValueChange={selectHistory}
+              options={imports.map((r) => ({ value: r.id, label: r.label }))}
+            />
           )}
         </div>
       </header>
@@ -192,7 +223,7 @@ export function RecapSurface({
       {!recap && !error && (
         <div className="recap-status">
           {!loaded || id ? (
-            "Bringing your history into focus…"
+            <AppPageSkeleton label="Bringing your history into focus" />
           ) : (
             <>
               <h2>Your next chapter starts here.</h2>
@@ -340,8 +371,9 @@ export function RecapSurface({
               Calculated on this device. Your logs stay here.{" "}
               <Link
                 href={`/app/stats?import=${encodeURIComponent(id ?? "")}${initialTarget ? `&target=${encodeURIComponent(initialTarget)}` : ""}`}
+                onNavigate={() => window.scrollTo(0, 0)}
               >
-                Explore workload details →
+                Explore your stats →
               </Link>
             </footer>
           </div>

@@ -3,6 +3,7 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MicroLabel } from "@/components/instrument/primitives";
+import { AppPageSkeleton } from "@/components/plans/app-page-state";
 import { StrategyResult } from "@/components/replay/strategy-result";
 import {
   type CompletedReplay,
@@ -60,14 +61,20 @@ export function CompletedReplayComparison({
     <div className="space-y-8" data-testid="completed-compare">
       <header className="space-y-3">
         <MicroLabel>Completed local results</MicroLabel>
-        <h1 className="text-3xl font-medium tracking-tight">Compare replays</h1>
+        <h1 className="text-3xl font-medium tracking-tight">Compare your options</h1>
         <p className="text-sm text-muted-foreground">
           The same recorded work, under the strategies you chose. No scopes to rebuild and no
           pricing rerun.
         </p>
       </header>
+      <Link
+        href={`/app/plans?section=compare&view=billing${initialImportId ? `&import=${encodeURIComponent(initialImportId)}` : ""}`}
+        className="inline-flex min-h-11 items-center text-accent"
+      >
+        Compare plan prices with your history →
+      </Link>
       {!ready ? (
-        <p role="status">Opening saved results…</p>
+        <AppPageSkeleton label="Opening saved scenarios" />
       ) : eligible.length === 0 ? (
         <div
           className="space-y-4 border-y border-border py-6"

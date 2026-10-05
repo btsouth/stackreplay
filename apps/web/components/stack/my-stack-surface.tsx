@@ -4,6 +4,8 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { Check, ChevronDown, ChevronRight, LockKeyhole, Plus, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TemporaryScanNotice } from "@/components/plans/app-page-state";
+import { AppSelect } from "@/components/plans/app-select";
 import { partialScanOf } from "@/components/workload/evidence";
 import {
   linkAccount,
@@ -134,13 +136,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     };
   }, [importAttempt]);
 
-  const savedImports = (imports ?? []).filter(
-    (item) => !isSyntheticWorkload(item) && item.savedLocally !== false,
-  );
+  const savedImports = (imports ?? []).filter((item) => !isSyntheticWorkload(item));
   const chosenImport = selectedImport ?? savedImports[0]?.id ?? "";
   const requested = imports?.find((record) => record.id === chosenImport);
   const demo = requested !== undefined && isSyntheticWorkload(requested);
-  const record = requested && !demo && requested.savedLocally !== false ? requested : undefined;
+  const record = requested && !demo ? requested : undefined;
 
   const local = useReview(record);
   const partialScan = record
@@ -511,8 +511,6 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
       <p className="stack-caption">Demo workloads are excluded from My Stack.</p>
     ) : chosenImport && !requested ? (
       <p className="stack-caption">This workload is unavailable in this browser.</p>
-    ) : requested?.savedLocally === false ? (
-      <p className="stack-caption">This workload was not saved in this browser.</p>
     ) : stackWork.failed ? (
       <div role="status">
         <p className="stack-caption">
@@ -540,51 +538,60 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
     <div className="my-stack" data-testid="my-stack">
       <header className="stack-page-header">
         <div>
-          <p className="stack-eyebrow">Your workspace</p>
+          <p className="stack-eyebrow">Find your fit</p>
           <h1>Your plans</h1>
-          <p>Are you buying the right AI subscriptions for the work you actually ran?</p>
+          <p>The plans you pay for, how hard you use them, and what else could fit.</p>
         </div>
         <div className="stack-header-actions">
           {savedImports.length > 0 || chosenImport || importError ? (
-            <label className="stack-workload-select">
+            <div className="stack-workload-select">
               <span>History</span>
-              <select
-                value={demo ? "" : (record?.id ?? "")}
+              <AppSelect
+                label="History"
+                value={requested?.id ?? ""}
                 disabled={imports === undefined || demo}
                 data-testid="stack-workload"
                 onChange={(event) => {
                   setSelectedImport(event.target.value);
                   setProposed(undefined);
                   setPeriodOpen(false);
+                  const params = new URLSearchParams(window.location.search);
+                  if (event.target.value) params.set("import", event.target.value);
+                  else params.delete("import");
                   window.history.replaceState(
                     null,
                     "",
-                    event.target.value
-                      ? `/app/plans?import=${encodeURIComponent(event.target.value)}`
-                      : "/app/plans",
+                    `/app/plans${params.size ? `?${params}` : ""}${window.location.hash}`,
                   );
                   closeEditor();
                 }}
               >
                 <option value="">No workload selected</option>
+                {demo && requested ? (
+                  <option value={requested.id}>
+                    Fictional demo · {requested.eventCount.toLocaleString("en-US")} calls
+                  </option>
+                ) : null}
                 {savedImports.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.summary.usageSources.map((source) => source.name).join(" + ") ||
                       item.label}{" "}
-                    · {item.eventCount.toLocaleString("en-US")} calls · saved{" "}
+                    · {item.eventCount.toLocaleString("en-US")} calls ·{" "}
+                    {item.savedLocally === false ? "temporary" : "saved"}{" "}
                     {item.createdAt.slice(0, 10)}
                   </option>
                 ))}
-              </select>
-            </label>
+              </AppSelect>
+            </div>
           ) : null}
           <button
             type="button"
             className="stack-secondary"
             onClick={openSetup}
+            disabled={!canEdit}
             data-testid="stack-edit"
           >
-            Edit stack
+            Edit your plans
           </button>
           <span className="stack-local">
             <LockKeyhole aria-hidden="true" className="size-3.5" /> Kept in this browser
@@ -592,12 +599,22 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
         </div>
       </header>
 
+      {record?.savedLocally === false ? <TemporaryScanNotice /> : null}
       {demo ? (
         <div role="status" className="stack-notice" data-testid="stack-demo-notice">
           <p>
-            Demo workloads are excluded from My Stack. Your real selections are shown below; editing
-            is disabled in this demo view.
+            You’re exploring fictional history. Your paid plans stay separate from this demo. Try a
+            scenario with it, or scan your own history to see how your plans fit.
           </p>
+          <Link
+            href={`/app/plans?section=replay&import=${encodeURIComponent(chosenImport)}`}
+            className="stack-primary"
+          >
+            Try a change with this demo →
+          </Link>
+          <Link href="/app/scan" className="stack-link">
+            Scan my own history →
+          </Link>
           <Link href="/app/plans" className="stack-link">
             Open your real stack →
           </Link>
@@ -654,6 +671,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
           coverage={coverage}
           workloadState={workloadState}
           onSetup={openSetup}
+          canSetup={canEdit}
           period={
             record ? (
               <>

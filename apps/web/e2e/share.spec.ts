@@ -1,6 +1,7 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { encodeShareTokenV2, type ShareReplayV2 } from "@stackreplay/share";
-import { createShareToken, importDemo, runReplay } from "./helpers";
+import { createShareToken, importDemo, runReplay } from "./premium-app-helpers";
 
 /**
  * Phase 5: every link has its own image drawn from its own aggregate data, the
@@ -99,3 +100,13 @@ test("the panel offers the image and a suggested post once a link exists", async
   );
   await expect(page.getByTestId("share-post-text")).toContainText(/\/s\/[A-Za-z0-9_-]{22}\b/u);
 });
+
+for (const theme of ["dark", "light"] as const) {
+  test(`public V2 share card remains readable in ${theme}`, async ({ page }) => {
+    const token = await encodeShareTokenV2(replay);
+    await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
+    await page.goto(`/s/${token}`);
+    await expect(page.getByTestId("share-headline")).toBeVisible();
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+}

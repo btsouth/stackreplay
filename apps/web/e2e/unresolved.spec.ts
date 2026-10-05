@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import type { UsageEventV1 } from "@stackreplay/schema";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport, openReviewEvidence, waitForWorkload } from "./helpers";
+import { createShareToken, gotoImport, openReviewEvidence, waitForWorkload } from "./premium-app-helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -36,7 +36,7 @@ function giantExport(resolved: boolean) {
 
 async function importGiant(page: Page, resolved: boolean): Promise<void> {
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: resolved ? "giant-resolved.json" : "giant-unresolved.json",
     mimeType: "application/json",

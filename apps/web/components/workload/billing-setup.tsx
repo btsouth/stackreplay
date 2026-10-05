@@ -1,6 +1,8 @@
 "use client";
+
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { useEffect, useState } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import {
   billingFactSchema,
   periodSchema,
@@ -107,9 +109,10 @@ export function BillingSetup({
           save(plan, { start, end }, paid);
         }}
       >
-        <label className="min-w-0 text-sm">
+        <div className="min-w-0 text-sm">
           Account
-          <select
+          <AppSelect
+            label="Payment currency"
             aria-label="Billing account"
             className={field}
             value={choice.resourceInstanceId ?? ""}
@@ -127,11 +130,12 @@ export function BillingSetup({
                 · {a.calls.toLocaleString()} responses
               </option>
             ))}
-          </select>
-        </label>
-        <label className="min-w-0 text-sm">
+          </AppSelect>
+        </div>
+        <div className="min-w-0 text-sm">
           Subscription
-          <select
+          <AppSelect
+            label="Billing interval"
             aria-label="Billing subscription"
             className={field}
             value={plan}
@@ -149,8 +153,8 @@ export function BillingSetup({
                 {p.name}
               </option>
             ))}
-          </select>
-        </label>
+          </AppSelect>
+        </div>
         <label className="min-w-0 text-sm">
           Amount you paid · USD
           <input

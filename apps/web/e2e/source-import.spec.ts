@@ -14,7 +14,7 @@ import {
   openConnectIndividually,
   visitImportManager,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   type: "response_item",
@@ -208,7 +208,7 @@ test("selected source stays local, can be saved, exported and replayed", async (
   const requests = captureRequests(page);
   await gotoReplayImport(page);
   await expect(page.getByTestId("source-file-input")).toBeVisible();
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "rollout-fixture.jsonl",
     mimeType: "application/x-ndjson",
@@ -271,7 +271,7 @@ test("custom file controls retain native labels and mobile saved actions reflow"
   await gotoReplayImport(page);
   for (const [name, testId] of [
     ["Source files or ZIP", "source-file-input"],
-    ["StackReplay workload", "import-file-input"],
+    ["StackReplay export", "import-file-input"],
   ] as const) {
     const input = page.getByTestId(testId);
     await expect(input).toHaveAccessibleName(name);
@@ -280,7 +280,7 @@ test("custom file controls retain native labels and mobile saved actions reflow"
     const box = await input.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "a-very-long-rollout-fixture-name-that-must-remain-readable.jsonl",
     mimeType: "application/x-ndjson",
@@ -366,7 +366,7 @@ test("an unsaved source can replay in this session without IndexedDB persistence
 }) => {
   await gotoReplayImport(page);
   // Saving is the default; this case opts out explicitly.
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "rollout-unsaved.jsonl",
     mimeType: "application/x-ndjson",
@@ -461,7 +461,7 @@ test("archive hierarchy is absent from both stores and portable export", async (
     "Users/alice/private-repo/notes.txt": strToU8("private"),
   });
   await gotoReplayImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "history.zip", mimeType: "application/zip", buffer: Buffer.from(zip) });
@@ -505,7 +505,7 @@ test("archive hierarchy is absent from both stores and portable export", async (
 test("CLI compatible V1 named usage.json imports and replays", async ({ page }) => {
   await gotoReplayImport(page);
   // Only the portable import is stored in this case; the source scan opts out.
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("source-file-input").setInputFiles({
     name: "source.jsonl",
     mimeType: "application/x-ndjson",
@@ -528,7 +528,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   );
   // The ways in fold away under Workload ready; a second import opens them.
   // Import is already open as a source manager.
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page
     .getByTestId("source-file-input")
     .setInputFiles({ name: "usage.json", mimeType: "application/json", buffer: portable });

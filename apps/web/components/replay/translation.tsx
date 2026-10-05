@@ -2,6 +2,7 @@
 
 import type { BundledTargetModel } from "@stackreplay/catalog/bundled";
 import { useId } from "react";
+import { AppSelect } from "@/components/plans/app-select";
 import {
   type ModelMapping,
   type SourceModel,
@@ -152,7 +153,8 @@ export function TranslationEditor({
             htmlFor={`${allId}-all`}
           >
             Send every unavailable model to
-            <select
+            <AppSelect
+              label="Use one model for all unmatched calls"
               id={`${allId}-all`}
               defaultValue=""
               className="min-h-11 w-full max-w-xs rounded-md border border-control-border bg-surface px-2 text-sm text-foreground sm:min-h-9"
@@ -172,7 +174,7 @@ export function TranslationEditor({
                   {optionLabel(model)}
                 </option>
               ))}
-            </select>
+            </AppSelect>
           </label>
           <span className="pb-2.5 text-muted-foreground">
             A convenience for a single-model scenario. You can still change each row.
@@ -219,7 +221,8 @@ export function TranslationEditor({
                   {COUNT.format(source.events)}
                 </td>
                 <td className="py-3">
-                  <select
+                  <AppSelect
+                    label="Translate this recorded model"
                     id={selectId}
                     value={value}
                     data-testid={`translation-select-${source.modelId}`}
@@ -248,7 +251,7 @@ export function TranslationEditor({
                           {optionLabel(model)}
                         </option>
                       ))}
-                  </select>
+                  </AppSelect>
                 </td>
               </tr>
             );

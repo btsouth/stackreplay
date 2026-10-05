@@ -16,7 +16,7 @@ import {
   setRulesAsOf,
   visitReplay,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 async function history(info: TestInfo) {
   const root = info.outputPath("opencode");

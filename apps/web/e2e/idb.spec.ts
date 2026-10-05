@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, openReviewEvidence, openWorkloadTools } from "./helpers";
+import { gotoImport, importDemo, openReviewEvidence, openWorkloadTools } from "./premium-app-helpers";
 
 /** How many records and payloads the browser's own database holds. */
 async function readStoreCounts(page: import("@playwright/test").Page): Promise<{
@@ -222,7 +222,7 @@ test("clearing local data during an import leaves nothing stored", async ({ page
 
   await importDemo(page, "moderate");
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
 
   // A browser-sized export, written to a path of this process's own so a parallel
   // spec cannot be regenerating the same file underneath it.

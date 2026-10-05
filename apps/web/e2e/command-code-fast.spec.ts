@@ -6,7 +6,7 @@ import {
   setRulesAsOf,
   visitReplay,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 const regular = "deepseek/deepseek-v4.1-flash";
 const fast = `${regular}-fast`;

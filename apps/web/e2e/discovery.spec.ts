@@ -13,7 +13,7 @@ import {
   openConnectIndividually,
   visitImportManager,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 /**
  * Find my AI histories (history discovery before import).

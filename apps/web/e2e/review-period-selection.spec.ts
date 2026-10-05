@@ -1,7 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, openReviewEditor, waitForWorkload } from "./helpers";
+import { chooseOption } from "./app-select-helpers";
+import { gotoImport, openReviewEditor, waitForWorkload } from "./premium-app-helpers";
 
 for (const theme of ["dark", "light"] as const) {
   test(`35-day import prices the full import before optional billing in ${theme}`, async ({
@@ -45,15 +46,17 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByLabel("Review start date")).toBeVisible();
     await expect(page.getByLabel("Review end date")).toBeVisible();
     await expect(page.getByLabel("Local source account")).toBeVisible();
+    await page.getByLabel("Review period source").click();
     await expect(page.getByRole("option", { name: /Use recorded history span/ })).toHaveAttribute(
-      "disabled",
-      "",
+      "aria-disabled",
+      "true",
     );
+    await page.keyboard.press("Escape");
     await expect(page.getByTestId("market-total")).toHaveCount(0);
     await expect(page.getByTestId("decision-difference")).not.toBeVisible();
     await expect(market).not.toContainText("Full total unavailable");
     await openReviewEditor(page);
-    await page.getByLabel("Local source account").selectOption("primary");
+    await chooseOption(page.getByLabel("Local source account"), "primary");
     await expect(page.getByLabel("Local account label")).toBeVisible();
     await page.getByRole("button", { name: "Apply review period" }).click();
     await expect(market.getByRole("alert")).toContainText("1 to 31 days");

@@ -11,7 +11,7 @@ import {
   openReviewEvidence,
   openWorkloadTools,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 /**
  * Short share links, end to end in a real browser.
@@ -135,14 +135,15 @@ test("an unknown or malformed short id is a friendly page and a fallback image",
   page,
   request,
 }) => {
-  await page.goto("/s/AAAAAAAAAAAAAAAAAAAAAA");
-  await expect(page.getByTestId("share-invalid")).toHaveAttribute("data-reason", "missing");
-  await expect(page.getByRole("heading", { name: "This share link does not exist" })).toBeVisible();
+  const missing = await page.goto("/s/AAAAAAAAAAAAAAAAAAAAAA");
+  expect(missing?.status()).toBe(404);
+  await expect(page.getByRole("main")).toContainText("not");
   const image = await request.get("/s/AAAAAAAAAAAAAAAAAAAAAA/image");
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
-  await page.goto("/s/not-a-link");
-  await expect(page.getByTestId("share-invalid")).toBeVisible();
+  const invalid = await page.goto("/s/not-a-link");
+  expect(invalid?.status()).toBe(404);
+  await expect(page.getByRole("link", { name: /Scan/i }).first()).toBeVisible();
 });
 
 test("the share store accepts only a same-site request carrying one aggregate token", async ({

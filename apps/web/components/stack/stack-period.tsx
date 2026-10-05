@@ -2,6 +2,7 @@
 
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import Link from "next/link";
+import { AppSelect } from "@/components/plans/app-select";
 import { HistoryConfirmation, ReviewSetup } from "@/components/workload/review-setup";
 import { catalogPlansAt } from "@/lib/public-catalog";
 import { nextDate, type ReviewComposition, type ReviewHistory } from "@/lib/review-period";
@@ -143,9 +144,10 @@ export function StackPeriodPanel({
         billing-period review uses. Nothing is prorated or extrapolated.
       </p>
       {accounts?.length ? (
-        <label className="stack-field">
+        <div className="stack-field">
           <span>Local source account for history confirmation</span>
-          <select
+          <AppSelect
+            label="Local source account for history confirmation"
             value={choice.resourceInstanceId ?? ""}
             onChange={(event) => {
               const {
@@ -168,8 +170,8 @@ export function StackPeriodPanel({
                 {account.calls.toLocaleString("en-US")} responses
               </option>
             ))}
-          </select>
-        </label>
+          </AppSelect>
+        </div>
       ) : null}
       <ReviewSetup
         key={`${choice.mode}:${choice.resourceInstanceId ?? "all"}`}

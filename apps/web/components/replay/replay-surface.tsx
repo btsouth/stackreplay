@@ -33,6 +33,8 @@ import { ResultSettlement } from "@/components/instrument/result-settlement";
 import { useReplayChoreography } from "@/components/instrument/use-replay-choreography";
 import { WorkloadSpecimen } from "@/components/instrument/workload-specimen";
 import { MissingWorkload } from "@/components/missing-workload";
+import { AppPageSkeleton, LocalReadError } from "@/components/plans/app-page-state";
+import { AppSelect } from "@/components/plans/app-select";
 import { PlanTermsLine } from "@/components/replay/plan-terms-line";
 import { ReplayReading } from "@/components/replay/replay-reading";
 import { ReplayVerdict } from "@/components/replay/replay-verdict";
@@ -712,23 +714,10 @@ export function ReplaySurface({
     return { href: `/app/plans?section=replay&${params.toString()}`, name: provider.name };
   }, [coverageByKey, providers, scope, selectedPlan, targetKind, workload]);
 
-  if (importsError)
-    return (
-      <p role="alert" className="border-l-2 border-warning pl-4 text-sm">
-        Local workloads could not be read from this browser. Reload to try again.
-      </p>
-    );
-
+  if (importsError) return <LocalReadError retry={() => window.location.reload()} />;
   if (imports === undefined)
     return (
-      <div role="status" data-testid="replay-restoring" className="border-t border-border pt-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-accent">
-          Opening your workload
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Looking up recorded work in this browser before choosing what to test…
-        </p>
-      </div>
+      <AppPageSkeleton label="Opening your history for a scenario" testId="replay-restoring" />
     );
 
   if (imports.length === 0) {
@@ -1378,9 +1367,10 @@ function WorkloadStrip({
             </p>
           </div>
           {imports.length > 1 ? (
-            <label className="flex w-full min-w-0 max-w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto sm:max-w-xs">
+            <div className="flex w-full min-w-0 max-w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto sm:max-w-xs">
               Stored workload
-              <select
+              <AppSelect
+                label="History"
                 value={workload.id}
                 data-testid="workload-select"
                 onChange={(event) => onSelect(event.target.value)}
@@ -1391,8 +1381,8 @@ function WorkloadStrip({
                     {entry.label}
                   </option>
                 ))}
-              </select>
-            </label>
+              </AppSelect>
+            </div>
           ) : null}
         </div>
         <p className="text-sm text-foreground" data-testid="workload-strip-summary">

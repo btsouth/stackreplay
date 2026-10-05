@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
-import { gotoImport, openBillingReview, waitForWorkload } from "./helpers";
+import { chooseOption } from "./app-select-helpers";
+import { gotoImport, openBillingReview, waitForWorkload } from "./premium-app-helpers";
 
 test("one billing form selects the same workload dates and retains honest local confirmation", async ({
   page,
@@ -39,8 +40,8 @@ test("one billing form selects the same workload dates and retains honest local 
   await openBillingReview(page);
   const form = page.getByRole("form", { name: "Billing cycle comparison" });
   await expect(page.getByLabel("Review start date")).not.toBeVisible();
-  await form.getByLabel("Billing account").selectOption("primary");
-  await form.getByLabel("Billing subscription").selectOption("plan:anthropic-claude-max-5x");
+  await chooseOption(form.getByLabel("Billing account"), "primary");
+  await chooseOption(form.getByLabel("Billing subscription"), "plan:anthropic-claude-max-5x");
   await form.getByLabel("Billing cycle start").fill("2026-08-19");
   await form.getByLabel("Billing cycle end").fill("2026-09-27");
   await form.getByLabel("Amount you paid").fill("87");

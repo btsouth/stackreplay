@@ -730,7 +730,7 @@ export function ImportSurface({
         >
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-base font-medium">Other ways to bring in a workload</h2>
+              <h2 className="text-base font-medium">Choose history files or an export</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Your selected workload files are read locally in this browser. They are never sent
                 to StackReplay.
@@ -783,14 +783,14 @@ export function ImportSurface({
               </div>
               <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
                 <label htmlFor={inputId} className="text-sm font-medium">
-                  StackReplay workload
+                  StackReplay export
                 </label>
                 <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
                   <span
                     className="min-w-0 text-foreground [overflow-wrap:anywhere]"
                     id={`${inputId}-selection`}
                   >
-                    {selectedFiles.workload || "Choose workload file"}
+                    {selectedFiles.workload || "Choose a StackReplay export"}
                   </span>
                   <span aria-hidden="true" className="shrink-0 text-xs text-accent">
                     Browse
@@ -826,14 +826,14 @@ export function ImportSurface({
                 checked={saveLocal}
                 onChange={(event) => setSaveLocal(event.target.checked)}
               />
-              Save normalized workload on this browser
+              Save this scan in this browser
             </label>
             <p
               className="text-xs leading-relaxed text-muted-foreground"
               data-testid="save-local-note"
             >
               {saveLocal
-                ? "On by default so a finished scan survives a reload. Only normalized usage is kept, in this browser's storage: models, token counts, timestamps, salted session and project hashes, and local project labels. Raw session files are never copied. Delete it any time below or in Settings."
+                ? "On by default so a finished scan survives a reload. Only the numbers behind your work are kept, in this browser's storage: models, token counts, timestamps, salted session and project hashes, and local project labels. Raw session files are never copied. Delete it any time below or in Settings."
                 : "Off: the next scan stays available only until this page reloads."}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -847,7 +847,7 @@ export function ImportSurface({
         <Card className="order-2 rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none">
           <CardContent className="flex flex-col gap-4 p-5">
             <div>
-              <h2 className="text-sm font-medium">Demo workloads</h2>
+              <h2 className="text-sm font-medium">Try a fictional history</h2>
               <p className="mt-1 text-xs text-muted-foreground">
                 Deterministic synthetic data. No personal history is ever used as a demo.
               </p>
@@ -890,16 +890,16 @@ export function ImportSurface({
                 Scanned locally. Raw AI history stays on this device.
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                A local Worker keeps models, tokens, chronology, session boundaries, and salted
-                project grouping. It discards prompts, responses, code, command output, full paths,
-                and credentials. Project folder names label your projects in this browser only;
-                exports and share links never carry them. Filenames remain in local scan details.
+                The scanner keeps models, token counts, dates, and anonymous session and project
+                groups. It leaves out prompts, responses, code, command output, full paths, and
+                credentials. Project folder names label your projects in this browser only; exports
+                and share links never carry them. Filenames remain in local scan details.
               </p>
               <div className="mt-3 min-w-0 border-l-2 border-accent pl-4">
                 <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent">
                   Your machine
                 </p>
-                <p className="mt-1 text-sm text-foreground">Sessions → local scanner → Replay</p>
+                <p className="mt-1 text-sm text-foreground">Your files → local scan → your recap</p>
                 <div className="my-2 border-t border-dashed border-border-strong" />
                 <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   Network boundary
@@ -917,7 +917,7 @@ export function ImportSurface({
           >
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 id="saved-workloads-heading" className="text-sm font-medium">
-                Saved workloads
+                Saved scans
               </h2>
               {imports.length > 0 ? (
                 <ClearAllControl count={imports.length} onConfirm={() => void clearAll()} />

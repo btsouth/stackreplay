@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./helpers";
+import { importDemo } from "./premium-app-helpers";
 
 /**
  * Moving around the product keeps its context: the address holds what Replay

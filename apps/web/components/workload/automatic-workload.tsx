@@ -80,9 +80,9 @@ function ApiEvidence({ decision }: { decision: MarketDecision | undefined }) {
   return (
     <div className="space-y-4 text-sm" data-testid="overview-pricing-evidence">
       <p>
-        Exact recorded calls at accepted snapshot API prices, not a reconstructed historical
-        invoice. No extrapolation, subscription quota or model substitution. Tools, taxes and
-        negotiated prices are not included.
+        Exact recorded calls at prices checked API prices, not a reconstructed historical invoice.
+        No extrapolation, subscription quota or model substitution. Tools, taxes and negotiated
+        prices are not included.
       </p>
       {decision?.coverage ? (
         <p>
@@ -339,10 +339,10 @@ export function AutomaticWorkload({
           <div className="min-w-0">
             <MicroLabel>
               {full
-                ? "Accepted API equivalent"
+                ? "API-priced equivalent"
                 : shownRange
-                  ? "Accepted API equivalent · priced workload"
-                  : "Accepted API equivalent"}
+                  ? "API-priced equivalent · priced workload"
+                  : "API-priced equivalent"}
             </MicroLabel>
             <p
               data-testid="overview-api-total"
@@ -370,8 +370,8 @@ export function AutomaticWorkload({
             {shownRange ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 {full
-                  ? `The exact imported workload · accepted snapshot ${DECISION_MARKET.rulesAt.slice(0, 10)}`
-                  : `${n(coverage?.priced ?? 0)} priced calls only · accepted snapshot ${DECISION_MARKET.rulesAt.slice(0, 10)}. Remaining costs are unknown.`}
+                  ? `The exact imported workload · prices checked ${DECISION_MARKET.rulesAt.slice(0, 10)}`
+                  : `${n(coverage?.priced ?? 0)} priced calls only · prices checked ${DECISION_MARKET.rulesAt.slice(0, 10)}. Remaining costs are unknown.`}
               </p>
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">
@@ -516,7 +516,7 @@ export function AutomaticWorkload({
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-medium">Compare against what I paid</h2>
           <button type="button" className="min-h-11 text-sm text-accent" onClick={closeBilling}>
-            Back to workload overview
+            Back to stats
           </button>
         </div>
         <p className="text-sm text-muted-foreground">

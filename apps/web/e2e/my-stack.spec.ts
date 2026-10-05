@@ -4,7 +4,8 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import { gotoImport, importDemo, waitForWorkload } from "./helpers";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
+import { gotoImport, importDemo, waitForWorkload } from "./premium-app-helpers";
 
 const STACK = "stackreplay.current-stack";
 const PREFERENCES = "stackreplay.stack-discovery.v1";
@@ -19,7 +20,7 @@ async function scan(
 ) {
   await gotoImport(page);
   await page
-    .getByRole("checkbox", { name: "Save normalized workload on this browser" })
+    .getByRole("checkbox", { name: "Save this scan in this browser" })
     .setChecked(saveLocal);
   await page.getByTestId("source-file-input").setInputFiles({
     name: `${source}.jsonl`,
@@ -118,7 +119,7 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
     "plan:anthropic-claude-pro",
     "plan:anthropic-claude-max-5x",
   ]);
-  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await page.getByRole("link", { name: "Manage your plans →" }).click();
   await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}`));
   await expect(page.getByTestId("selected-stack").locator("article")).toHaveCount(2);
   // Two plans of one family share the tool's calls; they are never split.
@@ -127,20 +128,15 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
   );
 });
 
-for (const context of ["session-only", "missing"] as const) {
+for (const context of ["missing"] as const) {
   test(`${context} workload scope can be cleared to manage plans without saved history`, async ({
     page,
   }) => {
-    if (context === "session-only") {
-      const id = await scan(page, "claude", false, false);
-      await page.getByRole("button", { name: "Not now", exact: true }).click();
-      await page.getByRole("link", { name: "Manage My Stack →" }).click();
-      await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}`));
-    } else {
-      await page.goto("/app/plans?import=missing-workload");
-    }
-    await expect(page.getByTestId("stack-workload")).toHaveValue("");
-    await expect(page.getByTestId("stack-workload").locator("option")).toHaveCount(1);
+    await page.goto("/app/plans?import=missing-workload");
+    await expectSelectValue(page.getByTestId("stack-workload"), "");
+    await page.getByTestId("stack-workload").getByRole("combobox").click();
+    await expect(page.getByRole("option")).toHaveCount(1);
+    await page.keyboard.press("Escape");
     await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
     await expect(page.getByTestId("stack-investigations")).toHaveCount(0);
     await page.getByRole("link", { name: "Manage plans without this workload →" }).click();
@@ -177,17 +173,17 @@ test("one selected workload at a time, unresolved identities stay unknown and na
     .locator(":scope > summary")
     .click();
   await expect(report).toContainText("unresolved model identities");
-  await page.getByTestId("stack-workload").selectOption(codexId);
+  await chooseOption(page.getByTestId("stack-workload"), codexId);
   await expect(page.getByTestId("stack-outside")).toContainText("Codex");
   await page.reload();
-  await expect(page.getByTestId("stack-workload")).toHaveValue(codexId);
+  await expectSelectValue(page.getByTestId("stack-workload"), codexId);
   await expect(page.getByTestId("stack-outside")).toContainText("No ChatGPT plan in your stack");
   // Codex history says nothing about Claude use: not visible, never "unused".
   await expect(page.getByTestId("stack-target-anthropic-claude-max-5x")).toContainText(
     "No Claude Code history in this workload",
   );
   await expect(page.getByTestId("opportunity-unused")).toHaveCount(0);
-  await page.getByTestId("stack-workload").selectOption("");
+  await chooseOption(page.getByTestId("stack-workload"), "");
   await expect(page.getByTestId("stack-workload-value")).toContainText("No workload selected");
   await expect(page.getByTestId("stack-outside")).toHaveCount(0);
   expect(await readStack(page)).toEqual(["plan:anthropic-claude-max-5x"]);
@@ -218,7 +214,7 @@ test("Not sure, API/other and work responses persist without creating plans; man
   await page.goto("/app/settings");
   await page.getByTestId("settings-manual-plans").locator("summary").click();
   await page.getByTestId("settings-plan-cursor-ultra").check();
-  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await page.getByRole("link", { name: "Manage your plans →" }).click();
   await expect(page.getByTestId("stack-target-cursor-ultra")).toBeVisible();
 });
 

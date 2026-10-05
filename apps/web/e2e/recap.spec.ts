@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { stackWorkloadFile } from "./fixtures/stack-workload";
-import { captureRequests, gotoImport } from "./helpers";
+import { captureRequests, gotoImport } from "./premium-app-helpers";
 
 const fixture = {
   name: "synthetic.stackreplay.json",
@@ -14,9 +14,7 @@ for (const temporary of [false, true])
     const requests = captureRequests(page);
     await gotoImport(page);
     if (temporary)
-      await page
-        .getByRole("checkbox", { name: "Save normalized workload on this browser" })
-        .uncheck();
+      await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
     await page.getByTestId("import-file-input").setInputFiles(fixture);
     await expect(page).toHaveURL(/\/app\/recap\?import=/u);
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
@@ -149,8 +147,8 @@ test("streaks use full local history while the period scopes totals", async ({ p
     );
   }
   await page.getByLabel("What counts as an active day").click();
-  await expect(page.locator(".recap-info[open]")).toContainText("first and last seen");
-  await expect(page.locator(".recap-info[open]")).toContainText(
+  await expect(page.locator(".recap-info:has(:popover-open)")).toContainText("first and last seen");
+  await expect(page.locator(".recap-info:has(:popover-open)")).toContainText(
     "Current streak counts back from today",
   );
 });

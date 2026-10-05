@@ -394,7 +394,7 @@ label.sr-find-choice {
 /* ---------- at rest: the fixed list reads as one line ---------- */
 
 .sr-find[data-phase="intro"] .sr-find-machine {
-  display: none;
+  display: block;
 }
 
 .sr-find[data-phase="intro"] .sr-find-instrument {

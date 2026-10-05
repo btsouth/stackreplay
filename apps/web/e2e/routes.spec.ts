@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { createShareToken, gotoImport, openWorkloadTools, waitForWorkload } from "./helpers";
+import { createShareToken, gotoImport, openWorkloadTools, waitForWorkload } from "./premium-app-helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {
@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 
 async function importMixed(page: Page): Promise<string> {
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page.getByTestId("import-file-input").setInputFiles({
     name: "mixed.json",
     mimeType: "application/json",
