@@ -447,9 +447,11 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
     timeout: 30_000,
   });
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
-  // The app entry opens the stored workload and its value directly.
+  // The app entry opens the saved recap; detailed values remain reachable.
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/recap$/);
+  await page.getByRole("link", { name: "Explore workload details" }).click();
+  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
