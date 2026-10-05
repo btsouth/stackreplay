@@ -7,6 +7,7 @@ import {
   PAYLOADS_STORE,
   WORKLOAD_RESULTS_STORE,
 } from "./local-database";
+import { decodeLocalPayload, encodeLocalPayload, isBlobPayload } from "./local-payload";
 import { importRecordSchema, validateStoredPair } from "./local-record-schema";
 import type { ImportRecord } from "./worker-protocol";
 
@@ -227,6 +228,7 @@ export async function saveImport(
     return { ok: false, code: "IMPORT_CANCELLED" };
   }
   try {
+    const payload = encodeLocalPayload(record.id, exported);
     // Both stores are written in one transaction: a reader can never see the
     // listing without its payload, which is what two transactions allowed
     // (benchmark finding F005).
@@ -249,9 +251,7 @@ export async function saveImport(
             transaction.abort();
             throw new Error("import cancelled");
           }
-          await requestToPromise(
-            storeOf(transaction, PAYLOADS_STORE).put({ id: record.id, exported }),
-          );
+          await requestToPromise(storeOf(transaction, PAYLOADS_STORE).put(payload));
           if (cancelled()) {
             transaction.abort();
             throw new Error("import cancelled");
@@ -342,7 +342,7 @@ async function deleteResultsFor(transaction: IDBTransaction, importId: string): 
   });
 }
 
-async function removeCorruptPair(importId: string): Promise<void> {
+async function removeCorruptPair(importId: string, damagedBlobRevision?: string): Promise<void> {
   try {
     await withStores(
       [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
@@ -357,7 +357,15 @@ async function removeCorruptPair(importId: string): Promise<void> {
           ),
         ]);
         // Recheck under the write lock, so a newer valid pair is never deleted.
-        if (validateStoredPair(record, payload) === undefined) {
+        const metadata = importRecordSchema.safeParse(record);
+        const newerBlob =
+          metadata.success &&
+          metadata.data.id === importId &&
+          metadata.data.eventCount === metadata.data.summary.eventCount &&
+          isBlobPayload(payload) &&
+          payload.id === importId &&
+          payload.revision !== damagedBlobRevision;
+        if (!newerBlob && validateStoredPair(record, payload) === undefined) {
           await requestToPromise(storeOf(transaction, IMPORTS_STORE).delete(importId));
           await deleteResultsFor(transaction, importId);
           await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
@@ -387,11 +395,12 @@ export async function loadImport(importId: string): Promise<StorageResult<StackR
     );
     if (record === undefined && payload === undefined)
       return { ok: false, code: "IMPORT_NOT_FOUND" };
-    if (validateStoredPair(record, payload) === undefined) {
-      await removeCorruptPair(importId);
+    const decoded = await decodeLocalPayload(payload);
+    if (validateStoredPair(record, decoded) === undefined) {
+      await removeCorruptPair(importId, isBlobPayload(payload) ? payload.revision : undefined);
       return { ok: false, code: "STORAGE_CORRUPT" };
     }
-    return { ok: true, value: (payload as { exported: StackReplayExportV1 }).exported };
+    return { ok: true, value: (decoded as { exported: StackReplayExportV1 }).exported };
   } catch {
     return { ok: false, code: "STORAGE_UNAVAILABLE" };
   }

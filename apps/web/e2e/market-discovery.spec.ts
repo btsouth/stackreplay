@@ -145,16 +145,17 @@ test("model selection compares token categories without assigning missing prices
 });
 
 for (const theme of ["dark", "light"] as const) {
-  test(`market discovery remains accessible in ${theme}`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-    for (const path of [
-      "/models",
-      "/plans",
-      "/models/claude-opus-5-5",
-      "/plans/ollama-cloud-max",
-      "/changelog",
-    ]) {
+  for (const path of [
+    "/models",
+    "/plans",
+    "/models/claude-opus-5-5",
+    "/plans/ollama-cloud-max",
+    "/changelog",
+  ]) {
+    test(`${path} remains accessible in ${theme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(path);
+      await expect(page).toHaveTitle(/StackReplay/u);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
         path,
@@ -163,8 +164,8 @@ for (const theme of ["dark", "light"] as const) {
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
         .analyze();
       expect(results.violations, path).toEqual([]);
-    }
-  });
+    });
+  }
 }
 
 test("native Sonnet 5.5 history receives the published cache-duration range", async ({ page }) => {
