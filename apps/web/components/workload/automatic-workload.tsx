@@ -320,8 +320,13 @@ export function AutomaticWorkload({
           <div>
             <MicroLabel>Full imported workload</MicroLabel>
             <h2 className="mt-2 text-3xl font-medium tracking-tight sm:text-4xl">
-              {sources || "Your AI workload"}
+              {summary.usageSources.length > 2
+                ? "Your imported history"
+                : sources || "Your AI workload"}
             </h2>
+            {summary.usageSources.length > 2 && (
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{sources}</p>
+            )}
           </div>
           <p className="text-sm text-muted-foreground" data-testid="overview-period">
             {from && to

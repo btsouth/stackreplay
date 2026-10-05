@@ -19,7 +19,9 @@ test("D0 owner/child pipeline scales to 100k without event-sized page results", 
       if (!event) throw new Error("fixture");
       return { ...event, id: `market-${i}` };
     });
-    const result = await page.evaluate(async (exported) => {
+    // Send the file text, as intake does. Serializing a 100k-event object graph
+    // through the browser-control protocol can starve the runner's own timers.
+    const result = await page.evaluate(async (json) => {
       const worker = new Worker("/stackreplay-worker.js", { type: "module" });
       const pending = new Map<number, (r: WorkerResponse) => void>();
       let id = 0,
@@ -44,7 +46,7 @@ test("D0 owner/child pipeline scales to 100k without event-sized page results", 
           type: "IMPORT_FILE",
           importId: "abcdefabcdefabcdefabcdefabcdefab",
           label: "D0 runtime fixture",
-          file: new File([JSON.stringify(exported)], "fixture.json"),
+          file: new File([json], "fixture.json"),
           now: "2026-09-27T18:30:00Z",
           saveLocal: false,
         } as Omit<WorkerRequest, "requestId" | "protocol">);
@@ -88,7 +90,7 @@ test("D0 owner/child pipeline scales to 100k without event-sized page results", 
         clearInterval(timer);
         worker.terminate();
       }
-    }, demo);
+    }, JSON.stringify(demo));
     expect(result.cases).toHaveLength(2);
     for (const c of result.cases)
       expect(c).toEqual({
