@@ -39,7 +39,12 @@ async function openStack(page: Page, id: string, stack: readonly string[]) {
     key: STACK_KEY,
     stack,
   });
-  await page.goto(`/app/plans?import=${id}`);
+  // Domain fixtures follow the app link and retain the active local worker.
+  await page
+    .getByRole("banner")
+    .locator(`a[href="/app/plans?import=${id}"]`)
+    .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}$`));
   await expect(page.getByTestId("stack-investigations")).toBeVisible({ timeout: 60_000 });
 }
 
@@ -170,11 +175,18 @@ test("the billing period drives what is measured, shared with Workload's review"
   });
 
   // Workload's billing-period review reads the same period.
-  await page.goto(`/app/stats?import=${id}#api-market`);
+  await page
+    .getByRole("link", {
+      name: "Enter amounts you paid in the billing-period review →",
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveURL(new RegExp(`/app/stats\\?import=${id}#api-market$`));
   await expect(page.getByTestId("review-period")).toContainText("Sep 1 → Oct 1");
 
   // A shorter period is labelled and the old confirmation lapses.
-  await page.goto(`/app/plans?import=${id}`);
+  await page.getByRole("link", { name: "Manage your plans →", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}$`));
   await page.getByTestId("stack-period-edit").click();
   await page.getByLabel("Review end date").fill("2026-09-15");
   await page.getByRole("button", { name: "Apply review period" }).click();
