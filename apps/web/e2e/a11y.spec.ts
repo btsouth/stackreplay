@@ -12,15 +12,23 @@ import { importDemo, runReplay } from "./helpers";
 async function expectNoSeriousViolations(page: Page) {
   // App Router metadata may finish streaming after the result is visible.
   await expect(page).toHaveTitle(/StackReplay/u);
+  await page.evaluate(() => document.fonts.ready);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
     .analyze();
   const serious = results.violations.filter(
     (violation) => violation.impact === "serious" || violation.impact === "critical",
   );
-  expect(serious.map((violation) => `${violation.id}: ${violation.nodes.length} node(s)`)).toEqual(
-    [],
-  );
+  expect(
+    serious.map((violation) => ({
+      id: violation.id,
+      nodes: violation.nodes.map((node) => ({
+        target: node.target,
+        html: node.html,
+        summary: node.failureSummary,
+      })),
+    })),
+  ).toEqual([]);
 }
 
 test.describe("import surface accessibility", () => {
@@ -153,6 +161,7 @@ test.describe("public site accessibility", () => {
       test(`passes axe on ${route} in ${theme} mode`, async ({ page }) => {
         await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
         await page.goto(route);
+        await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
         await expectNoSeriousViolations(page);
       });
     }
