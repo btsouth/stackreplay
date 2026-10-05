@@ -16,7 +16,9 @@ test("missing pages have one public shell and conditional saved-workload copy", 
     const response = await page.goto(path);
     expect(response?.status()).toBe(404);
     await expect(page.locator("main")).toHaveCount(1);
-    await expect(page.locator("main")).toContainText("If you saved a workload");
+    await expect(page.locator("main")).toContainText("This address may have moved");
+    await expect(page.locator("main")).not.toContainText("Your saved history");
+    await expect(page.getByRole("link", { name: "Open my recap", exact: true })).toHaveCount(0);
     await expect(page.getByRole("banner")).toHaveCount(1);
     await expect(page.getByRole("contentinfo")).toHaveCount(1);
   }

@@ -13,8 +13,11 @@ export function NotFoundContent() {
       <PageHeader
         eyebrow="Page not found"
         title="Let’s get you somewhere useful."
-        description="This address may have moved, or the link may be incomplete. Your saved history is still in this browser."
+        description="This address may have moved, or the link may be incomplete."
       />
+      {local.presence === "present" && (
+        <p className="text-muted-foreground">Your saved history is still in this browser.</p>
+      )}
       <div className="flex flex-wrap gap-3">
         <Link href="/app/scan" className={buttonVariants({ variant: "primary" })}>
           Make my recap

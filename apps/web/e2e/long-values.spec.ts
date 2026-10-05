@@ -1,7 +1,7 @@
-import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { expect, type Page, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { gotoImport, inspectLatestImport } from "./helpers";
 
 const modelId = `provider/${"long-model-id-".repeat(14)}`;
