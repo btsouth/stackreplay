@@ -19,9 +19,9 @@ export function ProductHeader({
 }) {
   return (
     <>
-      <a href="#main-content" className="sr-skip">
+      <Link href="#main-content" className="sr-skip">
         Skip to content
-      </a>
+      </Link>
       <header className="sr-product-header">
         <div className="sr-page-rail sr-header-rail">
           <Brand />
