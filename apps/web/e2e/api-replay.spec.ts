@@ -1,6 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 import { decodeAnyShareToken } from "@stackreplay/share";
-import { createShareToken, importDemo, openReplayDetails, setRulesAsOf } from "./premium-app-helpers";
+import {
+  createShareToken,
+  importDemo,
+  openReplayDetails,
+  setRulesAsOf,
+} from "./premium-app-helpers";
 
 /**
  * Direct API target (M4C): the same workload priced at a provider's published

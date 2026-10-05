@@ -69,7 +69,13 @@ export function StackSummary({
       <h2 id="stack-summary-heading" className="sr-only">
         Your stack, your recorded workload and what can be analyzed
       </h2>
-      {analysis.leverage?.priceBasis === "paid" && workload ? <div className="stack-confirmed-spend"><p>Confirmed payments for the plans analyzed</p><strong>{money(analysis.leverage.price)}</strong><span>{workloadPeriodText(workload)}. Amounts you entered, not published prices.</span></div> : null}
+      {analysis.leverage?.priceBasis === "paid" && workload ? (
+        <div className="stack-confirmed-spend">
+          <p>Confirmed payments for the plans analyzed</p>
+          <strong>{money(analysis.leverage.price)}</strong>
+          <span>{workloadPeriodText(workload)}. Amounts you entered, not published prices.</span>
+        </div>
+      ) : null}
       <div className="stack-summary-figures">
         <div className="stack-summary-figure" data-testid="stack-published-total">
           <p className="stack-eyebrow">Your stack</p>

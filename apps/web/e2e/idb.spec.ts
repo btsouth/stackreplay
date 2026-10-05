@@ -3,7 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, openReviewEvidence, openWorkloadTools } from "./premium-app-helpers";
+import {
+  gotoImport,
+  importDemo,
+  openReviewEvidence,
+  openWorkloadTools,
+} from "./premium-app-helpers";
 
 /** How many records and payloads the browser's own database holds. */
 async function readStoreCounts(page: import("@playwright/test").Page): Promise<{

@@ -3,7 +3,12 @@ import { expect, type Page, test } from "@playwright/test";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { stackWorkloadFile } from "./fixtures/stack-workload";
-import { captureRequests, gotoImport, WORKLOAD_MARKERS, waitForWorkload } from "./premium-app-helpers";
+import {
+  captureRequests,
+  gotoImport,
+  WORKLOAD_MARKERS,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 const STACK_KEY = "stackreplay.current-stack";
 const FULL_STACK = [

@@ -1,6 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 import { buildArchetypeExport, type WorkloadArchetypeId } from "@stackreplay/test-fixtures";
-import { gotoImport, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./premium-app-helpers";
+import {
+  gotoImport,
+  openReviewEvidence,
+  openWorkloadTools,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 // These legacy receipt fixtures use a known accepted rate date, not the runner's clock.
 test.beforeEach(async ({ page }) => {

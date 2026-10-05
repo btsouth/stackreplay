@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
-import { gotoImport, visitImportManager, type DemoPreset } from "./helpers";
+import { type DemoPreset, gotoImport, visitImportManager } from "./helpers";
+
 export * from "./helpers";
 
 /** B1 route wording. The shared Stage A helper stays unchanged. */
