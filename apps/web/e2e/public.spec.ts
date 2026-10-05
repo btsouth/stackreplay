@@ -25,18 +25,15 @@ const PUBLIC_ROUTES = [
 
 test.describe("public site", () => {
   for (const route of PUBLIC_ROUTES) {
-    test(`${route.path} renders`, async ({ page }) => {
+    test(`${route.path} renders`, async ({ page, isMobile }) => {
       const response = await page.goto(route.path);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1, name: route.heading })).toBeVisible();
-      // The public shell always offers the local application and the repository.
-      await expect(
-        page
-          .getByRole("link", {
-            name: route.path === "/" ? "Replay my history" : "Scan your AI history",
-          })
-          .first(),
-      ).toBeVisible();
+      if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+      const context = isMobile ? page.getByRole("dialog") : page.getByRole("banner");
+      const scan = context.getByRole("link", { name: "Scan my history", exact: true });
+      await expect(scan).toBeVisible();
+      await expect(scan).toHaveAttribute("href", "/app/scan");
     });
   }
 
@@ -52,15 +49,18 @@ test.describe("public site", () => {
     expect(ogImage).toContain("/brand/open-graph-1200x630.png");
   });
 
-  test("the catalog brand lockup is served from the site", async ({ page, request }) => {
+  test("the shared brand and Instrument Sans are served from the site", async ({
+    page,
+    request,
+  }) => {
     await page.goto("/models");
-    const logo = page.locator('header img[alt="StackReplay"]').first();
-    await expect(logo).toBeVisible();
-    const src = await logo.getAttribute("src");
-    expect(src).toContain("/brand/navbar-64-");
-    const response = await request.get(src ?? "/brand/navbar-64-dark.png");
+    const brand = page.getByRole("banner").getByRole("link", { name: "StackReplay home" });
+    await expect(brand).toBeVisible();
+    await expect(brand).toContainText("StackReplay");
+    await expect(brand).toHaveAttribute("href", "/");
+    const response = await request.get("/fonts/instrument-sans.ttf");
     expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toContain("image/png");
+    expect((await response.body()).byteLength).toBeGreaterThan(10_000);
   });
 
   test("robots keeps the local application out of search results", async ({ request }) => {

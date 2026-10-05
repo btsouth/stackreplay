@@ -93,9 +93,11 @@ test("design controls support keyboard selection, tab panels and sorting", async
   await expect(page.getByRole("option", { name: "Another sample" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(select).toContainText("Another sample");
+  await expect(page.getByRole("listbox")).toBeHidden();
   await expect(select).toBeFocused();
   await select.click();
   await page.keyboard.press("Escape");
+  await expect(page.getByRole("listbox")).toBeHidden();
   await expect(select).toBeFocused();
   const radio = page.getByRole("radio", { name: "30 days" });
   await radio.focus();

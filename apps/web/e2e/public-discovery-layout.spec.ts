@@ -165,15 +165,18 @@ test("public discovery and hubs stay within 320px in both themes", async ({ page
 
 test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMobile }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Models & plans" })).toBeInViewport();
   await capture(page, `${isMobile ? "mobile-dark" : "desktop-light"}-home`);
   await accessible(page);
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
-  await page.getByRole("link", { name: "Models & plans" }).click();
-  await expect(page).toHaveURL(/\/models$/u);
+  if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+  const context = isMobile ? page.getByRole("dialog") : page.getByRole("banner");
+  const catalog = context.getByRole("link", { name: "Models & plans", exact: true });
+  await expect(catalog).toBeInViewport();
+  await catalog.click();
+  await expect(page).toHaveURL(/\/catalog$/u);
   await page.goBack();
   await expect(page.getByTestId("home")).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
