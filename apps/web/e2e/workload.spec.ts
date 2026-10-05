@@ -93,7 +93,7 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 
 async function openWorkload(page: Page): Promise<void> {
   await waitForWorkload(page);
-  await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your stats", exact: true })).toBeVisible();
   // The value block appears once the analysis is in: a figure, or why there is none.
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
@@ -305,7 +305,7 @@ test("qualitative plans keep capacity unknown while model support is established
   await scanFixtures(page);
   await openWorkload(page);
   await page.goto(
-    `${new URL(page.url()).pathname.replace("/app/stats", "/app/plans?section=replay")}?${new URLSearchParams({ import: new URL(page.url()).searchParams.get("import") ?? "", target: "openai-chatgpt-pro" })}`,
+    `/app/plans?${new URLSearchParams({ section: "replay", import: new URL(page.url()).searchParams.get("import") ?? "", target: "openai-chatgpt-pro" })}`,
   );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Exact replay", { timeout: 60_000 });

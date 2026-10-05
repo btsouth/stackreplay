@@ -85,12 +85,24 @@ export async function inspectLatestImport(page: Page): Promise<void> {
   await page.getByTestId("import-details").first().locator(":scope > summary").click();
 }
 
-export async function visitReplay(page: Page): Promise<void> {
-  await waitForWorkload(page);
+/** Opens plan suggestions through the app navigation, retaining temporary scans. */
+export async function visitPlanSuggestions(page: Page): Promise<void> {
+  const scan = new URL(page.url()).searchParams.get("import");
   await page
-    .locator('a[href^="/app/plans?section=replay"]')
+    .getByRole("banner")
+    .locator(`a[href="/app/plans${scan ? `?import=${scan}` : ""}"]`)
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
+  await page
+    .getByRole("navigation", { name: "Your plan tools" })
+    .getByRole("link", { name: "Try a change", exact: true })
+    .click();
+  await expect(page.getByTestId("build-own")).toBeVisible();
+}
+
+export async function visitReplay(page: Page): Promise<void> {
+  await waitForWorkload(page);
+  await visitPlanSuggestions(page);
   await page.getByTestId("build-own").click();
   await expect(page.getByTestId("run-replay")).toBeVisible();
 }

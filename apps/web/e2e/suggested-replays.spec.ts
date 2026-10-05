@@ -3,7 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
 import type { CompletedReplay } from "../lib/completed-replays";
-import { gotoImport, setRulesAsOf, waitForWorkload } from "./helpers";
+import { gotoImport, setRulesAsOf, visitPlanSuggestions, waitForWorkload } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
@@ -61,10 +61,7 @@ async function setup(page: Page, models?: string[]) {
   await waitForWorkload(page);
   await expect(page.getByTestId("overview-api-total")).toContainText("$");
   const baseline = await page.getByTestId("overview-api-total").textContent();
-  await page
-    .locator('a[href="/app/plans?section=replay"]')
-    .first()
-    .evaluate((a: HTMLAnchorElement) => a.click());
+  await visitPlanSuggestions(page);
   await expect(page.getByTestId("strategy-baseline")).toHaveText(baseline ?? "");
   return baseline;
 }

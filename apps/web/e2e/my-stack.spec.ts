@@ -49,7 +49,7 @@ test("no history needed: multiple plans save, reload, edit independently and rem
   page,
 }) => {
   await page.goto("/app/plans");
-  await expect(page.getByRole("heading", { name: "My Stack", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your plans", exact: true })).toBeVisible();
   await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
   await page.evaluate((key) => {
     localStorage.setItem(
