@@ -54,6 +54,20 @@ test("Blob storage restores the recap and preserves export bytes", async ({ page
   if (!id) throw new Error("fixture id");
   const before = await exportedBytes(page, id);
   await replaceWithBlob(page, id);
+  // The preceding client opened version 2 and would delete an unfamiliar Blob
+  // as corrupt. IndexedDB must deny that connection before it can read/write.
+  const legacyOpen = await page.evaluate(
+    () =>
+      new Promise<string>((resolve) => {
+        const open = indexedDB.open("stackreplay", 2);
+        open.onerror = () => resolve(open.error?.name ?? "unknown error");
+        open.onsuccess = () => {
+          open.result.close();
+          resolve("opened");
+        };
+      }),
+  );
+  expect(legacyOpen).toBe("VersionError");
   await page.goto(`/app/recap?import=${id}&period=all`);
   await expect(page.getByTestId("recap-ready")).toBeVisible();
   await page.reload();
