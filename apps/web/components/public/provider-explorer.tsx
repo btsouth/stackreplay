@@ -41,6 +41,12 @@ export function ProviderExplorer({
     if (routedSearch === undefined) return;
     setHydrated(true);
     const next = readProviderDiscovery(routedSearch, tools);
+    // Ignore a streamed router snapshot after the browser has committed a newer URL.
+    if (
+      providerDiscoverySearch(next) !==
+      providerDiscoverySearch(readProviderDiscovery(window.location.search, tools))
+    )
+      return;
     // A previous replace can commit while someone is still typing the next query.
     if (
       pendingSearch.current !== undefined &&
