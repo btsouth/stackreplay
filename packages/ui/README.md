@@ -12,7 +12,7 @@ Import `styles/tokens.css`, `styles/theme.css` and `styles/premium.css` after Ta
 - `DataTable`: `label`, `rows`, stable `rowKey`, `columns` with `key`, `label`, `render`, optional `compare` and `numeric`. Sort buttons announce `aria-sort`; scroll region is keyboard focusable. Compare raw numbers/BigInts, never formatted prices.
 - `EmptyState`: title, description, icon/action slots. `LoadingSkeleton`: accessible status label and rows. `Notice`: info/success/error, title, content, actions; errors are alerts.
 - `Button` / `buttonVariants`: primary, secondary, outline, ghost, destructive; minimum 44px targets. Link actions use `buttonVariants`.
-- `CatalogSubNav`: Overview, Models, Providers, Benchmarks, Plans, Compare, Updates.
+- `CatalogSubNav`: Overview, Models, Providers, Benchmarks, Plans, Compare, Updates. Tablet links scroll in one row; on phones these links live in the public mobile menu so search stays near the opening.
 - `ProductHeader`, `ProductFooter`, `ApplicationShell`, `PublicShell`: one header language. Four app sections and a scan action. Mobile menu is a focus-trapped, dismissible Base UI dialog.
 
 Page workers own composition and domain charts. Shared primitives stay here. Unknown facts stay unknown; API equivalents are estimates, never bills or savings. Raw logs never become network payloads.

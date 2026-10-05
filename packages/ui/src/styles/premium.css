@@ -575,8 +575,24 @@
   .sr-footer-grid {
     grid-template-columns: 1fr 1fr;
   }
+  .sr-catalog-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 4px 4px 8px;
+    margin-bottom: 24px;
+    scrollbar-width: thin;
+  }
+  .sr-catalog-nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 @media (max-width: 600px) {
+  /* The mobile menu exposes all catalog links without pushing search below the fold. */
+  .sr-catalog-nav {
+    display: none;
+  }
   .sr-header-rail {
     gap: 12px;
   }
