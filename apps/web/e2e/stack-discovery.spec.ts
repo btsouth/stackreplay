@@ -287,7 +287,7 @@ test("storage failure keeps editable choices, reports failure and permits skippi
   const navigation = page.getByRole("button", { name: "Open navigation" });
   if (await navigation.isVisible()) await navigation.click();
   await page.getByRole("link", { name: "Replay", exact: true }).first().click();
-  await expect(page).toHaveURL(/\/app\/replay/u);
+  await expect(page).toHaveURL(/\/app\/plans\?[^#]*section=replay/u);
 });
 
 test("demo discovery never opens or changes real selections or preferences", async ({ page }) => {
@@ -363,6 +363,8 @@ test("Max 5x quantity two persists, adds Pro and prices the stack on mobile and 
   await page.getByRole("link", { name: "Manage My Stack →", exact: true }).click();
   await expect(page.getByTestId("stack-published-total")).toContainText("$220");
   const importId = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/plans?section=compare&import=${encodeURIComponent(importId ?? "")}&decision=stack`);
+  await page.goto(
+    `/app/plans?section=compare&import=${encodeURIComponent(importId ?? "")}&decision=stack`,
+  );
   await expect(page.getByTestId("compare-price")).toContainText("$220.00/month");
 });

@@ -301,7 +301,7 @@ for (const theme of ["dark", "light"] as const)
       await page.getByRole("button", { name: /menu/i }).click();
     await expect(
       page
-        .getByRole("navigation", { name: "Public" })
+        .getByRole("navigation", { name: "Catalog" })
         .getByRole("link", { name: "Benchmarks", exact: true }),
     ).toHaveAttribute("aria-current", "page");
   });

@@ -87,7 +87,7 @@ test("D2 billing edits are cheap and mismatched cycles remain partial through Co
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$20.00");
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
   await page.getByTestId("workload-compare-cta").click();
-  await expect(page).toHaveURL(/\/app\/compare/u);
+  await expect(page).toHaveURL(/\/app\/plans\?[^#]*section=compare/u);
   await expect(page.getByTestId("review-state")).toHaveText("Partial review");
   await expect(page.getByTestId("decision-difference")).toHaveText("Not directly comparable yet");
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
@@ -421,7 +421,7 @@ test("D4 separates account billing, binds history and reuses the completed resul
   await expect(page.getByTestId("review-confirmed-spend")).toHaveText("$88.00");
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
   await page.getByTestId("workload-compare-cta").click();
-  await expect(page).toHaveURL(/\/app\/compare/u);
+  await expect(page).toHaveURL(/\/app\/plans\?[^#]*section=compare/u);
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
   await expect(page.getByTestId("market-total")).toHaveText(total);
   expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
@@ -526,7 +526,7 @@ for (const theme of ["dark", "light"] as const) {
       true,
     );
     await page.getByTestId("workload-compare-cta").click();
-    await expect(page).toHaveURL(/\/app\/compare/u);
+    await expect(page).toHaveURL(/\/app\/plans\?[^#]*section=compare/u);
     await expect(capacity).toContainText("1 additional user-confirmed interruption");
     expect(await page.evaluate(() => (window as unknown as { runs: number }).runs)).toBe(runs);
     await page.reload();

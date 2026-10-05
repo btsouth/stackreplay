@@ -52,10 +52,15 @@ export function WorkloadCompare({
   const pathname = usePathname();
   useEffect(() => {
     if (importId === undefined) return;
-    const params = new URLSearchParams({ import: importId, view: "billing" });
+    const params = new URLSearchParams(window.location.search);
+    params.set("section", "compare");
+    params.set("import", importId);
+    params.set("view", "billing");
+    params.delete("decision");
     if (decision !== undefined) params.set("decision", decision);
     const next = `?${params.toString()}`;
-    if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
+    if (next !== window.location.search)
+      router.replace(`${pathname}${next}${window.location.hash}`, { scroll: false });
   }, [decision, importId, pathname, router]);
   const [rulesAsOf] = useState(defaultRulesDate);
   useEffect(

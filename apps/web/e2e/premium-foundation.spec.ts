@@ -58,13 +58,11 @@ test("saved and temporary scans keep a path through recap, Stats and Plans", asy
   await page.goto("/app/scan");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).uncheck();
-  await page
-    .getByTestId("import-file-input")
-    .setInputFiles({
-      name: "sample.stackreplay.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
-    });
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "sample.stackreplay.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
+  });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
   const id = new URL(page.url()).searchParams.get("import");
   await page.getByRole("link", { name: "Explore workload details" }).click();

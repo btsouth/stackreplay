@@ -488,7 +488,8 @@ export function ReplaySurface({
     } else if (planId !== undefined) params.set("target", planId);
     if (scope.length > 0) params.set("scope", scope.join(","));
     const next = `?${params.toString()}`;
-    if (next !== window.location.search) router.replace(`${pathname}${next}`, { scroll: false });
+    if (next !== window.location.search)
+      router.replace(`${pathname}${next}${window.location.hash}`, { scroll: false });
   }, [pathname, planId, providerId, router, scope, targetKind, workload]);
 
   /**

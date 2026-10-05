@@ -159,44 +159,43 @@ test.describe("public site accessibility", () => {
     await expect(skipLink).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.locator("#main-content")).toBeFocused();
-    const homepageNav = page.getByRole("navigation", { name: "Main navigation" });
+    if (testInfo.project.name === "mobile") {
+      const trigger = page.getByRole("button", { name: "Open menu" });
+      await trigger.focus();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("dialog")).toBeVisible();
+    }
+    const homepageNav =
+      testInfo.project.name === "mobile"
+        ? page.getByRole("dialog").getByRole("navigation", { name: "Public" })
+        : page.getByRole("navigation", { name: "Public" });
     for (const [label, href] of [
-      ["Models & plans", "/models"],
-      [testInfo.project.name === "mobile" ? "Replay my history" : "Get my recap", "/app/scan"],
-      [
-        testInfo.project.name === "mobile" ? "Source code" : "GitHub",
-        "https://github.com/btsouth/stackreplay",
-      ],
+      ["Recap", "/app/recap"],
+      ["Models & plans", "/catalog"],
+      ["Methodology", "/methodology"],
+      ["Privacy", "/methodology#privacy"],
     ] as const) {
-      const link = page.getByRole("link", { name: label }).first();
+      const link = homepageNav.getByRole("link", { name: label, exact: true });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute("href", href);
       await link.focus();
       await expect(link).toBeFocused();
     }
-    await homepageNav.getByRole("link", { name: "Models & plans" }).focus();
+    await homepageNav.getByRole("link", { name: "Models & plans", exact: true }).focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/models$/u);
-    // Every primary destination is reachable and labelled. Wide viewports show the
-    // header navigation; narrow ones reach the same destinations through the menu
-    // button's panel, and the footer lists them at every width.
-    const footerDestinations = ["Plans", "Models", "Compare", "Methodology", "AI updates"];
-    for (const label of footerDestinations) {
-      await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
-    }
-
+    await expect(page).toHaveURL(/\/catalog$/u);
+    for (const label of ["Plans", "Models", "Compare", "Methodology", "Updates"])
+      await expect(
+        page.getByRole("contentinfo").getByRole("link", { name: label, exact: true }),
+      ).toBeVisible();
     if (testInfo.project.name === "mobile") {
-      const menu = page.getByTestId("public-nav-menu");
-      await expect(menu).toBeVisible();
-      await menu.focus();
+      const trigger = page.getByRole("button", { name: "Open menu" });
+      await trigger.focus();
       await page.keyboard.press("Enter");
-      await expect(menu).toHaveAttribute("aria-expanded", "true");
-      for (const label of ["Models", "Compare", "Plans", "Updates", "Workload", "My Stack"]) {
-        await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
-      }
-      await menu.focus();
-      await page.keyboard.press("Enter");
-      await expect(menu).toHaveAttribute("aria-expanded", "false");
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(trigger).toBeFocused();
     }
   });
 

@@ -1231,7 +1231,30 @@ body {
 }
 
 /* Catalog typography follows the recap. Code IDs retain their code treatment. */
-.market-kicker,.market-section-title,.market-table thead th,.market-table [data-numeric],.market-matrix thead th,.market-rate-table thead th,.market-promo-tag {
-  font-family:var(--font-sans); letter-spacing:0; text-transform:none;
+.market-kicker,
+.market-section-title,
+.market-table thead th,
+.market-table [data-numeric],
+.market-matrix thead th,
+.market-rate-table thead th,
+.market-promo-tag {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
 }
-.market-kicker { font-size:14px; font-weight:500; }
+.market-kicker {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Bridge legacy section labels to the recap typography while pages migrate. */
+.sr-micro {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.dark .sr-scan {
+  --sr-signal: var(--accent);
+}
