@@ -338,7 +338,7 @@ test("Compare asks for a decision before showing Codex subscription and API fact
   await openWorkload(page);
   await openBillingReview(page);
   await page.getByTestId("workload-compare-cta").click();
-  await expect(page.getByRole("heading", { name: "Compare this workload" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Compare your options" })).toBeVisible();
   await expect(page.getByTestId("compare-results")).toHaveCount(0);
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
@@ -449,7 +449,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
   // The app entry opens the stored workload and its value directly.
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/app\/stats$/);
+  await expect(page).toHaveURL(/\/app\/recap$/);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
