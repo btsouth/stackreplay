@@ -18,7 +18,7 @@ const catalogSections = [
     heading: "What the catalog covers",
     body: [
       "StackReplay brings together AI model releases, API list prices and subscription plans so you can compare access and costs, then explore what fits your own coding workload. The catalog includes model developers and providers that offer access to their models; those are different roles.",
-      "The pages show the sourced records in the repository, including current and legacy releases. They are not a complete list of the market or a recommendation of every listed product. Models and plans have different levels of pricing, access and benchmark coverage. Synthetic example records used by demos and tests are kept out of the public catalog.",
+      "The pages show the sourced records in the repository, including current and legacy releases. They are not a complete list of the market or a recommendation of every listed product. Models and plans have different levels of pricing, access and benchmark coverage. Fictional demo records are kept out of the public catalog.",
     ],
   },
   {
@@ -47,7 +47,7 @@ const catalogSections = [
     heading: "How AI updates are selected",
     body: [
       "The homepage and AI updates page read the same versioned feed of model releases, benchmark results, API price changes and subscription changes. Each accepted event has a first-party source, an occurrence date and a verification date. Its linked model, plan and benchmark identities are checked against the catalog and evidence.",
-      "The homepage briefing selects recent events using the feed's recorded importance and date. It is a selection of recorded changes, not a complete news feed. Prices and benchmark figures beside an update come from the accepted catalog and benchmark records, so they use the same facts as the detail pages.",
+      "The homepage briefing selects recent recorded events by their date and significance. It is a selection of recorded changes, not a complete news feed. Prices and benchmark figures beside an update come from the accepted catalog and benchmark records, so they use the same facts as the detail pages.",
     ],
   },
 ] as const;
@@ -56,14 +56,14 @@ const sections = [
   {
     heading: "What a replay is",
     body: [
-      "A replay takes recorded usage events and simulates them against a target's documented mechanics: model access, rolling and calendar windows, token and request limits, credit pools, promotions, overage behaviour and hard stops.",
-      "It is a simulation of rules, not a bill and not a prediction of what a provider would charge you. Providers change rules, apply unpublished limits and make mistakes. A replay tells you what the documented mechanics would have done with your workload, and how confident it is in that answer.",
+      "A replay asks how a different plan would have handled the same recorded work. It uses published model access, allowance periods, token and request limits, credit pools, promotions and what happens after a limit.",
+      "It is a scenario, not a bill or a promise of what a provider will charge. Providers can change their rules or apply unpublished limits. Each result explains which published rules it used and where the evidence is incomplete.",
     ],
   },
   {
     heading: "Local scan and workload analysis",
     body: [
-      "StackReplay reads the supported coding-tool files you select in a browser worker. It builds a scan and analyzes chronology, peak windows, projects, models and token composition on this device. Raw history files stay on the device. Saving the scan in this browser is optional.",
+      "StackReplay reads the supported coding-tool files you select in a browser worker. It builds a scan and counts requests, busiest periods, projects, models and token categories on this device. Raw history files stay on the device. Saving the scan in this browser is optional.",
       "Project folder names label projects in this browser only. A portable scan export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
       "When you save a workload built from a Claude Code history, StackReplay reads the account section of the Claude Code profile beside it (.claude.json) on this device. It keeps the account's name, email, plan type and rate-limit tier, and the account ID only as a salted hash; nothing else from the file is kept. These stay in this browser, hidden until you show them, are never part of a workload export or share link, are never sent anywhere, and Clear local data removes them. Codex sign-in files are never opened.",
     ],
@@ -72,7 +72,7 @@ const sections = [
     heading: "Exact and Translated Replay",
     body: [
       "Exact Replay uses the recorded model identities and chronology. If a target does not serve a recorded model, StackReplay shows that gap instead of silently choosing another model.",
-      "Translated Replay runs only after you choose model substitutions. It keeps the recorded usage magnitude and chronology as a scenario assumption. It does not claim the substituted models would use the same tokens, behave the same way or produce equivalent work. Results name the substitutions and remain distinct from Exact Replay.",
+      "Translated Replay runs only after you choose model substitutions. The scenario assumes the same recorded token counts and request times. It does not claim the substituted models would use the same tokens, behave the same way or produce equivalent work. Results name the substitutions and remain distinct from Exact Replay.",
       "Events whose model identity cannot be resolved remain unknown. You can explicitly leave them out to inspect the resolved part of a workload; the result states that narrower scope.",
     ],
   },
@@ -86,47 +86,47 @@ const sections = [
     ],
   },
   {
-    heading: "Attempted versus accepted demand",
+    heading: "Work attempted and work served",
     body: [
       "Every event counts as attempted demand, including events a limit rejects. Only events a plan actually serves advance accepted consumption. This is what makes a hard stop visible: a workload can attempt far more than a plan accepts, and a replay reports both numbers rather than silently discarding the rejected work.",
     ],
   },
   {
-    heading: "Accounting is declared, never guessed",
+    heading: "Avoiding double counting",
     body: [
-      "Each source declares how its token numbers relate to each other: whether cache reads are a subset of input tokens or additive, whether reasoning tokens are part of output, and which categories it cannot know. The replay engine keeps token buckets disjoint and treats an undeclared or contradictory relationship as unknown rather than assuming one.",
+      "Coding tools count tokens differently. Some include cache reads in input; others report them separately. Some include reasoning in output. StackReplay uses the source’s documented accounting to avoid double counting. If those relationships are missing or contradictory, the result stays unknown.",
       "When a source does not record a category, the replay says unknown. It does not estimate a value and present it as measured.",
     ],
   },
   {
     heading: "Windows and reset behaviour",
     body: [
-      "Rolling windows are anchored exactly as the plan documents them, and calendar windows use the calendar period the plan states. Latching limits stop consumption until the window resets; rejecting limits drop the event; overage limits consume beyond the allowance at the documented rate; record-only limits are reported without enforcement.",
+      "Allowances follow the plan’s published reset periods. A rolling period moves with request times; a calendar period follows the provider’s stated calendar. The scenario distinguishes a pause until reset, a refused request, paid overage and limits that can be reported but not enforced from available evidence.",
     ],
   },
   {
     heading: "Coverage and confidence",
     body: [
       "Coverage is reported on three separate dimensions: requests, usage and models. They are never blended into one number, because a replay can know perfectly well how many requests happened while knowing very little about the tokens inside them.",
-      "Confidence is a level with named factors, not a single score. A partial result says what it could not determine.",
+      "Confidence describes the evidence behind a result. It is not a product rating. A partial result names the missing facts.",
     ],
   },
   {
     heading: "Money",
     body: [
-      "Money is carried as decimal strings and computed with exact decimal arithmetic. A replay never presents a floating-point dollar figure, and every derived amount records the basis it was computed from (fixed plan price, plan price plus overage, or API list price equivalent).",
-      "Every list-price figure opens to its arithmetic: tokens by model and category, the published rate for each, the subtotal, and the source and effective date of the rate. The table is collected from the same per-call conversion that produced the figure, and its rows are rounded to the cent so the column adds up to the figure exactly.",
+      "Money uses exact decimal arithmetic. Every calculated amount states its basis: the fixed plan price, plan price plus documented overage, or cost at API prices. Published prices and confirmed payments remain separate.",
+      "You can inspect tokens by model and category, the published rate, each subtotal and the rate’s source and effective date. Displayed rows are rounded to cents so their sum matches the total.",
     ],
   },
   {
     heading: "Direct API targets",
     body: [
-      "A replay can also target a provider's published API list prices instead of a subscription plan. Nothing is admitted, rejected or deferred: every recorded event is served, and its token categories are priced from the list-price records in force at the rules date, with each event's own timestamp selecting any conditional tier or schedule inside the record it was priced from.",
+      "A replay can also target a provider's published API list prices instead of a subscription plan. This scenario prices each recorded request at the rates in force on the selected rules date. Request times determine any published time-based rate, such as an off-peak schedule. It does not simulate subscription allowance limits.",
       "Availability still comes from the catalog: a model is priced only when the catalog records the selected provider as offering it. A model with no list-price record, a record that is not in force at the rules date, or a token category the record does not cover is reported as a gap rather than filled in. No cost is shown unless the whole workload could be priced, because a partial sum would be read as what the workload would have cost. Discounts, provisioned capacity, taxes, minimums and negotiated rates are not modelled, and a real invoice can differ.",
     ],
   },
   {
-    heading: "Versions and reproducibility",
+    heading: "Reproducing a result",
     body: [
       "Every result records the engine version, the result schema version, the catalog version, the methodology version, the date the target rules were taken as of, and the plan version used. A replay is reproducible from those, and a share link carries them so a shared result can be audited.",
     ],

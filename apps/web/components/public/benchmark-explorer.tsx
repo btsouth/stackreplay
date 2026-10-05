@@ -748,6 +748,7 @@ export function BenchmarkExplorer({
                           Reported results
                           <CatalogSelect
                             label={`Reported result for ${models.find((m) => m.id === cell.modelId)?.name}`}
+                            portalContainer={dialog.current}
                             value={observationId(cell.observation)}
                             onChange={(e) =>
                               change({

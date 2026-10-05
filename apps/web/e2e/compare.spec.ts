@@ -1,6 +1,6 @@
-import { selectCatalogOption } from "./public-controls";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { selectCatalogOption } from "./public-controls";
 
 async function expectNoSeriousViolations(page: Page) {
   const results = await new AxeBuilder({ page })

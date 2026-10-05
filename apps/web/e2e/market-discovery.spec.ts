@@ -1,7 +1,7 @@
-import { selectCatalogOption, expectCatalogSelection } from "./public-controls";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { gotoReplayImport, waitForWorkload } from "./helpers";
+import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 test("featured rates keep deliberate Claude and OpenAI pairs on the same price scale", async ({
   page,
@@ -201,8 +201,10 @@ test("model capabilities filter and selected specifications are useful without o
 }) => {
   await page.goto("/models");
   await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
-  await selectCatalogOption(page
-    .getByRole("combobox", { name: "Capability", exact: true }), "long-context");
+  await selectCatalogOption(
+    page.getByRole("combobox", { name: "Capability", exact: true }),
+    "long-context",
+  );
   await page.getByLabel("Find a model, family name or exact alias").fill("Sonnet 5.5");
   await expect(page.getByTestId("model-row")).toHaveCount(1);
   await expect(page.getByTestId("model-row")).toContainText("1M context");

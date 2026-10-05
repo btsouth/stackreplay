@@ -1,11 +1,14 @@
-import { selectCatalogOption, expectCatalogSelection } from "./public-controls";
 import { expect, test } from "@playwright/test";
+import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 test("provider discovery shares filters and restores the index through history", async ({
   page,
 }) => {
   await page.goto("/providers");
-  await expectCatalogSelection(page.getByRole("combobox", { name: "View", exact: true }), "featured");
+  await expectCatalogSelection(
+    page.getByRole("combobox", { name: "View", exact: true }),
+    "featured",
+  );
   await expect(page.getByTestId("provider-results")).not.toContainText("Devin");
   await page.getByLabel("Find a provider").fill("Devin");
   await expect(page).toHaveURL(/scope=all&q=Devin/u);
@@ -23,7 +26,10 @@ test("provider discovery shares filters and restores the index through history",
   await expect(page.getByLabel("Find a provider")).toHaveValue("Devin");
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
   await expect(page).toHaveURL(/\/providers$/u);
-  await expectCatalogSelection(page.getByRole("combobox", { name: "View", exact: true }), "featured");
+  await expectCatalogSelection(
+    page.getByRole("combobox", { name: "View", exact: true }),
+    "featured",
+  );
 });
 
 test("shared provider role and tool filters normalize and label plan scope", async ({ page }) => {
@@ -127,7 +133,7 @@ test("model-only and empty coverage stays accessible with unknowns and no API su
   const synthetic = await page.goto("/providers/example-provider");
   expect(synthetic?.status()).toBe(404);
   await expect(
-    page.getByRole("heading", { name: "There is nothing at this address.", exact: true }),
+    page.getByRole("heading", { name: "Let’s get you somewhere useful.", exact: true }),
   ).toBeVisible();
 });
 

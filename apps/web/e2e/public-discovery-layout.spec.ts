@@ -1,6 +1,6 @@
-import { expectCatalogSelection } from "./public-controls";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { expectCatalogSelection } from "./public-controls";
 
 async function accessible(page: Page) {
   await expect(page).toHaveTitle(/StackReplay/u);
@@ -179,7 +179,7 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await catalog.click();
   await expect(page).toHaveURL(/\/catalog$/u);
   await expect(
-    page.getByRole("heading", { name: "Models. Plans. Possibilities.", exact: true }),
+    page.getByRole("heading", { name: "A wider view. Your next possibility.", exact: true }),
   ).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/(?:#main-content)?$/u);

@@ -40,6 +40,7 @@ export function CatalogSelect({
   disabled,
   className,
   id,
+  portalContainer,
   "data-testid": testId,
 }: {
   label: string;
@@ -49,6 +50,7 @@ export function CatalogSelect({
   className?: string | undefined;
   id?: string | undefined;
   "data-testid"?: string;
+  portalContainer?: HTMLElement | null;
   onChange: (event: { target: { value: string } }) => void;
 }) {
   const options = choices(children);
@@ -61,6 +63,7 @@ export function CatalogSelect({
     >
       <Select
         label={label}
+        {...(portalContainer ? { portalContainer } : {})}
         options={options}
         {...(value !== undefined ? { value } : {})}
         onValueChange={(value) => onChange({ target: { value } })}

@@ -1,5 +1,5 @@
-import { selectCatalogOption } from "./public-controls";
 import { expect, test } from "@playwright/test";
+import { selectCatalogOption } from "./public-controls";
 
 test("model decision pages expose pricing conditions without opening evidence", async ({
   page,
