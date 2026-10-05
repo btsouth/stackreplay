@@ -184,5 +184,12 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await expect(page).toHaveURL(/\/(?:#main-content)?$/u);
   await expect(page.getByTestId("home")).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
+  // Measure after Chrome applies the viewport and responsive layout together.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
