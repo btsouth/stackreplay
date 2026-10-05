@@ -19,7 +19,7 @@ export function Tabs({
 }) {
   return (
     <BaseTabs.Root defaultValue={defaultValue ?? items[0]?.value}>
-      <BaseTabs.List aria-label={label} className="sr-tabs">
+      <BaseTabs.List activateOnFocus aria-label={label} className="sr-tabs">
         {items.map((item) => (
           <BaseTabs.Tab key={item.value} value={item.value} disabled={item.disabled ?? false}>
             {item.label}

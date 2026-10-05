@@ -290,6 +290,7 @@
 }
 .sr-data-table th button {
   min-height: 44px;
+  min-width: 44px;
   text-align: inherit;
   white-space: nowrap;
 }
