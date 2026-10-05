@@ -445,6 +445,10 @@
   color: var(--muted-foreground);
   font-size: 14px;
 }
+.sr-menu-secondary [aria-current] {
+  color: var(--accent);
+  font-weight: 600;
+}
 .sr-menu-privacy {
   margin-top: 32px;
   font-size: 13px;

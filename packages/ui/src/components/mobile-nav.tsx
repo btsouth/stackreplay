@@ -94,9 +94,17 @@ export function MobileNav({
               </Link>
             )}
           </div>
-          <nav aria-label="Explore more" className="sr-menu-secondary">
+          <nav
+            aria-label={context === "public" ? "Catalog" : "Explore more"}
+            className="sr-menu-secondary"
+          >
             {(context === "app" ? appUtilityNavItems : catalogNavItems).map((item) => (
-              <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}
+                onClick={() => setOpen(false)}
+              >
                 {item.label}
               </Link>
             ))}
