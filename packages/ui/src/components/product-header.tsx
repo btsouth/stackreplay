@@ -6,6 +6,7 @@ import { buttonVariants } from "./button";
 import { MobileNav } from "./mobile-nav";
 import { NavLink } from "./nav-link";
 import { PublicNav } from "./public-nav";
+import { SkipLink } from "./skip-link";
 export function ProductHeader({
   context = "public",
   right,
@@ -19,9 +20,7 @@ export function ProductHeader({
 }) {
   return (
     <>
-      <Link href="#main-content" className="sr-skip">
-        Skip to content
-      </Link>
+      <SkipLink />
       <header className="sr-product-header">
         <div className="sr-page-rail sr-header-rail">
           <Brand />
