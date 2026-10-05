@@ -1,3 +1,4 @@
+import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { expect, type Page, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
@@ -30,7 +31,7 @@ async function expectInsideViewport(page: Page, testId: string): Promise<void> {
 test("schema-valid long workload and model identities remain usable at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   const file = validWorkload();
   for (const name of workloadNames) {
     await page.getByTestId("import-file-input").setInputFiles({
@@ -63,14 +64,16 @@ test("schema-valid long workload and model identities remain usable at 390px", a
   await expect(page.getByTestId("workload-strip")).toBeVisible();
   const select = page.getByTestId("workload-select");
   await expect(select).toBeVisible();
-  await expect(select.locator("option")).toHaveCount(2);
+  await select.getByRole("combobox").click();
+  await expect(page.getByRole("option")).toHaveCount(2);
+  const otherValue = await page.getByRole("option").first().getAttribute("data-value");
+  await page.keyboard.press("Escape");
   await expect(page.getByTestId("model-identities")).toContainText(modelId);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expectInsideViewport(page, "workload-select");
   await expectInsideViewport(page, "run-replay");
-  const otherValue = await select.locator("option").first().getAttribute("value");
   if (otherValue === null) throw new Error("stored workload has no select value");
-  await select.selectOption(otherValue);
-  await expect(select).toHaveValue(otherValue);
+  await chooseOption(select, otherValue);
+  await expectSelectValue(select, otherValue);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
