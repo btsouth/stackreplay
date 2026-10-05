@@ -129,3 +129,12 @@ for (const theme of ["dark", "light"] as const) {
     });
   }
 }
+
+test("Plans names the selected fictional history", async ({ page }) => {
+  await gotoImport(page);
+  await page.getByTestId("demo-moderate").click();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await navigate(page, "Plans");
+  await expect(page.getByTestId("stack-workload")).toContainText("Fictional demo · 900 calls");
+  await expect(page.getByTestId("stack-workload")).not.toContainText("No workload selected");
+});

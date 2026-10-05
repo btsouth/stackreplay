@@ -255,6 +255,9 @@
   gap: 32px;
 }
 .premium-share .sr-verdict {
+  --foreground: var(--recap-card-text);
+  --muted-foreground: var(--recap-card-muted);
+  --accent: #ff895d;
   border-radius: 20px;
   padding: clamp(24px, 4vw, 56px);
   background: var(--recap-card-bg);
