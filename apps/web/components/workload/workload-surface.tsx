@@ -347,21 +347,15 @@ function WorkloadOpening({
       {record.savedLocally === false ? <TemporaryScanNotice /> : null}
       <div className="app-stat-strip">
         <StatTile
-          label="Known tokens processed"
+          label="Known tokens"
           value={formatTokens(record.summary.tokens.known) ?? "0"}
-          hint="Input, output and recorded cache usage across this scan"
           tone="citron"
         />
         <StatTile
           label="Sessions"
           value={record.summary.sessionCount ? count(record.summary.sessionCount) : "Unknown"}
-          hint={`${count(record.eventCount)} recorded calls`}
         />
-        <StatTile
-          label="Active days"
-          value={profile ? count(profile.overview.activeDays) : "…"}
-          hint={recordedRange(record)}
-        />
+        <StatTile label="Active days" value={profile ? count(profile.overview.activeDays) : "…"} />
       </div>
       <PartialScanNotice
         record={record}

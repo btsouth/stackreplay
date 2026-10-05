@@ -95,6 +95,10 @@
 }
 .app-stat-strip .sr-stat-tile {
   min-width: 0;
+  padding: 18px 20px;
+}
+.app-stat-strip .sr-stat-value {
+  font-size: clamp(1.6rem, 3vw, 2.75rem);
 }
 .premium-app [data-testid="workload-hero"] {
   border: 1px solid var(--border-strong);
@@ -301,9 +305,18 @@
     max-width: none;
   }
   .app-setting,
-  .app-stat-strip,
   .app-skeleton-figures {
     grid-template-columns: 1fr;
+  }
+  .app-stat-strip {
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .app-stat-strip .sr-stat-tile {
+    padding: 14px 10px;
+  }
+  .app-stat-strip .sr-stat-label {
+    font-size: 11px;
   }
   .app-setting {
     gap: 24px;
