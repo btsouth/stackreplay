@@ -173,6 +173,8 @@ test("provider discovery supports multiword typing and both themes without clipp
   await expect(page.getByRole("combobox", { name: "View", exact: true })).toBeEnabled();
   await page.getByLabel("Find a provider").pressSequentially("Devin Teams", { delay: 40 });
   await expect(page.getByLabel("Find a provider")).toHaveValue("Devin Teams");
+  await expect(page.getByLabel("Find a provider")).toBeFocused();
+  await expect(page).toHaveURL(/q=Devin\+Teams/u);
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
   await expect(page).toHaveURL(/\/providers$/u);
