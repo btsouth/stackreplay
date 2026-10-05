@@ -525,7 +525,19 @@ test.describe("share links", () => {
       "/app/scan",
     );
     await expect(page.getByTestId("share-card")).toHaveCount(0);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/u);
+    // Next's 404 boundary may add its own policy alongside page metadata.
+    // Every emitted policy must prohibit indexing, with at least one present.
+    await expect
+      .poll(() =>
+        page
+          .locator('meta[name="robots"]')
+          .evaluateAll(
+            (policies) =>
+              policies.length > 0 &&
+              policies.every((policy) => /noindex/u.test(policy.getAttribute("content") ?? "")),
+          ),
+      )
+      .toBe(true);
   });
 
   test("creating a share link uploads only its aggregate token and re-reads in public", async ({
