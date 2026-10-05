@@ -16,6 +16,8 @@ export function ShareCardV2({
   testId?: string;
 }) {
   const Heading = heading;
+  const sourceDetails = presentation.support.filter((line) => line.startsWith("Catalog:"));
+  const support = presentation.support.filter((line) => !line.startsWith("Catalog:"));
   const translated = presentation.label === "Translated replay";
   const boundary = presentation.headline.search(/(?<=[.;])\s(?=[A-Z])/u);
   const lead = boundary === -1 ? presentation.headline : presentation.headline.slice(0, boundary);
@@ -70,12 +72,24 @@ export function ShareCardV2({
           </div>
         )}
       </div>
-      {presentation.support.length === 0 ? null : (
+      {support.length === 0 ? null : (
         <ul className="sr-verdict-support [overflow-wrap:anywhere]" data-testid="share-support">
-          {presentation.support.map((line) => (
+          {support.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
+      )}
+      {sourceDetails.length === 0 ? null : (
+        <details className="sr-source-details">
+          <summary>Source details</summary>
+          <ul className="[overflow-wrap:anywhere] text-xs text-muted-foreground">
+            {sourceDetails.map((line) => (
+              <li key={line}>
+                <code>{line}</code>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
       {presentation.tools.length < 2 ? null : (
         <div className="flex max-w-xl flex-col gap-2" data-testid="share-tools">

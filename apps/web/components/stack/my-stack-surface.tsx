@@ -548,7 +548,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               <span>History</span>
               <AppSelect
                 label="History"
-                value={demo ? "" : (record?.id ?? "")}
+                value={record?.id ?? ""}
                 disabled={imports === undefined || demo}
                 data-testid="stack-workload"
                 onChange={(event) => {
@@ -567,6 +567,11 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
                 }}
               >
                 <option value="">No workload selected</option>
+                {demo && record ? (
+                  <option value={record.id}>
+                    Fictional demo · {record.eventCount.toLocaleString("en-US")} calls
+                  </option>
+                ) : null}
                 {savedImports.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.summary.usageSources.map((source) => source.name).join(" + ") ||

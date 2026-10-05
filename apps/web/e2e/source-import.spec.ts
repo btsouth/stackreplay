@@ -271,7 +271,7 @@ test("custom file controls retain native labels and mobile saved actions reflow"
   await gotoReplayImport(page);
   for (const [name, testId] of [
     ["Source files or ZIP", "source-file-input"],
-    ["StackReplay workload", "import-file-input"],
+    ["StackReplay export", "import-file-input"],
   ] as const) {
     const input = page.getByTestId(testId);
     await expect(input).toHaveAccessibleName(name);

@@ -178,11 +178,17 @@ export function WorkloadSurface({
     <div className="premium-app flex min-w-0 flex-col gap-8" data-testid="workload-surface">
       <WorkloadOpening
         onMarket={onMarket}
+        target={initialTarget}
         record={record}
         profile={profile}
         profileFailed={error !== undefined}
         imports={imports}
-        onSelect={(next) => { setSelectedId(next); const params = new URLSearchParams(window.location.search); params.set("import", next); router.push(`/app/stats?${params}${window.location.hash}`, { scroll: false }); }}
+        onSelect={(next) => {
+          setSelectedId(next);
+          const params = new URLSearchParams(window.location.search);
+          params.set("import", next);
+          router.push(`/app/stats?${params}${window.location.hash}`, { scroll: false });
+        }}
         analysisContent={(decision) =>
           profile ? (
             <WorkloadAnalysis
@@ -300,6 +306,7 @@ function WorkloadPicker({
 }
 
 function WorkloadOpening({
+  target,
   record,
   profile,
   profileFailed,
@@ -309,6 +316,7 @@ function WorkloadOpening({
   detailContent,
   analysisContent,
 }: {
+  target?: string | undefined;
   record: ImportRecord;
   profile: WorkloadProfile | undefined;
   profileFailed: boolean;
@@ -325,6 +333,14 @@ function WorkloadOpening({
           eyebrow="Your work, up close"
           title="Your stats"
           description="See what drives your usage, where your work goes, and how it adds up at published API prices."
+          actions={
+            <Link
+              className={ACTION_LINK}
+              href={`/app/plans?import=${encodeURIComponent(record.id)}${target ? `&target=${encodeURIComponent(target)}` : ""}`}
+            >
+              Find plans for this work →
+            </Link>
+          }
         />
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>

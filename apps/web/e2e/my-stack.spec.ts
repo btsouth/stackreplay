@@ -119,7 +119,7 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
     "plan:anthropic-claude-pro",
     "plan:anthropic-claude-max-5x",
   ]);
-  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await page.getByRole("link", { name: "Manage your plans →" }).click();
   await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}`));
   await expect(page.getByTestId("selected-stack").locator("article")).toHaveCount(2);
   // Two plans of one family share the tool's calls; they are never split.
@@ -214,7 +214,7 @@ test("Not sure, API/other and work responses persist without creating plans; man
   await page.goto("/app/settings");
   await page.getByTestId("settings-manual-plans").locator("summary").click();
   await page.getByTestId("settings-plan-cursor-ultra").check();
-  await page.getByRole("link", { name: "Manage My Stack →" }).click();
+  await page.getByRole("link", { name: "Manage your plans →" }).click();
   await expect(page.getByTestId("stack-target-cursor-ultra")).toBeVisible();
 });
 

@@ -1235,6 +1235,16 @@
   margin-top: 12px;
 }
 .recap-info > button {
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.recap-page .recap-info > span[popover] {
+  color: var(--foreground);
+}
+.recap-info > [popover]:not(:popover-open) {
+  display: none;
+}
+.recap-info > [popover]:popover-open {
+  display: block;
 }

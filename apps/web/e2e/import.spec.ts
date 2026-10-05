@@ -14,7 +14,7 @@ test("empty import surface states the privacy contract up front", async ({ page 
   await expect(
     boundary.getByText("Scanned locally. Raw AI history stays on this device."),
   ).toBeVisible();
-  await expect(boundary).toContainText("It discards prompts, responses, code, command output");
+  await expect(boundary).toContainText("It leaves out prompts, responses, code, command output");
   await expect(boundary).toContainText("Site assets and public catalog facts only.");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await expect(page.getByTestId("demo-presets")).toBeVisible();

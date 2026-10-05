@@ -38,16 +38,20 @@ export function AppSelect({
   "aria-label"?: string;
   "data-testid"?: string;
 }) {
-  const options: SelectOption[] = Children.toArray(children).flatMap((child) => {
-    if (!isValidElement<OptionProps>(child) || child.type !== "option") return [];
-    return [
-      {
-        value: String(child.props.value ?? text(child.props.children)),
-        label: text(child.props.children),
-        ...(child.props.disabled ? { disabled: true } : {}),
-      },
-    ];
-  });
+  function collectOptions(nodes: ReactNode): SelectOption[] {
+    return Children.toArray(nodes).flatMap((child) => {
+      if (!isValidElement<OptionProps>(child)) return [];
+      if (child.type !== "option") return collectOptions(child.props.children);
+      return [
+        {
+          value: String(child.props.value ?? text(child.props.children)),
+          label: text(child.props.children),
+          ...(child.props.disabled ? { disabled: true } : {}),
+        },
+      ];
+    });
+  }
+  const options = collectOptions(children);
   const [selection, setSelection] = useState(defaultValue ?? options[0]?.value ?? "");
   const selected = value ?? selection;
   return (

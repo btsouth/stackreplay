@@ -99,11 +99,11 @@ export function SuggestedReplays({
             : "Start with your recorded work"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Import history to discover exact API routes and explicit counterfactual strategies.
-          Everything runs locally.
+          Scan your history to see which plans and API options could fit the same work. Everything
+          runs locally.
         </p>
         <Link href="/app/scan" className={action}>
-          Import a workload →
+          Scan your AI history →
         </Link>
       </div>
     );
@@ -113,7 +113,13 @@ export function SuggestedReplays({
 }
 function ReplayPreparation() {
   return (
-    <AppPageSkeleton label="Finding useful changes for your history" testId="replay-preparing" />
+    <div className="space-y-6">
+      <h1 className="text-3xl font-medium">Try a change</h1>
+      <AppPageSkeleton
+        label="Opening your history. Reading recorded models and finding useful changes"
+        testId="replay-restoring"
+      />
+    </div>
   );
 }
 

@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { gotoImport, importDemo, runReplay, setRulesAsOf, waitForWorkload } from "./premium-app-helpers";
+import {
+  gotoImport,
+  importDemo,
+  runReplay,
+  setRulesAsOf,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 /**
  * Replay route states (M3 brief): no workload, ready, replaying, full coverage,
@@ -13,7 +19,7 @@ test("direct navigation without an import shows an intentional empty state", asy
   await expect(page.getByTestId("replay-empty")).toBeVisible();
   await expect(page.getByTestId("history-discovery")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: /Find my AI histories|Connect your AI history/u }),
+    page.getByRole("heading", { name: /Start with your history folder|Connect your AI history/u }),
   ).toBeVisible();
   await expect(page.getByTestId("source-file-input")).toBeVisible();
 });

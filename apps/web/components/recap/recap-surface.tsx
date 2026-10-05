@@ -51,11 +51,19 @@ export function RecapSurface({
     setId(initialImportId);
   }, [initialImportId]);
   useEffect(() => {
-    const selected = query.get("period");
+    let selected = query.get("period");
+    if (selected === null) {
+      try {
+        selected = window.localStorage.getItem("stackreplay.recap-period");
+      } catch {}
+    }
     setPeriod(selected === "90" || selected === "all" ? selected : "30");
   }, [query]);
   function selectPeriod(next: RecapPeriod) {
     setPeriod(next);
+    try {
+      window.localStorage.setItem("stackreplay.recap-period", next);
+    } catch {}
     const query = new URLSearchParams(window.location.search);
     query.set("period", next);
     router.replace(`/app/recap?${query}${window.location.hash}`, { scroll: false });

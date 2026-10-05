@@ -4,7 +4,12 @@ import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "../../../packages/test-fixtures/src/demo-workload";
 import type { CompletedReplay } from "../lib/completed-replays";
 import { chooseOption, expectSelectValue } from "./app-select-helpers";
-import { gotoImport, setRulesAsOf, visitPlanSuggestions, waitForWorkload } from "./premium-app-helpers";
+import {
+  gotoImport,
+  setRulesAsOf,
+  visitPlanSuggestions,
+  waitForWorkload,
+} from "./premium-app-helpers";
 
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
@@ -190,7 +195,7 @@ test("a stack scenario stays honest about capacity and manual capabilities remai
 });
 test("fresh Replay and Compare point to the next useful action", async ({ page }) => {
   await page.goto("/app/plans?section=replay");
-  await expect(page.getByTestId("replay-empty")).toContainText("Import a workload");
+  await expect(page.getByTestId("replay-empty")).toContainText("Scan your AI history");
   await page.goto("/app/plans?section=compare");
   await expect(page.getByTestId("completed-compare-empty")).toContainText(
     "Explore suggested replays",
@@ -231,9 +236,9 @@ test("Replay loading explains the local preparation before showing decisions", a
     };
   });
   await page.goto("/app/plans?section=replay");
-  await expect(page.getByTestId("replay-restoring")).toContainText("Opening your workload");
+  await expect(page.getByTestId("replay-restoring")).toContainText("Opening your history");
   await expect(page.getByTestId("replay-restoring")).toContainText(
-    "Reading recorded models and finding useful replay strategies",
+    "Reading recorded models and finding useful changes",
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await expect(page.getByTestId("replay-empty")).toBeVisible();

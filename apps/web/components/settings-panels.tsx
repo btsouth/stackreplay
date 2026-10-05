@@ -18,7 +18,7 @@ import type { ImportRecord } from "@/lib/worker-protocol";
  * Current Stack stays authoritative. Completed workloads narrow confirmation;
  * the catalog picker remains an advanced escape hatch for other plans.
  */
-export function PlansYouPayFor() {
+export function PlansYouPayFor({ plansHref = "/app/plans" }: { plansHref?: string }) {
   const [stack, setStack] = useState<TargetKey[] | undefined>(undefined);
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => {
@@ -50,7 +50,7 @@ export function PlansYouPayFor() {
             : names.join(" + ")}
       </p>
       <Link
-        href="/app/plans"
+        href={plansHref}
         className="inline-flex min-h-11 items-center self-start text-sm text-accent"
       >
         Manage your plans →

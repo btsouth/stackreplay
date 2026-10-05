@@ -172,7 +172,7 @@ export function StackConfirmation({
         href={`/app/plans?import=${encodeURIComponent(record.id)}`}
         className="inline-flex min-h-11 items-center text-sm text-accent"
       >
-        Manage My Stack →
+        Manage your plans →
       </Link>
       {notice ? (
         <p role="status" className="text-xs text-muted-foreground">

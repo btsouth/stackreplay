@@ -60,6 +60,9 @@ test("recap keeps the chosen period on reload and aligns with the shared shell",
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   await page.reload();
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
+  const chosenImport = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${chosenImport}`);
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   const alignment = await page.evaluate(() => {
     const content = document.querySelector(".recap-page")?.getBoundingClientRect();
     const brand = document.querySelector("header a")?.getBoundingClientRect();

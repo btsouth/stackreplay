@@ -26,7 +26,18 @@ function Setting({
   );
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const values = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) {
+    if (typeof value === "string") query.set(key, value);
+    else if (Array.isArray(value)) for (const item of value) query.append(key, item);
+  }
+  const plansHref = `/app/plans${query.size ? `?${query}` : ""}`;
   return (
     <div className="premium-app">
       <PageHeader
@@ -41,7 +52,7 @@ export default function SettingsPage() {
           title="Plans you pay for"
           description="Choose the plans you pay for. Your recap, stats and plan comparisons use the same choices."
         >
-          <PlansYouPayFor />
+          <PlansYouPayFor plansHref={plansHref} />
         </Setting>
         <Setting
           title="Saved scans"
