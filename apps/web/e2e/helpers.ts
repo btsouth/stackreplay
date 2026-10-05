@@ -6,7 +6,7 @@ export const DEMO_PRESETS = ["moderate", "heavy", "multistack"] as const;
 export type DemoPreset = (typeof DEMO_PRESETS)[number];
 
 export async function gotoImport(page: Page): Promise<void> {
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("import-dropzone")).toBeVisible();
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
@@ -45,7 +45,7 @@ export async function dropFolders(page: Page, paths: string[]): Promise<void> {
 
 /** Waits until the Replay route's embedded intake can accept the first action. */
 export async function gotoReplayImport(page: Page): Promise<void> {
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }
 
@@ -58,7 +58,7 @@ export async function importDemo(page: Page, preset: DemoPreset): Promise<void> 
 
 /** Follows the automatic recap handoff to the legacy workload assertions. */
 export async function waitForWorkload(page: Page): Promise<void> {
-  await expect(page).toHaveURL(/\/app\/(?:recap|workload)\?import=/u, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/app\/(?:recap|stats)\?import=/u, { timeout: 60_000 });
   if (new URL(page.url()).pathname === "/app/recap") {
     // Historical billing fixtures can fall outside the recap default period.
     await page.getByRole("radio", { name: "All time", exact: true }).check();
@@ -73,7 +73,7 @@ export async function waitForWorkload(page: Page): Promise<void> {
 /** Client navigation preserves intentionally temporary workloads in the worker. */
 export async function visitImportManager(page: Page): Promise<void> {
   await page
-    .locator('a[href="/app/import"]')
+    .locator('a[href="/app/scan"]')
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
@@ -88,7 +88,7 @@ export async function inspectLatestImport(page: Page): Promise<void> {
 export async function visitReplay(page: Page): Promise<void> {
   await waitForWorkload(page);
   await page
-    .locator('a[href="/app/replay"]')
+    .locator('a[href^="/app/plans?section=replay"]')
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
   await page.getByTestId("build-own").click();

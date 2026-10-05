@@ -196,7 +196,7 @@ export function ForYou({
               </p>
             ) : (
               <>
-                <Link href="/app/import" className="home-button">
+                <Link href="/app/scan" className="home-button">
                   Scan my AI history
                 </Link>
                 <Link href="/methodology#privacy" className="home-inline-link">
@@ -305,7 +305,7 @@ function WorkloadLine({ snapshot }: { snapshot: PersonalSnapshot }) {
           <dd>
             {plans.length === 0 ? (
               <Link
-                href={`/app/stack?import=${encodeURIComponent(snapshot.importId)}`}
+                href={`/app/plans?import=${encodeURIComponent(snapshot.importId)}`}
                 className="home-inline-link"
               >
                 Confirm your subscriptions
@@ -401,7 +401,7 @@ function answersFor(
       figure: false,
       text: `${stackChange.relation.detail}.`,
       action: "Review in My Stack",
-      href: `/app/stack?import=${encodeURIComponent(snapshot.importId)}`,
+      href: `/app/plans?import=${encodeURIComponent(snapshot.importId)}`,
     });
   if (answers.length < 3)
     answers.push({
@@ -447,7 +447,7 @@ function ScanPanel({
         </p>
       ) : null}
       <div className="home-scan-actions">
-        <Link href="/app/import" className="home-button">
+        <Link href="/app/scan" className="home-button">
           Scan my AI history
         </Link>
         <Link href="/methodology#privacy" className="home-inline-link">
@@ -571,13 +571,13 @@ export function PersonalIntelligence({
           </ol>
           <p className="home-personal-more">
             <Link
-              href={`/app/workload?import=${encodeURIComponent(view.snapshot.importId)}`}
+              href={`/app/stats?import=${encodeURIComponent(view.snapshot.importId)}`}
               className="home-cta-link"
             >
               View all workload analysis <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href={`/app/stack?import=${encodeURIComponent(view.snapshot.importId)}`}
+              href={`/app/plans?import=${encodeURIComponent(view.snapshot.importId)}`}
               className="home-cta-link"
             >
               Review My Stack <span aria-hidden="true">→</span>

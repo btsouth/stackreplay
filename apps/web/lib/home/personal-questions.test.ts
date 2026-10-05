@@ -93,7 +93,7 @@ describe("personal questions", () => {
       "downgrade-claude"
     ];
     const url = new URL(state.href, "https://x");
-    expect(url.pathname).toBe("/app/replay");
+    expect(url.pathname).toBe("/app/plans?section=replay");
     expect(
       parseStackParam(url.searchParams.get("stack") ?? undefined)?.map((entry) => entry.plan),
     ).toEqual(["plan:anthropic-claude-max-5x", "plan:openai-chatgpt-pro"]);
@@ -104,7 +104,7 @@ describe("personal questions", () => {
 
   it("does not invent a downgrade below the lowest tier or without a Claude plan", () => {
     expect(states(["plan:anthropic-claude-pro"])["downgrade-claude"].href).toBe(
-      "/app/stack?import=abc123",
+      "/app/plans?import=abc123",
     );
     const none = states([])["downgrade-claude"];
     expect(none.ready).toBe(false);
@@ -120,7 +120,7 @@ describe("personal questions", () => {
     );
     // Cancelling the only subscription is reviewed in My Stack, not replayed as an empty stack.
     expect(states(["plan:openai-chatgpt-pro"])["cancel-chatgpt"].href).toBe(
-      "/app/stack?import=abc123",
+      "/app/plans?import=abc123",
     );
   });
 

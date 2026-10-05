@@ -17,7 +17,7 @@ async function completeDemo(page: import("@playwright/test").Page) {
   await waitForWorkload(page);
   await expect(page.getByTestId("market-total")).toHaveText("$23.73 – $24.39", { timeout: 30_000 });
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   await expect(page.getByTestId("review-state")).toHaveText("Complete billing-period review");
   await openBillingReview(page);
 }
@@ -101,7 +101,7 @@ test("D2 seven-day history stays partial inside a month and selected periods fil
   await importDemo(page, "moderate");
   await waitForWorkload(page);
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("custom");
   await openReviewEditor(page);
@@ -206,7 +206,7 @@ test("D2 reviews a normal import with locally confirmed full-cycle spend, withou
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   await openReviewEditor(page);
   await page.getByLabel("Review period source").selectOption("plan:anthropic-claude-max-5x");
   await expect(page.getByTestId("review-period")).toHaveText("Aug 1 → Sep 1 · end excluded");
@@ -273,7 +273,7 @@ test("D3 keeps a heavy unknown slice visible beside priced economics", async ({ 
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   const market = page.getByTestId("market-decision");
   await expect(market).toContainText("Current published API equivalent for priced workload");
   await expect(page.getByTestId("market-coverage")).toContainText(
@@ -301,7 +301,7 @@ test("D3 imported collection gaps prevent a history declaration", async ({ page 
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   await expect(page.getByLabel("Confirm history covers this review period")).toBeDisabled();
   await expect(page.getByTestId("review-conclusion")).toContainText("scan gaps");
 });
@@ -333,7 +333,7 @@ test("D3 large API ranges fit the share preview and review on mobile", async ({ 
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
   await openBillingReview(page);
-  await expect(page).toHaveURL(/\/app\/workload/u);
+  await expect(page).toHaveURL(/\/app\/stats/u);
   await expect(page.getByTestId("market-total")).toHaveText("$2,565.00 – $3,240.00");
   await expect(page.getByTestId("share-figure")).toContainText("2,565.00");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

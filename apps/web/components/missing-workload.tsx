@@ -37,7 +37,7 @@ export function MissingWorkload({
           </Button>
         )}
         <Link
-          href="/app/import"
+          href="/app/scan"
           className={
             latest === undefined
               ? buttonVariants({ size: "md" })

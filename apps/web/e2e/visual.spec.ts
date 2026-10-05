@@ -48,7 +48,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "desktop", "desktop capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await awaitChart(page);
     await shoot(page, "replay-desktop-dark");
@@ -58,7 +58,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "desktop", "desktop capture");
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await awaitChart(page);
     await shoot(page, "replay-desktop-light");
@@ -68,7 +68,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "mobile", "mobile capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await awaitChart(page);
     await shoot(page, "replay-mobile-dark");
@@ -78,7 +78,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "mobile", "mobile capture");
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await awaitChart(page);
     await shoot(page, "replay-mobile-light");
@@ -88,7 +88,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "desktop", "desktop capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await awaitChart(page);
     await shoot(page, "replay-exceeded-desktop-dark");
@@ -98,7 +98,7 @@ test.describe("M3 screenshots", () => {
     test.skip(testInfo.project.name !== "desktop", "desktop capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "multistack");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-starter");
     await awaitChart(page);
     await shoot(page, "replay-unknown-desktop-dark");
@@ -144,7 +144,7 @@ test.describe("M4 screenshots", () => {
       // A share link is created in the app from a real replay; the capture
       // starts there instead of from a homepage example.
       await importDemo(page, "moderate");
-      await page.goto("/app/replay?mode=custom");
+      await page.goto("/app/plans?section=replay&mode=custom");
       await runReplay(page, "example-cloud-pro");
       const token = await createShareToken(page);
       await page.goto(`/s/${token}`);

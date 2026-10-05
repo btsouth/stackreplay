@@ -67,7 +67,7 @@ describe("public offer routes and prices", () => {
         expect(html).toContain(price.amount);
         expect(html).toContain(price.unit);
         expect(html).toContain("Published offer only; workload replay is unavailable.");
-        expect(html).not.toContain(`/app/import?target=${id}`);
+        expect(html).not.toContain(`/app/scan?target=${id}`);
         expect(html).not.toContain("0 models included");
       }
       expect(detail).not.toContain('data-testid="version-table"');
@@ -168,8 +168,8 @@ describe("public offer routes and prices", () => {
         routedSearch: "left=anthropic-claude-max-20x&right=openai-chatgpt-pro",
       }),
     );
-    expect(html).toContain("/app/import?target=anthropic-claude-max-20x");
-    expect(html).toContain("/app/import?target=openai-chatgpt-pro");
+    expect(html).toContain("/app/scan?target=anthropic-claude-max-20x");
+    expect(html).toContain("/app/scan?target=openai-chatgpt-pro");
     expect(html).toContain("$200");
   });
 });

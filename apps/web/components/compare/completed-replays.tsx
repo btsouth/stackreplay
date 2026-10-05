@@ -55,7 +55,7 @@ export function CompletedReplayComparison({
     selected !== undefined
       ? group.filter((r) => selected.includes(r.id)).slice(0, 3)
       : group.slice(0, 3);
-  const link = `/app/replay${initialImportId ? `?import=${encodeURIComponent(initialImportId)}` : ""}`;
+  const link = `/app/plans?section=replay${initialImportId ? `?import=${encodeURIComponent(initialImportId)}` : ""}`;
   return (
     <div className="space-y-8" data-testid="completed-compare">
       <header className="space-y-3">
@@ -202,7 +202,7 @@ export function CompletedReplayComparison({
       ) : null}
       <Link
         className="flex min-h-11 w-fit items-center border-t border-border pt-3 text-sm text-accent"
-        href={`/app/compare?view=billing${initialImportId ? `&import=${encodeURIComponent(initialImportId)}` : ""}`}
+        href={`/app/plans?section=compare&view=billing${initialImportId ? `&import=${encodeURIComponent(initialImportId)}` : ""}`}
       >
         Open an existing billing-period review →
       </Link>

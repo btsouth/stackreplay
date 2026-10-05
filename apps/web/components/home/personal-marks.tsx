@@ -81,7 +81,7 @@ export function ModelUsageRow({
             <span className="text-muted-foreground">
               Scan your history to see which of these models your work actually used.{" "}
             </span>
-            <Link href="/app/import" className="home-inline-link">
+            <Link href="/app/scan" className="home-inline-link">
               Scan my AI history <span aria-hidden="true">→</span>
             </Link>
           </span>

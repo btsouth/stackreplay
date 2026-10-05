@@ -35,13 +35,13 @@ export default function SettingsPage() {
       <div className="flex max-w-4xl flex-col gap-8">
         <Setting
           title="Plans you pay for"
-          description="Your confirmed Current Stack is shared by Workload, Replay and Compare. History narrows the choices; you confirm which plans you currently pay for."
+          description="Choose the plans you pay for. Your recap, stats and plan comparisons use the same choices."
         >
           <PlansYouPayFor />
         </Setting>
         <Setting
-          title="Saved workloads"
-          description="Normalized usage from your scans: models, token counts and timestamps. Raw history is never stored."
+          title="Saved scans"
+          description="Models, token counts and timestamps from your scans. Your raw logs are never saved."
         >
           <SavedWorkloads />
         </Setting>

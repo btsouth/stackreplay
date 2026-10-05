@@ -32,7 +32,7 @@ export function NavLink({ href, label, size = "sm", onNavigate, quiet = false }:
           ? "px-3 py-3 text-sm"
           : cn("inline-flex min-h-11 items-center", quiet ? "px-2.5 text-[13px]" : "px-3 text-sm"),
         active
-          ? "bg-surface-2 font-medium text-foreground shadow-[inset_2px_0_0_0_var(--color-accent)]"
+          ? "bg-surface-2 font-medium text-foreground"
           : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
       )}
     >

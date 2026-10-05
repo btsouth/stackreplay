@@ -49,7 +49,7 @@ for (const [id, name] of [
       await expect(page.getByTestId("compare-target").first()).toContainText(
         "$80/month base + $40/month per full developer seat",
       );
-      await expect(page.locator('a[href="/app/import?target=devin-teams"]')).toHaveCount(0);
+      await expect(page.locator('a[href="/app/scan?target=devin-teams"]')).toHaveCount(0);
     }
   });
 }
@@ -171,7 +171,7 @@ test("explicit public offer Replay targets cannot run or select another plan", a
     "google-code-assist-standard",
     "google-code-assist-enterprise",
   ]) {
-    await page.goto(`/app/replay?mode=custom&target=${id}`);
+    await page.goto(`/app/plans?section=replay&mode=custom&target=${id}`);
     await setRulesAsOf(page, "2026-10-03");
     await expect(page.getByTestId("run-replay")).toBeDisabled();
     await expect(page.locator('[data-testid^="plan-"][aria-pressed="true"]')).toHaveCount(0);

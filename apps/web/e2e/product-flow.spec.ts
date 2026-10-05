@@ -11,11 +11,11 @@ test("Back and Forward return to the same Replay target and Compare decision", a
   page,
 }, info) => {
   await importDemo(page, "multistack");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await page.getByTestId("plan-example-cloud-pro").click();
   await expect(page).toHaveURL(/target=example-cloud-pro/u);
 
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -23,7 +23,7 @@ test("Back and Forward return to the same Replay target and Compare decision", a
   await expect(page).toHaveURL(/decision=stack/u);
 
   await page.goBack();
-  await expect(page).toHaveURL(/\/app\/replay\?.*target=example-cloud-pro/u);
+  await expect(page).toHaveURL(/\/app\/plans\?section=replay&.*target=example-cloud-pro/u);
   await expect(page.getByTestId("plan-example-cloud-pro")).toHaveAttribute("aria-pressed", "true");
 
   await page.goForward();
@@ -44,7 +44,7 @@ test("plans chosen in Settings are the stack Compare uses", async ({ page }) => 
   await page.getByTestId("settings-manual-plans").getByText("Advanced / choose manually").click();
   await page.getByTestId("settings-plan-anthropic-claude-max-20x").check();
   await expect(page.getByTestId("settings-plans-summary")).toHaveText("Claude Max 20x");
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -54,7 +54,7 @@ test("plans chosen in Settings are the stack Compare uses", async ({ page }) => 
 
 test("clearing local data asks first and can be kept", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await page.getByTestId("clear-local-data").click();
   const confirmation = page.getByTestId("clear-local-data-confirmation");
   await expect(confirmation).toContainText("cannot be undone");
@@ -63,11 +63,11 @@ test("clearing local data asks first and can be kept", async ({ page }) => {
   await expect(page.getByTestId("clear-local-data-confirmation")).toHaveCount(0);
 });
 
-test("a first visit to the app opens Import; a saved workload opens Workload", async ({ page }) => {
+test("a first visit opens Scan; a saved scan opens Recap", async ({ page }) => {
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/app\/import$/u);
+  await expect(page).toHaveURL(/\/app\/scan$/u);
   await importDemo(page, "moderate");
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/app\/workload$/u);
-  await expect(page.getByTestId("workload-opening")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/recap$/u);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
 });

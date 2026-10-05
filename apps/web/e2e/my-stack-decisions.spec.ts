@@ -33,7 +33,7 @@ async function openStack(page: Page, id: string, stack: readonly string[]) {
     key: STACK_KEY,
     stack,
   });
-  await page.goto(`/app/stack?import=${id}`);
+  await page.goto(`/app/plans?import=${id}`);
   await expect(page.getByTestId("stack-investigations")).toBeVisible({ timeout: 60_000 });
 }
 
@@ -164,11 +164,11 @@ test("the billing period drives what is measured, shared with Workload's review"
   });
 
   // Workload's billing-period review reads the same period.
-  await page.goto(`/app/workload?import=${id}#api-market`);
+  await page.goto(`/app/stats?import=${id}#api-market`);
   await expect(page.getByTestId("review-period")).toContainText("Sep 1 → Oct 1");
 
   // A shorter period is labelled and the old confirmation lapses.
-  await page.goto(`/app/stack?import=${id}`);
+  await page.goto(`/app/plans?import=${id}`);
   await page.getByTestId("stack-period-edit").click();
   await page.getByLabel("Review end date").fill("2026-09-15");
   await page.getByRole("button", { name: "Apply review period" }).click();
@@ -230,7 +230,7 @@ test("Test a change: exact spend, workload effects, reset, apply with Undo, and 
   await analyzeClaudeDowngrade(page);
   await expect(page.getByTestId("scenario-replay")).toHaveAttribute(
     "href",
-    `/app/replay?import=${id}&stack=${encodeURIComponent(
+    `/app/plans?section=replay&import=${id}&stack=${encodeURIComponent(
       "anthropic-claude-max-5x,openai-chatgpt-pro,command-code-pro,opencode-go",
     )}`,
   );

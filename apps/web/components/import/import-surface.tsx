@@ -86,8 +86,8 @@ const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string
 /** Replay link for an import, carrying a preselected target when there is one. */
 function replayHref(importId: string, target?: string | undefined): string {
   return target === undefined
-    ? `/app/replay?import=${importId}`
-    : `/app/replay?import=${importId}&target=${encodeURIComponent(target)}`;
+    ? `/app/plans?section=replay&import=${importId}`
+    : `/app/plans?section=replay&import=${importId}&target=${encodeURIComponent(target)}`;
 }
 
 function savedDateRange(entry: ImportRecord): string | undefined {
@@ -984,7 +984,7 @@ export function ImportSurface({
                       data-testid="stored-import-actions"
                     >
                       <Link
-                        href={`/app/workload?import=${entry.id}`}
+                        href={`/app/stats?import=${entry.id}`}
                         data-testid={`open-import-${entry.id}`}
                         className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
                       >

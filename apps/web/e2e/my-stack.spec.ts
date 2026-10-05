@@ -48,7 +48,7 @@ async function edit(page: Page, family = "claude") {
 test("no history needed: multiple plans save, reload, edit independently and remove one selection", async ({
   page,
 }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await expect(page.getByRole("heading", { name: "My Stack", exact: true })).toBeVisible();
   await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
   await page.evaluate((key) => {
@@ -119,7 +119,7 @@ test("Workload quick confirmation has an explicit multiple-plan path using the s
     "plan:anthropic-claude-max-5x",
   ]);
   await page.getByRole("link", { name: "Manage My Stack →" }).click();
-  await expect(page).toHaveURL(new RegExp(`/app/stack\\?import=${id}`));
+  await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}`));
   await expect(page.getByTestId("selected-stack").locator("article")).toHaveCount(2);
   // Two plans of one family share the tool's calls; they are never split.
   await expect(page.getByTestId("stack-target-anthropic-claude-pro")).toContainText(
@@ -135,16 +135,16 @@ for (const context of ["session-only", "missing"] as const) {
       const id = await scan(page, "claude", false, false);
       await page.getByRole("button", { name: "Not now", exact: true }).click();
       await page.getByRole("link", { name: "Manage My Stack →" }).click();
-      await expect(page).toHaveURL(new RegExp(`/app/stack\\?import=${id}`));
+      await expect(page).toHaveURL(new RegExp(`/app/plans\\?import=${id}`));
     } else {
-      await page.goto("/app/stack?import=missing-workload");
+      await page.goto("/app/plans?import=missing-workload");
     }
     await expect(page.getByTestId("stack-workload")).toHaveValue("");
     await expect(page.getByTestId("stack-workload").locator("option")).toHaveCount(1);
     await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
     await expect(page.getByTestId("stack-investigations")).toHaveCount(0);
     await page.getByRole("link", { name: "Manage plans without this workload →" }).click();
-    await expect(page).toHaveURL(/\/app\/stack$/);
+    await expect(page).toHaveURL(/\/app\/plans$/);
     await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
     await edit(page);
     await page.getByTestId("stack-editor-plan-anthropic-claude-pro").click();
@@ -162,7 +162,7 @@ test("one selected workload at a time, unresolved identities stay unknown and na
   await page.getByRole("button", { name: "Not now", exact: true }).click();
   const codexId = await scan(page, "codex");
   await page.getByRole("button", { name: "Not now", exact: true }).click();
-  await page.goto(`/app/stack?import=${claudeId}`);
+  await page.goto(`/app/plans?import=${claudeId}`);
   await expect(page.getByTestId("edit-family-claude")).toContainText("100% of recorded calls");
   // Unresolved identities are never priced or assigned a model.
   await expect(page.getByTestId("stack-workload-value")).toContainText("Not priced");
@@ -198,7 +198,7 @@ test("Not sure, API/other and work responses persist without creating plans; man
 }) => {
   const id = await scan(page);
   await page.getByRole("button", { name: "Not now", exact: true }).click();
-  await page.goto(`/app/stack?import=${id}`);
+  await page.goto(`/app/plans?import=${id}`);
   for (const label of ["Not sure", "API / other billing", "Work / organization account"]) {
     await edit(page);
     await page.getByRole("radio", { name: label, exact: true }).click();
@@ -212,7 +212,7 @@ test("Not sure, API/other and work responses persist without creating plans; man
   expect(await page.evaluate((key) => localStorage.getItem(key), PREFERENCES)).not.toMatch(
     /plan:|api:/u,
   );
-  await page.goto(`/app/workload?import=${id}`);
+  await page.goto(`/app/stats?import=${id}`);
   await expect(page.getByTestId("stack-discovery")).toBeVisible();
   await expect(page.getByTestId("stack-confirmation-panel")).toHaveCount(0);
   await page.goto("/app/settings");
@@ -225,7 +225,7 @@ test("Not sure, API/other and work responses persist without creating plans; man
 test("keyboard editor focus, native radio navigation, save and Escape cancellation", async ({
   page,
 }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await edit(page);
   await expect(page.locator("#stack-editor-heading")).toBeFocused();
   await page.keyboard.press("Tab");
@@ -248,7 +248,7 @@ test("keyboard editor focus, native radio navigation, save and Escape cancellati
 test("storage denial leaves editable answers, never claims success and allows cancellation", async ({
   page,
 }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await edit(page);
   await page.evaluate(() => {
     const set = Storage.prototype.setItem;
@@ -288,7 +288,7 @@ test("demo context is read-only, excludes activity and cannot change real select
   );
   await importDemo(page, "moderate");
   const id = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/stack?import=${id}`);
+  await page.goto(`/app/plans?import=${id}`);
   await expect(page.getByTestId("stack-demo-notice")).toBeVisible();
   await expect(page.getByTestId("edit-family-claude")).toBeDisabled();
   await expect(
@@ -306,7 +306,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
     const id = await scan(page);
     await page.getByRole("button", { name: "Not now", exact: true }).click();
-    await page.goto(`/app/stack?import=${id}`);
+    await page.goto(`/app/plans?import=${id}`);
     await edit(page, "opencode");
     await page.getByRole("button", { name: "I pay for multiple plans" }).click();
     await page.getByTestId("stack-editor-plan-opencode-go").check();
@@ -343,7 +343,7 @@ for (const theme of ["dark", "light"] as const) {
 }
 
 test("removal Undo preserves targets confirmed afterward and survives reload", async ({ page }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
   await page.evaluate((key) => {
     localStorage.setItem(key, '["plan:anthropic-claude-pro","api:openai"]');
@@ -369,7 +369,7 @@ test("removal Undo preserves targets confirmed afterward and survives reload", a
 test("published model access is compact, searchable and keeps distinct routes", async ({
   page,
 }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await page.evaluate((key) => {
     localStorage.setItem(key, '["plan:command-code-max-20x"]');
     window.dispatchEvent(new Event("stackreplay-current-stack"));
@@ -393,7 +393,7 @@ test("published model access is compact, searchable and keeps distinct routes", 
 test("modal contains focus, keeps actions visible on mobile and restores page scrolling", async ({
   page,
 }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   const originalOverflow = await page.evaluate(() => document.body.style.overflow);
   await edit(page, "command-code");
   const dialog = page.getByRole("dialog");
@@ -457,7 +457,7 @@ for (const operation of ["API_MARKET", "LIST_LOCAL_IMPORTS"] as const) {
         return original.call(this, message, ...(args as [StructuredSerializeOptions]));
       };
     }, operation);
-    await page.goto(`/app/stack?import=${id}`);
+    await page.goto(`/app/plans?import=${id}`);
     const retry = page.getByRole("button", {
       name: operation === "API_MARKET" ? "Retry analysis" : "Retry workloads",
       exact: true,
@@ -470,7 +470,7 @@ for (const operation of ["API_MARKET", "LIST_LOCAL_IMPORTS"] as const) {
 }
 
 test("empty and API-only stacks do not claim a zero subscription bill", async ({ page }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await expect(page.getByTestId("stack-overview")).toContainText("No subscriptions yet");
   await expect(page.getByTestId("stack-published-total")).toContainText(
     "Tell StackReplay what you currently pay for",
@@ -494,7 +494,7 @@ test("empty and API-only stacks do not claim a zero subscription bill", async ({
 });
 
 test("failed removal and Undo report storage failure and remain retryable", async ({ page }) => {
-  await page.goto("/app/stack");
+  await page.goto("/app/plans");
   await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
   await page.evaluate((key) => {
     localStorage.setItem(key, '["plan:anthropic-claude-pro","api:openai"]');

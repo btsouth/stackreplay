@@ -35,6 +35,6 @@ describe("Button", () => {
 
   it("renders small and icon sizes", () => {
     render(<Button size="sm">Small</Button>);
-    expect(screen.getByRole("button", { name: "Small" }).className).toContain("h-7");
+    expect(screen.getByRole("button", { name: "Small" }).className).toContain("min-h-11");
   });
 });

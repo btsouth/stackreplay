@@ -476,7 +476,13 @@ export function ReplaySurface({
   const pathname = usePathname();
   useEffect(() => {
     if (workload === undefined) return;
-    const params = new URLSearchParams({ import: workload.id, mode: "custom" });
+    const params = new URLSearchParams(window.location.search);
+    params.set("section", "replay");
+    params.set("import", workload.id);
+    params.set("mode", "custom");
+    params.delete("target");
+    params.delete("api");
+    params.delete("scope");
     if (targetKind === "api") {
       if (providerId !== undefined) params.set("api", providerId);
     } else if (planId !== undefined) params.set("target", planId);
@@ -702,7 +708,7 @@ export function ReplaySurface({
     if (coverage === undefined || coverage.runnable === 0) return undefined;
     const params = new URLSearchParams({ import: workload.id, api: provider.id });
     if (scope.length > 0) params.set("scope", scope.join(","));
-    return { href: `/app/replay?${params.toString()}`, name: provider.name };
+    return { href: `/app/plans?section=replay&${params.toString()}`, name: provider.name };
   }, [coverageByKey, providers, scope, selectedPlan, targetKind, workload]);
 
   if (importsError)
@@ -1363,7 +1369,7 @@ function WorkloadStrip({
               {workload.label} · {range} ·{" "}
               <Link
                 className="text-accent underline underline-offset-4"
-                href={`/app/workload?import=${workload.id}`}
+                href={`/app/stats?import=${workload.id}`}
                 data-testid="strip-workload-link"
               >
                 Open workload

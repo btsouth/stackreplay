@@ -55,7 +55,7 @@ test("provider offers preserve compound and licensed units without Replay links"
   await expect(
     page.getByText("Informational offer · Workload Replay unavailable.", { exact: true }),
   ).toHaveCount(4);
-  await expect(page.locator('a[href^="/app/import?target=devin"]')).toHaveCount(0);
+  await expect(page.locator('a[href^="/app/scan?target=devin"]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Publisher offer sources" })).toBeVisible();
   await expect(page.getByTestId("source-list")).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

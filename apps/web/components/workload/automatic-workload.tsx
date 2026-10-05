@@ -58,7 +58,7 @@ function WorkloadAccounts({ overview, importId }: { overview: MarketDecision; im
       <p className="text-xs text-muted-foreground">
         Each history location is one account. Link each to its subscription in{" "}
         <Link
-          href={`/app/stack?import=${encodeURIComponent(importId)}`}
+          href={`/app/plans?import=${encodeURIComponent(importId)}`}
           className="text-accent underline"
         >
           My Stack
@@ -534,7 +534,7 @@ export function AutomaticWorkload({
           <p className="text-sm">Preparing local review controls…</p>
         )}
         <Link
-          href={`/app/compare?view=billing&import=${record.id}`}
+          href={`/app/plans?section=compare&view=billing&import=${record.id}`}
           className="inline-flex min-h-11 items-center text-sm text-accent"
           data-testid="workload-compare-cta"
         >

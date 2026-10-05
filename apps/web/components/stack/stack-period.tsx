@@ -205,7 +205,7 @@ export function StackPeriodPanel({
       ) : null}
       <Link
         className="stack-link"
-        href={`/app/workload?import=${encodeURIComponent(record.id)}#api-market`}
+        href={`/app/stats?import=${encodeURIComponent(record.id)}#api-market`}
       >
         Enter amounts you paid in the billing-period review →
       </Link>

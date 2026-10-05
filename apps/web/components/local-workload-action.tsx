@@ -6,7 +6,7 @@ import { useLocalWorkload } from "@/lib/local-workload";
 
 const LABELS = {
   header: { scan: primaryCta.label, open: returningCta.label },
-  hero: { scan: "Scan my AI history", open: "Open my workload" },
+  hero: { scan: "Scan my AI history", open: "Open my recap" },
 } as const;
 
 /**

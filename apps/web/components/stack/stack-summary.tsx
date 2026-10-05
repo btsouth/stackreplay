@@ -215,7 +215,7 @@ export function WorkloadMissing({ hasSaved }: { hasSaved: boolean }) {
           : "Scan your AI history to see what your subscriptions actually carried."}
       </p>
       {!hasSaved ? (
-        <Link href="/app/import" className="stack-link">
+        <Link href="/app/scan" className="stack-link">
           Scan history →
         </Link>
       ) : null}

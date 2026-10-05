@@ -155,7 +155,7 @@ test.describe("public site", () => {
         .first();
       await expect(action).toBeVisible();
       expect(await action.getAttribute("href")).toMatch(
-        route === "/plans" ? /^\/plans\//u : /^\/app\/import\?target=/u,
+        route === "/plans" ? /^\/plans\//u : /^\/app\/scan\?target=/u,
       );
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
@@ -211,7 +211,7 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-with-workload")).toHaveText(
       "Compare against my workload →",
     );
-    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/compare");
+    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/plans?section=compare");
     const compactSummary = page.getByTestId("compare-compact-summary").filter({ visible: true });
     const mobile = (await compactSummary.count()) > 0;
     const inspectSummary = mobile
@@ -522,7 +522,7 @@ test.describe("share links", () => {
   }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
 
     await expect(page.getByTestId("share-panel")).toBeVisible();

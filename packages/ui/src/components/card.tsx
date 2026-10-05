@@ -9,7 +9,7 @@ export function Card({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-lg border border-border bg-surface p-4",
+        "flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6",
         className,
       )}
       {...props}
@@ -24,7 +24,7 @@ export function CardHeader({ className, ...props }: ComponentProps<"div">) {
 export function CardTitle({ className, ...props }: ComponentProps<"h3">) {
   return (
     <h3
-      className={cn("text-sm font-medium tracking-tight text-foreground", className)}
+      className={cn("text-xl font-medium tracking-tight text-foreground", className)}
       {...props}
     />
   );

@@ -17,7 +17,7 @@ test("a Worker that cannot start reports a safe error instead of waiting forever
     route.fulfill({ status: 404, contentType: "text/javascript", body: "// unavailable" }),
   );
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await page.getByTestId("demo-moderate").click();
 
   const error = page.getByTestId("import-error");

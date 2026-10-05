@@ -133,7 +133,7 @@ test("OpenCode and Command Code share stack, settings and Compare behavior with 
   await page.goto("/app/settings");
   await expect(page.getByTestId("settings-plans-summary")).toContainText("OpenCode Go Plus");
   await expect(page.getByTestId("settings-plans-summary")).toContainText("Command Code GOAT");
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").evaluate((element: HTMLDetailsElement) => {
     element.open = true;
   });

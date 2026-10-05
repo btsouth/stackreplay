@@ -255,7 +255,7 @@ test("selected source stays local, can be saved, exported and replayed", async (
   expect(exported).not.toContain("THIS_PROMPT_MUST_NEVER_BE_PERSISTED");
   expect(exported).not.toContain("THIS_RESPONSE_MUST_NEVER_BE_PERSISTED");
   await page.reload();
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toContainText("rollout-fixture.jsonl");
   await page
     .getByTestId("stored-imports")
@@ -536,7 +536,7 @@ test("CLI compatible V1 named usage.json imports and replays", async ({ page }) 
   await expect(page.getByTestId("stored-imports")).toContainText("2 calls");
   await expect(page.getByTestId("stored-imports")).toContainText("Saved");
   await page.reload();
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toContainText("usage.json");
   await page
     .getByTestId("stored-imports")

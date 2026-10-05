@@ -92,27 +92,6 @@ export function ReplayHomepage() {
   }
   return (
     <div className="replay-home" ref={root} data-testid="home">
-      <a className="replay-skip" href="#main-content">
-        Skip to content
-      </a>
-      <header className="replay-nav">
-        <a href="/" className="replay-brand" aria-label="StackReplay home">
-          <span className="replay-mark" aria-hidden="true">
-            ↺
-          </span>
-          StackReplay
-        </a>
-        <nav aria-label="Main navigation">
-          <a href="/models">Models & plans</a>
-          <a href="https://github.com/btsouth/stackreplay">
-            GitHub <span aria-hidden="true">↗</span>
-          </a>
-          <a className="replay-nav-cta" href="/app/import">
-            Get my recap <ArrowRight size={15} />
-          </a>
-        </nav>
-      </header>
-      <main id="main-content" tabIndex={-1}>
         <section className="replay-hero" aria-labelledby="replay-heading">
           <div className="replay-hero-copy">
             <p className="replay-intro">
@@ -125,7 +104,7 @@ export function ReplayHomepage() {
             </h1>
             <p className="replay-lede">Turn your coding history into a recap worth sharing.</p>
             <div className="replay-actions">
-              <a className="replay-button" href="/app/import">
+              <a className="replay-button" href="/app/scan">
                 Replay my history <ArrowRight size={20} />
               </a>
               <a className="replay-text-button" href="#sample">
@@ -398,23 +377,14 @@ export function ReplayHomepage() {
           <h2>
             Now hit <em>replay.</em>
           </h2>
-          <a className="replay-button" href="/app/import">
+          <a className="replay-button" href="/app/scan">
             Replay my history <ArrowRight size={20} />
           </a>
           <span className="replay-trust">
             <LockKeyhole size={14} /> Your logs never leave your browser.
           </span>
         </section>
-      </main>
-      <footer className="replay-footer">
-        <a className="replay-brand" href="/">
-          ↺ StackReplay
-        </a>
-        <span>Your AI coding, replayed.</span>
-        <div>
-          <a href="/methodology">How we calculate</a>
-          <a href="https://github.com/btsouth/stackreplay">Source code ↗</a>
-        </div>
+    </div>
       </footer>
     </div>
   );

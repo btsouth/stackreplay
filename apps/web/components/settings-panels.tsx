@@ -46,7 +46,7 @@ export function PlansYouPayFor() {
             : names.join(" + ")}
       </p>
       <Link
-        href="/app/stack"
+        href="/app/plans"
         className="inline-flex min-h-11 items-center self-start text-sm text-accent"
       >
         Manage My Stack →
@@ -122,7 +122,7 @@ export function SavedWorkloads() {
               : `${count.toLocaleString("en-US")} ${count === 1 ? "workload" : "workloads"} saved in this browser.`}
       </p>
       <Link
-        href="/app/import"
+        href="/app/scan"
         className="inline-flex min-h-11 items-center self-start text-sm text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring sm:min-h-0"
       >
         {count === 0 ? "Scan your AI history →" : "Open, export or delete them in Import →"}

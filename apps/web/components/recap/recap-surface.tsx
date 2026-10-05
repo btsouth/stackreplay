@@ -186,7 +186,7 @@ export function RecapSurface({
       </header>
       {error && (
         <p role="alert" className="recap-status">
-          {error} <a href="/app/import">Scan histories</a>
+          {error} <a href="/app/scan">Scan histories</a>
         </p>
       )}
       {!recap && !error && (
@@ -197,7 +197,7 @@ export function RecapSurface({
             <>
               <h2>Your next chapter starts here.</h2>
               <p>Connect your AI coding histories for a recap that stays in this browser.</p>
-              <a className="recap-button" href="/app/import">
+              <a className="recap-button" href="/app/scan">
                 Find my AI histories
               </a>
             </>
@@ -303,7 +303,7 @@ export function RecapSurface({
                     {selectedPlanCount > 0 && !monthlyCost && (
                       <p>
                         Selected plans use different currencies or billing intervals, or have an
-                        unreported price. See <a href="/app/stack">My Stack</a> for their individual
+                        unreported price. See <a href="/app/plans">My Stack</a> for their individual
                         prices.
                       </p>
                     )}
@@ -339,7 +339,7 @@ export function RecapSurface({
             <footer className="recap-footer">
               Calculated on this device. Your logs stay here.{" "}
               <Link
-                href={`/app/workload?import=${encodeURIComponent(id ?? "")}${initialTarget ? `&target=${encodeURIComponent(initialTarget)}` : ""}`}
+                href={`/app/stats?import=${encodeURIComponent(id ?? "")}${initialTarget ? `&target=${encodeURIComponent(initialTarget)}` : ""}`}
               >
                 Explore workload details →
               </Link>

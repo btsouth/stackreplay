@@ -602,7 +602,7 @@ export function MarketDecisionSurface({
               {workloadContent ? (
                 <Link
                   className="inline-flex min-h-11 items-center text-sm text-accent"
-                  href={`/app/compare?import=${importId}`}
+                  href={`/app/plans?section=compare&import=${importId}`}
                   data-testid="workload-compare-cta"
                 >
                   Compare this review →

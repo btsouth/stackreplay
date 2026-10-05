@@ -36,7 +36,7 @@ for (const theme of ["dark", "light"] as const) {
       true,
     );
     await page.clock.runFor(799);
-    await expect(page).toHaveURL(/\/app\/import$/u);
+    await expect(page).toHaveURL(/\/app\/scan$/u);
     await page.clock.resume();
     await waitForWorkload(page);
     await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
@@ -48,7 +48,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(1);
     await expect(page.getByTestId("import-details")).not.toHaveAttribute("open");
     await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/\/app\/import$/u);
+    await expect(page).toHaveURL(/\/app\/scan$/u);
   });
 }
 
@@ -109,7 +109,7 @@ test("temporary workloads survive client-side handoff without being persisted", 
 test("a plan selected before Import remains available after automatic analysis", async ({
   page,
 }) => {
-  await page.goto("/app/import?target=github-copilot-pro-plus");
+  await page.goto("/app/scan?target=github-copilot-pro-plus");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("import-file-input").setInputFiles(portable);
   await waitForWorkload(page);

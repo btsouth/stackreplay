@@ -62,7 +62,7 @@ async function setup(page: Page, models?: string[]) {
   await expect(page.getByTestId("overview-api-total")).toContainText("$");
   const baseline = await page.getByTestId("overview-api-total").textContent();
   await page
-    .locator('a[href="/app/replay"]')
+    .locator('a[href="/app/plans?section=replay"]')
     .first()
     .evaluate((a: HTMLAnchorElement) => a.click());
   await expect(page.getByTestId("strategy-baseline")).toHaveText(baseline ?? "");
@@ -190,9 +190,9 @@ test("a stack scenario stays honest about capacity and manual capabilities remai
   await expect(page).toHaveURL(/mode=custom/);
 });
 test("fresh Replay and Compare point to the next useful action", async ({ page }) => {
-  await page.goto("/app/replay");
+  await page.goto("/app/plans?section=replay");
   await expect(page.getByTestId("replay-empty")).toContainText("Import a workload");
-  await page.goto("/app/compare");
+  await page.goto("/app/plans?section=compare");
   await expect(page.getByTestId("completed-compare-empty")).toContainText(
     "Explore suggested replays",
   );
@@ -231,7 +231,7 @@ test("Replay loading explains the local preparation before showing decisions", a
       return Reflect.apply(post, this, args);
     };
   });
-  await page.goto("/app/replay");
+  await page.goto("/app/plans?section=replay");
   await expect(page.getByTestId("replay-restoring")).toContainText("Opening your workload");
   await expect(page.getByTestId("replay-restoring")).toContainText(
     "Reading recorded models and finding useful replay strategies",
@@ -301,7 +301,7 @@ test("Sep 30 viewer gets pinned suggested comparisons and independently dated cu
   await page.getByRole("button", { name: "Open another result group →" }).click();
   await expect(page.getByTestId("completed-comparison").locator(":scope > section")).toHaveCount(1);
   await expect(page.getByTestId("completed-comparison")).toContainText("Older accepted snapshot");
-  await page.goto(`/app/replay?import=${saved[0]?.importId}&mode=custom`);
+  await page.goto(`/app/plans?section=replay&import=${saved[0]?.importId}&mode=custom`);
   await expect(page.getByLabel("Rules as of")).toHaveValue("2026-09-30");
   await setRulesAsOf(page, "2026-09-28");
   await expect(page.getByLabel("Rules as of")).toHaveValue("2026-09-28");

@@ -22,7 +22,7 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   const requests = captureRequests(page);
 
   await importDemo(page, "moderate");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await runReplay(page, "example-cloud-pro");
 
   const offenders = requests.filter((request) => {
@@ -76,7 +76,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
   );
   const requests = captureRequests(page);
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("import-file-input").setInputFiles(path);
   await waitForWorkload(page);
@@ -101,7 +101,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
 test("every page is served under a policy that blocks outbound connections", async ({
   request,
 }) => {
-  for (const path of ["/", "/app", "/app/replay", "/s/not-a-token"]) {
+  for (const path of ["/", "/app", "/app/plans?section=replay", "/s/not-a-token"]) {
     const response = await request.get(path);
     const headers = response.headers();
     const policy = headers["content-security-policy"] ?? "";

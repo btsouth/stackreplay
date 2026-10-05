@@ -134,7 +134,7 @@ test("Not now keeps Workload usable, does not recur through Replay/Compare or re
   await expect(panel(page)).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Review discovered stack →" })).toBeFocused();
   expect(await savedStack(page)).toEqual([]);
-  for (const path of ["/app/replay", "/app/compare", workload]) {
+  for (const path of ["/app/plans?section=replay", "/app/plans?section=compare", workload]) {
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expect(panel(page)).toHaveCount(0);
@@ -363,6 +363,6 @@ test("Max 5x quantity two persists, adds Pro and prices the stack on mobile and 
   await page.getByRole("link", { name: "Manage My Stack →", exact: true }).click();
   await expect(page.getByTestId("stack-published-total")).toContainText("$220");
   const importId = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/compare?import=${encodeURIComponent(importId ?? "")}&decision=stack`);
+  await page.goto(`/app/plans?section=compare&import=${encodeURIComponent(importId ?? "")}&decision=stack`);
   await expect(page.getByTestId("compare-price")).toContainText("$220.00/month");
 });

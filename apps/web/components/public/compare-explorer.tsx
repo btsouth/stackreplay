@@ -609,7 +609,7 @@ function TargetHeader({
       ) : (
         <Link
           className="mt-1 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-          href={`/app/import?target=${encodeURIComponent(plan.id)}`}
+          href={`/app/scan?target=${encodeURIComponent(plan.id)}`}
         >
           Replay your workload here ↗
         </Link>
@@ -868,7 +868,7 @@ export function CompareExplorer({
       </p>
       <Link
         className="inline-flex min-h-11 items-center self-start text-sm text-accent underline underline-offset-4"
-        href="/app/compare"
+        href="/app/plans?section=compare"
         data-testid="compare-with-workload"
       >
         Compare against my workload →

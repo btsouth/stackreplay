@@ -100,7 +100,7 @@ export function SuggestedReplays({
           Import history to discover exact API routes and explicit counterfactual strategies.
           Everything runs locally.
         </p>
-        <Link href="/app/import" className={action}>
+        <Link href="/app/scan" className={action}>
           Import a workload →
         </Link>
       </div>
@@ -563,7 +563,7 @@ function StrategyWorkspace({
             ) : null}
           </details>
           <Link
-            href={`/app/replay?import=${encodeURIComponent(record.id)}&mode=custom`}
+            href={`/app/plans?section=replay&import=${encodeURIComponent(record.id)}&mode=custom`}
             data-testid="build-own"
             className="flex min-h-20 items-center justify-between gap-4 py-5"
           >
@@ -742,7 +742,7 @@ function StrategyWorkspace({
             {saved ? (
               <Link
                 className={action}
-                href={`/app/compare?import=${encodeURIComponent(record.id)}`}
+                href={`/app/plans?section=compare&import=${encodeURIComponent(record.id)}`}
                 data-testid="compare-completed"
               >
                 Compare completed replays →
@@ -809,7 +809,7 @@ function StrategyWorkspace({
                   </p>
                   <Link
                     className={action}
-                    href={`/app/workload?import=${encodeURIComponent(record.id)}`}
+                    href={`/app/stats?import=${encodeURIComponent(record.id)}`}
                   >
                     Inspect accepted route receipts in Workload →
                   </Link>

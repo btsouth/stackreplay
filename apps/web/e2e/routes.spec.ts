@@ -22,7 +22,7 @@ async function importMixed(page: Page): Promise<string> {
     buffer: Buffer.from(JSON.stringify(buildArchetypeExport("mixed"))),
   });
   await waitForWorkload(page);
-  await page.goto("/app/workload");
+  await page.goto("/app/stats");
   await expect(page.getByTestId("suggested-routes")).toBeVisible({ timeout: 60_000 });
   return (
     new URL(
@@ -91,7 +91,7 @@ test("pickers put the targets that run this work first and never list demo targe
   page,
 }) => {
   await importMixed(page);
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   const plans = page.getByTestId("plan-list");
   await expect(plans.locator("[data-plan-option]").first()).toHaveAttribute(
     "data-plan-option",
@@ -118,7 +118,7 @@ test("a configured stack compares the whole workload with its published API equi
   page,
 }) => {
   const importId = await importMixed(page);
-  await page.goto(`/app/compare?view=billing&import=${importId}`);
+  await page.goto(`/app/plans?section=compare&view=billing&import=${importId}`);
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -212,6 +212,7 @@ test("default decisions carry the same scope and targets into the custom engine"
     "api",
     "import",
     "mode",
+    "section",
     "scope",
   ]);
   // Reload holds scope/target, then changing to all work removes only scope.

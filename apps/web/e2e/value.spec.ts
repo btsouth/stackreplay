@@ -53,7 +53,7 @@ test("the workload opens with its value, scope, tool split and comparative facts
   page,
 }) => {
   await importArchetype(page, "mixed");
-  await page.goto("/app/workload");
+  await page.goto("/app/stats");
   const opening = page.getByTestId("workload-opening");
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
@@ -85,7 +85,7 @@ test("the workload opens with its value, scope, tool split and comparative facts
 
 test("a Claude-only value is exactly its Direct API replay", async ({ page }) => {
   await importArchetype(page, "claude-only");
-  await page.goto("/app/workload");
+  await page.goto("/app/stats");
   await openReviewEvidence(page);
   const figure = page.getByTestId("workload-opening").getByTestId("value-figure");
   await expect(figure).toHaveText(/^\$[\d,]+\.\d\d$/u, { timeout: 60_000 });
@@ -102,7 +102,7 @@ test("earlier analytical pricing remains explicitly prorated, with the arithmeti
   page,
 }) => {
   await importArchetype(page, "mixed");
-  await page.goto("/app/workload");
+  await page.goto("/app/stats");
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
@@ -123,7 +123,7 @@ test("earlier analytical pricing remains explicitly prorated, with the arithmeti
   const apiValue =
     (await page.getByTestId("workload-opening").getByTestId("value-figure").textContent()) ?? "";
   // The whole-stack decision reuses the configured plans and the canonical API value.
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });

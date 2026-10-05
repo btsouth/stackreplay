@@ -153,7 +153,7 @@ test("the happy path opens a recap after scanning and can reopen workload detail
     .getByRole("link", { name: "Open workload", exact: true })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/workload\?import=/u);
+  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await expect(page.getByTestId("automatic-workload")).toBeVisible();
 });
 
@@ -429,7 +429,7 @@ test("account identity: profiles stay hidden, local and unsent, and suggest a pl
       JSON.stringify(["plan:anthropic-claude-pro"]),
     ),
   );
-  await page.goto(`/app/stack?import=${id}`);
+  await page.goto(`/app/plans?import=${id}`);
   const accounts = page.getByTestId("stack-accounts");
   await expect(accounts).toBeVisible({ timeout: 60_000 });
 

@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const providers = loadPublicProviderDirectory(catalog.asOf).providers;
 
   const staticEntries: MetadataRoute.Sitemap = [
+    { url: absoluteUrl("/catalog"), changeFrequency: "weekly", priority: 0.9 },
     {
       url: absoluteUrl("/"),
       changeFrequency: "weekly",

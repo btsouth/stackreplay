@@ -32,7 +32,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
   const { path, events, bytes } = await ensureLargeExport();
   const sizeMb = Number((bytes / (1024 * 1024)).toFixed(1));
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("import-dropzone")).toBeVisible();
 
   // Record phase transitions from the DOM instead of guessing at timing.
@@ -118,7 +118,7 @@ test("imports and replays a ~100k-event export with measured phases", async ({
     expect(interactionMs).toBeLessThan(5_000);
     return;
   }
-  // Replay the same large workload. The replay controls live on /app/replay, so
+  // Replay the same large workload. The replay controls live on /app/plans?section=replay, so
   // the run is reached through the product's own link from the import summary:
   // looking for the plan list on the import page would wait forever.
   await visitReplay(page);

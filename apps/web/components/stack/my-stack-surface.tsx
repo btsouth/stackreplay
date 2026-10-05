@@ -541,13 +541,13 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
       <header className="stack-page-header">
         <div>
           <p className="stack-eyebrow">Your workspace</p>
-          <h1>My Stack</h1>
+          <h1>Your plans</h1>
           <p>Are you buying the right AI subscriptions for the work you actually ran?</p>
         </div>
         <div className="stack-header-actions">
           {savedImports.length > 0 || chosenImport || importError ? (
             <label className="stack-workload-select">
-              <span>Workload</span>
+              <span>History</span>
               <select
                 value={demo ? "" : (record?.id ?? "")}
                 disabled={imports === undefined || demo}
@@ -560,8 +560,8 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
                     null,
                     "",
                     event.target.value
-                      ? `/app/stack?import=${encodeURIComponent(event.target.value)}`
-                      : "/app/stack",
+                      ? `/app/plans?import=${encodeURIComponent(event.target.value)}`
+                      : "/app/plans",
                   );
                   closeEditor();
                 }}
@@ -598,7 +598,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
             Demo workloads are excluded from My Stack. Your real selections are shown below; editing
             is disabled in this demo view.
           </p>
-          <Link href="/app/stack" className="stack-link">
+          <Link href="/app/plans" className="stack-link">
             Open your real stack →
           </Link>
         </div>
@@ -637,7 +637,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               ? "This workload was not saved. Save a workload in Import to analyze your stack against it."
               : "This workload is unavailable in this browser. Select another saved workload."}
           </p>
-          <Link href="/app/stack" className="stack-link">
+          <Link href="/app/plans" className="stack-link">
             Manage plans without this workload →
           </Link>
         </div>
@@ -854,7 +854,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
                 <Link
                   className="stack-primary"
                   data-testid="scenario-replay"
-                  href={`/app/replay?import=${encodeURIComponent(record.id)}&stack=${encodeURIComponent(stackParam(proposal))}`}
+                  href={`/app/plans?section=replay&import=${encodeURIComponent(record.id)}&stack=${encodeURIComponent(stackParam(proposal))}`}
                 >
                   Inspect in Replay →
                 </Link>
@@ -969,7 +969,7 @@ export function MyStackSurface({ initialImportId }: { initialImportId?: string |
               </tbody>
             </table>
             <Link
-              href={`/app/workload?import=${encodeURIComponent(record.id)}`}
+              href={`/app/stats?import=${encodeURIComponent(record.id)}`}
               className="stack-link"
             >
               Inspect pricing receipts in Workload →

@@ -40,14 +40,14 @@ async function readStoreCounts(page: import("@playwright/test").Page): Promise<{
 
 test("an imported workload survives a reload", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toBeVisible();
 
   await page.reload();
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
 
-  await page.goto("/app/replay");
+  await page.goto("/app/plans?section=replay");
   await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
 });
 
@@ -55,7 +55,7 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
   page,
 }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   const workloadHref = await page
     .locator("[data-testid^='open-import-']")
     .first()
@@ -77,12 +77,12 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
     };
   });
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports-loading")).toBeVisible();
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
   await expect(page.getByTestId("stored-imports")).toBeVisible();
 
-  await page.goto(workloadHref ?? "/app/workload");
+  await page.goto(workloadHref ?? "/app/stats");
   await expect(page.getByTestId("workload-restoring")).toBeVisible();
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
   await openReviewEvidence(page);
@@ -96,7 +96,7 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
 
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   const stored = page.getByTestId("stored-imports");
   await expect(stored).toBeVisible();
 
@@ -129,7 +129,7 @@ test("deleting a workload removes it from storage, not just from the view", asyn
 
 test("clear local data removes every workload", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await page.getByTestId("clear-local-data").click();
   await page.getByTestId("clear-local-data-confirm").click();
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
@@ -140,7 +140,7 @@ test("clear local data removes every workload", async ({ page }) => {
 test("two imports coexist without overwriting each other", async ({ page }) => {
   await importDemo(page, "moderate");
   await importDemo(page, "multistack");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
 
   const rows = page.getByTestId("stored-imports").locator(":scope > li");
   await expect(rows).toHaveCount(2);
@@ -175,7 +175,7 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
     });
   });
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   // Listing reads metadata and payload keys only; the full payload is checked
   // when opened, without cloning every saved workload merely to list them.
   await expect(page.getByTestId("stored-imports")).toBeVisible();
@@ -184,7 +184,7 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
   await expect(page.getByTestId("workload-error")).toContainText(
     /stored workload cannot be read|no longer stored in this browser/,
   );
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   const count = () =>
     page.evaluate(async () => {
@@ -253,7 +253,7 @@ test("clearing local data during an import leaves nothing stored", async ({ page
     await expect(page.getByTestId("scan-instrument")).toHaveCount(0);
     await expect(page.getByTestId("import-error")).toHaveCount(0);
     await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/\/app\/import$/u);
+    await expect(page).toHaveURL(/\/app\/scan$/u);
     await expect(page.getByTestId("no-stored-imports")).toBeVisible();
 
     const counts = await readStoreCounts(page);

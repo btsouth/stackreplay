@@ -60,7 +60,7 @@ export function StackScenarioPanel({
     <div className="stack-replay-scenario" data-testid="replay-stack-scenario">
       <p className="stack-caption" data-testid="replay-stack-period">
         {status.label} · {stackPeriodLabel(stackWork.period)} · {status.detail}.{" "}
-        <Link className="stack-link" href={`/app/stack?import=${encodeURIComponent(record.id)}`}>
+        <Link className="stack-link" href={`/app/plans?import=${encodeURIComponent(record.id)}`}>
           Change the period in My Stack →
         </Link>
       </p>

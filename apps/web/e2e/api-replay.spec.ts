@@ -9,7 +9,7 @@ import { createShareToken, importDemo, openReplayDetails, setRulesAsOf } from ".
 
 test("runs a replay against a provider's list prices", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await runApiReplay(page, "example-cloud");
 
   // The result is an API result: no allowance constraints, and the panel says so
@@ -46,7 +46,7 @@ test("runs a replay against a provider's list prices", async ({ page }) => {
 
 test("states a Direct API summary instead of plan rules", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await runApiReplay(page, "example-cloud");
 
   await expect(page.getByTestId("headline-status")).toContainText(/Fully served|Partly served/);
@@ -66,7 +66,7 @@ test("states a Direct API summary instead of plan rules", async ({ page }) => {
 
 test("explains an unpriced provider instead of inventing a cost", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   // anthropic offers catalogued models but no API list prices for them.
   await setRulesAsOf(page, "2026-09-15");
   await page.getByTestId("target-kind-api").click();
@@ -85,7 +85,7 @@ test("explains an unpriced provider instead of inventing a cost", async ({ page 
 
 test("keeps subscription billing platforms out of Direct API targets", async ({ page }) => {
   await importDemo(page, "moderate");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await page.getByTestId("target-kind-api").click();
   await expect(page.getByTestId("provider-deepseek")).toBeVisible();
   await expect(page.getByTestId("provider-example-cloud")).toBeVisible();
@@ -95,7 +95,7 @@ test("keeps subscription billing platforms out of Direct API targets", async ({ 
 
 test("shares a Direct API result, and the link keeps its caveat", async ({ page }) => {
   await importDemo(page, "heavy");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/plans?section=replay&mode=custom");
   await runApiReplay(page, "example-cloud");
 
   await expect(page.getByTestId("share-refused")).toHaveCount(0);

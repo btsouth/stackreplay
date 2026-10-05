@@ -27,13 +27,13 @@ test.describe("import surface accessibility", () => {
   for (const theme of ["dark", "light"] as const) {
     test(`passes axe in ${theme} mode`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      await page.goto("/app/import");
+      await page.goto("/app/scan");
       await expectNoSeriousViolations(page);
     });
   }
 
   test("is operable with the keyboard alone", async ({ page }) => {
-    await page.goto("/app/import");
+    await page.goto("/app/scan");
     await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     const input = page.getByTestId("import-file-input");
     await input.focus();
@@ -47,7 +47,7 @@ test.describe("import surface accessibility", () => {
   });
 
   test("import errors are announced", async ({ page }) => {
-    await page.goto("/app/import");
+    await page.goto("/app/scan");
     await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     await page.getByTestId("import-file-input").setInputFiles({
       name: "broken.json",
@@ -62,7 +62,7 @@ test.describe("replay surface accessibility", () => {
   test("passes axe for a served workload in dark mode", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await expectNoSeriousViolations(page);
   });
@@ -70,7 +70,7 @@ test.describe("replay surface accessibility", () => {
   test("passes axe for exceeded constraints in light mode", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     await expectNoSeriousViolations(page);
   });
@@ -78,14 +78,14 @@ test.describe("replay surface accessibility", () => {
   test("passes axe for unknown coverage", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "multistack");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-starter");
     await expectNoSeriousViolations(page);
   });
 
   test("status meaning is never carried by color alone", async ({ page }) => {
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     const trace = page.getByTestId("constraint-trace");
     // Status is a word, not a colour, so every state reads without contrast.
@@ -95,7 +95,7 @@ test.describe("replay surface accessibility", () => {
 
   test("the timeline exposes a text alternative", async ({ page }) => {
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     const chart = page.getByTestId("timeline-chart");
     await expect(chart).toHaveAttribute("role", "img");
@@ -106,7 +106,7 @@ test.describe("replay surface accessibility", () => {
 
   test("violation detail is reachable with the keyboard", async ({ page }) => {
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     const summary = page.getByTestId("violations").locator("summary").first();
     await summary.focus();
@@ -116,7 +116,7 @@ test.describe("replay surface accessibility", () => {
 
   test("interactive rows are big enough to aim at", async ({ page }) => {
     await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
+    await page.goto("/app/plans?section=replay&mode=custom");
     await runReplay(page, "example-cloud-pro");
     // 44px is the familiar minimum for a touch target, and a disclosure row that
     // is any shorter is hard to hit with a thumb or a shaky pointer.
@@ -162,7 +162,7 @@ test.describe("public site accessibility", () => {
     const homepageNav = page.getByRole("navigation", { name: "Main navigation" });
     for (const [label, href] of [
       ["Models & plans", "/models"],
-      [testInfo.project.name === "mobile" ? "Replay my history" : "Get my recap", "/app/import"],
+      [testInfo.project.name === "mobile" ? "Replay my history" : "Get my recap", "/app/scan"],
       [
         testInfo.project.name === "mobile" ? "Source code" : "GitHub",
         "https://github.com/btsouth/stackreplay",

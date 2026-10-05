@@ -131,7 +131,7 @@ export function SaveCustomReplay({
       {state === "saved" ? (
         <Link
           className="inline-flex min-h-11 items-center text-sm text-accent"
-          href={`/app/compare?import=${encodeURIComponent(record.id)}`}
+          href={`/app/plans?section=compare&import=${encodeURIComponent(record.id)}`}
         >
           Compare completed replays →
         </Link>

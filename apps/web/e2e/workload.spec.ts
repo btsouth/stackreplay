@@ -167,7 +167,7 @@ test("project names and the workload stay local through scan, analysis and repla
   expect(leaked.map((request) => `${request.method} ${request.url}`)).toEqual([]);
 
   // The portable export carries salted hashes, never the folder name.
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   const download = page.waitForEvent("download");
   await page
     .getByRole("button", { name: /^Export / })
@@ -305,7 +305,7 @@ test("qualitative plans keep capacity unknown while model support is established
   await scanFixtures(page);
   await openWorkload(page);
   await page.goto(
-    `${new URL(page.url()).pathname.replace("/app/workload", "/app/replay")}?${new URLSearchParams({ import: new URL(page.url()).searchParams.get("import") ?? "", target: "openai-chatgpt-pro" })}`,
+    `${new URL(page.url()).pathname.replace("/app/stats", "/app/plans?section=replay")}?${new URLSearchParams({ import: new URL(page.url()).searchParams.get("import") ?? "", target: "openai-chatgpt-pro" })}`,
   );
   await page.getByTestId("run-replay").click();
   await expect(page.getByTestId("reading-mode")).toHaveText("Exact replay", { timeout: 60_000 });
@@ -449,7 +449,7 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   await expect(page.getByTestId("workload-not-saved")).toHaveCount(0);
   // The app entry opens the stored workload and its value directly.
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/app\/workload$/);
+  await expect(page).toHaveURL(/\/app\/stats$/);
   await openReviewEvidence(page);
   await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
@@ -493,7 +493,7 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
       request.onerror = () => reject(request.error);
     });
   });
-  await page.goto(href ?? "/app/workload");
+  await page.goto(href ?? "/app/stats");
   const notice = page.getByTestId("partial-scan");
   await expect(notice).toBeVisible({ timeout: 30_000 });
   await expect(notice).toContainText("Partial scan");
@@ -507,7 +507,7 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
     .locator('[data-testid="value-scope"], [data-testid="partial-scan"]')
     .evaluateAll((elements) => elements.map((element) => element.getAttribute("data-testid")));
   expect(scopeOrder).toEqual(["partial-scan", "value-scope"]);
-  await expect(page.getByTestId("workload-rescan")).toHaveAttribute("href", "/app/import");
+  await expect(page.getByTestId("workload-rescan")).toHaveAttribute("href", "/app/scan");
   await page.getByTestId("scan-evidence-details").evaluate((element: HTMLDetailsElement) => {
     element.open = true;
   });

@@ -240,7 +240,7 @@ describe("what to investigate", () => {
     expect(gap?.subject).toContain("Command Code Pro");
     expect(gap?.rows.find((entry) => entry.id === "loaded")?.value).toBe("Claude Code");
     expect(gap?.atStake).toBeDefined();
-    expect(gap?.action).toMatchObject({ kind: "link", href: "/app/import" });
+    expect(gap?.action).toMatchObject({ kind: "link", href: "/app/scan" });
   });
 
   it("shows at most three findings and never a leverage headline", () => {

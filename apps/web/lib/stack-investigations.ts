@@ -432,7 +432,7 @@ function coverageGap(analysis: StackAnalysis, workload: StackWorkload): Investig
     atStake,
     action:
       tools.length > 0
-        ? { kind: "link", label: `Scan ${tools.join(" and ")} history`, href: "/app/import" }
+        ? { kind: "link", label: `Scan ${tools.join(" and ")} history`, href: "/app/scan" }
         : undefined,
   };
 }

@@ -18,7 +18,7 @@ export function replayLink(
   if (options.api !== undefined) params.set("api", options.api);
   if (options.scope !== undefined && options.scope.length > 0)
     params.set("scope", options.scope.join(","));
-  return `/app/replay?${params.toString()}`;
+  return `/app/plans?section=replay&${params.toString()}`;
 }
 
 /** The replay a suggested route opens. */

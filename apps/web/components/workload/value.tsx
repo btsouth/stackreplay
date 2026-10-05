@@ -415,7 +415,7 @@ export function ReadyPreview({
   /** Anything that qualifies the value's scope, such as a partial scan. */
   afterScope?: ReactNode;
 }) {
-  const workloadHref = `/app/workload?import=${importId}`;
+  const workloadHref = `/app/stats?import=${importId}`;
   return (
     <section
       aria-label="What this workload says"

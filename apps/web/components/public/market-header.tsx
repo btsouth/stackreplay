@@ -35,7 +35,7 @@ export function MarketFooter() {
           strategies. Everything stays in your browser.
         </p>
       </div>
-      <Link href="/app/import" className="market-primary">
+      <Link href="/app/scan" className="market-primary">
         Analyze my workload <span aria-hidden="true">↗</span>
       </Link>
     </aside>

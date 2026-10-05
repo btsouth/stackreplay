@@ -166,7 +166,7 @@ for (const removal of ["delete", "corrupt"] as const) {
     await expect.poll(() => cachedImportIds(page)).toEqual([survivor, affected].sort());
 
     if (removal === "delete") {
-      await page.goto("/app/import");
+      await page.goto("/app/scan");
       await page.getByTestId(`delete-menu-${affected}`).locator("summary").click();
       await page.getByTestId(`delete-import-${affected}`).click();
       await expect(page.getByTestId(`delete-import-${affected}`)).toHaveCount(0);
@@ -199,7 +199,7 @@ for (const removal of ["delete", "corrupt"] as const) {
     await expect.poll(() => cachedImportIds(page)).toEqual([survivor]);
     await page.goto(original);
     await pricingDone(page);
-    await page.goto("/app/import");
+    await page.goto("/app/scan");
     await page.getByTestId("clear-local-data").click();
     await page.getByTestId("clear-local-data-confirm").click();
     await expect(page.getByTestId("no-stored-imports")).toBeVisible();
@@ -294,7 +294,7 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
   await page.unroute("**/__seed__");
 
   // The app opens version 2 for the first time here; it must migrate, not reset.
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("stored-imports")).toContainText(record.label);
 

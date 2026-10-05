@@ -53,7 +53,7 @@ function ReplayLink({
   return (
     <Link
       className="inline-flex min-h-11 items-center text-sm text-accent hover:underline"
-      href={`/app/replay?${params.toString()}`}
+      href={`/app/plans?section=replay&${params.toString()}`}
     >
       {children} →
     </Link>

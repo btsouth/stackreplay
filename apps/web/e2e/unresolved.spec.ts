@@ -46,7 +46,7 @@ async function importGiant(page: Page, resolved: boolean): Promise<void> {
 }
 
 async function replayCopilot(page: Page): Promise<string> {
-  await page.goto("/app/replay?target=github-copilot-pro-plus");
+  await page.goto("/app/plans?section=replay&target=github-copilot-pro-plus");
   await page.getByTestId("run-replay").click();
   const headline = page.getByTestId("verdict-headline");
   await expect(headline).toBeVisible({ timeout: 60_000 });
@@ -54,7 +54,7 @@ async function replayCopilot(page: Page): Promise<string> {
 }
 
 async function compareConfiguredStack(page: Page, unresolved: number): Promise<void> {
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").evaluate((el: HTMLDetailsElement) => {
     el.open = true;
   });
@@ -89,7 +89,7 @@ test("a giant unresolved call qualifies the run-out and the price across relevan
     /the 1 left out carries 64\.\d%/u,
   );
   await expect(ready.getByTestId("value-scope")).not.toContainText("100.0%");
-  await page.goto("/app/workload");
+  await page.goto("/app/stats");
   const opening = page.getByTestId("workload-opening");
   await expect(opening.getByTestId("value-scope")).toContainText("(99.97%)", { timeout: 60_000 });
   await expect(opening.getByTestId("value-token-scope")).toContainText(

@@ -15,15 +15,17 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI coding,replayed.");
   for (const link of await page.getByRole("link", { name: "Replay my history", exact: true }).all())
-    await expect(link).toHaveAttribute("href", "/app/import");
+    await expect(link).toHaveAttribute("href", "/app/scan");
   await expect(page.getByRole("link", { name: "See a sample recap" })).toHaveAttribute(
     "href",
     "#sample",
   );
-  await expect(page.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
+  if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+  await expect(page.getByRole(isMobile ? "dialog" : "banner").getByRole("link", { name: "Models & plans" })).toHaveAttribute(
     "href",
-    "/models",
+    "/catalog",
   );
+  if (isMobile) await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.locator(".replay-card-total").first()).toContainText("41.2B");
   await page.getByRole("link", { name: "See a sample recap" }).click();
   await expect(page).toHaveURL(/#sample$/);

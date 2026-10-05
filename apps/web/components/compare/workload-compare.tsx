@@ -134,7 +134,7 @@ export function WorkloadCompare({
         <p className="text-sm text-muted-foreground">
           Compare a workload saved in this browser. Your recorded calls stay on this device.
         </p>
-        <Link className={buttonVariants({ size: "sm" })} href="/app/import">
+        <Link className={buttonVariants({ size: "sm" })} href="/app/scan">
           Import or open a workload
         </Link>
       </div>
@@ -184,7 +184,7 @@ export function WorkloadCompare({
         </p>
       </div>
       <Link
-        href={`/app/workload?import=${encodeURIComponent(record.id)}#api-market`}
+        href={`/app/stats?import=${encodeURIComponent(record.id)}#api-market`}
         className="text-sm text-accent underline underline-offset-4"
       >
         Full admitted API equivalent · billing-period review →
@@ -238,7 +238,7 @@ export function WorkloadCompare({
             then the destination and your substitutions.{" "}
             <Link
               className="inline-flex min-h-11 items-center text-accent underline-offset-4 hover:underline sm:min-h-0"
-              href={`/app/replay?mode=custom&import=${record.id}`}
+              href={`/app/plans?section=replay&mode=custom&import=${record.id}`}
               data-testid="compare-move-link"
             >
               Move work in Replay →

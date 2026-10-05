@@ -11,7 +11,8 @@
       "default": "./src/index.ts"
     },
     "./styles/tokens.css": "./src/styles/tokens.css",
-    "./styles/theme.css": "./src/styles/theme.css"
+    "./styles/theme.css": "./src/styles/theme.css",
+    "./styles/premium.css": "./src/styles/premium.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

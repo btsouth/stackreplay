@@ -169,7 +169,7 @@ export function StackConfirmation({
         </button>
       </div>
       <Link
-        href={`/app/stack?import=${encodeURIComponent(record.id)}`}
+        href={`/app/plans?import=${encodeURIComponent(record.id)}`}
         className="inline-flex min-h-11 items-center text-sm text-accent"
       >
         Manage My Stack →
@@ -299,7 +299,7 @@ export function StackConfirmation({
               Not now
             </button>
             <Link
-              href={`/app/stack?import=${encodeURIComponent(record.id)}`}
+              href={`/app/plans?import=${encodeURIComponent(record.id)}`}
               className="min-h-11 content-center text-sm text-accent"
             >
               Open My Stack →

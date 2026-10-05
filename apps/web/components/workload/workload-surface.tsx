@@ -123,7 +123,7 @@ export function WorkloadSurface({
     if (record === undefined) return;
     const current = new URLSearchParams(window.location.search).get("import");
     if (current !== null && current !== record.id)
-      router.replace(`/app/workload?import=${record.id}`, { scroll: false });
+      router.replace(`/app/stats?import=${record.id}`, { scroll: false });
   }, [record, router]);
 
   const analyze = useCallback(async (importId: string, zone: string, cancelled: () => boolean) => {
@@ -173,14 +173,14 @@ export function WorkloadSurface({
   if (imports.length === 0 || (record === undefined && selectedId === undefined))
     return (
       <div className="flex max-w-2xl flex-col gap-4" data-testid="workload-empty">
-        <h1 className="text-2xl font-medium tracking-tight">Workload</h1>
+        <h1 className="text-2xl font-medium tracking-tight">Your stats</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           No workload in this browser yet. Scan the history your AI coding tools already keep
           (Claude Code, Codex, Command Code, OpenCode), or load a demo, to see what that work is
           worth at published API prices, what drives it, and when it gets heavy. Everything is read
           in this browser; nothing in your history leaves it.
         </p>
-        <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
+        <Link href="/app/scan" className={`${buttonVariants({ size: "sm" })} self-start`}>
           Scan your AI history
         </Link>
       </div>
@@ -335,7 +335,7 @@ function WorkloadOpening({
   return (
     <div className="min-w-0 space-y-4" data-testid="workload-opening">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-medium">Workload</h1>
+        <h1 className="text-lg font-medium">Your stats</h1>
         <WorkloadPicker imports={imports} selectedId={record.id} onSelect={onSelect} />
       </div>
       {record.savedLocally === false ? (
@@ -347,7 +347,7 @@ function WorkloadOpening({
         record={record}
         briefing
         action={
-          <Link className={ACTION_LINK} href="/app/import" data-testid="workload-rescan">
+          <Link className={ACTION_LINK} href="/app/scan" data-testid="workload-rescan">
             Rescan history →
           </Link>
         }
@@ -748,7 +748,7 @@ function WorkloadBody({
             Replay this workload
           </Link>
           <Link
-            href={`/app/compare?view=billing&import=${record.id}`}
+            href={`/app/plans?section=compare&view=billing&import=${record.id}`}
             className={ACTION_LINK}
             data-testid="legacy-workload-compare-cta"
           >

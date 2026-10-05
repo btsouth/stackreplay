@@ -65,7 +65,7 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.getByTestId("overview-evidence")).toHaveAttribute("open", "");
     await expect(page.locator("#pressure")).toBeVisible();
     // Reload via Compare: the saved synthetic workload and current stack remain browser-local.
-    await page.goto("/app/compare?view=billing");
+    await page.goto("/app/plans?section=compare&view=billing");
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10");
     await page.getByRole("link", { name: /Full admitted API equivalent/ }).click();
     await expect(market.getByTestId("market-total")).toHaveText("$5.93 – $6.10", {
@@ -81,7 +81,7 @@ test("replacing a workload cannot publish the previous market result", async ({ 
   await importDemo(page, "moderate");
   await waitForWorkload(page);
   await openBillingReview(page);
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await page.getByTestId("demo-multistack").click();
   await expect(page.getByTestId("import-summary")).toBeVisible();
   await waitForWorkload(page);
@@ -134,7 +134,7 @@ test("a newer scoped replay interrupts a pending market answer visibly", async (
     };
   });
   await importDemo(page, "moderate");
-  await page.goto("/app/compare?view=billing");
+  await page.goto("/app/plans?section=compare&view=billing");
   await page.getByTestId("legacy-compare").locator(":scope > summary").click();
   await page.getByTestId("compare-decision-claude").click();
   await expect(page.getByTestId("market-total")).toHaveText("Calculation unavailable");
