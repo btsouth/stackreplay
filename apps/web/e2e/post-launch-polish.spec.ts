@@ -24,6 +24,13 @@ test("missing pages have one public shell and conditional saved-workload copy", 
   }
 });
 
+test("missing pages offer the saved recap when local history exists", async ({ page }) => {
+  await importDemo(page, "moderate");
+  await page.goto("/this-page-does-not-exist");
+  await expect(page.locator("main")).toContainText("Your saved history is still in this browser.");
+  await expect(page.getByRole("link", { name: "Open my recap", exact: true })).toBeVisible();
+});
+
 test("a direct public 404 restores the saved theme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.addInitScript(() => localStorage.setItem("stackreplay-theme", "dark"));

@@ -149,3 +149,11 @@ test("Plans names the selected fictional history", async ({ page }) => {
   await expect(page.getByTestId("stack-workload")).toContainText("Fictional demo · 900 calls");
   await expect(page.getByTestId("stack-workload")).not.toContainText("No workload selected");
 });
+
+test("a missing Stats scan is identified even when no other history is saved", async ({ page }) => {
+  await page.goto("/app/stats?import=not-a-saved-scan");
+  await expect(page.getByRole("heading", { name: "Your stats", exact: true })).toBeVisible();
+  await expect(page.getByTestId("workload-missing")).toContainText("no longer stored");
+  await expect(page.getByTestId("workload-empty")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Scan your AI history", exact: true })).toBeVisible();
+});

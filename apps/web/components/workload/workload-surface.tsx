@@ -160,7 +160,7 @@ export function WorkloadSurface({
   if (importsError) return <LocalReadError retry={() => window.location.reload()} />;
   if (imports === undefined)
     return <AppPageSkeleton label="Opening your stats" testId="workload-restoring" />;
-  if (imports.length === 0 || (record === undefined && selectedId === undefined))
+  if (record === undefined && selectedId === undefined)
     return (
       <div className="premium-app">
         <PageHeader
@@ -172,7 +172,12 @@ export function WorkloadSurface({
     );
 
   if (record === undefined)
-    return <MissingWorkload latest={imports[0]} onOpenLatest={setSelectedId} />;
+    return (
+      <div className="premium-app space-y-8">
+        <PageHeader title="Your stats" />
+        <MissingWorkload latest={imports[0]} onOpenLatest={setSelectedId} />
+      </div>
+    );
 
   return (
     <div className="premium-app flex min-w-0 flex-col gap-8" data-testid="workload-surface">
