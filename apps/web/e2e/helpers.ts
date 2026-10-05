@@ -65,7 +65,7 @@ export async function waitForWorkload(page: Page): Promise<void> {
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all", {
       timeout: 60_000,
     });
-    await page.getByRole("link", { name: "Explore workload details" }).click();
+    await page.getByRole("link", { name: "Explore your stats" }).click();
   }
   await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
 }
