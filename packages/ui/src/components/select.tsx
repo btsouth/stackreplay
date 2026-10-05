@@ -79,6 +79,7 @@ export function Select({
               {options.map((option) => (
                 <BaseSelect.Item
                   key={option.value}
+                  data-value={option.value}
                   value={option.value}
                   disabled={option.disabled ?? false}
                   className="sr-select-option"
