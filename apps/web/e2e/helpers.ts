@@ -65,8 +65,13 @@ export async function waitForWorkload(page: Page): Promise<void> {
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all", {
       timeout: 60_000,
     });
-    await page.getByRole("link", { name: "Explore your stats" }).click();
+    // Native link activation retains the temporary worker without repeating a
+    // full-page animated scroll in every domain fixture. Flow tests use input.
+    await page
+      .getByRole("link", { name: "Explore your stats" })
+      .evaluate((link: HTMLAnchorElement) => link.click());
   }
+  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
   await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
 }
 

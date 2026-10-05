@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { encodeShareToken } from "@stackreplay/share";
-import { importDemo, runReplay, waitForWorkload } from "./helpers";
+import { importDemo, runReplay } from "./helpers";
 
 /**
  * Accessibility (M3 brief): WCAG 2.2 AA target on the new surfaces, in both
@@ -43,7 +43,13 @@ test.describe("import surface accessibility", () => {
     await demo.focus();
     await expect(demo).toBeFocused();
     await page.keyboard.press("Enter");
-    await waitForWorkload(page);
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("radio", { name: "All time", exact: true }).focus();
+    await page.keyboard.press("Space");
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
+    await page.getByRole("link", { name: "Explore your stats" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("automatic-workload")).toBeVisible();
   });
 
   test("import errors are announced", async ({ page }) => {
@@ -143,13 +149,13 @@ test.describe("public site accessibility", () => {
   const routes = ["/", "/plans", "/models", "/compare", "/methodology", "/changelog"] as const;
 
   for (const theme of ["dark", "light"] as const) {
-    test(`passes axe across the public site in ${theme} mode`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      for (const route of routes) {
+    for (const route of routes) {
+      test(`passes axe on ${route} in ${theme} mode`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
         await page.goto(route);
         await expectNoSeriousViolations(page);
-      }
-    });
+      });
+    }
   }
 
   test("the public site is reachable with the keyboard alone", async ({ page }, testInfo) => {
