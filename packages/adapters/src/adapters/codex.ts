@@ -43,6 +43,20 @@ import { CODEX_DISCOVERY } from "./codex.discovery.js";
 
 const ADAPTER_ID = "codex" as const;
 
+// Match the native completion record to a later UI token_count snapshot.
+// The latter can be persisted only after tools finish and is not then an end boundary.
+function completionKey(
+  usage: Record<string, unknown>,
+  total: Record<string, unknown>,
+): string | undefined {
+  const cumulative = readCount(total, "total_tokens");
+  const input = readCount(usage, "input_tokens");
+  const output = readCount(usage, "output_tokens");
+  const tokens = readCount(usage, "total_tokens");
+  if ([cumulative, input, output, tokens].some((value) => value === undefined)) return undefined;
+  return JSON.stringify([cumulative, input, output, tokens]);
+}
+
 export function codexRoots(env: SourceEnvironment): string[] {
   return CODEX_DISCOVERY.history.map((location) =>
     joinPath(env.platform, env.homeDir, ...location.path),
@@ -125,7 +139,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
           let lineIndex = 0;
           let fileEvents = 0;
           let requestStart: number | undefined;
-          let subagent = false;
+          let lastUsageIdentity: string | undefined;
+          const completions = new Map<string, { started?: number; ended?: number }>();
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -143,11 +158,23 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (payload === undefined) continue;
 
             if (type === "session_meta") {
-              const source = payload.source;
-              subagent = typeof source === "object" && source !== null && "subagent" in source;
               sessionId =
                 readString(payload, "id") ?? readString(payload, "session_id") ?? sessionId;
               projectKey = readString(payload, "cwd") ?? projectKey;
+              continue;
+            }
+            if (type === "token_usage_record") {
+              const usage = asRecord(payload.usage);
+              const total = asRecord(payload.thread_token_usage);
+              const key = usage && total ? completionKey(usage, total) : undefined;
+              const timestamp = readString(record, "timestamp");
+              if (key && !completions.has(key)) {
+                completions.set(key, {
+                  ...(requestStart !== undefined ? { started: requestStart } : {}),
+                  ...(timestamp ? { ended: epochMsFromIso(timestamp) } : {}),
+                });
+                requestStart = undefined;
+              }
               continue;
             }
             if (type === "turn_context") {
@@ -163,7 +190,9 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   readString(payload, "type") ?? "",
                 )) ||
               (type === "response_item" &&
-                (readString(payload, "type") === "function_call_output" ||
+                (["function_call_output", "custom_tool_call_output"].includes(
+                  readString(payload, "type") ?? "",
+                ) ||
                   (readString(payload, "type") === "message" &&
                     readString(payload, "role") === "user")))
             ) {
@@ -292,6 +321,12 @@ export function createCodexAdapter(): LocalSourceAdapter {
               cumulative === undefined
                 ? `${ordinal ?? lineIndex}#${totalTokens}`
                 : `cumulative:${cumulative}#${JSON.stringify([inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, reasoningTokens, totalTokens])}`;
+            const repeatedSnapshot = cumulative !== undefined && identity === lastUsageIdentity;
+            lastUsageIdentity = identity;
+            const key = totalUsage ? completionKey(lastUsage, totalUsage) : undefined;
+            const completion = key ? completions.get(key) : undefined;
+            const started = completion ? completion.started : requestStart;
+            const ended = completion ? completion.ended : occurredAtMs;
             events.push(
               buildEvent(
                 {
@@ -299,8 +334,11 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   sessionId,
                   identity,
                   occurredAtMs,
-                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs
-                    ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs }
+                  ...(!repeatedSnapshot &&
+                  started !== undefined &&
+                  ended !== undefined &&
+                  started < ended
+                    ? { requestStartedAtMs: started, requestEndedAtMs: ended }
                     : {}),
                   rawModel: currentModel,
                   usage,
@@ -316,7 +354,7 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 eventContext(env, options),
               ),
             );
-            requestStart = undefined;
+            if (!repeatedSnapshot && !completion) requestStart = undefined;
             fileEvents += 1;
           }
           stats.sessionsScanned += 1;

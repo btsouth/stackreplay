@@ -259,3 +259,43 @@ describe("opencode adapter: timestamps outside the representable range", () => {
     expect(() => isoUtcFromMs(Number.MAX_SAFE_INTEGER)).toThrow(RangeError);
   });
 });
+
+describe("OpenCode native response timing", () => {
+  it.each([
+    [1789601801000, 1789601810000, true],
+    [1789601810000, 1789601801000, false],
+    [1789601801000, 1789601801000, false],
+    [1789601801000, undefined, false],
+    [undefined, 1789601810000, false],
+    [1789601801000, "not-a-time", false],
+    [1789601801000, MAX_EPOCH_MS + 1, false],
+  ])(
+    "uses created/completed (%s, %s), never the original turn's parent",
+    async (created, completed, timed) => {
+      const result = await collectFrom([
+        ...OPENCODE_FIXTURE_SQL,
+        `insert into message (id, session_id, time_created, time_updated, data) values
+       ('timed-response', 'ses_alpha', 1789601800000, 1789601900000, '${JSON.stringify({
+         role: "assistant",
+         parentID: "original-user",
+         modelID: "gpt-5",
+         tokens: { input: 10, output: 100 },
+         time: { created, completed },
+       })}')`,
+      ]);
+      const event =
+        result.events.find((e) => e.occurredAt === new Date(1789601800000).toISOString()) ??
+        result.events.find((e) => e.occurredAt === new Date(Number(created)).toISOString());
+      expect(event).toBeDefined();
+      if (timed)
+        expect(event).toMatchObject({
+          requestStartedAt: new Date(Number(created)).toISOString(),
+          requestEndedAt: new Date(Number(completed)).toISOString(),
+        });
+      else {
+        expect(event?.requestStartedAt).toBeUndefined();
+        expect(event?.requestEndedAt).toBeUndefined();
+      }
+    },
+  );
+});

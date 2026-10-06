@@ -217,6 +217,7 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
           let lineIndex = 0;
           let requestStart: number | undefined;
           const starts = new Map<string, number>();
+          const ancestry = new Map<string, { start: number; responseId?: string }>();
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -242,9 +243,14 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
                 continue;
               }
             }
+            const uuid = readString(record, "uuid");
+            const parentUuid = readString(record, "parentUuid");
+            const parent = parentUuid ? ancestry.get(parentUuid) : undefined;
+            if (uuid && parent) ancestry.set(uuid, parent);
             if (readString(record, "type") === "user") {
               const at = readString(record, "timestamp");
               requestStart = at ? epochMsFromIso(at) : undefined;
+              if (uuid && requestStart !== undefined) ancestry.set(uuid, { start: requestStart });
               continue;
             }
             if (readString(record, "type") !== "assistant") continue;
@@ -282,15 +288,21 @@ export function createClaudeCodeAdapter(): LocalSourceAdapter {
             sessionId = readString(record, "sessionId") ?? sessionId;
             const messageId = readString(message, "id");
             const requestId = readString(record, "requestId");
-            if (messageId && !starts.has(messageId) && requestStart !== undefined)
-              starts.set(messageId, requestStart);
+            // Follow the native branch through metadata rows. A different
+            // assistant response is not a new input; only user/tool-result rows
+            // reset the start. Older rows without parent ids retain sequential pairing.
+            const inputStart = parentUuid
+              ? parent && (!parent.responseId || parent.responseId === messageId)
+                ? parent.start
+                : undefined
+              : requestStart;
+            if (messageId && !starts.has(messageId) && inputStart !== undefined)
+              starts.set(messageId, inputStart);
+            if (uuid && inputStart !== undefined && messageId)
+              ancestry.set(uuid, { start: inputStart, responseId: messageId });
             const started = messageId ? starts.get(messageId) : undefined;
             const reliable =
-              message.stop_reason != null &&
-              record.isSidechain !== true &&
-              !file.includes("/subagents/") &&
-              started !== undefined &&
-              started < occurredAtMs;
+              message.stop_reason != null && started !== undefined && started < occurredAtMs;
             const identity =
               messageId !== undefined
                 ? messageId

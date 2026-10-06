@@ -196,6 +196,7 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
                     json_extract(m.data, '$.providerID') as provider_id,
                     json_extract(m.data, '$.cost') as cost,
                     json_extract(m.data, '$.time.created') as time_created_data,
+                    json_extract(m.data, '$.time.completed') as time_completed,
                     json_extract(m.data, '$.tokens.total') as tokens_total,
                     json_extract(m.data, '$.tokens.input') as tokens_input,
                     json_extract(m.data, '$.tokens.output') as tokens_output,
@@ -257,6 +258,11 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
             stats.recordsUnsupported += 1;
             continue;
           }
+          // Native assistant creation starts each response, including continuation
+          // after tools. parentID points to the original user for every response
+          // in a turn, so reusing that parent would include earlier responses.
+          const started = toEpochMs(row.time_created_data);
+          const ended = toEpochMs(row.time_completed);
           const sessionId = toText(row.session_id) ?? "unknown-session";
           const identity = toText(row.id) ?? `${occurredAtMs}#${stats.recordsRead}`;
           const rawProvider = toText(row.provider_id);
@@ -273,6 +279,9 @@ export function createOpenCodeAdapter(): LocalSourceAdapter {
                 occurredAtMs,
                 rawModel,
                 usage,
+                ...(started !== undefined && ended !== undefined && started < ended
+                  ? { requestStartedAtMs: started, requestEndedAtMs: ended }
+                  : {}),
                 ...(nativeCost !== undefined ? { nativeCost } : {}),
                 ...(directory !== undefined
                   ? { projectKey: await projectKeyFor(env, directory) }

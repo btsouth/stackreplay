@@ -13,6 +13,7 @@ import { decimalStringFromNumber, epochMsFromIso } from "../identity.js";
 import { asRecord, parseJsonLine, readCount, readString } from "../parse.js";
 import { joinPath } from "../platform.js";
 import { projectKeyFor } from "../project-root.js";
+import { toEpochMs } from "../sqlite.js";
 import {
   type CollectOptions,
   type CollectResult,
@@ -170,6 +171,7 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
           let projectKey: string | undefined = env.selectedFiles ? undefined : projectSlug;
           let lineIndex = 0;
           let fileEvents = 0;
+          const inputs = new Map<string, number>();
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -192,7 +194,22 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
             if (type !== "message") continue;
             const message = asRecord(record.message);
             if (message === undefined) continue;
-            if (readString(message, "role") !== "assistant") continue;
+            const role = readString(message, "role");
+            const meta = asRecord(message.meta);
+            if (role === "user") {
+              const id = readString(record, "id");
+              const timestamp = readString(record, "timestamp");
+              const started =
+                toEpochMs(meta?.createdAt) ?? (timestamp ? epochMsFromIso(timestamp) : undefined);
+              if (id && started !== undefined) inputs.set(id, started);
+              continue;
+            }
+            if (role !== "assistant") continue;
+            const parentId = readString(record, "parentId");
+            const started = parentId ? inputs.get(parentId) : undefined;
+            // The outer timestamp is persistence time, sometimes after tools.
+            // The client stamps meta.createdAt when the model response finishes.
+            const ended = toEpochMs(meta?.createdAt);
             const usageRecord = asRecord(record.usage);
             if (usageRecord === undefined) continue;
             const rawModel = readString(record, "model");
@@ -237,6 +254,9 @@ export function createCommandCodeAdapter(): LocalSourceAdapter {
                   occurredAtMs,
                   rawModel,
                   usage,
+                  ...(started !== undefined && ended !== undefined && started < ended
+                    ? { requestStartedAtMs: started, requestEndedAtMs: ended }
+                    : {}),
                   ...(nativeCost !== undefined ? { nativeCost } : {}),
                   ...(projectKey !== undefined
                     ? { projectKey: await projectKeyFor(env, projectKey) }
