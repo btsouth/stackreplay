@@ -10,7 +10,9 @@ async function replaceWithBlob(page: Page, id: string, damaged = false) {
         open.onerror = () => reject(open.error);
         open.onsuccess = () => {
           const db = open.result;
-          const transaction = db.transaction("payloads", "readwrite");
+          const transaction = db.transaction(["payloads", "recap-indexes"], "readwrite");
+          // Replacement invalidates derived data before testing the lazy payload read.
+          transaction.objectStore("recap-indexes").clear();
           const store = transaction.objectStore("payloads");
           const read = store.get(id);
           read.onsuccess = () =>

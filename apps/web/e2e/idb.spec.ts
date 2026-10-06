@@ -70,6 +70,21 @@ test("a delayed storage lookup never appears empty or sends the recap through Sc
   // Delay only metadata requests. This reproduces the gap between the page
   // painting and IndexedDB answering without constructing a large payload.
   await page.addInitScript(() => {
+    const getAll = IDBObjectStore.prototype.getAll;
+    IDBObjectStore.prototype.getAll = function (...args: Parameters<typeof getAll>) {
+      const request = getAll.apply(this, args);
+      if (this.name === "imports") {
+        const native = Object.getOwnPropertyDescriptor(IDBRequest.prototype, "onsuccess")!;
+        Object.defineProperty(request, "onsuccess", {
+          get: () => native.get?.call(request),
+          set: (callback: (event: Event) => void) =>
+            native.set?.call(request, (event: Event) =>
+              setTimeout(() => callback.call(request, event), 900),
+            ),
+        });
+      }
+      return request;
+    };
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       override postMessage(message: unknown) {
@@ -159,7 +174,9 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
       const request = indexedDB.open("stackreplay");
       request.onsuccess = () => {
         const database = request.result;
-        const transaction = database.transaction("payloads", "readwrite");
+        const transaction = database.transaction(["payloads", "recap-indexes"], "readwrite");
+        // A changed source invalidates its derived index; the lazy open validates it.
+        transaction.objectStore("recap-indexes").clear();
         const store = transaction.objectStore("payloads");
         const keys = store.getAllKeys();
         keys.onsuccess = () => {
@@ -183,7 +200,9 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
     .getByRole("link", { name: /^Open my recap/u })
     .click();
   await expect(
-    page.getByRole("alert").filter({ hasText: /unavailable|no longer stored/ }),
+    page
+      .getByRole("alert")
+      .filter({ hasText: /unavailable|no longer stored|scanning the history/ }),
   ).toBeVisible();
   await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
