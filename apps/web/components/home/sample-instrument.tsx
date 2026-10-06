@@ -152,6 +152,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                 </div>
                 <div
                   className="strack"
+                  role="img"
                   aria-label={`${s.p25.toFixed(1)} to ${s.p75.toFixed(1)} tokens per second`}
                 >
                   <div

@@ -693,3 +693,7 @@
   background: var(--fg);
   color: var(--bg);
 }
+.public-terminal a.underline {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

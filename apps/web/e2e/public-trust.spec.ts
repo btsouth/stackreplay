@@ -41,7 +41,7 @@ for (const [path, title] of routes)
 
 test("home explains the local scan and optional sharing", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("Your logs stay on this device");
+  await expect(page.locator("main")).toContainText(/your logs stay on this device/i);
   await expect(page.locator("main")).toContainText(
     "Nothing, unless you create a share link or connect a GitHub username",
   );
