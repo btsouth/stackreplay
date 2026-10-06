@@ -14,7 +14,29 @@ export async function GET(
       resolved.kind === "token"
         ? await decodeAnyShareToken(resolved.token)
         : { ok: false as const };
-  if (!decoded.ok) return new Response("Share not found", { status: 404 });
+  if (!decoded.ok)
+    return new ImageResponse(
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          background: "#08090a",
+          color: "#eceee9",
+          padding: 56,
+          flexDirection: "column",
+          justifyContent: "center",
+          fontFamily: "Geist Mono",
+        }}
+      >
+        <div style={{ fontSize: 24, color: "#ff6a1f", marginBottom: 32 }}>STACKREPLAY</div>
+        <div style={{ fontSize: 48 }}>This link is unavailable.</div>
+        <div style={{ fontSize: 24, marginTop: 24 }}>
+          Scan your AI coding history at stackreplay.com
+        </div>
+      </div>,
+      { width: 1200, height: 630, fonts: terminalImageFonts() },
+    );
   const old = sharedRecap(decoded.snapshot),
     supplied =
       decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload"

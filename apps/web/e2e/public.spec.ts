@@ -464,7 +464,7 @@ test.describe("share links", () => {
     const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
     if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload") {
-      expect(decoded.snapshot.card?.tokens).toBeGreaterThan(0);
+      expect(decoded.snapshot.card?.totalTokens).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
         /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );

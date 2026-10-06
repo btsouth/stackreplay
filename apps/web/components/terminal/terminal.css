@@ -1483,7 +1483,8 @@
     display: none;
   }
   .terminal td.num {
-    text-align: left;
+    text-align: right;
+    align-items: end;
   }
   .terminal .sharecell {
     height: auto;

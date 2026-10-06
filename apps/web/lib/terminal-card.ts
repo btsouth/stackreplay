@@ -41,7 +41,7 @@ export function makeCard(
     work = p.workhorse,
     top = p.top.slice(0, 5);
   const max = Math.max(1, ...p.days.map((d) => d.total));
-  const step = Math.max(1, Math.ceil(p.days.length / 120));
+  const step = Math.max(1, Math.ceil(p.days.length / 64));
   return {
     theme,
     start: r.start,
