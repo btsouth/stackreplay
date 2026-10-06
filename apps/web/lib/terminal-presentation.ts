@@ -32,11 +32,13 @@ export function compact(n: number): string {
   return integer(n);
 }
 export function dollars(n: string | number): string {
+  const value = Number(n);
+  if (value > 0 && value < 1) return "<$1";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(Number(n));
+  }).format(value);
 }
 export function dateLabel(date: string, year = false): string {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
