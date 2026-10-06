@@ -59,6 +59,7 @@ export function CatalogSelect({
   useEffect(() => {
     setContainer(ref.current?.closest<HTMLElement>(".public-terminal") ?? null);
   }, []);
+  const popupContainer = portalContainer ?? container;
   return (
     <div
       ref={ref}
@@ -70,9 +71,7 @@ export function CatalogSelect({
       <Select
         label={label}
         placeholder={options.find((option) => option.value === value)?.label ?? label}
-        {...((portalContainer ?? container)
-          ? { portalContainer: portalContainer ?? container ?? undefined }
-          : {})}
+        {...(popupContainer ? { portalContainer: popupContainer } : {})}
         options={options}
         {...(value !== undefined ? { value } : {})}
         onValueChange={(value) => onChange({ target: { value } })}
