@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { languageMatches } from "./app-language";
 
 test("recap homepage renders, links to scan and keeps the sample public", async ({
   page,
@@ -24,6 +25,8 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   ).toHaveAttribute("href", "/catalog");
   if (isMobile) await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByTestId("sample-total")).toContainText(/M|B/);
+  await expect(page.locator(".terminal-home .srow")).toHaveCount(4);
+  expect(languageMatches(await page.locator(".terminal-home").innerText())).toEqual([]);
   await page.getByRole("link", { name: "See a sample" }).click();
   await expect(page).toHaveURL(/#sample$/);
   await expect(page.locator("#sample-heading")).toBeInViewport();
