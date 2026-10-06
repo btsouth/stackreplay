@@ -37,6 +37,7 @@ export function TerminalPublicNav() {
       <Link
         key={item.href}
         href={item.href}
+        className={active(item.href) ? "on" : undefined}
         aria-current={active(item.href) ? "page" : undefined}
         onClick={() => setOpen(false)}
       >
@@ -72,7 +73,16 @@ export function TerminalPublicNav() {
             <LocalWorkloadAction variant="header" className="btn primary" />
             <nav aria-label="Catalog" className="terminal-menu-catalog">
               {catalogNavItems.map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={
+                    pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      ? "page"
+                      : undefined
+                  }
+                  onClick={() => setOpen(false)}
+                >
                   {item.label}
                 </Link>
               ))}
