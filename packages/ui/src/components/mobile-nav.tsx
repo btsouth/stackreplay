@@ -61,7 +61,7 @@ export function MobileNav({
             </Dialog.Close>
           </div>
           <Dialog.Title className="sr-eyebrow">
-            {context === "app" ? "Your AI coding, replayed." : "Every session has a story."}
+            {context === "app" ? "Your AI coding, in numbers." : "Every session has a story."}
           </Dialog.Title>
           <nav aria-label={context === "app" ? "Primary" : "Public"}>
             <ul className="sr-menu-links">

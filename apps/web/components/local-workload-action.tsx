@@ -20,20 +20,24 @@ const LABELS = {
 export function LocalWorkloadAction({
   variant,
   className,
+  importId,
 }: {
   variant: "header" | "menu" | "hero";
   className?: string | undefined;
+  importId?: string | undefined;
 }) {
   const local = useLocalWorkload({ personal: false });
   const { presence } = local;
-  const returning = presence === "present";
+  const returning = Boolean(importId) || presence === "present";
   const labels = LABELS[variant === "hero" ? "hero" : "header"];
   const record = local.personal.status === "ready" ? local.personal.record : undefined;
-  const href = record
-    ? `${returningCta.href}?import=${encodeURIComponent(record.id)}`
-    : returning
-      ? returningCta.href
-      : primaryCta.href;
+  const href = importId
+    ? `${returningCta.href}?import=${encodeURIComponent(importId)}`
+    : record
+      ? `${returningCta.href}?import=${encodeURIComponent(record.id)}`
+      : returning
+        ? returningCta.href
+        : primaryCta.href;
   return (
     <Link
       href={href}

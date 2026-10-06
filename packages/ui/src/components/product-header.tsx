@@ -36,11 +36,13 @@ export function ProductHeader({
                   {appNavItems.map((item) => (
                     <NavLink key={item.href} {...item} />
                   ))}
-                  <Link href={scanAction.href} className={buttonVariants()}>
-                    {scanAction.label}
-                  </Link>
+                  {primaryAction ?? (
+                    <Link href={scanAction.href} className={buttonVariants()}>
+                      {scanAction.label}
+                    </Link>
+                  )}
                 </nav>
-                <MobileNav />
+                <MobileNav action={menuAction ?? primaryAction} />
               </>
             )}
             {right}

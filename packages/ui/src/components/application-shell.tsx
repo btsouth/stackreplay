@@ -8,12 +8,25 @@ export interface ApplicationShellProps {
   logoWidth: number;
   logoHeight: number;
   right?: ReactNode;
+  primaryAction?: ReactNode;
+  menuAction?: ReactNode;
   className?: string;
 }
-export function ApplicationShell({ children, right, className }: ApplicationShellProps) {
+export function ApplicationShell({
+  children,
+  right,
+  primaryAction,
+  menuAction,
+  className,
+}: ApplicationShellProps) {
   return (
     <div className={cn("flex min-h-dvh flex-col bg-background text-foreground", className)}>
-      <ProductHeader context="app" {...(right ? { right } : {})} />
+      <ProductHeader
+        context="app"
+        right={right}
+        primaryAction={primaryAction}
+        menuAction={menuAction}
+      />
       <main id="main-content" tabIndex={-1} className="sr-page-rail sr-app-main">
         {children}
       </main>
