@@ -163,6 +163,9 @@ export function TerminalShare({
               </button>
             ))}
           </fieldset>
+          {selected.speed && card.speeds?.length ? (
+            <p>On landscape, Speed board replaces the top models strip.</p>
+          ) : null}
           <div className="card-actions">
             <button
               type="button"

@@ -159,12 +159,23 @@ test("all card formats measure non-overlapping text with every stat selected", a
             (n) =>
               n instanceof HTMLCanvasElement &&
               JSON.parse(n.dataset.textBoxes ?? "[]").some(
-                (b: { id: string }) => b.id === "model-name-0",
+                (b: { id: string }) => b.id === "speed-name-0",
               ),
           ),
         ),
     )
     .toBe(true);
+  const speedCount = await page.locator(".srow").count();
+  expect(speedCount).toBeGreaterThan(0);
+  for (const canvas of await page.locator(".card-canvas").all())
+    expect(
+      await canvas.evaluate(
+        (n) =>
+          JSON.parse((n as HTMLCanvasElement).dataset.textBoxes ?? "[]").filter(
+            (b: { id: string }) => b.id.startsWith("speed-name-"),
+          ).length,
+      ),
+    ).toBe(speedCount);
   const faults = await page.locator("canvas").evaluateAll((nodes) =>
     nodes.flatMap((n) => {
       const canvas = n as HTMLCanvasElement;
