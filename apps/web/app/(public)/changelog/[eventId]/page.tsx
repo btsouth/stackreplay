@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MarketEventDetail } from "@/components/market/event-detail";
@@ -29,7 +31,7 @@ export default async function EventPage({ params }: Props) {
   const event = acceptedEvent((await params).eventId);
   const view = presentMarketEvent(event, loadPublicCatalog(), loadPublicBenchmarks());
   return (
-    <div>
+    <div className="terminal public-terminal">
       <MarketEventDetail
         event={event}
         providerName={view.providerName}

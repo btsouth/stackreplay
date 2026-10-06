@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
@@ -17,7 +19,7 @@ export default function PlansPage() {
     catalog.plans.map((p) => [p.id, buildCompareFacts(p, catalog.modelById)]),
   );
   return (
-    <div>
+    <div className="terminal public-terminal">
       <MarketHeader
         eyebrow="Coding subscriptions"
         title="Find your next stack."

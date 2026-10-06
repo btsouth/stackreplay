@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  ["/", "StackReplay: your AI coding, replayed."],
+  ["/", "StackReplay: your AI coding, measured."],
   ["/models", "Models"],
   ["/models/gpt-6-1-sol", "GPT-6.1 Sol"],
   ["/plans", "Subscriptions"],
@@ -39,12 +39,12 @@ for (const [path, title] of routes)
     );
   });
 
-test("home states scoped checks and methodology starts with the local privacy promise", async ({
-  page,
-}) => {
+test("home explains the local scan and optional sharing", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("Your logs never leave your browser");
-  await expect(page.locator("main")).toContainText("Illustrative comparison");
+  await expect(page.locator("main")).toContainText(/your logs stay on this device/i);
+  await expect(page.locator("main")).toContainText(
+    "Nothing, unless you create a share link or connect a GitHub username",
+  );
   await page.goto("/methodology");
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("The files you choose.");
   await page.getByRole("link", { name: "Calculation details ↓" }).click();

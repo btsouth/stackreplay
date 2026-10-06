@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import { StatTile } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -115,7 +117,7 @@ export default async function ProviderPage({ params }: Props) {
   ];
   const emptySections = sections.filter((section) => section.count === 0);
   return (
-    <div className="market-provider-hub">
+    <div className="terminal public-terminal market-provider-hub">
       <Link href="/providers" className="market-link">
         ← Providers
       </Link>
@@ -125,8 +127,11 @@ export default async function ProviderPage({ params }: Props) {
         title={provider.name}
         description="Explore this provider’s models, API access and coding plans. Each section links to the published evidence, including what is still unknown."
       >
-        <aside className="provider-coverage-summary">
-          <p className="market-kicker">Recorded coverage</p>
+        <details className="provider-coverage-summary">
+          <summary className="market-kicker">
+            Recorded coverage / {developed.filter((m) => m.kind === "release").length} releases /{" "}
+            {plans.length} plans
+          </summary>
           <div className="provider-summary-stats">
             <StatTile
               label="Developed releases"
@@ -142,7 +147,7 @@ export default async function ProviderPage({ params }: Props) {
           <p className="market-muted">
             Coverage in this catalog, not a complete inventory of the provider.
           </p>
-        </aside>
+        </details>
       </MarketHeader>
       <nav aria-label="Provider sections" className="market-section-jumps">
         {[...sections.filter((section) => section.count > 0), ...emptySections].map((section) => (

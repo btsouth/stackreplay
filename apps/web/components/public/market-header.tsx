@@ -23,13 +23,13 @@ export function MarketHeader({
 }
 export function MarketFooter() {
   return (
-    <aside className="market-invitation">
+    <aside className="market-invitation" aria-label="Scan your own history">
       <div>
-        <p className="market-kicker">Your story comes first</p>
-        <h2>See what your own work looks like.</h2>
+        <p className="market-kicker">LOCAL / PRIVATE</p>
+        <h2>Measure your own AI coding.</h2>
         <p>
-          Make a recap from your coding history. Your files are read on this device and stay in your
-          browser.
+          Scan your local coding history for tokens, speed, models and rhythm. Your logs stay in
+          your browser.
         </p>
       </div>
       <LocalWorkloadAction variant="header" className={buttonVariants()} />
