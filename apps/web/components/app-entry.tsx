@@ -44,7 +44,7 @@ export function AppEntry() {
           history; it will be available until the page reloads.
         </p>
         <Link href="/app/scan" className={`${buttonVariants({ size: "sm" })} self-start`}>
-          Scan your AI history
+          Scan my history
         </Link>
       </div>
     );

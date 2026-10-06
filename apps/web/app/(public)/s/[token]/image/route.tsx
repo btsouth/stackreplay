@@ -41,13 +41,19 @@ export async function GET(
       </div>
       <div style={{ display: "flex", gap: 70, alignItems: "baseline" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <strong style={{ fontSize: 110, letterSpacing: "-.06em" }}>
+          <strong style={{ fontSize: r?.tokens === undefined ? 64 : 110, letterSpacing: "-.06em" }}>
             {r?.tokens === undefined ? "Unreported" : compactNumber(r.tokens)}
           </strong>
           <span style={{ fontSize: 22, color: "#b5b8aa" }}>total tokens</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <strong style={{ fontSize: 76, color: "#efaa87", letterSpacing: "-.05em" }}>
+          <strong
+            style={{
+              fontSize: r?.usd === undefined ? 46 : 76,
+              color: "#efaa87",
+              letterSpacing: "-.05em",
+            }}
+          >
             {r?.usd === undefined ? "Value unreported" : recapUsd(r.usd)}
           </strong>
           <span style={{ fontSize: 22, color: "#b5b8aa" }}>at API prices</span>

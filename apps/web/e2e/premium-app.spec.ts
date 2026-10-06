@@ -84,7 +84,6 @@ test("recap keeps the chosen period on reload and aligns with the shared shell",
   await expect(page.locator(".recap-info:has(:popover-open)")).toContainText("local timezone");
   await page.keyboard.press("Escape");
   await expect(page.locator(".recap-info:has(:popover-open)")).toHaveCount(0);
-
 });
 
 test("Stats and Plans share the recap period and exact API value", async ({ page }) => {
