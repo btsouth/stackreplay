@@ -168,7 +168,7 @@ export function cardLayout(card: PublicCard, format: CardFormat) {
   const metrics = cardMetrics(card);
   const columns = story ? 2 : 3,
     step = story ? 120 : square ? 78 : 80;
-  const metricY = story ? 1150 : square ? 700 : 430;
+  const metricY = story ? 1150 : square ? 700 : speeds.length ? 444 : 430;
   metrics.forEach((m, i) => {
     const x = pad + ((i % columns) * width) / columns,
       y = metricY + Math.floor(i / columns) * step,
@@ -220,9 +220,9 @@ export function cardLayout(card: PublicCard, format: CardFormat) {
     });
   }
   if (speeds.length) {
-    const headingY = story ? 1540 : square ? 860 : 316;
+    const headingY = story ? 1540 : square ? 860 : 310;
     const topY = headingY + (story ? 46 : square ? 32 : 26);
-    const available = story ? 270 : square ? 118 : 68;
+    const available = story ? 270 : square ? 118 : 100;
     const cols = format === "landscape" || speeds.length > 10 ? 3 : 2;
     const rows = Math.ceil(speeds.length / cols);
     const rowHeight = Math.min(story ? 44 : 30, available / rows);
