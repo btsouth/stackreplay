@@ -1,11 +1,23 @@
 "use client";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { GITHUB_LOGIN_PATTERN, type GitHubCalendar } from "./github-activity";
+import {
+  beginConnect,
+  connectFailed,
+  connectionState,
+  connectSucceeded,
+  disconnectConnection,
+  type GitHubConnection,
+  initialGitHubConnection,
+  visibleLogin,
+} from "./github-connection";
 
 /**
  * The GitHub login and last-read contribution calendar, kept in localStorage
  * under one key. Connecting only stores a public login; the calendar itself is
- * fetched from this site's own route and cached there.
+ * fetched from this site's own route and cached there. A login only becomes the
+ * connected account once its calendar comes back, so a failed lookup never
+ * looks connected.
  */
 
 const KEY = "stackreplay.github";
@@ -54,61 +66,66 @@ function load(): Stored {
 }
 
 export function useGitHubActivity(): GitHubActivity {
-  const [login, setLogin] = useState<string | undefined>(undefined);
-  const [calendar, setCalendar] = useState<GitHubCalendar | undefined>(undefined);
-  const [error, setError] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
+  const [connection, setConnection] = useState<GitHubConnection>(initialGitHubConnection);
   // Every fetch has a sequence number so an old answer cannot overwrite a
   // newer one, and unmounting drops answers outright.
   const alive = useRef(true);
   const sequence = useRef(0);
 
-  function persist(nextLogin: string | undefined, nextCalendar: GitHubCalendar | undefined) {
+  function persist(next: GitHubConnection) {
     try {
       localStorage.setItem(
         KEY,
-        JSON.stringify({ version: 1, login: nextLogin, calendar: nextCalendar }),
+        JSON.stringify({ version: 1, login: next.login, calendar: next.calendar }),
       );
     } catch {}
   }
 
   const fetchCalendar = useEffectEvent((who: string) => {
     const token = ++sequence.current;
-    setLoading(true);
-    setError(undefined);
+    setConnection((current) => beginConnect(current));
     fetch(`/api/github/contributions?login=${encodeURIComponent(who)}`)
       .then(async (response) => {
         const body: unknown = await response.json().catch(() => undefined);
         if (!alive.current || token !== sequence.current) return;
         if (!response.ok) {
-          setError(
-            response.status === 404
-              ? `No GitHub user named ${who}.`
-              : "GitHub didn't answer. Try again in a minute.",
+          setConnection((current) =>
+            connectFailed(
+              current,
+              response.status === 404
+                ? `No GitHub user named ${who}.`
+                : "GitHub didn't answer. Try again in a minute.",
+            ),
           );
           return;
         }
         if (!isCalendar(body)) {
-          setError("GitHub didn't answer. Try again in a minute.");
+          setConnection((current) =>
+            connectFailed(current, "GitHub didn't answer. Try again in a minute."),
+          );
           return;
         }
-        setCalendar(body);
-        persist(who, body);
+        const next = connectSucceeded(who, body);
+        persist(next);
+        setConnection(next);
       })
       .catch(() => {
         if (!alive.current || token !== sequence.current) return;
-        setError("GitHub didn't answer. Try again in a minute.");
-      })
-      .finally(() => {
-        if (alive.current && token === sequence.current) setLoading(false);
+        setConnection((current) =>
+          connectFailed(current, "GitHub didn't answer. Try again in a minute."),
+        );
       });
   });
 
   useEffect(() => {
     alive.current = true;
     const stored = load();
-    setLogin(stored.login);
-    setCalendar(stored.calendar);
+    setConnection({
+      login: stored.login,
+      calendar: stored.calendar,
+      error: undefined,
+      loading: false,
+    });
     if (
       stored.login !== undefined &&
       (stored.calendar === undefined ||
@@ -124,42 +141,35 @@ export function useGitHubActivity(): GitHubActivity {
 
   function connect(next: string): void {
     const who = next.trim();
+    if (who === "") return;
     if (!GITHUB_LOGIN_PATTERN.test(who)) {
-      setError("That doesn't look like a GitHub username.");
+      setConnection((current) =>
+        connectFailed(current, "That doesn't look like a GitHub username."),
+      );
       return;
     }
-    sequence.current += 1;
-    setLogin(who);
-    setCalendar(undefined);
-    persist(who, undefined);
     fetchCalendar(who);
   }
 
   function disconnect(): void {
     sequence.current += 1;
-    setLogin(undefined);
-    setCalendar(undefined);
-    setError(undefined);
-    setLoading(false);
+    setConnection(disconnectConnection());
     try {
       localStorage.removeItem(KEY);
     } catch {}
   }
 
   const refresh = useEffectEvent(() => {
-    if (login !== undefined) fetchCalendar(login);
+    if (connection.login !== undefined) fetchCalendar(connection.login);
   });
 
-  const state: GitHubActivity["state"] =
-    login === undefined
-      ? "off"
-      : error !== undefined && calendar === undefined
-        ? "error"
-        : loading && calendar === undefined
-          ? "loading"
-          : calendar !== undefined
-            ? "ready"
-            : "loading";
-
-  return { login, calendar, state, error, connect, disconnect, refresh };
+  return {
+    login: visibleLogin(connection),
+    calendar: connection.calendar,
+    state: connectionState(connection),
+    error: connection.error,
+    connect,
+    disconnect,
+    refresh,
+  };
 }

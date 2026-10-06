@@ -78,7 +78,7 @@ export function TerminalHeader() {
           <div className="hright">
             <span className="live">
               <i />
-              LOCAL · NOTHING UPLOADED
+              LOCAL · LOGS NEVER UPLOADED
             </span>
             <span className="scan-age">{scanned ?? "NO SCAN YET"}</span>
             <Link prefetch={false} className="btn" href="/app/scan">

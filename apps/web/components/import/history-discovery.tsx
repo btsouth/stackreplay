@@ -127,6 +127,7 @@ export function HistoryDiscovery({
   const [platform, setPlatform] = useState<DiscoveryPlatform | undefined>(undefined);
   const [dragOver, setDragOver] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
+  const [pathsOpen, setPathsOpen] = useState(false);
   const [remembered, setRemembered] = useState<RememberedConnections | undefined>(undefined);
   const [roots, setRoots] = useState<string[]>([]);
   const [metrics, setMetrics] = useState<{ probes: number; durationMs: number } | undefined>(
@@ -404,6 +405,7 @@ export function HistoryDiscovery({
     setPhase("intro");
     setDropNote(undefined);
     setAnnouncement("");
+    setPathsOpen(false);
   }, []);
 
   const forget = useCallback(() => {
@@ -543,6 +545,38 @@ export function HistoryDiscovery({
         )}
       </div>
 
+      {pathsOpen ? (
+        <div className="sr-find-paths" data-testid="history-paths">
+          <p className="sr-micro text-muted-foreground">Where each history lives</p>
+          <ul>
+            <li>
+              <b>Claude Code</b> <code>~/.claude/projects</code> on Linux and Mac;{" "}
+              <code>%USERPROFILE%\.claude\projects</code> on Windows.
+            </li>
+            <li>
+              <b>Codex</b> <code>~/.codex/sessions</code>;{" "}
+              <code>%USERPROFILE%\.codex\sessions</code> on Windows.
+            </li>
+            <li>
+              <b>OpenCode</b> <code>~/.local/share/opencode/opencode.db</code>;{" "}
+              <code>%USERPROFILE%\AppData\Local\opencode\opencode.db</code> on Windows.
+            </li>
+            <li>
+              <b>Command Code</b> <code>~/.commandcode/projects</code> on Linux and Mac.
+            </li>
+            <li>
+              <b>Hermes</b> <code>~/.hermes/state.db</code>;{" "}
+              <code>%USERPROFILE%\AppData\Local\hermes</code> on Windows.
+            </li>
+          </ul>
+          <p className="sr-find-fine">
+            These are hidden folders in your home folder. Drag your home folder onto the machine
+            below, or choose a tool folder, to scan them. In the picker, press ⌘⇧. on a Mac or
+            Ctrl+H on Linux to show hidden folders.
+          </p>
+        </div>
+      ) : null}
+
       {intro && remembered !== undefined ? (
         <div className="sr-find-remembered" data-testid="connected-histories">
           <p className="sr-micro text-muted-foreground">Connected AI histories</p>
@@ -666,7 +700,10 @@ export function HistoryDiscovery({
             type="button"
             className="sr-find-link sr-find-link-quiet"
             disabled={disabled}
-            onClick={arm}
+            onClick={() => {
+              setPathsOpen(true);
+              arm();
+            }}
             data-testid="find-histories"
           >
             Where is my history?

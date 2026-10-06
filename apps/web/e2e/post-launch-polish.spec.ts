@@ -4,7 +4,7 @@ import { importDemo } from "./helpers";
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#sample .side .kv").first().locator(".n")).toHaveText(
-    "AT LIST PRICES",
+    "LIST-PRICE ESTIMATE · 98% OF REQUESTS PRICED",
   );
   for (const side of await page.locator(".sample-readouts").all()) {
     const gap = await side.evaluate(
@@ -61,7 +61,7 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   await page.goto(`/app/recap?import=${id}`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("recap-value").locator(".v")).toBeVisible();
-  await expect(page.getByTestId("recap-value")).toContainText("AT LIST PRICES");
+  await expect(page.getByTestId("recap-value")).toContainText("LIST-PRICE ESTIMATE");
 });
 
 test("plan names wrap inside What you pay at 390px", async ({ page }) => {

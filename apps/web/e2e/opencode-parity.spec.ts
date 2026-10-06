@@ -61,7 +61,9 @@ for (const archive of [false, true]) {
     );
     await waitForWorkload(page);
     await expect(
-      page.locator("#section-06 .lcol").filter({ has: page.getByText("Tools", { exact: true }) }),
+      page
+        .locator("#section-06 .lcol")
+        .filter({ has: page.getByText("Apps & agents", { exact: true }) }),
     ).toContainText("OpenCode");
     await page.reload();
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
@@ -101,7 +103,7 @@ test("OpenCode and Command Code appear as independent tools in Stats", async ({ 
   await waitForWorkload(page);
   const tools = page
     .locator("#section-06 .lcol")
-    .filter({ has: page.getByText("Tools", { exact: true }) });
+    .filter({ has: page.getByText("Apps & agents", { exact: true }) });
   await expect(tools).toContainText("OpenCode");
   await expect(tools).toContainText("Command Code");
 });

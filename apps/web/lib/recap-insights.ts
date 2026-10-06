@@ -149,7 +149,7 @@ export function recapInsightCandidates(
     if (median > 0 && tenths <= BigInt(Number.MAX_SAFE_INTEGER) && lower >= 1.5)
       add(
         "week:peak",
-        `Your busiest full week (${dateLabel(best.date)}) ran ${lower.toFixed(1)}x your usual week`,
+        `Your busiest full week (${dateLabel(best.date)}) ran ${lower.toFixed(1)}× your usual week`,
         `${lower.toFixed(1)}×`,
         `USUAL = MEDIAN OF ${weeks.length} ACTIVE WEEKS`,
         82,
@@ -223,9 +223,9 @@ export function recapInsightCandidates(
   )
     add(
       "value:cache",
-      `Cache reads saved ${dollars(Number(wholeSavings))} at list prices`,
+      `Cached context would have cost ${dollars(Number(wholeSavings))} more at full input price`,
       dollars(Number(wholeSavings)),
-      "ESTIMATE FOR MATCHED CACHE READS",
+      "MATCHED CACHE READS AT FULL INPUT PRICE",
       90,
     );
   const monthly = decimalRatio(paid?.monthlyUsd);
@@ -247,7 +247,7 @@ export function recapInsightCandidates(
   )
     add(
       "value:paid",
-      `Your API list-price value was ${lower.toFixed(1)}x your plan cost`,
+      `Your API list-price value was ${lower.toFixed(1)}× your plan cost`,
       `${lower.toFixed(1)}×`,
       "ESTIMATE · PLAN COST PRORATED OVER THIS PERIOD",
       92,

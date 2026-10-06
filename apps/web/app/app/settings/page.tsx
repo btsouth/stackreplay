@@ -43,8 +43,8 @@ export default function SettingsPage() {
         </Setting>
         <Setting
           id="what-you-pay"
-          title="What you pay"
-          description="Optional. Add the subscriptions you pay for and your overview compares your usage, at API prices, with what you paid."
+          title="Your plan price"
+          description="Optional. Add the plans you pay for at their published list price and your overview compares your usage, at API prices, with that plan price."
         >
           <WhatYouPayEditor />
         </Setting>

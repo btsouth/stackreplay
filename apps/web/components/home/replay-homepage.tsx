@@ -37,7 +37,7 @@ export function ReplayHomepage() {
               <a href="#sample" className="btn" aria-label="See a sample">
                 See a sample ↓
               </a>
-              <span className="label">YOUR LOGS STAY ON THIS DEVICE</span>
+              <span className="label">YOUR LOGS NEVER LEAVE THIS BROWSER</span>
             </div>
           </div>
         </section>
@@ -45,7 +45,7 @@ export function ReplayHomepage() {
         <Section
           number="06"
           title="Private by design"
-          note="Your history stays local. Sharing is your choice."
+          note="Your logs never leave this browser. Sharing uploads only the numbers on your card."
           id="privacy"
         >
           <dl className="home-proof">

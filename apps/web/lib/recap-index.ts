@@ -22,6 +22,7 @@ type Ordered<T> = T & { order: number };
 export interface RecapIndexDay {
   date: string;
   records: number;
+  aggregateRecords: number;
   output: number;
   total: number;
   outputKnown: number;
@@ -100,9 +101,11 @@ export function buildRecapIndex(
       output = 0,
       outputKnown = 0,
       totalKnown = 0,
-      sessionKnown = 0;
+      sessionKnown = 0,
+      aggregateRecords = 0;
     group.events.forEach((e, i) => {
       const ordinal = group.ordinals[i]!;
+      if (e.source.adapterId === "hermes" && e.confidence.usage === "estimated") aggregateRecords++;
       const n = outputOf(e),
         t = totalTokensOf(e);
       output += n ?? 0;
@@ -172,6 +175,7 @@ export function buildRecapIndex(
     days.set(date, {
       date,
       records: group.events.length,
+      aggregateRecords,
       total,
       output,
       totalKnown,

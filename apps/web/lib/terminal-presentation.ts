@@ -49,12 +49,14 @@ export function dollars(n: string | number): string {
 }
 /** Rates keep cents even when the aggregate is displayed in whole dollars. */
 export const dollarRate = (n: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
+  n > 0 && n < 0.005
+    ? "<$0.01"
+    : new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(n);
 export function dateLabel(date: string, year = false): string {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
     month: "short",
@@ -109,4 +111,39 @@ export function presentation(r: Recap) {
     topCost,
     peakHour,
   };
+}
+/** New work (input, output, cache writes) against the cached context the tools re-read. */
+export function tokenSplit(r: Recap) {
+  const buckets = r.deep?.buckets;
+  if (!buckets || r.total <= 0) return undefined;
+  return {
+    newTokens: buckets.input + buckets.output + buckets.write,
+    cacheRead: buckets.read,
+    // Share against the headline total, the number the caption sits under.
+    cacheShare: buckets.read / r.total,
+  };
+}
+/** Days with at least one logged request. */
+export function activeDays(r: Recap): number {
+  return r.days.filter((day) => day.records > 0).length;
+}
+/** Models the catalog resolved, with logged tokens, excluding unresolved IDs. */
+export function namedModelCount(r: Recap): number {
+  return r.models.filter(
+    (m) => m.total > 0 && m.family !== "other" && m.name !== "Other / Unresolved",
+  ).length;
+}
+/** Models first seen inside the selected period (all of them for all time). */
+export function periodFirstSeen(r: Recap) {
+  return (r.deep?.firstSeen ?? []).filter(
+    (entry) => r.period === "all" || (entry.date >= r.start && entry.date <= r.end),
+  );
+}
+/** Whole-percent share of logged requests the catalog could price. */
+export function pricedRequestShare(r: { priced: number; records: number }): number {
+  return r.records > 0 ? Math.round((r.priced / r.records) * 100) : 0;
+}
+/** "1 day" / "2 days". */
+export function plural(n: number, one: string, many: string): string {
+  return `${integer(n)} ${n === 1 ? one : many}`;
 }

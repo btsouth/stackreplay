@@ -7,7 +7,18 @@ import { TerminalShare } from "@/components/terminal/share";
 import { sampleGithub, sampleInsights } from "@/lib/home/recap-sample";
 import type { Recap } from "@/lib/recap";
 import { developerNames } from "@/lib/recap-deep";
-import { compact, dateLabel, dollars, integer, presentation } from "@/lib/terminal-presentation";
+import {
+  activeDays,
+  compact,
+  dateLabel,
+  dollars,
+  integer,
+  namedModelCount,
+  plural,
+  presentation,
+  pricedRequestShare,
+  tokenSplit,
+} from "@/lib/terminal-presentation";
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
@@ -16,6 +27,10 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
   const deep = r.deep;
   if (!deep) throw new Error("Sample details are missing.");
   const buckets = deep.buckets;
+  const named = namedModelCount(r);
+  const split = tokenSplit(r);
+  const pricedShare = pricedRequestShare(r);
+  const activeCount = activeDays(r);
   const github = new Map(Object.entries(sampleGithub));
   const ghTotal = [...github.values()].reduce((a, b) => a + b, 0);
   const maxHeat = Math.max(1, ...deep.hours.flat());
@@ -34,8 +49,13 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             <div className="mega" data-testid="sample-total">
               <TightNumber value={compact(r.total)} />
             </div>
+            {split && (
+              <p className="cache-share">
+                {Math.round(split.cacheShare * 100)}% is cached context your tools re-read
+              </p>
+            )}
             <div className="sub">
-              <b>{integer(r.total)}</b> tokens through {p.models.length} models
+              <b>{integer(r.total)}</b> tokens through {p.models.length} models · {named} named
             </div>
             <div className="anat">
               <div className="abar" role="img" aria-label="Sample token composition">
@@ -69,18 +89,28 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             </div>
           </div>
           <div className="side">
-            <Readout label="API value" value={dollars(r.usd)} signal note="AT LIST PRICES" />
-            <Readout label="Models" value={p.models.length} note="IN THIS SAMPLE" />
             <Readout
-              label="Streak"
+              label="API value"
+              value={dollars(r.usd)}
+              signal
+              note={`LIST-PRICE ESTIMATE · ${pricedShare}% OF REQUESTS PRICED`}
+            />
+            <Readout
+              label="New tokens"
+              value={split ? compact(split.newTokens) : "Unreported"}
+              note="INPUT + OUTPUT + CACHE WRITE"
+            />
+            <Readout label="Models" value={p.models.length} note={`${named} NAMED · SAMPLE`} />
+            <Readout
+              label="Current streak · all time"
               value={r.streak}
               unit="days"
-              note={`LONGEST ${r.longestStreak} DAYS`}
+              note={`LONGEST ${r.longestStreak} DAYS · ALL TIME`}
             />
             <Readout
               label="Sessions"
               value={integer(r.sessions)}
-              note={`${r.days.filter((d) => d.records > 0).length} DAYS ACTIVE`}
+              note={`${plural(activeCount, "DAY", "DAYS")} ACTIVE`}
             />
           </div>
         </div>
@@ -243,7 +273,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
       <Section
         number="04"
         title="Rhythm"
-        note="Model calls by weekday and hour. Sample times are UTC."
+        note="Requests by weekday and hour. Sample times are UTC."
       >
         <div className="grid12">
           <div className="cell rhythm">
@@ -258,7 +288,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                       style={
                         { "--v": ((deep.hours[d]?.[h] ?? 0) / maxHeat) ** 0.7 } as CSSProperties
                       }
-                      title={`${String(h).padStart(2, "0")}:00 / ${deep.hours[d]?.[h] ?? 0} calls`}
+                      title={`${String(h).padStart(2, "0")}:00 / ${deep.hours[d]?.[h] ?? 0} requests`}
                     />
                   ))}
                 </div>
@@ -277,7 +307,11 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               value={`${String(p.peakHour).padStart(2, "0")}:00`}
               note="UTC"
             />
-            <Readout label="Busiest day" value={dateLabel(r.busiestDay).toUpperCase()} />
+            <Readout
+              label="Busiest day"
+              value={dateLabel(r.busiestDay).toUpperCase()}
+              note="BY REQUESTS"
+            />
             <Readout
               label="After midnight"
               value={`${Math.round(r.lateNightShare * 100)}%`}

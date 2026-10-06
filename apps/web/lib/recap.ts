@@ -35,6 +35,11 @@ export interface Recap {
   weeks: { date: string; families: Record<string, number> }[];
   tools: { id: string; records: number; output: number; total: number }[];
   records: number;
+  /**
+   * Records that are session/model sums rather than one request each. Hermes
+   * emits these; they are excluded from the request count and named in the UI.
+   */
+  aggregateRecords: number;
   output: number;
   total: number;
   outputKnown: number;
@@ -68,6 +73,20 @@ export function topRecapModels(models: readonly RecapModel[], limit = 5): RecapM
     )
     .sort((a, b) => b.total - a.total || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .slice(0, Math.max(0, limit));
+}
+export type PricingCoverage = "none" | "partial" | "full";
+/**
+ * How much of a model's logged requests the catalog can price. Some models are
+ * only partly priced (for example a category the developer does not publish),
+ * so their dollar figure is a low bound rather than the whole story.
+ */
+export function pricingCoverage(row: { priced: number; records: number }): PricingCoverage {
+  if (row.priced <= 0) return "none";
+  return row.priced < row.records ? "partial" : "full";
+}
+/** Requests logged, with session/model aggregate rows removed. */
+export function requestCountOf(recap: { records: number; aggregateRecords: number }): number {
+  return Math.max(0, recap.records - recap.aggregateRecords);
 }
 export function outputOf(event: TextUsageEventV1): number | undefined {
   const u = event.usage;
@@ -180,8 +199,10 @@ export function buildRecap(
   let usd = new Decimal(0);
   let usdHigh = new Decimal(0);
   let cacheScenarioRecords = 0;
+  let aggregateRecords = 0;
   for (const e of selected) {
     const { date, hour } = local(e.occurredAt);
+    if (e.source.adapterId === "hermes" && e.confidence.usage === "estimated") aggregateRecords++;
     const tokens = outputOf(e);
     const n = tokens ?? 0;
     const allTokens = totalTokensOf(e);
@@ -305,6 +326,7 @@ export function buildRecap(
       .map(([date, families]) => ({ date, families })),
     tools: [...tools.values()].sort((a, b) => b.records - a.records),
     records: selected.length,
+    aggregateRecords,
     output,
     outputKnown,
     total,

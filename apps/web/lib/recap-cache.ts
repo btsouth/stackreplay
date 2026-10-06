@@ -101,10 +101,12 @@ export async function loadCachedRecap(
   now: string,
   timeZone: string,
   onPrevious?: (recap: Recap) => void,
+  onStatus?: (status: "reading" | "updating" | "idle") => void,
 ): Promise<Recap> {
   const generation = historyGeneration();
   let entry = entries.get(id);
   if (entry && fresh(entry.index, now, timeZone)) return result(entry, period, now);
+  onStatus?.("reading");
   const readStart = performance.now();
   const stored = sessionHistoryRecord(id) ? undefined : await readRecapIndex(id);
   performance.measure("stackreplay:recap:index-read", {
@@ -119,7 +121,10 @@ export async function loadCachedRecap(
   const saved = stored?.rows.find(
     (row) => row.revision === revision && fresh(row.index, now, timeZone),
   );
-  if (saved) return result(remember(id, revision, saved.index), period, now);
+  if (saved) {
+    onStatus?.("idle");
+    return result(remember(id, revision, saved.index), period, now);
+  }
   const stale = stored?.rows.find(
     (row) => row.revision === revision && row.index?.version === RECAP_INDEX_VERSION,
   );
@@ -129,5 +134,10 @@ export async function loadCachedRecap(
       onPrevious?.(result(entry, period, entry.index.asOf));
     } catch {}
   }
-  return result(await rebuild(id, now, timeZone), period, now);
+  onStatus?.("updating");
+  try {
+    return result(await rebuild(id, now, timeZone), period, now);
+  } finally {
+    onStatus?.("idle");
+  }
 }

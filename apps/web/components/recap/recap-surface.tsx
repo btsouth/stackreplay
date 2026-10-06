@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Overview } from "@/components/terminal/overview";
 import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
 import { useRecapData } from "@/lib/use-recap-data";
@@ -42,25 +43,32 @@ export function RecapSurface({
           <div className="supported-tools label">
             CLAUDE CODE · CODEX · OPENCODE · COMMAND CODE · HERMES
           </div>
-          <div className="local-proof label">NOTHING LEAVES YOUR BROWSER. YOUR LOGS STAY HERE.</div>
+          <div className="local-proof label">
+            Your logs never leave this browser. Sharing uploads only the numbers on your card.
+            Connecting GitHub sends only your username.
+          </div>
         </div>
         {sample}
       </div>
     ) : (
-      <div className="status" role="status">
-        <div className="label">READING LOCAL HISTORY</div>
-        <p>Calculating your overview on this device…</p>
-      </div>
+      <SavedSummaryStatus status={data.indexStatus === "updating" ? "updating" : "reading"} />
     );
   return (
     <>
+      {data.indexStatus !== "idle" ? <SavedSummaryStatus status={data.indexStatus} /> : null}
       {(data.imports?.length ?? 0) > 1 && (
         <div className="history-picker">
           <label htmlFor="history">History</label>
           <select id="history" value={data.id} onChange={(e) => data.selectHistory(e.target.value)}>
             {data.imports?.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.label}
+                {`${r.label} · ${new Date(r.createdAt).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}`}
               </option>
             ))}
           </select>
@@ -87,5 +95,33 @@ export function RecapSurface({
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * A saved scan's derived summary can be out of date after an app or catalog
+ * update. Say so plainly and show that time is passing, instead of leaving an
+ * unexplained pause.
+ */
+function SavedSummaryStatus({ status }: { status: "reading" | "updating" }) {
+  const [seconds, setSeconds] = useState(0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new status restarts the elapsed timer.
+  useEffect(() => {
+    const started = Date.now();
+    const timer = window.setInterval(
+      () => setSeconds(Math.floor((Date.now() - started) / 1000)),
+      250,
+    );
+    return () => window.clearInterval(timer);
+  }, [status]);
+  return (
+    <div className="status inline-status" role="status" data-testid="recap-index-status">
+      <div className="label">
+        {status === "updating"
+          ? "UPDATING YOUR SAVED SUMMARY (ONE TIME)"
+          : "READING YOUR SAVED HISTORY"}
+      </div>
+      <p>Calculating your overview on this device…{seconds > 0 ? ` ${seconds}s` : ""}</p>
+    </div>
   );
 }

@@ -291,6 +291,13 @@
   color: var(--fg);
   font-weight: 500;
 }
+.terminal .cache-share {
+  margin: 6px 0 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--dim);
+}
 .terminal .anat {
   margin-top: 36px;
 }
@@ -1135,6 +1142,10 @@
 }
 .terminal .status h1 {
   font-size: 40px;
+}
+.terminal .status.inline-status {
+  margin: 0 0 20px;
+  padding: 16px 20px;
 }
 .terminal .seg label {
   cursor: pointer;

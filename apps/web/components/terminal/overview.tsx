@@ -4,17 +4,23 @@ import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import { PartialScanNotice } from "@/components/import/evidence";
 import { combinedActivity } from "@/lib/github-activity";
-import type { Recap, RecapPeriod } from "@/lib/recap";
+import { pricingCoverage, type Recap, type RecapPeriod, requestCountOf } from "@/lib/recap";
 import { recapInsights } from "@/lib/recap-insights";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
 import {
+  activeDays,
   compact,
   dateLabel,
   dollarRate,
   dollars,
   integer,
   modelDisplayName,
+  namedModelCount,
+  periodFirstSeen,
+  plural,
   presentation,
+  pricedRequestShare,
+  tokenSplit,
   unresolvedModel,
 } from "@/lib/terminal-presentation";
 import { useGitHubActivity } from "@/lib/use-github-activity";
@@ -42,6 +48,12 @@ export function Overview({
   paid?: PaidFigure | undefined;
 }) {
   const p = useMemo(() => presentation(r), [r]);
+  const activeCount = activeDays(r);
+  const named = namedModelCount(r);
+  const requests = requestCountOf(r);
+  const split = tokenSplit(r);
+  const pricedShare = pricedRequestShare(r);
+  const debuts = periodFirstSeen(r);
   const gh = useGitHubActivity();
   const [login, setLogin] = useState("");
   const activity = useMemo(
@@ -66,8 +78,13 @@ export function Overview({
       <div className="cmd">
         <div>
           <div className="path">
-            <b>›</b> {dateLabel(r.start, true)} to {dateLabel(r.end, true)} · {r.days.length} DAYS ·{" "}
-            {r.tools.length} TOOLS · {integer(r.records)} MODEL CALLS
+            <b>›</b> {dateLabel(r.start, true)} to {dateLabel(r.end, true)} ·{" "}
+            {plural(r.days.length, "DAY", "DAYS")} ·{" "}
+            {plural(r.tools.length, "LOG SOURCE", "LOG SOURCES")} · {integer(requests)} REQUESTS
+            LOGGED
+            {r.aggregateRecords > 0
+              ? ` · ${integer(r.aggregateRecords)} SESSION SUMMARIES EXCLUDED`
+              : ""}
           </div>
           <h1>Your AI coding, all of it.</h1>
         </div>
@@ -114,8 +131,13 @@ export function Overview({
           <div className="mega">
             <TightNumber value={compact(r.total)} />
           </div>
+          {split && (
+            <p className="cache-share">
+              {Math.round(split.cacheShare * 100)}% is cached context your tools re-read
+            </p>
+          )}
           <div className="sub">
-            <b>{integer(r.total)}</b> tokens through {p.models.length} models
+            <b>{integer(r.total)}</b> tokens through {p.models.length} models · {named} named
           </div>
           {buckets && (
             <div className="anat">
@@ -155,19 +177,28 @@ export function Overview({
             label="API value"
             value={r.priced ? dollars(r.usd) : "unpriced"}
             signal
-            note="AT LIST PRICES"
+            note={
+              r.priced
+                ? `LIST-PRICE ESTIMATE · ${pricedShare}% OF REQUESTS PRICED`
+                : "NO REQUESTS PRICED"
+            }
             testId="recap-value"
+          />
+          <Readout
+            label="New tokens"
+            value={split ? compact(split.newTokens) : "Unreported"}
+            note="INPUT + OUTPUT + CACHE WRITE"
           />
           {paid ? (
             <Readout
-              label="vs. what you paid"
+              label="vs. plan price"
               value={paid.text}
-              note={`${dollars((Number(paid.monthlyUsd) * paid.days) / 30.4)} PAID OVER ${paid.days} DAYS`}
+              note={`${dollars((Number(paid.monthlyUsd) * paid.days) / 30.4)} PLAN PRICE OVER ${paid.days} DAYS`}
               testId="recap-paid"
             />
           ) : (
             <Readout
-              label="vs. what you paid"
+              label="vs. plan price"
               value={
                 <Link className="paid-link" href="/app/settings#what-you-pay">
                   Add plan price ↗
@@ -177,15 +208,15 @@ export function Overview({
             />
           )}
           <Readout
-            label="Streak"
+            label="Current streak · all time"
             value={integer(r.streak)}
             unit="days"
-            note={`LONGEST ${r.longestStreak} DAYS`}
+            note={`LONGEST ${r.longestStreak} DAYS · ALL TIME`}
           />
           <Readout
             label="Sessions"
             value={integer(r.sessions)}
-            note={`${r.days.filter((d) => d.records > 0).length} OF ${r.days.length} DAYS ACTIVE`}
+            note={`${integer(activeCount)} OF ${plural(r.days.length, "DAY", "DAYS")} ACTIVE`}
           />
         </div>
       </div>
@@ -273,12 +304,13 @@ export function Overview({
               }
             />
             <Readout
-              label="Days shipping with AI"
+              label="Days with AI and GitHub"
               value={activity ? activity.longestJointStreak : "Connect to compare"}
               unit={activity ? "days" : undefined}
+              note={activity ? "LONGEST RUN" : undefined}
             />
             <Readout
-              label="Biggest shipping day"
+              label="Most GitHub contributions in a day"
               value={activity?.bestDay ? integer(activity.bestDay.count) : "See your best day"}
               note={activity?.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
             />
@@ -377,14 +409,18 @@ export function Overview({
             <Readout
               label="Spread"
               value={
-                p.fastest && p.slowest && p.slowest.median > 0
-                  ? `${(p.fastest.median / p.slowest.median).toFixed(1)}×`
-                  : "Unreported"
+                p.speeds.length < 2
+                  ? "One timed model"
+                  : p.fastest && p.slowest && p.slowest.median > 0
+                    ? `${(p.fastest.median / p.slowest.median).toFixed(1)}×`
+                    : "Unreported"
               }
               note={
-                p.fastest && p.slowest
-                  ? `${name(p.fastest.id)} vs ${name(p.slowest.id)}`
-                  : undefined
+                p.speeds.length < 2
+                  ? "NEEDS TWO TIMED MODELS"
+                  : p.fastest && p.slowest
+                    ? `${name(p.fastest.id)} vs ${name(p.slowest.id)}`
+                    : undefined
               }
             />
             {p.workhorse && (
@@ -401,7 +437,7 @@ export function Overview({
       <Section
         number="03"
         title="Models"
-        note={`${p.models.length} models. API value uses each developer's list price.`}
+        note={`${p.models.length} models · ${named} named. API value is a low-bound list-price estimate for priced requests only. A session can span models.`}
       >
         <div className="grid12">
           <div className="cell tablecell">
@@ -417,7 +453,7 @@ export function Overview({
                     "API VALUE",
                     "SESSIONS",
                     "TOK/S",
-                    "FIRST USED",
+                    "FIRST USED (ALL TIME)",
                   ].map((s, i) => (
                     <th key={s} className={[0, 3, 5, 6, 7].includes(i) ? "num" : undefined}>
                       {s}
@@ -428,7 +464,8 @@ export function Overview({
               <tbody>
                 {p.top.map((m, i) => {
                   const s = p.speeds.find((s) => s.id === m.id),
-                    first = r.deep?.firstSeen.find((f) => f.id === m.id);
+                    first = r.deep?.firstSeen.find((f) => f.id === m.id),
+                    coverage = pricingCoverage(m);
                   return (
                     <tr key={m.id}>
                       <td className="num dim">{String(i + 1).padStart(2, "0")}</td>
@@ -458,7 +495,13 @@ export function Overview({
                         </div>
                       </td>
                       <td className="num" data-label="API VALUE">
-                        {m.priced ? dollars(m.usd) : <span className="faint">unpriced</span>}
+                        {coverage === "none" ? (
+                          <span className="faint">unpriced</span>
+                        ) : coverage === "partial" ? (
+                          <span className="faint">partly priced</span>
+                        ) : (
+                          dollars(m.usd)
+                        )}
                       </td>
                       <td className="num" data-label="SESSIONS">
                         {integer(r.explorer?.modelSessions[m.id] ?? 0)}
@@ -478,6 +521,7 @@ export function Overview({
               {p.top.map((m) => {
                 const speed = p.speeds.find((s) => s.id === m.id);
                 const first = r.deep?.firstSeen.find((f) => f.id === m.id);
+                const coverage = pricingCoverage(m);
                 return (
                   <div className="mobile-model" key={m.id}>
                     <div className="mobile-model-main">
@@ -499,8 +543,12 @@ export function Overview({
                       </div>
                     </div>
                     <p className="mobile-model-meta">
-                      {m.priced ? dollars(m.usd) : "unpriced"} ·{" "}
-                      {integer(r.explorer?.modelSessions[m.id] ?? 0)} sessions ·{" "}
+                      {coverage === "none"
+                        ? "unpriced"
+                        : coverage === "partial"
+                          ? "partly priced"
+                          : dollars(m.usd)}{" "}
+                      · {integer(r.explorer?.modelSessions[m.id] ?? 0)} sessions ·{" "}
                       {speed ? `${speed.median.toFixed(1)} tok/s` : "timing unreported"} ·{" "}
                       {first ? dateLabel(first.date).toUpperCase() : "first use unreported"}
                     </p>
@@ -526,7 +574,7 @@ export function Overview({
       <Section
         number="04"
         title="Value"
-        note={`Estimated at list prices checked ${dateLabel(r.rulesAsOf, true)}. Not an invoice.`}
+        note={`Estimated at list prices. Calculated ${dateLabel(r.rulesAsOf, true)}. Not an invoice.`}
       >
         <div className="grid12">
           <div className="cell cost">
@@ -540,8 +588,8 @@ export function Overview({
           </div>
           <div className="costside">
             <Readout
-              label="Per day"
-              value={r.priced ? dollars(Number(r.usd) / Math.max(1, r.days.length)) : "unpriced"}
+              label="Per active day"
+              value={r.priced ? dollars(Number(r.usd) / Math.max(1, activeCount)) : "unpriced"}
             />
             <Readout
               label="Per 1M tokens"
@@ -555,14 +603,19 @@ export function Overview({
               note={p.peakCost?.value ? dateLabel(p.peakCost.date).toUpperCase() : undefined}
             />
             <Readout
-              label="Saved by cache"
+              label="Cache discount"
               value={r.deep?.cacheSavingsRecords ? dollars(r.deep.cacheSavings) : "Unreported"}
               signal
+              note="FULL INPUT PRICE VS CACHED"
             />
             <div className="cell kv">
-              <div className="label">Most valuable model</div>
+              <div className="label">Highest API value model</div>
               <div className="model-value">
-                {p.topCost ? `${name(p.topCost.id)} · ${dollars(p.topCost.usd)}` : "unpriced"}
+                {p.topCost
+                  ? `${name(p.topCost.id)} · ${dollars(p.topCost.usd)}${
+                      pricingCoverage(p.topCost) === "partial" ? " · partly priced" : ""
+                    }`
+                  : "unpriced"}
               </div>
             </div>
           </div>
@@ -571,7 +624,7 @@ export function Overview({
       <Section
         number="05"
         title="Rhythm"
-        note="Model calls by hour, in your local time. Monday first."
+        note="Requests by hour, in your local time. Monday first."
       >
         <div className="grid12">
           <div className="cell rhythm">
@@ -586,7 +639,7 @@ export function Overview({
                       style={
                         { "--v": ((r.deep?.hours[d]?.[h] ?? 0) / maxHeat) ** 0.7 } as CSSProperties
                       }
-                      title={`${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]} ${String(h).padStart(2, "0")}:00 · ${integer(r.deep?.hours[d]?.[h] ?? 0)} calls`}
+                      title={`${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]} ${String(h).padStart(2, "0")}:00 · ${integer(r.deep?.hours[d]?.[h] ?? 0)} requests`}
                     />
                   ))}
                 </div>
@@ -601,7 +654,11 @@ export function Overview({
           </div>
           <div className="rside">
             <Readout label="Peak hour" value={`${String(p.peakHour).padStart(2, "0")}:00`} />
-            <Readout label="Busiest day" value={dateLabel(r.busiestDay).toUpperCase()} />
+            <Readout
+              label="Busiest day"
+              value={dateLabel(r.busiestDay).toUpperCase()}
+              note="BY REQUESTS"
+            />
             <Readout
               label="After midnight"
               value={`${Math.round(r.lateNightShare * 100)}%`}
@@ -618,7 +675,7 @@ export function Overview({
       >
         <div className="grid12">
           <BarList
-            label="Tools"
+            label="Apps & agents"
             rows={(r.deep?.harnesses ?? r.tools).map((t) => ({
               id: t.id,
               name: harnessNames[t.id] ?? t.id,
@@ -626,7 +683,7 @@ export function Overview({
             }))}
           />
           <BarList
-            label="Served by"
+            label="Served by · inferred where unrecorded"
             rows={(r.deep?.providers ?? []).map((t) => ({
               id: t.id,
               name: providerNames[t.id] ?? t.id,
@@ -645,19 +702,27 @@ export function Overview({
       </Section>
       <Section
         number="07"
-        title="Debuts"
-        note={`The day each model first showed up in your history. ${r.deep?.firstSeen.length ?? 0} so far.`}
+        title={r.period === "all" ? "First seen" : "New this period"}
+        note={
+          r.period === "all"
+            ? `The day each model first showed up in your history. ${debuts.length} so far.`
+            : `Models first seen in this period: ${debuts.length}. Earlier first-use dates stay in the table.`
+        }
       >
         <div className="grid12">
           <div className="cell logbox">
-            {(r.deep?.firstSeen ?? []).map((f) => (
-              <div className="logl" key={f.id}>
-                <time dateTime={f.date}>{dateLabel(f.date).toUpperCase()}</time>
-                <span className="plus">+</span>
-                <i style={{ background: p.colors.get(f.id) ?? "var(--dim)" }} />
-                <span>{name(f.id)}</span>
-              </div>
-            ))}
+            {debuts.length === 0 ? (
+              <p className="dim">No new models in this period.</p>
+            ) : (
+              debuts.map((f) => (
+                <div className="logl" key={f.id}>
+                  <time dateTime={f.date}>{dateLabel(f.date).toUpperCase()}</time>
+                  <span className="plus">+</span>
+                  <i style={{ background: p.colors.get(f.id) ?? "var(--dim)" }} />
+                  <span>{name(f.id)}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </Section>

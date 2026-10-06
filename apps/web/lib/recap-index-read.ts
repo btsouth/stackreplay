@@ -46,6 +46,7 @@ export function buildRecapFromIndex(index: RecapIndex, period: RecapPeriod, now:
     cacheSavingsRecords: 0,
   };
   let records = 0,
+    aggregateRecords = 0,
     output = 0,
     total = 0,
     outputKnown = 0,
@@ -57,6 +58,7 @@ export function buildRecapFromIndex(index: RecapIndex, period: RecapPeriod, now:
     cacheScenarioRecords = 0;
   for (const d of selected) {
     records += d.records;
+    aggregateRecords += d.aggregateRecords;
     output += d.output;
     total += d.total;
     outputKnown += d.outputKnown;
@@ -203,6 +205,7 @@ export function buildRecapFromIndex(index: RecapIndex, period: RecapPeriod, now:
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, families]) => ({ date, families })),
     records,
+    aggregateRecords,
     output,
     total,
     outputKnown,

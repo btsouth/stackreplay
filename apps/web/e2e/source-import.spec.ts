@@ -305,7 +305,7 @@ test("custom file controls retain native labels and mobile saved actions reflow"
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("portable workload picker accepts the same file twice and opens the new snapshot", async ({
+test("portable workload picker accepts the same file twice and replaces the older saved scan", async ({
   page,
 }) => {
   await gotoImport(page);
@@ -322,7 +322,8 @@ test("portable workload picker accepts the same file twice and opens the new sna
   await waitForWorkload(page);
   expect(new URL(page.url()).searchParams.get("import")).not.toBe(firstId);
   await visitImportManager(page);
-  await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(2);
+  // The same source is one current history; the earlier saved scan is replaced.
+  await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(1);
 });
 
 test("unsupported selected source reports its reason", async ({ page }) => {
